@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2023 David Runge <dvzrv@archlinux.org>
+# SPDX-License-Identifier: CC0-1.0
+
+[package]
+authors = ["David Runge <dvzrv@archlinux.org>"]
+description = "Types for Arch Linux Package Management"
+edition = "2021"
+exclude = ["/.ci/", ".gitlab-ci.yml"]
+homepage = "https://gitlab.archlinux.org/archlinux/alpm/alpm-types"
+keywords = ["alpm", "arch", "linux", "packaging"]
+license = "LGPL-3.0-or-later"
+name = "alpm-types"
+readme = "README.md"
+repository = "https://gitlab.archlinux.org/archlinux/alpm/alpm-types"
+rust-version = "1.56.1"
+version = "0.0.0"
+
+[dependencies]
+chrono = "0.4.23"
