@@ -14,6 +14,9 @@ use strum_macros::EnumString;
 mod error;
 pub use error::Error;
 
+mod macros;
+use macros::regex_once;
+
 /// CPU architecture
 ///
 /// Members of the Architecture enum can be created from `&str`.
@@ -229,6 +232,69 @@ impl Display for InstalledSize {
     }
 }
 
+/// A package name
+///
+/// Package names may contain the characters `[a-z\d\-._@+]`, but must not
+/// start with `[-.]`.
+///
+/// ## Examples
+/// ```
+/// use alpm_types::{Name, Error};
+/// use std::str::FromStr;
+///
+/// // create Name from &str
+/// assert_eq!(
+///     Name::from_str("test-123@.foo_+"),
+///     Ok(Name::new("test-123@.foo_+").unwrap())
+/// );
+/// assert_eq!(
+///     Name::from_str(".test"),
+///     Err(Error::InvalidName(".test".to_string()))
+/// );
+///
+/// // format as String
+/// assert_eq!("foo", format!("{}", Name::new("foo").unwrap()));
+/// ```
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Name {
+    name: String,
+}
+
+impl Name {
+    /// Create a new Name in a Result
+    pub fn new(name: &str) -> Result<Name, Error> {
+        Name::validate(name)
+    }
+
+    /// Validate a string and return a Name in a Result
+    ///
+    /// The validation happens on the basis of the allowed characters as
+    /// defined by the Name type.
+    pub fn validate(name: &str) -> Result<Name, Error> {
+        if regex_once!(r"^[a-z\d_@+]+[a-z\d\-._@+]*$").is_match(name) {
+            Ok(Name {
+                name: name.to_string(),
+            })
+        } else {
+            Err(Error::InvalidName(name.to_string()))
+        }
+    }
+}
+
+impl FromStr for Name {
+    type Err = Error;
+    /// Create a Name from a string
+    fn from_str(input: &str) -> Result<Name, Self::Err> {
+        Name::validate(input)
+    }
+}
+
+impl Display for Name {
+    fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
+        write!(fmt, "{}", self.name)
+    }
+}
+
 /// The type of a package
 ///
 /// ## Examples
@@ -266,6 +332,7 @@ pub enum PkgType {
 mod tests {
     use super::*;
     use chrono::NaiveDateTime;
+    use proptest::prelude::*;
     use rstest::rstest;
     use strum::ParseError;
 
@@ -359,6 +426,22 @@ mod tests {
     #[rstest]
     fn installedsize_format_string() {
         assert_eq!("1", format!("{}", InstalledSize::new(1)));
+    }
+
+    proptest! {
+        #![proptest_config(ProptestConfig::with_cases(1000))]
+
+        #[test]
+        fn valid_name_from_string(name_str in r"[a-z\d_@+]+[a-z\d\-._@+]*") {
+            let name = Name::from_str(&name_str).unwrap();
+            prop_assert_eq!(name_str, format!("{}", name));
+        }
+
+        #[test]
+        fn invalid_name_from_string_start(name_str in r"[\-.]+[a-z\d\-._@+]*") {
+            let error = Name::from_str(&name_str).unwrap_err();
+            assert!(format!("{}", error).ends_with(&name_str));
+        }
     }
 
     #[rstest]

@@ -15,6 +15,9 @@ pub enum Error {
     /// An invalid installed package size (in bytes)
     #[error("Invalid installed size: {0}")]
     InvalidInstalledSize(String),
+    /// An invalid package name
+    #[error("Invalid package name: {0}")]
+    InvalidName(String),
 }
 
 #[cfg(test)]
@@ -32,6 +35,7 @@ mod tests {
         "Invalid installed size: -1",
         Error::InvalidInstalledSize(String::from("-1"))
     )]
+    #[case("Invalid package name: -1", Error::InvalidName(String::from("-1")))]
     fn error_format_string(#[case] error_str: &str, #[case] error: Error) {
         assert_eq!(error_str, format!("{}", error));
     }

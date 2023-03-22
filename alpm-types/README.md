@@ -62,6 +62,17 @@ use std::str::FromStr;
 assert_eq!(InstalledSize::from_str("1"), Ok(InstalledSize::new(1)));
 ```
 
+The name for a package is restricted to a specific set of characters.
+You can create `Name` directly or from str, which yields a Result:
+
+```rust
+use std::str::FromStr;
+use alpm_types::{Error, Name};
+
+assert_eq!(Name::from_str("test-123@.foo_+"), Ok(Name::new("test-123@.foo_+")));
+assert_eq!(Name::from_str(".foo"), Err(Error::InvalidName(".foo".to_string())));
+```
+
 Package types are distinguished using the `PkgType` enum. Its variants can be constructed from str:
 
 ```rust
