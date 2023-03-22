@@ -62,6 +62,15 @@ use std::str::FromStr;
 assert_eq!(InstalledSize::from_str("1"), Ok(InstalledSize::new(1)));
 ```
 
+Package types are distinguished using the `PkgType` enum. Its variants can be constructed from str:
+
+```rust
+use std::str::FromStr;
+use alpm_types::PkgType;
+
+assert_eq!(PkgType::from_str("pkg"), Ok(PkgType::Package));
+```
+
 ## Contributing
 
 Please refer to the [contribution guidelines](CONTRIBUTING.md) to learn how to

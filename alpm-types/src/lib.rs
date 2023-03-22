@@ -229,6 +229,39 @@ impl Display for InstalledSize {
     }
 }
 
+/// The type of a package
+///
+/// ## Examples
+/// ```
+/// use std::str::FromStr;
+/// use alpm_types::PkgType;
+///
+/// // create PkgType from str
+/// assert_eq!(PkgType::from_str("pkg"), Ok(PkgType::Package));
+///
+/// // format as String
+/// assert_eq!("debug", format!("{}", PkgType::Debug));
+/// assert_eq!("pkg", format!("{}", PkgType::Package));
+/// assert_eq!("src", format!("{}", PkgType::Source));
+/// assert_eq!("split", format!("{}", PkgType::Split));
+/// ```
+#[derive(Debug, Display, EnumString, PartialEq)]
+#[non_exhaustive]
+pub enum PkgType {
+    /// a debug package
+    #[strum(to_string = "debug")]
+    Debug,
+    /// a single (non-split) package
+    #[strum(to_string = "pkg")]
+    Package,
+    /// a source-only package
+    #[strum(to_string = "src")]
+    Source,
+    /// one split package out of a set of several
+    #[strum(to_string = "split")]
+    Split,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -326,5 +359,24 @@ mod tests {
     #[rstest]
     fn installedsize_format_string() {
         assert_eq!("1", format!("{}", InstalledSize::new(1)));
+    }
+
+    #[rstest]
+    #[case("debug", Ok(PkgType::Debug))]
+    #[case("pkg", Ok(PkgType::Package))]
+    #[case("src", Ok(PkgType::Source))]
+    #[case("split", Ok(PkgType::Split))]
+    #[case("foo", Err(ParseError::VariantNotFound))]
+    fn pkgtype_from_string(#[case] from_str: &str, #[case] result: Result<PkgType, ParseError>) {
+        assert_eq!(PkgType::from_str(from_str), result);
+    }
+
+    #[rstest]
+    #[case(PkgType::Debug, "debug")]
+    #[case(PkgType::Package, "pkg")]
+    #[case(PkgType::Source, "src")]
+    #[case(PkgType::Split, "split")]
+    fn pkgtype_format_string(#[case] pkgtype: PkgType, #[case] pkgtype_str: &str) {
+        assert_eq!(pkgtype_str, format!("{}", pkgtype));
     }
 }
