@@ -233,75 +233,64 @@ impl Display for InstalledSize {
 mod tests {
     use super::*;
     use chrono::NaiveDateTime;
+    use rstest::rstest;
     use strum::ParseError;
 
-    #[test]
-    fn architecture_from_string() {
-        assert_eq!(Architecture::from_str("aarch64"), Ok(Architecture::Aarch64));
-        assert_eq!(Architecture::from_str("any"), Ok(Architecture::Any));
-        assert_eq!(Architecture::from_str("arm"), Ok(Architecture::Arm));
-        assert_eq!(Architecture::from_str("armv6h"), Ok(Architecture::Armv6h));
-        assert_eq!(Architecture::from_str("armv7h"), Ok(Architecture::Armv7h));
-        assert_eq!(Architecture::from_str("i486"), Ok(Architecture::I486));
-        assert_eq!(Architecture::from_str("i686"), Ok(Architecture::I686));
-        assert_eq!(
-            Architecture::from_str("pentium4"),
-            Ok(Architecture::Pentium4)
-        );
-        assert_eq!(Architecture::from_str("riscv32"), Ok(Architecture::Riscv32));
-        assert_eq!(Architecture::from_str("riscv64"), Ok(Architecture::Riscv64));
-        assert_eq!(Architecture::from_str("x86_64"), Ok(Architecture::X86_64));
-        assert_eq!(
-            Architecture::from_str("x86_64_v2"),
-            Ok(Architecture::X86_64V2)
-        );
-        assert_eq!(
-            Architecture::from_str("x86_64_v3"),
-            Ok(Architecture::X86_64V3)
-        );
-        assert_eq!(
-            Architecture::from_str("x86_64_v4"),
-            Ok(Architecture::X86_64V4)
-        );
-        assert_eq!(
-            Architecture::from_str("foo"),
-            Err(ParseError::VariantNotFound)
-        );
+    #[rstest]
+    #[case("aarch64", Ok(Architecture::Aarch64))]
+    #[case("any", Ok(Architecture::Any))]
+    #[case("arm", Ok(Architecture::Arm))]
+    #[case("armv6h", Ok(Architecture::Armv6h))]
+    #[case("armv7h", Ok(Architecture::Armv7h))]
+    #[case("i486", Ok(Architecture::I486))]
+    #[case("i686", Ok(Architecture::I686))]
+    #[case("pentium4", Ok(Architecture::Pentium4))]
+    #[case("riscv32", Ok(Architecture::Riscv32))]
+    #[case("riscv64", Ok(Architecture::Riscv64))]
+    #[case("x86_64", Ok(Architecture::X86_64))]
+    #[case("x86_64_v2", Ok(Architecture::X86_64V2))]
+    #[case("x86_64_v3", Ok(Architecture::X86_64V3))]
+    #[case("x86_64_v4", Ok(Architecture::X86_64V4))]
+    #[case("foo", Err(ParseError::VariantNotFound))]
+    fn architecture_from_string(
+        #[case] from_str: &str,
+        #[case] arch: Result<Architecture, ParseError>,
+    ) {
+        assert_eq!(Architecture::from_str(from_str), arch);
     }
 
-    #[test]
-    fn architecture_format_string() {
-        assert_eq!("aarch64", format!("{}", Architecture::Aarch64));
-        assert_eq!("any", format!("{}", Architecture::Any));
-        assert_eq!("arm", format!("{}", Architecture::Arm));
-        assert_eq!("armv6h", format!("{}", Architecture::Armv6h));
-        assert_eq!("armv7h", format!("{}", Architecture::Armv7h));
-        assert_eq!("i486", format!("{}", Architecture::I486));
-        assert_eq!("i686", format!("{}", Architecture::I686));
-        assert_eq!("pentium4", format!("{}", Architecture::Pentium4));
-        assert_eq!("riscv32", format!("{}", Architecture::Riscv32));
-        assert_eq!("riscv64", format!("{}", Architecture::Riscv64));
-        assert_eq!("x86_64", format!("{}", Architecture::X86_64));
-        assert_eq!("x86_64_v2", format!("{}", Architecture::X86_64V2));
-        assert_eq!("x86_64_v3", format!("{}", Architecture::X86_64V3));
-        assert_eq!("x86_64_v4", format!("{}", Architecture::X86_64V4));
+    #[rstest]
+    #[case(Architecture::Aarch64, "aarch64")]
+    #[case(Architecture::Any, "any")]
+    #[case(Architecture::Arm, "arm")]
+    #[case(Architecture::Armv6h, "armv6h")]
+    #[case(Architecture::Armv7h, "armv7h")]
+    #[case(Architecture::I486, "i486")]
+    #[case(Architecture::I686, "i686")]
+    #[case(Architecture::Pentium4, "pentium4")]
+    #[case(Architecture::Riscv32, "riscv32")]
+    #[case(Architecture::Riscv64, "riscv64")]
+    #[case(Architecture::X86_64, "x86_64")]
+    #[case(Architecture::X86_64V2, "x86_64_v2")]
+    #[case(Architecture::X86_64V3, "x86_64_v3")]
+    #[case(Architecture::X86_64V4, "x86_64_v4")]
+    fn architecture_format_string(#[case] arch: Architecture, #[case] arch_str: &str) {
+        assert_eq!(arch_str, format!("{}", arch));
     }
 
-    #[test]
-    fn builddate_from_string() {
-        assert_eq!(BuildDate::from_str("1"), Ok(BuildDate { date: 1 }));
-        assert_eq!(
-            BuildDate::from_str("foo"),
-            Err(Error::InvalidBuildDate(String::from("foo")))
-        );
+    #[rstest]
+    #[case("1", Ok(BuildDate { date: 1 }))]
+    #[case("foo", Err(Error::InvalidBuildDate(String::from("foo"))))]
+    fn builddate_from_string(#[case] from_str: &str, #[case] result: Result<BuildDate, Error>) {
+        assert_eq!(BuildDate::from_str(from_str), result);
     }
 
-    #[test]
+    #[rstest]
     fn builddate_format_string() {
         assert_eq!("1", format!("{}", BuildDate::new(1)));
     }
 
-    #[test]
+    #[rstest]
     fn datetime_into_builddate() {
         let builddate = BuildDate { date: 1 };
         let datetime: BuildDate =
@@ -309,30 +298,32 @@ mod tests {
         assert_eq!(builddate, datetime);
     }
 
-    #[test]
-    fn compressedsize_from_string() {
-        assert_eq!(CompressedSize::from_str("1"), Ok(CompressedSize::new(1)));
-        assert_eq!(
-            CompressedSize::from_str("-1"),
-            Err(Error::InvalidCompressedSize(String::from("-1")))
-        );
+    #[rstest]
+    #[case("1", Ok(CompressedSize::new(1)))]
+    #[case("-1", Err(Error::InvalidCompressedSize(String::from("-1"))))]
+    fn compressedsize_from_string(
+        #[case] from_str: &str,
+        #[case] result: Result<CompressedSize, Error>,
+    ) {
+        assert_eq!(CompressedSize::from_str(from_str), result);
     }
 
-    #[test]
+    #[rstest]
     fn compressedsize_format_string() {
         assert_eq!("1", format!("{}", CompressedSize::new(1)));
     }
 
-    #[test]
-    fn installedsize_from_string() {
-        assert_eq!(InstalledSize::from_str("1"), Ok(InstalledSize::new(1)));
-        assert_eq!(
-            InstalledSize::from_str("-1"),
-            Err(Error::InvalidInstalledSize(String::from("-1")))
-        );
+    #[rstest]
+    #[case("1", Ok(InstalledSize::new(1)))]
+    #[case("-1", Err(Error::InvalidInstalledSize(String::from("-1"))))]
+    fn installedsize_from_string(
+        #[case] from_str: &str,
+        #[case] result: Result<InstalledSize, Error>,
+    ) {
+        assert_eq!(InstalledSize::from_str(from_str), result);
     }
 
-    #[test]
+    #[rstest]
     fn installedsize_format_string() {
         assert_eq!("1", format!("{}", InstalledSize::new(1)));
     }

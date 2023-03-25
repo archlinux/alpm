@@ -20,20 +20,19 @@ pub enum Error {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use rstest::rstest;
 
-    #[test]
-    fn error_format_string() {
-        assert_eq!(
-            "Invalid build date: -1",
-            format!("{}", Error::InvalidBuildDate(String::from("-1")))
-        );
-        assert_eq!(
-            "Invalid compressed size: -1",
-            format!("{}", Error::InvalidCompressedSize(String::from("-1")))
-        );
-        assert_eq!(
-            "Invalid installed size: -1",
-            format!("{}", Error::InvalidInstalledSize(String::from("-1")))
-        );
+    #[rstest]
+    #[case("Invalid build date: -1", Error::InvalidBuildDate(String::from("-1")))]
+    #[case(
+        "Invalid compressed size: -1",
+        Error::InvalidCompressedSize(String::from("-1"))
+    )]
+    #[case(
+        "Invalid installed size: -1",
+        Error::InvalidInstalledSize(String::from("-1"))
+    )]
+    fn error_format_string(#[case] error_str: &str, #[case] error: Error) {
+        assert_eq!(error_str, format!("{}", error));
     }
 }
