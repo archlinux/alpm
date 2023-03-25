@@ -6,6 +6,10 @@ use chrono::Utc;
 use std::fmt::Display;
 use std::fmt::Formatter;
 use std::str::FromStr;
+use std::string::ToString;
+
+use strum_macros::Display;
+use strum_macros::EnumString;
 
 mod error;
 pub use error::Error;
@@ -38,72 +42,37 @@ pub use error::Error;
 /// assert_eq!("x86_64_v3", format!("{}", Architecture::X86_64V3));
 /// assert_eq!("x86_64_v4", format!("{}", Architecture::X86_64V4));
 /// ```
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Display, EnumString, Eq, PartialEq)]
 #[non_exhaustive]
 pub enum Architecture {
+    #[strum(to_string = "aarch64")]
     Aarch64,
+    #[strum(to_string = "any")]
     Any,
+    #[strum(to_string = "arm")]
     Arm,
+    #[strum(to_string = "armv6h")]
     Armv6h,
+    #[strum(to_string = "armv7h")]
     Armv7h,
+    #[strum(to_string = "i486")]
     I486,
+    #[strum(to_string = "i686")]
     I686,
+    #[strum(to_string = "pentium4")]
     Pentium4,
+    #[strum(to_string = "riscv32")]
     Riscv32,
+    #[strum(to_string = "riscv64")]
     Riscv64,
+    #[strum(to_string = "x86_64")]
     X86_64,
+    #[strum(to_string = "x86_64_v2")]
     X86_64V2,
+    #[strum(to_string = "x86_64_v3")]
     X86_64V3,
+    #[strum(to_string = "x86_64_v4")]
     X86_64V4,
-}
-
-impl FromStr for Architecture {
-    type Err = Error;
-    /// Create an Architecture from a string
-    fn from_str(input: &str) -> Result<Architecture, Self::Err> {
-        match input {
-            "aarch64" => Ok(Architecture::Aarch64),
-            "any" => Ok(Architecture::Any),
-            "arm" => Ok(Architecture::Arm),
-            "armv6h" => Ok(Architecture::Armv6h),
-            "armv7h" => Ok(Architecture::Armv7h),
-            "i486" => Ok(Architecture::I486),
-            "i686" => Ok(Architecture::I686),
-            "pentium4" => Ok(Architecture::Pentium4),
-            "riscv32" => Ok(Architecture::Riscv32),
-            "riscv64" => Ok(Architecture::Riscv64),
-            "x86_64" => Ok(Architecture::X86_64),
-            "x86_64_v2" => Ok(Architecture::X86_64V2),
-            "x86_64_v3" => Ok(Architecture::X86_64V3),
-            "x86_64_v4" => Ok(Architecture::X86_64V4),
-            _ => Err(Error::UnknownArchitecture(input.to_string())),
-        }
-    }
-}
-
-impl Display for Architecture {
-    fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
-        write!(
-            fmt,
-            "{}",
-            match self {
-                Architecture::Aarch64 => "aarch64",
-                Architecture::Any => "any",
-                Architecture::Arm => "arm",
-                Architecture::Armv6h => "armv6h",
-                Architecture::Armv7h => "armv7h",
-                Architecture::I486 => "i486",
-                Architecture::I686 => "i686",
-                Architecture::Pentium4 => "pentium4",
-                Architecture::Riscv32 => "riscv32",
-                Architecture::Riscv64 => "riscv64",
-                Architecture::X86_64 => "x86_64",
-                Architecture::X86_64V2 => "x86_64_v2",
-                Architecture::X86_64V3 => "x86_64_v3",
-                Architecture::X86_64V4 => "x86_64_v4",
-            }
-        )
-    }
 }
 
 /// A build date in seconds since the epoch
@@ -264,6 +233,7 @@ impl Display for InstalledSize {
 mod tests {
     use super::*;
     use chrono::NaiveDateTime;
+    use strum::ParseError;
 
     #[test]
     fn architecture_from_string() {
@@ -295,7 +265,7 @@ mod tests {
         );
         assert_eq!(
             Architecture::from_str("foo"),
-            Err(Error::UnknownArchitecture(String::from("foo")))
+            Err(ParseError::VariantNotFound)
         );
     }
 

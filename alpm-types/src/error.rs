@@ -14,8 +14,6 @@ pub enum Error {
     InvalidCompressedSize(String),
     /// An invalid installed package size (in bytes)
     InvalidInstalledSize(String),
-    /// an unknown CPU architecture has been encountered
-    UnknownArchitecture(String),
 }
 
 impl std::error::Error for Error {}
@@ -31,8 +29,6 @@ impl Display for Error {
                     format!("Invalid compressed size: {}", reason),
                 Error::InvalidInstalledSize(reason) =>
                     format!("Invalid installed size: {}", reason),
-                Error::UnknownArchitecture(reason) =>
-                    format!("Invalid CPU architecture: {}", reason),
             }
         )
     }
@@ -44,10 +40,6 @@ mod tests {
 
     #[test]
     fn error_format_string() {
-        assert_eq!(
-            "Invalid CPU architecture: foo",
-            format!("{}", Error::UnknownArchitecture(String::from("foo")))
-        );
         assert_eq!(
             "Invalid build date: -1",
             format!("{}", Error::InvalidBuildDate(String::from("-1")))
