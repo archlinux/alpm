@@ -1,37 +1,20 @@
 // SPDX-FileCopyrightText: 2023 David Runge <dvzrv@archlinux.org>
 // SPDX-License-Identifier: LGPL-3.0-or-later
-use std::fmt::Display;
-use std::fmt::Formatter;
-use std::fmt::Result;
+use thiserror::Error;
 
 /// The Error that can occur when using types
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Error, PartialEq)]
 #[non_exhaustive]
 pub enum Error {
     /// An invalid build date (in seconds since the epoch)
+    #[error("Invalid build date: {0}")]
     InvalidBuildDate(String),
     /// An invalid compressed file size (in bytes)
+    #[error("Invalid compressed size: {0}")]
     InvalidCompressedSize(String),
     /// An invalid installed package size (in bytes)
+    #[error("Invalid installed size: {0}")]
     InvalidInstalledSize(String),
-}
-
-impl std::error::Error for Error {}
-
-impl Display for Error {
-    fn fmt(&self, fmt: &mut Formatter) -> Result {
-        write!(
-            fmt,
-            "{}",
-            match self {
-                Error::InvalidBuildDate(reason) => format!("Invalid build date: {}", reason),
-                Error::InvalidCompressedSize(reason) =>
-                    format!("Invalid compressed size: {}", reason),
-                Error::InvalidInstalledSize(reason) =>
-                    format!("Invalid installed size: {}", reason),
-            }
-        )
-    }
 }
 
 #[cfg(test)]
