@@ -12,7 +12,7 @@ license = "LGPL-3.0-or-later"
 name = "alpm-types"
 readme = "README.md"
 repository = "https://gitlab.archlinux.org/archlinux/alpm/alpm-types"
-rust-version = "1.56.1"
+rust-version = "1.60.0"
 version = "0.0.0"
 
 [dependencies]
