@@ -18,6 +18,8 @@ pub enum Error {
     /// An invalid package name
     #[error("Invalid package name: {0}")]
     InvalidName(String),
+    #[error("Invalid md5sum: {0}")]
+    InvalidMd5Sum(String),
 }
 
 #[cfg(test)]
@@ -36,6 +38,7 @@ mod tests {
         Error::InvalidInstalledSize(String::from("-1"))
     )]
     #[case("Invalid package name: -1", Error::InvalidName(String::from("-1")))]
+    #[case("Invalid md5sum: -1", Error::InvalidMd5Sum(String::from("-1")))]
     fn error_format_string(#[case] error_str: &str, #[case] error: Error) {
         assert_eq!(error_str, format!("{}", error));
     }

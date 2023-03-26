@@ -232,6 +232,64 @@ impl Display for InstalledSize {
     }
 }
 
+/// A single 'md5sum' attribute
+///
+/// Md5Sum consists of 32 characters `[a-f0-9]`.
+///
+/// ## Examples
+/// ```
+/// use alpm_types::{Md5Sum, Error};
+/// use std::str::FromStr;
+///
+/// // create Md5Sum from &str
+/// assert_eq!(
+///     Md5Sum::from_str("5eb63bbbe01eeed093cb22bb8f5acdc3"),
+///     Ok(Md5Sum::new("5eb63bbbe01eeed093cb22bb8f5acdc3").unwrap())
+/// );
+/// assert_eq!(
+///     Md5Sum::from_str("foobar"),
+///     Err(Error::InvalidMd5Sum("foobar".to_string()))
+/// );
+///
+/// // format as String
+/// assert_eq!("5eb63bbbe01eeed093cb22bb8f5acdc3", format!("{}", Md5Sum::new("5eb63bbbe01eeed093cb22bb8f5acdc3").unwrap()));
+/// ```
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Md5Sum {
+    md5sum: String,
+}
+
+impl Md5Sum {
+    /// Create a new Md5Sum in a Result
+    ///
+    /// If the supplied string is valid on the basis of the allowed characters
+    /// then an Md5Sum is returned as a Result, otherwise an InvalidMd5Sum Error
+    /// is returned.
+    pub fn new(md5sum: &str) -> Result<Md5Sum, Error> {
+        if regex_once!(r"^[a-f0-9]{32}$").is_match(md5sum) {
+            Ok(Md5Sum {
+                md5sum: md5sum.to_string(),
+            })
+        } else {
+            Err(Error::InvalidMd5Sum(md5sum.to_string()))
+        }
+    }
+}
+
+impl FromStr for Md5Sum {
+    type Err = Error;
+    /// Create a Md5Sum from a string
+    fn from_str(input: &str) -> Result<Md5Sum, Self::Err> {
+        Md5Sum::new(input)
+    }
+}
+
+impl Display for Md5Sum {
+    fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
+        write!(fmt, "{}", self.md5sum)
+    }
+}
+
 /// A package name
 ///
 /// Package names may contain the characters `[a-z\d\-._@+]`, but must not
@@ -426,6 +484,34 @@ mod tests {
     #[rstest]
     fn installedsize_format_string() {
         assert_eq!("1", format!("{}", InstalledSize::new(1)));
+    }
+
+    proptest! {
+        #![proptest_config(ProptestConfig::with_cases(1000))]
+
+        #[test]
+        fn valid_md5sum_from_string(md5sum_str in r"[a-f0-9]{32}") {
+            let md5sum = Md5Sum::from_str(&md5sum_str).unwrap();
+            prop_assert_eq!(md5sum_str, format!("{}", md5sum));
+        }
+
+        #[test]
+        fn invalid_md5sum_from_string_bigger_size(md5sum_str in r"[a-f0-9]{64}") {
+            let error = Md5Sum::from_str(&md5sum_str).unwrap_err();
+            assert!(format!("{}", error).ends_with(&md5sum_str));
+        }
+
+        #[test]
+        fn invalid_md5sum_from_string_smaller_size(md5sum_str in r"[a-f0-9]{16}") {
+            let error = Md5Sum::from_str(&md5sum_str).unwrap_err();
+            assert!(format!("{}", error).ends_with(&md5sum_str));
+        }
+
+        #[test]
+        fn invalid_md5sum_from_string_wrong_chars(md5sum_str in r"[e-z0-9]{32}") {
+            let error = Md5Sum::from_str(&md5sum_str).unwrap_err();
+            assert!(format!("{}", error).ends_with(&md5sum_str));
+        }
     }
 
     proptest! {
