@@ -5,8 +5,11 @@ use chrono::Utc;
 
 use std::fmt::Display;
 use std::fmt::Formatter;
+use std::ops::Deref;
 use std::str::FromStr;
 use std::string::ToString;
+
+use semver::Version;
 
 use strum_macros::Display;
 use strum_macros::EnumString;
@@ -386,6 +389,72 @@ pub enum PkgType {
     Split,
 }
 
+/// The schema version of a type
+///
+/// A `SchemaVersion` wraps a `semver::Version`, which means that the tracked version should follow [semver](https://semver.org).
+/// However, for backwards compatibility reasons it is possible to initialize a `SchemaVersion` using a non-semver
+/// compatible string, *if* it can be parsed to a single `u64` (e.g. `"1"`).
+///
+/// Examples
+/// ```
+/// use std::str::FromStr;
+/// use alpm_types::SchemaVersion;
+/// use semver::Version;
+///
+/// // create SchemaVersion from str
+/// let version_one = SchemaVersion::from_str("1.0.0").unwrap();
+/// let version_also_one = SchemaVersion::new("1").unwrap();
+/// assert_eq!(version_one, version_also_one);
+///
+/// // format as String
+/// assert_eq!("1.0.0", format!("{}", version_one));
+/// assert_eq!("1.0.0", format!("{}", version_also_one));
+/// ```
+#[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub struct SchemaVersion(Version);
+
+impl SchemaVersion {
+    /// Create a new SchemaVersion from a string
+    ///
+    /// When providing a non-semver string with only a number (i.e. no minor or patch version), the number is treated as
+    /// the major version (e.g. `"23"` -> `"23.0.0"`).
+    pub fn new(version: &str) -> Result<SchemaVersion, Error> {
+        if !version.contains('.') {
+            match version.parse() {
+                Ok(major) => Ok(SchemaVersion(Version::new(major, 0, 0))),
+                Err(_) => Err(Error::InvalidVersion(version.to_string())),
+            }
+        } else {
+            match Version::parse(version) {
+                Ok(version) => Ok(SchemaVersion(version)),
+                Err(_) => Err(Error::InvalidVersion(version.to_string())),
+            }
+        }
+    }
+}
+
+impl FromStr for SchemaVersion {
+    type Err = Error;
+    /// Create a SchemaVersion from a string
+    fn from_str(input: &str) -> Result<SchemaVersion, Self::Err> {
+        SchemaVersion::new(input)
+    }
+}
+
+impl Deref for SchemaVersion {
+    type Target = Version;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl Display for SchemaVersion {
+    fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
+        write!(fmt, "{}", self.0)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -547,5 +616,22 @@ mod tests {
     #[case(PkgType::Split, "split")]
     fn pkgtype_format_string(#[case] pkgtype: PkgType, #[case] pkgtype_str: &str) {
         assert_eq!(pkgtype_str, format!("{}", pkgtype));
+    }
+
+    #[rstest]
+    #[case("1.0.0", Ok(SchemaVersion(Version::new(1, 0, 0))))]
+    #[case("1", Ok(SchemaVersion(Version::new(1, 0, 0))))]
+    #[case("-1.0.0", Err(Error::InvalidVersion("-1.0.0".to_string())))]
+    fn schema_version(#[case] version: &str, #[case] result: Result<SchemaVersion, Error>) {
+        assert_eq!(result, SchemaVersion::new(version))
+    }
+
+    #[rstest]
+    #[case(
+        SchemaVersion(Version::new(1, 0, 0)),
+        SchemaVersion(Version::new(0, 1, 0))
+    )]
+    fn compare_schema_version(#[case] version_a: SchemaVersion, #[case] version_b: SchemaVersion) {
+        assert!(version_a > version_b);
     }
 }

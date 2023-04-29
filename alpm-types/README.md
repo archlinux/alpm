@@ -82,6 +82,17 @@ use alpm_types::PkgType;
 assert_eq!(PkgType::from_str("pkg"), Ok(PkgType::Package));
 ```
 
+Schemas of compound types (e.g. those used to describe `.BUILDINFO` or `.PKGINFO` files) need a schema version to version their features. This is what `SchemaVersion` is for:
+
+```rust
+use std::str::FromStr;
+use alpm_types::SchemaVersion;
+
+let version = SchemaVersion::new("1.0.0").unwrap();
+
+assert_eq!("1.0.0", format!("{}", version));
+```
+
 ## Contributing
 
 Please refer to the [contribution guidelines](CONTRIBUTING.md) to learn how to
