@@ -73,6 +73,17 @@ assert_eq!(Name::from_str("test-123@.foo_+"), Ok(Name::new("test-123@.foo_+")));
 assert_eq!(Name::from_str(".foo"), Err(Error::InvalidName(".foo".to_string())));
 ```
 
+The authors of packages are identified using the `Packager` type, which describes a User ID (name and valid email):
+
+```rust
+use std::str::FromStr;
+use alpm_types::Packager;
+
+let packager = Packager::new("Foobar McFooface <foobar@mcfooface.org>").unwrap();
+assert_eq!("Foobar McFooface", packager.name());
+assert_eq!("foobar@mcfooface.org", packager.email().to_string());
+```
+
 Package types are distinguished using the `PkgType` enum. Its variants can be constructed from str:
 
 ```rust

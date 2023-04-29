@@ -20,6 +20,10 @@ pub enum Error {
     InvalidName(String),
     #[error("Invalid md5sum: {0}")]
     InvalidMd5Sum(String),
+    #[error("Invalid packager string: {0}")]
+    InvalidPackager(String),
+    #[error("Invalid packager e-mail: {0}")]
+    InvalidPackagerEmail(String),
     #[error("Invalid version string: {0}")]
     InvalidVersion(String),
 }
@@ -41,6 +45,14 @@ mod tests {
     )]
     #[case("Invalid package name: -1", Error::InvalidName(String::from("-1")))]
     #[case("Invalid md5sum: -1", Error::InvalidMd5Sum(String::from("-1")))]
+    #[case(
+        "Invalid packager string: foo",
+        Error::InvalidPackager(String::from("foo"))
+    )]
+    #[case(
+        "Invalid packager e-mail: foo",
+        Error::InvalidPackagerEmail(String::from("foo"))
+    )]
     #[case(
         "Invalid version string: -1",
         Error::InvalidVersion(String::from("-1"))
