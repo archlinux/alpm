@@ -9,6 +9,12 @@ pub enum Error {
     /// An invalid build date (in seconds since the epoch)
     #[error("Invalid build date: {0}")]
     InvalidBuildDate(String),
+    /// An invalid build environment
+    #[error("Invalid build environment string: {0}")]
+    InvalidBuildEnv(String),
+    /// An invalid build option
+    #[error("Invalid option string: {0}")]
+    InvalidBuildOption(String),
     /// An invalid BuildTool
     #[error("Invalid buildtool: {0}")]
     InvalidBuildTool(String),
@@ -27,6 +33,9 @@ pub enum Error {
     InvalidPackager(String),
     #[error("Invalid packager e-mail: {0}")]
     InvalidPackagerEmail(String),
+    /// An invalid package option
+    #[error("Invalid package option: {0}")]
+    InvalidPackageOption(String),
     #[error("Invalid version string: {0}")]
     InvalidVersion(String),
 }

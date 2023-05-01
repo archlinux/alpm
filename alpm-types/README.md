@@ -42,6 +42,16 @@ let datetime: BuildDate = DateTime::<Utc>::from_utc(NaiveDateTime::from_timestam
 assert_eq!(BuildDate::new(1), datetime);
 ```
 
+The options available in a build environment are tracked using `BuildEnv`:
+
+```rust
+use alpm_types::BuildEnv;
+
+let option = BuildEnv::new("foo").unwrap();
+assert_eq!(option.on(), true);
+assert_eq!(option.name(), "foo");
+```
+
 The compressed size of a package is represented by `CompressedSize` which
 tracks the size in bytes and can also be created from str:
 
@@ -82,6 +92,16 @@ use alpm_types::Packager;
 let packager = Packager::new("Foobar McFooface <foobar@mcfooface.org>").unwrap();
 assert_eq!("Foobar McFooface", packager.name());
 assert_eq!("foobar@mcfooface.org", packager.email().to_string());
+```
+
+The options used for packaging are tracked using `PackageOption`:
+
+```rust
+use alpm_types::PackageOption;
+
+let option = PackageOption::new("foo").unwrap();
+assert_eq!(option.on(), true);
+assert_eq!(option.name(), "foo");
 ```
 
 Package types are distinguished using the `PkgType` enum. Its variants can be constructed from str:
