@@ -318,14 +318,12 @@ impl Display for Md5Sum {
 /// // format as String
 /// assert_eq!("foo", format!("{}", Name::new("foo").unwrap()));
 /// ```
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Name {
-    name: String,
-}
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub struct Name(String);
 
 impl Name {
     /// Create a new Name in a Result
-    pub fn new(name: &str) -> Result<Name, Error> {
+    pub fn new(name: &str) -> Result<Self, Error> {
         Name::validate(name)
     }
 
@@ -335,9 +333,7 @@ impl Name {
     /// defined by the Name type.
     pub fn validate(name: &str) -> Result<Name, Error> {
         if regex_once!(r"^[a-z\d_@+]+[a-z\d\-._@+]*$").is_match(name) {
-            Ok(Name {
-                name: name.to_string(),
-            })
+            Ok(Name(name.to_string()))
         } else {
             Err(Error::InvalidName(name.to_string()))
         }
@@ -352,9 +348,17 @@ impl FromStr for Name {
     }
 }
 
+impl Deref for Name {
+    type Target = String;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
 impl Display for Name {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
-        write!(fmt, "{}", self.name)
+        write!(fmt, "{}", self.deref())
     }
 }
 
