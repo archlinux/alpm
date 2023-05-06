@@ -9,6 +9,9 @@ pub enum Error {
     /// An invalid build date (in seconds since the epoch)
     #[error("Invalid build date: {0}")]
     InvalidBuildDate(String),
+    /// An invalid BuildTool
+    #[error("Invalid buildtool: {0}")]
+    InvalidBuildTool(String),
     /// An invalid compressed file size (in bytes)
     #[error("Invalid compressed size: {0}")]
     InvalidCompressedSize(String),

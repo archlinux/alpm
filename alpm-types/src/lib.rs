@@ -142,6 +142,98 @@ impl Display for BuildDate {
     }
 }
 
+/// A build tool name
+///
+/// The same character restrictions as with `Name` apply.
+/// Further name restrictions may be enforced on an existing instances using `matches_restriction()`.
+///
+/// ## Examples
+/// ```
+/// use alpm_types::{BuildTool, Name, Error};
+/// use std::str::FromStr;
+///
+/// // create BuildTool from &str
+/// assert_eq!(
+///     BuildTool::from_str("test-123@.foo_+"),
+///     Ok(BuildTool::new("test-123@.foo_+").unwrap()),
+/// );
+/// assert_eq!(
+///     BuildTool::from_str(".test"),
+///     Err(Error::InvalidBuildTool(".test".to_string()))
+/// );
+///
+/// // format as String
+/// assert_eq!("foo", format!("{}", BuildTool::new("foo").unwrap()));
+///
+/// // validate that BuildTool follows naming restrictions
+/// let buildtool = BuildTool::new("foo").unwrap();
+/// let restrictions = vec![Name::new("foo").unwrap(), Name::new("bar").unwrap()];
+/// assert!(buildtool.matches_restriction(&restrictions));
+/// ```
+#[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub struct BuildTool(Name);
+
+impl BuildTool {
+    /// Create a new BuildTool in a Result
+    pub fn new(buildtool: &str) -> Result<Self, Error> {
+        match Name::new(buildtool) {
+            Ok(name) => Ok(BuildTool(name)),
+            Err(_) => Err(Error::InvalidBuildTool(buildtool.to_string())),
+        }
+    }
+
+    /// Create a new BuildTool in a Result, which matches one Name in a list of restrictions
+    ///
+    /// ## Examples
+    /// ```
+    /// use alpm_types::{BuildTool, Name, Error};
+    ///
+    /// assert!(BuildTool::new_with_restriction("foo", &[Name::new("foo").unwrap()]).is_ok());
+    /// assert!(BuildTool::new_with_restriction("foo", &[Name::new("bar").unwrap()]).is_err());
+    /// ```
+    pub fn new_with_restriction(name: &str, restrictions: &[Name]) -> Result<Self, Error> {
+        match BuildTool::new(name) {
+            Ok(buildtool) => {
+                if buildtool.matches_restriction(restrictions) {
+                    Ok(buildtool)
+                } else {
+                    Err(Error::InvalidBuildTool(name.to_string()))
+                }
+            }
+            Err(_) => Err(Error::InvalidBuildTool(name.to_string())),
+        }
+    }
+
+    /// Validate that the BuildTool has a name matching one Name in a list of restrictions
+    pub fn matches_restriction(&self, restrictions: &[Name]) -> bool {
+        restrictions
+            .iter()
+            .any(|restriction| restriction.eq(self.deref()))
+    }
+}
+
+impl FromStr for BuildTool {
+    type Err = Error;
+    /// Create a BuildTool from a string
+    fn from_str(input: &str) -> Result<BuildTool, Self::Err> {
+        BuildTool::new(input)
+    }
+}
+
+impl Deref for BuildTool {
+    type Target = Name;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl Display for BuildTool {
+    fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
+        write!(fmt, "{}", self.deref())
+    }
+}
+
 /// Compressed size of a file (in bytes)
 ///
 /// ## Examples
@@ -608,6 +700,32 @@ mod tests {
         let datetime: BuildDate =
             DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp_opt(1, 0).unwrap(), Utc).into();
         assert_eq!(builddate, datetime);
+    }
+
+    #[rstest]
+    #[case("bar", vec![Name::new("foo").unwrap(), Name::new("bar").unwrap()], Ok(BuildTool::new("bar").unwrap()))]
+    #[case("bar", vec![Name::new("foo").unwrap(), Name::new("foo").unwrap()], Err(Error::InvalidBuildTool("bar".to_string())))]
+    fn buildtool_new_with_restriction(
+        #[case] buildtool: &str,
+        #[case] restrictions: Vec<Name>,
+        #[case] result: Result<BuildTool, Error>,
+    ) {
+        assert_eq!(
+            BuildTool::new_with_restriction(buildtool, &restrictions),
+            result
+        );
+    }
+
+    #[rstest]
+    #[case("bar", vec![Name::new("foo").unwrap(), Name::new("bar").unwrap()], true)]
+    #[case("bar", vec![Name::new("foo").unwrap(), Name::new("foo").unwrap()], false)]
+    fn buildtool_matches_restriction(
+        #[case] buildtool: &str,
+        #[case] restrictions: Vec<Name>,
+        #[case] result: bool,
+    ) {
+        let buildtool = BuildTool::new(buildtool).unwrap();
+        assert_eq!(buildtool.matches_restriction(&restrictions), result);
     }
 
     #[rstest]
