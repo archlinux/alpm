@@ -124,6 +124,23 @@ let version = SchemaVersion::new("1.0.0").unwrap();
 assert_eq!("1.0.0", format!("{}", version));
 ```
 
+The handling of package versions is covered by the `Version` type (which consists of an optional `Epoch`, `Pkgver` and an optional `Pkgrel`).
+Its `vercmp()` method implementation is compatible with that of libalpm/pacman's `vercmp`.
+
+```rust
+use std::str::FromStr;
+use alpm_types::Version;
+
+let version = Version::new("1.0.0".to_string()).unwrap();
+
+assert_eq!("1.0.0", format!("{}", version));
+
+let version_a = Version::new("1.0.0".to_string()).unwrap();
+let version_b = Version::new("1.1.0".to_string()).unwrap();
+
+assert_eq!(Version::vercmp(&version_a, &version_b), -1);
+```
+
 ## Contributing
 
 Please refer to the [contribution guidelines](CONTRIBUTING.md) to learn how to

@@ -21,6 +21,9 @@ pub enum Error {
     /// An invalid compressed file size (in bytes)
     #[error("Invalid compressed size: {0}")]
     InvalidCompressedSize(String),
+    /// An invalid epoch in a version string
+    #[error("Invalid epoch in string: {0}")]
+    InvalidEpoch(String),
     /// An invalid installed package size (in bytes)
     #[error("Invalid installed size: {0}")]
     InvalidInstalledSize(String),
@@ -36,6 +39,12 @@ pub enum Error {
     /// An invalid package option
     #[error("Invalid package option: {0}")]
     InvalidPackageOption(String),
+    /// An invalid pkgrel in a version string
+    #[error("Invalid pkgrel in string: {0}")]
+    InvalidPkgrel(String),
+    /// An invalid pkgver in a version string
+    #[error("Invalid pkgver in string: {0}")]
+    InvalidPkgver(String),
     /// An invalid version string
     #[error("Invalid version string: {0}")]
     InvalidVersion(String),
