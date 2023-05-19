@@ -13,7 +13,7 @@ use chrono::Utc;
 
 use email_address::EmailAddress;
 
-use semver::Version;
+use semver::Version as SemverVersion;
 
 use strum_macros::Display;
 use strum_macros::EnumString;
@@ -878,7 +878,6 @@ pub enum PkgType {
 /// ```
 /// use std::str::FromStr;
 /// use alpm_types::SchemaVersion;
-/// use semver::Version;
 ///
 /// // create SchemaVersion from str
 /// let version_one = SchemaVersion::from_str("1.0.0").unwrap();
@@ -890,7 +889,7 @@ pub enum PkgType {
 /// assert_eq!("1.0.0", format!("{}", version_also_one));
 /// ```
 #[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub struct SchemaVersion(Version);
+pub struct SchemaVersion(SemverVersion);
 
 impl SchemaVersion {
     /// Create a new SchemaVersion from a string
@@ -900,11 +899,11 @@ impl SchemaVersion {
     pub fn new(version: &str) -> Result<SchemaVersion, Error> {
         if !version.contains('.') {
             match version.parse() {
-                Ok(major) => Ok(SchemaVersion(Version::new(major, 0, 0))),
+                Ok(major) => Ok(SchemaVersion(SemverVersion::new(major, 0, 0))),
                 Err(_) => Err(Error::InvalidVersion(version.to_string())),
             }
         } else {
-            match Version::parse(version) {
+            match SemverVersion::parse(version) {
                 Ok(version) => Ok(SchemaVersion(version)),
                 Err(_) => Err(Error::InvalidVersion(version.to_string())),
             }
@@ -921,7 +920,7 @@ impl FromStr for SchemaVersion {
 }
 
 impl Deref for SchemaVersion {
-    type Target = Version;
+    type Target = SemverVersion;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -1224,8 +1223,8 @@ mod tests {
     }
 
     #[rstest]
-    #[case("1.0.0", Ok(SchemaVersion(Version::new(1, 0, 0))))]
-    #[case("1", Ok(SchemaVersion(Version::new(1, 0, 0))))]
+    #[case("1.0.0", Ok(SchemaVersion(SemverVersion::new(1, 0, 0))))]
+    #[case("1", Ok(SchemaVersion(SemverVersion::new(1, 0, 0))))]
     #[case("-1.0.0", Err(Error::InvalidVersion("-1.0.0".to_string())))]
     fn schema_version(#[case] version: &str, #[case] result: Result<SchemaVersion, Error>) {
         assert_eq!(result, SchemaVersion::new(version))
@@ -1233,8 +1232,8 @@ mod tests {
 
     #[rstest]
     #[case(
-        SchemaVersion(Version::new(1, 0, 0)),
-        SchemaVersion(Version::new(0, 1, 0))
+        SchemaVersion(SemverVersion::new(1, 0, 0)),
+        SchemaVersion(SemverVersion::new(0, 1, 0))
     )]
     fn compare_schema_version(#[case] version_a: SchemaVersion, #[case] version_b: SchemaVersion) {
         assert!(version_a > version_b);
