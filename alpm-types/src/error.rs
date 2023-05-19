@@ -36,6 +36,7 @@ pub enum Error {
     /// An invalid package option
     #[error("Invalid package option: {0}")]
     InvalidPackageOption(String),
+    /// An invalid version string
     #[error("Invalid version string: {0}")]
     InvalidVersion(String),
     /// An invalid absolute path

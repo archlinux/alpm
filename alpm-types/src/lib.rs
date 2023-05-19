@@ -874,7 +874,7 @@ pub enum PkgType {
 /// However, for backwards compatibility reasons it is possible to initialize a `SchemaVersion` using a non-semver
 /// compatible string, *if* it can be parsed to a single `u64` (e.g. `"1"`).
 ///
-/// Examples
+/// ## Examples
 /// ```
 /// use std::str::FromStr;
 /// use alpm_types::SchemaVersion;
