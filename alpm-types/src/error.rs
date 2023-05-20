@@ -38,6 +38,12 @@ pub enum Error {
     InvalidPackageOption(String),
     #[error("Invalid version string: {0}")]
     InvalidVersion(String),
+    /// An invalid absolute path
+    #[error("Invalid absolute path: {0}")]
+    InvalidAbsolutePath(String),
+    /// An invalid build directory
+    #[error("Invalid build directory: {0}")]
+    InvalidBuildDir(String),
 }
 
 #[cfg(test)]
