@@ -58,6 +58,11 @@ impl AbsolutePath {
             false => Err(Error::InvalidAbsolutePath(input.to_string())),
         }
     }
+
+    /// Return a reference to the inner type
+    pub fn inner(&self) -> &Path {
+        &self.0
+    }
 }
 
 impl FromStr for AbsolutePath {
@@ -69,7 +74,7 @@ impl FromStr for AbsolutePath {
 
 impl Display for AbsolutePath {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
-        write!(fmt, "{}", self.deref().display())
+        write!(fmt, "{}", self.inner().display())
     }
 }
 
@@ -166,21 +171,24 @@ pub enum Architecture {
 /// assert_eq!("1", format!("{}", BuildDate::new(1)));
 /// ```
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct BuildDate {
-    date: i64,
-}
+pub struct BuildDate(i64);
 
 impl BuildDate {
     /// Create a new BuildDate
-    pub fn new(date: i64) -> BuildDate {
-        BuildDate { date }
+    pub fn new(builddate: i64) -> BuildDate {
+        BuildDate(builddate)
+    }
+
+    /// Return a reference to the inner type
+    pub fn inner(&self) -> &i64 {
+        &self.0
     }
 }
 
 impl From<DateTime<Utc>> for BuildDate {
     fn from(input: DateTime<Utc>) -> BuildDate {
-        let date = input.timestamp();
-        BuildDate { date }
+        let builddate = input.timestamp();
+        BuildDate(builddate)
     }
 }
 
@@ -189,7 +197,7 @@ impl FromStr for BuildDate {
     /// Create a BuildDate from a string
     fn from_str(input: &str) -> Result<BuildDate, Self::Err> {
         match input.parse::<i64>() {
-            Ok(date) => Ok(BuildDate { date }),
+            Ok(builddate) => Ok(BuildDate(builddate)),
             _ => Err(Error::InvalidBuildDate(input.to_string())),
         }
     }
@@ -197,7 +205,7 @@ impl FromStr for BuildDate {
 
 impl Display for BuildDate {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
-        write!(fmt, "{}", self.date)
+        write!(fmt, "{}", self.inner())
     }
 }
 
@@ -234,6 +242,11 @@ impl BuildDir {
             _ => Err(Error::InvalidBuildDir(absolute_path.to_string())),
         }
     }
+
+    /// Return a reference to the inner type
+    pub fn inner(&self) -> &AbsolutePath {
+        &self.0
+    }
 }
 
 impl FromStr for BuildDir {
@@ -245,7 +258,7 @@ impl FromStr for BuildDir {
 
 impl Display for BuildDir {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
-        write!(fmt, "{}", self.deref())
+        write!(fmt, "{}", self.inner())
     }
 }
 
@@ -286,14 +299,19 @@ impl BuildEnv {
         }
     }
 
+    /// Return a reference to the inner type
+    pub fn inner(&self) -> &BuildOption {
+        &self.0
+    }
+
     /// Get the name of the BuildEnv
     pub fn name(&self) -> &str {
-        self.deref().name()
+        self.inner().name()
     }
 
     /// Get whether the BuildEnv is on
     pub fn on(&self) -> bool {
-        self.deref().on()
+        self.inner().on()
     }
 }
 
@@ -315,7 +333,7 @@ impl Deref for BuildEnv {
 
 impl Display for BuildEnv {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
-        write!(fmt, "{}", self.deref())
+        write!(fmt, "{}", self.inner())
     }
 }
 
@@ -450,7 +468,12 @@ impl BuildTool {
     pub fn matches_restriction(&self, restrictions: &[Name]) -> bool {
         restrictions
             .iter()
-            .any(|restriction| restriction.eq(self.deref()))
+            .any(|restriction| restriction.eq(self.inner()))
+    }
+
+    /// Return a reference to the inner type
+    pub fn inner(&self) -> &Name {
+        &self.0
     }
 }
 
@@ -472,7 +495,7 @@ impl Deref for BuildTool {
 
 impl Display for BuildTool {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
-        write!(fmt, "{}", self.deref())
+        write!(fmt, "{}", self.inner())
     }
 }
 
@@ -497,14 +520,17 @@ impl Display for BuildTool {
 /// assert_eq!("1", format!("{}", CompressedSize::new(1)));
 /// ```
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct CompressedSize {
-    size: u64,
-}
+pub struct CompressedSize(u64);
 
 impl CompressedSize {
     /// Create a new CompressedSize
-    pub fn new(size: u64) -> CompressedSize {
-        CompressedSize { size }
+    pub fn new(compressedsize: u64) -> CompressedSize {
+        CompressedSize(compressedsize)
+    }
+
+    /// Return a reference to the inner type
+    pub fn inner(&self) -> &u64 {
+        &self.0
     }
 }
 
@@ -513,7 +539,7 @@ impl FromStr for CompressedSize {
     /// Create a CompressedSize from a string
     fn from_str(input: &str) -> Result<CompressedSize, Self::Err> {
         match input.parse::<u64>() {
-            Ok(size) => Ok(CompressedSize { size }),
+            Ok(compressedsize) => Ok(CompressedSize(compressedsize)),
             _ => Err(Error::InvalidCompressedSize(input.to_string())),
         }
     }
@@ -521,7 +547,7 @@ impl FromStr for CompressedSize {
 
 impl Display for CompressedSize {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
-        write!(fmt, "{}", self.size)
+        write!(fmt, "{}", self.inner())
     }
 }
 
@@ -594,9 +620,7 @@ impl Display for InstalledSize {
 /// assert_eq!("5eb63bbbe01eeed093cb22bb8f5acdc3", format!("{}", Md5Sum::new("5eb63bbbe01eeed093cb22bb8f5acdc3").unwrap()));
 /// ```
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Md5Sum {
-    md5sum: String,
-}
+pub struct Md5Sum(String);
 
 impl Md5Sum {
     /// Create a new Md5Sum in a Result
@@ -606,12 +630,15 @@ impl Md5Sum {
     /// is returned.
     pub fn new(md5sum: &str) -> Result<Md5Sum, Error> {
         if regex_once!(r"^[a-f0-9]{32}$").is_match(md5sum) {
-            Ok(Md5Sum {
-                md5sum: md5sum.to_string(),
-            })
+            Ok(Md5Sum(md5sum.to_string()))
         } else {
             Err(Error::InvalidMd5Sum(md5sum.to_string()))
         }
+    }
+
+    /// Return a reference to the inner type
+    pub fn inner(&self) -> &str {
+        &self.0
     }
 }
 
@@ -625,7 +652,7 @@ impl FromStr for Md5Sum {
 
 impl Display for Md5Sum {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
-        write!(fmt, "{}", self.md5sum)
+        write!(fmt, "{}", self.inner())
     }
 }
 
@@ -661,6 +688,11 @@ impl Name {
         Name::validate(name)
     }
 
+    /// Return a reference to the inner type
+    pub fn inner(&self) -> &str {
+        &self.0
+    }
+
     /// Validate a string and return a Name in a Result
     ///
     /// The validation happens on the basis of the allowed characters as
@@ -692,7 +724,7 @@ impl Deref for Name {
 
 impl Display for Name {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
-        write!(fmt, "{}", self.deref())
+        write!(fmt, "{}", self.inner())
     }
 }
 
@@ -804,14 +836,19 @@ impl PackageOption {
         }
     }
 
+    /// Return a reference to the inner type
+    pub fn inner(&self) -> &BuildOption {
+        &self.0
+    }
+
     /// Get the name of the PackageOption
     pub fn name(&self) -> &str {
-        self.deref().name()
+        self.inner().name()
     }
 
     /// Get whether the PackageOption is on
     pub fn on(&self) -> bool {
-        self.deref().on()
+        self.inner().on()
     }
 }
 
@@ -833,7 +870,7 @@ impl Deref for PackageOption {
 
 impl Display for PackageOption {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
-        write!(fmt, "{}", self.deref())
+        write!(fmt, "{}", self.inner())
     }
 }
 
@@ -911,6 +948,11 @@ impl SchemaVersion {
             }
         }
     }
+
+    /// Return a reference to the inner type
+    pub fn inner(&self) -> &SemverVersion {
+        &self.0
+    }
 }
 
 impl FromStr for SchemaVersion {
@@ -931,7 +973,7 @@ impl Deref for SchemaVersion {
 
 impl Display for SchemaVersion {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
-        write!(fmt, "{}", self.0)
+        write!(fmt, "{}", self.inner())
     }
 }
 
@@ -951,22 +993,20 @@ impl Display for SchemaVersion {
 /// assert!(Epoch::new("0".to_string()).is_err());
 /// ```
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub struct Epoch {
-    epoch: NonZeroUsize,
-}
+pub struct Epoch(NonZeroUsize);
 
 impl Epoch {
     /// Create a new Epoch from a string and return it in a Result
     pub fn new(epoch: String) -> Result<Self, Error> {
         match epoch.parse() {
-            Ok(epoch) => Ok(Epoch { epoch }),
+            Ok(epoch) => Ok(Epoch(epoch)),
             Err(_) => Err(Error::InvalidEpoch(epoch)),
         }
     }
 
     // Return a reference to the inner type
     pub fn inner(&self) -> NonZeroUsize {
-        self.epoch
+        self.0
     }
 }
 
@@ -1004,15 +1044,13 @@ impl Display for Epoch {
 /// assert!(Pkgrel::new("1.0".to_string()).is_err());
 /// ```
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub struct Pkgrel {
-    pkgrel: String,
-}
+pub struct Pkgrel(String);
 
 impl Pkgrel {
     /// Create a new Pkgrel from a string and return it in a Result
     pub fn new(pkgrel: String) -> Result<Self, Error> {
         if regex_once!(r"^[1-9]+[0-9]*(|[.]{1}[1-9]+[0-9]*)$").is_match(pkgrel.as_str()) {
-            Ok(Pkgrel { pkgrel })
+            Ok(Pkgrel(pkgrel))
         } else {
             Err(Error::InvalidPkgrel(pkgrel))
         }
@@ -1020,7 +1058,7 @@ impl Pkgrel {
 
     /// Return a reference to the inner type
     pub fn inner(&self) -> &str {
-        self.pkgrel.as_str()
+        &self.0
     }
 }
 
@@ -1062,23 +1100,21 @@ impl Display for Pkgrel {
 /// assert!(Pkgver::new("+1.0".to_string()).is_err());
 /// ```
 #[derive(Clone, Debug, Eq)]
-pub struct Pkgver {
-    pkgver: String,
-}
+pub struct Pkgver(String);
 
 impl Pkgver {
     /// Create a new Pkgver from a string and return it in a Result
-    pub fn new(input: String) -> Result<Self, Error> {
-        if regex_once!(r"^([^_+.][[:alnum:]_+.]*)$").is_match(input.as_str()) {
-            Ok(Pkgver { pkgver: input })
+    pub fn new(pkgver: String) -> Result<Self, Error> {
+        if regex_once!(r"^([^_+.][[:alnum:]_+.]*)$").is_match(pkgver.as_str()) {
+            Ok(Pkgver(pkgver))
         } else {
-            Err(Error::InvalidPkgver(input))
+            Err(Error::InvalidPkgver(pkgver))
         }
     }
 
     /// Return a reference to the inner type
     pub fn inner(&self) -> &str {
-        self.pkgver.as_str()
+        &self.0
     }
 }
 
@@ -1503,7 +1539,7 @@ mod tests {
     }
 
     #[rstest]
-    #[case("1", Ok(BuildDate { date: 1 }))]
+    #[case("1", Ok(BuildDate(1)))]
     #[case("foo", Err(Error::InvalidBuildDate(String::from("foo"))))]
     fn builddate_from_string(#[case] from_str: &str, #[case] result: Result<BuildDate, Error>) {
         assert_eq!(BuildDate::from_str(from_str), result);
@@ -1516,7 +1552,7 @@ mod tests {
 
     #[rstest]
     fn datetime_into_builddate() {
-        let builddate = BuildDate { date: 1 };
+        let builddate = BuildDate(1);
         let datetime: BuildDate =
             DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp_opt(1, 0).unwrap(), Utc).into();
         assert_eq!(builddate, datetime);
@@ -1803,7 +1839,7 @@ mod tests {
     }
 
     #[rstest]
-    #[case("1".to_string(), Ok(Epoch{epoch:NonZeroUsize::new(1).unwrap()}))]
+    #[case("1".to_string(), Ok(Epoch(NonZeroUsize::new(1).unwrap())))]
     #[case("0".to_string(), Err(Error::InvalidEpoch("0".to_string())))]
     #[case("-0".to_string(), Err(Error::InvalidEpoch("-0".to_string())))]
     #[case("z".to_string(), Err(Error::InvalidEpoch("z".to_string())))]
