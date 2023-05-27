@@ -4,7 +4,6 @@ use std::cmp::Ordering;
 use std::fmt::Display;
 use std::fmt::Formatter;
 use std::num::NonZeroUsize;
-use std::ops::Deref;
 use std::path::Path;
 use std::path::PathBuf;
 use std::str::FromStr;
@@ -75,14 +74,6 @@ impl FromStr for AbsolutePath {
 impl Display for AbsolutePath {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
         write!(fmt, "{}", self.inner().display())
-    }
-}
-
-impl Deref for AbsolutePath {
-    type Target = PathBuf;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
     }
 }
 
@@ -262,14 +253,6 @@ impl Display for BuildDir {
     }
 }
 
-impl Deref for BuildDir {
-    type Target = AbsolutePath;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
 /// An option string used in a build environment
 ///
 /// The option string is identified by its name and whether it is on (not prefixed with "!") or off (prefixed with "!").
@@ -320,14 +303,6 @@ impl FromStr for BuildEnv {
     /// Create a BuildEnv from a string
     fn from_str(input: &str) -> Result<BuildEnv, Self::Err> {
         BuildEnv::new(input)
-    }
-}
-
-impl Deref for BuildEnv {
-    type Target = BuildOption;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
     }
 }
 
@@ -482,14 +457,6 @@ impl FromStr for BuildTool {
     /// Create a BuildTool from a string
     fn from_str(input: &str) -> Result<BuildTool, Self::Err> {
         BuildTool::new(input)
-    }
-}
-
-impl Deref for BuildTool {
-    type Target = Name;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
     }
 }
 
@@ -714,14 +681,6 @@ impl FromStr for Name {
     }
 }
 
-impl Deref for Name {
-    type Target = String;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
 impl Display for Name {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
         write!(fmt, "{}", self.inner())
@@ -860,14 +819,6 @@ impl FromStr for PackageOption {
     }
 }
 
-impl Deref for PackageOption {
-    type Target = BuildOption;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
 impl Display for PackageOption {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
         write!(fmt, "{}", self.inner())
@@ -960,14 +911,6 @@ impl FromStr for SchemaVersion {
     /// Create a SchemaVersion from a string
     fn from_str(input: &str) -> Result<SchemaVersion, Self::Err> {
         SchemaVersion::new(input)
-    }
-}
-
-impl Deref for SchemaVersion {
-    type Target = SemverVersion;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
     }
 }
 
