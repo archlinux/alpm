@@ -402,7 +402,7 @@ impl Display for BuildOption {
 ///
 /// // validate that BuildTool follows naming restrictions
 /// let buildtool = BuildTool::new("foo").unwrap();
-/// let restrictions = vec![Name::new("foo").unwrap(), Name::new("bar").unwrap()];
+/// let restrictions = vec![Name::new("foo".to_string()).unwrap(), Name::new("bar".to_string()).unwrap()];
 /// assert!(buildtool.matches_restriction(&restrictions));
 /// ```
 #[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
@@ -411,7 +411,7 @@ pub struct BuildTool(Name);
 impl BuildTool {
     /// Create a new BuildTool in a Result
     pub fn new(buildtool: &str) -> Result<Self, Error> {
-        match Name::new(buildtool) {
+        match Name::new(buildtool.to_string()) {
             Ok(name) => Ok(BuildTool(name)),
             Err(_) => Err(Error::InvalidBuildTool(buildtool.to_string())),
         }
@@ -423,8 +423,8 @@ impl BuildTool {
     /// ```
     /// use alpm_types::{BuildTool, Name, Error};
     ///
-    /// assert!(BuildTool::new_with_restriction("foo", &[Name::new("foo").unwrap()]).is_ok());
-    /// assert!(BuildTool::new_with_restriction("foo", &[Name::new("bar").unwrap()]).is_err());
+    /// assert!(BuildTool::new_with_restriction("foo", &[Name::new("foo".to_string()).unwrap()]).is_ok());
+    /// assert!(BuildTool::new_with_restriction("foo", &[Name::new("bar".to_string()).unwrap()]).is_err());
     /// ```
     pub fn new_with_restriction(name: &str, restrictions: &[Name]) -> Result<Self, Error> {
         match BuildTool::new(name) {
@@ -576,15 +576,18 @@ impl Display for InstalledSize {
 /// // create Md5Sum from &str
 /// assert_eq!(
 ///     Md5Sum::from_str("5eb63bbbe01eeed093cb22bb8f5acdc3"),
-///     Ok(Md5Sum::new("5eb63bbbe01eeed093cb22bb8f5acdc3").unwrap())
+///     Ok(Md5Sum::new("5eb63bbbe01eeed093cb22bb8f5acdc3".to_string()).unwrap())
 /// );
 /// assert_eq!(
 ///     Md5Sum::from_str("foobar"),
 ///     Err(Error::InvalidMd5Sum("foobar".to_string()))
 /// );
 ///
-/// // format as String
-/// assert_eq!("5eb63bbbe01eeed093cb22bb8f5acdc3", format!("{}", Md5Sum::new("5eb63bbbe01eeed093cb22bb8f5acdc3").unwrap()));
+/// // format as &str
+/// assert_eq!(
+///   "5eb63bbbe01eeed093cb22bb8f5acdc3",
+///   format!("{}", Md5Sum::new("5eb63bbbe01eeed093cb22bb8f5acdc3".to_string()).unwrap()),
+/// );
 /// ```
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Md5Sum(String);
@@ -595,11 +598,11 @@ impl Md5Sum {
     /// If the supplied string is valid on the basis of the allowed characters
     /// then an Md5Sum is returned as a Result, otherwise an InvalidMd5Sum Error
     /// is returned.
-    pub fn new(md5sum: &str) -> Result<Md5Sum, Error> {
-        if regex_once!(r"^[a-f0-9]{32}$").is_match(md5sum) {
-            Ok(Md5Sum(md5sum.to_string()))
+    pub fn new(md5sum: String) -> Result<Md5Sum, Error> {
+        if regex_once!(r"^[a-f0-9]{32}$").is_match(md5sum.as_str()) {
+            Ok(Md5Sum(md5sum))
         } else {
-            Err(Error::InvalidMd5Sum(md5sum.to_string()))
+            Err(Error::InvalidMd5Sum(md5sum))
         }
     }
 
@@ -613,7 +616,7 @@ impl FromStr for Md5Sum {
     type Err = Error;
     /// Create a Md5Sum from a string
     fn from_str(input: &str) -> Result<Md5Sum, Self::Err> {
-        Md5Sum::new(input)
+        Md5Sum::new(input.to_string())
     }
 }
 
@@ -636,7 +639,7 @@ impl Display for Md5Sum {
 /// // create Name from &str
 /// assert_eq!(
 ///     Name::from_str("test-123@.foo_+"),
-///     Ok(Name::new("test-123@.foo_+").unwrap())
+///     Ok(Name::new("test-123@.foo_+".to_string()).unwrap())
 /// );
 /// assert_eq!(
 ///     Name::from_str(".test"),
@@ -644,32 +647,24 @@ impl Display for Md5Sum {
 /// );
 ///
 /// // format as String
-/// assert_eq!("foo", format!("{}", Name::new("foo").unwrap()));
+/// assert_eq!("foo", format!("{}", Name::new("foo".to_string()).unwrap()));
 /// ```
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Name(String);
 
 impl Name {
     /// Create a new Name in a Result
-    pub fn new(name: &str) -> Result<Self, Error> {
-        Name::validate(name)
+    pub fn new(name: String) -> Result<Self, Error> {
+        if regex_once!(r"^[a-z\d_@+]+[a-z\d\-._@+]*$").is_match(name.as_str()) {
+            Ok(Name(name))
+        } else {
+            Err(Error::InvalidName(name))
+        }
     }
 
     /// Return a reference to the inner type
     pub fn inner(&self) -> &str {
         &self.0
-    }
-
-    /// Validate a string and return a Name in a Result
-    ///
-    /// The validation happens on the basis of the allowed characters as
-    /// defined by the Name type.
-    pub fn validate(name: &str) -> Result<Name, Error> {
-        if regex_once!(r"^[a-z\d_@+]+[a-z\d\-._@+]*$").is_match(name) {
-            Ok(Name(name.to_string()))
-        } else {
-            Err(Error::InvalidName(name.to_string()))
-        }
     }
 }
 
@@ -677,7 +672,7 @@ impl FromStr for Name {
     type Err = Error;
     /// Create a Name from a string
     fn from_str(input: &str) -> Result<Name, Self::Err> {
-        Name::validate(input)
+        Name::new(input.to_string())
     }
 }
 
@@ -1511,8 +1506,22 @@ mod tests {
     }
 
     #[rstest]
-    #[case("bar", vec![Name::new("foo").unwrap(), Name::new("bar").unwrap()], Ok(BuildTool::new("bar").unwrap()))]
-    #[case("bar", vec![Name::new("foo").unwrap(), Name::new("foo").unwrap()], Err(Error::InvalidBuildTool("bar".to_string())))]
+    #[case(
+        "bar",
+        vec![
+            Name::new("foo".to_string()).unwrap(),
+            Name::new("bar".to_string()).unwrap()
+        ],
+        Ok(BuildTool::new("bar").unwrap()),
+    )]
+    #[case(
+        "bar",
+        vec![
+            Name::new("foo".to_string()).unwrap(),
+            Name::new("foo".to_string()).unwrap(),
+        ],
+        Err(Error::InvalidBuildTool("bar".to_string())),
+    )]
     fn buildtool_new_with_restriction(
         #[case] buildtool: &str,
         #[case] restrictions: Vec<Name>,
@@ -1525,8 +1534,8 @@ mod tests {
     }
 
     #[rstest]
-    #[case("bar", vec![Name::new("foo").unwrap(), Name::new("bar").unwrap()], true)]
-    #[case("bar", vec![Name::new("foo").unwrap(), Name::new("foo").unwrap()], false)]
+    #[case("bar", vec![Name::new("foo".to_string()).unwrap(), Name::new("bar".to_string()).unwrap()], true)]
+    #[case("bar", vec![Name::new("foo".to_string()).unwrap(), Name::new("foo".to_string()).unwrap()], false)]
     fn buildtool_matches_restriction(
         #[case] buildtool: &str,
         #[case] restrictions: Vec<Name>,

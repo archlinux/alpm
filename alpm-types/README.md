@@ -79,7 +79,7 @@ You can create `Name` directly or from str, which yields a Result:
 use std::str::FromStr;
 use alpm_types::{Error, Name};
 
-assert_eq!(Name::from_str("test-123@.foo_+"), Ok(Name::new("test-123@.foo_+")));
+assert_eq!(Name::from_str("test-123@.foo_+"), Ok(Name::new("test-123@.foo_+".to_string())));
 assert_eq!(Name::from_str(".foo"), Err(Error::InvalidName(".foo".to_string())));
 ```
 
