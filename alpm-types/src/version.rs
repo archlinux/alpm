@@ -9,7 +9,70 @@ use std::str::FromStr;
 use semver::Version as SemverVersion;
 
 use crate::regex_once;
+use crate::Architecture;
 use crate::Error;
+
+/// The version and architecture of a build tool
+///
+/// `BuildToolVer` is used in conjunction with `BuildTool` to denote the specific build tool a package is built with.
+/// A `BuildToolVer` wraps a `Version` (that is guaranteed to have a `Pkgrel`) and an `Architecture`.
+///
+/// ## Examples
+/// ```
+/// use alpm_types::BuildToolVer;
+///
+/// assert!(BuildToolVer::new("1-1-any").is_ok());
+/// assert!(BuildToolVer::new("1").is_err());
+/// assert!(BuildToolVer::new("1-1-foo").is_err());
+/// ```
+#[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub struct BuildToolVer {
+    version: Version,
+    architecture: Architecture,
+}
+
+impl BuildToolVer {
+    /// Create a new BuildToolVer and return it in a Result
+    pub fn new(buildtoolver: &str) -> Result<Self, Error> {
+        match buildtoolver.rsplit_once('-') {
+            Some((version, architecture)) => {
+                if let Ok(architecture) = Architecture::from_str(architecture) {
+                    Ok(BuildToolVer {
+                        version: Version::with_pkgrel(version)?,
+                        architecture,
+                    })
+                } else {
+                    Err(Error::InvalidArchitecture(architecture.to_string()))
+                }
+            }
+            None => Err(Error::InvalidBuildToolVer(buildtoolver.to_string())),
+        }
+    }
+
+    /// Return a reference to the Architecture
+    pub fn architecture(&self) -> &Architecture {
+        &self.architecture
+    }
+
+    /// Return a reference to the Version
+    pub fn version(&self) -> &Version {
+        &self.version
+    }
+}
+
+impl FromStr for BuildToolVer {
+    type Err = Error;
+    /// Create an BuildToolVer from a string and return it in a Result
+    fn from_str(input: &str) -> Result<Self, Self::Err> {
+        BuildToolVer::new(input)
+    }
+}
+
+impl Display for BuildToolVer {
+    fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
+        write!(fmt, "{}-{}", self.version, self.architecture)
+    }
+}
 
 /// An epoch of a package
 ///
@@ -602,6 +665,35 @@ mod tests {
     #[case("-1.0.0", Err(Error::InvalidVersion("-1.0.0".to_string())))]
     fn schema_version(#[case] version: &str, #[case] result: Result<SchemaVersion, Error>) {
         assert_eq!(result, SchemaVersion::new(version))
+    }
+
+    #[rstest]
+    #[case(
+        "1.0.0-1-any",
+        Ok(BuildToolVer{version: Version::new("1.0.0-1").unwrap(), architecture: Architecture::from_str("any").unwrap()}),
+    )]
+    #[case(
+        "1:1.0.0-1-any",
+        Ok(BuildToolVer{version: Version::new("1:1.0.0-1").unwrap(), architecture: Architecture::from_str("any").unwrap()}),
+    )]
+    #[case(
+        "1.0.0",
+        Err(Error::InvalidBuildToolVer("1.0.0".to_string())),
+    )]
+    #[case(
+        "1.0.0-any",
+        Err(Error::InvalidVersion("1.0.0".to_string())),
+    )]
+    #[case(
+        ".1.0.0-1-any",
+        Err(Error::InvalidVersion(".1.0.0-1".to_string())),
+    )]
+    #[case(
+        "1.0.0-1-foo",
+        Err(Error::InvalidArchitecture("foo".to_string())),
+    )]
+    fn buildtoolver_new(#[case] buildtoolver: &str, #[case] result: Result<BuildToolVer, Error>) {
+        assert_eq!(BuildToolVer::new(buildtoolver), result);
     }
 
     #[rstest]

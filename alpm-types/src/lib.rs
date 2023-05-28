@@ -40,6 +40,7 @@ mod system;
 pub use system::Architecture;
 
 mod version;
+pub use version::BuildToolVer;
 pub use version::Epoch;
 pub use version::Pkgrel;
 pub use version::Pkgver;

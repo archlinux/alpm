@@ -127,6 +127,16 @@ assert_eq!(PkgType::from_str("pkg"), Ok(PkgType::Package));
 
 ### Version
 
+The version and CPU architecture of a build tool is tracked using `BuildToolVer`:
+
+```rust
+use alpm_types::BuildToolVer;
+
+let buildtoolver = BuildToolVer::new("1.0.0-1-any").unwrap();
+
+assert_eq!("1.0.0-1-any", format!("{}", buildtoolver));
+```
+
 Schemas of compound types (e.g. those used to describe `.BUILDINFO` or `.PKGINFO` files) need a schema version to version their features. This is what `SchemaVersion` is for:
 
 ```rust

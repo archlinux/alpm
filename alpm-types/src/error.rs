@@ -6,6 +6,9 @@ use thiserror::Error;
 #[derive(Debug, Error, PartialEq)]
 #[non_exhaustive]
 pub enum Error {
+    /// An invalid CPU architecture
+    #[error("Invalid architecture: {0}")]
+    InvalidArchitecture(String),
     /// An invalid build date (in seconds since the epoch)
     #[error("Invalid build date: {0}")]
     InvalidBuildDate(String),
@@ -18,6 +21,9 @@ pub enum Error {
     /// An invalid BuildTool
     #[error("Invalid buildtool: {0}")]
     InvalidBuildTool(String),
+    /// An invalid BuildToolVer
+    #[error("Invalid buildtool version: {0}")]
+    InvalidBuildToolVer(String),
     /// An invalid compressed file size (in bytes)
     #[error("Invalid compressed size: {0}")]
     InvalidCompressedSize(String),
