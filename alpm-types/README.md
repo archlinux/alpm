@@ -18,6 +18,8 @@ none of them has to implement them itself.
 
 ## Examples
 
+### System
+
 Known CPU architectures are represented by the `Architecture` enum.
 You can create members e.g. from str:
 
@@ -27,6 +29,8 @@ use alpm_types::Architecture;
 
 assert_eq!(Architecture::from_str("aarch64"), Ok(Architecture::Aarch64));
 ```
+
+### Date
 
 The date when a package has been built is represented using the `BuildDate`
 struct, which tracks this in seconds since the epoch.
@@ -42,6 +46,8 @@ let datetime: BuildDate = DateTime::<Utc>::from_utc(NaiveDateTime::from_timestam
 assert_eq!(BuildDate::new(1), datetime);
 ```
 
+### Env
+
 The options available in a build environment are tracked using `BuildEnv`:
 
 ```rust
@@ -51,6 +57,18 @@ let option = BuildEnv::new("foo").unwrap();
 assert_eq!(option.on(), true);
 assert_eq!(option.name(), "foo");
 ```
+
+The options used for packaging are tracked using `PackageOption`:
+
+```rust
+use alpm_types::PackageOption;
+
+let option = PackageOption::new("foo").unwrap();
+assert_eq!(option.on(), true);
+assert_eq!(option.name(), "foo");
+```
+
+### Size
 
 The compressed size of a package is represented by `CompressedSize` which
 tracks the size in bytes and can also be created from str:
@@ -72,6 +90,8 @@ use std::str::FromStr;
 assert_eq!(InstalledSize::from_str("1"), Ok(InstalledSize::new(1)));
 ```
 
+### Name
+
 The name for a package is restricted to a specific set of characters.
 You can create `Name` directly or from str, which yields a Result:
 
@@ -82,6 +102,8 @@ use alpm_types::{Error, Name};
 assert_eq!(Name::from_str("test-123@.foo_+"), Ok(Name::new("test-123@.foo_+".to_string())));
 assert_eq!(Name::from_str(".foo"), Err(Error::InvalidName(".foo".to_string())));
 ```
+
+### Pkg
 
 The authors of packages are identified using the `Packager` type, which describes a User ID (name and valid email):
 
@@ -94,16 +116,6 @@ assert_eq!("Foobar McFooface", packager.name());
 assert_eq!("foobar@mcfooface.org", packager.email().to_string());
 ```
 
-The options used for packaging are tracked using `PackageOption`:
-
-```rust
-use alpm_types::PackageOption;
-
-let option = PackageOption::new("foo").unwrap();
-assert_eq!(option.on(), true);
-assert_eq!(option.name(), "foo");
-```
-
 Package types are distinguished using the `PkgType` enum. Its variants can be constructed from str:
 
 ```rust
@@ -112,6 +124,8 @@ use alpm_types::PkgType;
 
 assert_eq!(PkgType::from_str("pkg"), Ok(PkgType::Package));
 ```
+
+### Version
 
 Schemas of compound types (e.g. those used to describe `.BUILDINFO` or `.PKGINFO` files) need a schema version to version their features. This is what `SchemaVersion` is for:
 
