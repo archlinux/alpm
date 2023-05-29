@@ -495,7 +495,7 @@ impl Display for SchemaVersion {
 /// assert_eq!(version.pkgver(), &Pkgver::new("1".to_string()).unwrap());
 /// assert_eq!(version.pkgrel(), Some(&Pkgrel::new("1".to_string()).unwrap()));
 /// ```
-#[derive(Debug, Clone, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Version {
     pkgver: Pkgver,
     epoch: Option<Epoch>,
@@ -625,14 +625,6 @@ impl Ord for Version {
 impl PartialOrd for Version {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
-    }
-}
-
-impl PartialEq for Version {
-    fn eq(&self, other: &Self) -> bool {
-        self.epoch == other.epoch
-            && self.pkgver.cmp(&other.pkgver).is_eq()
-            && self.pkgrel == other.pkgrel
     }
 }
 
