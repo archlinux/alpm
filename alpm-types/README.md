@@ -58,6 +58,16 @@ assert_eq!(option.on(), true);
 assert_eq!(option.name(), "foo");
 ```
 
+A package installed to an environment can be described using `Installed`:
+
+```rust
+use alpm_types::Installed;
+
+assert!(Installed::new("foo-1:1.0.0-1-any").is_ok());
+assert!(Installed::new("foo-1:1.0.0-1-foo").is_err());
+assert!(Installed::new("foo-1:1.0.0-any").is_err());
+```
+
 The options used for packaging are tracked using `PackageOption`:
 
 ```rust

@@ -30,6 +30,9 @@ pub enum Error {
     /// An invalid epoch in a version string
     #[error("Invalid epoch in string: {0}")]
     InvalidEpoch(String),
+    /// An invalid installed package information
+    #[error("Invalid information on installed package: {0}")]
+    InvalidInstalled(String),
     /// An invalid installed package size (in bytes)
     #[error("Invalid installed size: {0}")]
     InvalidInstalledSize(String),

@@ -12,6 +12,7 @@ pub use date::BuildDate;
 mod env;
 pub use env::BuildEnv;
 pub use env::BuildOption;
+pub use env::Installed;
 pub use env::PackageOption;
 
 mod error;
