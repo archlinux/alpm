@@ -603,21 +603,17 @@ impl FromStr for Version {
 
 impl Display for Version {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
-        write!(
-            fmt,
-            "{}{}{}",
-            if let Some(epoch) = self.epoch() {
-                format!("{}:", epoch)
-            } else {
-                "".to_string()
-            },
-            self.pkgver(),
-            if let Some(pkgrel) = self.pkgrel() {
-                format!("-{}", pkgrel)
-            } else {
-                "".to_string()
-            }
-        )
+        if let Some(epoch) = self.epoch() {
+            write!(fmt, "{}:", epoch)?;
+        }
+
+        write!(fmt, "{}", self.pkgver())?;
+
+        if let Some(pkgrel) = self.pkgrel() {
+            write!(fmt, "-{}", pkgrel)?;
+        }
+
+        Ok(())
     }
 }
 
