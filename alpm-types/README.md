@@ -99,7 +99,7 @@ You can create `Name` directly or from str, which yields a Result:
 use std::str::FromStr;
 use alpm_types::{Error, Name};
 
-assert_eq!(Name::from_str("test-123@.foo_+"), Ok(Name::new("test-123@.foo_+".to_string())));
+assert_eq!(Name::from_str("test-123@.foo_+"), Name::new("test-123@.foo_+".to_string()));
 assert_eq!(Name::from_str(".foo"), Err(Error::InvalidName(".foo".to_string())));
 ```
 
@@ -145,12 +145,12 @@ Its `vercmp()` method implementation is compatible with that of libalpm/pacman's
 use std::str::FromStr;
 use alpm_types::Version;
 
-let version = Version::new("1.0.0".to_string()).unwrap();
+let version = Version::new("1.0.0").unwrap();
 
 assert_eq!("1.0.0", format!("{}", version));
 
-let version_a = Version::new("1.0.0".to_string()).unwrap();
-let version_b = Version::new("1.1.0".to_string()).unwrap();
+let version_a = Version::new("1.0.0").unwrap();
+let version_b = Version::new("1.1.0").unwrap();
 
 assert_eq!(Version::vercmp(&version_a, &version_b), -1);
 ```
