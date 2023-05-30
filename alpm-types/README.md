@@ -153,6 +153,10 @@ let version_a = Version::new("1.0.0").unwrap();
 let version_b = Version::new("1.1.0").unwrap();
 
 assert_eq!(Version::vercmp(&version_a, &version_b), -1);
+
+// create a Version that is guaranteed to have a Pkgrel
+assert!(Version::with_pkgrel("1.0.0-1").is_ok());
+assert!(Version::with_pkgrel("1.0.0").is_err());
 ```
 
 ## Contributing

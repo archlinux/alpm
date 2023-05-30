@@ -482,6 +482,14 @@ impl Version {
         })
     }
 
+    /// Create a new Version, which is guaranteed to have a Pkgrel
+    pub fn with_pkgrel(version: &str) -> Result<Self, Error> {
+        match Version::new(version) {
+            Ok(version) if version.pkgrel().is_some() => Ok(version),
+            _ => Err(Error::InvalidVersion(version.to_string())),
+        }
+    }
+
     /// Return the optional reference to the Epoch of the Version
     pub fn epoch(&self) -> Option<&Epoch> {
         self.epoch.as_ref()
@@ -647,6 +655,20 @@ mod tests {
                 &Version::new(version).expect_err("Should be an Err")
             )
         }
+    }
+
+    #[rstest]
+    #[case(
+        "1.0.0-1",
+        Ok(Version{
+            pkgver: Pkgver::new("1.0.0".to_string()).unwrap(),
+            pkgrel: Some(Pkgrel::new("1".to_string()).unwrap()),
+            epoch: None,
+        })
+    )]
+    #[case("1.0.0", Err(Error::InvalidVersion("1.0.0".to_string())))]
+    fn version_with_pkgrel(#[case] version: &str, #[case] result: Result<Version, Error>) {
+        assert_eq!(result, Version::with_pkgrel(version));
     }
 
     #[rstest]
