@@ -86,18 +86,18 @@ impl Display for BuildToolVer {
 /// use std::str::FromStr;
 /// use alpm_types::Epoch;
 ///
-/// assert!(Epoch::new("1".to_string()).is_ok());
-/// assert!(Epoch::new("0".to_string()).is_err());
+/// assert!(Epoch::new("1").is_ok());
+/// assert!(Epoch::new("0").is_err());
 /// ```
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Epoch(NonZeroUsize);
 
 impl Epoch {
     /// Create a new Epoch from a string and return it in a Result
-    pub fn new(epoch: String) -> Result<Self, Error> {
+    pub fn new(epoch: &str) -> Result<Self, Error> {
         match epoch.parse() {
             Ok(epoch) => Ok(Epoch(epoch)),
-            Err(_) => Err(Error::InvalidEpoch(epoch)),
+            Err(_) => Err(Error::InvalidEpoch(epoch.to_owned())),
         }
     }
 
@@ -111,7 +111,7 @@ impl FromStr for Epoch {
     type Err = Error;
     /// Create an Epoch from a string and return it in a Result
     fn from_str(input: &str) -> Result<Self, Self::Err> {
-        Epoch::new(input.to_string())
+        Epoch::new(input)
     }
 }
 
@@ -491,7 +491,7 @@ impl Display for SchemaVersion {
 /// use alpm_types::{Epoch, Pkgrel, Pkgver, Version};
 ///
 /// let version = Version::new("1:1-1").unwrap();
-/// assert_eq!(version.epoch(), Some(&Epoch::new("1".to_string()).unwrap()));
+/// assert_eq!(version.epoch(), Some(&Epoch::new("1").unwrap()));
 /// assert_eq!(version.pkgver(), &Pkgver::new("1".to_string()).unwrap());
 /// assert_eq!(version.pkgrel(), Some(&Pkgrel::new("1".to_string()).unwrap()));
 /// ```
@@ -828,7 +828,7 @@ mod tests {
         "1:foo-1",
         Ok(Version{
             pkgver: Pkgver::new("foo".to_string()).unwrap(),
-            epoch: Some(Epoch::new("1".to_string()).unwrap()),
+            epoch: Some(Epoch::new("1").unwrap()),
             pkgrel: Some(Pkgrel::new("1".to_string()).unwrap()),
         }),
     )]
@@ -836,7 +836,7 @@ mod tests {
         "1:foo",
         Ok(Version{
             pkgver: Pkgver::new("foo".to_string()).unwrap(),
-            epoch: Some(Epoch::new("1".to_string()).unwrap()),
+            epoch: Some(Epoch::new("1").unwrap()),
             pkgrel: None,
         }),
     )]
@@ -881,11 +881,11 @@ mod tests {
     }
 
     #[rstest]
-    #[case("1".to_string(), Ok(Epoch(NonZeroUsize::new(1).unwrap())))]
-    #[case("0".to_string(), Err(Error::InvalidEpoch("0".to_string())))]
-    #[case("-0".to_string(), Err(Error::InvalidEpoch("-0".to_string())))]
-    #[case("z".to_string(), Err(Error::InvalidEpoch("z".to_string())))]
-    fn epoch(#[case] version: String, #[case] result: Result<Epoch, Error>) {
+    #[case("1", Ok(Epoch(NonZeroUsize::new(1).unwrap())))]
+    #[case("0", Err(Error::InvalidEpoch("0".to_string())))]
+    #[case("-0", Err(Error::InvalidEpoch("-0".to_string())))]
+    #[case("z", Err(Error::InvalidEpoch("z".to_string())))]
+    fn epoch(#[case] version: &str, #[case] result: Result<Epoch, Error>) {
         assert_eq!(result, Epoch::new(version));
     }
 
