@@ -505,40 +505,25 @@ pub struct Version {
 impl Version {
     /// Create a new Version from a string and return it in a Result
     pub fn new(version: &str) -> Result<Self, Error> {
-        let mut epoch_split = vec![];
-        let mut pkgrel_split = vec![];
-        for (i, char) in version.chars().enumerate() {
-            match char {
-                ':' => epoch_split.push(i),
-                '-' => pkgrel_split.push(i),
-                _ => {}
-            }
-        }
+        // try to split off epoch
+        let (epoch, pkgver_pkgrel) = version.split_once(':').unzip();
+        // if there's no epoch, the entire thing is pkgver and maybe pkgrel
+        let pkgver_pkgrel = pkgver_pkgrel.unwrap_or(version);
+
+        // try to split off pkgrel
+        let (pkgver, pkgrel) = pkgver_pkgrel.split_once('-').unzip();
+        // if there's no pkgrel, the entire thing is the pkgver
+        let pkgver = pkgver.unwrap_or(pkgver_pkgrel);
 
         Ok(Version {
-            pkgver: match (epoch_split.len(), pkgrel_split.len()) {
-                // pkgrel occurs before epoch
-                (1, 1) if epoch_split[0] > pkgrel_split[0] => {
-                    return Err(Error::InvalidVersion(version.to_string()))
-                }
-                // pkgver in between epoch and pkgrel
-                (1, 1) => Pkgver::new(version[epoch_split[0] + 1..pkgrel_split[0]].to_string())?,
-                // pkgver before pkgrel
-                (0, 1) => Pkgver::new(version[..pkgrel_split[0]].to_string())?,
-                // only pkgver
-                (0, 0) => Pkgver::new(version.to_string())?,
-                // pkgver after epoch
-                (1, 0) => Pkgver::new(version[epoch_split[0] + 1..].to_string())?,
-                // more than one epoch or pkgrel
-                (_, _) => return Err(Error::InvalidVersion(version.to_string())),
-            },
-            epoch: if epoch_split.len() == 1 {
-                Some(Epoch::new(version[..epoch_split[0]].to_string())?)
+            pkgver: pkgver.parse()?,
+            epoch: if let Some(s) = epoch {
+                Some(s.parse()?)
             } else {
                 None
             },
-            pkgrel: if pkgrel_split.len() == 1 {
-                Some(Pkgrel::new(version[pkgrel_split[0] + 1..].to_string())?)
+            pkgrel: if let Some(s) = pkgrel {
+                Some(s.parse()?)
             } else {
                 None
             },
@@ -871,10 +856,10 @@ mod tests {
             pkgrel: Some(Pkgrel::new("1".to_string()).unwrap())
         })
     )]
-    #[case("-1foo:1", Err(Error::InvalidVersion("-1foo:1".to_string())))]
-    #[case("1-foo:1", Err(Error::InvalidVersion("1-foo:1".to_string())))]
-    #[case("1:1:foo-1", Err(Error::InvalidVersion("1:1:foo-1".to_string())))]
-    #[case("1:foo-1-1", Err(Error::InvalidVersion("1:foo-1-1".to_string())))]
+    #[case("-1foo:1", Err(Error::InvalidEpoch("-1foo".to_string())))]
+    #[case("1-foo:1", Err(Error::InvalidEpoch("1-foo".to_string())))]
+    #[case("1:1:foo-1", Err(Error::InvalidPkgver("1:foo".to_string())))]
+    #[case("1:foo-1-1", Err(Error::InvalidPkgrel("1-1".to_string())))]
     #[case("", Err(Error::InvalidPkgver("".to_string())))]
     #[case(":", Err(Error::InvalidPkgver("".to_string())))]
     #[case(".", Err(Error::InvalidPkgver(".".to_string())))]
