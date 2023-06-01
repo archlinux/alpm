@@ -113,6 +113,17 @@ assert_eq!(Name::from_str("test-123@.foo_+"), Name::new("test-123@.foo_+".to_str
 assert_eq!(Name::from_str(".foo"), Err(Error::InvalidName(".foo".to_string())));
 ```
 
+### Path
+
+The build directory of a package build environment can be described using `BuildDir`:
+
+```rust
+use alpm_types::BuildDir;
+
+let builddir = BuildDir::new("/build").unwrap();
+assert_eq!("/build", format!("{}", builddir));
+```
+
 ### Pkg
 
 The authors of packages are identified using the `Packager` type, which describes a User ID (name and valid email):
