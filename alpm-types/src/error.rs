@@ -60,6 +60,9 @@ pub enum Error {
     /// An invalid pkgver in a version string
     #[error("Invalid pkgver in string: {0}")]
     InvalidPkgver(String),
+    /// An invalid start directory
+    #[error("Invalid start directory: {0}")]
+    InvalidStartDir(String),
     /// An invalid version string
     #[error("Invalid version string: {0}")]
     InvalidVersion(String),

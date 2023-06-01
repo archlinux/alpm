@@ -113,6 +113,60 @@ impl Display for BuildDir {
     }
 }
 
+/// An absolute path used as start directory in a package build environment
+///
+/// StartDir wraps an `AbsolutePath`
+///
+/// ## Examples
+/// ```
+/// use alpm_types::{StartDir, Error};
+/// use std::str::FromStr;
+///
+/// // create StartDir from &str
+/// assert_eq!(
+///     StartDir::from_str("/").unwrap(),
+///     StartDir::new("/").unwrap()
+/// );
+/// assert_eq!(
+///     StartDir::from_str("/foo.txt").unwrap(),
+///     StartDir::new("/foo.txt").unwrap()
+/// );
+///
+/// // format as String
+/// assert_eq!("/", format!("{}", StartDir::new("/").unwrap()));
+/// ```
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct StartDir(AbsolutePath);
+
+impl StartDir {
+    /// Create a new StartDir and return it in a Result
+    pub fn new(absolute_path: &str) -> Result<Self, Error> {
+        if let Ok(abs_path) = AbsolutePath::new(absolute_path) {
+            Ok(StartDir(abs_path))
+        } else {
+            Err(Error::InvalidStartDir(absolute_path.to_string()))
+        }
+    }
+
+    /// Return a reference to the inner type
+    pub fn inner(&self) -> &AbsolutePath {
+        &self.0
+    }
+}
+
+impl FromStr for StartDir {
+    type Err = Error;
+    fn from_str(absolute_path: &str) -> Result<StartDir, Self::Err> {
+        StartDir::new(absolute_path)
+    }
+}
+
+impl Display for StartDir {
+    fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
+        write!(fmt, "{}", self.inner())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -125,5 +179,14 @@ mod tests {
     #[case("foo.txt", Err(Error::InvalidBuildDir(String::from("foo.txt"))))]
     fn build_dir_from_string(#[case] from_str: &str, #[case] result: Result<BuildDir, Error>) {
         assert_eq!(BuildDir::from_str(from_str), result);
+    }
+
+    #[rstest]
+    #[case("/start", StartDir::new("/start"))]
+    #[case("./", Err(Error::InvalidStartDir(String::from("./"))))]
+    #[case("~/", Err(Error::InvalidStartDir(String::from("~/"))))]
+    #[case("foo.txt", Err(Error::InvalidStartDir(String::from("foo.txt"))))]
+    fn startdir_from_str(#[case] from_str: &str, #[case] result: Result<StartDir, Error>) {
+        assert_eq!(StartDir::from_str(from_str), result);
     }
 }

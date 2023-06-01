@@ -28,6 +28,7 @@ pub use name::Name;
 mod path;
 pub use path::AbsolutePath;
 pub use path::BuildDir;
+pub use path::StartDir;
 
 mod pkg;
 pub use pkg::Packager;

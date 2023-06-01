@@ -124,6 +124,15 @@ let builddir = BuildDir::new("/build").unwrap();
 assert_eq!("/build", format!("{}", builddir));
 ```
 
+The start directory of a package build environment can be described using `StartDir`:
+
+```rust
+use alpm_types::StartDir;
+
+let startdir = StartDir::new("/start").unwrap();
+assert_eq!("/start", format!("{}", startdir));
+```
+
 ### Pkg
 
 The authors of packages are identified using the `Packager` type, which describes a User ID (name and valid email):
