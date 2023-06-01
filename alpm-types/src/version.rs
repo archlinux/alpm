@@ -495,7 +495,7 @@ impl Display for SchemaVersion {
 /// assert_eq!(version.pkgver(), &Pkgver::new("1".to_string()).unwrap());
 /// assert_eq!(version.pkgrel(), Some(&Pkgrel::new("1".to_string()).unwrap()));
 /// ```
-#[derive(Debug, Eq)]
+#[derive(Debug, Clone, Eq)]
 pub struct Version {
     pkgver: Pkgver,
     epoch: Option<Epoch>,
