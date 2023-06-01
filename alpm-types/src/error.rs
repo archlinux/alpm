@@ -73,6 +73,12 @@ pub enum Error {
     /// An invalid version string
     #[error("Invalid version string: {0}")]
     InvalidVersion(String),
+    /// An invalid version comparison
+    #[error("Invalid version comparison: {0}")]
+    InvalidVersionComparison(String),
+    /// An invalid version requirement
+    #[error("Invalid version requirement: {0}")]
+    InvalidVersionRequirement(String),
 }
 
 #[cfg(test)]

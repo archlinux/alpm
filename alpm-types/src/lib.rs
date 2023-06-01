@@ -61,3 +61,5 @@ pub use version::Pkgrel;
 pub use version::Pkgver;
 pub use version::SchemaVersion;
 pub use version::Version;
+pub use version::VersionComparison;
+pub use version::VersionRequirement;

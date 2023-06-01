@@ -654,6 +654,150 @@ impl PartialEq for Version {
             && self.pkgrel == other.pkgrel
     }
 }
+
+/// Specifies the comparison function for a [`VersionRequirement`].
+///
+/// The package version can be required to be:
+/// - less than (`<`)
+/// - less than or equal to (`<=`)
+/// - equal to (`=`)
+/// - greater than or equal to (`>=`)
+/// - greater than (`>`)
+/// than the specified version.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum VersionComparison {
+    Less,
+    LessOrEqual,
+    Equal,
+    GreaterOrEqual,
+    Greater,
+}
+
+impl VersionComparison {
+    /// Returns `true` if the result of a comparison between the actual and required package versions
+    /// satisfies the comparison function.
+    ///
+    /// ## Examples
+    ///
+    /// ```ignore
+    /// use alpm_types::{Version, VersionComparison};
+    ///
+    /// let actual_version = Version::new("1.3").unwrap();
+    ///
+    /// let required_version = Version::new("1.5").unwrap();
+    /// let required_comparison = VersionComparison::GreaterOrEqual;
+    ///
+    /// let comparison = actual_version.cmp(&required_version);
+    ///
+    /// assert!(!required_comparison.is_compatible_with(comparison));
+    /// ```
+    fn is_compatible_with(self, ord: Ordering) -> bool {
+        match (self, ord) {
+            (VersionComparison::Less, Ordering::Less)
+            | (VersionComparison::LessOrEqual, Ordering::Less | Ordering::Equal)
+            | (VersionComparison::Equal, Ordering::Equal)
+            | (VersionComparison::GreaterOrEqual, Ordering::Greater | Ordering::Equal)
+            | (VersionComparison::Greater, Ordering::Greater) => true,
+
+            (VersionComparison::Less, Ordering::Equal | Ordering::Greater)
+            | (VersionComparison::LessOrEqual, Ordering::Greater)
+            | (VersionComparison::Equal, Ordering::Less | Ordering::Greater)
+            | (VersionComparison::GreaterOrEqual, Ordering::Less)
+            | (VersionComparison::Greater, Ordering::Less | Ordering::Equal) => false,
+        }
+    }
+}
+
+impl FromStr for VersionComparison {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "<" => Ok(VersionComparison::Less),
+            "<=" => Ok(VersionComparison::LessOrEqual),
+            "=" => Ok(VersionComparison::Equal),
+            ">=" => Ok(VersionComparison::GreaterOrEqual),
+            ">" => Ok(VersionComparison::Greater),
+            _ => Err(Error::InvalidVersionComparison(s.to_owned())),
+        }
+    }
+}
+
+/// A version requirement, e.g. for a dependency package.
+///
+/// It consists of a target version and a comparison function. A version requirement of `>=1.5` has
+/// a target version of `1.5` and a comparison function of [`VersionComparison::GreaterOrEqual`].
+///
+/// ## Examples
+///
+/// ```
+/// use alpm_types::{Version, VersionComparison, VersionRequirement};
+///
+/// let requirement = VersionRequirement::new(">=1.5").unwrap();
+///
+/// assert_eq!(requirement.comparison, VersionComparison::GreaterOrEqual);
+/// assert_eq!(requirement.version, Version::new("1.5").unwrap());
+/// ```
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct VersionRequirement {
+    pub comparison: VersionComparison,
+    pub version: Version,
+}
+
+impl VersionRequirement {
+    /// Parses a version requirement from a string.
+    ///
+    /// ## Errors
+    ///
+    /// Returns an error if the comparison function or version are malformed.
+    pub fn new(s: &str) -> Result<Self, Error> {
+        fn is_comparison_char(c: char) -> bool {
+            matches!(c, '<' | '=' | '>')
+        }
+
+        let comparison_end = s
+            .find(|c| !is_comparison_char(c))
+            .ok_or_else(|| Error::InvalidVersionRequirement(s.to_owned()))?;
+
+        let (comparison, version) = s.split_at(comparison_end);
+
+        let comparison = comparison.parse()?;
+        let version = version.parse()?;
+
+        Ok(VersionRequirement {
+            comparison,
+            version,
+        })
+    }
+
+    /// Returns `true` if the requirement is satisfied by the given package version.
+    ///
+    /// ## Examples
+    ///
+    /// ```
+    /// use alpm_types::{Version, VersionRequirement};
+    ///
+    /// let requirement = VersionRequirement::new(">=1.5-3").unwrap();
+    ///
+    /// assert!(!requirement.is_satisfied_by(&Version::new("1.5").unwrap()));
+    /// assert!(requirement.is_satisfied_by(&Version::new("1.5-3").unwrap()));
+    /// assert!(requirement.is_satisfied_by(&Version::new("1.6").unwrap()));
+    /// assert!(requirement.is_satisfied_by(&Version::new("2:1.0").unwrap()));
+    /// assert!(!requirement.is_satisfied_by(&Version::new("1.0").unwrap()));
+    /// ```
+    pub fn is_satisfied_by(&self, ver: &Version) -> bool {
+        self.comparison.is_compatible_with(ver.cmp(&self.version))
+    }
+}
+
+impl FromStr for VersionRequirement {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Self::new(s)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -865,5 +1009,78 @@ mod tests {
     ) {
         assert_eq!(version_a.cmp(&version_b), ordering);
         assert_eq!(Version::vercmp(&version_a, &version_b), vercmp_result);
+    }
+
+    #[rstest]
+    #[case("<", Ok(VersionComparison::Less))]
+    #[case("<=", Ok(VersionComparison::LessOrEqual))]
+    #[case("=", Ok(VersionComparison::Equal))]
+    #[case(">=", Ok(VersionComparison::GreaterOrEqual))]
+    #[case(">", Ok(VersionComparison::Greater))]
+    #[case("", Err(Error::InvalidVersionComparison("".to_string())))]
+    #[case("<<", Err(Error::InvalidVersionComparison("<<".to_string())))]
+    #[case("==", Err(Error::InvalidVersionComparison("==".to_string())))]
+    #[case("!=", Err(Error::InvalidVersionComparison("!=".to_string())))]
+    #[case(" =", Err(Error::InvalidVersionComparison(" =".to_string())))]
+    #[case("= ", Err(Error::InvalidVersionComparison("= ".to_string())))]
+    #[case("<1", Err(Error::InvalidVersionComparison("<1".to_string())))]
+    fn version_comparison(
+        #[case] comparison: &str,
+        #[case] result: Result<VersionComparison, Error>,
+    ) {
+        assert_eq!(comparison.parse(), result);
+    }
+
+    #[rstest]
+    #[case("=1", Ok(VersionRequirement {
+        comparison: VersionComparison::Equal,
+        version: Version::new("1").unwrap(),
+    }))]
+    #[case("<=42:abcd-2.4", Ok(VersionRequirement {
+        comparison: VersionComparison::LessOrEqual,
+        version: Version::new("42:abcd-2.4").unwrap(),
+    }))]
+    #[case(">3.1", Ok(VersionRequirement {
+        comparison: VersionComparison::Greater,
+        version: Version::new("3.1").unwrap(),
+    }))]
+    #[case("<=", Err(Error::InvalidVersionRequirement("<=".to_string())))]
+    #[case("<>3.1", Err(Error::InvalidVersionComparison("<>".to_string())))]
+    #[case("3.1", Err(Error::InvalidVersionComparison("".to_string())))]
+    #[case("=>3.1", Err(Error::InvalidVersionComparison("=>".to_string())))]
+    #[case("<3.1>3.2", Err(Error::InvalidPkgver("3.1>3.2".to_string())))]
+    fn version_requirement(
+        #[case] requirement: &str,
+        #[case] result: Result<VersionRequirement, Error>,
+    ) {
+        assert_eq!(requirement.parse(), result);
+    }
+
+    #[rstest]
+    #[case("=1", "1", true)]
+    #[case("=1", "1.0", false)]
+    #[case("=1", "1-1", false)]
+    #[case("=1", "1:1", false)]
+    #[case("=1", "0.9", false)]
+    #[case("<42", "41", true)]
+    #[case("<42", "42", false)]
+    #[case("<42", "43", false)]
+    #[case("<=42", "41", true)]
+    #[case("<=42", "42", true)]
+    #[case("<=42", "43", false)]
+    #[case(">42", "41", false)]
+    #[case(">42", "42", false)]
+    #[case(">42", "43", true)]
+    #[case(">=42", "41", false)]
+    #[case(">=42", "42", true)]
+    #[case(">=42", "43", true)]
+    fn version_requirement_satisfied(
+        #[case] requirement: &str,
+        #[case] version: &str,
+        #[case] result: bool,
+    ) {
+        let requirement = VersionRequirement::from_str(requirement).unwrap();
+        let version = Version::from_str(version).unwrap();
+        assert_eq!(requirement.is_satisfied_by(&version), result);
     }
 }
