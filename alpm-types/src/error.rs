@@ -6,12 +6,18 @@ use thiserror::Error;
 #[derive(Debug, Error, PartialEq)]
 #[non_exhaustive]
 pub enum Error {
+    /// An invalid absolute path
+    #[error("Invalid absolute path: {0}")]
+    InvalidAbsolutePath(String),
     /// An invalid CPU architecture
     #[error("Invalid architecture: {0}")]
     InvalidArchitecture(String),
     /// An invalid build date (in seconds since the epoch)
     #[error("Invalid build date: {0}")]
     InvalidBuildDate(String),
+    /// An invalid build directory
+    #[error("Invalid build directory: {0}")]
+    InvalidBuildDir(String),
     /// An invalid build environment
     #[error("Invalid build environment string: {0}")]
     InvalidBuildEnv(String),
@@ -57,12 +63,6 @@ pub enum Error {
     /// An invalid version string
     #[error("Invalid version string: {0}")]
     InvalidVersion(String),
-    /// An invalid absolute path
-    #[error("Invalid absolute path: {0}")]
-    InvalidAbsolutePath(String),
-    /// An invalid build directory
-    #[error("Invalid build directory: {0}")]
-    InvalidBuildDir(String),
 }
 
 #[cfg(test)]
