@@ -30,6 +30,9 @@ pub enum Error {
     /// An invalid BuildToolVer
     #[error("Invalid buildtool version: {0}")]
     InvalidBuildToolVer(String),
+    /// An invalid checksum
+    #[error("Invalid checksum: {0}")]
+    InvalidChecksum(String),
     /// An invalid compressed file size (in bytes)
     #[error("Invalid compressed size: {0}")]
     InvalidCompressedSize(String),

@@ -4,7 +4,19 @@
 #![doc = include_str!("../README.md")]
 
 mod checksum;
+pub use checksum::Checksum;
 pub use checksum::Md5Sum;
+
+/// Public re-exports of common hash functions, for use with [`Checksum`].
+pub mod digests {
+    pub use blake2::Blake2b512;
+    pub use md5::Md5;
+    pub use sha1::Sha1;
+    pub use sha2::Sha224;
+    pub use sha2::Sha256;
+    pub use sha2::Sha384;
+    pub use sha2::Sha512;
+}
 
 mod date;
 pub use date::BuildDate;

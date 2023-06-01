@@ -16,11 +16,16 @@ rust-version = "1.60.0"
 version = "0.2.0"
 
 [dependencies]
+blake2 = "0.10.6"
 chrono = { version = "0.4.24", features = ["clock"], default-features = false }
+digest = "0.10.7"
 email_address = "0.2.4"
+md-5 = "0.10.5"
 once_cell = "1.17.1"
 regex = "1.7.2"
 semver = "1.0.17"
+sha1 = "0.10.5"
+sha2 = "0.10.6"
 strum = "0.24.1"
 strum_macros = "0.24.3"
 thiserror = "1.0.40"

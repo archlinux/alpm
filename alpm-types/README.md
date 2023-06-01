@@ -30,6 +30,44 @@ use alpm_types::Architecture;
 assert_eq!(Architecture::from_str("aarch64"), Ok(Architecture::Aarch64));
 ```
 
+### Checksum
+
+Checksums are implemented generically for a set of supported algorithms:
+- `Blake2b512`
+- `Md5` (**WARNING**: Use of this algorithm is highly discouraged, because it is cryptographically unsafe)
+- `Sha1` (**WARNING**: Use of this algorithm is highly discouraged, because it is cryptographically unsafe)
+- `Sha224`
+- `Sha256`
+- `Sha384`
+- `Sha512`
+
+**NOTE**: Contrary to makepkg/pacman, this crate *does not* support using cksum-style CRC-32 as it is non-standard (different implementations throughout libraries) and cryptographically unsafe.
+
+The above algorithms are reexported in the `digests` module of this crate, so that users do not have to add the [blake2](https://crates.io/crates/blake2), [md-5](https://crates.io/crates/md-5), [sha1](https://crates.io/crates/sha1), or [sha2](https://crates.io/crates/sha2) crates themselves and can solely rely on `alpm-types`.
+
+```rust
+use std::str::FromStr;
+use alpm_types::{digests::Blake2b512, Checksum};
+
+let checksum = Checksum::<Blake2b512>::calculate_from("foo\n");
+
+let digest = vec![
+    210, 2, 215, 149, 29, 242, 196, 183, 17, 202, 68, 180, 188, 201, 215, 179, 99, 250, 66,
+    82, 18, 126, 5, 140, 26, 145, 14, 192, 91, 108, 208, 56, 215, 28, 194, 18, 33, 192, 49,
+    192, 53, 159, 153, 62, 116, 107, 7, 245, 150, 92, 248, 197, 195, 116, 106, 88, 51, 122,
+    217, 171, 101, 39, 142, 119,
+];
+assert_eq!(checksum.inner(), digest);
+assert_eq!(
+    format!("{}", checksum),
+    "d202d7951df2c4b711ca44b4bcc9d7b363fa4252127e058c1a910ec05b6cd038d71cc21221c031c0359f993e746b07f5965cf8c5c3746a58337ad9ab65278e77",
+);
+
+// create checksum from hex string
+let checksum = Checksum::<Blake2b512>::from_str("d202d7951df2c4b711ca44b4bcc9d7b363fa4252127e058c1a910ec05b6cd038d71cc21221c031c0359f993e746b07f5965cf8c5c3746a58337ad9ab65278e77").unwrap();
+assert_eq!(checksum.inner(), digest);
+```
+
 ### Date
 
 The date when a package has been built is represented using the `BuildDate`
