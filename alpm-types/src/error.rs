@@ -79,6 +79,15 @@ pub enum Error {
     /// An invalid version requirement
     #[error("Invalid version requirement: {0}")]
     InvalidVersionRequirement(String),
+    /// An invalid source string
+    #[error("Invalid source string: {0}")]
+    InvalidSource(String),
+    /// An invalid URL
+    #[error("Invalid URL: {0}")]
+    InvalidUrl(String),
+    /// An invalid file name
+    #[error("Invalid file name: {0}")]
+    InvalidFilename(String),
 }
 
 #[cfg(test)]

@@ -8,6 +8,11 @@ pub use checksum::Checksum;
 #[allow(deprecated)]
 pub use checksum::Md5Sum;
 
+mod source;
+pub use source::Filename;
+pub use source::Source;
+pub use source::SourceLocation;
+
 /// Public re-exports of common hash functions, for use with [`Checksum`].
 pub mod digests {
     pub use blake2::Blake2b512;
