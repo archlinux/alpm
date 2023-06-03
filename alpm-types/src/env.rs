@@ -5,7 +5,6 @@ use std::fmt::Formatter;
 use std::str::FromStr;
 use std::string::ToString;
 
-use crate::regex_once;
 use crate::Architecture;
 use crate::Error;
 use crate::Name;
@@ -95,19 +94,18 @@ pub struct BuildOption {
 impl BuildOption {
     /// Create a new BuildOption in a Result
     pub fn new(option: &str) -> Result<Self, Error> {
-        let option_regex = regex_once!(r"^(?P<on>!?)(?P<name>[\w\-.]+)$");
-        if let Some(captures) = option_regex.captures(option) {
-            if captures.name("on").is_some() && captures.name("name").is_some() {
-                Ok(BuildOption {
-                    name: captures.name("name").unwrap().as_str().into(),
-                    on: !captures.name("on").unwrap().as_str().contains('!'),
-                })
-            } else {
-                Err(Error::InvalidBuildOption(option.into()))
-            }
+        let (name, on) = if let Some(name) = option.strip_prefix('!') {
+            (name.to_owned(), false)
         } else {
-            Err(Error::InvalidBuildOption(option.into()))
+            (option.to_owned(), true)
+        };
+        if !name
+            .chars()
+            .all(|c| c.is_alphanumeric() || c == '-' || c == '.')
+        {
+            return Err(Error::InvalidBuildOption(name));
         }
+        Ok(BuildOption { name, on })
     }
 
     /// Get the name of the BuildOption
