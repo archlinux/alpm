@@ -276,7 +276,11 @@ mod tests {
 
     #[rstest]
     #[case("something", Ok(BuildOption{name: "something".to_string(), on: true}))]
+    #[case("1cool.build-option", Ok(BuildOption{name: "1cool.build-option".to_string(), on: true}))]
+    #[case("üñıçøĐë", Ok(BuildOption{name: "üñıçøĐë".to_string(), on: true}))]
+    #[case("!üñıçøĐë", Ok(BuildOption{name: "üñıçøĐë".to_string(), on: false}))]
     #[case("!something", Ok(BuildOption{name: "something".to_string(), on: false}))]
+    #[case("!!something", Err(Error::InvalidBuildOption("!something".to_string())))]
     #[case("foo\\", Err(Error::InvalidBuildOption("foo\\".to_string())))]
     fn buildoption(#[case] from_str: &str, #[case] result: Result<BuildOption, Error>) {
         assert_eq!(BuildOption::from_str(from_str), result);
