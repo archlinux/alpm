@@ -17,7 +17,7 @@ use crate::Error;
 /// // create CompressedSize from &str
 /// assert_eq!(
 ///     CompressedSize::from_str("1"),
-///     Ok(CompressedSize::new(1))
+///     Ok(CompressedSize(1))
 /// );
 /// assert_eq!(
 ///     CompressedSize::from_str("-1"),
@@ -25,25 +25,14 @@ use crate::Error;
 /// );
 ///
 /// // format as String
-/// assert_eq!("1", format!("{}", CompressedSize::new(1)));
+/// assert_eq!("1", format!("{}", CompressedSize(1)));
 /// ```
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct CompressedSize(u64);
-
-impl CompressedSize {
-    /// Create a new CompressedSize
-    pub fn new(compressedsize: u64) -> CompressedSize {
-        CompressedSize(compressedsize)
-    }
-
-    /// Return a reference to the inner type
-    pub fn inner(&self) -> &u64 {
-        &self.0
-    }
-}
+pub struct CompressedSize(pub u64);
 
 impl FromStr for CompressedSize {
     type Err = Error;
+
     /// Create a CompressedSize from a string
     fn from_str(input: &str) -> Result<CompressedSize, Self::Err> {
         match input.parse::<u64>() {
@@ -55,7 +44,7 @@ impl FromStr for CompressedSize {
 
 impl Display for CompressedSize {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
-        write!(fmt, "{}", self.inner())
+        write!(fmt, "{}", self.0)
     }
 }
 
@@ -67,33 +56,24 @@ impl Display for CompressedSize {
 /// use std::str::FromStr;
 ///
 /// // create InstalledSize from &str
-/// assert_eq!(InstalledSize::from_str("1"), Ok(InstalledSize::new(1)));
+/// assert_eq!(InstalledSize::from_str("1"), Ok(InstalledSize(1)));
 /// assert_eq!(
 ///     InstalledSize::from_str("-1"),
 ///     Err(Error::InvalidInstalledSize(String::from("-1")))
 /// );
 ///
 /// // format as String
-/// assert_eq!("1", format!("{}", InstalledSize::new(1)));
+/// assert_eq!("1", format!("{}", InstalledSize(1)));
 /// ```
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct InstalledSize {
-    size: u64,
-}
-
-impl InstalledSize {
-    /// Create a new InstalledSize
-    pub fn new(size: u64) -> InstalledSize {
-        InstalledSize { size }
-    }
-}
+pub struct InstalledSize(pub u64);
 
 impl FromStr for InstalledSize {
     type Err = Error;
     /// Create a InstalledSize from a string
     fn from_str(input: &str) -> Result<InstalledSize, Self::Err> {
         match input.parse::<u64>() {
-            Ok(size) => Ok(InstalledSize { size }),
+            Ok(size) => Ok(InstalledSize(size)),
             _ => Err(Error::InvalidInstalledSize(input.to_string())),
         }
     }
@@ -101,7 +81,7 @@ impl FromStr for InstalledSize {
 
 impl Display for InstalledSize {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
-        write!(fmt, "{}", self.size)
+        write!(fmt, "{}", self.0)
     }
 }
 
@@ -111,7 +91,7 @@ mod tests {
     use rstest::rstest;
 
     #[rstest]
-    #[case("1", Ok(CompressedSize::new(1)))]
+    #[case("1", Ok(CompressedSize(1)))]
     #[case("-1", Err(Error::InvalidCompressedSize(String::from("-1"))))]
     fn compressedsize_from_string(
         #[case] from_str: &str,
@@ -122,11 +102,11 @@ mod tests {
 
     #[rstest]
     fn compressedsize_format_string() {
-        assert_eq!("1", format!("{}", CompressedSize::new(1)));
+        assert_eq!("1", format!("{}", CompressedSize(1)));
     }
 
     #[rstest]
-    #[case("1", Ok(InstalledSize::new(1)))]
+    #[case("1", Ok(InstalledSize(1)))]
     #[case("-1", Err(Error::InvalidInstalledSize(String::from("-1"))))]
     fn installedsize_from_string(
         #[case] from_str: &str,
@@ -137,6 +117,6 @@ mod tests {
 
     #[rstest]
     fn installedsize_format_string() {
-        assert_eq!("1", format!("{}", InstalledSize::new(1)));
+        assert_eq!("1", format!("{}", InstalledSize(1)));
     }
 }

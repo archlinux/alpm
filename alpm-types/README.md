@@ -123,7 +123,7 @@ The compressed size of a package is represented by `CompressedSize` which tracks
 use alpm_types::CompressedSize;
 use std::str::FromStr;
 
-assert_eq!(CompressedSize::from_str("1"), Ok(CompressedSize::new(1)));
+assert_eq!(CompressedSize::from_str("1"), Ok(CompressedSize(1)));
 ```
 
 The installed size of a package is represented by `InstalledSize` which tracks the size in bytes and can also be created from str:
@@ -132,7 +132,7 @@ The installed size of a package is represented by `InstalledSize` which tracks t
 use alpm_types::InstalledSize;
 use std::str::FromStr;
 
-assert_eq!(InstalledSize::from_str("1"), Ok(InstalledSize::new(1)));
+assert_eq!(InstalledSize::from_str("1"), Ok(InstalledSize(1)));
 ```
 
 ### Name
