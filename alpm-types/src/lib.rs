@@ -5,6 +5,7 @@
 
 mod checksum;
 pub use checksum::Checksum;
+#[allow(deprecated)]
 pub use checksum::Md5Sum;
 
 /// Public re-exports of common hash functions, for use with [`Checksum`].

@@ -49,6 +49,10 @@ pub enum Error {
     #[error("Invalid package name: {0}")]
     InvalidName(String),
     #[error("Invalid md5sum: {0}")]
+    #[deprecated(
+        since = "0.3.0",
+        note = "Error::InvalidMd5Sum(String) is tied to the use of Md5Sum. Users should use Checksum<Md5> and Error::InvalidChecksum(String) instead."
+    )]
     InvalidMd5Sum(String),
     #[error("Invalid packager string: {0}")]
     InvalidPackager(String),
@@ -87,6 +91,7 @@ mod tests {
         Error::InvalidInstalledSize(String::from("-1"))
     )]
     #[case("Invalid package name: -1", Error::InvalidName(String::from("-1")))]
+    #[allow(deprecated)]
     #[case("Invalid md5sum: -1", Error::InvalidMd5Sum(String::from("-1")))]
     #[case(
         "Invalid packager string: foo",

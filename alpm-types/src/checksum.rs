@@ -161,8 +161,13 @@ impl<D: Digest> Display for Checksum<D> {
 /// );
 /// ```
 #[derive(Clone, Debug, Eq, PartialEq)]
+#[deprecated(
+    since = "0.3.0",
+    note = "Md5Sum has only limited functionality and will be removed. Users should use Checksum<Md5> instead."
+)]
 pub struct Md5Sum(String);
 
+#[allow(deprecated)]
 impl Md5Sum {
     /// Create a new Md5Sum in a Result
     ///
@@ -183,6 +188,7 @@ impl Md5Sum {
     }
 }
 
+#[allow(deprecated)]
 impl FromStr for Md5Sum {
     type Err = Error;
     /// Create a Md5Sum from a string
@@ -191,6 +197,7 @@ impl FromStr for Md5Sum {
     }
 }
 
+#[allow(deprecated)]
 impl Display for Md5Sum {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
         write!(fmt, "{}", self.inner())
@@ -359,24 +366,28 @@ mod tests {
         }
 
         #[test]
+        #[allow(deprecated)]
         fn valid_md5sum_from_string(md5sum_str in r"[a-f0-9]{32}") {
             let md5sum = Md5Sum::from_str(&md5sum_str).unwrap();
             prop_assert_eq!(md5sum_str, format!("{}", md5sum));
         }
 
         #[test]
+        #[allow(deprecated)]
         fn invalid_md5sum_from_string_bigger_size(md5sum_str in r"[a-f0-9]{64}") {
             let error = Md5Sum::from_str(&md5sum_str).unwrap_err();
             assert!(format!("{}", error).ends_with(&md5sum_str));
         }
 
         #[test]
+        #[allow(deprecated)]
         fn invalid_md5sum_from_string_smaller_size(md5sum_str in r"[a-f0-9]{16}") {
             let error = Md5Sum::from_str(&md5sum_str).unwrap_err();
             assert!(format!("{}", error).ends_with(&md5sum_str));
         }
 
         #[test]
+        #[allow(deprecated)]
         fn invalid_md5sum_from_string_wrong_chars(md5sum_str in r"[e-z0-9]{32}") {
             let error = Md5Sum::from_str(&md5sum_str).unwrap_err();
             assert!(format!("{}", error).ends_with(&md5sum_str));
