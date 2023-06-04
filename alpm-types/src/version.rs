@@ -90,7 +90,7 @@ impl Display for BuildToolVer {
 /// assert!(Epoch::new("0").is_err());
 /// ```
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub struct Epoch(NonZeroUsize);
+pub struct Epoch(pub NonZeroUsize);
 
 impl Epoch {
     /// Create a new Epoch from a string and return it in a Result
@@ -99,11 +99,6 @@ impl Epoch {
             Ok(epoch) => Ok(Epoch(epoch)),
             Err(_) => Err(Error::InvalidEpoch(epoch.to_owned())),
         }
-    }
-
-    // Return a reference to the inner type
-    pub fn inner(&self) -> NonZeroUsize {
-        self.0
     }
 }
 
@@ -117,7 +112,7 @@ impl FromStr for Epoch {
 
 impl Display for Epoch {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
-        write!(fmt, "{}", self.inner())
+        write!(fmt, "{}", self.0)
     }
 }
 
@@ -440,7 +435,7 @@ impl PartialEq for Pkgver {
 /// assert_eq!("1.0.0", format!("{}", version_also_one));
 /// ```
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub struct SchemaVersion(SemverVersion);
+pub struct SchemaVersion(pub SemverVersion);
 
 impl SchemaVersion {
     /// Create a new SchemaVersion from a string
@@ -460,11 +455,6 @@ impl SchemaVersion {
             }
         }
     }
-
-    /// Return a reference to the inner type
-    pub fn inner(&self) -> &SemverVersion {
-        &self.0
-    }
 }
 
 impl FromStr for SchemaVersion {
@@ -477,7 +467,7 @@ impl FromStr for SchemaVersion {
 
 impl Display for SchemaVersion {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
-        write!(fmt, "{}", self.inner())
+        write!(fmt, "{}", self.0)
     }
 }
 
@@ -491,15 +481,15 @@ impl Display for SchemaVersion {
 /// use alpm_types::{Epoch, Pkgrel, Pkgver, Version};
 ///
 /// let version = Version::new("1:1-1").unwrap();
-/// assert_eq!(version.epoch(), Some(&Epoch::new("1").unwrap()));
-/// assert_eq!(version.pkgver(), &Pkgver::new("1".to_string()).unwrap());
-/// assert_eq!(version.pkgrel(), Some(&Pkgrel::new("1".to_string()).unwrap()));
+/// assert_eq!(version.epoch, Some(Epoch::new("1").unwrap()));
+/// assert_eq!(version.pkgver, Pkgver::new("1".to_string()).unwrap());
+/// assert_eq!(version.pkgrel, Some(Pkgrel::new("1".to_string()).unwrap()));
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Version {
-    pkgver: Pkgver,
-    epoch: Option<Epoch>,
-    pkgrel: Option<Pkgrel>,
+    pub pkgver: Pkgver,
+    pub epoch: Option<Epoch>,
+    pub pkgrel: Option<Pkgrel>,
 }
 
 impl Version {
@@ -533,24 +523,9 @@ impl Version {
     /// Create a new Version, which is guaranteed to have a Pkgrel
     pub fn with_pkgrel(version: &str) -> Result<Self, Error> {
         match Version::new(version) {
-            Ok(version) if version.pkgrel().is_some() => Ok(version),
+            Ok(version) if version.pkgrel.is_some() => Ok(version),
             _ => Err(Error::InvalidVersion(version.to_string())),
         }
-    }
-
-    /// Return the optional reference to the Epoch of the Version
-    pub fn epoch(&self) -> Option<&Epoch> {
-        self.epoch.as_ref()
-    }
-
-    /// Return a reference to Pkgver of the Version
-    pub fn pkgver(&self) -> &Pkgver {
-        &self.pkgver
-    }
-
-    /// Return the optional reference to the Pkgrel of the Version
-    pub fn pkgrel(&self) -> Option<&Pkgrel> {
-        self.pkgrel.as_ref()
     }
 
     /// Compare two Versions and return a number
@@ -588,13 +563,13 @@ impl FromStr for Version {
 
 impl Display for Version {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
-        if let Some(epoch) = self.epoch() {
+        if let Some(epoch) = self.epoch {
             write!(fmt, "{}:", epoch)?;
         }
 
-        write!(fmt, "{}", self.pkgver())?;
+        write!(fmt, "{}", self.pkgver)?;
 
-        if let Some(pkgrel) = self.pkgrel() {
+        if let Some(pkgrel) = &self.pkgrel {
             write!(fmt, "-{}", pkgrel)?;
         }
 
