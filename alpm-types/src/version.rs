@@ -202,7 +202,7 @@ pub struct Pkgver(String);
 impl Pkgver {
     /// Create a new Pkgver from a string and return it in a Result
     pub fn new(pkgver: String) -> Result<Self, Error> {
-        if regex_once!(r"^([^_+.][[:alnum:]_+.]*)$").is_match(pkgver.as_str()) {
+        if regex_once!(r"^([[:alnum:]][[:alnum:]_+.]*)$").is_match(pkgver.as_str()) {
             Ok(Pkgver(pkgver))
         } else {
             Err(Error::InvalidPkgver(pkgver))
@@ -897,6 +897,9 @@ mod tests {
     #[case("foo,1".to_string(), Err(Error::InvalidPkgver("foo,1".to_string())))]
     #[case(".foo".to_string(), Err(Error::InvalidPkgver(".foo".to_string())))]
     #[case("_foo".to_string(), Err(Error::InvalidPkgver("_foo".to_string())))]
+    // ß is not in [:alnum:]
+    #[case("ß".to_string(), Err(Error::InvalidPkgver("ß".to_string())))]
+    #[case("1.ß".to_string(), Err(Error::InvalidPkgver("1.ß".to_string())))]
     fn pkgver(#[case] version: String, #[case] result: Result<Pkgver, Error>) {
         assert_eq!(result, Pkgver::new(version));
     }
