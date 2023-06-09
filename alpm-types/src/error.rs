@@ -93,6 +93,12 @@ pub enum Error {
     InvalidFilename(String),
 }
 
+impl From<strum::ParseError> for Error {
+    fn from(err: strum::ParseError) -> Self {
+        Error::Default(err.to_string())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
