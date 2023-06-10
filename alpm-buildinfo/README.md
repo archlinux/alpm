@@ -9,6 +9,33 @@ A library and commandline toolkit for the specification, writing and parsing of 
 
 `BUILDINFO` files describe the build environment of a package and carry various datasets, that help in reproducing the same package bit-by-bit.
 
+## Examples
+
+### Library
+
+```rust
+use std::str::FromStr;
+use alpm_buildinfo::BuildInfoV1;
+let buildinfo_data = r#"format = 1
+pkgname = foo
+pkgbase = foo
+pkgver = 1:1.0.0-1
+pkgarch = any
+pkgbuild_sha256sum = b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c
+packager = Foobar McFooface <foobar@mcfooface.org>
+builddate = 1
+builddir = /build
+buildenv = envfoo
+buildenv = envbar
+options = some_option
+options = !other_option
+installed = bar-1.2.3-1-any
+installed = beh-2.2.3-4-any
+"#;
+
+assert!(BuildInfoV1::from_str(buildinfo_data).is_ok());
+```
+
 ## Contributing
 
 Please refer to the [contribution guidelines](CONTRIBUTING.md) to learn how to contribute to this project.
