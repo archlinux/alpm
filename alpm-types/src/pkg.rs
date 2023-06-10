@@ -108,7 +108,7 @@ impl Display for Packager {
 /// assert_eq!("src", format!("{}", PkgType::Source));
 /// assert_eq!("split", format!("{}", PkgType::Split));
 /// ```
-#[derive(Debug, Display, EnumString, PartialEq)]
+#[derive(Clone, Debug, Display, EnumString, PartialEq)]
 #[non_exhaustive]
 pub enum PkgType {
     /// a debug package
