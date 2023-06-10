@@ -25,3 +25,12 @@ codegen-units = 1
 
 [build-dependencies]
 mandown = "0.1.3"
+
+[dependencies]
+alpm-types = "0.3.0"
+strum = "0.24.1"
+thiserror = "1.0.40"
+
+[dev-dependencies]
+rstest = "0.17.0"
+testresult = "0.3.0"
