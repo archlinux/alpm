@@ -36,7 +36,7 @@ use crate::Error;
 /// let restrictions = vec![Name::new("foo".to_string()).unwrap(), Name::new("bar".to_string()).unwrap()];
 /// assert!(buildtool.matches_restriction(&restrictions));
 /// ```
-#[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct BuildTool(Name);
 
 impl BuildTool {
