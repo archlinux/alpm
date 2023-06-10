@@ -149,7 +149,7 @@ impl Display for BuildOption {
 /// assert!(Installed::new("foo-bar-1:1.0.0-any").is_err());
 /// assert!(Installed::new("1:1.0.0-1-any").is_err());
 /// ```
-#[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Installed {
     name: Name,
     version: Version,
