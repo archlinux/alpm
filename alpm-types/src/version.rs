@@ -25,7 +25,7 @@ use crate::Error;
 /// assert!(BuildToolVer::new("1").is_err());
 /// assert!(BuildToolVer::new("1-1-foo").is_err());
 /// ```
-#[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct BuildToolVer {
     version: Version,
     architecture: Architecture,
