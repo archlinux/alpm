@@ -31,7 +31,7 @@ use strum_macros::EnumString;
 /// assert_eq!("x86_64_v3", format!("{}", Architecture::X86_64V3));
 /// assert_eq!("x86_64_v4", format!("{}", Architecture::X86_64V4));
 /// ```
-#[derive(Debug, Display, EnumString, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, Display, EnumString, Eq, Ord, PartialEq, PartialOrd)]
 #[non_exhaustive]
 pub enum Architecture {
     #[strum(to_string = "aarch64")]
