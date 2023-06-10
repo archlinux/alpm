@@ -6,6 +6,9 @@ use thiserror::Error;
 #[derive(Debug, Error, PartialEq)]
 #[non_exhaustive]
 pub enum Error {
+    /// A default error
+    #[error("Type error: {0}")]
+    Default(String),
     /// An invalid absolute path
     #[error("Invalid absolute path: {0}")]
     InvalidAbsolutePath(String),
