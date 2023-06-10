@@ -439,7 +439,7 @@ impl PartialEq for Pkgver {
 /// assert_eq!("1.0.0", format!("{}", version_one));
 /// assert_eq!("1.0.0", format!("{}", version_also_one));
 /// ```
-#[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct SchemaVersion(SemverVersion);
 
 impl SchemaVersion {
