@@ -229,6 +229,18 @@ assert!(Version::with_pkgrel("1.0.0-1").is_ok());
 assert!(Version::with_pkgrel("1.0.0").is_err());
 ```
 
+Version comparisons can be made using `VersionComparison` and `VersionRequirement`:
+
+```rust
+use std::str::FromStr;
+use alpm_types::{Version, VersionComparison, VersionRequirement};
+
+let requirement = VersionRequirement::new(">=1.5-1").unwrap();
+assert_eq!(requirement.comparison, VersionComparison::GreaterOrEqual);
+assert_eq!(requirement.version, Version::new("1.5-1").unwrap());
+assert!(requirement.is_satisfied_by(&Version::new("1.5-3").unwrap()));
+```
+
 ## Contributing
 
 Please refer to the [contribution guidelines](CONTRIBUTING.md) to learn how to contribute to this project.
