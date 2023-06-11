@@ -185,6 +185,19 @@ use alpm_types::PkgType;
 assert_eq!(PkgType::from_str("pkg"), Ok(PkgType::Package));
 ```
 
+### Source
+
+Sources of a package can be described using `Source` (which consists of an optional `Filename` and a `SourceLocation`):
+
+```rust
+use alpm_types::{Filename, Source, SourceLocation};
+
+let source = Source::new("foopkg-1.2.3.tar.gz::https://example.com/download").unwrap();
+
+assert_eq!(source.filename.unwrap(), Filename::new("foopkg-1.2.3.tar.gz".to_string()).unwrap());
+let SourceLocation::Url(url) = source.location else { panic!() };
+```
+
 ### Version
 
 The version and CPU architecture of a build tool is tracked using `BuildToolVer`:
