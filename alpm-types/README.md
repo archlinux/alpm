@@ -7,14 +7,9 @@ SPDX-License-Identifier: CC-BY-SA-4.0
 
 Types for **A**rch **L**inux **P**ackage **M**anagement.
 
-The provided types and the traits they implement can be used in package
-management related applications (e.g. package manager, repository manager,
-special purpose parsers and file specifications, etc.) which deal with
-[libalpm](https://man.archlinux.org/man/libalpm.3) based packages.
+The provided types and the traits they implement can be used in package management related applications (e.g. package manager, repository manager, special purpose parsers and file specifications, etc.) which deal with [libalpm](https://man.archlinux.org/man/libalpm.3) based packages.
 
-This library strives to provide all underlying types for writing ALPM based
-software as a leaf-crate, so that they can be shared across applications and
-none of them has to implement them itself.
+This library strives to provide all underlying types for writing ALPM based software as a leaf-crate, so that they can be shared across applications and none of them has to implement them itself.
 
 ## Examples
 
@@ -33,6 +28,7 @@ assert_eq!(Architecture::from_str("aarch64"), Ok(Architecture::Aarch64));
 ### Checksum
 
 Checksums are implemented generically for a set of supported algorithms:
+
 - `Blake2b512`
 - `Md5` (**WARNING**: Use of this algorithm is highly discouraged, because it is cryptographically unsafe)
 - `Sha1` (**WARNING**: Use of this algorithm is highly discouraged, because it is cryptographically unsafe)
@@ -70,11 +66,9 @@ assert_eq!(checksum.inner(), digest);
 
 ### Date
 
-The date when a package has been built is represented using the `BuildDate`
-struct, which tracks this in seconds since the epoch.
+The date when a package has been built is represented using the `BuildDate` struct, which tracks this in seconds since the epoch.
 
-Apart from creating BuildDate from i64 or str, it can also be created from
-`DateTime<Utc>`:
+Apart from creating BuildDate from i64 or str, it can also be created from `DateTime<Utc>`:
 
 ```rust
 use chrono::{DateTime, NaiveDateTime, Utc};
@@ -118,8 +112,7 @@ assert_eq!(option.name(), "foo");
 
 ### Size
 
-The compressed size of a package is represented by `CompressedSize` which
-tracks the size in bytes and can also be created from str:
+The compressed size of a package is represented by `CompressedSize` which tracks the size in bytes and can also be created from str:
 
 ```rust
 use alpm_types::CompressedSize;
@@ -128,8 +121,7 @@ use std::str::FromStr;
 assert_eq!(CompressedSize::from_str("1"), Ok(CompressedSize::new(1)));
 ```
 
-The installed size of a package is represented by `InstalledSize` which
-tracks the size in bytes and can also be created from str:
+The installed size of a package is represented by `InstalledSize` which tracks the size in bytes and can also be created from str:
 
 ```rust
 use alpm_types::InstalledSize;
@@ -239,10 +231,8 @@ assert!(Version::with_pkgrel("1.0.0").is_err());
 
 ## Contributing
 
-Please refer to the [contribution guidelines](CONTRIBUTING.md) to learn how to
-contribute to this project.
+Please refer to the [contribution guidelines](CONTRIBUTING.md) to learn how to contribute to this project.
 
 ## License
 
-This project is licensed under the terms of the
-[LGPL-3.0-or-later](https://www.gnu.org/licenses/lgpl-3.0.en.html).
+This project is licensed under the terms of the [LGPL-3.0-or-later](https://www.gnu.org/licenses/lgpl-3.0.en.html).
