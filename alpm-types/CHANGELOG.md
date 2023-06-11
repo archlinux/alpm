@@ -3,6 +3,33 @@ SPDX-FileCopyrightText: 2023 David Runge <dvzrv@archlinux.org>
 SPDX-License-Identifier: CC-BY-SA-4.0
 -->
 - - -
+## 0.3.0 - 2023-06-11
+#### Continuous Integration
+- Enable releasing to crates.io via CI - (e74334a) - David Runge
+#### Documentation
+- Add example for Filename, Source and SourceLocation to README - (e3df355) - David Runge
+- Add example for VersionComparison and VersionRequirement to README - (b9ef3c5) - David Runge
+- No longer manually break long lines in README and contributing guidelines - (af3fea2) - David Runge
+#### Features
+- Derive Clone for BuildTool - (32d9315) - David Runge
+- Derive Clone for PkgType - (83bbed5) - David Runge
+- Derive Clone for Installed - (8968d7b) - David Runge
+- Derive Clone for SchemaVersion - (679f03d) - David Runge
+- Derive Clone for BuildToolVer - (05a510f) - David Runge
+- Derive Clone for Architecture - (75a50c0) - David Runge
+- Add from strum::ParseError for Error - (0b682e1) - David Runge
+- Add default Error variant for generic issues. - (e6f6a64) - David Runge
+- add Source type - (8853d34) - Xiretza
+- add VersionComparison and VersionRequirement types - (1f493ae) - Xiretza
+- make Version Clone - (67b5fcc) - Xiretza
+- Add Checksum type to generically support checksum algorithms - (f1a6b57) - David Runge
+#### Miscellaneous Chores
+- Deprecate Md5Sum in favor of Checksum<Md5> - (50f6f74) - David Runge
+#### Tests
+- Guard against breaking semver using cargo-semver-checks - (757ac72) - David Runge
+
+- - -
+
 ## 0.2.0 - 2023-06-01
 #### Bug Fixes
 - **(SchemaVersion)** Use semver:Version as SemverVersion to prevent name clash - (1725d10) - David Runge
