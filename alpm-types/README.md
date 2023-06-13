@@ -76,10 +76,10 @@ The date when a package has been built is represented using the `BuildDate` stru
 Apart from creating BuildDate from i64 or str, it can also be created from `DateTime<Utc>`:
 
 ```rust
-use chrono::{DateTime, NaiveDateTime, Utc};
+use time::OffsetDateTime;
 use alpm_types::BuildDate;
 
-let datetime: BuildDate = DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp_opt(1, 0).unwrap(), Utc).into();
+let datetime: BuildDate = OffsetDateTime::from_unix_timestamp(1).unwrap().into();
 assert_eq!(BuildDate::new(1), datetime);
 ```
 

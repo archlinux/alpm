@@ -5,8 +5,7 @@ use std::fmt::Formatter;
 use std::str::FromStr;
 use std::string::ToString;
 
-use chrono::DateTime;
-use chrono::Utc;
+use time::OffsetDateTime;
 
 use crate::Error;
 
@@ -15,12 +14,11 @@ use crate::Error;
 /// # Examples
 /// ```
 /// use alpm_types::{BuildDate, Error};
-/// use chrono::{DateTime, NaiveDateTime, Utc};
+/// use time::OffsetDateTime;
 /// use std::str::FromStr;
 ///
-/// // create BuildDate from DateTime<Utc>
-/// let datetime: BuildDate =
-/// DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp_opt(1, 0).unwrap(), Utc).into();
+/// // create BuildDate from OffsetDateTime
+/// let datetime: BuildDate = OffsetDateTime::from_unix_timestamp(1).unwrap().into();
 /// assert_eq!(BuildDate::new(1), datetime);
 ///
 /// // create BuildDate from &str
@@ -48,9 +46,9 @@ impl BuildDate {
     }
 }
 
-impl From<DateTime<Utc>> for BuildDate {
-    fn from(input: DateTime<Utc>) -> BuildDate {
-        let builddate = input.timestamp();
+impl From<OffsetDateTime> for BuildDate {
+    fn from(input: OffsetDateTime) -> BuildDate {
+        let builddate = input.unix_timestamp();
         BuildDate(builddate)
     }
 }
@@ -75,7 +73,6 @@ impl Display for BuildDate {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use chrono::NaiveDateTime;
     use rstest::rstest;
 
     #[rstest]
@@ -93,8 +90,7 @@ mod tests {
     #[rstest]
     fn datetime_into_builddate() {
         let builddate = BuildDate(1);
-        let datetime: BuildDate =
-            DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp_opt(1, 0).unwrap(), Utc).into();
+        let datetime: BuildDate = OffsetDateTime::from_unix_timestamp(1).unwrap().into();
         assert_eq!(builddate, datetime);
     }
 }
