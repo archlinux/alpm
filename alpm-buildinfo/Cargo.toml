@@ -28,9 +28,14 @@ mandown = "0.1.3"
 
 [dependencies]
 alpm-types = "0.3.0"
+clap = { version = "4.3.3", features = ["derive", "string"] }
+clap_complete = "4.3.1"
+clap_mangen = "0.2.12"
 strum = "0.24.1"
 thiserror = "1.0.40"
 
 [dev-dependencies]
+assert_cmd = "2.0.11"
 rstest = "0.17.0"
+testdir = "0.8.0"
 testresult = "0.3.0"

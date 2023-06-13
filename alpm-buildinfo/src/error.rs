@@ -26,6 +26,34 @@ impl Display for ErrorLine {
 #[derive(Debug, Error)]
 #[non_exhaustive]
 pub enum Error {
+    /// ALPM type error
+    #[error("ALPM type error: {0}")]
+    AlpmType(#[from] alpm_types::Error),
+
+    /// A generic default error
+    #[error("A generic error occurred: {0}")]
+    Default(String),
+
+    /// Failed creating a directory
+    #[error("Failed creating directory: {0}")]
+    FailedDirCreation(String),
+
+    /// Failed creating a file
+    #[error("Failed creating file: {0}")]
+    FailedFileCreation(String),
+
+    /// Failed reading a BUILDINFO file
+    #[error("Failed reading BUILDINFO file: {0}")]
+    FailedReading(String),
+
+    /// Failed writing a BUILDINFO file
+    #[error("Failed writing BUILDINFO file: {0}")]
+    FailedWriting(String),
+
+    /// An invalid BuildInfo version is encountered
+    #[error("Invalid BUILDINFO version: {0}")]
+    InvalidBuildInfoVersion(String),
+
     /// An invalid value for a field is found in a BuildInfo
     #[error("Invalid value for BUILDINFO v{0} field '{1}': {2}: {3}")]
     InvalidValue(String, String, ErrorLine, alpm_types::Error),
