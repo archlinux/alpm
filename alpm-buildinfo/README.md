@@ -9,6 +9,11 @@ A library and commandline toolkit for the specification, writing and parsing of 
 
 `BUILDINFO` files describe the build environment of a package and carry various datasets, that help in reproducing the same package bit-by-bit.
 
+## Documentation
+
+* https://alpm-buildinfo.archlinux.page/alpm_buildinfo/ for development version of the crate
+* https://docs.rs/alpm-buildinfo/latest/alpm_buildinfo/ for released versions of the crate
+
 ## Examples
 
 ### Library
