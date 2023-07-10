@@ -11,6 +11,11 @@ The provided types and the traits they implement can be used in package manageme
 
 This library strives to provide all underlying types for writing ALPM based software as a leaf-crate, so that they can be shared across applications and none of them has to implement them itself.
 
+## Documentation
+
+* https://alpm-types.archlinux.page/alpm_types/ for development version of the crate
+* https://docs.rs/alpm-types/latest/alpm_types/ for released versions of the crate
+
 ## Examples
 
 ### System
