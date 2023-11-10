@@ -32,5 +32,5 @@ thiserror = "1.0.43"
 url = "2.4.0"
 
 [dev-dependencies]
-proptest = "1.2.0"
+proptest = "1.4.0"
 rstest = "0.18.1"
