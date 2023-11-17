@@ -29,7 +29,7 @@ mandown = "0.1.3"
 [dependencies]
 alpm-types = "0.3.0"
 clap = { version = "4.4.8", features = ["derive", "string"] }
-clap_complete = "4.3.1"
+clap_complete = "4.4.4"
 clap_mangen = "0.2.12"
 strum = "0.24.1"
 thiserror = "1.0.40"
