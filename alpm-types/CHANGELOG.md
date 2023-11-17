@@ -3,6 +3,50 @@ SPDX-FileCopyrightText: 2023 David Runge <dvzrv@archlinux.org>
 SPDX-License-Identifier: CC-BY-SA-4.0
 -->
 - - -
+## 0.4.0 - 2023-11-17
+#### Bug Fixes
+- **(Cargo.toml)** Update MSRV to 1.67.1 - (66d3e47) - David Runge
+- **(deps)** update rust crate regex to 1.10.2 - (bf3423b) - renovate
+- **(deps)** update rust crate strum_macros to 0.25.2 - (47f9071) - renovate
+- **(deps)** update rust crate strum to 0.25.0 - (e988113) - renovate
+- Increase the MSRV to 1.65.0 as let..else is in use - (21bd1ca) - David Runge
+- make version types' fields public - (3fe4b5d) - Xiretza
+- make *Size field public - (302362c) - Xiretza
+- Epoch: take &str instead of String - (df875ae) - Xiretza
+- do not allow arbitrary first characters in version strings - (ce1e923) - Xiretza
+- simplify BuildOption parsing - (e07b675) - Xiretza
+- derive PartialEq implementation for Version - (0cc94e8) - Xiretza
+- simplify Version parsing - (959a694) - Xiretza
+- avoid unnecessary string allocations in Version Display - (6813580) - Xiretza
+- Relicense README under the terms of GFDL-1.3-or-later. - (58494dc) - David Runge
+#### Continuous Integration
+- Verify that the advertised MSRV can be used. - (cd08b09) - David Runge
+- Add renovate.json - (9adf80a) - renovate
+- Actually publish the documentation. - (483a19d) - David Runge
+- Publish development documentation on archlinux.page - (220c487) - David Runge
+- Do not run semver check if commits lead to no change in version - (980cafa) - David Runge
+- Do not store artifacts for build job - (0b7e894) - David Runge
+- Split checks into separate jobs and do not rely on script anymore. - (d888106) - David Runge
+- Use default before_script instead of extending from .prepare job - (b51bbf6) - David Runge
+- Only run `cargo semver-checks` if there are commits requiring a new version - (ae15fc0) - David Runge
+#### Documentation
+- Add information on where to find documentation. - (78d6271) - David Runge
+- Clarify licensing of documentation contribution. - (ffdb0f0) - David Runge
+- Add GFDL-1.3-or-later license - (b74f1fd) - David Runge
+- Add links to mailing list and IRC channel to contributing guidelines - (7ba5841) - David Runge
+- Add security policy - (3cf22d2) - David Runge
+#### Features
+- add #![forbid(unsafe_code)] - (7451249) - Xiretza
+- add more BuildOption tests - (08c22a5) - Xiretza
+#### Miscellaneous Chores
+- **(deps)** update rust crate proptest to 1.4.0 - (0ac0208) - renovate
+- **(deps)** update rust crate rstest to 0.18.1 - (61e083f) - renovate
+- Upgrade dependencies - (9b3c2b2) - David Runge
+#### Refactoring
+- Replace chrono with time - (e3b8922) - Óscar García Amor
+
+- - -
+
 ## 0.3.0 - 2023-06-11
 #### Continuous Integration
 - Enable releasing to crates.io via CI - (e74334a) - David Runge

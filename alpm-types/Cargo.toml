@@ -13,7 +13,7 @@ name = "alpm-types"
 readme = "README.md"
 repository = "https://gitlab.archlinux.org/archlinux/alpm/alpm-types"
 rust-version = "1.67.1"
-version = "0.3.0"
+version = "0.4.0"
 
 [dependencies]
 blake2 = "0.10.6"
