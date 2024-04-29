@@ -480,10 +480,10 @@ impl Display for SchemaVersion {
 /// use std::str::FromStr;
 /// use alpm_types::{Epoch, Pkgrel, Pkgver, Version};
 ///
-/// let version = Version::new("1:1-1").unwrap();
+/// let version = Version::new("1:2-3").unwrap();
 /// assert_eq!(version.epoch, Some(Epoch::new("1").unwrap()));
-/// assert_eq!(version.pkgver, Pkgver::new("1".to_string()).unwrap());
-/// assert_eq!(version.pkgrel, Some(Pkgrel::new("1".to_string()).unwrap()));
+/// assert_eq!(version.pkgver, Pkgver::new("2".to_string()).unwrap());
+/// assert_eq!(version.pkgrel, Some(Pkgrel::new("3".to_string()).unwrap()));
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Version {
