@@ -654,21 +654,6 @@ pub enum VersionComparison {
 impl VersionComparison {
     /// Returns `true` if the result of a comparison between the actual and required package
     /// versions satisfies the comparison function.
-    ///
-    /// ## Examples
-    ///
-    /// ```ignore
-    /// use alpm_types::{Version, VersionComparison};
-    ///
-    /// let actual_version = Version::new("1.3").unwrap();
-    ///
-    /// let required_version = Version::new("1.5").unwrap();
-    /// let required_comparison = VersionComparison::GreaterOrEqual;
-    ///
-    /// let comparison = actual_version.cmp(&required_version);
-    ///
-    /// assert!(!required_comparison.is_compatible_with(comparison));
-    /// ```
     fn is_compatible_with(self, ord: Ordering) -> bool {
         match (self, ord) {
             (VersionComparison::Less, Ordering::Less)
