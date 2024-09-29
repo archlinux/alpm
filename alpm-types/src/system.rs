@@ -1,5 +1,3 @@
-// SPDX-FileCopyrightText: 2023 David Runge <dvzrv@archlinux.org>
-// SPDX-License-Identifier: LGPL-3.0-or-later
 use strum_macros::Display;
 use strum_macros::EnumString;
 

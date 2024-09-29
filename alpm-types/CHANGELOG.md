@@ -1,7 +1,3 @@
-<!--
-SPDX-FileCopyrightText: 2023 David Runge <dvzrv@archlinux.org>
-SPDX-License-Identifier: CC-BY-SA-4.0
--->
 - - -
 ## 0.4.0 - 2023-11-17
 #### Bug Fixes

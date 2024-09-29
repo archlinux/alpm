@@ -1,0 +1,35 @@
+# NOTE: This project does not attribute contributors individually. Instead refer to `git log --format="%an <%aE>" | sort -u` for a list of individual contributors.
+version = 1
+SPDX-PackageName = "alpm-types"
+SPDX-PackageSupplier = "Arch Linux"
+SPDX-PackageDownloadLocation = "https://gitlab.archlinux.org/archlinux/alpm/alpm-types"
+
+[[annotations]]
+path = [
+    "**.rs",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "ALPM Contributors"
+SPDX-License-Identifier = "Apache-2.0 OR MIT"
+
+[[annotations]]
+path = [
+    "**.sh",
+    "**.toml",
+    "*.json",
+    "*.lock",
+    "*.yml",
+    ".codespellrc",
+    ".gitignore",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Signstar Contributors"
+SPDX-License-Identifier = "CC0-1.0"
+
+[[annotations]]
+path = [
+    "**.md",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Signstar Contributors"
+SPDX-License-Identifier = "CC-BY-SA-4.0"

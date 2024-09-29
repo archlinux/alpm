@@ -1,5 +1,3 @@
-// SPDX-FileCopyrightText: 2023 Xiretza <xiretza@xiretza.xyz>
-// SPDX-License-Identifier: LGPL-3.0-or-later
 use std::{
     fmt::{Display, Formatter},
     path::{Path, PathBuf},

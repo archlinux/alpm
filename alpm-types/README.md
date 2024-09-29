@@ -1,8 +1,3 @@
-<!--
-SPDX-FileCopyrightText: 2023 David Runge <dvzrv@archlinux.org>
-SPDX-License-Identifier: GFDL-1.3-or-later
--->
-
 # alpm-types
 
 Types for **A**rch **L**inux **P**ackage **M**anagement.
@@ -265,4 +260,8 @@ Please refer to the [contribution guidelines](CONTRIBUTING.md) to learn how to c
 
 ## License
 
-This project is licensed under the terms of the [LGPL-3.0-or-later](https://www.gnu.org/licenses/lgpl-3.0.en.html).
+This project can be used under the terms of the [Apache-2.0] or [MIT].
+Contributions to this project, unless noted otherwise, are automatically licensed under the terms of both of those licenses.
+
+[Apache-2.0]: LICENSES/Apache-2.0.txt
+[MIT]: LICENSES/MIT.txt

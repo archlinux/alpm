@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: 2023 David Runge <dvzrv@archlinux.org>
-// SPDX-License-Identifier: LGPL-3.0-or-later
-
 #![doc = include_str!("../README.md")]
 #![forbid(unsafe_code)]
 

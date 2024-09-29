@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: 2023 David Runge <dvzrv@archlinux.org>
-// SPDX-License-Identifier: LGPL-3.0-or-later
-
 /// A convenient way to create a regular expression only once
 ///
 /// A string literal as input is used to define the regular expression.
