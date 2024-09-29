@@ -6,8 +6,8 @@ A library and commandline toolkit for the specification, writing and parsing of 
 
 ## Documentation
 
-* https://alpm-buildinfo.archlinux.page/alpm_buildinfo/ for development version of the crate
-* https://docs.rs/alpm-buildinfo/latest/alpm_buildinfo/ for released versions of the crate
+* <https://alpm-buildinfo.archlinux.page/alpm_buildinfo/> for development version of the crate
+* <https://docs.rs/alpm-buildinfo/latest/alpm_buildinfo/> for released versions of the crate
 
 ## Examples
 
