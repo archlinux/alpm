@@ -23,9 +23,10 @@ use clap::Subcommand;
 use crate::Error;
 
 /// An enum describing all valid BUILDINFO schemas
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 #[non_exhaustive]
 pub enum Schema {
+    #[default]
     V1,
 }
 
@@ -42,12 +43,6 @@ impl FromStr for Schema {
             }
             Err(_) | Ok(_) => Err(Error::InvalidBuildInfoVersion(s.to_string())),
         }
-    }
-}
-
-impl Default for Schema {
-    fn default() -> Self {
-        Schema::V1
     }
 }
 
