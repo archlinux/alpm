@@ -15,7 +15,7 @@ pub trait Assign {
 ///
 /// ## Examples
 ///
-/// ```ignore
+/// ```
 /// use std::str::FromStr;
 ///
 /// use alpm_buildinfo::common::KeyAssign;
@@ -65,7 +65,7 @@ impl FromStr for KeyAssign {
 ///
 /// ## Examples
 ///
-/// ```ignore
+/// ```
 /// use alpm_buildinfo::common::{get_multiple, KeyAssign};
 /// use alpm_types::BuildEnv;
 ///
@@ -121,7 +121,7 @@ pub fn get_multiple<T: FromStr<Err = alpm_types::Error>>(
 ///
 /// ## Examples
 ///
-/// ```ignore
+/// ```
 /// use alpm_buildinfo::common::{get_once, KeyAssign};
 /// use alpm_types::BuildDate;
 ///
@@ -195,7 +195,7 @@ pub fn get_once<T: FromStr<Err = alpm_types::Error>>(
 ///
 /// ## Examples
 ///
-/// ```ignore
+/// ```
 /// use alpm_buildinfo::common::{get_once_strum, KeyAssign};
 /// use alpm_types::Architecture;
 ///
@@ -263,7 +263,7 @@ pub fn get_once_strum<T: FromStr<Err = strum::ParseError>>(
 ///
 /// ## Examples
 ///
-/// ```ignore
+/// ```
 /// use alpm_buildinfo::common::{ensure_mandatory_field, KeyAssign};
 /// use alpm_types::BuildDate;
 ///
@@ -292,7 +292,7 @@ pub fn ensure_mandatory_field<T>(
 ///
 /// ## Examples
 ///
-/// ```ignore
+/// ```
 /// use alpm_buildinfo::common::{keyword_with_list_entries, KeyAssign};
 /// use alpm_types::BuildEnv;
 ///
