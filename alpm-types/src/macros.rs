@@ -5,17 +5,15 @@
 ///
 /// ## Examples
 /// ```
-/// #[macro_use]
-/// extern crate alpm_types;
+/// use alpm_types::regex_once;
 ///
 /// let re = regex_once!("^(foo)$");
 /// assert!(re.is_match("foo"));
 /// ```
+#[macro_export]
 macro_rules! regex_once {
     ($re:literal $(,)?) => {{
         static RE: once_cell::sync::OnceCell<regex::Regex> = once_cell::sync::OnceCell::new();
         RE.get_or_init(|| regex::Regex::new($re).unwrap())
     }};
 }
-
-pub(crate) use regex_once;

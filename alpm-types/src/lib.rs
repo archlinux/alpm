@@ -35,7 +35,6 @@ mod error;
 pub use error::Error;
 
 mod macros;
-use macros::regex_once;
 
 mod name;
 pub use name::BuildTool;

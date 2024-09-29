@@ -5,7 +5,7 @@ use std::str::FromStr;
 
 use digest::Digest;
 
-use crate::macros::regex_once;
+use crate::regex_once;
 use crate::Error;
 
 /// A checksum using a supported algorithm
