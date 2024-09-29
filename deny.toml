@@ -2,11 +2,12 @@
 # SPDX-License-Identifier: CC0-1.0
 
 [advisories]
-unmaintained = "deny"
+version = 2
 yanked = "deny"
 ignore = []
 
 [licenses]
+version = 2
 allow = [
     "Apache-2.0",
     "BSD-3-Clause",
