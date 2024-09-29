@@ -1,6 +1,3 @@
-# SPDX-FileCopyrightText: 2023 David Runge <dvzrv@archlinux.org>
-# SPDX-License-Identifier: CC0-1.0
-
 [codespell]
 ignore-words-list = crate
 skip = .cargo,.git,target
