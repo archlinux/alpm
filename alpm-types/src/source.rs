@@ -115,7 +115,9 @@ impl Source {
     ///
     /// let source = Source::new("foopkg-1.2.3.tar.gz::https://example.com/download").unwrap();
     /// assert_eq!(source.filename.unwrap().as_str(), "foopkg-1.2.3.tar.gz");
-    /// let SourceLocation::Url(url) = source.location else { panic!() };
+    /// let SourceLocation::Url(url) = source.location else {
+    ///     panic!()
+    /// };
     /// assert_eq!(url.host_str(), Some("example.com"));
     /// ```
     pub fn new(s: &str) -> Result<Self, Error> {
@@ -155,9 +157,9 @@ impl Display for Source {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     use rstest::rstest;
+
+    use super::*;
 
     #[rstest]
     #[case("bikeshed_colour.patch", Ok(Filename {

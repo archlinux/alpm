@@ -12,8 +12,9 @@ use crate::Error;
 
 /// The version and architecture of a build tool
 ///
-/// `BuildToolVer` is used in conjunction with `BuildTool` to denote the specific build tool a package is built with.
-/// A `BuildToolVer` wraps a `Version` (that is guaranteed to have a `Pkgrel`) and an `Architecture`.
+/// `BuildToolVer` is used in conjunction with `BuildTool` to denote the specific build tool a
+/// package is built with. A `BuildToolVer` wraps a `Version` (that is guaranteed to have a
+/// `Pkgrel`) and an `Architecture`.
 ///
 /// ## Examples
 /// ```
@@ -74,14 +75,16 @@ impl Display for BuildToolVer {
 
 /// An epoch of a package
 ///
-/// Epoch is used to indicate the downgrade of a package and is prepended to a version, delimited by a `":"` (e.g. `1:`
-/// is added to `0.10.0-1` to form `1:0.10.0-1` which then orders newer than `1.0.0-1`).
+/// Epoch is used to indicate the downgrade of a package and is prepended to a version, delimited by
+/// a `":"` (e.g. `1:` is added to `0.10.0-1` to form `1:0.10.0-1` which then orders newer than
+/// `1.0.0-1`).
 ///
 /// An Epoch wraps a usize that is guaranteed to be greater than `0`.
 ///
 /// ## Examples
 /// ```
 /// use std::str::FromStr;
+///
 /// use alpm_types::Epoch;
 ///
 /// assert!(Epoch::new("1").is_ok());
@@ -116,15 +119,18 @@ impl Display for Epoch {
 
 /// A pkgrel of a package
 ///
-/// Pkgrel is used to indicate the build version of a package and is appended to a version, delimited by a `"-"` (e.g.
-/// `-2` is added to `1.0.0` to form `1.0.0-2` which then orders newer than `1.0.0-1`).
+/// Pkgrel is used to indicate the build version of a package and is appended to a version,
+/// delimited by a `"-"` (e.g. `-2` is added to `1.0.0` to form `1.0.0-2` which then orders newer
+/// than `1.0.0-1`).
 ///
-/// A Pkgrel wraps a String which is guaranteed to not start with a `"0"`, to contain only numeric characters
-/// (optionally delimited by a single `"."`, which must be followed by at least one non-`"0"` numeric character).
+/// A Pkgrel wraps a String which is guaranteed to not start with a `"0"`, to contain only numeric
+/// characters (optionally delimited by a single `"."`, which must be followed by at least one
+/// non-`"0"` numeric character).
 ///
 /// ## Examples
 /// ```
 /// use std::str::FromStr;
+///
 /// use alpm_types::Pkgrel;
 ///
 /// assert!(Pkgrel::new("1".to_string()).is_ok());
@@ -170,15 +176,17 @@ impl Display for Pkgrel {
 ///
 /// Pkgver is used to denote the upstream version of a package.
 ///
-/// A Pkgver wraps a `String`, which is guaranteed to only contain alphanumeric characters, `"_"`, `"+"` or `"."`, but
-/// to not start with a `"_"`, a `"+"` or a `"."` character and to be at least one char long.
+/// A Pkgver wraps a `String`, which is guaranteed to only contain alphanumeric characters, `"_"`,
+/// `"+"` or `"."`, but to not start with a `"_"`, a `"+"` or a `"."` character and to be at least
+/// one char long.
 ///
-/// NOTE: This implementation of Pkgver is stricter than that of libalpm/pacman. It does not allow empty strings `""`,
-/// or chars that are not in the allowed set, or `"."` as the first character.
+/// NOTE: This implementation of Pkgver is stricter than that of libalpm/pacman. It does not allow
+/// empty strings `""`, or chars that are not in the allowed set, or `"."` as the first character.
 ///
 /// ## Examples
 /// ```
 /// use std::str::FromStr;
+///
 /// use alpm_types::Pkgver;
 ///
 /// assert!(Pkgver::new("1".to_string()).is_ok());
@@ -296,8 +304,9 @@ impl Ord for Pkgver {
                 "".to_string()
             };
 
-            // grab first completely alpha or completely numeric segment leave one and two pointing to the start of the
-            // alpha or numeric segment and walk self_right_index and other_right_index to end of segment
+            // grab first completely alpha or completely numeric segment leave one and two pointing
+            // to the start of the alpha or numeric segment and walk self_right_index
+            // and other_right_index to end of segment
             let isnum = if !self_leftover.is_empty()
                 && self_leftover.chars().next().unwrap().is_numeric()
             {
@@ -333,8 +342,9 @@ impl Ord for Pkgver {
                     "".to_string()
                 };
 
-            // take care of the case where the two version segments are different types: one numeric, the other alpha
-            // (i.e. empty) numeric segments are always newer than alpha segments
+            // take care of the case where the two version segments are different types: one
+            // numeric, the other alpha (i.e. empty) numeric segments are always newer
+            // than alpha segments
             if other_leftover.is_empty() {
                 return if isnum {
                     Ordering::Greater
@@ -356,8 +366,9 @@ impl Ord for Pkgver {
                 }
             }
 
-            // strcmp will return which one is greater - even if the two segments are alpha or if they are numeric.
-            // don't return if they are equal because there might be more segments to compare
+            // strcmp will return which one is greater - even if the two segments are alpha or if
+            // they are numeric. don't return if they are equal because there might be
+            // more segments to compare
             if self_leftover.cmp(&other_leftover).is_ne() {
                 return self_leftover.cmp(&other_leftover);
             }
@@ -379,14 +390,14 @@ impl Ord for Pkgver {
             "".to_string()
         };
 
-        // this catches the case where all numeric and alpha segments have compared identically but the segment
-        // separating characters were different
+        // this catches the case where all numeric and alpha segments have compared identically but
+        // the segment separating characters were different
         if self_leftover.is_empty() && other_leftover.is_empty() {
             return Ordering::Equal;
         }
 
-        // the final showdown. we never want a remaining alpha string to beat an empty string. the logic is a bit weird,
-        // but:
+        // the final showdown. we never want a remaining alpha string to beat an empty string. the
+        // logic is a bit weird, but:
         // - if one is empty and two is not an alpha, two is newer.
         // - if one is an alpha, two is newer.
         // - otherwise one is newer.
@@ -415,12 +426,13 @@ impl PartialEq for Pkgver {
 /// The schema version of a type
 ///
 /// A `SchemaVersion` wraps a `semver::Version`, which means that the tracked version should follow [semver](https://semver.org).
-/// However, for backwards compatibility reasons it is possible to initialize a `SchemaVersion` using a non-semver
-/// compatible string, *if* it can be parsed to a single `u64` (e.g. `"1"`).
+/// However, for backwards compatibility reasons it is possible to initialize a `SchemaVersion`
+/// using a non-semver compatible string, *if* it can be parsed to a single `u64` (e.g. `"1"`).
 ///
 /// ## Examples
 /// ```
 /// use std::str::FromStr;
+///
 /// use alpm_types::SchemaVersion;
 ///
 /// // create SchemaVersion from str
@@ -438,8 +450,8 @@ pub struct SchemaVersion(pub SemverVersion);
 impl SchemaVersion {
     /// Create a new SchemaVersion from a string
     ///
-    /// When providing a non-semver string with only a number (i.e. no minor or patch version), the number is treated as
-    /// the major version (e.g. `"23"` -> `"23.0.0"`).
+    /// When providing a non-semver string with only a number (i.e. no minor or patch version), the
+    /// number is treated as the major version (e.g. `"23"` -> `"23.0.0"`).
     pub fn new(version: &str) -> Result<SchemaVersion, Error> {
         if !version.contains('.') {
             match version.parse() {
@@ -476,6 +488,7 @@ impl Display for SchemaVersion {
 /// ## Examples
 /// ```
 /// use std::str::FromStr;
+///
 /// use alpm_types::{Epoch, Pkgrel, Pkgver, Version};
 ///
 /// let version = Version::new("1:2-3").unwrap();
@@ -538,9 +551,27 @@ impl Version {
     /// ```
     /// use alpm_types::Version;
     ///
-    /// assert_eq!(Version::vercmp(&Version::new("1.0.0").unwrap(), &Version::new("0.1.0").unwrap()), 1);
-    /// assert_eq!(Version::vercmp(&Version::new("1.0.0").unwrap(), &Version::new("1.0.0").unwrap()), 0);
-    /// assert_eq!(Version::vercmp(&Version::new("0.1.0").unwrap(), &Version::new("1.0.0").unwrap()), -1);
+    /// assert_eq!(
+    ///     Version::vercmp(
+    ///         &Version::new("1.0.0").unwrap(),
+    ///         &Version::new("0.1.0").unwrap()
+    ///     ),
+    ///     1
+    /// );
+    /// assert_eq!(
+    ///     Version::vercmp(
+    ///         &Version::new("1.0.0").unwrap(),
+    ///         &Version::new("1.0.0").unwrap()
+    ///     ),
+    ///     0
+    /// );
+    /// assert_eq!(
+    ///     Version::vercmp(
+    ///         &Version::new("0.1.0").unwrap(),
+    ///         &Version::new("1.0.0").unwrap()
+    ///     ),
+    ///     -1
+    /// );
     /// ```
     pub fn vercmp(a: &Version, b: &Version) -> i8 {
         match a.cmp(b) {
@@ -621,8 +652,8 @@ pub enum VersionComparison {
 }
 
 impl VersionComparison {
-    /// Returns `true` if the result of a comparison between the actual and required package versions
-    /// satisfies the comparison function.
+    /// Returns `true` if the result of a comparison between the actual and required package
+    /// versions satisfies the comparison function.
     ///
     /// ## Examples
     ///
@@ -747,8 +778,9 @@ impl FromStr for VersionRequirement {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use rstest::rstest;
+
+    use super::*;
 
     #[rstest]
     #[case("1.0.0", Ok(SchemaVersion(SemverVersion::new(1, 0, 0))))]

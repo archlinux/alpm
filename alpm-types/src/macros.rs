@@ -5,7 +5,8 @@
 ///
 /// ## Examples
 /// ```
-/// #[macro_use] extern crate alpm_types;
+/// #[macro_use]
+/// extern crate alpm_types;
 ///
 /// let re = regex_once!("^(foo)$");
 /// assert!(re.is_match("foo"));

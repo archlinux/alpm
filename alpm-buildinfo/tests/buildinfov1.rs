@@ -2,12 +2,9 @@ use std::io::Error as IOError;
 use std::path::PathBuf;
 
 use assert_cmd::Command;
-
-use testdir::testdir;
-
-use testresult::TestResult;
-
 use rstest::rstest;
+use testdir::testdir;
+use testresult::TestResult;
 
 mod common;
 use common::valid_buildinfov1;

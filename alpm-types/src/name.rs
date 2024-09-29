@@ -9,12 +9,14 @@ use crate::Error;
 /// A build tool name
 ///
 /// The same character restrictions as with `Name` apply.
-/// Further name restrictions may be enforced on an existing instances using `matches_restriction()`.
+/// Further name restrictions may be enforced on an existing instances using
+/// `matches_restriction()`.
 ///
 /// ## Examples
 /// ```
-/// use alpm_types::{BuildTool, Name, Error};
 /// use std::str::FromStr;
+///
+/// use alpm_types::{BuildTool, Error, Name};
 ///
 /// // create BuildTool from &str
 /// assert_eq!(
@@ -31,7 +33,10 @@ use crate::Error;
 ///
 /// // validate that BuildTool follows naming restrictions
 /// let buildtool = BuildTool::new("foo").unwrap();
-/// let restrictions = vec![Name::new("foo".to_string()).unwrap(), Name::new("bar".to_string()).unwrap()];
+/// let restrictions = vec![
+///     Name::new("foo".to_string()).unwrap(),
+///     Name::new("bar".to_string()).unwrap(),
+/// ];
 /// assert!(buildtool.matches_restriction(&restrictions));
 /// ```
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
@@ -50,10 +55,14 @@ impl BuildTool {
     ///
     /// ## Examples
     /// ```
-    /// use alpm_types::{BuildTool, Name, Error};
+    /// use alpm_types::{BuildTool, Error, Name};
     ///
-    /// assert!(BuildTool::new_with_restriction("foo", &[Name::new("foo".to_string()).unwrap()]).is_ok());
-    /// assert!(BuildTool::new_with_restriction("foo", &[Name::new("bar".to_string()).unwrap()]).is_err());
+    /// assert!(
+    ///     BuildTool::new_with_restriction("foo", &[Name::new("foo".to_string()).unwrap()]).is_ok()
+    /// );
+    /// assert!(
+    ///     BuildTool::new_with_restriction("foo", &[Name::new("bar".to_string()).unwrap()]).is_err()
+    /// );
     /// ```
     pub fn new_with_restriction(name: &str, restrictions: &[Name]) -> Result<Self, Error> {
         match BuildTool::new(name) {
@@ -102,8 +111,9 @@ impl Display for BuildTool {
 ///
 /// ## Examples
 /// ```
-/// use alpm_types::{Name, Error};
 /// use std::str::FromStr;
+///
+/// use alpm_types::{Error, Name};
 ///
 /// // create Name from &str
 /// assert_eq!(
@@ -153,9 +163,10 @@ impl Display for Name {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use proptest::prelude::*;
     use rstest::rstest;
+
+    use super::*;
 
     #[rstest]
     #[case(

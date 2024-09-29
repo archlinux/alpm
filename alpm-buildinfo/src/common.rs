@@ -17,6 +17,7 @@ pub trait Assign {
 ///
 /// ```ignore
 /// use std::str::FromStr;
+///
 /// use alpm_buildinfo::common::KeyAssign;
 ///
 /// let keyassign = KeyAssign::new("foo".to_string());
@@ -69,11 +70,23 @@ impl FromStr for KeyAssign {
 /// use alpm_types::BuildEnv;
 ///
 /// assert_eq!(
-///     get_multiple::<BuildEnv>(&KeyAssign::new("buildenv".to_string()), "buildenv = env", 1, "1").unwrap(),
+///     get_multiple::<BuildEnv>(
+///         &KeyAssign::new("buildenv".to_string()),
+///         "buildenv = env",
+///         1,
+///         "1"
+///     )
+///     .unwrap(),
 ///     BuildEnv::new("env").unwrap(),
 /// );
 ///
-/// assert!(get_multiple::<BuildEnv>(&KeyAssign::new("buildenv".to_string()), "buildenv = \\foo", 1, "1").is_err());
+/// assert!(get_multiple::<BuildEnv>(
+///     &KeyAssign::new("buildenv".to_string()),
+///     "buildenv = \\foo",
+///     1,
+///     "1"
+/// )
+/// .is_err());
 /// ```
 pub fn get_multiple<T: FromStr<Err = alpm_types::Error>>(
     keyassign: &KeyAssign,
@@ -95,9 +108,11 @@ pub fn get_multiple<T: FromStr<Err = alpm_types::Error>>(
     }
 }
 
-/// Get a value of type T from a line of text, extracted using a KeyAssign, ensuring to only get some once
+/// Get a value of type T from a line of text, extracted using a KeyAssign, ensuring to only get
+/// some once
 ///
-/// NOTE: For types returning `strum::ParseError` in their `FromStr` implementation, use `get_once_strum()` instead!
+/// NOTE: For types returning `strum::ParseError` in their `FromStr` implementation, use
+/// `get_once_strum()` instead!
 ///
 /// ## Errors
 ///
@@ -113,12 +128,26 @@ pub fn get_multiple<T: FromStr<Err = alpm_types::Error>>(
 /// let mut field: Option<BuildDate> = None;
 ///
 /// assert_eq!(
-///     get_once(&KeyAssign::new("builddate".to_string()), field, "builddate = 1", 1, "1").unwrap(),
+///     get_once(
+///         &KeyAssign::new("builddate".to_string()),
+///         field,
+///         "builddate = 1",
+///         1,
+///         "1"
+///     )
+///     .unwrap(),
 ///     Some(BuildDate::new(1)),
 /// );
 ///
 /// field = Some(BuildDate::new(1));
-/// assert!(get_once(&KeyAssign::new("builddate".to_string()), field, "builddate = 1", 1, "1").is_err());
+/// assert!(get_once(
+///     &KeyAssign::new("builddate".to_string()),
+///     field,
+///     "builddate = 1",
+///     1,
+///     "1"
+/// )
+/// .is_err());
 /// ```
 pub fn get_once<T: FromStr<Err = alpm_types::Error>>(
     keyassign: &KeyAssign,
@@ -152,10 +181,12 @@ pub fn get_once<T: FromStr<Err = alpm_types::Error>>(
     }
 }
 
-/// Get a value of type T from a line of text, extracted using a KeyAssign, ensuring to only get some once
+/// Get a value of type T from a line of text, extracted using a KeyAssign, ensuring to only get
+/// some once
 ///
-/// NOTE: This is a specific implementation to deal with types that return `[strum::ParseError]` in their `FromStr`
-/// implementation, as the compiler can not derive the correct `Error` type when using `get_once()` otherwise.
+/// NOTE: This is a specific implementation to deal with types that return `[strum::ParseError]` in
+/// their `FromStr` implementation, as the compiler can not derive the correct `Error` type when
+/// using `get_once()` otherwise.
 ///
 /// ## Errors
 ///
@@ -171,12 +202,26 @@ pub fn get_once<T: FromStr<Err = alpm_types::Error>>(
 /// let mut field: Option<Architecture> = None;
 ///
 /// assert_eq!(
-///     get_once_strum(&KeyAssign::new("pkgarch".to_string()), field, "pkgarch = any", 1, "1").unwrap(),
+///     get_once_strum(
+///         &KeyAssign::new("pkgarch".to_string()),
+///         field,
+///         "pkgarch = any",
+///         1,
+///         "1"
+///     )
+///     .unwrap(),
 ///     Some(Architecture::Any),
 /// );
 ///
 /// field = Some(Architecture::Any);
-/// assert!(get_once_strum(&KeyAssign::new("pkgarch".to_string()), field, "pkgarch = any", 1, "1").is_err());
+/// assert!(get_once_strum(
+///     &KeyAssign::new("pkgarch".to_string()),
+///     field,
+///     "pkgarch = any",
+///     1,
+///     "1"
+/// )
+/// .is_err());
 /// ```
 pub fn get_once_strum<T: FromStr<Err = strum::ParseError>>(
     keyassign: &KeyAssign,
@@ -253,8 +298,8 @@ pub fn ensure_mandatory_field<T>(
 ///
 /// assert_eq!(
 ///     keyword_with_list_entries(
-///         &KeyAssign::new("buildenv".to_string()), &[BuildEnv::new("foo").unwrap(),
-///         BuildEnv::new("bar").unwrap()],
+///         &KeyAssign::new("buildenv".to_string()),
+///         &[BuildEnv::new("foo").unwrap(), BuildEnv::new("bar").unwrap()],
 ///     ),
 ///     "buildenv = foo\nbuildenv = bar",
 /// );

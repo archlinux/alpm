@@ -99,8 +99,9 @@ impl From<strum::ParseError> for Error {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use rstest::rstest;
+
+    use super::*;
 
     #[rstest]
     #[case("Invalid build date: -1", Error::InvalidBuildDate(String::from("-1")))]

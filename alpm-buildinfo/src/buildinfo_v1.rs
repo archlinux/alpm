@@ -25,12 +25,14 @@ use crate::Error;
 
 /// BUILDINFO version 1
 ///
-/// `BuildInfoV1` is (exclusively) compatible with data following the first specification of the BUILDINFO file.
+/// `BuildInfoV1` is (exclusively) compatible with data following the first specification of the
+/// BUILDINFO file.
 ///
 /// ## Examples
 ///
 /// ```
 /// use std::str::FromStr;
+///
 /// use alpm_buildinfo::BuildInfoV1;
 ///
 /// let buildinfo_data = r#"format = 1
@@ -112,8 +114,8 @@ impl FromStr for BuildInfoV1 {
     ///
     /// ## Errors
     ///
-    /// Returns an `Error` if any of the fields in `input` can not be validated according to `BuildInfoV1` or their
-    /// respective own specification.
+    /// Returns an `Error` if any of the fields in `input` can not be validated according to
+    /// `BuildInfoV1` or their respective own specification.
     fn from_str(input: &str) -> Result<BuildInfoV1, Self::Err> {
         let buildinfo_version = "1";
 
@@ -269,10 +271,11 @@ impl Display for BuildInfoV1 {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use rstest::fixture;
     use rstest::rstest;
     use testresult::TestResult;
+
+    use super::*;
 
     #[fixture]
     fn valid_buildinfov1() -> String {

@@ -12,8 +12,9 @@ use crate::Error;
 ///
 /// ## Examples
 /// ```
-/// use alpm_types::{AbsolutePath, Error};
 /// use std::str::FromStr;
+///
+/// use alpm_types::{AbsolutePath, Error};
 ///
 /// // create BuildDir from &str
 /// assert_eq!(
@@ -64,14 +65,12 @@ impl Display for AbsolutePath {
 ///
 /// ## Examples
 /// ```
-/// use alpm_types::{BuildDir, Error};
 /// use std::str::FromStr;
 ///
+/// use alpm_types::{BuildDir, Error};
+///
 /// // create BuildDir from &str
-/// assert_eq!(
-///     BuildDir::from_str("/"),
-///     Ok(BuildDir::new("/").unwrap())
-/// );
+/// assert_eq!(BuildDir::from_str("/"), Ok(BuildDir::new("/").unwrap()));
 /// assert_eq!(
 ///     BuildDir::from_str("/foo.txt"),
 ///     Ok(BuildDir::new("/foo.txt").unwrap())
@@ -117,8 +116,9 @@ impl Display for BuildDir {
 ///
 /// ## Examples
 /// ```
-/// use alpm_types::{StartDir, Error};
 /// use std::str::FromStr;
+///
+/// use alpm_types::{Error, StartDir};
 ///
 /// // create StartDir from &str
 /// assert_eq!(
@@ -167,8 +167,9 @@ impl Display for StartDir {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use rstest::rstest;
+
+    use super::*;
 
     #[rstest]
     #[case("/home", BuildDir::new("/home"))]

@@ -10,8 +10,8 @@ use crate::Version;
 
 /// An option string used in a build environment
 ///
-/// The option string is identified by its name and whether it is on (not prefixed with "!") or off (prefixed with "!").
-/// This type dereferences to `BuildOption`.
+/// The option string is identified by its name and whether it is on (not prefixed with "!") or off
+/// (prefixed with "!"). This type dereferences to `BuildOption`.
 ///
 /// ## Examples
 /// ```
@@ -69,7 +69,8 @@ impl Display for BuildEnv {
 
 /// An option string
 ///
-/// The option string is identified by its name and whether it is on (not prefixed with "!") or off (prefixed with "!").
+/// The option string is identified by its name and whether it is on (not prefixed with "!") or off
+/// (prefixed with "!").
 ///
 /// ## Examples
 /// ```
@@ -133,8 +134,8 @@ impl Display for BuildOption {
 
 /// Information on an installed package in an environment
 ///
-/// Tracks a `Name`, `Version` (which is guaranteed to have a `Pkgrel`) and `Architecture` of a package in an
-/// environment.
+/// Tracks a `Name`, `Version` (which is guaranteed to have a `Pkgrel`) and `Architecture` of a
+/// package in an environment.
 ///
 /// ## Examples
 /// ```
@@ -200,8 +201,8 @@ impl Display for Installed {
 
 /// An option string used in packaging
 ///
-/// The option string is identified by its name and whether it is on (not prefixed with "!") or off (prefixed with "!").
-/// This type dereferences to `BuildOption`.
+/// The option string is identified by its name and whether it is on (not prefixed with "!") or off
+/// (prefixed with "!"). This type dereferences to `BuildOption`.
 ///
 /// ## Examples
 /// ```
@@ -259,8 +260,9 @@ impl Display for PackageOption {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use rstest::rstest;
+
+    use super::*;
 
     #[rstest]
     #[case("something", Ok(BuildEnv(BuildOption{name: "something".to_string(), on: true})))]

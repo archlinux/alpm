@@ -14,13 +14,11 @@ use alpm_buildinfo::cli::ExportCommand;
 use alpm_buildinfo::cli::Schema;
 use alpm_buildinfo::BuildInfoV1;
 use alpm_buildinfo::Error;
-
 use alpm_types::digests::Sha256;
 use alpm_types::Checksum;
 use alpm_types::SchemaVersion;
 use clap::CommandFactory;
 use clap::Parser;
-
 use clap_complete::generate_to;
 use clap_complete::Shell;
 use clap_mangen::Man;

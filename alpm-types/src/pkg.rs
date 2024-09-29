@@ -4,7 +4,6 @@ use std::str::FromStr;
 use std::string::ToString;
 
 use email_address::EmailAddress;
-
 use strum_macros::Display;
 use strum_macros::EnumString;
 
@@ -14,12 +13,14 @@ use crate::Error;
 /// A packager of a package
 ///
 /// A `Packager` is represented by a User ID (e.g. `"Foobar McFooFace <foobar@mcfooface.org>"`).
-/// Internally this struct wraps a `String` for the name and an `EmailAddress` for a valid email address.
+/// Internally this struct wraps a `String` for the name and an `EmailAddress` for a valid email
+/// address.
 ///
 /// ## Examples
 /// ```
-/// use alpm_types::{Packager, Error};
 /// use std::str::FromStr;
+///
+/// use alpm_types::{Error, Packager};
 ///
 /// // create Packager from &str
 /// let packager = Packager::new("Foobar McFooface <foobar@mcfooface.org>").unwrap();
@@ -34,7 +35,10 @@ use crate::Error;
 /// assert_eq!("mcfooface.org", packager.email().domain());
 ///
 /// // format as String
-/// assert_eq!("Foobar McFooface <foobar@mcfooface.org>", format!("{}", packager));
+/// assert_eq!(
+///     "Foobar McFooface <foobar@mcfooface.org>",
+///     format!("{}", packager)
+/// );
 /// ```
 #[derive(Clone, Debug, PartialEq)]
 pub struct Packager {
@@ -95,6 +99,7 @@ impl Display for Packager {
 /// ## Examples
 /// ```
 /// use std::str::FromStr;
+///
 /// use alpm_types::PkgType;
 ///
 /// // create PkgType from str
@@ -125,9 +130,10 @@ pub enum PkgType {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use rstest::rstest;
     use strum::ParseError;
+
+    use super::*;
 
     #[rstest]
     #[case(

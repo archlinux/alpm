@@ -4,7 +4,6 @@ use std::io::Write;
 use std::path::PathBuf;
 
 use rstest::fixture;
-
 use testdir::testdir;
 
 pub struct BuildInfoV1Input {

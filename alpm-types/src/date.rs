@@ -11,9 +11,10 @@ use crate::Error;
 ///
 /// # Examples
 /// ```
+/// use std::str::FromStr;
+///
 /// use alpm_types::{BuildDate, Error};
 /// use time::OffsetDateTime;
-/// use std::str::FromStr;
 ///
 /// // create BuildDate from OffsetDateTime
 /// let datetime: BuildDate = OffsetDateTime::from_unix_timestamp(1).unwrap().into();
@@ -70,8 +71,9 @@ impl Display for BuildDate {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use rstest::rstest;
+
+    use super::*;
 
     #[rstest]
     #[case("1", Ok(BuildDate(1)))]

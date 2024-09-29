@@ -19,8 +19,8 @@ use crate::Error;
 /// - `Sha384`
 /// - `Sha512`
 ///
-/// NOTE: Contrary to makepkg/pacman, this crate *does not* support using cksum-style CRC-32 as it is non-standard
-/// (different implementations throughout libraries) and cryptographically unsafe.
+/// NOTE: Contrary to makepkg/pacman, this crate *does not* support using cksum-style CRC-32 as it
+/// is non-standard (different implementations throughout libraries) and cryptographically unsafe.
 ///
 /// ## Examples
 /// ```
@@ -83,8 +83,9 @@ impl<D: Digest> FromStr for Checksum<D> {
     /// Create a new Checksum from a hex string and return it in a Result
     ///
     /// All whitespaces are removed from the input and it is processed as a lowercase string.
-    /// An Error is returned, if the input length does not match the output size for the given supported algorithm, or
-    /// if the provided hex string could not be converted to a list of bytes.
+    /// An Error is returned, if the input length does not match the output size for the given
+    /// supported algorithm, or if the provided hex string could not be converted to a list of
+    /// bytes.
     ///
     /// ## Examples
     /// ```
@@ -139,8 +140,9 @@ impl<D: Digest> Display for Checksum<D> {
 ///
 /// ## Examples
 /// ```
-/// use alpm_types::{Md5Sum, Error};
 /// use std::str::FromStr;
+///
+/// use alpm_types::{Error, Md5Sum};
 ///
 /// // create Md5Sum from &str
 /// assert_eq!(
@@ -154,8 +156,11 @@ impl<D: Digest> Display for Checksum<D> {
 ///
 /// // format as &str
 /// assert_eq!(
-///   "5eb63bbbe01eeed093cb22bb8f5acdc3",
-///   format!("{}", Md5Sum::new("5eb63bbbe01eeed093cb22bb8f5acdc3".to_string()).unwrap()),
+///     "5eb63bbbe01eeed093cb22bb8f5acdc3",
+///     format!(
+///         "{}",
+///         Md5Sum::new("5eb63bbbe01eeed093cb22bb8f5acdc3".to_string()).unwrap()
+///     ),
 /// );
 /// ```
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -204,6 +209,9 @@ impl Display for Md5Sum {
 
 #[cfg(test)]
 mod tests {
+    use proptest::prelude::*;
+    use rstest::rstest;
+
     use super::*;
     use crate::digests::Blake2b512;
     use crate::digests::Md5;
@@ -212,9 +220,6 @@ mod tests {
     use crate::digests::Sha256;
     use crate::digests::Sha384;
     use crate::digests::Sha512;
-
-    use proptest::prelude::*;
-    use rstest::rstest;
 
     proptest! {
         #![proptest_config(ProptestConfig::with_cases(1000))]

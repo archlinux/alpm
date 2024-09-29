@@ -8,6 +8,7 @@ use strum_macros::EnumString;
 /// ## Examples
 /// ```
 /// use std::str::FromStr;
+///
 /// use alpm_types::Architecture;
 ///
 /// // create Architecture from str
@@ -64,10 +65,12 @@ pub enum Architecture {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use rstest::rstest;
     use std::str::FromStr;
+
+    use rstest::rstest;
     use strum::ParseError;
+
+    use super::*;
 
     #[rstest]
     #[case("aarch64", Ok(Architecture::Aarch64))]

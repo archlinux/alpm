@@ -12,7 +12,6 @@ use alpm_types::Name;
 use alpm_types::PackageOption;
 use alpm_types::Packager;
 use alpm_types::SchemaVersion;
-
 use alpm_types::Version;
 use clap::Parser;
 use clap::Subcommand;
@@ -57,7 +56,8 @@ impl Display for Schema {
 
 /// A type wrapping a PathBuf with a default value
 ///
-/// This type is used in circumstances where an output file is required that defaults to ".BUILDINFO"
+/// This type is used in circumstances where an output file is required that defaults to
+/// ".BUILDINFO"
 #[derive(Clone, Debug)]
 pub struct OutputFile(pub PathBuf);
 
@@ -94,9 +94,9 @@ pub enum Command {
     #[command()]
     /// Create a BUILDINFO file according to a schema
     ///
-    /// If the input can be validated according to the schema, the program exits with no output and a return code of 0.
-    /// If the input can not be validated according to the schema, an error is emitted on stderr and the program exits
-    /// with a non-zero exit code.
+    /// If the input can be validated according to the schema, the program exits with no output and
+    /// a return code of 0. If the input can not be validated according to the schema, an error
+    /// is emitted on stderr and the program exits with a non-zero exit code.
     Create {
         #[command(subcommand)]
         command: CreateCommand,
@@ -106,7 +106,8 @@ pub enum Command {
     ///
     /// Validate a BUILDINFO file according to a schema.
     /// If the file can be validated, the program exits with no output and a return code of 0.
-    /// If the file can not be validated, an error is emitted on stderr and the program exits with a non-zero exit code.
+    /// If the file can not be validated, an error is emitted on stderr and the program exits with
+    /// a non-zero exit code.
     Validate {
         /// Provide the BUILDINFO schema version to use
         #[arg(default_value_t = Schema::default(), long, short, value_name = "VERSION")]
@@ -125,9 +126,9 @@ pub enum Command {
 pub enum CreateCommand {
     /// Create a BUILDINFO version 1 file
     ///
-    /// If the input can be validated according to the schema, the program exits with no output and a return code of 0.
-    /// If the input can not be validated according to the schema, an error is emitted on stderr and the program exits
-    /// with a non-zero exit code.
+    /// If the input can be validated according to the schema, the program exits with no output and
+    /// a return code of 0. If the input can not be validated according to the schema, an error
+    /// is emitted on stderr and the program exits with a non-zero exit code.
     V1 {
         /// Provide a builddate
         #[arg(env = "BUILDINFO_BUILDDATE", long, value_name = "BUILDDATE")]

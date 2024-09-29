@@ -9,14 +9,12 @@ use crate::Error;
 ///
 /// ## Examples
 /// ```
-/// use alpm_types::{CompressedSize, Error};
 /// use std::str::FromStr;
 ///
+/// use alpm_types::{CompressedSize, Error};
+///
 /// // create CompressedSize from &str
-/// assert_eq!(
-///     CompressedSize::from_str("1"),
-///     Ok(CompressedSize(1))
-/// );
+/// assert_eq!(CompressedSize::from_str("1"), Ok(CompressedSize(1)));
 /// assert_eq!(
 ///     CompressedSize::from_str("-1"),
 ///     Err(Error::InvalidCompressedSize(String::from("-1")))
@@ -50,8 +48,9 @@ impl Display for CompressedSize {
 ///
 /// ## Examples
 /// ```
-/// use alpm_types::{InstalledSize, Error};
 /// use std::str::FromStr;
+///
+/// use alpm_types::{Error, InstalledSize};
 ///
 /// // create InstalledSize from &str
 /// assert_eq!(InstalledSize::from_str("1"), Ok(InstalledSize(1)));
@@ -85,8 +84,9 @@ impl Display for InstalledSize {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use rstest::rstest;
+
+    use super::*;
 
     #[rstest]
     #[case("1", Ok(CompressedSize(1)))]
