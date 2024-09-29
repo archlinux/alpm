@@ -1,8 +1,3 @@
-<!--
-SPDX-FileCopyrightText: 2023 David Runge <dvzrv@archlinux.org>
-SPDX-License-Identifier: GFDL-1.3-or-later
--->
-
 # NAME
 
 BUILDINFOv1 - Information on package build environments for ALPM based packages (version 1).

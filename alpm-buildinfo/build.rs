@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: 2023 David Runge <dvzrv@archlinux.org>
-// SPDX-License-Identifier: LGPL-3.0-or-later
-
 use std::fs::read_to_string;
 use std::fs::File;
 use std::io::prelude::*;

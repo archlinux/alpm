@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: 2023 David Runge <dvzrv@archlinux.org>
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 use std::io::Error as IOError;
 use std::path::PathBuf;
 

@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: 2023 David Runge <dvzrv@archlinux.org>
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 use std::fs::create_dir_all;
 use std::fs::read_to_string;
 use std::fs::File;
