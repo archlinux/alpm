@@ -20,7 +20,10 @@ path = [
     "*.lock",
     "*.yml",
     ".codespellrc",
+    ".env",
     ".gitignore",
+    ".lycheeignore",
+    "justfile",
 ]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "ALPM Contributors"
