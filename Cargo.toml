@@ -1,0 +1,8 @@
+[workspace]
+resolver = "2"
+members = ["alpm-buildinfo", "alpm-types"]
+
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = "z"
