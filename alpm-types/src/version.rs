@@ -611,7 +611,8 @@ impl PartialOrd for Version {
 /// - equal to (`=`)
 /// - greater than or equal to (`>=`)
 /// - greater than (`>`)
-/// than the specified version.
+///
+/// the specified version.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum VersionComparison {
     Less,
