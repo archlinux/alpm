@@ -100,7 +100,7 @@ impl BuildOption {
         };
         if !name
             .chars()
-            .all(|c| c.is_alphanumeric() || c == '-' || c == '.')
+            .all(|c| c.is_alphanumeric() || c == '-' || c == '.' || c == '_')
         {
             return Err(Error::InvalidBuildOption(name));
         }
