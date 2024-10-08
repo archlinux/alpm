@@ -2,6 +2,10 @@
 resolver = "2"
 members = ["alpm-buildinfo", "alpm-types"]
 
+[workspace.dependencies]
+strum = "0.26.3"
+rstest = "0.23.0"
+
 [profile.release]
 lto = true
 codegen-units = 1

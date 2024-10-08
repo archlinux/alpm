@@ -445,7 +445,7 @@ impl PartialEq for Pkgver {
 /// assert_eq!("1.0.0", format!("{}", version_also_one));
 /// ```
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub struct SchemaVersion(pub SemverVersion);
+pub struct SchemaVersion(SemverVersion);
 
 impl SchemaVersion {
     /// Create a new SchemaVersion from a string
@@ -464,6 +464,11 @@ impl SchemaVersion {
                 Err(_) => Err(Error::InvalidVersion(version.to_string())),
             }
         }
+    }
+
+    /// Return a reference to the inner type
+    pub fn inner(&self) -> &SemverVersion {
+        &self.0
     }
 }
 
