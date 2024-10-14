@@ -4,14 +4,22 @@ BUILDINFO - Information on package build environments for ALPM based packages (v
 
 # DESCRIPTION
 
-This manual page describes the format of a BUILDINFO version 1 file found in the root of an ALPM based package.
-The file contains a description of the package's build environment.
+The **BUILDINFO** format is a textual format that describes a package's build environment.
+Such files are located at the root of ALPM packages, are named **.BUILDINFO** and are usually used to reproduce the environment in which a package has been build.
+For further information refer to **Arch Linux's reproducible builds effort**[1].
+
+The **BUILDINFO** format exists in multiple versions.
+The information in this document is for version 1, which is a legacy version.
+
+## General Format
 
 The information is formatted in key-value pairs separated by a **' = '**, one value per line (e.g. *"foo = bar"*).
 Arrays are represented by multiple keys of the same name.
 
 This is a description of the allowed keys and the format of their respective values in a BUILDINFO version 1 file.
 For further details see **EXAMPLES** section.
+
+## Keywords
 
 **format** Denotes the file format version, represented by a plain positive integer. This must be **1** for BUILDINFOv1.
 
@@ -60,3 +68,9 @@ installed = beh-2.1.0-6-x86_64
 # SEE ALSO
 
 alpm-buildinfo(1), makepkg(8), pacman(8), makepkg.conf(5)
+
+# NOTES
+
+1. Arch Linux's Reproducible Builds effort
+
+   https://wiki.archlinux.org/title/Reproducible_builds
