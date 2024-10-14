@@ -2,15 +2,13 @@
 
 BUILDINFO - Information on package build environments for ALPM based packages (version 1).
 
-# SYNOPSIS
+# DESCRIPTION
 
 This manual page describes the format of a BUILDINFO version 1 file found in the root of an ALPM based package.
 The file contains a description of the package's build environment.
 
 The information is formatted in key-value pairs separated by a **' = '**, one value per line (e.g. *"foo = bar"*).
 Arrays are represented by multiple keys of the same name.
-
-# DESCRIPTION
 
 This is a description of the allowed keys and the format of their respective values in a BUILDINFO version 1 file.
 For further details see **EXAMPLES** section.
