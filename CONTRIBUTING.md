@@ -24,6 +24,10 @@ just add-hooks
 
 To ensure compatibility and automatic creation of [semantic versioning] compatible releases the commit message style follows [conventional commits].
 
+## Merging changes
+
+Changes to the project are proposed and reviewed using merge requests and merged by the developers of this project using [fast-forward merges].
+
 ## Creating releases
 
 Releases are created by the developers of this project using [`release-plz`] by running (per package in the workspace):
@@ -71,3 +75,4 @@ For a full list of individual contributors, refer to `git log --format="%an <%aE
 [CC0-1.0]: ./LICENSES/CC0-1.0.txt
 [CC-BY-SA-4.0]: ./LICENSES/CC-BY-SA-4.0.txt
 [`REUSE.toml`]: ./REUSE.toml
+[fast-forward merges]: https://man.archlinux.org/man/git-merge.1#FAST-FORWARD_MERGE
