@@ -1,8 +1,8 @@
 # NOTE: This project does not attribute contributors individually. Instead refer to `git log --format="%an <%aE>" | sort -u` for a list of individual contributors.
 version = 1
-SPDX-PackageName = "alpm-types"
+SPDX-PackageName = "alpm"
 SPDX-PackageSupplier = "Arch Linux"
-SPDX-PackageDownloadLocation = "https://gitlab.archlinux.org/archlinux/alpm/alpm-types"
+SPDX-PackageDownloadLocation = "https://gitlab.archlinux.org/archlinux/alpm/alpm"
 
 [[annotations]]
 path = [
