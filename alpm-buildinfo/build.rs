@@ -19,9 +19,9 @@ fn render_manpage(input: &Path, output: &Path, name: &str, section: u8) {
 
 fn main() {
     render_manpage(
-        Path::new("doc/BUILDINFOv1.md"),
-        Path::new("doc/BUILDINFOV1.5"),
-        "BUILDINFOV1",
+        Path::new("resources/specification/BUILDINFOv1.5.md"),
+        Path::new("resources/specification/BUILDINFOv1.5"),
+        "BUILDINFOv1",
         5,
     );
 }
