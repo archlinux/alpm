@@ -62,16 +62,3 @@ installed = beh-2.1.0-6-x86_64
 # SEE ALSO
 
 alpm-buildinfo(1), makepkg(8), pacman(8), makepkg.conf(5)
-
-# BUGS
-
-Issues with **BUILDINFOv1** as well as **alpm-buildinfo** can be reported at https://gitlab.archlinux.org/archlinux/alpm/alpm-buildinfo/-/issues.
-
-# AUTHORS
-
-Current maintainers:
-
-- David Runge \<dvzrv@archlinux.org\>
-- Leonidas Spyropoulos \<artafinde@archlinux.org\>
-
-For additional contributors use `git shortlog -s` on the alpm-buildinfo repository.
