@@ -1,8 +1,11 @@
 use std::fs::create_dir_all;
 use std::fs::read_to_string;
 use std::fs::File;
+use std::io;
+use std::io::IsTerminal;
+use std::io::Read;
 use std::io::Write;
-use std::path::Path;
+use std::path::PathBuf;
 use std::process::exit;
 use std::str::FromStr;
 
@@ -72,10 +75,27 @@ fn create_file(command: CreateCommand) -> Result<(), Error> {
     Ok(())
 }
 
-/// Validate a file according to a BUILDINFO schema
-fn validate_file(file: &Path, schema: &Schema) -> Result<(), Error> {
-    let contents =
-        read_to_string(file).map_err(|_| Error::FailedReading(format!("{}", file.display())))?;
+/// Validate a file according to a BUILDINFO schema.
+///
+/// This function reads the contents of a file or stdin, and validates it according to a schema.
+///
+/// NOTE: If a command is piped to this process, the input is read from stdin.
+/// See [`IsTerminal`] for more information about how terminal detection works.
+///
+/// [`IsTerminal`]: https://doc.rust-lang.org/stable/std/io/trait.IsTerminal.html
+fn validate(file: &Option<PathBuf>, schema: &Schema) -> Result<(), Error> {
+    let contents = if let Some(file) = file {
+        read_to_string(file).map_err(|_| Error::FailedReadingFile(format!("{}", file.display())))?
+    } else if !io::stdin().is_terminal() {
+        let mut buffer = Vec::new();
+        let mut stdin = io::stdin();
+        stdin
+            .read_to_end(&mut buffer)
+            .map_err(|e| Error::FailedReadingStdin(e.to_string()))?;
+        String::from_utf8(buffer)?.to_string()
+    } else {
+        return Err(Error::NoInputFile);
+    };
 
     match schema {
         Schema::V1 => BuildInfoV1::from_str(&contents)?,
@@ -110,6 +130,6 @@ fn main() {
     let cli = Cli::parse();
     match cli.command {
         Command::Create { command } => create_file(command).handle_exit_code(),
-        Command::Validate { schema, file } => validate_file(&file, &schema).handle_exit_code(),
+        Command::Validate { file, schema } => validate(&file, &schema).handle_exit_code(),
     }
 }

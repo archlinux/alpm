@@ -1,22 +1,17 @@
-use std::io::Error as IOError;
-use std::path::PathBuf;
-
 use assert_cmd::Command;
 use rstest::rstest;
 use testdir::testdir;
 use testresult::TestResult;
 
 mod common;
-use common::valid_buildinfov1;
 use common::BuildInfoV1Input;
+use common::VALID_BUILDINFO_DATA;
 
 #[rstest]
-fn validate_valid_buildinfov1(valid_buildinfov1: Result<PathBuf, IOError>) -> TestResult {
+fn validate_valid_buildinfov1() -> TestResult {
     let mut cmd = Command::cargo_bin("alpm-buildinfo")?;
-    cmd.args([
-        "validate",
-        valid_buildinfov1?.as_path().as_os_str().to_str().unwrap(),
-    ]);
+    cmd.args(["validate"]);
+    cmd.write_stdin(VALID_BUILDINFO_DATA);
     cmd.assert().success();
 
     Ok(())

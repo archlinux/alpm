@@ -113,7 +113,7 @@ pub enum Command {
         #[arg(default_value_t = Schema::default(), long, short, value_name = "VERSION")]
         schema: Schema,
         #[arg(value_name = "FILE")]
-        file: PathBuf,
+        file: Option<PathBuf>,
     },
 }
 

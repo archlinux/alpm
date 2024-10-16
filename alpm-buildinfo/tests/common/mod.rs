@@ -1,10 +1,19 @@
-use std::fs::File;
-use std::io::Error;
-use std::io::Write;
-use std::path::PathBuf;
-
-use rstest::fixture;
-use testdir::testdir;
+pub const VALID_BUILDINFO_DATA: &str = r#"builddate = 1
+builddir = /build
+buildenv = envfoo
+buildenv = envbar
+format = 1
+installed = bar-1.2.3-1-any
+installed = beh-2.2.3-4-any
+options = some_option
+options = !other_option
+packager = Foobar McFooface <foobar@mcfooface.org>
+pkgarch = any
+pkgbase = foo
+pkgbuild_sha256sum = b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c
+pkgname = foo
+pkgver = 1:1.0.0-1
+"#;
 
 pub struct BuildInfoV1Input {
     pub builddate: (Option<String>, bool),
@@ -38,28 +47,4 @@ impl Default for BuildInfoV1Input {
             should_be_valid: false,
         }
     }
-}
-
-#[fixture]
-pub fn valid_buildinfov1() -> Result<PathBuf, Error> {
-    let data = r#"builddate = 1
-builddir = /build
-buildenv = envfoo
-buildenv = envbar
-format = 1
-installed = bar-1.2.3-1-any
-installed = beh-2.2.3-4-any
-options = some_option
-options = !other_option
-packager = Foobar McFooface <foobar@mcfooface.org>
-pkgarch = any
-pkgbase = foo
-pkgbuild_sha256sum = b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c
-pkgname = foo
-pkgver = 1:1.0.0-1
-"#;
-    let file = testdir!().join(".BUILDINFO");
-    let mut output = File::create(&file)?;
-    write!(output, "{}", data)?;
-    Ok(file)
 }

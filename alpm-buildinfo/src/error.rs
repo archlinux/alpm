@@ -1,5 +1,6 @@
 use std::fmt::Display;
 use std::fmt::Formatter;
+use std::string::FromUtf8Error;
 
 use alpm_types::SchemaVersion;
 use thiserror::Error;
@@ -41,7 +42,11 @@ pub enum Error {
 
     /// Failed reading a BUILDINFO file
     #[error("Failed reading BUILDINFO file: {0}")]
-    FailedReading(String),
+    FailedReadingFile(String),
+
+    /// Failed reading from stdin
+    #[error("Failed reading from stdin: {0}")]
+    FailedReadingStdin(String),
 
     /// Failed writing a BUILDINFO file
     #[error("Failed writing BUILDINFO file: {0}")]
@@ -66,4 +71,12 @@ pub enum Error {
     /// A SchemaVersion with the wrong version is used to initialize a BuildInfo
     #[error("Wrong schema version used to create a BUILDINFO: {0}")]
     WrongSchemaVersion(SchemaVersion),
+
+    /// An error occurred while parsing a string as UTF-8
+    #[error(transparent)]
+    InvalidUTF8(#[from] FromUtf8Error),
+
+    /// No input file given
+    #[error("No input file given.")]
+    NoInputFile,
 }
