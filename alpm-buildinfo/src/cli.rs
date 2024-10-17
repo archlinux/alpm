@@ -115,11 +115,6 @@ pub enum Command {
         #[arg(value_name = "FILE")]
         file: PathBuf,
     },
-    /// Export supplementary files
-    ///
-    /// Export supplementary files such as man pages and shell completions
-    #[command(subcommand)]
-    Export(ExportCommand),
 }
 
 #[derive(Clone, Debug, Subcommand)]
@@ -185,19 +180,5 @@ pub enum CreateCommand {
         /// Provide a file to write to
         #[arg(default_value_t = OutputFile::default(), value_name = "FILE")]
         output: OutputFile,
-    },
-}
-
-#[derive(Clone, Debug, Subcommand)]
-pub enum ExportCommand {
-    /// Render shell completion files to a directory
-    ShellCompletion {
-        #[arg(value_name = "DIRECTORY")]
-        output: PathBuf,
-    },
-    /// Render man pages to a directory
-    Manpage {
-        #[arg(value_name = "DIRECTORY")]
-        output: PathBuf,
     },
 }

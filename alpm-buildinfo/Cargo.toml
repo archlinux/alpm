@@ -11,14 +11,9 @@ repository = "https://gitlab.archlinux.org/archlinux/alpm/alpm"
 rust-version = "1.70.0"
 version = "0.1.0"
 
-[build-dependencies]
-mandown = "0.1.3"
-
 [dependencies]
 alpm-types = { path = "../alpm-types" }
 clap.workspace = true
-clap_complete.workspace = true
-clap_mangen.workspace = true
 strum.workspace = true
 thiserror.workspace = true
 

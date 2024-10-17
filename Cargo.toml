@@ -3,9 +3,7 @@ resolver = "2"
 members = ["alpm-buildinfo", "alpm-types"]
 
 [workspace.dependencies]
-clap = { version = "4.5.19", features = ["derive", "string"] }
-clap_complete = "4.5.32"
-clap_mangen = "0.2.12"
+clap = { version = "4.5.19", features = ["derive", "env", "string"] }
 rstest = "0.23.0"
 strum = "0.26.3"
 thiserror = "1.0.40"
