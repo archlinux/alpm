@@ -233,22 +233,7 @@ fix:
     # fmt must be last as clippy's changes may break formatting
     cargo +nightly fmt
 
-render-script := '''
-    //! ```cargo
-    //! [dependencies]
-    //! pkg = { path = "PATH", package = "PKG" }
-    //! clap_allgen = "0.2.1"
-    //! ```
-
-    fn main() -> Result<(), Box<dyn std::error::Error>> {
-        clap_allgen::render_KIND::<pkg::cli::Cli>(
-            &std::env::args().collect::<Vec<_>>()[1],
-        )?;
-        Ok(())
-    }
-'''
-
-# Render `manpages` or `shell_completions` (`kind`) of a given package (`pkg`).
+# Render `manpages`, `shell_completions` or `specifications` (`kind`) of a given package (`pkg`).
 generate kind pkg:
     #!/usr/bin/bash
 
@@ -257,20 +242,36 @@ generate kind pkg:
     readonly output_dir="${CARGO_TARGET_DIR:-$PWD/output}"
     mkdir --parents "$output_dir"
 
-    readonly kind="{{ kind }}"
+    kind="{{ kind }}"
+
+    script="$(mktemp --suffix=.ers)"
+    readonly script="$script"
+
+    # remove temporary script file on exit
+    cleanup() (
+      if [[ -n "${script:-}" ]]; then
+        rm -f "$script"
+      fi
+    )
+
+    trap cleanup EXIT
 
     case "$kind" in
-      manpages|shell_completions)
-          ;;
-      *)
-          printf 'Only "manpages" and "shell_completions" are supported.\n'
-          exit 1
+        manpages|shell_completions)
+            sed "s/PKG/{{ pkg }}/;s#PATH#$PWD/{{ pkg }}#g;s/KIND/{{ kind }}/g" > "$script" < .rust-script/allgen.ers
+            ;;
+        specifications)
+            sed "s/PKG/{{ pkg }}/;s#PATH#$PWD/{{ pkg }}#g;s/KIND/{{ kind }}/g" > "$script" < .rust-script/mandown.ers
+            # override kind, as we are in fact generating manpages
+            kind="manpages"
+            ;;
+        *)
+            printf 'Only "manpages", "shell_completions" or "specifications" are supported targets.\n'
+            exit 1
     esac
 
-    script="$(mktemp --suffix=.rs)"
-    sed "s/PKG/{{ pkg }}/;s#PATH#$PWD/{{ pkg }}#g;s/KIND/{{ kind }}/g" > "$script" <<< '{{ render-script }}'
-    rust-script "$script" "$output_dir/{{ kind }}"
-    rm --force "$script"
+    chmod +x "$script"
+    "$script" "$output_dir/$kind"
 
 # Continuously run integration tests for a given number of rounds
 flaky test='just test-readme alpm-buildinfo' rounds='999999999999':

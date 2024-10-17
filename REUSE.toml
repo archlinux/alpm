@@ -6,6 +6,7 @@ SPDX-PackageDownloadLocation = "https://gitlab.archlinux.org/archlinux/alpm/alpm
 
 [[annotations]]
 path = [
+    "**.ers",
     "**.rs",
 ]
 precedence = "aggregate"

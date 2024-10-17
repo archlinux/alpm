@@ -1,0 +1,90 @@
+#!/usr/bin/env rust-script
+
+//! ```cargo
+//! [dependencies]
+//! pkg = { path = "PATH", package = "PKG" }
+//! mandown = "0.1.3"
+//! testresult = "0.4.1"
+//! ```
+use std::env::args;
+use std::fs::{create_dir_all, read_dir, read_to_string, File};
+use std::io::Write;
+use std::path::{Path, PathBuf};
+use std::str::FromStr;
+
+use mandown::convert;
+use testresult::TestResult;
+
+/// Takes information about a specification and renders a man page from it.
+///
+/// The `input` path is read to create a man page named `name` in a `section` and writes the
+/// resulting man page to `output`.
+fn render_manpage(input: &Path, output: &Path, name: &str, section: u8) -> TestResult {
+    let contents = read_to_string(input)?;
+    let manpage = convert(contents.as_str(), name, section);
+    let mut output_file = File::create(output)?;
+    output_file.write_all(manpage.as_bytes())?;
+    Ok(())
+}
+
+/// Returns a list of specifications from a directory.
+///
+/// Files are considered as specifications, if they end with ".5.md" or ".7.md" (where "5" and "7"
+/// represent man page sections).
+/// The returned list contains elements with input path, output filename, name of the specification
+/// and man page section for the specification.
+fn get_specifications(dir: &Path) -> TestResult<Vec<(PathBuf, PathBuf, String, u8)>> {
+    let files = read_dir(dir)?;
+    let mut entries = vec![];
+    for file in files {
+        let path = file?.path();
+        if path.is_file()
+            && path
+                .to_str()
+                .is_some_and(|path| path.ends_with(".5.md") || path.ends_with(".7.md"))
+        {
+            let file_name = path
+                .file_name()
+                .ok_or(format!("Unable to get file name from path {:?}", path))?
+                .to_str()
+                .ok_or(format!(
+                    "Unable to extract string slice from path {:?}",
+                    path
+                ))?;
+            let output = file_name.trim_end_matches(".md");
+            let name = file_name
+                .trim_end_matches(".5.md")
+                .trim_end_matches(".7.md");
+            let section = u8::from_str(
+                &output
+                    .chars()
+                    .last()
+                    .ok_or(format!(
+                        "Unable to extract man page section number from {file_name}!"
+                    ))?
+                    .to_string(),
+            )?;
+
+            entries.push((
+                path.to_owned(),
+                PathBuf::from(output),
+                name.to_string(),
+                section,
+            ));
+        }
+    }
+    Ok(entries)
+}
+
+fn main() -> TestResult {
+    let output_dir = &args().collect::<Vec<_>>()[1];
+    create_dir_all(output_dir)?;
+
+    for (input, output, name, section) in
+        get_specifications(Path::new(Path::new("PKG/resources/specification/")))?
+    {
+        render_manpage(&input, &Path::new(output_dir).join(output), &name, section)?;
+    }
+
+    Ok(())
+}
