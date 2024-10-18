@@ -1,6 +1,6 @@
 # NAME
 
-BUILDINFOv1 - Information on package build environments for ALPM based packages (version 1).
+BUILDINFO - Information on package build environments for ALPM based packages (version 1).
 
 # SYNOPSIS
 
