@@ -53,6 +53,7 @@ pub use pkg::PkgDesc;
 pub use pkg::PkgType;
 
 mod relation;
+pub use relation::OptDepend;
 pub use relation::PackageRelation;
 
 mod size;
