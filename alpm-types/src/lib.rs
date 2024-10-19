@@ -16,6 +16,9 @@ pub use checksum::{
 mod source;
 pub use source::Source;
 
+mod url;
+pub use url::Url;
+
 /// Public re-exports of common hash functions, for use with [`Checksum`].
 pub mod digests {
     pub use blake2::Blake2b512;
