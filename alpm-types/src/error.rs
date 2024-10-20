@@ -27,6 +27,10 @@ pub enum Error {
     #[error("Invalid URL ({0})")]
     InvalidUrl(#[from] url::ParseError),
 
+    /// An invalid license
+    #[error("Invalid license ({0})")]
+    InvalidLicense(#[from] spdx::ParseError),
+
     /// An invalid semantic version string
     ///
     /// This error occurs when a semantic version cannot be parsed from a string
@@ -76,6 +80,10 @@ pub enum Error {
     /// File name is empty
     #[error("File name is empty")]
     FileNameIsEmpty,
+
+    /// A deprecated license
+    #[error("Deprecated license: {0}")]
+    DeprecatedLicense(String),
 }
 
 #[cfg(test)]

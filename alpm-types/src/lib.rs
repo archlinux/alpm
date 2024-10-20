@@ -38,6 +38,9 @@ pub use env::PackageOption;
 mod error;
 pub use error::Error;
 
+mod license;
+pub use license::License;
+
 mod name;
 pub use name::BuildTool;
 pub use name::Name;

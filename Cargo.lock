@@ -65,6 +65,7 @@ dependencies = [
  "semver",
  "sha1",
  "sha2",
+ "spdx",
  "strum",
  "thiserror",
  "time",
@@ -1421,6 +1422,15 @@ name = "smallvec"
 version = "1.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3c5e1a9a646d36c3599cd173a41282daf47c44583ad367b8e6837255952e5c67"
+
+[[package]]
+name = "spdx"
+version = "0.10.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bae30cc7bfe3656d60ee99bf6836f472b0c53dddcbf335e253329abb16e535a2"
+dependencies = [
+ "smallvec",
+]
 
 [[package]]
 name = "stable_deref_trait"
