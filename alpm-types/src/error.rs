@@ -84,6 +84,12 @@ pub enum Error {
     /// A deprecated license
     #[error("Deprecated license: {0}")]
     DeprecatedLicense(String),
+
+    /// An invalid OpenPGP v4 fingerprint
+    #[error(
+        "Invalid OpenPGP v4 fingerprint, only 40 uppercase hexadecimal characters are allowed"
+    )]
+    InvalidOpenPGPv4Fingerprint,
 }
 
 #[cfg(test)]

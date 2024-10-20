@@ -53,6 +53,9 @@ pub use path::AbsolutePath;
 pub use path::BuildDir;
 pub use path::StartDir;
 
+mod openpgp;
+pub use openpgp::OpenPGPv4Fingerprint;
+
 mod pkg;
 pub use pkg::Packager;
 pub use pkg::PkgBase;
