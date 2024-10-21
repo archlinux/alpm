@@ -6,6 +6,7 @@ stages:
   - test
   - publish
   - report
+  - pages
 
 check-commits:
   before_script:
@@ -84,3 +85,19 @@ issue-bot:
   rules:
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
       when: on_failure
+
+pages:
+  before_script:
+    - pacman-key --init
+    - pacman -Sy --needed --noconfirm archlinux-keyring
+    - source .env && pacman -Syu --needed --noconfirm $PACMAN_PACKAGES
+    - just install-rust-dev-tools
+  stage: pages
+  script:
+    - just build-docs
+  artifacts:
+    paths:
+      - target/doc
+  publish: target/doc
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
