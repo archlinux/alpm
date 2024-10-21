@@ -171,8 +171,8 @@ lint-recipe recipe:
     just -vv -n {{ recipe }} 2>&1 | rg -v '===> Running recipe' | shellcheck -
 
 # Build local documentation
-build-docs:
-    cargo doc --document-private-items --no-deps
+docs:
+    RUSTFLAGS='-D warnings' cargo doc --document-private-items --no-deps
 
 # Checks for issues with dependencies
 check-dependencies: dry-update
@@ -190,7 +190,7 @@ test:
         cargo test --doc
     else
         cargo test --all
-        RUSTFLAGS='-D warnings' cargo doc --no-deps
+        just docs
     fi
 
 # Runs per project end-to-end tests found in a project README.md

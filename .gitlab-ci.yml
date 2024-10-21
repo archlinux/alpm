@@ -94,7 +94,7 @@ pages:
     - just install-rust-dev-tools
   stage: pages
   script:
-    - just build-docs
+    - just docs
   artifacts:
     paths:
       - target/doc
