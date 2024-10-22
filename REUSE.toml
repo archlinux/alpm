@@ -26,6 +26,7 @@ path = [
     ".gitlab/CODEOWNERS",
     ".lycheeignore",
     "justfile",
+    "**.snap"
 ]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "ALPM Contributors"

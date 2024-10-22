@@ -13,6 +13,7 @@ The dependencies are linted with [`cargo-deny`].
 License identifiers and copyright statements are checked using [`reuse`].
 
 Various [`just`] targets are used to run checks and tests.
+In order to review the snapshot changes in tests, you can use [`cargo-insta`].
 
 To aide in development, it is encouraged to install the relevant [git pre-commit] and [git pre-push] hooks:
 
@@ -80,6 +81,7 @@ For a full list of individual contributors, refer to `git log --format="%an <%aE
 [`clippy`]: https://github.com/rust-lang/rust-clippy
 [`codespell`]: https://github.com/codespell-project/codespell
 [`cargo-deny`]: https://github.com/EmbarkStudios/cargo-deny
+[`cargo-insta`]: https://github.com/mitsuhiko/insta
 [`reuse`]: https://git.fsfe.org/reuse/tool
 [`just`]: https://github.com/casey/just
 [git pre-commit]: https://man.archlinux.org/man/githooks.5#pre-commit

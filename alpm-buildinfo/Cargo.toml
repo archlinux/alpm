@@ -19,6 +19,7 @@ thiserror.workspace = true
 
 [dev-dependencies]
 assert_cmd = "2.0.11"
+insta = "1.40.0"
 rstest.workspace = true
 testdir = "0.9.1"
 testresult = "0.4.1"
