@@ -206,6 +206,26 @@ impl Display for RelativePath {
 /// # }
 pub type Backup = RelativePath;
 
+/// A special install script that is to be included in the package
+///
+/// This is a type alias for [RelativePath`]
+///
+/// ## Examples
+/// ```
+/// use std::str::FromStr;
+///
+/// use alpm_types::{Error, Install};
+///
+/// # fn main() -> Result<(), alpm_types::Error> {
+/// // Create Install from &str and format it
+/// assert_eq!(
+///     "scripts/setup.install",
+///     Install::from_str("scripts/setup.install")?.to_string()
+/// );
+/// # Ok(())
+/// # }
+pub type Install = RelativePath;
+
 #[cfg(test)]
 mod tests {
     use rstest::rstest;

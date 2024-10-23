@@ -52,6 +52,7 @@ mod path;
 pub use path::AbsolutePath;
 pub use path::Backup;
 pub use path::BuildDir;
+pub use path::Install;
 pub use path::RelativePath;
 pub use path::StartDir;
 
