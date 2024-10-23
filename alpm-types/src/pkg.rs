@@ -137,6 +137,19 @@ pub enum PkgType {
     Split,
 }
 
+/// Description of a package
+///
+/// This is a type alias for [`String`].
+///
+/// ## Examples
+/// ```
+/// use alpm_types::{Error, PkgDesc};
+///
+/// // Create a PkgDesc
+/// let desc: PkgDesc = "A simple package".to_string();
+/// ```
+pub type PkgDesc = String;
+
 #[cfg(test)]
 mod tests {
     use rstest::rstest;
