@@ -1,6 +1,6 @@
 # NAME
 
-BUILDINFO - Information on package build environments for ALPM based packages (version 1).
+BUILDINFO - Information on package build environments for ALPM based packages (version 2).
 
 # DESCRIPTION
 
@@ -9,8 +9,11 @@ Such files are located at the root of ALPM packages, are named **.BUILDINFO** an
 For further information refer to **Arch Linux's reproducible builds effort**[1].
 
 The **BUILDINFO** format exists in multiple versions.
-The document describes version 1, which is a legacy version.
-For the latest specification, refer to **BUILDINFO**.
+The information in this document is for version 2, which is the current version.
+
+## Changes since the last version
+
+The new keywords **buildtool** and **buildtoolver** have been added to track the package name, version and architecture of the tool used to setup the build environment for a package.
 
 ## General Format
 
@@ -31,7 +34,7 @@ As exception to this rule, the keywords **buildenv**, **options** and **installe
 
 The **BUILDINFO** file format version.
 The value must be a plain positive integer.
-This must be **1** for **BUILDINFO** version 1.
+This must be **2** for **BUILDINFO** version 2.
 
 ### pkgname
 
@@ -76,6 +79,22 @@ The value must be numeric and represent the seconds since the Epoch, aka. 'Unix 
 The absolute directory path in which the package has been built by the build tool (e.g. `makepkg`).
 The value is a UTF-8-encoded string and must represent a valid absolute directory (e.g. `/builddir`).
 
+### startdir
+
+The directory from which `makepkg` was executed.
+The value is a UTF-8-encoded string and must represent a valid absolute directory (e.g. `/startdir`).
+
+### buildtool
+
+The package name of the tool used to set up the build environment.
+This helps the **Arch Linux's Reproducible Builds effort** to reproduce the environment in which a package has been built.
+The value must be a valid package name as described in **pkgname**.
+
+### buildtoolver
+
+The full version of the **buildtool** used to set up the build environment.
+The value must be a composite version string as described in **pkgver**, directly followed by a '-' sign, directly followed by an architecture string as described in **pkgarch** (e.g. `1:5.0.2-1-any`).
+
 ### buildenv
 
 A build environment used by the package build tool (i.e. `makepkg`, defined in `BUILDENV` of makepkg.conf) when building the package.
@@ -97,7 +116,7 @@ The value represents a composite string, composed of definitions available in th
 # EXAMPLES
 
 ```ini
-format = 1
+format = 2
 pkgname = package-name
 pkgbase = package-name
 pkgver = 1:1.0.0-1
@@ -106,6 +125,9 @@ pkgbuild_sha256sum = b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae
 packager = John Doe <john@example.org>
 builddate = 1729181726
 builddir = /build
+startdir = /startdir/
+buildtool = devtools
+buildtoolver = 1:1.2.1-1-any
 buildenv = !color
 buildenv = check
 options = !strip
@@ -116,7 +138,7 @@ installed = package2-2.1.0-6-x86_64
 
 # SEE ALSO
 
-alpm-buildinfo(1), makepkg.conf(5), PKGBUILD(5), alpm-epoch(7), alpm-pkgrel(7), alpm-pkgver(7), makepkg(8), pacman(8)
+alpm-buildinfo(1), makepkg.conf(5), PKGBUILD(5), alpm-epoch(7), alpm-pkgrel(7), alpm-pkgver(7), devtools(7), makepkg(8), pacman(8), repro(8)
 
 # NOTES
 
