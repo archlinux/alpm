@@ -163,6 +163,7 @@ lint:
     just lint-recipe 'is-workspace-member alpm-buildinfo'
     just lint-recipe 'release alpm-buildinfo'
     just lint-recipe flaky
+    just lint-recipe test
 
     cargo clippy --all -- -D warnings
 
@@ -185,7 +186,11 @@ check-licenses:
 # Runs all unit tests. By default ignored tests are not run. Run with `ignored=true` to run only ignored tests
 test:
     #!/usr/bin/env bash
-    if [[ "{{ ignored }}" == "true" ]]; then
+    set -euxo pipefail
+
+    readonly ignored="{{ ignored }}"
+
+    if [[ "${ignored}" == "true" ]]; then
         cargo test --all -- --ignored
         cargo test --doc
     else
