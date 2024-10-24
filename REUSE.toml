@@ -23,6 +23,7 @@ path = [
     ".codespellrc",
     ".env",
     ".gitignore",
+    ".gitlab/CODEOWNERS",
     ".lycheeignore",
     "justfile",
 ]
