@@ -1,15 +1,16 @@
 [package]
-authors = ["David Runge <dvzrv@archlinux.org>"]
-description = "Library and commandline toolkit for the specification, writing and parsing of ALPM BUILDINFO files"
-edition = "2021"
-homepage = "https://gitlab.archlinux.org/archlinux/alpm/alpm"
-keywords = ["alpm", "arch", "linux", "packaging", "buildinfo"]
-license = "Apache-2.0 OR MIT"
 name = "alpm-buildinfo"
-readme = "README.md"
-repository = "https://gitlab.archlinux.org/archlinux/alpm/alpm"
-rust-version = "1.70.0"
+description = "Library and commandline toolkit for the specification, writing and parsing of ALPM BUILDINFO files"
 version = "0.1.0"
+rust-version = "1.70.0"
+
+authors.workspace = true
+edition.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+license.workspace = true
+readme.workspace = true
+repository.workspace = true
 
 [dependencies]
 alpm-types = { path = "../alpm-types" }

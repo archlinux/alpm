@@ -1,3 +1,16 @@
+[workspace.package]
+homepage = "https://gitlab.archlinux.org/archlinux/alpm/alpm"
+repository = "https://gitlab.archlinux.org/archlinux/alpm/alpm"
+keywords = ["alpm", "arch", "linux", "packaging"]
+license = "Apache-2.0 OR MIT"
+readme = "README.md"
+edition = "2021"
+authors = [
+  "David Runge <dvzrv@archlinux.org>",
+  "Orhun Parmaksız <orhun@archlinux.org>",
+  "Arne Beer <contact@arne.beer>"
+]
+
 [workspace]
 resolver = "2"
 members = ["alpm-buildinfo", "alpm-types"]

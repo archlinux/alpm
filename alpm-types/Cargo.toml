@@ -1,15 +1,16 @@
 [package]
-authors = ["David Runge <dvzrv@archlinux.org>"]
-description = "Types for Arch Linux Package Management"
-edition = "2021"
-homepage = "https://gitlab.archlinux.org/archlinux/alpm/alpm"
-keywords = ["alpm", "arch", "linux", "packaging"]
-license = "Apache-2.0 OR MIT"
 name = "alpm-types"
-readme = "README.md"
-repository = "https://gitlab.archlinux.org/archlinux/alpm/alpm"
-rust-version = "1.70.0"
+description = "Types for Arch Linux Package Management"
 version = "0.4.0"
+rust-version = "1.70.0"
+
+authors.workspace = true
+edition.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+license.workspace = true
+readme.workspace = true
+repository.workspace = true
 
 [dependencies]
 blake2 = "0.10.6"
