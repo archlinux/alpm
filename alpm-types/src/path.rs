@@ -1,8 +1,8 @@
-use std::fmt::Display;
-use std::fmt::Formatter;
-use std::path::Path;
-use std::path::PathBuf;
-use std::str::FromStr;
+use std::{
+    fmt::{Display, Formatter},
+    path::{Path, PathBuf},
+    str::FromStr,
+};
 
 use crate::Error;
 

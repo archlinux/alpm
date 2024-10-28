@@ -1,8 +1,9 @@
-use std::cmp::Ordering;
-use std::fmt::Display;
-use std::fmt::Formatter;
-use std::num::NonZeroUsize;
-use std::str::FromStr;
+use std::{
+    cmp::Ordering,
+    fmt::{Display, Formatter},
+    num::NonZeroUsize,
+    str::FromStr,
+};
 
 use semver::Version as SemverVersion;
 

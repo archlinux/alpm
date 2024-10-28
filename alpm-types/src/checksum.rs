@@ -1,7 +1,8 @@
-use std::fmt::Display;
-use std::fmt::Formatter;
-use std::marker::PhantomData;
-use std::str::FromStr;
+use std::{
+    fmt::{Display, Formatter},
+    marker::PhantomData,
+    str::FromStr,
+};
 
 use digest::Digest;
 

@@ -1,7 +1,8 @@
-use std::fmt::Display;
-use std::fmt::Formatter;
-use std::str::FromStr;
-use std::string::ToString;
+use std::{
+    fmt::{Display, Formatter},
+    str::FromStr,
+    string::ToString,
+};
 
 use time::OffsetDateTime;
 
