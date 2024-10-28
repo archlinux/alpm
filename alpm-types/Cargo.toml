@@ -21,8 +21,7 @@ regex = "1.10.2"
 semver = "1.0.17"
 sha1 = "0.10.5"
 sha2 = "0.10.7"
-strum = "0.26.3"
-strum_macros = "0.26.4"
+strum = { version = "0.26.3", features = ["derive"] }
 thiserror.workspace = true
 time = "0.3.22"
 url = "2.4.0"

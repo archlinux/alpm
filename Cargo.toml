@@ -8,7 +8,7 @@ edition = "2021"
 authors = [
   "David Runge <dvzrv@archlinux.org>",
   "Orhun Parmaksız <orhun@archlinux.org>",
-  "Arne Beer <contact@arne.beer>"
+  "Arne Beer <contact@arne.beer>",
 ]
 
 [workspace]

@@ -4,8 +4,7 @@ use std::str::FromStr;
 use std::string::ToString;
 
 use email_address::EmailAddress;
-use strum_macros::Display;
-use strum_macros::EnumString;
+use strum::{Display, EnumString};
 
 use crate::regex_once;
 use crate::Error;

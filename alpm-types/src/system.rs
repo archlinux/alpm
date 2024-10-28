@@ -1,5 +1,4 @@
-use strum_macros::Display;
-use strum_macros::EnumString;
+use strum::{Display, EnumString};
 
 /// CPU architecture
 ///
