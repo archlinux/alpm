@@ -13,9 +13,11 @@ readme.workspace = true
 repository.workspace = true
 
 [dependencies]
+alpm-parsers = { path = "../alpm-parsers" }
 alpm-types = { path = "../alpm-types" }
 clap.workspace = true
-strum.workspace = true
+serde.workspace = true
+serde_with = "3.11.0"
 thiserror.workspace = true
 
 [dev-dependencies]

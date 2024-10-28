@@ -79,4 +79,8 @@ pub enum Error {
     /// No input file given
     #[error("No input file given.")]
     NoInputFile,
+
+    // Deserialize error.
+    #[error("Failed to deserialize BUILDINFO file: {0}")]
+    DeserializeError(#[from] alpm_parsers::custom_ini::Error),
 }

@@ -5,7 +5,5 @@ pub use crate::buildinfo_v1::BuildInfoV1;
 
 pub mod cli;
 
-pub mod common;
-
 mod error;
 pub use crate::error::Error;

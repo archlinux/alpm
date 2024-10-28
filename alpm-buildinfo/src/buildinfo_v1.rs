@@ -14,13 +14,11 @@ use alpm_types::PackageOption;
 use alpm_types::Packager;
 use alpm_types::SchemaVersion;
 use alpm_types::Version;
+use serde::Deserialize;
+use serde::Deserializer;
+use serde_with::serde_as;
+use serde_with::DisplayFromStr;
 
-use crate::common::ensure_mandatory_field;
-use crate::common::get_multiple;
-use crate::common::get_once;
-use crate::common::get_once_strum;
-use crate::common::keyword_with_list_entries;
-use crate::common::KeyAssign;
 use crate::Error;
 
 /// BUILDINFO version 1
@@ -55,20 +53,48 @@ use crate::Error;
 /// let buildinfo = BuildInfoV1::from_str(buildinfo_data).unwrap();
 /// assert_eq!(buildinfo.to_string(), buildinfo_data);
 /// ```
-#[derive(Clone, Debug)]
+#[serde_as]
+#[derive(Clone, Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct BuildInfoV1 {
-    builddate: BuildDate,
-    builddir: BuildDir,
-    buildenv: Vec<BuildEnv>,
+    #[serde(deserialize_with = "BuildInfoV1::deserialize_schema_version")]
     format: SchemaVersion,
-    installed: Vec<Installed>,
-    options: Vec<PackageOption>,
-    packager: Packager,
-    pkgarch: Architecture,
-    pkgbase: Name,
-    pkgbuild_sha256sum: Checksum<Sha256>,
+
+    #[serde_as(as = "DisplayFromStr")]
     pkgname: Name,
+
+    #[serde_as(as = "DisplayFromStr")]
+    pkgbase: Name,
+
+    #[serde_as(as = "DisplayFromStr")]
     pkgver: Version,
+
+    #[serde_as(as = "DisplayFromStr")]
+    pkgarch: Architecture,
+
+    #[serde_as(as = "DisplayFromStr")]
+    pkgbuild_sha256sum: Checksum<Sha256>,
+
+    #[serde_as(as = "DisplayFromStr")]
+    packager: Packager,
+
+    #[serde_as(as = "DisplayFromStr")]
+    builddate: BuildDate,
+
+    #[serde_as(as = "DisplayFromStr")]
+    builddir: BuildDir,
+
+    #[serde_as(as = "Vec<DisplayFromStr>")]
+    #[serde(default)]
+    buildenv: Vec<BuildEnv>,
+
+    #[serde_as(as = "Vec<DisplayFromStr>")]
+    #[serde(default)]
+    options: Vec<PackageOption>,
+
+    #[serde_as(as = "Vec<DisplayFromStr>")]
+    #[serde(default)]
+    installed: Vec<Installed>,
 }
 
 impl BuildInfoV1 {
@@ -106,6 +132,26 @@ impl BuildInfoV1 {
             pkgver,
         })
     }
+
+    /// Deserialize a `SchemaVersion` from a string.
+    ///
+    /// Only accepts "1" as a valid schema version.
+    fn deserialize_schema_version<'de, D>(deserializer: D) -> Result<SchemaVersion, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let v: String = Deserialize::deserialize(deserializer)?;
+        let format = SchemaVersion::new(&v).map_err(serde::de::Error::custom)?;
+        if format.inner().major != 1
+            || (format.inner().major == 1
+                && (format.inner().minor != 0 || format.inner().patch != 0))
+        {
+            return Err(serde::de::Error::custom(
+                Error::WrongSchemaVersion(format).to_string(),
+            ));
+        }
+        Ok(format)
+    }
 }
 
 impl FromStr for BuildInfoV1 {
@@ -117,122 +163,7 @@ impl FromStr for BuildInfoV1 {
     /// Returns an `Error` if any of the fields in `input` can not be validated according to
     /// `BuildInfoV1` or their respective own specification.
     fn from_str(input: &str) -> Result<BuildInfoV1, Self::Err> {
-        let buildinfo_version = "1";
-
-        let builddate_keyassign = KeyAssign::new("builddate".to_string());
-        let builddir_keyassign = KeyAssign::new("builddir".to_string());
-        let buildenv_keyassign = KeyAssign::new("buildenv".to_string());
-        let format_keyassign = KeyAssign::new("format".to_string());
-        let installed_keyassign = KeyAssign::new("installed".to_string());
-        let option_keyassign = KeyAssign::new("options".to_string());
-        let packager_keyassign = KeyAssign::new("packager".to_string());
-        let pkgarch_keyassign = KeyAssign::new("pkgarch".to_string());
-        let pkgbase_keyassign = KeyAssign::new("pkgbase".to_string());
-        let pkgbuild_sha256sum_keyassign = KeyAssign::new("pkgbuild_sha256sum".to_string());
-        let pkgname_keyassign = KeyAssign::new("pkgname".to_string());
-        let pkgver_keyassign = KeyAssign::new("pkgver".to_string());
-
-        let mut builddate: Option<BuildDate> = None;
-        let mut builddir: Option<BuildDir> = None;
-        let mut buildenv: Vec<BuildEnv> = vec![];
-        let mut format: Option<SchemaVersion> = None;
-        let mut installed: Vec<Installed> = vec![];
-        let mut options: Vec<PackageOption> = vec![];
-        let mut packager: Option<Packager> = None;
-        let mut pkgarch: Option<Architecture> = None;
-        let mut pkgbase: Option<Name> = None;
-        let mut pkgbuild_sha256sum: Option<Checksum<Sha256>> = None;
-        let mut pkgname: Option<Name> = None;
-        let mut pkgver: Option<Version> = None;
-
-        for (number, line) in input.lines().enumerate() {
-            if line.starts_with(&builddate_keyassign.to_string()) {
-                builddate = get_once(
-                    &builddate_keyassign,
-                    builddate,
-                    line,
-                    number,
-                    buildinfo_version,
-                )?;
-            } else if line.starts_with(&builddir_keyassign.to_string()) {
-                builddir = get_once(
-                    &builddir_keyassign,
-                    builddir,
-                    line,
-                    number,
-                    buildinfo_version,
-                )?;
-            } else if line.starts_with(&buildenv_keyassign.to_string()) {
-                buildenv.push(get_multiple::<BuildEnv>(
-                    &buildenv_keyassign,
-                    line,
-                    number,
-                    buildinfo_version,
-                )?);
-            } else if line.starts_with(&format_keyassign.to_string()) {
-                format = get_once(&format_keyassign, format, line, number, buildinfo_version)?;
-            } else if line.starts_with(&installed_keyassign.to_string()) {
-                installed.push(get_multiple::<Installed>(
-                    &installed_keyassign,
-                    line,
-                    number,
-                    buildinfo_version,
-                )?);
-            } else if line.starts_with(&option_keyassign.to_string()) {
-                options.push(get_multiple::<PackageOption>(
-                    &option_keyassign,
-                    line,
-                    number,
-                    buildinfo_version,
-                )?);
-            } else if line.starts_with(&packager_keyassign.to_string()) {
-                packager = get_once(
-                    &packager_keyassign,
-                    packager,
-                    line,
-                    number,
-                    buildinfo_version,
-                )?;
-            } else if line.starts_with(&pkgarch_keyassign.to_string()) {
-                pkgarch =
-                    get_once_strum(&pkgarch_keyassign, pkgarch, line, number, buildinfo_version)?;
-            } else if line.starts_with(&pkgbase_keyassign.to_string()) {
-                pkgbase = get_once(&pkgbase_keyassign, pkgbase, line, number, buildinfo_version)?;
-            } else if line.starts_with(&pkgbuild_sha256sum_keyassign.to_string()) {
-                pkgbuild_sha256sum = get_once(
-                    &pkgbuild_sha256sum_keyassign,
-                    pkgbuild_sha256sum,
-                    line,
-                    number,
-                    buildinfo_version,
-                )?;
-            }
-            if line.starts_with(&pkgname_keyassign.to_string()) {
-                pkgname = get_once(&pkgname_keyassign, pkgname, line, number, buildinfo_version)?;
-            }
-            if line.starts_with(&pkgver_keyassign.to_string()) {
-                pkgver = get_once(&pkgver_keyassign, pkgver, line, number, buildinfo_version)?;
-            }
-        }
-
-        BuildInfoV1::new(
-            ensure_mandatory_field(builddate, builddate_keyassign.inner(), buildinfo_version)?,
-            ensure_mandatory_field(builddir, builddir_keyassign.inner(), buildinfo_version)?,
-            buildenv,
-            ensure_mandatory_field(format, format_keyassign.inner(), buildinfo_version)?,
-            installed,
-            options,
-            ensure_mandatory_field(packager, packager_keyassign.inner(), buildinfo_version)?,
-            ensure_mandatory_field(pkgarch, pkgarch_keyassign.inner(), buildinfo_version)?,
-            ensure_mandatory_field(pkgbase, pkgbase_keyassign.inner(), buildinfo_version)?,
-            ensure_mandatory_field(
-                pkgbuild_sha256sum,
-                pkgbuild_sha256sum_keyassign.inner(),
-                buildinfo_version,
-            )?,
-            ensure_mandatory_field(pkgname, pkgname_keyassign.inner(), buildinfo_version)?,
-            ensure_mandatory_field(pkgver, pkgver_keyassign.inner(), buildinfo_version)?,
-        )
+        Ok(alpm_parsers::custom_ini::from_str(input)?)
     }
 }
 
@@ -262,9 +193,21 @@ impl Display for BuildInfoV1 {
             self.packager,
             self.builddate,
             self.builddir,
-            keyword_with_list_entries(&KeyAssign::new("buildenv".to_string()), &self.buildenv),
-            keyword_with_list_entries(&KeyAssign::new("options".to_string()), &self.options),
-            keyword_with_list_entries(&KeyAssign::new("installed".to_string()), &self.installed),
+            self.buildenv
+                .iter()
+                .map(|v| format!("buildenv = {v}"))
+                .collect::<Vec<String>>()
+                .join("\n"),
+            self.options
+                .iter()
+                .map(|v| format!("options = {v}"))
+                .collect::<Vec<String>>()
+                .join("\n"),
+            self.installed
+                .iter()
+                .map(|v| format!("installed = {v}"))
+                .collect::<Vec<String>>()
+                .join("\n"),
         )
     }
 }
