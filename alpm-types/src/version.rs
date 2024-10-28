@@ -1,8 +1,9 @@
 use std::{
     cmp::Ordering,
     fmt::{Display, Formatter},
+    iter::Peekable,
     num::NonZeroUsize,
-    str::FromStr,
+    str::{CharIndices, Chars, FromStr},
 };
 
 use semver::Version as SemverVersion;
@@ -199,7 +200,7 @@ impl Display for Pkgrel {
 /// assert!(Pkgver::new("+1.0".to_string()).is_err());
 /// ```
 #[derive(Clone, Debug, Eq)]
-pub struct Pkgver(String);
+pub struct Pkgver(pub(crate) String);
 
 impl Pkgver {
     /// Create a new Pkgver from a string and return it in a Result
@@ -214,6 +215,197 @@ impl Pkgver {
     /// Return a reference to the inner type
     pub fn inner(&self) -> &str {
         &self.0
+    }
+
+    /// Return an iterator over all segments of this version.
+    pub fn segments(&self) -> VersionSegments {
+        VersionSegments::new(&self.0)
+    }
+}
+
+/// This struct represents a single segment in a version string.
+/// `VersionSegment`s are returned by the [VersionSegments] iterator, which is responsible for
+/// splitting a version string into its segments.
+///
+/// Version strings are split according to the following rules:
+/// - Non-alphanumeric characters always count as delimiters (`.`, `-`, `$`, etc.).
+/// - Each segment also contains the info about the amount of leading delimiters for that segment.
+///   Leading delimiters that directly follow after one another are grouped together. The length of
+///   the delimiters is important, as it plays a crucial role in the algorithm that determines which
+///   version is newer.
+///
+///   `1...a` would be represented as:
+///
+///   ```text
+///   [
+///     (segment: "1", delimiters: 0),
+///     (segment: "a", delimiters: 3)
+///   ]
+///   ```
+/// - There's no differentiation between different delimiters. `'$$$' == '...' == '.$-'`
+/// - Alphanumeric strings are also split into individual sub-segments. This is done by walking over
+///   the string and splitting it every time a switch from alphabetic to numeric is detected or vice
+///   versa.
+///
+///   `1.1asdf123.0` would be represented as:
+///
+///   ```text
+///   [
+///     (segment: "1", delimiters: 0),
+///     (segment: "1", delimiters: 1)
+///     (segment: "asdf", delimiters: 0)
+///     (segment: "123", delimiters: 0)
+///     (segment: "0", delimiters: 1)
+///   ]
+///   ```
+/// - Trailing delimiters are encoded as an empty string.
+///
+///   `1...` would be represented as:
+///
+///   ```text
+///   [
+///     (segment: "1", delimiters: 0),
+///     (segment: "", delimiters: 3),
+///   ]
+///   ```
+#[derive(Debug, Clone, PartialEq)]
+pub struct VersionSegment<'a> {
+    /// The string representation of the next segment
+    pub segment: &'a str,
+    /// The amount of leading delimiters that were found for this segment
+    pub delimiters: usize,
+}
+
+impl<'a> VersionSegment<'a> {
+    /// Create a new instance of a VersionSegment consisting of the segment's string and the amount
+    /// of leading delimiters.
+    pub fn new(segment: &'a str, delimiters: usize) -> Self {
+        Self {
+            segment,
+            delimiters,
+        }
+    }
+
+    /// Passhrough to `self.segment.is_empty()` for convenience purposes.
+    pub fn is_empty(&self) -> bool {
+        self.segment.is_empty()
+    }
+
+    /// Passhrough to `self.segment.chars()` for convenience purposes.
+    pub fn chars(&self) -> Chars<'a> {
+        self.segment.chars()
+    }
+
+    /// Passhrough `self.segment.parse()` for convenience purposes.
+    pub fn parse<T: FromStr>(&self) -> Result<T, T::Err> {
+        FromStr::from_str(self.segment)
+    }
+
+    /// Compare the `self`'s segment string with segment string of `other`.
+    pub fn str_cmp(&self, other: &VersionSegment) -> Ordering {
+        self.segment.cmp(other.segment)
+    }
+}
+
+/// An [Iterator] over all [VersionSegment]s of an upstream version string.
+/// Check the documentation on [VersionSegment] to see how a string is split into segments.
+///
+/// Important note:
+/// Trailing delimiters will also produce a trailing [VersionSegment] with an empty string.
+///
+/// This iterator is capable of handling utf-8 strings.
+/// However, non alphanumeric chars are still interpreted as delimiters.
+pub struct VersionSegments<'a> {
+    /// The original version string. We need that reference so we can get some string
+    /// slices based on indices later on.
+    version: &'a str,
+    /// An iterator over the version's chars and their respective start byte's index.
+    version_chars: Peekable<CharIndices<'a>>,
+}
+
+impl<'a> VersionSegments<'a> {
+    /// Create a new instance of a VersionSegments iterator.
+    pub fn new(version: &'a str) -> Self {
+        VersionSegments {
+            version,
+            version_chars: version.char_indices().peekable(),
+        }
+    }
+}
+
+impl<'a> Iterator for VersionSegments<'a> {
+    type Item = VersionSegment<'a>;
+
+    /// Get the next [VersionSegment] of this version string.
+    fn next(&mut self) -> Option<VersionSegment<'a>> {
+        // Used to track the number of delimiters the next segment is prefixed with.
+        let mut delimiter_count = 0;
+
+        // First up, get the delimiters out of the way.
+        // Peek at the next char, if it's a delimiter, consume it and increase the delimiter count.
+        while let Some((_, char)) = self.version_chars.peek() {
+            // An alphanumeric char indicates that we reached the next segment.
+            if char.is_alphanumeric() {
+                break;
+            }
+
+            self.version_chars.next();
+            delimiter_count += 1;
+            continue;
+        }
+
+        // Get the next char. If there's no further char, we reached the end of the version string.
+        let Some((first_index, first_char)) = self.version_chars.next() else {
+            // We're at the end of the string and now have to differentiate between two cases:
+
+            // 1. There are no trailing delimiters. We can just return `None` as we truly reached
+            //    the end.
+            if delimiter_count == 0 {
+                return None;
+            }
+
+            // 2. There's no further segment, but there were some trailing delimiters. The
+            //    comparison algorithm considers this case which is why we have to somehow encode
+            //    it. We do so by returning an empty segment.
+            return Some(VersionSegment::new("", delimiter_count));
+        };
+
+        // Cache the last valid char + index that was checked. We need this to
+        // calculate the offset in case the last char is a multi-byte UTF-8 char.
+        let mut last_char = first_char;
+        let mut last_char_index = first_index;
+
+        // The following section now handles the splitting of an alphanumeric string into its
+        // sub-segments. As described in the [VersionSegment] docs, the string needs to be split
+        // every time a switch from alphabetic to numeric or vice versa is detected.
+
+        let is_numeric = first_char.is_numeric();
+
+        if is_numeric {
+            // Go through chars until we hit a non-numeric char or reached the end of the string.
+            #[allow(clippy::while_let_on_iterator)]
+            while let Some((index, next_char)) =
+                self.version_chars.next_if(|(_, peek)| peek.is_numeric())
+            {
+                last_char_index = index;
+                last_char = next_char;
+            }
+        } else {
+            // Go through chars until we hit a non-alphabetic char or reached the end of the string.
+            #[allow(clippy::while_let_on_iterator)]
+            while let Some((index, next_char)) =
+                self.version_chars.next_if(|(_, peek)| peek.is_alphabetic())
+            {
+                last_char_index = index;
+                last_char = next_char;
+            }
+        }
+
+        // Create a subslice based on the indices of the first and last char.
+        // The last char might be multi-byte, which is why we add its length.
+        let segment_slice = &self.version[first_index..(last_char_index + last_char.len_utf8())];
+
+        Some(VersionSegment::new(segment_slice, delimiter_count))
     }
 }
 
@@ -1061,5 +1253,46 @@ mod tests {
         let requirement = VersionRequirement::from_str(requirement).unwrap();
         let version = Version::from_str(version).unwrap();
         assert_eq!(requirement.is_satisfied_by(&version), result);
+    }
+
+    #[rstest]
+    #[case("1.0.0", vec![("1", 0), ("0", 1), ("0", 1)])]
+    #[case("1..0", vec![("1", 0), ("0", 2)])]
+    #[case("1.0.", vec![("1", 0), ("0", 1), ("", 1)])]
+    #[case("1..", vec![("1", 0), ("", 2)])]
+    #[case("1.🗻lol.0", vec![("1", 0), ("lol", 2), ("0", 1)])]
+    #[case("1.🗻lol.", vec![("1", 0), ("lol", 2), ("", 1)])]
+    #[case("20220202", vec![("20220202", 0)])]
+    #[case("some_string", vec![("some", 0), ("string", 1)])]
+    #[case("alpha7654numeric321", vec![("alpha", 0), ("7654", 0), ("numeric", 0), ("321", 0)])]
+    fn version_segment_iterator(
+        #[case] version: &str,
+        #[case] expected_segments: Vec<(&'static str, usize)>,
+    ) {
+        let version = Pkgver(version.to_string());
+        // Convert the simplified definition above into actual VersionSegment instances.
+        let expected = expected_segments
+            .into_iter()
+            .map(|(segment, delimiters)| VersionSegment::new(segment, delimiters))
+            .collect::<Vec<VersionSegment>>();
+
+        let mut segments_iter = version.segments();
+        let mut expected_iter = expected.clone().into_iter();
+
+        // Iterate over both iterators.
+        // We do it manually to ensure that they both end at the same time.
+        loop {
+            let next_segment = segments_iter.next();
+            assert_eq!(
+                next_segment,
+                expected_iter.next(),
+                "Failed for segment {next_segment:?} in version string {version}:\nsegments: {:?}\n expected: {:?}",
+                version.segments().collect::<Vec<VersionSegment>>(),
+                expected,
+            );
+            if next_segment.is_none() {
+                break;
+            }
+        }
     }
 }
