@@ -7,13 +7,18 @@ Development takes place at https://gitlab.archlinux.org/archlinux/alpm/alpm.
 ## Writing code
 
 This project is written in [Rust] and formatted using the nightly [`rustfmt`] version.
+The linking is performed via [`mold`].
 
 All contributions are linted using [`clippy`] and spell checked using [`codespell`].
-The dependencies are linted with [`cargo-deny`].
+The dependencies are linted with [`cargo-deny`] and unused dependencies are detected using [`cargo-machete`].
 License identifiers and copyright statements are checked using [`reuse`].
 
 Various [`just`] targets are used to run checks and tests.
+[`shellcheck`] is used to check the just targets for correctness.
 In order to review the snapshot changes in tests, you can use [`cargo-insta`].
+
+Code examples in READMEs is tested via [`tangler`].
+Links in markdown files or doc blocks are tested via [`lychee`].
 
 To aide in development, it is encouraged to install the relevant [git pre-commit] and [git pre-push] hooks:
 
@@ -41,6 +46,16 @@ The examples and code testing those examples must be kept around for legacy and 
 ## Writing commit messages
 
 To ensure compatibility and automatic creation of [semantic versioning] compatible releases the commit message style follows [conventional commits].
+
+The commit messages are checked by `just run-pre-push-hook` via the tool [`cocogitto`].
+
+### Commit message sign-off
+
+If you haven't enabled git sign-off by default on your system, you can enable it for this repository specifically like so:
+
+```sh
+git config format.signOff true
+```
 
 ## Merging changes
 
@@ -73,17 +88,23 @@ Configuration file contributions fall under the terms of the [CC0-1.0].
 Documentation contributions fall under the terms of the [CC-BY-SA-4.0].
 
 Specific license assignments and attribution are handled using [`REUSE.toml`].
-Individual contributors are all summarized as *"ALPM Contributors"*.
+Individual contributors are all summarized as _"ALPM Contributors"_.
 For a full list of individual contributors, refer to `git log --format="%an <%aE>" | sort -u`.
 
 [Rust]: https://www.rust-lang.org/
+[mold]: https://github.com/rui314/mold
 [`rustfmt`]: https://github.com/rust-lang/rustfmt
 [`clippy`]: https://github.com/rust-lang/rust-clippy
 [`codespell`]: https://github.com/codespell-project/codespell
 [`cargo-deny`]: https://github.com/EmbarkStudios/cargo-deny
 [`cargo-insta`]: https://github.com/mitsuhiko/insta
+[shellcheck]: https://www.shellcheck.net/
+[`cocogitto`]: https://docs.cocogitto.io/
 [`reuse`]: https://git.fsfe.org/reuse/tool
+[lychee]: https://github.com/lycheeverse/lychee
 [`just`]: https://github.com/casey/just
+[`tangler`]: https://github.com/wiktor-k/tangler
+[`cargo-machete`]: https://github.com/bnjbvr/cargo-machete
 [git pre-commit]: https://man.archlinux.org/man/githooks.5#pre-commit
 [git pre-push]: https://man.archlinux.org/man/githooks.5#pre-push
 [semantic versioning]: https://semver.org/
