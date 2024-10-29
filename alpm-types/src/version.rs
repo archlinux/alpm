@@ -231,6 +231,12 @@ impl Display for Pkgver {
 }
 
 impl Ord for Pkgver {
+    /// This block implements the logic to determine which of two package versions is newer or
+    /// whether they're considered equal.
+    ///
+    /// This logic is surprisingly complex as it mirrors the current C-alpmlib implementation for
+    /// backwards compatibility reasons.
+    /// <https://gitlab.archlinux.org/pacman/pacman/-/blob/master/lib/libalpm/version.c?ref_type=heads#L83>
     fn cmp(&self, other: &Self) -> Ordering {
         let self_inner = self.inner();
         let other_inner = other.inner();
