@@ -176,13 +176,15 @@ lint:
 
     cargo clippy --tests --all -- -D warnings
 
+    just docs
+
 # Check justfile recipe for shell issues
 lint-recipe recipe:
     just -vv -n {{ recipe }} 2>&1 | rg -v '===> Running recipe' | shellcheck -
 
 # Build local documentation
 docs:
-    RUSTFLAGS='-D warnings' cargo doc --document-private-items --no-deps
+    RUSTDOCFLAGS='-D warnings' cargo doc --document-private-items --no-deps
 
 # Checks for issues with dependencies
 check-dependencies: dry-update
