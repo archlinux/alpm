@@ -36,6 +36,10 @@ check-commits:
     #!/usr/bin/env bash
     set -euo pipefail
 
+    just ensure-command rg
+    just ensure-command cog
+    just ensure-command codespell
+
     readonly default_branch="${CI_DEFAULT_BRANCH:-main}"
 
     if ! git rev-parse --verify "origin/$default_branch" > /dev/null 2>&1; then
@@ -136,6 +140,7 @@ get-workspace-member-version package:
 check-unused-deps:
     #!/usr/bin/env bash
     set -euxo pipefail
+    just ensure-command cargo-machete
 
     for name in $(just get-workspace-members); do
         cargo machete "$name"
@@ -153,6 +158,9 @@ dry-update:
 
 # Lints the source code
 lint:
+    just ensure-command tangler
+    just ensure-command shellcheck
+
     tangler bash < alpm-buildinfo/README.md | shellcheck --shell bash -
 
     just lint-recipe 'test-readme alpm-buildinfo'
@@ -164,6 +172,7 @@ lint:
     just lint-recipe 'release alpm-buildinfo'
     just lint-recipe flaky
     just lint-recipe test
+    just lint-recipe 'ensure-command test'
 
     cargo clippy --tests --all -- -D warnings
 
@@ -181,6 +190,7 @@ check-dependencies: dry-update
 
 # Checks licensing status
 check-licenses:
+    just ensure-command reuse
     reuse lint
 
 # Runs all unit tests. By default ignored tests are not run. Run with `ignored=true` to run only ignored tests
@@ -230,6 +240,7 @@ add-hooks:
 
 # Check for stale links in documentation
 check-links:
+    just ensure-command lychee
     lychee -- '**/*.md' '**/*.rs'
 
 # Fixes common issues. Files need to be git add'ed
@@ -361,3 +372,10 @@ ci-publish:
 
     printf "Found tag %s (crate %s in version %s).\n" "$tag" "$crate" "$version"
     cargo publish -p "$crate"
+
+ensure-command command:
+    #!/bin/bash
+    if ! command -v {{ command }} > /dev/null 2>&1 ; then
+        echo "Couldn't find executable '{{ command }}'"
+        exit 1
+    fi
