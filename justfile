@@ -165,7 +165,7 @@ lint:
     just lint-recipe flaky
     just lint-recipe test
 
-    cargo clippy --all -- -D warnings
+    cargo clippy --tests --all -- -D warnings
 
 # Check justfile recipe for shell issues
 lint-recipe recipe:
