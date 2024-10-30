@@ -429,184 +429,240 @@ impl Ord for Pkgver {
     ///
     /// This logic is surprisingly complex as it mirrors the current C-alpmlib implementation for
     /// backwards compatibility reasons.
-    /// <https://gitlab.archlinux.org/pacman/pacman/-/blob/master/lib/libalpm/version.c?ref_type=heads#L83>
+    /// <https://gitlab.archlinux.org/pacman/pacman/-/blob/a2d029388c7c206f5576456f91bfbea2dca98c96/lib/libalpm/version.c#L83-217>
     fn cmp(&self, other: &Self) -> Ordering {
-        let self_inner = self.inner();
-        let other_inner = other.inner();
-
-        // easy comparison to see if versions are identical
-        if self_inner == other_inner {
+        // Equal strings are considered equal versions.
+        if self.inner() == other.inner() {
             return Ordering::Equal;
         }
 
-        // Strings for temporarily holding leftovers when comparing
-        let mut self_leftover;
-        let mut other_leftover;
-        // Indices used as left hand pointers for section starts when comparing self and other
-        let mut self_left_index = 0;
-        let mut other_left_index = 0;
-        // Indices used as right hand pointers for section ends when comparing self and other
-        let mut self_right_index = 0;
-        let mut other_right_index = 0;
+        let mut self_segments = self.segments().peekable();
+        let mut other_segments = other.segments().peekable();
 
-        // loop through each version segment of a and b and compare them
-        while self_left_index < self_inner.len() && other_left_index < other_inner.len() {
-            // set self_left_index to the location of the last alphanumeric char in one
-            while self_left_index < self_inner.len()
-                && !self_inner
-                    .chars()
-                    .nth(self_left_index)
-                    .unwrap()
-                    .is_alphanumeric()
-            {
-                self_left_index += 1;
-            }
-            // set other_left_index to the location of the last alphanumeric char in two
-            while other_left_index < other_inner.len()
-                && !other
-                    .inner()
-                    .chars()
-                    .nth(other_left_index)
-                    .unwrap()
-                    .is_alphanumeric()
-            {
-                other_left_index += 1;
-            }
+        // Loop through both versions' segments and compare them.
+        loop {
+            // Try to get the next segments
+            let self_segment = self_segments.next();
+            let other_segment = other_segments.next();
 
-            // If we ran to the end of either, we are finished with the loop
-            if self_left_index >= self_inner.len() || other_left_index >= other_inner.len() {
-                break;
-            }
+            // Make sure that there's a next segment for both versions.
+            let (self_segment, other_segment) = match (self_segment, other_segment) {
+                // Both segments exist, we continue after match.
+                (Some(self_seg), Some(other_seg)) => (self_seg, other_seg),
 
-            // If the separator lengths were different, we are finished
-            if (self_left_index - self_right_index) != (other_left_index - other_right_index) {
-                return if (self_left_index - self_right_index)
-                    < (other_left_index - other_right_index)
-                {
-                    Ordering::Less
-                } else {
-                    Ordering::Greater
-                };
-            }
+                // Both versions reached their end and are thereby equal.
+                (None, None) => return Ordering::Equal,
 
-            // adjust left side pointer to current segment start
-            self_right_index = self_left_index;
-            other_right_index = other_left_index;
-            self_leftover = if let Some(leftover) = self_inner.get(self_left_index..) {
-                leftover.to_string()
-            } else {
-                "".to_string()
-            };
-            other_leftover = if let Some(leftover) = other_inner.get(other_left_index..) {
-                leftover.to_string()
-            } else {
-                "".to_string()
-            };
+                // One version is longer than the other.
+                // Sadly, this isn't trivial to handle.
+                //
+                // The rules are as follows:
+                // Versions with at least two additional segments are always newer.
+                // -> `1.a.0` > `1`
+                //        ⤷ Two more segment, include one delimiter
+                // -> `1.a0` > `1`
+                //        ⤷ Two more segment, thereby an alphanumerical string.
+                //
+                // If one version is exactly one segment and has a delimiter, it's also considered
+                // newer.
+                // -> `1.0` > `1`
+                // -> `1.a` > `1`
+                //      ⤷ Delimiter exists, thereby newer
+                //
+                // If one version is exactly one segment longer and that segment is
+                // purely alphabetic **without** a leading delimiter, that segment is considered
+                // older. The reason for this is to handle pre-releases (e.g. alpha/beta).
+                // -> `1.0alpha` > `1.0`
+                //          ⤷ Purely alphabetic last segment, without delimiter and thereby older.
+                (Some(seg), None) => {
+                    // There's at least one more segment, making `Self` effectively newer.
+                    // It's either an alphanumeric string or another segment separated with a
+                    // delimiter.
+                    if self_segments.next().is_some() {
+                        return Ordering::Greater;
+                    }
 
-            // grab first completely alpha or completely numeric segment leave one and two pointing
-            // to the start of the alpha or numeric segment and walk self_right_index
-            // and other_right_index to end of segment
-            let isnum = if !self_leftover.is_empty()
-                && self_leftover.chars().next().unwrap().is_numeric()
-            {
-                self_right_index += self_leftover.chars().take_while(|x| x.is_numeric()).count();
-                other_right_index += other_leftover
-                    .chars()
-                    .take_while(|x| x.is_numeric())
-                    .count();
-                true
-            } else {
-                self_right_index += self_leftover
-                    .chars()
-                    .take_while(|x| x.is_alphabetic())
-                    .count();
-                other_right_index += other_leftover
-                    .chars()
-                    .take_while(|x| x.is_alphabetic())
-                    .count();
-                false
-            };
+                    // We now know that this is also the last segment of `self`.
+                    // If the current segment has a leading delimiter, it's also considered newer.
+                    if seg.delimiters > 0 {
+                        return Ordering::Greater;
+                    }
 
-            // adjust current segment end with the updated right side pointer
-            self_leftover =
-                if let Some(leftover) = self_inner.get(self_left_index..self_right_index) {
-                    leftover.to_string()
-                } else {
-                    "".to_string()
-                };
-            other_leftover =
-                if let Some(leftover) = other_inner.get(other_left_index..other_right_index) {
-                    leftover.to_string()
-                } else {
-                    "".to_string()
-                };
+                    // If all chars are alphabetic, `self` is consider older.
+                    if !seg.is_empty() && seg.chars().all(char::is_alphabetic) {
+                        return Ordering::Less;
+                    }
 
-            // take care of the case where the two version segments are different types: one
-            // numeric, the other alpha (i.e. empty) numeric segments are always newer
-            // than alpha segments
-            if other_leftover.is_empty() {
-                return if isnum {
-                    Ordering::Greater
-                } else {
-                    Ordering::Less
-                };
-            }
-
-            if isnum {
-                // throw away any leading zeros - it's a number, right?
-                self_leftover = self_leftover.trim_start_matches('0').to_string();
-                other_leftover = other_leftover.trim_start_matches('0').to_string();
-
-                // whichever number has more digits wins (discard leading zeros)
-                match (self_leftover.len(), other_leftover.len()) {
-                    (one_len, two_len) if one_len > two_len => return Ordering::Greater,
-                    (one_len, two_len) if one_len < two_len => return Ordering::Less,
-                    (_, _) => {}
+                    return Ordering::Greater;
                 }
+
+                // This is the same logic as above, but inverted.
+                (None, Some(seg)) => {
+                    if other_segments.next().is_some() {
+                        return Ordering::Less;
+                    }
+                    if seg.delimiters > 0 {
+                        return Ordering::Less;
+                    }
+                    if !seg.is_empty() && seg.chars().all(char::is_alphabetic) {
+                        return Ordering::Greater;
+                    }
+                    return Ordering::Less;
+                }
+            };
+
+            // Special case:
+            // One or both of the segments is empty. That means that the end of the version string
+            // has been reached, but there were some trailing delimiters.
+            // Possible examples of how this might look:
+            // `1.0.` < `1.0.0`
+            // `1.0.` == `1.0.`
+            // `1.0.alpha` < `1.0.`
+            if other_segment.is_empty() && self_segment.is_empty() {
+                // Both reached the end of their version with a trailing delimiter.
+                // Counterintuitively, the trailing delimiter count is not considered and both
+                // versions are considered equal
+                // `1.0....` == `1.0.`
+                return Ordering::Equal;
+            } else if self_segment.is_empty() {
+                // Check if there's at least one other segment on the `other` version.
+                // If so, that one is always considered newer.
+                // `1.0.1.1` > `1.0.`
+                // `1.0.alpha1` > `1.0.`
+                // `1.0.alpha.1` > `1.0.`
+                //           ⤷ More segments and thereby always newer
+                if other_segments.peek().is_some() {
+                    return Ordering::Less;
+                }
+
+                // In case there's no further segment, both versions reached the last segment.
+                // We now have to consider the special case where `other` is purely alphabetic.
+                // If that's the case, `self` will be considered newer, as the alphabetic string
+                // indicates a pre-release,
+                // `1.0.` > `1.0.alpha`.
+                //                   ⤷ Purely alphabetic last segment and thereby older.
+                //
+                // Also, we know that `other_segment` isn't empty at this point.
+                if other_segment.chars().all(char::is_alphabetic) {
+                    return Ordering::Greater;
+                }
+
+                // In all other cases, `other` is newer.
+                return Ordering::Less;
+            } else if other_segment.is_empty() {
+                // Check docs above, as it's the same logic as above, just inverted.
+                if self_segments.peek().is_some() {
+                    return Ordering::Greater;
+                }
+
+                if self_segment.chars().all(char::is_alphabetic) {
+                    return Ordering::Less;
+                }
+
+                return Ordering::Greater;
             }
 
-            // strcmp will return which one is greater - even if the two segments are alpha or if
-            // they are numeric. don't return if they are equal because there might be
-            // more segments to compare
-            if self_leftover.cmp(&other_leftover).is_ne() {
-                return self_leftover.cmp(&other_leftover);
+            // We finally reached the end handling special cases when the version string ended.
+            // From now on, we know that we have two actual segments that might be prefixed by
+            // some delimiters.
+
+            // Special case:
+            // If one of the segments has more leading delimiters as the other, it's considered
+            // newer.
+            // `1..0.0` > `1.2.0`
+            //         ⤷ Two delimiters, thereby always newer.
+            // `1..0.0` < `1..2.0`
+            //                ⤷ Same amount of delimiters, now `2 > 0`
+            if self_segment.delimiters != other_segment.delimiters {
+                return self_segment.delimiters.cmp(&other_segment.delimiters);
             }
 
-            // advance left side pointer to current right side pointer
-            self_left_index = self_right_index;
-            other_left_index = other_right_index;
+            // Check whether any of the segments are numeric.
+            // Numeric segments are always considered newer than non-numeric segments.
+            // E.g. `1.0.0` > `1.lol.0`
+            //         ⤷ `0` vs `lol`. `0` is purely numeric and bigger than a alphanumeric one.
+            let self_is_numeric =
+                !self_segment.is_empty() && self_segment.chars().all(char::is_numeric);
+            let other_is_numeric =
+                !other_segment.is_empty() && other_segment.chars().all(char::is_numeric);
+
+            if self_is_numeric && !other_is_numeric {
+                return Ordering::Greater;
+            } else if !self_is_numeric && other_is_numeric {
+                return Ordering::Less;
+            }
+
+            // In case both are numeric, we do a number comparison.
+            // We can parse the string as we know that they only consist of digits, hence the
+            // unwrap.
+            //
+            // Trailing zeroes are to be ignored, which is automatically done by Rust's number
+            // parser. E.g. `1.0001.1` == `1.1.1`
+            //                  ⤷ `000` is ignored in comparison.
+            if self_is_numeric && other_is_numeric {
+                let ordering = self_segment
+                    .parse::<usize>()
+                    .unwrap()
+                    .cmp(&other_segment.parse::<usize>().unwrap());
+                match ordering {
+                    Ordering::Less => return Ordering::Less,
+                    Ordering::Equal => (),
+                    Ordering::Greater => return Ordering::Greater,
+                }
+
+                // However, there is a special case that needs to be handled when both numbers are
+                // considered equal.
+                //
+                // To have a name for the following edge-case, let's call these "higher-level
+                // segments". Higher-level segments are string segments that aren't separated with
+                // a delimiter. E.g. on `1.10test11` the string `10test11` would be a
+                // higher-level segment that's returned as segments of:
+                //
+                // `['10', 'test', '11']`
+                //
+                // The rule is:
+                // Pure numeric higher-level segments are superior to mixed alphanumeric segments.
+                // -> `1.10` > `1.11a1`
+                // -> `1.10` > `1.11a1.2`
+                //                  ⤷ `11a1` is alphanumeric and smaller than pure numerics.
+                //
+                // The current higher-level segment is considered purely numeric if the current
+                // segment is numeric and the next segment is split via delimiter,
+                // which indicates that a new higher-level segment has started. A
+                // follow-up alphabetic segment in the same higher-level
+                // segment wouldn't have a delimiter.
+                //
+                // If there's no further segment, we reached the end of the version string, also
+                // indicating a purely numeric string.
+                let other_is_pure_numeric = other_segments
+                    .peek()
+                    .map(|seg| seg.delimiters > 0)
+                    .unwrap_or(true);
+                let self_is_pure_numeric = self_segments
+                    .peek()
+                    .map(|seg| seg.delimiters > 0)
+                    .unwrap_or(true);
+
+                // One is purely numeric, the other isn't. We can return early.
+                if self_is_pure_numeric && !other_is_pure_numeric {
+                    return Ordering::Greater;
+                } else if !self_is_pure_numeric && other_is_pure_numeric {
+                    return Ordering::Less;
+                }
+
+                // Now we know that both are either numeric or alphanumeric and can take a look at
+                // the next segment.
+                continue;
+            }
+            // At this point, we know that the segments are alphabetic.
+            // We do a simple string comparison to determine the newer version.
+            // If the strings are equal, we check the next segments.
+            match self_segment.str_cmp(&other_segment) {
+                Ordering::Less => return Ordering::Less,
+                Ordering::Equal => continue,
+                Ordering::Greater => return Ordering::Greater,
+            }
         }
-
-        // set leftover using the left side pointer once the segment loop finished
-        self_leftover = if let Some(leftover) = self_inner.get(self_left_index..) {
-            leftover.to_string()
-        } else {
-            "".to_string()
-        };
-        other_leftover = if let Some(leftover) = other_inner.get(other_left_index..) {
-            leftover.to_string()
-        } else {
-            "".to_string()
-        };
-
-        // this catches the case where all numeric and alpha segments have compared identically but
-        // the segment separating characters were different
-        if self_leftover.is_empty() && other_leftover.is_empty() {
-            return Ordering::Equal;
-        }
-
-        // the final showdown. we never want a remaining alpha string to beat an empty string. the
-        // logic is a bit weird, but:
-        // - if one is empty and two is not an alpha, two is newer.
-        // - if one is an alpha, two is newer.
-        // - otherwise one is newer.
-        if (self_leftover.is_empty() && !other_leftover.chars().next().unwrap().is_alphabetic())
-            || (!self_leftover.is_empty() && self_leftover.chars().next().unwrap().is_alphabetic())
-        {
-            return Ordering::Less;
-        }
-
-        Ordering::Greater
     }
 }
 
@@ -1175,10 +1231,14 @@ mod tests {
     fn version_cmp(
         #[case] version_a: Version,
         #[case] version_b: Version,
-        #[case] ordering: Ordering,
+        #[case] expected: Ordering,
         #[case] vercmp_result: i8,
     ) {
-        assert_eq!(version_a.cmp(&version_b), ordering);
+        let ordering = version_a.cmp(&version_b);
+        assert_eq!(
+            ordering, expected,
+            "Failed to compare '{version_a}' and '{version_b}'. Expected {expected:?} got {ordering:?}"
+        );
         assert_eq!(Version::vercmp(&version_a, &version_b), vercmp_result);
     }
 
