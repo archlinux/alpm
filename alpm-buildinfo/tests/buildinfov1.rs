@@ -155,43 +155,43 @@ fn write_buildinfov1(
 
 fn set_buildinfo_args(cmd: &mut Command, input: &BuildInfoV1Input) {
     if let Some(ref builddate) = input.builddate {
-        cmd.args(&["--builddate", builddate]);
+        cmd.args(["--builddate", builddate]);
     }
     if let Some(ref builddir) = input.builddir {
-        cmd.args(&["--builddir", builddir]);
+        cmd.args(["--builddir", builddir]);
     }
     if let Some(ref buildenv) = input.buildenv {
         for env in buildenv.iter() {
-            cmd.args(&["--buildenv", env]);
+            cmd.args(["--buildenv", env]);
         }
     }
     if let Some(ref installed) = input.installed {
         for package in installed.iter() {
-            cmd.args(&["--installed", package]);
+            cmd.args(["--installed", package]);
         }
     }
     if let Some(ref options) = input.options {
         for option in options.iter() {
-            cmd.args(&["--options", option]);
+            cmd.args(["--options", option]);
         }
     }
     if let Some(ref packager) = input.packager {
-        cmd.args(&["--packager", packager]);
+        cmd.args(["--packager", packager]);
     }
     if let Some(ref pkgarch) = input.pkgarch {
-        cmd.args(&["--pkgarch", pkgarch]);
+        cmd.args(["--pkgarch", pkgarch]);
     }
     if let Some(ref pkgbase) = input.pkgbase {
-        cmd.args(&["--pkgbase", pkgbase]);
+        cmd.args(["--pkgbase", pkgbase]);
     }
     if let Some(ref pkgbuild_sha256sum) = input.pkgbuild_sha256sum {
-        cmd.args(&["--pkgbuild-sha256sum", pkgbuild_sha256sum]);
+        cmd.args(["--pkgbuild-sha256sum", pkgbuild_sha256sum]);
     }
     if let Some(ref pkgname) = input.pkgname {
-        cmd.args(&["--pkgname", pkgname]);
+        cmd.args(["--pkgname", pkgname]);
     }
     if let Some(ref pkgver) = input.pkgver {
-        cmd.args(&["--pkgver", pkgver]);
+        cmd.args(["--pkgver", pkgver]);
     }
 }
 
