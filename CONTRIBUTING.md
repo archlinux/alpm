@@ -20,14 +20,19 @@ In order to review the snapshot changes in tests, you can use [`cargo-insta`].
 Code examples in READMEs is tested via [`tangler`].
 Links in markdown files or doc blocks are tested via [`lychee`].
 
-To get all of the necessary tools installed on ArchLinux, run `just install-pacman-dev-packages`.
+To get all of the necessary tools installed on Arch Linux, run `just install-pacman-dev-packages`.
 To setup Rust for this project run `just install-rust-dev-tools`.
 Both can also be done in one fell swoop via `just dev-install`.
 
-To aide in development, it is encouraged to install the relevant [git pre-commit] and [git pre-push] hooks:
+To aide in development, it is encouraged to configure git to follow this project's guidelines.
+The following `just` command takes care of a few things:
+
+- Configure `git` to sign commits for this repository using OpenPGP.
+- Install the relevant [git pre-commit] and [git pre-push] hooks.
+- Install the [git prepare-commit-msg] hook to automatically add a signoff section to the commit message.
 
 ```shell
-just add-hooks
+just configure-git
 ```
 
 ## Writing specifications
@@ -52,14 +57,6 @@ The examples and code testing those examples must be kept around for legacy and 
 To ensure compatibility and automatic creation of [semantic versioning] compatible releases the commit message style follows [conventional commits].
 
 The commit messages are checked by `just run-pre-push-hook` via the tool [`cocogitto`].
-
-### Commit message sign-off
-
-If you haven't enabled git sign-off by default on your system, you can enable it for this repository specifically like so:
-
-```sh
-git config format.signOff true
-```
 
 ## Merging changes
 
@@ -111,6 +108,7 @@ For a full list of individual contributors, refer to `git log --format="%an <%aE
 [`cargo-machete`]: https://github.com/bnjbvr/cargo-machete
 [git pre-commit]: https://man.archlinux.org/man/githooks.5#pre-commit
 [git pre-push]: https://man.archlinux.org/man/githooks.5#pre-push
+[git prepare-commit-msg]: https://man.archlinux.org/man/githooks.5#prepare-commit-msg
 [semantic versioning]: https://semver.org/
 [conventional commits]: https://www.conventionalcommits.org/en/v1.0.0/
 [`release-plz`]: https://github.com/MarcoIeni/release-plz

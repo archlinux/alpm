@@ -229,6 +229,13 @@ test-readme project:
 
     cd {{ project }} && PATH="$PATH" tangler bash < README.md | bash -euxo pipefail -
 
+# Adds needed git configuration for the local repository
+configure-git:
+    # Enforce gpg signed keys for this repository
+    git config commit.gpgsign true
+
+    just add-hooks
+
 # Adds pre-commit and pre-push git hooks
 add-hooks:
     #!/usr/bin/env bash
@@ -239,6 +246,20 @@ add-hooks:
 
     echo just run-pre-push-hook > .git/hooks/pre-push
     chmod +x .git/hooks/pre-push
+
+    cat > .git/hooks/prepare-commit-msg <<'EOL'
+    #!/bin/sh
+
+    COMMIT_MSG_FILE=$1
+    COMMIT_SOURCE=$2
+
+    SOB=$(git var GIT_COMMITTER_IDENT | sed -n 's/^\(.*>\).*$/Signed-off-by: \1/p')
+    git interpret-trailers --in-place --trailer "$SOB" "$COMMIT_MSG_FILE"
+    if test -z "$COMMIT_SOURCE"; then
+        /usr/bin/perl -i.bak -pe 'print "\n" if !$first_line++' "$COMMIT_MSG_FILE"
+    fi
+    EOL
+    chmod +x .git/hooks/prepare-commit-msg
 
 # Check for stale links in documentation
 check-links:
@@ -375,6 +396,7 @@ ci-publish:
     printf "Found tag %s (crate %s in version %s).\n" "$tag" "$crate" "$version"
     cargo publish -p "$crate"
 
+# Ensures that a required command is installed
 ensure-command command:
     #!/bin/bash
     if ! command -v {{ command }} > /dev/null 2>&1 ; then
