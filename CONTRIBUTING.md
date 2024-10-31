@@ -57,7 +57,7 @@ The examples and code testing those examples must be kept around for legacy and 
 
 To ensure compatibility and automatic creation of [semantic versioning] compatible releases the commit message style follows [conventional commits].
 
-The commit messages are checked by `just run-pre-push-hook` via the tool [`cocogitto`].
+The commit messages are checked by `just run-pre-push-hook` via the following tools: [`cocogitto`] & [`committed`].
 
 Follow these rules when writing commit messages:
 
@@ -122,6 +122,7 @@ For a full list of individual contributors, refer to `git log --format="%an <%aE
 [`cargo-insta`]: https://github.com/mitsuhiko/insta
 [`shellcheck`]: https://www.shellcheck.net/
 [`cocogitto`]: https://docs.cocogitto.io/
+[`committed`]: https://github.com/crate-ci/committed
 [`reuse`]: https://git.fsfe.org/reuse/tool
 [`lychee`]: https://github.com/lycheeverse/lychee
 [`just`]: https://github.com/casey/just

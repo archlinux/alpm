@@ -39,6 +39,7 @@ check-commits:
     just ensure-command rg
     just ensure-command cog
     just ensure-command codespell
+    just ensure-command committed
 
     readonly default_branch="${CI_DEFAULT_BRANCH:-main}"
 
@@ -91,6 +92,12 @@ check-commits:
                 "The commit message is not a conventional commit message:" \
                 "$commit_message" \
                 "See https://www.conventionalcommits.org/en/v1.0.0/ for more details." >&2
+            exit 1
+        elif ! committed "$commit"; then
+            printf "Commit %s ❌️\n" "$commit" >&2
+            printf "%s\n" \
+                "The commit message does not meet the required standards:" \
+                "$commit_message" \
             exit 1
         else
             printf "Commit %s ✅️\n\n" "$commit"
