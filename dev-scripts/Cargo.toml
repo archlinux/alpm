@@ -1,0 +1,15 @@
+[package]
+name = "dev-scripts"
+version = "0.0.0"
+homepage.workspace = true
+repository.workspace = true
+keywords.workspace = true
+license.workspace = true
+readme.workspace = true
+edition.workspace = true
+authors.workspace = true
+
+# This is a development crate. Never publish it.
+publish = false
+
+[dependencies]

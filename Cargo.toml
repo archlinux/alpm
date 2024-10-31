@@ -13,7 +13,7 @@ authors = [
 
 [workspace]
 resolver = "2"
-members = ["alpm-buildinfo", "alpm-parsers", "alpm-types"]
+members = ["alpm-buildinfo", "alpm-parsers", "alpm-types", "dev-scripts"]
 
 [workspace.dependencies]
 clap = { version = "4.5.19", features = ["derive", "env", "string"] }
