@@ -1,17 +1,17 @@
 use std::{
     fmt::{Display, Formatter},
     str::FromStr,
-    string::ToString,
 };
 
 use time::OffsetDateTime;
 
-use crate::Error;
+use crate::error::Error;
 
 /// A build date in seconds since the epoch
 ///
 /// # Examples
 /// ```
+/// use std::num::IntErrorKind;
 /// use std::str::FromStr;
 ///
 /// use alpm_types::{BuildDate, Error};
@@ -25,7 +25,9 @@ use crate::Error;
 /// assert_eq!(BuildDate::from_str("1"), Ok(BuildDate::new(1)));
 /// assert_eq!(
 ///     BuildDate::from_str("foo"),
-///     Err(Error::InvalidBuildDate(String::from("foo")))
+///     Err(Error::InvalidInteger {
+///         kind: IntErrorKind::InvalidDigit
+///     })
 /// );
 ///
 /// // format as String
@@ -59,7 +61,9 @@ impl FromStr for BuildDate {
     fn from_str(input: &str) -> Result<BuildDate, Self::Err> {
         match input.parse::<i64>() {
             Ok(builddate) => Ok(BuildDate(builddate)),
-            _ => Err(Error::InvalidBuildDate(input.to_string())),
+            Err(e) => Err(Error::InvalidInteger {
+                kind: e.kind().clone(),
+            }),
         }
     }
 }
@@ -72,13 +76,18 @@ impl Display for BuildDate {
 
 #[cfg(test)]
 mod tests {
+    use std::num::IntErrorKind;
+
     use rstest::rstest;
 
     use super::*;
 
     #[rstest]
     #[case("1", Ok(BuildDate(1)))]
-    #[case("foo", Err(Error::InvalidBuildDate(String::from("foo"))))]
+    #[case(
+        "foo",
+        Err(Error::InvalidInteger { kind: IntErrorKind::InvalidDigit })
+    )]
     fn builddate_from_string(#[case] from_str: &str, #[case] result: Result<BuildDate, Error>) {
         assert_eq!(BuildDate::from_str(from_str), result);
     }

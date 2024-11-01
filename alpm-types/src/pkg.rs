@@ -5,10 +5,14 @@ use std::{
 };
 
 use email_address::EmailAddress;
+use lazy_regex::{lazy_regex, Lazy};
+use regex::Regex;
 use strum::{Display, EnumString};
 
-use crate::regex_once;
-use crate::Error;
+use crate::error::Error;
+
+pub(crate) static PACKAGER_REGEX: Lazy<Regex> =
+    lazy_regex!(r"^(?P<name>[\w\s\-().]+) <(?P<email>.*)>$");
 
 /// A packager of a package
 ///
@@ -49,23 +53,26 @@ pub struct Packager {
 impl Packager {
     /// Create a new Packager from a string
     pub fn new(packager: &str) -> Result<Packager, Error> {
-        let packager_regex = regex_once!(r"^(?P<name>[\w\s\-().]+) <(?P<email>.*)>$");
-        if let Some(captures) = packager_regex.captures(packager) {
+        if let Some(captures) = PACKAGER_REGEX.captures(packager) {
             if captures.name("name").is_some() && captures.name("email").is_some() {
-                if let Ok(email) = EmailAddress::from_str(captures.name("email").unwrap().as_str())
-                {
-                    Ok(Packager {
-                        name: captures.name("name").unwrap().as_str().to_string(),
-                        email,
-                    })
-                } else {
-                    Err(Error::InvalidPackagerEmail(packager.to_string()))
-                }
+                let email = EmailAddress::from_str(captures.name("email").unwrap().as_str())?;
+                Ok(Packager {
+                    name: captures.name("name").unwrap().as_str().to_string(),
+                    email,
+                })
             } else {
-                Err(Error::InvalidPackager(packager.to_string()))
+                Err(Error::MissingComponent {
+                    component: if captures.name("name").is_none() {
+                        "name"
+                    } else {
+                        "email"
+                    },
+                })
             }
         } else {
-            Err(Error::InvalidPackager(packager.to_string()))
+            Err(Error::RegexDoesNotMatch {
+                regex: PACKAGER_REGEX.to_string(),
+            })
         }
     }
 
@@ -131,7 +138,6 @@ pub enum PkgType {
 #[cfg(test)]
 mod tests {
     use rstest::rstest;
-    use strum::ParseError;
 
     use super::*;
 
@@ -152,27 +158,35 @@ mod tests {
     )]
     #[case(
         "Foobar McFooface <@mcfooface.org>",
-        Err(Error::InvalidPackagerEmail("Foobar McFooface <@mcfooface.org>".to_string())),
+        Err(email_address::Error::LocalPartEmpty.into()),
     )]
     #[case(
         "Foobar McFooface <foobar@mcfooface.org> <foobar@mcfoofacemcfooface.org>",
-        Err(Error::InvalidPackagerEmail("Foobar McFooface <foobar@mcfooface.org> <foobar@mcfoofacemcfooface.org>".to_string())),
+        Err(email_address::Error::MissingEndBracket.into()),
     )]
     #[case(
         "<foobar@mcfooface.org>",
-        Err(Error::InvalidPackager("<foobar@mcfooface.org>".to_string())),
+        Err(Error::RegexDoesNotMatch {
+            regex: PACKAGER_REGEX.to_string(),
+        })
     )]
     #[case(
         "[foo] <foobar@mcfooface.org>",
-        Err(Error::InvalidPackager("[foo] <foobar@mcfooface.org>".to_string())),
+        Err(Error::RegexDoesNotMatch {
+            regex: PACKAGER_REGEX.to_string(),
+        })
     )]
     #[case(
         "foobar@mcfooface.org",
-        Err(Error::InvalidPackager("foobar@mcfooface.org".to_string())),
+        Err(Error::RegexDoesNotMatch {
+            regex: PACKAGER_REGEX.to_string(),
+        })
     )]
     #[case(
         "Foobar McFooface",
-        Err(Error::InvalidPackager("Foobar McFooface".to_string())),
+        Err(Error::RegexDoesNotMatch {
+            regex: PACKAGER_REGEX.to_string(),
+        })
     )]
     fn packager(#[case] from_str: &str, #[case] result: Result<Packager, Error>) {
         assert_eq!(Packager::from_str(from_str), result);
@@ -207,8 +221,11 @@ mod tests {
     #[case("pkg", Ok(PkgType::Package))]
     #[case("src", Ok(PkgType::Source))]
     #[case("split", Ok(PkgType::Split))]
-    #[case("foo", Err(ParseError::VariantNotFound))]
-    fn pkgtype_from_string(#[case] from_str: &str, #[case] result: Result<PkgType, ParseError>) {
+    #[case("foo", Err(strum::ParseError::VariantNotFound))]
+    fn pkgtype_from_string(
+        #[case] from_str: &str,
+        #[case] result: Result<PkgType, strum::ParseError>,
+    ) {
         assert_eq!(PkgType::from_str(from_str), result);
     }
 

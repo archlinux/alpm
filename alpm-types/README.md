@@ -140,7 +140,7 @@ use std::str::FromStr;
 use alpm_types::{Error, Name};
 
 assert_eq!(Name::from_str("test-123@.foo_+"), Name::new("test-123@.foo_+".to_string()));
-assert_eq!(Name::from_str(".foo"), Err(Error::InvalidName(".foo".to_string())));
+assert!(Name::from_str(".foo").is_err());
 ```
 
 ### Path

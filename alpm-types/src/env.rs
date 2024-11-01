@@ -4,8 +4,8 @@ use std::{
     string::ToString,
 };
 
+use crate::error::Error;
 use crate::Architecture;
-use crate::Error;
 use crate::Name;
 use crate::Version;
 
@@ -32,10 +32,7 @@ pub struct BuildEnv(BuildOption);
 impl BuildEnv {
     /// Create a new BuildEnv from a string
     pub fn new(option: &str) -> Result<Self, Error> {
-        match BuildOption::new(option) {
-            Ok(build_option) => Ok(BuildEnv(build_option)),
-            Err(_) => Err(Error::InvalidBuildEnv(option.to_string())),
-        }
+        BuildOption::new(option).map(BuildEnv)
     }
 
     /// Return a reference to the inner type
@@ -99,11 +96,11 @@ impl BuildOption {
         } else {
             (option.to_owned(), true)
         };
-        if !name
+        if let Some(c) = name
             .chars()
-            .all(|c| c.is_alphanumeric() || c == '-' || c == '.' || c == '_')
+            .find(|c| !(c.is_alphanumeric() || ['-', '.', '_'].contains(c)))
         {
-            return Err(Error::InvalidBuildOption(name));
+            return Err(Error::ValueContainsInvalidChars { invalid_char: c });
         }
         Ok(BuildOption { name, on })
     }
@@ -157,25 +154,29 @@ pub struct Installed {
 impl Installed {
     /// Create new Installed and return it in a Result
     pub fn new(installed: &str) -> Result<Self, Error> {
-        let mut parts = installed.rsplitn(4, '-');
+        const DELIMITER: char = '-';
+        let mut parts = installed.rsplitn(4, DELIMITER);
 
-        let architecture = parts
-            .next()
-            .ok_or_else(|| Error::InvalidInstalled(installed.to_string()))?
-            .parse()
-            .map_err(|_| Error::InvalidInstalled(installed.to_string()))?;
+        let architecture = parts.next().ok_or(Error::MissingComponent {
+            component: "architecture",
+        })?;
+        let architecture = architecture.parse()?;
         let version = {
             let Some(pkgrel) = parts.next() else {
-                return Err(Error::InvalidInstalled(installed.to_string()));
+                return Err(Error::MissingComponent {
+                    component: "pkgrel",
+                })?;
             };
             let Some(epoch_pkgver) = parts.next() else {
-                return Err(Error::InvalidInstalled(installed.to_string()));
+                return Err(Error::MissingComponent {
+                    component: "epoch_pkgver",
+                })?;
             };
             epoch_pkgver.to_string() + "-" + pkgrel
         };
         let name = parts
             .next()
-            .ok_or_else(|| Error::InvalidInstalled(installed.to_string()))?
+            .ok_or(Error::MissingComponent { component: "name" })?
             .to_string();
 
         Ok(Installed {
@@ -223,10 +224,7 @@ pub struct PackageOption(BuildOption);
 impl PackageOption {
     /// Create a new PackageOption in a Result
     pub fn new(option: &str) -> Result<Self, Error> {
-        match BuildOption::new(option) {
-            Ok(build_option) => Ok(PackageOption(build_option)),
-            Err(_) => Err(Error::InvalidPackageOption(option.to_string())),
-        }
+        BuildOption::new(option).map(PackageOption)
     }
 
     /// Return a reference to the inner type
@@ -268,7 +266,7 @@ mod tests {
     #[rstest]
     #[case("something", Ok(BuildEnv(BuildOption{name: "something".to_string(), on: true})))]
     #[case("!something", Ok(BuildEnv(BuildOption{name: "something".to_string(), on: false})))]
-    #[case("foo\\", Err(Error::InvalidBuildEnv("foo\\".to_string())))]
+    #[case("foo\\", Err(Error::ValueContainsInvalidChars { invalid_char: '\\'}))]
     fn buildenv(#[case] from_str: &str, #[case] result: Result<BuildEnv, Error>) {
         assert_eq!(BuildEnv::from_str(from_str), result);
     }
@@ -279,8 +277,8 @@ mod tests {
     #[case("üñıçøĐë", Ok(BuildOption{name: "üñıçøĐë".to_string(), on: true}))]
     #[case("!üñıçøĐë", Ok(BuildOption{name: "üñıçøĐë".to_string(), on: false}))]
     #[case("!something", Ok(BuildOption{name: "something".to_string(), on: false}))]
-    #[case("!!something", Err(Error::InvalidBuildOption("!something".to_string())))]
-    #[case("foo\\", Err(Error::InvalidBuildOption("foo\\".to_string())))]
+    #[case("!!something", Err(Error::ValueContainsInvalidChars { invalid_char: '!'}))]
+    #[case("foo\\", Err(Error::ValueContainsInvalidChars { invalid_char: '\\'}))]
     fn buildoption(#[case] from_str: &str, #[case] result: Result<BuildOption, Error>) {
         assert_eq!(BuildOption::from_str(from_str), result);
     }
@@ -294,9 +292,9 @@ mod tests {
             architecture: Architecture::Any,
         }),
     )]
-    #[case("foo-bar-1:1.0.0-1", Err(Error::InvalidInstalled("foo-bar-1:1.0.0-1".to_string())))]
-    #[case("foo-bar-1:1.0.0-any", Err(Error::InvalidVersion("bar-1:1.0.0".to_string())))]
-    #[case("1:1.0.0-1-any", Err(Error::InvalidInstalled("1:1.0.0-1-any".to_string())))]
+    #[case("foo-bar-1:1.0.0-1", Err(strum::ParseError::VariantNotFound.into()))]
+    #[case("foo-bar-1:1.0.0-any", Err(Error::InvalidInteger{ kind: std::num::IntErrorKind::InvalidDigit}))]
+    #[case("1:1.0.0-1-any", Err(Error::MissingComponent { component: "name" }))]
     fn installed_new(#[case] from_str: &str, #[case] result: Result<Installed, Error>) {
         assert_eq!(Installed::new(from_str), result);
     }
@@ -304,7 +302,7 @@ mod tests {
     #[rstest]
     #[case("something", Ok(PackageOption(BuildOption{name: "something".to_string(), on: true})))]
     #[case("!something", Ok(PackageOption(BuildOption{name: "something".to_string(), on: false})))]
-    #[case("foo\\", Err(Error::InvalidPackageOption("foo\\".to_string())))]
+    #[case("foo\\", Err(Error::ValueContainsInvalidChars { invalid_char: '\\'}))]
     fn packageoption(#[case] from_str: &str, #[case] result: Result<PackageOption, Error>) {
         assert_eq!(PackageOption::from_str(from_str), result);
     }

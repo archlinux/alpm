@@ -6,11 +6,15 @@ use std::{
     str::{CharIndices, Chars, FromStr},
 };
 
+use lazy_regex::{lazy_regex, Lazy};
+use regex::Regex;
 use semver::Version as SemverVersion;
 
-use crate::regex_once;
+use crate::error::Error;
 use crate::Architecture;
-use crate::Error;
+
+pub(crate) static PKGREL_REGEX: Lazy<Regex> = lazy_regex!(r"^[1-9]+[0-9]*(|[.]{1}[1-9]+[0-9]*)$");
+pub(crate) static PKGVER_REGEX: Lazy<Regex> = lazy_regex!(r"^([[:alnum:]][[:alnum:]_+.]*)$");
 
 /// The version and architecture of a build tool
 ///
@@ -35,18 +39,18 @@ pub struct BuildToolVer {
 impl BuildToolVer {
     /// Create a new BuildToolVer and return it in a Result
     pub fn new(buildtoolver: &str) -> Result<Self, Error> {
-        match buildtoolver.rsplit_once('-') {
-            Some((version, architecture)) => {
-                if let Ok(architecture) = Architecture::from_str(architecture) {
-                    Ok(BuildToolVer {
-                        version: Version::with_pkgrel(version)?,
-                        architecture,
-                    })
-                } else {
-                    Err(Error::InvalidArchitecture(architecture.to_string()))
-                }
-            }
-            None => Err(Error::InvalidBuildToolVer(buildtoolver.to_string())),
+        const VERSION_DELIMITER: char = '-';
+        match buildtoolver.rsplit_once(VERSION_DELIMITER) {
+            Some((version, architecture)) => match Architecture::from_str(architecture) {
+                Ok(architecture) => Ok(BuildToolVer {
+                    version: Version::with_pkgrel(version)?,
+                    architecture,
+                }),
+                Err(e) => Err(e.into()),
+            },
+            None => Err(Error::DelimiterNotFound {
+                delimiter: VERSION_DELIMITER,
+            }),
         }
     }
 
@@ -97,10 +101,12 @@ pub struct Epoch(pub NonZeroUsize);
 
 impl Epoch {
     /// Create a new Epoch from a string and return it in a Result
-    pub fn new(epoch: &str) -> Result<Self, Error> {
-        match epoch.parse() {
+    pub fn new(input: &str) -> Result<Self, Error> {
+        match input.parse() {
             Ok(epoch) => Ok(Epoch(epoch)),
-            Err(_) => Err(Error::InvalidEpoch(epoch.to_owned())),
+            Err(source) => Err(Error::InvalidInteger {
+                kind: source.kind().clone(),
+            }),
         }
     }
 }
@@ -147,10 +153,12 @@ pub struct Pkgrel(String);
 impl Pkgrel {
     /// Create a new Pkgrel from a string and return it in a Result
     pub fn new(pkgrel: String) -> Result<Self, Error> {
-        if regex_once!(r"^[1-9]+[0-9]*(|[.]{1}[1-9]+[0-9]*)$").is_match(pkgrel.as_str()) {
+        if PKGREL_REGEX.is_match(pkgrel.as_str()) {
             Ok(Pkgrel(pkgrel))
         } else {
-            Err(Error::InvalidPkgrel(pkgrel))
+            Err(Error::RegexDoesNotMatch {
+                regex: PKGREL_REGEX.to_string(),
+            })
         }
     }
 
@@ -205,10 +213,12 @@ pub struct Pkgver(pub(crate) String);
 impl Pkgver {
     /// Create a new Pkgver from a string and return it in a Result
     pub fn new(pkgver: String) -> Result<Self, Error> {
-        if regex_once!(r"^([[:alnum:]][[:alnum:]_+.]*)$").is_match(pkgver.as_str()) {
+        if PKGVER_REGEX.is_match(pkgver.as_str()) {
             Ok(Pkgver(pkgver))
         } else {
-            Err(Error::InvalidPkgver(pkgver))
+            Err(Error::RegexDoesNotMatch {
+                regex: PKGVER_REGEX.to_string(),
+            })
         }
     }
 
@@ -711,12 +721,16 @@ impl SchemaVersion {
         if !version.contains('.') {
             match version.parse() {
                 Ok(major) => Ok(SchemaVersion(SemverVersion::new(major, 0, 0))),
-                Err(_) => Err(Error::InvalidVersion(version.to_string())),
+                Err(e) => Err(Error::InvalidInteger {
+                    kind: e.kind().clone(),
+                }),
             }
         } else {
             match SemverVersion::parse(version) {
                 Ok(version) => Ok(SchemaVersion(version)),
-                Err(_) => Err(Error::InvalidVersion(version.to_string())),
+                Err(e) => Err(Error::InvalidSemver {
+                    kind: e.to_string(),
+                }),
             }
         }
     }
@@ -794,8 +808,16 @@ impl Version {
     /// Create a new Version, which is guaranteed to have a Pkgrel
     pub fn with_pkgrel(version: &str) -> Result<Self, Error> {
         match Version::new(version) {
-            Ok(version) if version.pkgrel.is_some() => Ok(version),
-            _ => Err(Error::InvalidVersion(version.to_string())),
+            Ok(version) => {
+                if version.pkgrel.is_some() {
+                    Ok(version)
+                } else {
+                    Err(Error::MissingComponent {
+                        component: "pkgrel",
+                    })
+                }
+            }
+            Err(e) => Err(e),
         }
     }
 
@@ -941,7 +963,7 @@ impl FromStr for VersionComparison {
             "=" => Ok(VersionComparison::Equal),
             ">=" => Ok(VersionComparison::GreaterOrEqual),
             ">" => Ok(VersionComparison::Greater),
-            _ => Err(Error::InvalidVersionComparison(s.to_owned())),
+            _ => Err(strum::ParseError::VariantNotFound.into()),
         }
     }
 }
@@ -980,7 +1002,9 @@ impl VersionRequirement {
 
         let comparison_end = s
             .find(|c| !is_comparison_char(c))
-            .ok_or_else(|| Error::InvalidVersionRequirement(s.to_owned()))?;
+            .ok_or(Error::MissingComponent {
+                component: "operator",
+            })?;
 
         let (comparison, version) = s.split_at(comparison_end);
 
@@ -1023,6 +1047,8 @@ impl FromStr for VersionRequirement {
 
 #[cfg(test)]
 mod tests {
+    use std::num::IntErrorKind;
+
     use rstest::rstest;
 
     use super::*;
@@ -1030,7 +1056,7 @@ mod tests {
     #[rstest]
     #[case("1.0.0", Ok(SchemaVersion(SemverVersion::new(1, 0, 0))))]
     #[case("1", Ok(SchemaVersion(SemverVersion::new(1, 0, 0))))]
-    #[case("-1.0.0", Err(Error::InvalidVersion("-1.0.0".to_string())))]
+    #[case("-1.0.0", Err(Error::InvalidSemver { kind: String::from("unexpected character '-' while parsing major version number") }))]
     fn schema_version(#[case] version: &str, #[case] result: Result<SchemaVersion, Error>) {
         assert_eq!(result, SchemaVersion::new(version))
     }
@@ -1046,19 +1072,19 @@ mod tests {
     )]
     #[case(
         "1.0.0",
-        Err(Error::InvalidBuildToolVer("1.0.0".to_string())),
+        Err(Error::DelimiterNotFound { delimiter: '-' }),
     )]
     #[case(
         "1.0.0-any",
-        Err(Error::InvalidVersion("1.0.0".to_string())),
+        Err(Error::MissingComponent { component: "pkgrel" }),
     )]
     #[case(
         ".1.0.0-1-any",
-        Err(Error::InvalidVersion(".1.0.0-1".to_string())),
+        Err(Error::RegexDoesNotMatch { regex: PKGVER_REGEX.to_string() }),
     )]
     #[case(
         "1.0.0-1-foo",
-        Err(Error::InvalidArchitecture("foo".to_string())),
+        Err(strum::ParseError::VariantNotFound.into()),
     )]
     fn buildtoolver_new(#[case] buildtoolver: &str, #[case] result: Result<BuildToolVer, Error>) {
         assert_eq!(BuildToolVer::new(buildtoolver), result);
@@ -1099,13 +1125,13 @@ mod tests {
             pkgrel: Some(Pkgrel::new("1".to_string()).unwrap())
         })
     )]
-    #[case("-1foo:1", Err(Error::InvalidEpoch("-1foo".to_string())))]
-    #[case("1-foo:1", Err(Error::InvalidEpoch("1-foo".to_string())))]
-    #[case("1:1:foo-1", Err(Error::InvalidPkgver("1:foo".to_string())))]
-    #[case("1:foo-1-1", Err(Error::InvalidPkgrel("1-1".to_string())))]
-    #[case("", Err(Error::InvalidPkgver("".to_string())))]
-    #[case(":", Err(Error::InvalidPkgver("".to_string())))]
-    #[case(".", Err(Error::InvalidPkgver(".".to_string())))]
+    #[case("-1foo:1", Err(Error::InvalidInteger { kind: IntErrorKind::InvalidDigit }))]
+    #[case("1-foo:1", Err(Error::InvalidInteger { kind: IntErrorKind::InvalidDigit }))]
+    #[case("1:1:foo-1", Err(Error::RegexDoesNotMatch { regex: PKGVER_REGEX.to_string() }))]
+    #[case("1:foo-1-1", Err(Error::RegexDoesNotMatch { regex: PKGREL_REGEX.to_string() }))]
+    #[case("", Err(Error::RegexDoesNotMatch { regex: PKGVER_REGEX.to_string() }))]
+    #[case(":", Err(Error::RegexDoesNotMatch { regex: PKGVER_REGEX.to_string() }))]
+    #[case(".", Err(Error::RegexDoesNotMatch { regex: PKGVER_REGEX.to_string() }))]
     fn version_from_string(#[case] version: &str, #[case] result: Result<Version, Error>) {
         if result.is_ok() {
             assert_eq!(result.as_ref().unwrap(), &Version::new(version).unwrap())
@@ -1126,16 +1152,16 @@ mod tests {
             epoch: None,
         })
     )]
-    #[case("1.0.0", Err(Error::InvalidVersion("1.0.0".to_string())))]
+    #[case("1.0.0", Err(Error::MissingComponent { component: "pkgrel" }))]
     fn version_with_pkgrel(#[case] version: &str, #[case] result: Result<Version, Error>) {
         assert_eq!(result, Version::with_pkgrel(version));
     }
 
     #[rstest]
     #[case("1", Ok(Epoch(NonZeroUsize::new(1).unwrap())))]
-    #[case("0", Err(Error::InvalidEpoch("0".to_string())))]
-    #[case("-0", Err(Error::InvalidEpoch("-0".to_string())))]
-    #[case("z", Err(Error::InvalidEpoch("z".to_string())))]
+    #[case("0", Err(Error::InvalidInteger { kind: IntErrorKind::Zero }))]
+    #[case("-0", Err(Error::InvalidInteger { kind: IntErrorKind::InvalidDigit }))]
+    #[case("z", Err(Error::InvalidInteger { kind: IntErrorKind::InvalidDigit }))]
     fn epoch(#[case] version: &str, #[case] result: Result<Epoch, Error>) {
         assert_eq!(result, Epoch::new(version));
     }
@@ -1143,14 +1169,14 @@ mod tests {
     #[rstest]
     #[case("foo".to_string(), Ok(Pkgver::new("foo".to_string()).unwrap()))]
     #[case("1.0.0".to_string(), Ok(Pkgver::new("1.0.0".to_string()).unwrap()))]
-    #[case("1:foo".to_string(), Err(Error::InvalidPkgver("1:foo".to_string())))]
-    #[case("foo-1".to_string(), Err(Error::InvalidPkgver("foo-1".to_string())))]
-    #[case("foo,1".to_string(), Err(Error::InvalidPkgver("foo,1".to_string())))]
-    #[case(".foo".to_string(), Err(Error::InvalidPkgver(".foo".to_string())))]
-    #[case("_foo".to_string(), Err(Error::InvalidPkgver("_foo".to_string())))]
+    #[case("1:foo".to_string(), Err(Error::RegexDoesNotMatch { regex: PKGVER_REGEX.to_string() }))]
+    #[case("foo-1".to_string(), Err(Error::RegexDoesNotMatch { regex: PKGVER_REGEX.to_string() }))]
+    #[case("foo,1".to_string(), Err(Error::RegexDoesNotMatch { regex: PKGVER_REGEX.to_string() }))]
+    #[case(".foo".to_string(), Err(Error::RegexDoesNotMatch { regex: PKGVER_REGEX.to_string() }))]
+    #[case("_foo".to_string(), Err(Error::RegexDoesNotMatch { regex: PKGVER_REGEX.to_string() }))]
     // ß is not in [:alnum:]
-    #[case("ß".to_string(), Err(Error::InvalidPkgver("ß".to_string())))]
-    #[case("1.ß".to_string(), Err(Error::InvalidPkgver("1.ß".to_string())))]
+    #[case("ß".to_string(), Err(Error::RegexDoesNotMatch { regex: PKGVER_REGEX.to_string() }))]
+    #[case("1.ß".to_string(), Err(Error::RegexDoesNotMatch { regex: PKGVER_REGEX.to_string() }))]
     fn pkgver(#[case] version: String, #[case] result: Result<Pkgver, Error>) {
         assert_eq!(result, Pkgver::new(version));
     }
@@ -1158,8 +1184,8 @@ mod tests {
     #[rstest]
     #[case("1".to_string(), Ok(Pkgrel::new("1".to_string()).unwrap()))]
     #[case("1.1".to_string(), Ok(Pkgrel::new("1.1".to_string()).unwrap()))]
-    #[case("0.1".to_string(), Err(Error::InvalidPkgrel("0.1".to_string())))]
-    #[case("0".to_string(), Err(Error::InvalidPkgrel("0".to_string())))]
+    #[case("0.1".to_string(), Err(Error::RegexDoesNotMatch { regex: PKGREL_REGEX.to_string() }))]
+    #[case("0".to_string(), Err(Error::RegexDoesNotMatch { regex: PKGREL_REGEX.to_string() }))]
     fn pkgrel(#[case] version: String, #[case] result: Result<Pkgrel, Error>) {
         assert_eq!(result, Pkgrel::new(version));
     }
@@ -1259,13 +1285,13 @@ mod tests {
     #[case("=", Ok(VersionComparison::Equal))]
     #[case(">=", Ok(VersionComparison::GreaterOrEqual))]
     #[case(">", Ok(VersionComparison::Greater))]
-    #[case("", Err(Error::InvalidVersionComparison("".to_string())))]
-    #[case("<<", Err(Error::InvalidVersionComparison("<<".to_string())))]
-    #[case("==", Err(Error::InvalidVersionComparison("==".to_string())))]
-    #[case("!=", Err(Error::InvalidVersionComparison("!=".to_string())))]
-    #[case(" =", Err(Error::InvalidVersionComparison(" =".to_string())))]
-    #[case("= ", Err(Error::InvalidVersionComparison("= ".to_string())))]
-    #[case("<1", Err(Error::InvalidVersionComparison("<1".to_string())))]
+    #[case("", Err(strum::ParseError::VariantNotFound.into()))]
+    #[case("<<", Err(strum::ParseError::VariantNotFound.into()))]
+    #[case("==", Err(strum::ParseError::VariantNotFound.into()))]
+    #[case("!=", Err(strum::ParseError::VariantNotFound.into()))]
+    #[case(" =", Err(strum::ParseError::VariantNotFound.into()))]
+    #[case("= ", Err(strum::ParseError::VariantNotFound.into()))]
+    #[case("<1", Err(strum::ParseError::VariantNotFound.into()))]
     fn version_comparison(
         #[case] comparison: &str,
         #[case] result: Result<VersionComparison, Error>,
@@ -1286,11 +1312,11 @@ mod tests {
         comparison: VersionComparison::Greater,
         version: Version::new("3.1").unwrap(),
     }))]
-    #[case("<=", Err(Error::InvalidVersionRequirement("<=".to_string())))]
-    #[case("<>3.1", Err(Error::InvalidVersionComparison("<>".to_string())))]
-    #[case("3.1", Err(Error::InvalidVersionComparison("".to_string())))]
-    #[case("=>3.1", Err(Error::InvalidVersionComparison("=>".to_string())))]
-    #[case("<3.1>3.2", Err(Error::InvalidPkgver("3.1>3.2".to_string())))]
+    #[case("<=", Err(Error::MissingComponent { component: "operator" }))]
+    #[case("<>3.1", Err(strum::ParseError::VariantNotFound.into()))]
+    #[case("3.1", Err(strum::ParseError::VariantNotFound.into()))]
+    #[case("=>3.1", Err(strum::ParseError::VariantNotFound.into()))]
+    #[case("<3.1>3.2", Err(Error::RegexDoesNotMatch { regex: PKGVER_REGEX.to_string() }))]
     fn version_requirement(
         #[case] requirement: &str,
         #[case] result: Result<VersionRequirement, Error>,

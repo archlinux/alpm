@@ -1,15 +1,15 @@
 use std::{
     fmt::{Display, Formatter},
     str::FromStr,
-    string::ToString,
 };
 
-use crate::Error;
+use crate::error::Error;
 
 /// Compressed size of a file (in bytes)
 ///
 /// ## Examples
 /// ```
+/// use std::num::IntErrorKind;
 /// use std::str::FromStr;
 ///
 /// use alpm_types::{CompressedSize, Error};
@@ -18,7 +18,9 @@ use crate::Error;
 /// assert_eq!(CompressedSize::from_str("1"), Ok(CompressedSize(1)));
 /// assert_eq!(
 ///     CompressedSize::from_str("-1"),
-///     Err(Error::InvalidCompressedSize(String::from("-1")))
+///     Err(Error::InvalidInteger {
+///         kind: IntErrorKind::InvalidDigit
+///     })
 /// );
 ///
 /// // format as String
@@ -34,7 +36,9 @@ impl FromStr for CompressedSize {
     fn from_str(input: &str) -> Result<CompressedSize, Self::Err> {
         match input.parse::<u64>() {
             Ok(compressedsize) => Ok(CompressedSize(compressedsize)),
-            _ => Err(Error::InvalidCompressedSize(input.to_string())),
+            Err(source) => Err(Error::InvalidInteger {
+                kind: source.kind().clone(),
+            }),
         }
     }
 }
@@ -49,6 +53,7 @@ impl Display for CompressedSize {
 ///
 /// ## Examples
 /// ```
+/// use std::num::IntErrorKind;
 /// use std::str::FromStr;
 ///
 /// use alpm_types::{Error, InstalledSize};
@@ -57,7 +62,9 @@ impl Display for CompressedSize {
 /// assert_eq!(InstalledSize::from_str("1"), Ok(InstalledSize(1)));
 /// assert_eq!(
 ///     InstalledSize::from_str("-1"),
-///     Err(Error::InvalidInstalledSize(String::from("-1")))
+///     Err(Error::InvalidInteger {
+///         kind: IntErrorKind::InvalidDigit
+///     })
 /// );
 ///
 /// // format as String
@@ -72,7 +79,9 @@ impl FromStr for InstalledSize {
     fn from_str(input: &str) -> Result<InstalledSize, Self::Err> {
         match input.parse::<u64>() {
             Ok(size) => Ok(InstalledSize(size)),
-            _ => Err(Error::InvalidInstalledSize(input.to_string())),
+            Err(source) => Err(Error::InvalidInteger {
+                kind: source.kind().clone(),
+            }),
         }
     }
 }
@@ -85,13 +94,18 @@ impl Display for InstalledSize {
 
 #[cfg(test)]
 mod tests {
+    use std::num::IntErrorKind;
+
     use rstest::rstest;
 
     use super::*;
 
     #[rstest]
     #[case("1", Ok(CompressedSize(1)))]
-    #[case("-1", Err(Error::InvalidCompressedSize(String::from("-1"))))]
+    #[case(
+        "-1",
+        Err(Error::InvalidInteger { kind: IntErrorKind::InvalidDigit })
+    )]
     fn compressedsize_from_string(
         #[case] from_str: &str,
         #[case] result: Result<CompressedSize, Error>,
@@ -106,7 +120,10 @@ mod tests {
 
     #[rstest]
     #[case("1", Ok(InstalledSize(1)))]
-    #[case("-1", Err(Error::InvalidInstalledSize(String::from("-1"))))]
+    #[case(
+        "-1",
+        Err(Error::InvalidInteger { kind: IntErrorKind::InvalidDigit })
+    )]
     fn installedsize_from_string(
         #[case] from_str: &str,
         #[case] result: Result<InstalledSize, Error>,

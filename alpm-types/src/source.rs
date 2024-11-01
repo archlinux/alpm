@@ -22,8 +22,15 @@ impl Filename {
     /// Returns an error if the string contains directories, is absolute, or is otherwise an
     /// invalid path.
     pub fn new(s: String) -> Result<Self, Error> {
-        if s.is_empty() || s.contains([std::path::MAIN_SEPARATOR, '\0']) {
-            Err(Error::InvalidFilename(s))
+        if s.is_empty() {
+            Err(Error::FileNameIsEmpty)
+        } else if s.contains(std::path::MAIN_SEPARATOR) {
+            Err(Error::FileNameContainsInvalidChars(
+                PathBuf::from(s),
+                std::path::MAIN_SEPARATOR,
+            ))
+        } else if s.contains('\0') {
+            Err(Error::FileNameContainsInvalidChars(PathBuf::from(s), '\0'))
         } else {
             Ok(Self { inner: s.into() })
         }
@@ -71,13 +78,13 @@ pub enum SourceLocation {
 impl SourceLocation {
     /// Parses a source location from a string. It must be either a valid URL or a plain
     /// filename.
-    pub fn new(s: &str) -> Result<Self, Error> {
-        match s.parse() {
+    pub fn new(input: &str) -> Result<Self, Error> {
+        match input.parse() {
             Ok(url) => Ok(Self::Url(url)),
-            Err(url::ParseError::RelativeUrlWithoutBase) => {
-                Filename::new(s.to_owned()).map(Self::File)
-            }
-            Err(_e) => Err(Error::InvalidUrl(s.to_owned())),
+            Err(url::ParseError::RelativeUrlWithoutBase) => Filename::new(input.to_owned())
+                .map(Self::File)
+                .map_err(Into::into),
+            Err(e) => Err(e.into()),
         }
     }
 }
@@ -168,9 +175,15 @@ mod tests {
     #[case("c:foo", Ok(Filename {
         inner: PathBuf::from("c:foo"),
     }))]
-    #[case("./bikeshed_colour.patch", Err(Error::InvalidFilename("./bikeshed_colour.patch".to_owned())))]
-    #[case("", Err(Error::InvalidFilename("".to_owned())))]
-    #[case("with\0null", Err(Error::InvalidFilename("with\0null".to_owned())))]
+    #[case(
+        "./bikeshed_colour.patch",
+        Err(Error::FileNameContainsInvalidChars(PathBuf::from("./bikeshed_colour.patch"), '/'))
+    )]
+    #[case("", Err(Error::FileNameIsEmpty))]
+    #[case(
+        "with\0null",
+        Err(Error::FileNameContainsInvalidChars(PathBuf::from("with\0null"), '\0'))
+    )]
     fn parse_filename(#[case] input: &str, #[case] expected: Result<Filename, Error>) {
         let filename = input.parse();
         assert_eq!(filename, expected);
@@ -201,8 +214,14 @@ mod tests {
         filename: None,
         location: SourceLocation::Url(Url::parse("file:///somewhere/else").unwrap()),
     }))]
-    #[case("/absolute/path", Err(Error::InvalidFilename("/absolute/path".to_owned())))]
-    #[case("foo:::/absolute/path", Err(Error::InvalidFilename(":/absolute/path".to_owned())))]
+    #[case(
+        "/absolute/path",
+        Err(Error::FileNameContainsInvalidChars(PathBuf::from("/absolute/path"), '/'))
+    )]
+    #[case(
+        "foo:::/absolute/path",
+        Err(Error::FileNameContainsInvalidChars(PathBuf::from(":/absolute/path"), '/'))
+    )]
     fn parse_source(#[case] input: &str, #[case] expected: Result<Source, Error>) {
         let source = input.parse();
         assert_eq!(source, expected);

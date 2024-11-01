@@ -34,8 +34,6 @@ pub use env::PackageOption;
 mod error;
 pub use error::Error;
 
-mod macros;
-
 mod name;
 pub use name::BuildTool;
 pub use name::Name;

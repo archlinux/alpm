@@ -25,7 +25,7 @@ impl Display for ErrorLine {
 #[non_exhaustive]
 pub enum Error {
     /// ALPM type error
-    #[error("ALPM type error: {0}")]
+    #[error("ALPM type parse error: {0}")]
     AlpmType(#[from] alpm_types::Error),
 
     /// A generic default error
@@ -55,10 +55,6 @@ pub enum Error {
     /// An invalid BuildInfo version is encountered
     #[error("Invalid BUILDINFO version: {0}")]
     InvalidBuildInfoVersion(String),
-
-    /// An invalid value for a field is found in a BuildInfo
-    #[error("Invalid value for BUILDINFO v{0} field '{1}': {2}: {3}")]
-    InvalidValue(String, String, ErrorLine, alpm_types::Error),
 
     /// A mandatory key-value pair is missing in a BuildInfo
     #[error("The mandatory BUILDINFO v{0} field '{1}' is missing")]
