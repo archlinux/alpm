@@ -8,6 +8,7 @@ use sync::mirror::MirrorDownloader;
 mod cli;
 mod cmd;
 mod sync;
+mod ui;
 
 fn main() -> Result<()> {
     // Parse commandline options.
@@ -43,8 +44,9 @@ fn main() -> Result<()> {
                         let downloader = MirrorDownloader { dest, mirror };
                         downloader.sync_remote_databases()?;
                     }
-                    cli::DownloadCmd::Packages {} => {
-                        unimplemented!()
+                    cli::DownloadCmd::Packages { mirror } => {
+                        let downloader = MirrorDownloader { dest, mirror };
+                        downloader.sync_remote_packages()?;
                     }
                 };
             }

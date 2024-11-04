@@ -68,5 +68,11 @@ pub enum DownloadCmd {
     /// - `.BUILDINFO`
     /// - `.MTREE`
     /// - `.PKGINFO`
-    Packages {},
+    Packages {
+        /// The domain + base path under which the mirror can be found.
+        ///
+        /// The mirror must support the `rsync` protocol
+        #[arg(short, long, env, default_value = "mirror.pseudoform.org/packages")]
+        mirror: String,
+    },
 }

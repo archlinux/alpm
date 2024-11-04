@@ -1,3 +1,10 @@
+use std::{
+    collections::HashSet,
+    fs::{read_dir, DirEntry},
+    path::Path,
+};
+
+use anyhow::Result;
 use strum::{Display, EnumIter};
 
 /// The [mirror] module contains all logic to download data from an Arch Linux package mirror.
@@ -13,4 +20,16 @@ pub enum PackageRepositories {
     Extra,
     #[strum(to_string = "multilib")]
     Multilib,
+}
+
+/// A small helper function that returns a list of unique file names in a directory.
+pub fn filenames_in_dir(path: &Path) -> Result<HashSet<String>> {
+    let entries = read_dir(path)?;
+    let entries: Vec<DirEntry> = entries.collect::<Result<Vec<DirEntry>, std::io::Error>>()?;
+    let files: HashSet<String> = entries
+        .iter()
+        .map(|entry| entry.file_name().to_string_lossy().to_string())
+        .collect();
+
+    Ok(files)
 }
