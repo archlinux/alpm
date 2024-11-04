@@ -21,6 +21,7 @@ rstest = "0.23.0"
 thiserror = "2.0.0"
 serde = { version = "1.0", features = ["derive"] }
 testresult = "0.4.1"
+strum = { version = "0.26.3", features = ["derive"] }
 
 [profile.release]
 lto = true
