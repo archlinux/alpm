@@ -13,3 +13,9 @@ authors.workspace = true
 publish = false
 
 [dependencies]
+anyhow = "1"
+clap.workspace = true
+dirs = "5"
+log = "0.4"
+simplelog = { version = "0.12", default-features = false }
+strum.workspace = true
