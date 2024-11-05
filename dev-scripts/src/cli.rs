@@ -38,6 +38,17 @@ pub enum TestFilesCmd {
         #[clap(subcommand)]
         source: DownloadCmd,
     },
+
+    /// Remove or clean downloaded local testing files.
+    Clean {
+        // Where the testing data has been downloaded to.
+        // Defaults to `~/.cache/alpm/testing`
+        #[arg(short, long)]
+        destination: Option<PathBuf>,
+
+        #[clap(subcommand)]
+        source: CleanCmd,
+    },
 }
 
 #[derive(Parser, Debug)]
@@ -79,4 +90,16 @@ pub enum DownloadCmd {
         #[arg(short, long, env, default_value = "mirror.pseudoform.org/packages")]
         mirror: String,
     },
+}
+
+#[derive(Parser, Debug)]
+pub enum CleanCmd {
+    /// Remove all package source repositories and .SRCINFO files
+    PkgSrcRepositories,
+
+    /// Remove extracted repository sync database files and tarballs.
+    Databases,
+
+    /// Remove all downloaded packages and any other files extracted from them.
+    Packages,
 }

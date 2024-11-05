@@ -1,3 +1,5 @@
+use std::fs::remove_dir_all;
+
 use anyhow::{Context, Result};
 use clap::Parser;
 use cli::Cli;
@@ -48,6 +50,33 @@ fn main() -> Result<()> {
                     cli::DownloadCmd::Packages { mirror } => {
                         let downloader = MirrorDownloader { dest, mirror };
                         downloader.sync_remote_packages()?;
+                    }
+                };
+            }
+            cli::TestFilesCmd::Clean {
+                destination,
+                source,
+            } => {
+                // Set a default download destination.
+                let dest = match destination {
+                    Some(dest) => dest,
+                    None => dirs::cache_dir()
+                        .context("Failed to determine home user cache directory.")?
+                        .join("alpm/testing"),
+                };
+
+                match source {
+                    cli::CleanCmd::PkgSrcRepositories => {
+                        remove_dir_all(dest.join("download").join("pkgsrc"))?;
+                        remove_dir_all(dest.join("pkgsrc"))?;
+                    }
+                    cli::CleanCmd::Databases => {
+                        remove_dir_all(dest.join("download").join("databases"))?;
+                        remove_dir_all(dest.join("databases"))?;
+                    }
+                    cli::CleanCmd::Packages => {
+                        remove_dir_all(dest.join("download").join("packages"))?;
+                        remove_dir_all(dest.join("packages"))?;
                     }
                 };
             }
