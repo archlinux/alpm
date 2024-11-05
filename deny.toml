@@ -5,7 +5,21 @@ ignore = []
 
 [licenses]
 version = 2
-allow = ["Apache-2.0", "BSD-3-Clause", "MIT", "Unicode-3.0", "MPL-2.0"]
+allow = [
+  "Apache-2.0",
+  "BSD-3-Clause",
+  "ISC",
+  "MIT",
+  "OpenSSL",
+  "MPL-2.0",
+  "Unicode-3.0",
+]
+
+[[licenses.clarify]]
+name = "ring"
+version = "*"
+expression = "MIT AND ISC AND OpenSSL"
+license-files = [{ path = "LICENSE", hash = 0xbd0eed23 }]
 
 [bans]
 multiple-versions = "allow"

@@ -10,6 +10,10 @@ use strum::{Display, EnumIter};
 /// The [mirror] module contains all logic to download data from an Arch Linux package mirror.
 /// This includes the database files or packages.
 pub mod mirror;
+/// The [pkgsrc] module handles the download of package source repositories.
+/// This requires interaction with `git` and the official Arch Linux Gitlab, where all of the
+/// package source repositories for the official packages are located.
+pub mod pkgsrc;
 
 /// All Arch Linux package repositories we may want to test.
 #[derive(EnumIter, Display, Debug, PartialEq)]

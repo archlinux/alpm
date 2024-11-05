@@ -3,7 +3,7 @@ use clap::Parser;
 use cli::Cli;
 use log::LevelFilter;
 use simplelog::{Config, SimpleLogger};
-use sync::mirror::MirrorDownloader;
+use sync::{mirror::MirrorDownloader, pkgsrc::PkgSrcDownloader};
 
 mod cli;
 mod cmd;
@@ -38,7 +38,8 @@ fn main() -> Result<()> {
 
                 match source {
                     cli::DownloadCmd::PkgSrcRepositories {} => {
-                        unimplemented!()
+                        let downloader = PkgSrcDownloader { dest };
+                        downloader.download_package_source_repositories()?;
                     }
                     cli::DownloadCmd::Databases { mirror } => {
                         let downloader = MirrorDownloader { dest, mirror };

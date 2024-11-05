@@ -19,5 +19,12 @@ dirs = "5"
 indicatif = "0.17"
 log = "0.4"
 rayon = "1"
+reqwest = { version = "0.12", default-features = false, features = [
+  "charset",
+  "blocking",
+  "http2",
+  "json",
+  "rustls-tls",
+] }
 simplelog = { version = "0.12", default-features = false }
 strum.workspace = true

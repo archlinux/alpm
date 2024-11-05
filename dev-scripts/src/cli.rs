@@ -44,8 +44,12 @@ pub enum TestFilesCmd {
 pub enum DownloadCmd {
     /// Download all official package source repositories
     ///
-    /// This is done by querying all repositories via the Gitlab API and
-    /// cloning them to a local folder, which requires a Gitlab access token.
+    /// This is done by querying all active repositories via the arch web API
+    /// (<https://archlinux.org/packages/pkgbase-maintainer>) and cloning the respective
+    /// package source repositories via git.
+    ///
+    /// This command differs from `pkgctl repo clone --universe` in so far that it
+    /// also updates git repositories and removes repositories that're no longer used.
     ///
     /// The repositories contain the following file types for each package.
     /// - .SRCINFO
