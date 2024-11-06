@@ -18,7 +18,7 @@ members = ["alpm-buildinfo", "alpm-parsers", "alpm-types"]
 [workspace.dependencies]
 clap = { version = "4.5.19", features = ["derive", "env", "string"] }
 rstest = "0.23.0"
-thiserror = "1.0.40"
+thiserror = "2.0.0"
 serde = { version = "1.0", features = ["derive"] }
 
 [profile.release]
