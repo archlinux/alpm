@@ -1182,63 +1182,74 @@ mod tests {
     }
 
     #[rstest]
-    #[case(Version::new("1").unwrap(), Version::new("1").unwrap(), Ordering::Equal, 0)]
-    #[case(Version::new("2").unwrap(), Version::new("1").unwrap(), Ordering::Greater, 1)]
-    #[case(Version::new("1").unwrap(), Version::new("2").unwrap(), Ordering::Less, -1)]
-    #[case(Version::new("1").unwrap(), Version::new("1.1").unwrap(), Ordering::Less, -1)]
-    #[case(Version::new("1.1").unwrap(), Version::new("1").unwrap(), Ordering::Greater, 1)]
-    #[case(Version::new("1.1").unwrap(), Version::new("1.1").unwrap(), Ordering::Equal, 0)]
-    #[case(Version::new("1.2").unwrap(), Version::new("1.1").unwrap(), Ordering::Greater, 1)]
-    #[case(Version::new("1.1").unwrap(), Version::new("1.2").unwrap(), Ordering::Less, -1)]
-    #[case(Version::new("1+2").unwrap(), Version::new("1+1").unwrap(), Ordering::Greater, 1)]
-    #[case(Version::new("1+1").unwrap(), Version::new("1+2").unwrap(), Ordering::Less, -1)]
-    #[case(Version::new("1.1").unwrap(), Version::new("1.1a").unwrap(), Ordering::Greater, 1)]
-    #[case(Version::new("1.1a").unwrap(), Version::new("1.1").unwrap(), Ordering::Less, -1)]
-    #[case(Version::new("1.1").unwrap(), Version::new("1.1a1").unwrap(), Ordering::Greater, 1)]
-    #[case(Version::new("1.1a1").unwrap(), Version::new("1.1").unwrap(), Ordering::Less, -1)]
-    #[case(Version::new("1.1").unwrap(), Version::new("1.11a").unwrap(), Ordering::Less, -1)]
-    #[case(Version::new("1.11a").unwrap(), Version::new("1.1").unwrap(), Ordering::Greater, 1)]
-    #[case(Version::new("1.1_a").unwrap(), Version::new("1.1").unwrap(), Ordering::Greater, 1)]
-    #[case(Version::new("1.1").unwrap(), Version::new("1.1_a").unwrap(), Ordering::Less, -1)]
-    #[case(Version::new("1.1").unwrap(), Version::new("1.1.a").unwrap(), Ordering::Less, -1)]
-    #[case(Version::new("1.1.a").unwrap(), Version::new("1.1").unwrap(), Ordering::Greater, 1)]
-    #[case(Version::new("1.a").unwrap(), Version::new("1.1").unwrap(), Ordering::Less, -1)]
-    #[case(Version::new("1.1").unwrap(), Version::new("1.a").unwrap(), Ordering::Greater, 1)]
-    #[case(Version::new("1.a1").unwrap(), Version::new("1.1").unwrap(), Ordering::Less, -1)]
-    #[case(Version::new("1.1").unwrap(), Version::new("1.a1").unwrap(), Ordering::Greater, 1)]
-    #[case(Version::new("1.a11").unwrap(), Version::new("1.1").unwrap(), Ordering::Less, -1)]
-    #[case(Version::new("1.1").unwrap(), Version::new("1.a11").unwrap(), Ordering::Greater, 1)]
-    #[case(Version::new("a.1").unwrap(), Version::new("1.1").unwrap(), Ordering::Less, -1)]
-    #[case(Version::new("1.1").unwrap(), Version::new("a.1").unwrap(), Ordering::Greater, 1)]
-    #[case(Version::new("foo").unwrap(), Version::new("1.1").unwrap(), Ordering::Less, -1)]
-    #[case(Version::new("1.1").unwrap(), Version::new("foo").unwrap(), Ordering::Greater, 1)]
-    #[case(Version::new("a1a").unwrap(), Version::new("a1b").unwrap(), Ordering::Less, -1)]
-    #[case(Version::new("a1b").unwrap(), Version::new("a1a").unwrap(), Ordering::Greater, 1)]
-    #[case(Version::new("20220102").unwrap(), Version::new("20220202").unwrap(), Ordering::Less, -1)]
-    #[case(Version::new("20220202").unwrap(), Version::new("20220102").unwrap(), Ordering::Greater, 1)]
-    #[case(Version::new("1.0..").unwrap(), Version::new("1.0.").unwrap(), Ordering::Equal, 0)]
-    #[case(Version::new("1.0.").unwrap(), Version::new("1.0").unwrap(), Ordering::Greater, 1)]
-    #[case(Version::new("1..0").unwrap(), Version::new("1.0").unwrap(), Ordering::Greater, 1)]
-    #[case(Version::new("1..0").unwrap(), Version::new("1..0").unwrap(), Ordering::Equal, 0)]
-    #[case(Version::new("1..1").unwrap(), Version::new("1..0").unwrap(), Ordering::Greater, 1)]
-    #[case(Version::new("1..0").unwrap(), Version::new("1..1").unwrap(), Ordering::Less, -1)]
-    #[case(Version::new("1+0").unwrap(), Version::new("1.0").unwrap(), Ordering::Equal, 0)]
-    #[case(Version::new("1.111").unwrap(), Version::new("1.1a1").unwrap(), Ordering::Greater, 1)]
-    #[case(Version::new("1.1a1").unwrap(), Version::new("1.111").unwrap(), Ordering::Less, -1)]
-    #[case(Version::new("01").unwrap(), Version::new("1").unwrap(), Ordering::Equal, 0)]
-    #[case(Version::new("001a").unwrap(), Version::new("1a").unwrap(), Ordering::Equal, 0)]
-    #[case(Version::new("1.a001a.1").unwrap(), Version::new("1.a1a.1").unwrap(), Ordering::Equal, 0)]
+    #[case(Version::new("1"), Version::new("1"), Ordering::Equal)]
+    #[case(Version::new("2"), Version::new("1"), Ordering::Greater)]
+    #[case(Version::new("1"), Version::new("2"), Ordering::Less)]
+    #[case(Version::new("1"), Version::new("1.1"), Ordering::Less)]
+    #[case(Version::new("1.1"), Version::new("1"), Ordering::Greater)]
+    #[case(Version::new("1.1"), Version::new("1.1"), Ordering::Equal)]
+    #[case(Version::new("1.2"), Version::new("1.1"), Ordering::Greater)]
+    #[case(Version::new("1.1"), Version::new("1.2"), Ordering::Less)]
+    #[case(Version::new("1+2"), Version::new("1+1"), Ordering::Greater)]
+    #[case(Version::new("1+1"), Version::new("1+2"), Ordering::Less)]
+    #[case(Version::new("1.1"), Version::new("1.1a"), Ordering::Greater)]
+    #[case(Version::new("1.1a"), Version::new("1.1"), Ordering::Less)]
+    #[case(Version::new("1.1"), Version::new("1.1a1"), Ordering::Greater)]
+    #[case(Version::new("1.1a1"), Version::new("1.1"), Ordering::Less)]
+    #[case(Version::new("1.1"), Version::new("1.11a"), Ordering::Less)]
+    #[case(Version::new("1.11a"), Version::new("1.1"), Ordering::Greater)]
+    #[case(Version::new("1.1_a"), Version::new("1.1"), Ordering::Greater)]
+    #[case(Version::new("1.1"), Version::new("1.1_a"), Ordering::Less)]
+    #[case(Version::new("1.1"), Version::new("1.1.a"), Ordering::Less)]
+    #[case(Version::new("1.1.a"), Version::new("1.1"), Ordering::Greater)]
+    #[case(Version::new("1.a"), Version::new("1.1"), Ordering::Less)]
+    #[case(Version::new("1.1"), Version::new("1.a"), Ordering::Greater)]
+    #[case(Version::new("1.a1"), Version::new("1.1"), Ordering::Less)]
+    #[case(Version::new("1.1"), Version::new("1.a1"), Ordering::Greater)]
+    #[case(Version::new("1.a11"), Version::new("1.1"), Ordering::Less)]
+    #[case(Version::new("1.1"), Version::new("1.a11"), Ordering::Greater)]
+    #[case(Version::new("a.1"), Version::new("1.1"), Ordering::Less)]
+    #[case(Version::new("1.1"), Version::new("a.1"), Ordering::Greater)]
+    #[case(Version::new("foo"), Version::new("1.1"), Ordering::Less)]
+    #[case(Version::new("1.1"), Version::new("foo"), Ordering::Greater)]
+    #[case(Version::new("a1a"), Version::new("a1b"), Ordering::Less)]
+    #[case(Version::new("a1b"), Version::new("a1a"), Ordering::Greater)]
+    #[case(Version::new("20220102"), Version::new("20220202"), Ordering::Less)]
+    #[case(Version::new("20220202"), Version::new("20220102"), Ordering::Greater)]
+    #[case(Version::new("1.0.."), Version::new("1.0."), Ordering::Equal)]
+    #[case(Version::new("1.0."), Version::new("1.0"), Ordering::Greater)]
+    #[case(Version::new("1..0"), Version::new("1.0"), Ordering::Greater)]
+    #[case(Version::new("1..0"), Version::new("1..0"), Ordering::Equal)]
+    #[case(Version::new("1..1"), Version::new("1..0"), Ordering::Greater)]
+    #[case(Version::new("1..0"), Version::new("1..1"), Ordering::Less)]
+    #[case(Version::new("1+0"), Version::new("1.0"), Ordering::Equal)]
+    #[case(Version::new("1.111"), Version::new("1.1a1"), Ordering::Greater)]
+    #[case(Version::new("1.1a1"), Version::new("1.111"), Ordering::Less)]
+    #[case(Version::new("01"), Version::new("1"), Ordering::Equal)]
+    #[case(Version::new("001a"), Version::new("1a"), Ordering::Equal)]
+    #[case(Version::new("1.a001a.1"), Version::new("1.a1a.1"), Ordering::Equal)]
     fn version_cmp(
-        #[case] version_a: Version,
-        #[case] version_b: Version,
+        #[case] version_a: Result<Version, Error>,
+        #[case] version_b: Result<Version, Error>,
         #[case] expected: Ordering,
-        #[case] vercmp_result: i8,
     ) {
+        // Simply unwrap the Version as we expect all test strings to be valid.
+        let version_a = version_a.unwrap();
+        let version_b = version_b.unwrap();
+
+        // Derive the expected vercmp binary exitcode from the expected Ordering.
+        let vercmp_result = match &expected {
+            Ordering::Equal => 0,
+            Ordering::Greater => 1,
+            Ordering::Less => -1,
+        };
+
         let ordering = version_a.cmp(&version_b);
         assert_eq!(
             ordering, expected,
             "Failed to compare '{version_a}' and '{version_b}'. Expected {expected:?} got {ordering:?}"
         );
+
         assert_eq!(Version::vercmp(&version_a, &version_b), vercmp_result);
     }
 
