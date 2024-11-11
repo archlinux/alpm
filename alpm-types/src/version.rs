@@ -1166,19 +1166,36 @@ mod tests {
         assert_eq!(result, Epoch::new(version));
     }
 
+    /// Make sure that we can parse valid **pkgver** strings.
     #[rstest]
-    #[case("foo".to_string(), Ok(Pkgver::new("foo".to_string()).unwrap()))]
-    #[case("1.0.0".to_string(), Ok(Pkgver::new("1.0.0".to_string()).unwrap()))]
-    #[case("1:foo".to_string(), Err(Error::RegexDoesNotMatch { regex: PKGVER_REGEX.to_string() }))]
-    #[case("foo-1".to_string(), Err(Error::RegexDoesNotMatch { regex: PKGVER_REGEX.to_string() }))]
-    #[case("foo,1".to_string(), Err(Error::RegexDoesNotMatch { regex: PKGVER_REGEX.to_string() }))]
-    #[case(".foo".to_string(), Err(Error::RegexDoesNotMatch { regex: PKGVER_REGEX.to_string() }))]
-    #[case("_foo".to_string(), Err(Error::RegexDoesNotMatch { regex: PKGVER_REGEX.to_string() }))]
+    #[case("foo", Pkgver::new("foo".to_string()).unwrap())]
+    #[case("1.0.0", Pkgver::new("1.0.0".to_string()).unwrap())]
+    fn valid_pkgver(#[case] pkgver: &str, #[case] expected: Pkgver) {
+        assert_eq!(
+            Pkgver::new(pkgver.to_string()).as_ref(),
+            Ok(&expected),
+            "Expected pkgrel {pkgver} to be valid and equal {expected:?}."
+        );
+    }
+
+    /// Ensure that invalid **pkgver**s are throwing errors.
+    #[rstest]
+    #[case("1:foo")]
+    #[case("foo-1")]
+    #[case("foo,1")]
+    #[case(".foo")]
+    #[case("_foo")]
     // ß is not in [:alnum:]
-    #[case("ß".to_string(), Err(Error::RegexDoesNotMatch { regex: PKGVER_REGEX.to_string() }))]
-    #[case("1.ß".to_string(), Err(Error::RegexDoesNotMatch { regex: PKGVER_REGEX.to_string() }))]
-    fn pkgver(#[case] version: String, #[case] result: Result<Pkgver, Error>) {
-        assert_eq!(result, Pkgver::new(version));
+    #[case("ß")]
+    #[case("1.ß")]
+    fn invalid_pkgver(#[case] pkgver: &str) {
+        assert_eq!(
+            Pkgver::new(pkgver.to_string()).as_ref(),
+            Err(&Error::RegexDoesNotMatch {
+                regex: PKGVER_REGEX.to_string()
+            }),
+            "Expected pkgrel {pkgver} to be invalid."
+        );
     }
 
     #[rstest]
