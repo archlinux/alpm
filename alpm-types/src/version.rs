@@ -1168,13 +1168,17 @@ mod tests {
 
     /// Make sure that we can parse valid **pkgver** strings.
     #[rstest]
-    #[case("foo", Pkgver::new("foo".to_string()).unwrap())]
-    #[case("1.0.0", Pkgver::new("1.0.0".to_string()).unwrap())]
-    fn valid_pkgver(#[case] pkgver: &str, #[case] expected: Pkgver) {
+    #[case("foo")]
+    #[case("1.0.0")]
+    fn valid_pkgver(#[case] pkgver: &str) {
+        let parsed = Pkgver::new(pkgver.to_string());
+        assert!(parsed.is_ok(), "Expected pkgver {pkgver} to be valid.");
         assert_eq!(
-            Pkgver::new(pkgver.to_string()).as_ref(),
-            Ok(&expected),
-            "Expected pkgrel {pkgver} to be valid and equal {expected:?}."
+            parsed.as_ref().unwrap().to_string(),
+            pkgver,
+            "Expected parsed Pkgver representation '{}' to be identical to input '{}'",
+            parsed.unwrap(),
+            pkgver
         );
     }
 
@@ -1198,23 +1202,48 @@ mod tests {
         );
     }
 
+    /// Make sure that we can parse valid **pkgrel** strings.
     #[rstest]
-    #[case("1".to_string(), Ok(Pkgrel::new("1".to_string()).unwrap()))]
-    #[case("1.1".to_string(), Ok(Pkgrel::new("1.1".to_string()).unwrap()))]
-    #[case("0.1".to_string(), Err(Error::RegexDoesNotMatch { regex: PKGREL_REGEX.to_string() }))]
-    #[case("0".to_string(), Err(Error::RegexDoesNotMatch { regex: PKGREL_REGEX.to_string() }))]
-    fn pkgrel(#[case] version: String, #[case] result: Result<Pkgrel, Error>) {
-        assert_eq!(result, Pkgrel::new(version));
+    #[case("1")]
+    #[case("1.1")]
+    fn valid_pkgrel(#[case] pkgrel: &str) {
+        let parsed = Pkgrel::new(pkgrel.to_string());
+        assert!(parsed.is_ok(), "Expected pkgrel {pkgrel} to be valid.");
+        assert_eq!(
+            parsed.as_ref().unwrap().to_string(),
+            pkgrel,
+            "Expected parsed Pkgrel representation '{}' to be identical to input '{}'",
+            parsed.unwrap(),
+            pkgrel
+        );
     }
 
+    /// Ensure that invalid **pkgrel**s are throwing errors.
     #[rstest]
-    #[case(Pkgrel::new("1".to_string()).unwrap(), Pkgrel::new("2".to_string()).unwrap())]
-    #[case(Pkgrel::new("1".to_string()).unwrap(), Pkgrel::new("1.1".to_string()).unwrap())]
-    #[case(Pkgrel::new("1".to_string()).unwrap(), Pkgrel::new("11".to_string()).unwrap())]
-    fn pkgrel_cmp(#[case] pkgrel_a: Pkgrel, #[case] pkgrel_b: Pkgrel) {
-        assert!(pkgrel_a.lt(&pkgrel_b));
+    #[case("0.1")]
+    #[case("0")]
+    fn invalid_pkgrel(#[case] pkgrel: &str) {
+        assert_eq!(
+            Pkgrel::new(pkgrel.to_string()),
+            Err(Error::RegexDoesNotMatch {
+                regex: PKGREL_REGEX.to_string()
+            }),
+            "Expected pkgrel {pkgrel} to be invalid."
+        );
     }
 
+    /// Test that pkgrel ordering works as intended
+    #[rstest]
+    #[case("1", "2")]
+    #[case("1", "1.1")]
+    #[case("1", "11")]
+    fn pkgrel_cmp(#[case] lesser: &str, #[case] bigger: &str) {
+        let lesser = Pkgrel::new(lesser.to_string()).unwrap();
+        let bigger = Pkgrel::new(bigger.to_string()).unwrap();
+        assert!(lesser.lt(&bigger));
+    }
+
+    /// Ensure that versions are properly serialized back to their string representation.
     #[rstest]
     #[case(Version::new("1:1-1").unwrap(), "1:1-1")]
     #[case(Version::new("1-1").unwrap(), "1-1")]
