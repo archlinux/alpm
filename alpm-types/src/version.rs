@@ -1099,50 +1099,67 @@ mod tests {
         assert!(version_a > version_b);
     }
 
+    /// Ensure that valid version strings are parsed as expected.
     #[rstest]
-    #[case("foo", Ok(Version{epoch: None, pkgver: Pkgver::new("foo".to_string()).unwrap(), pkgrel: None}))]
+    #[case(
+        "foo",
+        Version {
+            epoch: None,
+            pkgver: Pkgver::new("foo".to_string()).unwrap(),
+            pkgrel: None
+        },
+    )]
     #[case(
         "1:foo-1",
-        Ok(Version{
+        Version {
             pkgver: Pkgver::new("foo".to_string()).unwrap(),
             epoch: Some(Epoch::new("1").unwrap()),
             pkgrel: Some(Pkgrel::new("1".to_string()).unwrap()),
-        }),
+        },
     )]
     #[case(
         "1:foo",
-        Ok(Version{
+        Version {
             pkgver: Pkgver::new("foo".to_string()).unwrap(),
             epoch: Some(Epoch::new("1").unwrap()),
             pkgrel: None,
-        }),
+        },
     )]
     #[case(
         "foo-1",
-        Ok(Version{
+        Version {
             pkgver: Pkgver::new("foo".to_string()).unwrap(),
             epoch: None,
             pkgrel: Some(Pkgrel::new("1".to_string()).unwrap())
-        })
-    )]
-    #[case("-1foo:1", Err(Error::InvalidInteger { kind: IntErrorKind::InvalidDigit }))]
-    #[case("1-foo:1", Err(Error::InvalidInteger { kind: IntErrorKind::InvalidDigit }))]
-    #[case("1:1:foo-1", Err(Error::RegexDoesNotMatch { regex: PKGVER_REGEX.to_string() }))]
-    #[case("1:foo-1-1", Err(Error::RegexDoesNotMatch { regex: PKGREL_REGEX.to_string() }))]
-    #[case("", Err(Error::RegexDoesNotMatch { regex: PKGVER_REGEX.to_string() }))]
-    #[case(":", Err(Error::RegexDoesNotMatch { regex: PKGVER_REGEX.to_string() }))]
-    #[case(".", Err(Error::RegexDoesNotMatch { regex: PKGVER_REGEX.to_string() }))]
-    fn version_from_string(#[case] version: &str, #[case] result: Result<Version, Error>) {
-        if result.is_ok() {
-            assert_eq!(result.as_ref().unwrap(), &Version::new(version).unwrap())
-        } else {
-            assert_eq!(
-                result.as_ref().expect_err("Should be an Err"),
-                &Version::new(version).expect_err("Should be an Err")
-            )
         }
+    )]
+    fn valid_version_from_string(#[case] version: &str, #[case] expected: Version) {
+        assert_eq!(
+            Version::new(version),
+            Ok(expected),
+            "Expected valid parsing for version {version}"
+        )
     }
 
+    /// Ensure that invalid version strings produce the respective errors.
+    #[rstest]
+    #[case("-1foo:1", Error::InvalidInteger { kind: IntErrorKind::InvalidDigit })]
+    #[case("1-foo:1", Error::InvalidInteger { kind: IntErrorKind::InvalidDigit })]
+    #[case("1:1:foo-1", Error::RegexDoesNotMatch { regex: PKGVER_REGEX.to_string() })]
+    #[case("1:foo-1-1", Error::RegexDoesNotMatch { regex: PKGREL_REGEX.to_string() })]
+    #[case("", Error::RegexDoesNotMatch { regex: PKGVER_REGEX.to_string() })]
+    #[case(":", Error::RegexDoesNotMatch { regex: PKGVER_REGEX.to_string() })]
+    #[case(".", Error::RegexDoesNotMatch { regex: PKGVER_REGEX.to_string() })]
+    fn invalid_version_from_string(#[case] version: &str, #[case] expected: Error) {
+        assert_eq!(
+            Version::new(version),
+            Err(expected),
+            "Expected error while parsing {version}"
+        )
+    }
+
+    /// Test that version parsing works/fails for the special case where a pkgrel is expected.
+    /// This is done by calling the `with_pkgrel` function directly.
     #[rstest]
     #[case(
         "1.0.0-1",
