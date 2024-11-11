@@ -861,16 +861,25 @@ impl Version {
 
 impl FromStr for Version {
     type Err = Error;
-    /// Create a SchemaVersion from a string
+    /// Create a new [`Version`] from a string slice.
+    ///
+    /// Expects a composite version string such as `2:1.25.1-5`
+    /// The components of the above composite version string are:
+    ///
+    /// - `2`: The optional epoch, delimited with a `:`
+    /// - `1.25.1`: The version, which is an arbitrary ASCII string, excluding `[':', '/', '-']`
+    /// - `5`: The optional release, delimited with a `-`.
     fn from_str(s: &str) -> Result<Version, Self::Err> {
-        // try to split off epoch
+        // Try to split off epoch from `{}{pkgver}-{pkgrel}`
         let (epoch, pkgver_pkgrel) = s.split_once(':').unzip();
-        // if there's no epoch, the entire thing is pkgver and maybe pkgrel
+        // If there's no epoch, use the whole version as `pkgver` with an
+        // optional `pkgrel`.
         let pkgver_pkgrel = pkgver_pkgrel.unwrap_or(s);
 
-        // try to split off pkgrel
+        // Try to split the `{pkgver}-{pkgrel}`
         let (pkgver, pkgrel) = pkgver_pkgrel.split_once('-').unzip();
-        // if there's no pkgrel, the entire thing is the pkgver
+
+        // If there's no pkgrel, it's just a stand-alone `pkgver`.
         let pkgver = pkgver.unwrap_or(pkgver_pkgrel);
 
         Ok(Version {
