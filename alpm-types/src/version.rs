@@ -1279,26 +1279,34 @@ mod tests {
         assert_eq!(Version::vercmp(&version_a, &version_b), vercmp_result);
     }
 
+    /// Ensure that valid version comparison strings can be parsed.
     #[rstest]
-    #[case("<", Ok(VersionComparison::Less))]
-    #[case("<=", Ok(VersionComparison::LessOrEqual))]
-    #[case("=", Ok(VersionComparison::Equal))]
-    #[case(">=", Ok(VersionComparison::GreaterOrEqual))]
-    #[case(">", Ok(VersionComparison::Greater))]
-    #[case("", Err(strum::ParseError::VariantNotFound.into()))]
-    #[case("<<", Err(strum::ParseError::VariantNotFound.into()))]
-    #[case("==", Err(strum::ParseError::VariantNotFound.into()))]
-    #[case("!=", Err(strum::ParseError::VariantNotFound.into()))]
-    #[case(" =", Err(strum::ParseError::VariantNotFound.into()))]
-    #[case("= ", Err(strum::ParseError::VariantNotFound.into()))]
-    #[case("<1", Err(strum::ParseError::VariantNotFound.into()))]
-    fn version_comparison(
-        #[case] comparison: &str,
-        #[case] result: Result<VersionComparison, Error>,
-    ) {
-        assert_eq!(comparison.parse(), result);
+    #[case("<", VersionComparison::Less)]
+    #[case("<=", VersionComparison::LessOrEqual)]
+    #[case("=", VersionComparison::Equal)]
+    #[case(">=", VersionComparison::GreaterOrEqual)]
+    #[case(">", VersionComparison::Greater)]
+    fn valid_version_comparison(#[case] comparison: &str, #[case] expected: VersionComparison) {
+        assert_eq!(comparison.parse(), Ok(expected));
     }
 
+    /// Ensure that invalid version comparisons will throw an error.
+    #[rstest]
+    #[case("")]
+    #[case("<<")]
+    #[case("==")]
+    #[case("!=")]
+    #[case(" =")]
+    #[case("= ")]
+    #[case("<1")]
+    fn invalid_version_comparison(#[case] comparison: &str) {
+        assert_eq!(
+            comparison.parse::<VersionComparison>(),
+            Err(strum::ParseError::VariantNotFound.into())
+        );
+    }
+
+    /// Test successful parsing for version requirement strings.
     #[rstest]
     #[case("=1", Ok(VersionRequirement {
         comparison: VersionComparison::Equal,
