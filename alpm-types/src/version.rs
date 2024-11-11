@@ -1308,30 +1308,42 @@ mod tests {
 
     /// Test successful parsing for version requirement strings.
     #[rstest]
-    #[case("=1", Ok(VersionRequirement {
+    #[case("=1", VersionRequirement {
         comparison: VersionComparison::Equal,
         version: Version::new("1").unwrap(),
-    }))]
-    #[case("<=42:abcd-2.4", Ok(VersionRequirement {
+    })]
+    #[case("<=42:abcd-2.4", VersionRequirement {
         comparison: VersionComparison::LessOrEqual,
         version: Version::new("42:abcd-2.4").unwrap(),
-    }))]
-    #[case(">3.1", Ok(VersionRequirement {
+    })]
+    #[case(">3.1", VersionRequirement {
         comparison: VersionComparison::Greater,
         version: Version::new("3.1").unwrap(),
-    }))]
-    #[case("<=", Err(Error::MissingComponent { component: "operator" }))]
-    #[case("<>3.1", Err(strum::ParseError::VariantNotFound.into()))]
-    #[case("3.1", Err(strum::ParseError::VariantNotFound.into()))]
-    #[case("=>3.1", Err(strum::ParseError::VariantNotFound.into()))]
-    #[case("<3.1>3.2", Err(Error::RegexDoesNotMatch { regex: PKGVER_REGEX.to_string() }))]
-    fn version_requirement(
-        #[case] requirement: &str,
-        #[case] result: Result<VersionRequirement, Error>,
-    ) {
-        assert_eq!(requirement.parse(), result);
+    })]
+    fn valid_version_requirement(#[case] requirement: &str, #[case] expected: VersionRequirement) {
+        assert_eq!(
+            requirement.parse(),
+            Ok(expected),
+            "Expected successful parse for version requirement '{requirement}'"
+        );
     }
 
+    /// Test expected parsing errors for version requirement strings.
+    #[rstest]
+    #[case("<=", Error::MissingComponent { component: "operator" })]
+    #[case("<>3.1", strum::ParseError::VariantNotFound.into())]
+    #[case("3.1", strum::ParseError::VariantNotFound.into())]
+    #[case("=>3.1", strum::ParseError::VariantNotFound.into())]
+    #[case("<3.1>3.2", Error::RegexDoesNotMatch { regex: PKGVER_REGEX.to_string() })]
+    fn invalid_version_requirement(#[case] requirement: &str, #[case] expected: Error) {
+        assert_eq!(
+            requirement.parse::<VersionRequirement>(),
+            Err(expected),
+            "Expected error while parsing version requirement '{requirement}'"
+        );
+    }
+
+    /// Check whether a version requirement (>= 1.0) is fulfilled by a given version string.
     #[rstest]
     #[case("=1", "1", true)]
     #[case("=1", "1.0", false)]
