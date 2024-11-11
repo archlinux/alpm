@@ -96,8 +96,11 @@ The value must be a valid package name as described in **pkgname**.
 
 The full version of the **buildtool** used to set up the build environment.
 The value may take one of two forms:
-- An **alpm-package-version** in *full* or in *full with epoch* form (e.g. `1.0.0-1` or `1:1.0.0-1`, respectively).
-- A composite version string composed of an **alpm-package-version** in *full* or in *full with epoch* form, directly followed by a '-' sign, directly followed by an **alpm-architecture** (e.g. `1.0.0-1-any` or `1:1.0.0-1-any`, respectively).
+
+- An **alpm-package-version** in *full* or in *full with epoch* form (e.g. `1.0.0-1` or `1:1.0.0-1`, respectively), directly followed by a '-' sign, directly followed by an **alpm-architecture** (e.g. `1.0.0-1-any` or `1:1.0.0-1-any`, respectively)..
+  This format is commonly used by Arch Linux's build tools.
+- An **alpm-package-version** in *minimal* or *minimal with epoch* form (e.g. `1.0.0` or `1:1.0.0`, respectively).
+  This format is commonly used by `makepkg`.
 
 ### buildenv
 

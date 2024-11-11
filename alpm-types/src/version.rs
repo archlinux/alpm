@@ -27,35 +27,54 @@ pub(crate) static PKGVER_REGEX: Lazy<Regex> = lazy_regex!(r"^([[:alnum:]][[:alnu
 /// use alpm_types::BuildToolVer;
 ///
 /// assert!(BuildToolVer::new("1-1-any").is_ok());
-/// assert!(BuildToolVer::new("1").is_err());
+/// assert!(BuildToolVer::new("1").is_ok());
+/// assert!(BuildToolVer::new("1-1").is_err());
 /// assert!(BuildToolVer::new("1-1-foo").is_err());
 /// ```
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct BuildToolVer {
     version: Version,
-    architecture: Architecture,
+    architecture: Option<Architecture>,
 }
 
 impl BuildToolVer {
     /// Create a new BuildToolVer and return it in a Result
+    ///
+    /// This can be either a fully specified [Version] string with pkgrel and
+    /// architecture, **or** it can be a [Version] string without a `pkgrel` and no architecture.
+    ///
+    /// This is needed to also support packages built with `makepkg`, which only sets its own
+    /// version.
+    ///
+    /// ## Examples
+    /// ```
+    /// use alpm_types::BuildToolVer;
+    ///
+    /// assert!(BuildToolVer::new("1:5.0.2-1-any").is_ok());
+    /// assert!(BuildToolVer::new("5.0.2-1-any").is_ok());
+    /// assert!(BuildToolVer::new("5.0.2").is_ok());
+    ///
+    /// assert!(BuildToolVer::new("5.0.2-any").is_err());
+    /// ```
     pub fn new(buildtoolver: &str) -> Result<Self, Error> {
         const VERSION_DELIMITER: char = '-';
         match buildtoolver.rsplit_once(VERSION_DELIMITER) {
             Some((version, architecture)) => match Architecture::from_str(architecture) {
                 Ok(architecture) => Ok(BuildToolVer {
                     version: Version::with_pkgrel(version)?,
-                    architecture,
+                    architecture: Some(architecture),
                 }),
-                Err(e) => Err(e.into()),
+                Err(err) => Err(err.into()),
             },
-            None => Err(Error::DelimiterNotFound {
-                delimiter: VERSION_DELIMITER,
+            None => Ok(BuildToolVer {
+                version: Version::from_str(buildtoolver)?,
+                architecture: None,
             }),
         }
     }
 
     /// Return a reference to the Architecture
-    pub fn architecture(&self) -> &Architecture {
+    pub fn architecture(&self) -> &Option<Architecture> {
         &self.architecture
     }
 
@@ -75,7 +94,11 @@ impl FromStr for BuildToolVer {
 
 impl Display for BuildToolVer {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
-        write!(fmt, "{}-{}", self.version, self.architecture)
+        if let Some(architecture) = &self.architecture {
+            write!(fmt, "{}-{}", self.version, architecture)
+        } else {
+            write!(fmt, "{}", self.version)
+        }
     }
 }
 
@@ -1065,11 +1088,15 @@ mod tests {
     #[rstest]
     #[case(
         "1.0.0-1-any",
-        BuildToolVer{version: Version::new("1.0.0-1").unwrap(), architecture: Architecture::from_str("any").unwrap()},
+        BuildToolVer{version: Version::new("1.0.0-1").unwrap(), architecture: Some(Architecture::from_str("any").unwrap())},
     )]
     #[case(
         "1:1.0.0-1-any",
-        BuildToolVer{version: Version::new("1:1.0.0-1").unwrap(), architecture: Architecture::from_str("any").unwrap()},
+        BuildToolVer{version: Version::new("1:1.0.0-1").unwrap(), architecture: Some(Architecture::from_str("any").unwrap())},
+    )]
+    #[case(
+        "1.0.0",
+        BuildToolVer{version: Version::new("1.0.0").unwrap(), architecture: None},
     )]
     fn valid_buildtoolver_new(#[case] buildtoolver: &str, #[case] expected: BuildToolVer) {
         assert_eq!(
@@ -1081,7 +1108,6 @@ mod tests {
 
     /// Ensure that invalid buildtool version strings produce the respective errors.
     #[rstest]
-    #[case("1.0.0", Error::DelimiterNotFound { delimiter: '-' })]
     #[case("1.0.0-any", Error::MissingComponent { component: "pkgrel" })]
     #[case(".1.0.0-1-any", Error::RegexDoesNotMatch { regex: PKGVER_REGEX.to_string() })]
     #[case("1.0.0-1-foo", strum::ParseError::VariantNotFound.into())]
