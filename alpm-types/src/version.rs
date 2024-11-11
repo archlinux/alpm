@@ -1061,33 +1061,36 @@ mod tests {
         assert_eq!(result, SchemaVersion::new(version))
     }
 
+    /// Ensure that valid buildtool version strings are parsed as expected.
     #[rstest]
     #[case(
         "1.0.0-1-any",
-        Ok(BuildToolVer{version: Version::new("1.0.0-1").unwrap(), architecture: Architecture::from_str("any").unwrap()}),
+        BuildToolVer{version: Version::new("1.0.0-1").unwrap(), architecture: Architecture::from_str("any").unwrap()},
     )]
     #[case(
         "1:1.0.0-1-any",
-        Ok(BuildToolVer{version: Version::new("1:1.0.0-1").unwrap(), architecture: Architecture::from_str("any").unwrap()}),
+        BuildToolVer{version: Version::new("1:1.0.0-1").unwrap(), architecture: Architecture::from_str("any").unwrap()},
     )]
-    #[case(
-        "1.0.0",
-        Err(Error::DelimiterNotFound { delimiter: '-' }),
-    )]
-    #[case(
-        "1.0.0-any",
-        Err(Error::MissingComponent { component: "pkgrel" }),
-    )]
-    #[case(
-        ".1.0.0-1-any",
-        Err(Error::RegexDoesNotMatch { regex: PKGVER_REGEX.to_string() }),
-    )]
-    #[case(
-        "1.0.0-1-foo",
-        Err(strum::ParseError::VariantNotFound.into()),
-    )]
-    fn buildtoolver_new(#[case] buildtoolver: &str, #[case] result: Result<BuildToolVer, Error>) {
-        assert_eq!(BuildToolVer::new(buildtoolver), result);
+    fn valid_buildtoolver_new(#[case] buildtoolver: &str, #[case] expected: BuildToolVer) {
+        assert_eq!(
+            BuildToolVer::new(buildtoolver),
+            Ok(expected),
+            "Expected valid parse of buildtoolver '{buildtoolver}'"
+        );
+    }
+
+    /// Ensure that invalid buildtool version strings produce the respective errors.
+    #[rstest]
+    #[case("1.0.0", Error::DelimiterNotFound { delimiter: '-' })]
+    #[case("1.0.0-any", Error::MissingComponent { component: "pkgrel" })]
+    #[case(".1.0.0-1-any", Error::RegexDoesNotMatch { regex: PKGVER_REGEX.to_string() })]
+    #[case("1.0.0-1-foo", strum::ParseError::VariantNotFound.into())]
+    fn invalid_buildtoolver_new(#[case] buildtoolver: &str, #[case] expected: Error) {
+        assert_eq!(
+            BuildToolVer::new(buildtoolver),
+            Err(expected),
+            "Expected error during parse of buildtoolver '{buildtoolver}'"
+        );
     }
 
     #[rstest]
