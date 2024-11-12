@@ -5,12 +5,8 @@ use std::{
 };
 
 use digest::Digest;
-use lazy_regex::{lazy_regex, Lazy};
-use regex::Regex;
 
 use crate::Error;
-
-pub(crate) static MD5_REGEX: Lazy<Regex> = lazy_regex!(r"^[a-f0-9]{32}$");
 
 /// A checksum using a supported algorithm
 ///
@@ -145,78 +141,6 @@ impl<D: Digest> Display for Checksum<D> {
     }
 }
 
-/// A single 'md5sum' attribute
-///
-/// Md5Sum consists of 32 characters `[a-f0-9]`.
-///
-/// ## Examples
-/// ```
-/// use std::str::FromStr;
-///
-/// use alpm_types::{Error, Md5Sum};
-///
-/// // create Md5Sum from &str
-/// assert_eq!(
-///     Md5Sum::from_str("5eb63bbbe01eeed093cb22bb8f5acdc3"),
-///     Ok(Md5Sum::new("5eb63bbbe01eeed093cb22bb8f5acdc3".to_string()).unwrap())
-/// );
-/// assert!(Md5Sum::from_str("foobar").is_err());
-///
-/// // format as &str
-/// assert_eq!(
-///     "5eb63bbbe01eeed093cb22bb8f5acdc3",
-///     format!(
-///         "{}",
-///         Md5Sum::new("5eb63bbbe01eeed093cb22bb8f5acdc3".to_string()).unwrap()
-///     ),
-/// );
-/// ```
-#[derive(Clone, Debug, Eq, PartialEq)]
-#[deprecated(
-    since = "0.3.0",
-    note = "Md5Sum has only limited functionality and will be removed. Users should use Checksum<Md5> instead."
-)]
-pub struct Md5Sum(String);
-
-#[allow(deprecated)]
-impl Md5Sum {
-    /// Create a new Md5Sum in a Result
-    ///
-    /// If the supplied string is valid on the basis of the allowed characters
-    /// then an Md5Sum is returned as a Result, otherwise an InvalidMd5Sum Error
-    /// is returned.
-    pub fn new(md5sum: String) -> Result<Md5Sum, Error> {
-        if MD5_REGEX.is_match(md5sum.as_str()) {
-            Ok(Md5Sum(md5sum))
-        } else {
-            Err(Error::RegexDoesNotMatch {
-                regex: MD5_REGEX.to_string(),
-            })
-        }
-    }
-
-    /// Return a reference to the inner type
-    pub fn inner(&self) -> &str {
-        &self.0
-    }
-}
-
-#[allow(deprecated)]
-impl FromStr for Md5Sum {
-    type Err = Error;
-    /// Create a Md5Sum from a string
-    fn from_str(input: &str) -> Result<Md5Sum, Self::Err> {
-        Md5Sum::new(input.to_string())
-    }
-}
-
-#[allow(deprecated)]
-impl Display for Md5Sum {
-    fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
-        write!(fmt, "{}", self.inner())
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use proptest::prelude::*;
@@ -224,7 +148,6 @@ mod tests {
 
     use super::*;
     use crate::digests::Blake2b512;
-    use crate::digests::Md5;
     use crate::digests::Sha1;
     use crate::digests::Sha224;
     use crate::digests::Sha256;
@@ -252,27 +175,6 @@ mod tests {
         #[test]
         fn invalid_checksum_blake2b512_wrong_chars(string in r"[e-z0-9]{128}") {
             assert!(Checksum::<Blake2b512>::from_str(&string).is_err());
-        }
-
-        #[test]
-        fn valid_checksum_md5_from_string(string in r"[a-f0-9]{32}") {
-            let md5sum = Checksum::<Md5>::from_str(&string).unwrap();
-            prop_assert_eq!(string, format!("{}", md5sum));
-        }
-
-        #[test]
-        fn invalid_checksum_md5_from_string_bigger_size(string in r"[a-f0-9]{64}") {
-            assert!(Checksum::<Md5>::from_str(&string).is_err());
-        }
-
-        #[test]
-        fn invalid_checksum_md5_from_string_smaller_size(string in r"[a-f0-9]{16}") {
-            assert!(Checksum::<Md5>::from_str(&string).is_err());
-        }
-
-        #[test]
-        fn invalid_checksum_md5_from_string_wrong_chars(string in r"[e-z0-9]{32}") {
-            assert!(Checksum::<Md5>::from_str(&string).is_err());
         }
 
         #[test]
@@ -374,31 +276,6 @@ mod tests {
         fn invalid_checksum_sha512_from_string_wrong_chars(string in r"[e-z0-9]{128}") {
             assert!(Checksum::<Sha512>::from_str(&string).is_err());
         }
-
-        #[test]
-        #[allow(deprecated)]
-        fn valid_md5sum_from_string(md5sum_str in r"[a-f0-9]{32}") {
-            let md5sum = Md5Sum::from_str(&md5sum_str).unwrap();
-            prop_assert_eq!(md5sum_str, format!("{}", md5sum));
-        }
-
-        #[test]
-        #[allow(deprecated)]
-        fn invalid_md5sum_from_string_bigger_size(md5sum_str in r"[a-f0-9]{64}") {
-            assert!(Md5Sum::from_str(&md5sum_str).is_err());
-        }
-
-        #[test]
-        #[allow(deprecated)]
-        fn invalid_md5sum_from_string_smaller_size(md5sum_str in r"[a-f0-9]{16}") {
-            assert!(Md5Sum::from_str(&md5sum_str).is_err());
-        }
-
-        #[test]
-        #[allow(deprecated)]
-        fn invalid_md5sum_from_string_wrong_chars(md5sum_str in r"[e-z0-9]{32}") {
-            assert!(Md5Sum::from_str(&md5sum_str).is_err());
-        }
     }
 
     #[rstest]
@@ -417,23 +294,6 @@ mod tests {
         assert_eq!(format!("{}", &checksum), hex_digest,);
 
         let checksum = Checksum::<Blake2b512>::from_str(hex_digest).unwrap();
-        assert_eq!(digest, checksum.inner());
-        assert_eq!(format!("{}", &checksum), hex_digest,);
-    }
-
-    #[rstest]
-    fn checksum_md5() {
-        let data = "foo\n";
-        let digest = vec![
-            211, 176, 115, 132, 209, 19, 237, 236, 73, 234, 166, 35, 138, 213, 255, 0,
-        ];
-        let hex_digest = "d3b07384d113edec49eaa6238ad5ff00";
-
-        let checksum = Checksum::<Md5>::calculate_from(data);
-        assert_eq!(digest, checksum.inner());
-        assert_eq!(format!("{}", &checksum), hex_digest,);
-
-        let checksum = Checksum::<Md5>::from_str(hex_digest).unwrap();
         assert_eq!(digest, checksum.inner());
         assert_eq!(format!("{}", &checksum), hex_digest,);
     }
