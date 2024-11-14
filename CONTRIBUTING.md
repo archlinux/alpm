@@ -24,16 +24,17 @@ To get all of the necessary tools installed on Arch Linux, run `just install-pac
 To setup Rust for this project run `just install-rust-dev-tools`.
 Both can also be done in one fell swoop via `just dev-install`.
 
-To aide in development, it is encouraged to configure git to follow this project's guidelines.
-The following `just` command takes care of a few things:
-
-- Configure `git` to sign commits for this repository using OpenPGP.
-- Install the relevant [git pre-commit] and [git pre-push] hooks.
-- Install the [git prepare-commit-msg] hook to automatically add a signoff section to the commit message.
+To aide in development, it is encouraged to configure git to follow this project's guidelines:
 
 ```shell
 just configure-git
 ```
+
+This `just` command takes care of a few things:
+
+- Configure `git` to sign commits for this repository using OpenPGP.
+- Install the relevant [git pre-commit] and [git pre-push] hooks.
+- Install the [git prepare-commit-msg] hook to automatically add a signoff section to the commit message.
 
 ## Writing specifications
 
@@ -93,16 +94,16 @@ Individual contributors are all summarized as _"ALPM Contributors"_.
 For a full list of individual contributors, refer to `git log --format="%an <%aE>" | sort -u`.
 
 [Rust]: https://www.rust-lang.org/
-[mold]: https://github.com/rui314/mold
+[`mold`]: https://github.com/rui314/mold
 [`rustfmt`]: https://github.com/rust-lang/rustfmt
 [`clippy`]: https://github.com/rust-lang/rust-clippy
 [`codespell`]: https://github.com/codespell-project/codespell
 [`cargo-deny`]: https://github.com/EmbarkStudios/cargo-deny
 [`cargo-insta`]: https://github.com/mitsuhiko/insta
-[shellcheck]: https://www.shellcheck.net/
+[`shellcheck`]: https://www.shellcheck.net/
 [`cocogitto`]: https://docs.cocogitto.io/
 [`reuse`]: https://git.fsfe.org/reuse/tool
-[lychee]: https://github.com/lycheeverse/lychee
+[`lychee`]: https://github.com/lycheeverse/lychee
 [`just`]: https://github.com/casey/just
 [`tangler`]: https://github.com/wiktor-k/tangler
 [`cargo-machete`]: https://github.com/bnjbvr/cargo-machete
@@ -117,7 +118,7 @@ For a full list of individual contributors, refer to `git log --format="%an <%aE
 [CC0-1.0]: ./LICENSES/CC0-1.0.txt
 [CC-BY-SA-4.0]: ./LICENSES/CC-BY-SA-4.0.txt
 [`REUSE.toml`]: ./REUSE.toml
-[component]: .README.md#components
+[component]: ./README.md#components
 [fast-forward merges]: https://man.archlinux.org/man/git-merge.1#FAST-FORWARD_MERGE
 [section 5]: https://en.wikipedia.org/wiki/Man_page#Manual_sections
 [section 7]: https://en.wikipedia.org/wiki/Man_page#Manual_sections
