@@ -59,6 +59,26 @@ To ensure compatibility and automatic creation of [semantic versioning] compatib
 
 The commit messages are checked by `just run-pre-push-hook` via the tool [`cocogitto`].
 
+Follow these rules when writing commit messages:
+
+1. The subject line should be capitalized and should not end with a period.
+
+2. The total length of the line should not exceed **72** characters.
+
+3. The commit body should be in the imperative mood.
+
+Here is an example of a good commit message:
+
+```
+feat(parser): Enhance error handling in parser
+
+Improve error handling by adding specific error codes and messages
+to make debugging easier and more informative. This update enhances
+parsing accuracy and provides more context for handling parsing errors.
+
+Signed-off-by: John Doe <john@archlinux.org>
+```
+
 ## Merging changes
 
 Changes to the project are proposed and reviewed using merge requests and merged by the developers of this project using [fast-forward merges].
