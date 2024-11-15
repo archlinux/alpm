@@ -95,7 +95,9 @@ The value must be a valid package name as described in **pkgname**.
 ### buildtoolver
 
 The full version of the **buildtool** used to set up the build environment.
-The value must be a composite version string as described in **pkgver**, directly followed by a '-' sign, directly followed by an architecture string as described in **pkgarch** (e.g. `1:5.0.2-1-any`).
+The value may take one of two forms:
+- An **alpm-package-version** in *full* or in *full with epoch* form (e.g. `1.0.0-1` or `1:1.0.0-1`, respectively).
+- A composite version string composed of an **alpm-package-version** in *full* or in *full with epoch* form, directly followed by a '-' sign, directly followed by an **alpm-architecture** (e.g. `1.0.0-1-any` or `1:1.0.0-1-any`, respectively).
 
 ### buildenv
 
