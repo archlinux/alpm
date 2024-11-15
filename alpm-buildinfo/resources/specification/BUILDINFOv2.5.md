@@ -39,13 +39,13 @@ This must be **2** for **BUILDINFO** version 2.
 ### pkgname
 
 The name of the package.
-The value must be covered by the set of alphanumeric characters and '@', '.', '_', '+', '-', but it must not start with '-' or '.' (e.g. `package-name`).
+The value must be covered by the set of alphanumeric characters and '@', '.', '_', '+', '-', but it must not start with '-' or '.' (e.g. `example`).
 
 ### pkgbase
 
 The base name of the package.
 In most cases the value is the same as **pkgname**, unless the package is a split package.
-The value is covered by the same rules as that of **pkgname** (e.g. `package-name`).
+The value is covered by the same rules as that of **pkgname** (e.g. `example`).
 
 ### pkgver
 
@@ -111,14 +111,14 @@ The value must be a unique word, optionally prefixed by a single '!', which indi
 
 The information about an installed package during build time of the package.
 This keyword definition may be provided zero or more times.
-The value represents a composite string, composed of definitions available in the **BUILDINFO** specification: **pkgname** directly followed by a '-' sign, **pkgver** directly followed by a '-' sign, followed by **pkgarch** (e.g. `package-name-1:1.0.0-1-x86_64`).
+The value represents a composite string, composed of definitions available in the **BUILDINFO** specification: **pkgname** directly followed by a '-' sign, **pkgver** directly followed by a '-' sign, followed by **pkgarch** (e.g. `example-1:1.0.0-1-x86_64`).
 
 # EXAMPLES
 
 ```ini
 format = 2
-pkgname = package-name
-pkgbase = package-name
+pkgname = example
+pkgbase = example
 pkgver = 1:1.0.0-1
 pkgarch = any
 pkgbuild_sha256sum = b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c
