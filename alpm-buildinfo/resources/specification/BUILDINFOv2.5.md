@@ -39,23 +39,25 @@ This must be **2** for **BUILDINFO** version 2.
 ### pkgname
 
 The name of the package.
-The value must be covered by the set of alphanumeric characters and '@', '.', '_', '+', '-', but it must not start with '-' or '.' (e.g. `example`).
+The value is an **alpm-package-name** (e.g. `example`).
 
 ### pkgbase
 
 The base name of the package.
-In most cases the value is the same as **pkgname**, unless the package is a split package.
+This keyword reflects the name of the sources from which the package is built.
+If the sources of the package are used to build a single package, the value is the same as that of **pkgname**.
+If the sources of the package are used to build several packages, the value may differ from that of **pkgname** (see **PKGBUILD** **PACKAGE SPLITTING** for further information).
 The value is covered by the same rules as that of **pkgname** (e.g. `example`).
 
 ### pkgver
 
 The full version of the package.
 This keyword is not to be confused with **alpm-pkgver**, as it is in fact a composite version string consisting of the (optional) **alpm-epoch**, **alpm-pkgver** and **alpm-pkgrel** formats!
-The value must either consist of **alpm-pkgver** directly followed by a '-' sign, followed by **alpm-pkgrel** (e.g. `1.0.0-1`), or must consist of **alpm-epoch**, directly followed by a ':' sign, followed by **alpm-pkgver**, directly followed by a '-' sign, followed by **alpm-pkgrel** (e.g. `1:1.0.0-1`).
+The value is an **alpm-package-version**, either in *full* or in *full with epoch* form (e.g. `1.0.0-1` or `1:1.0.0-1`, respectively).
 
 ### pkgarch
 
-The architecture of the package.
+The architecture of the package (see **alpm-architecture** for further information).
 The value must be covered by the set of alphanumeric characters and '_' (e.g. `x86_64` or `any`).
 
 ### pkgbuild_sha256sum
@@ -138,7 +140,7 @@ installed = package2-2.1.0-6-x86_64
 
 # SEE ALSO
 
-alpm-buildinfo(1), makepkg.conf(5), PKGBUILD(5), alpm-epoch(7), alpm-pkgrel(7), alpm-pkgver(7), devtools(7), makepkg(8), pacman(8), repro(8)
+alpm-buildinfo(1), makepkg.conf(5), PKGBUILD(5), alpm-architecture(7), alpm-epoch(7), alpm-package-name(7), alpm-package-version(7), alpm-pkgrel(7), alpm-pkgver(7), devtools(7), makepkg(8), pacman(8), repro(8)
 
 # NOTES
 
