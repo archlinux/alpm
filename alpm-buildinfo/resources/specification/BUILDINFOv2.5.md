@@ -9,7 +9,7 @@ Such files are located at the root of ALPM packages, are named **.BUILDINFO** an
 For further information refer to **Arch Linux's reproducible builds effort**[1].
 
 The **BUILDINFO** format exists in multiple versions.
-The information in this document is for version 2, which is the current version.
+The information in this document is for version 2, which is the current version and has been introduced with the release of pacman 6.0.0 on 2021-05-20.
 
 ## Changes since the last version
 
