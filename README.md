@@ -54,10 +54,11 @@ For an overview of planned specifications and components, refer to the [mileston
 
 ## Components
 
-Currently the following specifications, libraries and CLI tools are available:
+Currently the following components are available:
 
 - [alpm-types]: a central library for types used by other ALPM libraries and tools
-- [alpm-buildinfo]: specifications, as well as a library and CLI to work with `.BUILDINFO` files
+- [alpm-buildinfo]: a library and commandline interface to work with `BUILDINFO` files
+- [alpm-parsers]: a library for providing various custom parsers/deserializers for file types used in ALPM
 
 ## Specifications
 
@@ -112,6 +113,7 @@ Contributions to this project, unless noted otherwise, are automatically license
 [alpm-package-name]: alpm-types/resources/specification/alpm-package-name.7.md
 [alpm-package-relation]: alpm-types/resources/specification/alpm-package-relation.7.md
 [alpm-package-version]: alpm-types/resources/specification/alpm-package-version.7.md
+[alpm-parsers]: alpm-parsers/
 [alpm-pkgrel]: alpm-types/resources/specification/alpm-package-pkgrel.7.md
 [alpm-pkgver]: alpm-types/resources/specification/alpm-package-pkgver.7.md
 [alpm-types]: alpm-types/
