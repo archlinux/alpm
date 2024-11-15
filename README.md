@@ -6,14 +6,55 @@ The ALPM project arose from the need for more clearly specifying the interfaces,
 
 The scope of this project is to provide robust integration for all relevant package creation and consumption, as well as repository management tasks.
 
+## Overview
+
+The following mindmap attempts to provide a high-level overview of the project and put file types as well as (existing and upcoming) libraries into context.
+
+```mermaid
+mindmap
+  root((ALPM))
+    📂 Source
+      📄 PKGBUILD
+      📄 .SRCINFO
+      📚️ alpm-srcinfo*
+    📦 Package
+      📄 .BUILDINFO
+      📄 .PKGINFO
+      📄 .INSTALL
+      📄 .MTREE
+      📚️ alpm-buildinfo
+      📚️ alpm-pkginfo*
+      📚️ alpm-mtree*
+      📚️ alpm-package*
+      📚️ alpm-package-verify*
+      📚️ alpm-package-verify-vda*
+    🗄️ Repository
+      📄 desc
+      📄 files
+      📚️ alpm-repo*
+      📚️ alpm-repo-desc*
+      📚️ alpm-repo-files*
+    🗄️ Package Management
+      📄 desc
+      📄 files
+      📚️ alpm-db*
+      📚️ alpm-db-desc*
+      📚️ alpm-db-download*
+      📚️ alpm-db-files*
+      📚️ alpm-db-verify*
+      📚️ alpm-db-verify-vda*
+```
+
+For an overview of planned specifications and components, refer to the [milestones] of the project.
+
+[*] Not yet implemented, or subject to change.
+
 ## Components
 
 Currently the following specifications, libraries and CLI tools are available:
 
 - [alpm-types]: a central library for types used by other ALPM libraries and tools
 - [alpm-buildinfo]: specifications, as well as a library and CLI to work with `.BUILDINFO` files
-
-Further specifications, libraries and CLI tools for relevant file types are on the roadmap ([%1]).
 
 ## Specifications
 
@@ -52,7 +93,6 @@ Please refer to the [contribution guidelines] to learn how to contribute to this
 This project can be used under the terms of the [Apache-2.0] or [MIT].
 Contributions to this project, unless noted otherwise, are automatically licensed under the terms of both of those licenses.
 
-[%1]: https://gitlab.archlinux.org/archlinux/alpm/alpm/-/milestones/1
 [Apache-2.0]: LICENSES/Apache-2.0.txt
 [BUILDINFO]: alpm-buildinfo/resources/specification/BUILDINFO.5.md
 [BUILDINFOv1]: alpm-buildinfo/resources/specification/BUILDINFOv1.5.md
@@ -74,3 +114,4 @@ Contributions to this project, unless noted otherwise, are automatically license
 [alpm-types]: alpm-types/
 [components]: #components
 [contribution guidelines]: CONTRIBUTING.md
+[milestones]: https://gitlab.archlinux.org/archlinux/alpm/alpm/-/milestones
