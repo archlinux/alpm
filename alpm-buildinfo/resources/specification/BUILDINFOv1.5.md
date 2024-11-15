@@ -94,7 +94,7 @@ The value must be a unique word, optionally prefixed by a single '!', which indi
 
 The information about an installed package during build time of the package.
 This keyword definition may be provided zero or more times.
-The value represents a composite string, composed of definitions available in the **BUILDINFO** specification: **pkgname** directly followed by a '-' sign, **pkgver** directly followed by a '-' sign, followed by **pkgarch** (e.g. `example-1:1.0.0-1-x86_64`).
+The value represents a composite string, composed of an **alpm-package-name**, directly followed by a '-' sign, directly followed by an **alpm-package-version** (in *full* or in *full in epoch* form), directly followed by a '-' sign, followed by an **alpm-architecture** (e.g. `example-1:1.0.0-1-x86_64`).
 
 # EXAMPLES
 
