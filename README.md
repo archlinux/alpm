@@ -3,8 +3,11 @@
 This project comprises specifications, as well as [Rust] libraries and tools for **A**rch **L**inux **P**ackage **M**anagement.
 
 The ALPM project arose from the need for more clearly specifying the interfaces, as well as providing bindings and tools in a memory-safe programming language.
+The specifications and implementations are based on ad-hoc implementations in the [pacman] project.
+Currently, this project aims to maintain compatibility with [pacman] `5.1.0` and onwards.
 
 The scope of this project is to provide robust integration for all relevant package creation and consumption, as well as repository management tasks.
+As such, the ALPM project also aims at providing drop-in replacements or alternatives for some facilities provided by [pacman].
 
 ## Overview
 
@@ -115,3 +118,4 @@ Contributions to this project, unless noted otherwise, are automatically license
 [components]: #components
 [contribution guidelines]: CONTRIBUTING.md
 [milestones]: https://gitlab.archlinux.org/archlinux/alpm/alpm/-/milestones
+[pacman]: https://gitlab.archlinux.org/pacman/pacman
