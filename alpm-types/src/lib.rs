@@ -5,9 +5,7 @@ mod checksum;
 pub use checksum::Checksum;
 
 mod source;
-pub use source::Filename;
 pub use source::Source;
-pub use source::SourceLocation;
 
 /// Public re-exports of common hash functions, for use with [`Checksum`].
 pub mod digests {

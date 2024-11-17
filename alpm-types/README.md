@@ -190,16 +190,24 @@ assert_eq!(PkgType::from_str("pkg"), Ok(PkgType::Package));
 
 ### Source
 
-Sources of a package can be described using `Source` (which consists of an optional `Filename` and a `SourceLocation`):
+Sources of a package can be described using `Source`:
 
 ```rust
-use alpm_types::{Filename, Source, SourceLocation};
 use std::str::FromStr;
+use std::path::Path;
+use alpm_types::Source;
 
 let source = Source::from_str("foopkg-1.2.3.tar.gz::https://example.com/download").unwrap();
+assert_eq!(source.filename().unwrap(), Path::new("foopkg-1.2.3.tar.gz"));
 
-assert_eq!(source.filename.unwrap(), Filename::from_str("foopkg-1.2.3.tar.gz").unwrap());
-let SourceLocation::Url(url) = source.location else { panic!() };
+let Source::Url { url, ..} = source else { panic!() };
+assert_eq!(url.host_str(), Some("example.com"));
+
+let source = Source::from_str("renamed-source.tar.gz::test.tar.gz").unwrap();
+assert_eq!(source.filename().unwrap(), Path::new("renamed-source.tar.gz"));
+
+let Source::File { location, .. } = source else { panic!() };
+assert_eq!(location, Path::new("test.tar.gz"));
 ```
 
 ### Version
