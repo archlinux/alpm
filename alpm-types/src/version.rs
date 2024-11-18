@@ -1052,6 +1052,12 @@ impl VersionRequirement {
     }
 }
 
+impl Display for VersionRequirement {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}{}", self.comparison, self.version)
+    }
+}
+
 impl FromStr for VersionRequirement {
     type Err = Error;
 
