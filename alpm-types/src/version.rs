@@ -181,6 +181,7 @@ impl Pkgrel {
         } else {
             Err(Error::RegexDoesNotMatch {
                 value: pkgrel.to_string(),
+                regex_type: "pkgrel".to_string(),
                 regex: PKGREL_REGEX.to_string(),
             })
         }
@@ -242,6 +243,7 @@ impl Pkgver {
         } else {
             Err(Error::RegexDoesNotMatch {
                 value: pkgver,
+                regex_type: "pkgver".to_string(),
                 regex: PKGVER_REGEX.to_string(),
             })
         }
@@ -1115,6 +1117,7 @@ mod tests {
         ".1.0.0-1-any",
         Error::RegexDoesNotMatch {
             value: ".1.0.0".to_string(),
+            regex_type: "pkgver".to_string(),
             regex: PKGVER_REGEX.to_string()
         }
     )]
@@ -1184,6 +1187,7 @@ mod tests {
         "1:1:foo-1",
         Error::RegexDoesNotMatch {
             value: "1:foo".to_string(),
+            regex_type: "pkgver".to_string(),
             regex: PKGVER_REGEX.to_string()
         }
     )]
@@ -1191,6 +1195,7 @@ mod tests {
         "1:foo-1-1",
         Error::RegexDoesNotMatch {
             value: "1-1".to_string(),
+            regex_type: "pkgrel".to_string(),
             regex: PKGREL_REGEX.to_string()
         }
     )]
@@ -1198,6 +1203,7 @@ mod tests {
         "",
         Error::RegexDoesNotMatch {
             value: "".to_string(),
+            regex_type: "pkgver".to_string(),
             regex: PKGVER_REGEX.to_string()
         }
     )]
@@ -1205,6 +1211,7 @@ mod tests {
         ":",
         Error::RegexDoesNotMatch {
             value: "".to_string(),
+            regex_type: "pkgver".to_string(),
             regex: PKGVER_REGEX.to_string()
         }
     )]
@@ -1212,6 +1219,7 @@ mod tests {
         ".",
         Error::RegexDoesNotMatch {
             value: ".".to_string(),
+            regex_type: "pkgver".to_string(),
             regex: PKGVER_REGEX.to_string()
         }
     )]
@@ -1290,6 +1298,7 @@ mod tests {
             Pkgver::new(pkgver.to_string()).as_ref(),
             Err(&Error::RegexDoesNotMatch {
                 value: pkgver.to_string(),
+                regex_type: "pkgver".to_string(),
                 regex: PKGVER_REGEX.to_string()
             }),
             "Expected pkgrel {pkgver} to be invalid."
@@ -1321,6 +1330,7 @@ mod tests {
             Pkgrel::new(pkgrel.to_string()),
             Err(Error::RegexDoesNotMatch {
                 value: pkgrel.to_string(),
+                regex_type: "pkgrel".to_string(),
                 regex: PKGREL_REGEX.to_string()
             }),
             "Expected pkgrel {pkgrel} to be invalid."
@@ -1479,6 +1489,7 @@ mod tests {
         "<3.1>3.2",
         Error::RegexDoesNotMatch {
             value: "3.1>3.2".to_string(),
+            regex_type: "pkgver".to_string(),
             regex: PKGVER_REGEX.to_string()
         }
     )]

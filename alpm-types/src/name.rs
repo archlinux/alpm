@@ -133,6 +133,7 @@ impl Name {
         } else {
             Err(Error::RegexDoesNotMatch {
                 value: name,
+                regex_type: "pkgname".to_string(),
                 regex: NAME_REGEX.to_string(),
             })
         }
@@ -215,6 +216,7 @@ mod tests {
             let error = Name::from_str(&name_str).unwrap_err();
             assert_eq!(error, Error::RegexDoesNotMatch {
                 value: name_str.to_string(),
+                regex_type: "pkgname".to_string(),
                 regex: NAME_REGEX.to_string(),
             });
         }

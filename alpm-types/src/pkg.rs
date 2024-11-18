@@ -72,6 +72,7 @@ impl Packager {
         } else {
             Err(Error::RegexDoesNotMatch {
                 value: packager.to_string(),
+                regex_type: "packager".to_string(),
                 regex: PACKAGER_REGEX.to_string(),
             })
         }
@@ -145,56 +146,51 @@ mod tests {
     #[rstest]
     #[case(
         "Foobar McFooface (The Third) <foobar@mcfooface.org>",
-        Ok(Packager{
+        Packager{
             name: "Foobar McFooface (The Third)".to_string(),
             email: EmailAddress::from_str("foobar@mcfooface.org").unwrap()
-        })
+        }
     )]
     #[case(
         "Foobar McFooface <foobar@mcfooface.org>",
-        Ok(Packager{
+        Packager{
             name: "Foobar McFooface".to_string(),
             email: EmailAddress::from_str("foobar@mcfooface.org").unwrap()
-        })
+        }
     )]
+    fn valid_packager(#[case] from_str: &str, #[case] packager: Packager) {
+        assert_eq!(Packager::from_str(from_str), Ok(packager));
+    }
+
+    /// Test that invalid packager email expressions throw the expected email errors.
+    #[rstest]
     #[case(
         "Foobar McFooface <@mcfooface.org>",
-        Err(email_address::Error::LocalPartEmpty.into()),
+        email_address::Error::LocalPartEmpty
     )]
     #[case(
         "Foobar McFooface <foobar@mcfooface.org> <foobar@mcfoofacemcfooface.org>",
-        Err(email_address::Error::MissingEndBracket.into()),
+        email_address::Error::MissingEndBracket
     )]
-    #[case(
-        "<foobar@mcfooface.org>",
-        Err(Error::RegexDoesNotMatch {
-            value: "<foobar@mcfooface.org>".to_string(),
-            regex: PACKAGER_REGEX.to_string(),
-        })
-    )]
-    #[case(
-        "[foo] <foobar@mcfooface.org>",
-        Err(Error::RegexDoesNotMatch {
-            value: "[foo] <foobar@mcfooface.org>".to_string(),
-            regex: PACKAGER_REGEX.to_string(),
-        })
-    )]
-    #[case(
-        "foobar@mcfooface.org",
-        Err(Error::RegexDoesNotMatch {
-            value: "foobar@mcfooface.org".to_string(),
-            regex: PACKAGER_REGEX.to_string(),
-        })
-    )]
-    #[case(
-        "Foobar McFooface",
-        Err(Error::RegexDoesNotMatch {
-            value: "Foobar McFooface".to_string(),
-            regex: PACKAGER_REGEX.to_string(),
-        })
-    )]
-    fn packager(#[case] from_str: &str, #[case] result: Result<Packager, Error>) {
-        assert_eq!(Packager::from_str(from_str), result);
+    fn invalid_packager_email(#[case] packager: &str, #[case] error: email_address::Error) {
+        assert_eq!(Packager::from_str(packager), Err(error.into()));
+    }
+
+    /// Test that invalid packager expressionare detected as such throw the expected Regex error.
+    #[rstest]
+    #[case("<foobar@mcfooface.org>")]
+    #[case("[foo] <foobar@mcfooface.org>")]
+    #[case("foobar@mcfooface.org")]
+    #[case("Foobar McFooface")]
+    fn invalid_packager_regex(#[case] packager: &str) {
+        assert_eq!(
+            Packager::from_str(packager),
+            Err(Error::RegexDoesNotMatch {
+                value: packager.to_string(),
+                regex_type: "packager".to_string(),
+                regex: PACKAGER_REGEX.to_string(),
+            })
+        );
     }
 
     #[rstest]
