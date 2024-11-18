@@ -941,12 +941,32 @@ impl PartialOrd for Version {
 /// - greater than (`>`)
 ///
 /// the specified version.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(
+    strum::AsRefStr,
+    Clone,
+    Copy,
+    Debug,
+    strum::Display,
+    strum::EnumIter,
+    strum::EnumString,
+    PartialEq,
+    Eq,
+    strum::VariantNames,
+)]
 pub enum VersionComparison {
+    #[strum(to_string = "<")]
     Less,
+
+    #[strum(to_string = "<=")]
     LessOrEqual,
+
+    #[strum(to_string = "=")]
     Equal,
+
+    #[strum(to_string = ">=")]
     GreaterOrEqual,
+
+    #[strum(to_string = ">")]
     Greater,
 }
 
@@ -966,21 +986,6 @@ impl VersionComparison {
             | (VersionComparison::Equal, Ordering::Less | Ordering::Greater)
             | (VersionComparison::GreaterOrEqual, Ordering::Less)
             | (VersionComparison::Greater, Ordering::Less | Ordering::Equal) => false,
-        }
-    }
-}
-
-impl FromStr for VersionComparison {
-    type Err = Error;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "<" => Ok(VersionComparison::Less),
-            "<=" => Ok(VersionComparison::LessOrEqual),
-            "=" => Ok(VersionComparison::Equal),
-            ">=" => Ok(VersionComparison::GreaterOrEqual),
-            ">" => Ok(VersionComparison::Greater),
-            _ => Err(strum::ParseError::VariantNotFound.into()),
         }
     }
 }
@@ -1491,7 +1496,7 @@ mod tests {
     fn invalid_version_comparison(#[case] comparison: &str) {
         assert_eq!(
             comparison.parse::<VersionComparison>(),
-            Err(strum::ParseError::VariantNotFound.into())
+            Err(strum::ParseError::VariantNotFound)
         );
     }
 
