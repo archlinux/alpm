@@ -51,6 +51,9 @@ mod pkg;
 pub use pkg::Packager;
 pub use pkg::PkgType;
 
+mod relation;
+pub use relation::PackageRelation;
+
 mod size;
 pub use size::CompressedSize;
 pub use size::InstalledSize;
