@@ -60,7 +60,7 @@ Additional **xdata** keyword definitions may be provided following the general r
 ### pkgver
 
 The full version of the package.
-This keyword is not to be confused with **alpm-pkgver**, as it is in fact a composite version string consisting of the (optional) **alpm-epoch**, **alpm-pkgver** and **alpm-pkgrel** formats!
+Note, that this is not to be confused with **alpm-pkgver**, which only represents a subset of this keyword!
 The value is an **alpm-package-version**, either in *full* or in *full with epoch* form (e.g. `1.0.0-1` or `1:1.0.0-1`, respectively).
 
 ### pkgdesc
@@ -194,7 +194,7 @@ checkdepend = other-extra-test-tool
 
 # SEE ALSO
 
-alpm-buildinfo(1), makepkg.conf(5), PKGBUILD(5), alpm-architecture(7), alpm-comparison(7), alpm-epoch(7), alpm-package-name(7), alpm-package-relation(7), alpm-package-version(7), alpm-pkgrel(7), alpm-pkgver(7), makepkg(8), pacman(8)
+alpm-buildinfo(1), makepkg.conf(5), PKGBUILD(5), alpm-architecture(7), alpm-comparison(7), alpm-package-name(7), alpm-package-relation(7), alpm-package-version(7), alpm-pkgver(7), makepkg(8), pacman(8)
 
 # NOTES
 
