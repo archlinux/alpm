@@ -15,10 +15,10 @@ use alpm_types::Packager;
 use alpm_types::SchemaVersion;
 use alpm_types::Version;
 use serde::Deserialize;
-use serde::Deserializer;
 use serde_with::serde_as;
 use serde_with::DisplayFromStr;
 
+use crate::schema::Schema;
 use crate::Error;
 
 /// BUILDINFO version 1
@@ -53,48 +53,51 @@ use crate::Error;
 /// let buildinfo = BuildInfoV1::from_str(buildinfo_data).unwrap();
 /// assert_eq!(buildinfo.to_string(), buildinfo_data);
 /// ```
+// NOTE: The fields are defined as `pub(crate)` to allow for internal reuse of this
+// struct in `BuildInfoV2`. In other words, we can construct this struct without
+// validating the format version, which is done in the `new` function.
 #[serde_as]
 #[derive(Clone, Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct BuildInfoV1 {
-    #[serde(deserialize_with = "BuildInfoV1::deserialize_schema_version")]
-    format: SchemaVersion,
+    #[serde_as(as = "DisplayFromStr")]
+    pub(crate) format: Schema,
 
     #[serde_as(as = "DisplayFromStr")]
-    pkgname: Name,
+    pub(crate) pkgname: Name,
 
     #[serde_as(as = "DisplayFromStr")]
-    pkgbase: Name,
+    pub(crate) pkgbase: Name,
 
     #[serde_as(as = "DisplayFromStr")]
-    pkgver: Version,
+    pub(crate) pkgver: Version,
 
     #[serde_as(as = "DisplayFromStr")]
-    pkgarch: Architecture,
+    pub(crate) pkgarch: Architecture,
 
     #[serde_as(as = "DisplayFromStr")]
-    pkgbuild_sha256sum: Checksum<Sha256>,
+    pub(crate) pkgbuild_sha256sum: Checksum<Sha256>,
 
     #[serde_as(as = "DisplayFromStr")]
-    packager: Packager,
+    pub(crate) packager: Packager,
 
     #[serde_as(as = "DisplayFromStr")]
-    builddate: BuildDate,
+    pub(crate) builddate: BuildDate,
 
     #[serde_as(as = "DisplayFromStr")]
-    builddir: BuildDir,
+    pub(crate) builddir: BuildDir,
 
     #[serde_as(as = "Vec<DisplayFromStr>")]
     #[serde(default)]
-    buildenv: Vec<BuildEnv>,
+    pub(crate) buildenv: Vec<BuildEnv>,
 
     #[serde_as(as = "Vec<DisplayFromStr>")]
     #[serde(default)]
-    options: Vec<PackageOption>,
+    pub(crate) options: Vec<PackageOption>,
 
     #[serde_as(as = "Vec<DisplayFromStr>")]
     #[serde(default)]
-    installed: Vec<Installed>,
+    pub(crate) installed: Vec<Installed>,
 }
 
 impl BuildInfoV1 {
@@ -121,7 +124,7 @@ impl BuildInfoV1 {
             builddate,
             builddir,
             buildenv,
-            format,
+            format: Schema::try_from(format)?,
             installed,
             options,
             packager,
@@ -133,24 +136,64 @@ impl BuildInfoV1 {
         })
     }
 
-    /// Deserialize a `SchemaVersion` from a string.
-    ///
-    /// Only accepts "1" as a valid schema version.
-    fn deserialize_schema_version<'de, D>(deserializer: D) -> Result<SchemaVersion, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let v: String = Deserialize::deserialize(deserializer)?;
-        let format = SchemaVersion::new(&v).map_err(serde::de::Error::custom)?;
-        if format.inner().major != 1
-            || (format.inner().major == 1
-                && (format.inner().minor != 0 || format.inner().patch != 0))
-        {
-            return Err(serde::de::Error::custom(
-                Error::WrongSchemaVersion(format).to_string(),
-            ));
-        }
-        Ok(format)
+    /// Returns the schema version of the package format.
+    pub fn format(&self) -> &SchemaVersion {
+        self.format.inner()
+    }
+
+    /// Returns the package name.
+    pub fn pkgname(&self) -> &Name {
+        &self.pkgname
+    }
+
+    /// Returns the base name of the package.
+    pub fn pkgbase(&self) -> &Name {
+        &self.pkgbase
+    }
+
+    /// Returns the package version.
+    pub fn pkgver(&self) -> &Version {
+        &self.pkgver
+    }
+
+    /// Returns the architecture of the package.
+    pub fn pkgarch(&self) -> &Architecture {
+        &self.pkgarch
+    }
+
+    /// Returns the SHA256 checksum of the PKGBUILD file.
+    pub fn pkgbuild_sha256sum(&self) -> &Checksum<Sha256> {
+        &self.pkgbuild_sha256sum
+    }
+
+    /// Returns information about the packager.
+    pub fn packager(&self) -> &Packager {
+        &self.packager
+    }
+
+    /// Returns the build date of the package.
+    pub fn builddate(&self) -> &BuildDate {
+        &self.builddate
+    }
+
+    /// Returns the directory where the build took place.
+    pub fn builddir(&self) -> &BuildDir {
+        &self.builddir
+    }
+
+    /// Returns the build environment variables.
+    pub fn buildenv(&self) -> &Vec<BuildEnv> {
+        &self.buildenv
+    }
+
+    /// Returns the options used during package building.
+    pub fn options(&self) -> &Vec<PackageOption> {
+        &self.options
+    }
+
+    /// Returns a list of installed dependencies or components.
+    pub fn installed(&self) -> &Vec<Installed> {
+        &self.installed
     }
 }
 
@@ -163,7 +206,11 @@ impl FromStr for BuildInfoV1 {
     /// Returns an `Error` if any of the fields in `input` can not be validated according to
     /// `BuildInfoV1` or their respective own specification.
     fn from_str(input: &str) -> Result<BuildInfoV1, Self::Err> {
-        Ok(alpm_parsers::custom_ini::from_str(input)?)
+        let buildinfo: BuildInfoV1 = alpm_parsers::custom_ini::from_str(input)?;
+        if buildinfo.format().inner().major != 1 {
+            return Err(Error::WrongSchemaVersion(buildinfo.format().clone()));
+        }
+        Ok(buildinfo)
     }
 }
 
@@ -184,26 +231,26 @@ impl Display for BuildInfoV1 {
             {}\n\
             {}\n\
             ",
-            self.format.inner().major,
-            self.pkgname,
-            self.pkgbase,
-            self.pkgver,
-            self.pkgarch,
-            self.pkgbuild_sha256sum,
-            self.packager,
-            self.builddate,
-            self.builddir,
-            self.buildenv
+            self.format().inner().major,
+            self.pkgname(),
+            self.pkgbase(),
+            self.pkgver(),
+            self.pkgarch(),
+            self.pkgbuild_sha256sum(),
+            self.packager(),
+            self.builddate(),
+            self.builddir(),
+            self.buildenv()
                 .iter()
                 .map(|v| format!("buildenv = {v}"))
                 .collect::<Vec<String>>()
                 .join("\n"),
-            self.options
+            self.options()
                 .iter()
                 .map(|v| format!("options = {v}"))
                 .collect::<Vec<String>>()
                 .join("\n"),
-            self.installed
+            self.installed()
                 .iter()
                 .map(|v| format!("installed = {v}"))
                 .collect::<Vec<String>>()
