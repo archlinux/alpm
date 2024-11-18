@@ -12,6 +12,7 @@ use crate::Error;
 #[non_exhaustive]
 pub enum Schema {
     V1(SchemaVersion),
+    V2(SchemaVersion),
 }
 
 impl Schema {
@@ -19,6 +20,7 @@ impl Schema {
     pub fn inner(&self) -> &SchemaVersion {
         match self {
             Schema::V1(v) => v,
+            Schema::V2(v) => v,
         }
     }
 }
@@ -57,6 +59,7 @@ impl TryFrom<SchemaVersion> for Schema {
     fn try_from(value: SchemaVersion) -> Result<Self, Self::Error> {
         match value.inner().major {
             1 => Ok(Schema::V1(value)),
+            2 => Ok(Schema::V2(value)),
             _ => Err(Error::InvalidBuildInfoVersion(value.to_string())),
         }
     }
@@ -70,6 +73,7 @@ impl Display for Schema {
             "{}",
             match self {
                 Schema::V1(_) => "1",
+                Schema::V2(_) => "2",
             }
         )
     }
