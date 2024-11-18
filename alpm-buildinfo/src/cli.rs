@@ -78,8 +78,10 @@ pub enum Command {
     /// a non-zero exit code.
     Validate {
         /// Provide the BUILDINFO schema version to use.
+        ///
+        /// If no schema version is provided, it will be deduced from the file itself.
         #[arg(short, long, value_name = "VERSION")]
-        schema: Schema,
+        schema: Option<Schema>,
         #[arg(value_name = "FILE")]
         file: Option<PathBuf>,
     },

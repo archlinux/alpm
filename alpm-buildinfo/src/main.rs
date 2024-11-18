@@ -102,7 +102,7 @@ fn create_file(command: CreateCommand) -> Result<(), Error> {
 /// See [`IsTerminal`] for more information about how terminal detection works.
 ///
 /// [`IsTerminal`]: https://doc.rust-lang.org/stable/std/io/trait.IsTerminal.html
-fn validate(file: &Option<PathBuf>, schema: &Schema) -> Result<(), Error> {
+fn validate(file: &Option<PathBuf>, schema: &Option<Schema>) -> Result<(), Error> {
     let contents = if let Some(file) = file {
         read_to_string(file).map_err(|_| Error::FailedReadingFile(format!("{}", file.display())))?
     } else if !io::stdin().is_terminal() {
@@ -116,6 +116,15 @@ fn validate(file: &Option<PathBuf>, schema: &Schema) -> Result<(), Error> {
         return Err(Error::NoInputFile);
     };
 
+    // Determine the schema that should be used to validate the file.
+    // If no explicit schema version is provided, the version will be deducted from the contents of
+    // the file itself. If the file does not contain a version, an error will be returned.
+    let schema = if let Some(schema) = schema {
+        schema.clone()
+    } else {
+        Schema::from_contents(&contents)?
+    };
+
     match schema {
         Schema::V1(_) => {
             BuildInfoV1::from_str(&contents)?;
@@ -123,7 +132,7 @@ fn validate(file: &Option<PathBuf>, schema: &Schema) -> Result<(), Error> {
         Schema::V2(_) => {
             BuildInfoV2::from_str(&contents)?;
         }
-        _ => unimplemented!("Unimplemented schema!"),
+        _ => return Err(Error::UnsupportedSchemaVersion(schema.inner().clone())),
     };
 
     Ok(())

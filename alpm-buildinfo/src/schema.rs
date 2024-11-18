@@ -1,8 +1,10 @@
 use std::{
+    collections::HashMap,
     fmt::{Display, Formatter},
     str::FromStr,
 };
 
+use alpm_parsers::custom_ini::Item;
 use alpm_types::SchemaVersion;
 
 use crate::Error;
@@ -21,6 +23,22 @@ impl Schema {
         match self {
             Schema::V1(v) => v,
             Schema::V2(v) => v,
+        }
+    }
+
+    /// Determines the schema version from the contents of a BUILDINFO file
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the format field is missing
+    pub fn from_contents(contents: &str) -> Result<Schema, Error> {
+        // Deserialize the file into a simple map, so we can take a look at the `format` string
+        // that determines the buildinfo version.
+        let raw_buildinfo: HashMap<String, Item> = alpm_parsers::custom_ini::from_str(contents)?;
+        if let Some(Item::Value(version)) = raw_buildinfo.get("format") {
+            Self::from_str(version)
+        } else {
+            Err(Error::MissingFormatField)
         }
     }
 }

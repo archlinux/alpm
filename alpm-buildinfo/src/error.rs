@@ -80,6 +80,10 @@ pub enum Error {
     #[error("Failed to deserialize BUILDINFO file: {0}")]
     DeserializeError(#[from] alpm_parsers::custom_ini::Error),
 
+    /// Unsupported schema version
+    #[error("Unsupported schema version: {0}")]
+    UnsupportedSchemaVersion(SchemaVersion),
+
     /// BuildInfo file is missing the format field
     #[error("Missing format field")]
     MissingFormatField,
