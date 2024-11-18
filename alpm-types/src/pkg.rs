@@ -71,6 +71,7 @@ impl Packager {
             }
         } else {
             Err(Error::RegexDoesNotMatch {
+                value: packager.to_string(),
                 regex: PACKAGER_REGEX.to_string(),
             })
         }
@@ -167,24 +168,28 @@ mod tests {
     #[case(
         "<foobar@mcfooface.org>",
         Err(Error::RegexDoesNotMatch {
+            value: "<foobar@mcfooface.org>".to_string(),
             regex: PACKAGER_REGEX.to_string(),
         })
     )]
     #[case(
         "[foo] <foobar@mcfooface.org>",
         Err(Error::RegexDoesNotMatch {
+            value: "[foo] <foobar@mcfooface.org>".to_string(),
             regex: PACKAGER_REGEX.to_string(),
         })
     )]
     #[case(
         "foobar@mcfooface.org",
         Err(Error::RegexDoesNotMatch {
+            value: "foobar@mcfooface.org".to_string(),
             regex: PACKAGER_REGEX.to_string(),
         })
     )]
     #[case(
         "Foobar McFooface",
         Err(Error::RegexDoesNotMatch {
+            value: "Foobar McFooface".to_string(),
             regex: PACKAGER_REGEX.to_string(),
         })
     )]

@@ -180,6 +180,7 @@ impl Pkgrel {
             Ok(Pkgrel(pkgrel))
         } else {
             Err(Error::RegexDoesNotMatch {
+                value: pkgrel.to_string(),
                 regex: PKGREL_REGEX.to_string(),
             })
         }
@@ -240,6 +241,7 @@ impl Pkgver {
             Ok(Pkgver(pkgver))
         } else {
             Err(Error::RegexDoesNotMatch {
+                value: pkgver,
                 regex: PKGVER_REGEX.to_string(),
             })
         }
@@ -1109,7 +1111,13 @@ mod tests {
     /// Ensure that invalid buildtool version strings produce the respective errors.
     #[rstest]
     #[case("1.0.0-any", Error::MissingComponent { component: "pkgrel" })]
-    #[case(".1.0.0-1-any", Error::RegexDoesNotMatch { regex: PKGVER_REGEX.to_string() })]
+    #[case(
+        ".1.0.0-1-any",
+        Error::RegexDoesNotMatch {
+            value: ".1.0.0".to_string(),
+            regex: PKGVER_REGEX.to_string()
+        }
+    )]
     #[case("1.0.0-1-foo", strum::ParseError::VariantNotFound.into())]
     fn invalid_buildtoolver_new(#[case] buildtoolver: &str, #[case] expected: Error) {
         assert_eq!(
@@ -1172,14 +1180,53 @@ mod tests {
 
     /// Ensure that invalid version strings produce the respective errors.
     #[rstest]
+    #[case(
+        "1:1:foo-1",
+        Error::RegexDoesNotMatch {
+            value: "1:foo".to_string(),
+            regex: PKGVER_REGEX.to_string()
+        }
+    )]
+    #[case(
+        "1:foo-1-1",
+        Error::RegexDoesNotMatch {
+            value: "1-1".to_string(),
+            regex: PKGREL_REGEX.to_string()
+        }
+    )]
+    #[case(
+        "",
+        Error::RegexDoesNotMatch {
+            value: "".to_string(),
+            regex: PKGVER_REGEX.to_string()
+        }
+    )]
+    #[case(
+        ":",
+        Error::RegexDoesNotMatch {
+            value: "".to_string(),
+            regex: PKGVER_REGEX.to_string()
+        }
+    )]
+    #[case(
+        ".",
+        Error::RegexDoesNotMatch {
+            value: ".".to_string(),
+            regex: PKGVER_REGEX.to_string()
+        }
+    )]
+    fn invalid_regex_in_version_from_string(#[case] version: &str, #[case] expected: Error) {
+        assert_eq!(
+            Version::new(version),
+            Err(expected),
+            "Expected error while parsing {version}"
+        )
+    }
+
+    #[rstest]
     #[case("-1foo:1", Error::InvalidInteger { kind: IntErrorKind::InvalidDigit })]
     #[case("1-foo:1", Error::InvalidInteger { kind: IntErrorKind::InvalidDigit })]
-    #[case("1:1:foo-1", Error::RegexDoesNotMatch { regex: PKGVER_REGEX.to_string() })]
-    #[case("1:foo-1-1", Error::RegexDoesNotMatch { regex: PKGREL_REGEX.to_string() })]
-    #[case("", Error::RegexDoesNotMatch { regex: PKGVER_REGEX.to_string() })]
-    #[case(":", Error::RegexDoesNotMatch { regex: PKGVER_REGEX.to_string() })]
-    #[case(".", Error::RegexDoesNotMatch { regex: PKGVER_REGEX.to_string() })]
-    fn invalid_version_from_string(#[case] version: &str, #[case] expected: Error) {
+    fn invalid_integer_in_version_from_string(#[case] version: &str, #[case] expected: Error) {
         assert_eq!(
             Version::new(version),
             Err(expected),
@@ -1242,6 +1289,7 @@ mod tests {
         assert_eq!(
             Pkgver::new(pkgver.to_string()).as_ref(),
             Err(&Error::RegexDoesNotMatch {
+                value: pkgver.to_string(),
                 regex: PKGVER_REGEX.to_string()
             }),
             "Expected pkgrel {pkgver} to be invalid."
@@ -1272,6 +1320,7 @@ mod tests {
         assert_eq!(
             Pkgrel::new(pkgrel.to_string()),
             Err(Error::RegexDoesNotMatch {
+                value: pkgrel.to_string(),
                 regex: PKGREL_REGEX.to_string()
             }),
             "Expected pkgrel {pkgrel} to be invalid."
@@ -1426,7 +1475,13 @@ mod tests {
     #[case("<>3.1", strum::ParseError::VariantNotFound.into())]
     #[case("3.1", strum::ParseError::VariantNotFound.into())]
     #[case("=>3.1", strum::ParseError::VariantNotFound.into())]
-    #[case("<3.1>3.2", Error::RegexDoesNotMatch { regex: PKGVER_REGEX.to_string() })]
+    #[case(
+        "<3.1>3.2",
+        Error::RegexDoesNotMatch {
+            value: "3.1>3.2".to_string(),
+            regex: PKGVER_REGEX.to_string()
+        }
+    )]
     fn invalid_version_requirement(#[case] requirement: &str, #[case] expected: Error) {
         assert_eq!(
             requirement.parse::<VersionRequirement>(),

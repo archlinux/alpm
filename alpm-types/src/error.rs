@@ -57,8 +57,8 @@ pub enum Error {
     ///
     /// TODO: Add the reason why the value is invalid. For that,
     /// we should get rid of the regex checks and use a custom parser.
-    #[error("Value does not match the regex: {regex}")]
-    RegexDoesNotMatch { regex: String },
+    #[error("Value '{value}' does not match the regex: {regex}")]
+    RegexDoesNotMatch { value: String, regex: String },
 
     /// Missing field in a value
     #[error("Missing component: {component}")]
@@ -106,8 +106,9 @@ mod tests {
         }
     )]
     #[case(
-        "Value does not match the regex: ^[a-z\\d_@+]+[a-z\\d\\-._@+]*$",
+        "Value '€i²' does not match the regex: ^[a-z\\d_@+]+[a-z\\d\\-._@+]*$",
         Error::RegexDoesNotMatch {
+            value: "€i²".to_string(),
             regex: NAME_REGEX.to_string(),
         }
     )]
@@ -119,8 +120,9 @@ mod tests {
         }
     )]
     #[case(
-        "Value does not match the regex: ^(?P<name>[\\w\\s\\-().]+) <(?P<email>.*)>$",
+        "Value '€i²' does not match the regex: ^(?P<name>[\\w\\s\\-().]+) <(?P<email>.*)>$",
         Error::RegexDoesNotMatch {
+            value: "€i²".to_string(),
             regex: PACKAGER_REGEX.to_string(),
         }
     )]

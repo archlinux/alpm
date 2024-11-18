@@ -132,6 +132,7 @@ impl Name {
             Ok(Name(name))
         } else {
             Err(Error::RegexDoesNotMatch {
+                value: name,
                 regex: NAME_REGEX.to_string(),
             })
         }
@@ -213,6 +214,7 @@ mod tests {
         fn invalid_name_from_string_start(name_str in r"[\-.]+[a-z\d\-._@+]*") {
             let error = Name::from_str(&name_str).unwrap_err();
             assert_eq!(error, Error::RegexDoesNotMatch {
+                value: name_str.to_string(),
                 regex: NAME_REGEX.to_string(),
             });
         }

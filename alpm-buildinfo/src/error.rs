@@ -77,7 +77,7 @@ pub enum Error {
     NoInputFile,
 
     // Deserialize error.
-    #[error("Failed to deserialize BUILDINFO file: {0}")]
+    #[error("Failed to deserialize BUILDINFO file:\n{0}")]
     DeserializeError(#[from] alpm_parsers::custom_ini::Error),
 
     /// Unsupported schema version
