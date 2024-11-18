@@ -79,4 +79,8 @@ pub enum Error {
     // Deserialize error.
     #[error("Failed to deserialize BUILDINFO file: {0}")]
     DeserializeError(#[from] alpm_parsers::custom_ini::Error),
+
+    /// BuildInfo file is missing the format field
+    #[error("Missing format field")]
+    MissingFormatField,
 }

@@ -11,48 +11,12 @@ use alpm_types::Installed;
 use alpm_types::Name;
 use alpm_types::PackageOption;
 use alpm_types::Packager;
-use alpm_types::SchemaVersion;
 use alpm_types::Version;
 use clap::Parser;
 use clap::Subcommand;
 
+use crate::schema::Schema;
 use crate::Error;
-
-/// An enum describing all valid BUILDINFO schemas
-#[derive(Clone, Debug, Default)]
-#[non_exhaustive]
-pub enum Schema {
-    #[default]
-    V1,
-}
-
-impl FromStr for Schema {
-    type Err = Error;
-
-    fn from_str(s: &str) -> Result<Schema, Self::Err> {
-        match SchemaVersion::from_str(s) {
-            Ok(version)
-                if version >= SchemaVersion::new("1").unwrap()
-                    && version < SchemaVersion::new("2").unwrap() =>
-            {
-                Ok(Schema::V1)
-            }
-            Err(_) | Ok(_) => Err(Error::InvalidBuildInfoVersion(s.to_string())),
-        }
-    }
-}
-
-impl Display for Schema {
-    fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
-        write!(
-            fmt,
-            "{}",
-            match self {
-                Schema::V1 => "1",
-            }
-        )
-    }
-}
 
 /// A type wrapping a PathBuf with a default value
 ///

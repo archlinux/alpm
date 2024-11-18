@@ -12,7 +12,7 @@ use std::str::FromStr;
 use alpm_buildinfo::cli::Cli;
 use alpm_buildinfo::cli::Command;
 use alpm_buildinfo::cli::CreateCommand;
-use alpm_buildinfo::cli::Schema;
+use alpm_buildinfo::schema::Schema;
 use alpm_buildinfo::BuildInfoV1;
 use alpm_buildinfo::Error;
 use alpm_types::digests::Sha256;
@@ -98,7 +98,7 @@ fn validate(file: &Option<PathBuf>, schema: &Schema) -> Result<(), Error> {
     };
 
     match schema {
-        Schema::V1 => BuildInfoV1::from_str(&contents)?,
+        Schema::V1(_) => BuildInfoV1::from_str(&contents)?,
         _ => unimplemented!("Unimplemented schema!"),
     };
 
