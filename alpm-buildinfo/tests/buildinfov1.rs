@@ -43,7 +43,7 @@ pub struct BuildInfoV1Input {
 #[test]
 fn validate_valid_buildinfov1() -> TestResult {
     let mut cmd = Command::cargo_bin("alpm-buildinfo")?;
-    cmd.args(["validate"]);
+    cmd.args(["validate", "--schema", "1"]);
     cmd.write_stdin(VALID_BUILDINFO_DATA);
     cmd.assert().success();
     Ok(())
@@ -144,7 +144,12 @@ fn write_buildinfov1(
         );
 
         let mut cmd = Command::cargo_bin("alpm-buildinfo")?;
-        cmd.args(["validate", file.as_os_str().to_str().unwrap()]);
+        cmd.args([
+            "validate",
+            "--schema",
+            "1",
+            file.as_os_str().to_str().unwrap(),
+        ]);
         cmd.assert().success();
     } else {
         cmd.assert().failure();

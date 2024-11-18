@@ -7,11 +7,15 @@ use alpm_types::Architecture;
 use alpm_types::BuildDate;
 use alpm_types::BuildDir;
 use alpm_types::BuildEnv;
+use alpm_types::BuildTool;
+use alpm_types::BuildToolVer;
 use alpm_types::Installed;
 use alpm_types::Name;
 use alpm_types::PackageOption;
 use alpm_types::Packager;
+use alpm_types::StartDir;
 use alpm_types::Version;
+use clap::Args;
 use clap::Parser;
 use clap::Subcommand;
 
@@ -73,76 +77,104 @@ pub enum Command {
     /// If the file can not be validated, an error is emitted on stderr and the program exits with
     /// a non-zero exit code.
     Validate {
-        /// Provide the BUILDINFO schema version to use
-        #[arg(default_value_t = Schema::default(), long, short, value_name = "VERSION")]
+        /// Provide the BUILDINFO schema version to use.
+        #[arg(short, long, value_name = "VERSION")]
         schema: Schema,
         #[arg(value_name = "FILE")]
         file: Option<PathBuf>,
     },
 }
 
+/// Arguments for creating a BUILDINFO file according to the format version 1 schema
+///
+/// This struct is defined separately for re-using it for both v1 and v2 since they have
+/// an overlapping set of fields.
+#[derive(Clone, Debug, Args)]
+pub struct V1CreateArgs {
+    /// Provide a builddate
+    #[arg(env = "BUILDINFO_BUILDDATE", long, value_name = "BUILDDATE")]
+    pub builddate: BuildDate,
+    /// Provide a builddir
+    #[arg(env = "BUILDINFO_BUILDDIR", long, value_name = "BUILDDIR")]
+    pub builddir: BuildDir,
+    /// Provide one or more buildenv
+    #[arg(
+        env = "BUILDINFO_BUILDENV",
+        long,
+        value_delimiter = ' ',
+        value_name = "BUILDENV"
+    )]
+    pub buildenv: Vec<BuildEnv>,
+    /// Provide one or more installed
+    #[arg(
+        env = "BUILDINFO_INSTALLED",
+        long,
+        value_delimiter = ' ',
+        value_name = "INSTALLED"
+    )]
+    pub installed: Vec<Installed>,
+    /// Provide one or more options
+    #[arg(
+        env = "BUILDINFO_OPTIONS",
+        long,
+        value_delimiter = ' ',
+        value_name = "OPTIONS"
+    )]
+    pub options: Vec<PackageOption>,
+    /// Provide a packager
+    #[arg(env = "BUILDINFO_PACKAGER", long, value_name = "PACKAGER")]
+    pub packager: Packager,
+    /// Provide a pkgarch
+    #[arg(env = "BUILDINFO_PKGARCH", long, value_name = "PKGARCH")]
+    pub pkgarch: Architecture,
+    /// Provide a pkgbase
+    #[arg(env = "BUILDINFO_PKGBASE", long, value_name = "PKGBASE")]
+    pub pkgbase: Name,
+    /// Provide a pkgbuild_sha256sum
+    #[arg(
+        env = "BUILDINFO_PKGBUILD_SHA256SUM",
+        long,
+        value_name = "PKGBUILD_SHA256SUM"
+    )]
+    pub pkgbuild_sha256sum: String,
+    /// Provide a pkgname
+    #[arg(env = "BUILDINFO_PKGNAME", long, value_name = "PKGNAME")]
+    pub pkgname: Name,
+    /// Provide a pkgver
+    #[arg(env = "BUILDINFO_PKGVER", long, value_name = "PKGVER")]
+    pub pkgver: Version,
+    /// Provide a file to write to
+    #[arg(default_value_t = OutputFile::default(), value_name = "FILE")]
+    pub output: OutputFile,
+}
+
+/// Create an BUILDINFO file according to a schema
+///
+/// If the input can be validated according to the schema, the program exits with no output and
+/// a return code of 0. If the input can not be validated according to the schema, an error
+/// is emitted on stderr and the program exits with a non-zero exit code.
 #[derive(Clone, Debug, Subcommand)]
 pub enum CreateCommand {
     /// Create a BUILDINFO version 1 file
-    ///
-    /// If the input can be validated according to the schema, the program exits with no output and
-    /// a return code of 0. If the input can not be validated according to the schema, an error
-    /// is emitted on stderr and the program exits with a non-zero exit code.
     V1 {
-        /// Provide a builddate
-        #[arg(env = "BUILDINFO_BUILDDATE", long, value_name = "BUILDDATE")]
-        builddate: BuildDate,
-        /// Provide a builddir
-        #[arg(env = "BUILDINFO_BUILDDIR", long, value_name = "BUILDDIR")]
-        builddir: BuildDir,
-        /// Provide one or more buildenv
-        #[arg(
-            env = "BUILDINFO_BUILDENV",
-            long,
-            value_delimiter = ' ',
-            value_name = "BUILDENV"
-        )]
-        buildenv: Vec<BuildEnv>,
-        /// Provide one or more installed
-        #[arg(
-            env = "BUILDINFO_INSTALLED",
-            long,
-            value_delimiter = ' ',
-            value_name = "INSTALLED"
-        )]
-        installed: Vec<Installed>,
-        /// Provide one or more options
-        #[arg(
-            env = "BUILDINFO_OPTIONS",
-            long,
-            value_delimiter = ' ',
-            value_name = "OPTIONS"
-        )]
-        options: Vec<PackageOption>,
-        /// Provide a packager
-        #[arg(env = "BUILDINFO_PACKAGER", long, value_name = "PACKAGER")]
-        packager: Packager,
-        /// Provide a pkgarch
-        #[arg(env = "BUILDINFO_PKGARCH", long, value_name = "PKGARCH")]
-        pkgarch: Architecture,
-        /// Provide a pkgbase
-        #[arg(env = "BUILDINFO_PKGBASE", long, value_name = "PKGBASE")]
-        pkgbase: Name,
-        /// Provide a pkgbuild_sha256sum
-        #[arg(
-            env = "BUILDINFO_PKGBUILD_SHA256SUM",
-            long,
-            value_name = "PKGBUILD_SHA256SUM"
-        )]
-        pkgbuild_sha256sum: String,
-        /// Provide a pkgname
-        #[arg(env = "BUILDINFO_PKGNAME", long, value_name = "PKGNAME")]
-        pkgname: Name,
-        /// Provide a pkgver
-        #[arg(env = "BUILDINFO_PKGVER", long, value_name = "PKGVER")]
-        pkgver: Version,
-        /// Provide a file to write to
-        #[arg(default_value_t = OutputFile::default(), value_name = "FILE")]
-        output: OutputFile,
+        #[command(flatten)]
+        args: V1CreateArgs,
+    },
+    /// Create a BUILDINFO version 2 file
+    V2 {
+        #[command(flatten)]
+        args: V1CreateArgs,
+
+        /// Provide a startdir
+        #[arg(env = "BUILDINFO_STARTDIR", long, value_name = "STARTDIR")]
+        startdir: StartDir,
+
+        /// Provide a buildtool
+        #[arg(env = "BUILDINFO_BUILDTOOL", long, value_name = "BUILDTOOL")]
+        buildtool: BuildTool,
+
+        /// Provide a buildtoolver
+        #[arg(env = "BUILDINFO_BUILDTOOLVER", long, value_name = "BUILDTOOLVER")]
+        buildtoolver: BuildToolVer,
     },
 }

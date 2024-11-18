@@ -14,6 +14,7 @@ use alpm_buildinfo::cli::Command;
 use alpm_buildinfo::cli::CreateCommand;
 use alpm_buildinfo::schema::Schema;
 use alpm_buildinfo::BuildInfoV1;
+use alpm_buildinfo::BuildInfoV2;
 use alpm_buildinfo::Error;
 use alpm_types::digests::Sha256;
 use alpm_types::Checksum;
@@ -23,41 +24,59 @@ use clap::Parser;
 /// Create a file according to a BUILDINFO schema
 fn create_file(command: CreateCommand) -> Result<(), Error> {
     let (data, output) = match command {
-        CreateCommand::V1 {
-            builddate,
-            builddir,
-            buildenv,
-            installed,
-            options,
-            packager,
-            pkgarch,
-            pkgbase,
-            pkgbuild_sha256sum,
-            pkgname,
-            pkgver,
-            output,
-        } => (
+        CreateCommand::V1 { args } => (
             BuildInfoV1::new(
-                builddate,
-                builddir,
-                buildenv,
+                args.builddate,
+                args.builddir,
+                args.buildenv,
                 SchemaVersion::from_str("1")?,
-                installed,
-                options,
-                packager,
-                pkgarch,
-                pkgbase,
-                Checksum::<Sha256>::from_str(&pkgbuild_sha256sum).map_err(|_| {
+                args.installed,
+                args.options,
+                args.packager,
+                args.pkgarch,
+                args.pkgbase,
+                Checksum::<Sha256>::from_str(&args.pkgbuild_sha256sum).map_err(|_| {
                     Error::Default(format!(
                         "The provided SHA-256 checksum is not valid: {}",
-                        &pkgbuild_sha256sum,
+                        &args.pkgbuild_sha256sum,
                     ))
                 })?,
-                pkgname,
-                pkgver,
+                args.pkgname,
+                args.pkgver,
             )?
             .to_string(),
-            output,
+            args.output,
+        ),
+        CreateCommand::V2 {
+            args,
+            startdir,
+            buildtool,
+            buildtoolver,
+        } => (
+            BuildInfoV2::new(
+                args.builddate,
+                args.builddir,
+                startdir,
+                buildtool,
+                buildtoolver,
+                args.buildenv,
+                SchemaVersion::from_str("2")?,
+                args.installed,
+                args.options,
+                args.packager,
+                args.pkgarch,
+                args.pkgbase,
+                Checksum::<Sha256>::from_str(&args.pkgbuild_sha256sum).map_err(|_| {
+                    Error::Default(format!(
+                        "The provided SHA-256 checksum is not valid: {}",
+                        &args.pkgbuild_sha256sum,
+                    ))
+                })?,
+                args.pkgname,
+                args.pkgver,
+            )?
+            .to_string(),
+            args.output,
         ),
     };
 
@@ -98,7 +117,12 @@ fn validate(file: &Option<PathBuf>, schema: &Schema) -> Result<(), Error> {
     };
 
     match schema {
-        Schema::V1(_) => BuildInfoV1::from_str(&contents)?,
+        Schema::V1(_) => {
+            BuildInfoV1::from_str(&contents)?;
+        }
+        Schema::V2(_) => {
+            BuildInfoV2::from_str(&contents)?;
+        }
         _ => unimplemented!("Unimplemented schema!"),
     };
 
