@@ -8,7 +8,7 @@ use alpm_types::BuildDate;
 use alpm_types::BuildDir;
 use alpm_types::BuildEnv;
 use alpm_types::BuildTool;
-use alpm_types::BuildToolVer;
+use alpm_types::BuildToolVersion;
 use alpm_types::InstalledPackage;
 use alpm_types::Name;
 use alpm_types::PackageOption;
@@ -177,6 +177,6 @@ pub enum CreateCommand {
 
         /// Provide a buildtoolver
         #[arg(env = "BUILDINFO_BUILDTOOLVER", long, value_name = "BUILDTOOLVER")]
-        buildtoolver: BuildToolVer,
+        buildtoolver: BuildToolVersion,
     },
 }

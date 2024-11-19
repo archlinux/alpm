@@ -18,27 +18,27 @@ pub(crate) static PKGVER_REGEX: Lazy<Regex> = lazy_regex!(r"^([[:alnum:]][[:alnu
 
 /// The version and architecture of a build tool
 ///
-/// `BuildToolVer` is used in conjunction with `BuildTool` to denote the specific build tool a
-/// package is built with. A `BuildToolVer` wraps a `Version` (that is guaranteed to have a
+/// `BuildToolVersion` is used in conjunction with `BuildTool` to denote the specific build tool a
+/// package is built with. A `BuildToolVersion` wraps a `Version` (that is guaranteed to have a
 /// `Pkgrel`) and an `Architecture`.
 ///
 /// ## Examples
 /// ```
-/// use alpm_types::BuildToolVer;
+/// use alpm_types::BuildToolVersion;
 ///
-/// assert!(BuildToolVer::new("1-1-any").is_ok());
-/// assert!(BuildToolVer::new("1").is_ok());
-/// assert!(BuildToolVer::new("1-1").is_err());
-/// assert!(BuildToolVer::new("1-1-foo").is_err());
+/// assert!(BuildToolVersion::new("1-1-any").is_ok());
+/// assert!(BuildToolVersion::new("1").is_ok());
+/// assert!(BuildToolVersion::new("1-1").is_err());
+/// assert!(BuildToolVersion::new("1-1-foo").is_err());
 /// ```
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub struct BuildToolVer {
+pub struct BuildToolVersion {
     version: Version,
     architecture: Option<Architecture>,
 }
 
-impl BuildToolVer {
-    /// Create a new BuildToolVer and return it in a Result
+impl BuildToolVersion {
+    /// Create a new BuildToolVersion and return it in a Result
     ///
     /// This can be either a fully specified [Version] string with pkgrel and
     /// architecture, **or** it can be a [Version] string without a `pkgrel` and no architecture.
@@ -48,25 +48,25 @@ impl BuildToolVer {
     ///
     /// ## Examples
     /// ```
-    /// use alpm_types::BuildToolVer;
+    /// use alpm_types::BuildToolVersion;
     ///
-    /// assert!(BuildToolVer::new("1:5.0.2-1-any").is_ok());
-    /// assert!(BuildToolVer::new("5.0.2-1-any").is_ok());
-    /// assert!(BuildToolVer::new("5.0.2").is_ok());
+    /// assert!(BuildToolVersion::new("1:5.0.2-1-any").is_ok());
+    /// assert!(BuildToolVersion::new("5.0.2-1-any").is_ok());
+    /// assert!(BuildToolVersion::new("5.0.2").is_ok());
     ///
-    /// assert!(BuildToolVer::new("5.0.2-any").is_err());
+    /// assert!(BuildToolVersion::new("5.0.2-any").is_err());
     /// ```
     pub fn new(buildtoolver: &str) -> Result<Self, Error> {
         const VERSION_DELIMITER: char = '-';
         match buildtoolver.rsplit_once(VERSION_DELIMITER) {
             Some((version, architecture)) => match Architecture::from_str(architecture) {
-                Ok(architecture) => Ok(BuildToolVer {
+                Ok(architecture) => Ok(BuildToolVersion {
                     version: Version::with_pkgrel(version)?,
                     architecture: Some(architecture),
                 }),
                 Err(err) => Err(err.into()),
             },
-            None => Ok(BuildToolVer {
+            None => Ok(BuildToolVersion {
                 version: Version::from_str(buildtoolver)?,
                 architecture: None,
             }),
@@ -84,15 +84,15 @@ impl BuildToolVer {
     }
 }
 
-impl FromStr for BuildToolVer {
+impl FromStr for BuildToolVersion {
     type Err = Error;
-    /// Create an BuildToolVer from a string and return it in a Result
+    /// Create an BuildToolVersion from a string and return it in a Result
     fn from_str(input: &str) -> Result<Self, Self::Err> {
-        BuildToolVer::new(input)
+        BuildToolVersion::new(input)
     }
 }
 
-impl Display for BuildToolVer {
+impl Display for BuildToolVersion {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
         if let Some(architecture) = &self.architecture {
             write!(fmt, "{}-{}", self.version, architecture)
@@ -1092,19 +1092,19 @@ mod tests {
     #[rstest]
     #[case(
         "1.0.0-1-any",
-        BuildToolVer{version: Version::new("1.0.0-1").unwrap(), architecture: Some(Architecture::from_str("any").unwrap())},
+        BuildToolVersion{version: Version::new("1.0.0-1").unwrap(), architecture: Some(Architecture::from_str("any").unwrap())},
     )]
     #[case(
         "1:1.0.0-1-any",
-        BuildToolVer{version: Version::new("1:1.0.0-1").unwrap(), architecture: Some(Architecture::from_str("any").unwrap())},
+        BuildToolVersion{version: Version::new("1:1.0.0-1").unwrap(), architecture: Some(Architecture::from_str("any").unwrap())},
     )]
     #[case(
         "1.0.0",
-        BuildToolVer{version: Version::new("1.0.0").unwrap(), architecture: None},
+        BuildToolVersion{version: Version::new("1.0.0").unwrap(), architecture: None},
     )]
-    fn valid_buildtoolver_new(#[case] buildtoolver: &str, #[case] expected: BuildToolVer) {
+    fn valid_buildtoolver_new(#[case] buildtoolver: &str, #[case] expected: BuildToolVersion) {
         assert_eq!(
-            BuildToolVer::new(buildtoolver),
+            BuildToolVersion::new(buildtoolver),
             Ok(expected),
             "Expected valid parse of buildtoolver '{buildtoolver}'"
         );
@@ -1124,7 +1124,7 @@ mod tests {
     #[case("1.0.0-1-foo", strum::ParseError::VariantNotFound.into())]
     fn invalid_buildtoolver_new(#[case] buildtoolver: &str, #[case] expected: Error) {
         assert_eq!(
-            BuildToolVer::new(buildtoolver),
+            BuildToolVersion::new(buildtoolver),
             Err(expected),
             "Expected error during parse of buildtoolver '{buildtoolver}'"
         );

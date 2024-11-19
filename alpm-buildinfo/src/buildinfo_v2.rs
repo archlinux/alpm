@@ -8,7 +8,7 @@ use alpm_types::BuildDate;
 use alpm_types::BuildDir;
 use alpm_types::BuildEnv;
 use alpm_types::BuildTool;
-use alpm_types::BuildToolVer;
+use alpm_types::BuildToolVersion;
 use alpm_types::Checksum;
 use alpm_types::InstalledPackage;
 use alpm_types::Name;
@@ -74,7 +74,7 @@ pub struct BuildInfoV2 {
     buildtool: BuildTool,
 
     #[serde_as(as = "DisplayFromStr")]
-    buildtoolver: BuildToolVer,
+    buildtoolver: BuildToolVersion,
 }
 
 impl BuildInfoV2 {
@@ -85,7 +85,7 @@ impl BuildInfoV2 {
         builddir: BuildDir,
         startdir: StartDir,
         buildtool: BuildTool,
-        buildtoolver: BuildToolVer,
+        buildtoolver: BuildToolVersion,
         buildenv: Vec<BuildEnv>,
         format: SchemaVersion,
         installed: Vec<InstalledPackage>,
@@ -192,7 +192,7 @@ impl BuildInfoV2 {
     }
 
     /// Returns the version of the build tool.
-    pub fn buildtoolver(&self) -> &BuildToolVer {
+    pub fn buildtoolver(&self) -> &BuildToolVersion {
         &self.buildtoolver
     }
 }
@@ -304,7 +304,7 @@ pkgver = 1:1.0.0-1
             BuildDir::new("/build")?,
             StartDir::new("/startdir/")?,
             BuildTool::new("devtools")?,
-            BuildToolVer::new("1:1.2.1-1-any")?,
+            BuildToolVersion::new("1:1.2.1-1-any")?,
             vec![BuildEnv::new("some")?],
             SchemaVersion::new("2")?,
             vec![InstalledPackage::new("bar-1:1.0.0-2-any")?],
@@ -327,7 +327,7 @@ pkgver = 1:1.0.0-1
             BuildDir::new("/build")?,
             StartDir::new("/startdir/")?,
             BuildTool::new("devtools")?,
-            BuildToolVer::new("1:1.2.1-1-any")?,
+            BuildToolVersion::new("1:1.2.1-1-any")?,
             vec![BuildEnv::new("some")?],
             SchemaVersion::new("1")?,
             vec![InstalledPackage::new("bar-1:1.0.0-2-any")?],

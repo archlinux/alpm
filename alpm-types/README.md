@@ -200,12 +200,12 @@ let SourceLocation::Url(url) = source.location else { panic!() };
 
 ### Version
 
-The version and CPU architecture of a build tool is tracked using `BuildToolVer`:
+The version and CPU architecture of a build tool is tracked using `BuildToolVersion`:
 
 ```rust
-use alpm_types::BuildToolVer;
+use alpm_types::BuildToolVersion;
 
-let buildtoolver = BuildToolVer::new("1.0.0-1-any").unwrap();
+let buildtoolver = BuildToolVersion::new("1.0.0-1-any").unwrap();
 
 assert_eq!("1.0.0-1-any", format!("{}", buildtoolver));
 ```
