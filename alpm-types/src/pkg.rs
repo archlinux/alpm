@@ -120,7 +120,7 @@ impl Display for Packager {
 /// assert_eq!("src", format!("{}", PkgType::Source));
 /// assert_eq!("split", format!("{}", PkgType::Split));
 /// ```
-#[derive(Clone, Debug, Display, EnumString, PartialEq)]
+#[derive(Copy, Clone, Debug, Display, EnumString, Eq, PartialEq)]
 #[non_exhaustive]
 pub enum PkgType {
     /// a debug package

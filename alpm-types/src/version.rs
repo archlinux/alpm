@@ -307,7 +307,7 @@ impl Display for Pkgver {
 ///     (segment: "", delimiters: 3),
 ///   ]
 ///   ```
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct VersionSegment<'a> {
     /// The string representation of the next segment
     pub segment: &'a str,
