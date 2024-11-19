@@ -62,7 +62,7 @@ impl Display for AbsolutePath {
 
 /// An absolute path used as build directory
 ///
-/// BuildDir wraps an `AbsolutePath`
+/// This is a type alias for [`AbsolutePath`]
 ///
 /// ## Examples
 /// ```
@@ -80,37 +80,11 @@ impl Display for AbsolutePath {
 /// // format as String
 /// assert_eq!("/", format!("{}", BuildDir::new("/").unwrap()));
 /// ```
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct BuildDir(AbsolutePath);
-
-impl BuildDir {
-    /// Create a new BuildDir
-    pub fn new(absolute_path: &str) -> Result<BuildDir, Error> {
-        AbsolutePath::new(absolute_path).map(BuildDir)
-    }
-
-    /// Return a reference to the inner type
-    pub fn inner(&self) -> &AbsolutePath {
-        &self.0
-    }
-}
-
-impl FromStr for BuildDir {
-    type Err = Error;
-    fn from_str(absolute_path: &str) -> Result<BuildDir, Self::Err> {
-        BuildDir::new(absolute_path)
-    }
-}
-
-impl Display for BuildDir {
-    fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
-        write!(fmt, "{}", self.inner())
-    }
-}
+pub type BuildDir = AbsolutePath;
 
 /// An absolute path used as start directory in a package build environment
 ///
-/// StartDir wraps an `AbsolutePath`
+/// This is a type alias for [`AbsolutePath`]
 ///
 /// ## Examples
 /// ```
@@ -131,33 +105,7 @@ impl Display for BuildDir {
 /// // format as String
 /// assert_eq!("/", format!("{}", StartDir::new("/").unwrap()));
 /// ```
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct StartDir(AbsolutePath);
-
-impl StartDir {
-    /// Create a new StartDir and return it in a Result
-    pub fn new(absolute_path: &str) -> Result<Self, Error> {
-        AbsolutePath::new(absolute_path).map(StartDir)
-    }
-
-    /// Return a reference to the inner type
-    pub fn inner(&self) -> &AbsolutePath {
-        &self.0
-    }
-}
-
-impl FromStr for StartDir {
-    type Err = Error;
-    fn from_str(absolute_path: &str) -> Result<StartDir, Self::Err> {
-        StartDir::new(absolute_path)
-    }
-}
-
-impl Display for StartDir {
-    fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
-        write!(fmt, "{}", self.inner())
-    }
-}
+pub type StartDir = AbsolutePath;
 
 #[cfg(test)]
 mod tests {
