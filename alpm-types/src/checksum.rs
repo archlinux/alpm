@@ -6,7 +6,31 @@ use std::{
 
 use digest::Digest;
 
+use crate::digests::{Blake2b512, Sha1, Sha224, Sha256, Sha384, Sha512};
 use crate::Error;
+
+// Convenience type aliases for the supported checksums
+
+/// A checksum using the Blake2b512 algorithm
+pub type Blake2b512Checksum = Checksum<Blake2b512>;
+
+/// A checksum using the Md5 algorithm
+pub type Md5Checksum = Checksum<md5::Md5>;
+
+/// A checksum using the Sha1 algorithm
+pub type Sha1Checksum = Checksum<Sha1>;
+
+/// A checksum using the Sha224 algorithm
+pub type Sha224Checksum = Checksum<Sha224>;
+
+/// A checksum using the Sha256 algorithm
+pub type Sha256Checksum = Checksum<Sha256>;
+
+/// A checksum using the Sha384 algorithm
+pub type Sha384Checksum = Checksum<Sha384>;
+
+/// A checksum using the Sha512 algorithm
+pub type Sha512Checksum = Checksum<Sha512>;
 
 /// A checksum using a supported algorithm
 ///
@@ -22,7 +46,15 @@ use crate::Error;
 /// NOTE: Contrary to makepkg/pacman, this crate *does not* support using cksum-style CRC-32 as it
 /// is non-standard (different implementations throughout libraries) and cryptographically unsafe.
 ///
+/// ## Note
+///
+/// There are two ways to use a checksum:
+///
+/// 1. Generically over a digest (e.g. `Checksum::<Blake2b512>`)
+/// 2. Using the convenience type aliases (e.g. `Blake2b512Checksum`)
+///
 /// ## Examples
+///
 /// ```
 /// use std::str::FromStr;
 /// use alpm_types::{digests::Blake2b512, Checksum};
@@ -147,134 +179,128 @@ mod tests {
     use rstest::rstest;
 
     use super::*;
-    use crate::digests::Blake2b512;
-    use crate::digests::Sha1;
-    use crate::digests::Sha224;
-    use crate::digests::Sha256;
-    use crate::digests::Sha384;
-    use crate::digests::Sha512;
 
     proptest! {
         #![proptest_config(ProptestConfig::with_cases(1000))]
 
         #[test]
         fn valid_checksum_blake2b512_from_string(string in r"[a-f0-9]{128}") {
-            prop_assert_eq!(&string, &format!("{}", Checksum::<Blake2b512>::from_str(&string).unwrap()));
+            prop_assert_eq!(&string, &format!("{}", Blake2b512Checksum::from_str(&string).unwrap()));
         }
 
         #[test]
         fn invalid_checksum_blake2b512_bigger_size(string in r"[a-f0-9]{129}") {
-            assert!(Checksum::<Blake2b512>::from_str(&string).is_err());
+            assert!(Blake2b512Checksum::from_str(&string).is_err());
         }
 
         #[test]
         fn invalid_checksum_blake2b512_smaller_size(string in r"[a-f0-9]{127}") {
-            assert!(Checksum::<Blake2b512>::from_str(&string).is_err());
+            assert!(Blake2b512Checksum::from_str(&string).is_err());
         }
 
         #[test]
         fn invalid_checksum_blake2b512_wrong_chars(string in r"[e-z0-9]{128}") {
-            assert!(Checksum::<Blake2b512>::from_str(&string).is_err());
+            assert!(Blake2b512Checksum::from_str(&string).is_err());
         }
 
         #[test]
         fn valid_checksum_sha1_from_string(string in r"[a-f0-9]{40}") {
-            prop_assert_eq!(&string, &format!("{}", Checksum::<Sha1>::from_str(&string).unwrap()));
+            prop_assert_eq!(&string, &format!("{}", Sha1Checksum::from_str(&string).unwrap()));
         }
 
         #[test]
         fn invalid_checksum_sha1_from_string_bigger_size(string in r"[a-f0-9]{41}") {
-            assert!(Checksum::<Sha1>::from_str(&string).is_err());
+            assert!(Sha1Checksum::from_str(&string).is_err());
         }
 
         #[test]
         fn invalid_checksum_sha1_from_string_smaller_size(string in r"[a-f0-9]{39}") {
-            assert!(Checksum::<Sha1>::from_str(&string).is_err());
+            assert!(Sha1Checksum::from_str(&string).is_err());
         }
 
         #[test]
         fn invalid_checksum_sha1_from_string_wrong_chars(string in r"[e-z0-9]{40}") {
-            assert!(Checksum::<Sha1>::from_str(&string).is_err());
+            assert!(Sha1Checksum::from_str(&string).is_err());
         }
 
         #[test]
         fn valid_checksum_sha224_from_string(string in r"[a-f0-9]{56}") {
-            prop_assert_eq!(&string, &format!("{}", Checksum::<Sha224>::from_str(&string).unwrap()));
+            prop_assert_eq!(&string, &format!("{}", Sha224Checksum::from_str(&string).unwrap()));
         }
 
         #[test]
         fn invalid_checksum_sha224_from_string_bigger_size(string in r"[a-f0-9]{57}") {
-            assert!(Checksum::<Sha224>::from_str(&string).is_err());
+            assert!(Sha224Checksum::from_str(&string).is_err());
         }
 
         #[test]
         fn invalid_checksum_sha224_from_string_smaller_size(string in r"[a-f0-9]{55}") {
-            assert!(Checksum::<Sha224>::from_str(&string).is_err());
+            assert!(Sha224Checksum::from_str(&string).is_err());
         }
 
         #[test]
         fn invalid_checksum_sha224_from_string_wrong_chars(string in r"[e-z0-9]{56}") {
-            assert!(Checksum::<Sha224>::from_str(&string).is_err());
+            assert!(Sha224Checksum::from_str(&string).is_err());
         }
 
         #[test]
         fn valid_checksum_sha256_from_string(string in r"[a-f0-9]{64}") {
-            prop_assert_eq!(&string, &format!("{}", Checksum::<Sha256>::from_str(&string).unwrap()));
+            prop_assert_eq!(&string, &format!("{}", Sha256Checksum::from_str(&string).unwrap()));
         }
 
         #[test]
         fn invalid_checksum_sha256_from_string_bigger_size(string in r"[a-f0-9]{65}") {
-            assert!(Checksum::<Sha256>::from_str(&string).is_err());
+            assert!(Sha256Checksum::from_str(&string).is_err());
         }
 
         #[test]
         fn invalid_checksum_sha256_from_string_smaller_size(string in r"[a-f0-9]{63}") {
-            assert!(Checksum::<Sha256>::from_str(&string).is_err());
+            assert!(Sha256Checksum::from_str(&string).is_err());
         }
 
         #[test]
         fn invalid_checksum_sha256_from_string_wrong_chars(string in r"[e-z0-9]{64}") {
-            assert!(Checksum::<Sha256>::from_str(&string).is_err());
+            assert!(Sha256Checksum::from_str(&string).is_err());
         }
 
         #[test]
         fn valid_checksum_sha384_from_string(string in r"[a-f0-9]{96}") {
-            prop_assert_eq!(&string, &format!("{}", Checksum::<Sha384>::from_str(&string).unwrap()));
+            prop_assert_eq!(&string, &format!("{}", Sha384Checksum::from_str(&string).unwrap()));
         }
 
         #[test]
         fn invalid_checksum_sha384_from_string_bigger_size(string in r"[a-f0-9]{97}") {
-            assert!(Checksum::<Sha384>::from_str(&string).is_err());
+            assert!(Sha384Checksum::from_str(&string).is_err());
         }
 
         #[test]
         fn invalid_checksum_sha384_from_string_smaller_size(string in r"[a-f0-9]{95}") {
-            assert!(Checksum::<Sha384>::from_str(&string).is_err());
+            assert!(Sha384Checksum::from_str(&string).is_err());
         }
 
         #[test]
         fn invalid_checksum_sha384_from_string_wrong_chars(string in r"[e-z0-9]{96}") {
-            assert!(Checksum::<Sha384>::from_str(&string).is_err());
+            assert!(Sha384Checksum::from_str(&string).is_err());
         }
 
         #[test]
         fn valid_checksum_sha512_from_string(string in r"[a-f0-9]{128}") {
-            prop_assert_eq!(&string, &format!("{}", Checksum::<Sha512>::from_str(&string).unwrap()));
+            prop_assert_eq!(&string, &format!("{}", Sha512Checksum::from_str(&string).unwrap()));
         }
 
         #[test]
         fn invalid_checksum_sha512_from_string_bigger_size(string in r"[a-f0-9]{129}") {
-            assert!(Checksum::<Sha512>::from_str(&string).is_err());
+            assert!(Sha512Checksum::from_str(&string).is_err());
         }
 
         #[test]
         fn invalid_checksum_sha512_from_string_smaller_size(string in r"[a-f0-9]{127}") {
-            assert!(Checksum::<Sha512>::from_str(&string).is_err());
+            assert!(Sha512Checksum::from_str(&string).is_err());
         }
 
         #[test]
         fn invalid_checksum_sha512_from_string_wrong_chars(string in r"[e-z0-9]{128}") {
-            assert!(Checksum::<Sha512>::from_str(&string).is_err());
+            assert!(Sha512Checksum::from_str(&string).is_err());
         }
     }
 
@@ -289,11 +315,11 @@ mod tests {
         ];
         let hex_digest = "d202d7951df2c4b711ca44b4bcc9d7b363fa4252127e058c1a910ec05b6cd038d71cc21221c031c0359f993e746b07f5965cf8c5c3746a58337ad9ab65278e77";
 
-        let checksum = Checksum::<Blake2b512>::calculate_from(data);
+        let checksum = Blake2b512Checksum::calculate_from(data);
         assert_eq!(digest, checksum.inner());
         assert_eq!(format!("{}", &checksum), hex_digest,);
 
-        let checksum = Checksum::<Blake2b512>::from_str(hex_digest).unwrap();
+        let checksum = Blake2b512Checksum::from_str(hex_digest).unwrap();
         assert_eq!(digest, checksum.inner());
         assert_eq!(format!("{}", &checksum), hex_digest,);
     }
@@ -307,11 +333,11 @@ mod tests {
         ];
         let hex_digest = "f1d2d2f924e986ac86fdf7b36c94bcdf32beec15";
 
-        let checksum = Checksum::<Sha1>::calculate_from(data);
+        let checksum = Sha1Checksum::calculate_from(data);
         assert_eq!(digest, checksum.inner());
         assert_eq!(format!("{}", &checksum), hex_digest,);
 
-        let checksum = Checksum::<Sha1>::from_str(hex_digest).unwrap();
+        let checksum = Sha1Checksum::from_str(hex_digest).unwrap();
         assert_eq!(digest, checksum.inner());
         assert_eq!(format!("{}", &checksum), hex_digest,);
     }
@@ -325,11 +351,11 @@ mod tests {
         ];
         let hex_digest = "e7d5e36e8d470c3e5103fedd2e4f2aa5c30ab27f6629bdc3286f9dd2";
 
-        let checksum = Checksum::<Sha224>::calculate_from(data);
+        let checksum = Sha224Checksum::calculate_from(data);
         assert_eq!(digest, checksum.inner());
         assert_eq!(format!("{}", &checksum), hex_digest,);
 
-        let checksum = Checksum::<Sha224>::from_str(hex_digest).unwrap();
+        let checksum = Sha224Checksum::from_str(hex_digest).unwrap();
         assert_eq!(digest, checksum.inner());
         assert_eq!(format!("{}", &checksum), hex_digest,);
     }
@@ -343,11 +369,11 @@ mod tests {
         ];
         let hex_digest = "b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c";
 
-        let checksum = Checksum::<Sha256>::calculate_from(data);
+        let checksum = Sha256Checksum::calculate_from(data);
         assert_eq!(digest, checksum.inner());
         assert_eq!(format!("{}", &checksum), hex_digest,);
 
-        let checksum = Checksum::<Sha256>::from_str(hex_digest).unwrap();
+        let checksum = Sha256Checksum::from_str(hex_digest).unwrap();
         assert_eq!(digest, checksum.inner());
         assert_eq!(format!("{}", &checksum), hex_digest,);
     }
@@ -362,11 +388,11 @@ mod tests {
         ];
         let hex_digest = "8effdabfe14416214a250f935505250bd991f106065d899db6e19bdc8bf648f3ac0f1935c4f65fe8f798289b1a0d1e06";
 
-        let checksum = Checksum::<Sha384>::calculate_from(data);
+        let checksum = Sha384Checksum::calculate_from(data);
         assert_eq!(digest, checksum.inner());
         assert_eq!(format!("{}", &checksum), hex_digest,);
 
-        let checksum = Checksum::<Sha384>::from_str(hex_digest).unwrap();
+        let checksum = Sha384Checksum::from_str(hex_digest).unwrap();
         assert_eq!(digest, checksum.inner());
         assert_eq!(format!("{}", &checksum), hex_digest,);
     }
@@ -382,11 +408,11 @@ mod tests {
         ];
         let hex_digest = "0cf9180a764aba863a67b6d72f0918bc131c6772642cb2dce5a34f0a702f9470ddc2bf125c12198b1995c233c34b4afd346c54a2334c350a948a51b6e8b4e6b6";
 
-        let checksum = Checksum::<Sha512>::calculate_from(data);
+        let checksum = Sha512Checksum::calculate_from(data);
         assert_eq!(digest, checksum.inner());
         assert_eq!(format!("{}", &checksum), hex_digest);
 
-        let checksum = Checksum::<Sha512>::from_str(hex_digest).unwrap();
+        let checksum = Sha512Checksum::from_str(hex_digest).unwrap();
         assert_eq!(digest, checksum.inner());
         assert_eq!(format!("{}", &checksum), hex_digest);
     }

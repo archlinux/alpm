@@ -2,7 +2,16 @@
 #![forbid(unsafe_code)]
 
 mod checksum;
-pub use checksum::Checksum;
+pub use checksum::{
+    Blake2b512Checksum,
+    Checksum,
+    Md5Checksum,
+    Sha1Checksum,
+    Sha224Checksum,
+    Sha256Checksum,
+    Sha384Checksum,
+    Sha512Checksum,
+};
 
 mod source;
 pub use source::Source;
