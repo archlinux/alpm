@@ -38,18 +38,7 @@ pub struct MakePkgOption {
 impl MakePkgOption {
     /// Create a new MakePkgOption in a Result
     pub fn new(option: &str) -> Result<Self, Error> {
-        let (name, on) = if let Some(name) = option.strip_prefix('!') {
-            (name.to_owned(), false)
-        } else {
-            (option.to_owned(), true)
-        };
-        if let Some(c) = name
-            .chars()
-            .find(|c| !(c.is_alphanumeric() || ['-', '.', '_'].contains(c)))
-        {
-            return Err(Error::ValueContainsInvalidChars { invalid_char: c });
-        }
-        Ok(MakePkgOption { name, on })
+        Self::from_str(option)
     }
 
     /// Get the name of the MakePkgOption
@@ -66,8 +55,19 @@ impl MakePkgOption {
 impl FromStr for MakePkgOption {
     type Err = Error;
     /// Create an Option from a string
-    fn from_str(input: &str) -> Result<MakePkgOption, Self::Err> {
-        MakePkgOption::new(input)
+    fn from_str(s: &str) -> Result<MakePkgOption, Self::Err> {
+        let (name, on) = if let Some(name) = s.strip_prefix('!') {
+            (name.to_owned(), false)
+        } else {
+            (s.to_owned(), true)
+        };
+        if let Some(c) = name
+            .chars()
+            .find(|c| !(c.is_alphanumeric() || ['-', '.', '_'].contains(c)))
+        {
+            return Err(Error::ValueContainsInvalidChars { invalid_char: c });
+        }
+        Ok(MakePkgOption { name, on })
     }
 }
 
@@ -122,12 +122,14 @@ pub type PackageOption = MakePkgOption;
 ///
 /// ## Examples
 /// ```
+/// use std::str::FromStr;
+///
 /// use alpm_types::InstalledPackage;
 ///
-/// assert!(InstalledPackage::new("foo-bar-1:1.0.0-1-any").is_ok());
-/// assert!(InstalledPackage::new("foo-bar-1:1.0.0-1").is_err());
-/// assert!(InstalledPackage::new("foo-bar-1:1.0.0-any").is_err());
-/// assert!(InstalledPackage::new("1:1.0.0-1-any").is_err());
+/// assert!(InstalledPackage::from_str("foo-bar-1:1.0.0-1-any").is_ok());
+/// assert!(InstalledPackage::from_str("foo-bar-1:1.0.0-1").is_err());
+/// assert!(InstalledPackage::from_str("foo-bar-1:1.0.0-any").is_err());
+/// assert!(InstalledPackage::from_str("1:1.0.0-1-any").is_err());
 /// ```
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct InstalledPackage {
@@ -137,10 +139,22 @@ pub struct InstalledPackage {
 }
 
 impl InstalledPackage {
-    /// Create new Installed and return it in a Result
-    pub fn new(installed: &str) -> Result<Self, Error> {
+    /// Create a new InstalledPackage
+    pub fn new(name: Name, version: Version, architecture: Architecture) -> Result<Self, Error> {
+        Ok(InstalledPackage {
+            name,
+            version,
+            architecture,
+        })
+    }
+}
+
+impl FromStr for InstalledPackage {
+    type Err = Error;
+    /// Create an Installed from a string
+    fn from_str(s: &str) -> Result<InstalledPackage, Self::Err> {
         const DELIMITER: char = '-';
-        let mut parts = installed.rsplitn(4, DELIMITER);
+        let mut parts = s.rsplitn(4, DELIMITER);
 
         let architecture = parts.next().ok_or(Error::MissingComponent {
             component: "architecture",
@@ -169,14 +183,6 @@ impl InstalledPackage {
             version: Version::with_pkgrel(version.as_str())?,
             architecture,
         })
-    }
-}
-
-impl FromStr for InstalledPackage {
-    type Err = Error;
-    /// Create an Installed from a string
-    fn from_str(input: &str) -> Result<InstalledPackage, Self::Err> {
-        InstalledPackage::new(input)
     }
 }
 

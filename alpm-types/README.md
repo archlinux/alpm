@@ -94,10 +94,11 @@ A package installed to an environment can be described using `Installed`:
 
 ```rust
 use alpm_types::InstalledPackage;
+use std::str::FromStr;
 
-assert!(InstalledPackage::new("foo-1:1.0.0-1-any").is_ok());
-assert!(InstalledPackage::new("foo-1:1.0.0-1-foo").is_err());
-assert!(InstalledPackage::new("foo-1:1.0.0-any").is_err());
+assert!(InstalledPackage::from_str("foo-1:1.0.0-1-any").is_ok());
+assert!(InstalledPackage::from_str("foo-1:1.0.0-1-foo").is_err());
+assert!(InstalledPackage::from_str("foo-1:1.0.0-any").is_err());
 ```
 
 The options used for packaging are tracked using `PackageOption`:
@@ -149,8 +150,9 @@ The build directory of a package build environment can be described using `Build
 
 ```rust
 use alpm_types::BuildDir;
+use std::str::FromStr;
 
-let builddir = BuildDir::new("/build").unwrap();
+let builddir = BuildDir::from_str("/build").unwrap();
 assert_eq!("/build", format!("{}", builddir));
 ```
 
@@ -158,8 +160,9 @@ The start directory of a package build environment can be described using `Start
 
 ```rust
 use alpm_types::StartDir;
+use std::str::FromStr;
 
-let startdir = StartDir::new("/start").unwrap();
+let startdir = StartDir::from_str("/start").unwrap();
 assert_eq!("/start", format!("{}", startdir));
 ```
 
@@ -168,10 +171,10 @@ assert_eq!("/start", format!("{}", startdir));
 The authors of packages are identified using the `Packager` type, which describes a User ID (name and valid email):
 
 ```rust
-use std::str::FromStr;
 use alpm_types::Packager;
+use std::str::FromStr;
 
-let packager = Packager::new("Foobar McFooface <foobar@mcfooface.org>").unwrap();
+let packager = Packager::from_str("Foobar McFooface <foobar@mcfooface.org>").unwrap();
 assert_eq!("Foobar McFooface", packager.name());
 assert_eq!("foobar@mcfooface.org", packager.email().to_string());
 ```
@@ -191,10 +194,11 @@ Sources of a package can be described using `Source` (which consists of an optio
 
 ```rust
 use alpm_types::{Filename, Source, SourceLocation};
+use std::str::FromStr;
 
-let source = Source::new("foopkg-1.2.3.tar.gz::https://example.com/download").unwrap();
+let source = Source::from_str("foopkg-1.2.3.tar.gz::https://example.com/download").unwrap();
 
-assert_eq!(source.filename.unwrap(), Filename::new("foopkg-1.2.3.tar.gz".to_string()).unwrap());
+assert_eq!(source.filename.unwrap(), Filename::from_str("foopkg-1.2.3.tar.gz").unwrap());
 let SourceLocation::Url(url) = source.location else { panic!() };
 ```
 
@@ -204,8 +208,9 @@ The version and CPU architecture of a build tool is tracked using `BuildToolVers
 
 ```rust
 use alpm_types::BuildToolVersion;
+use std::str::FromStr;
 
-let buildtoolver = BuildToolVersion::new("1.0.0-1-any").unwrap();
+let buildtoolver = BuildToolVersion::from_str("1.0.0-1-any").unwrap();
 
 assert_eq!("1.0.0-1-any", format!("{}", buildtoolver));
 ```
@@ -213,10 +218,10 @@ assert_eq!("1.0.0-1-any", format!("{}", buildtoolver));
 Schemas of compound types (e.g. those used to describe `.BUILDINFO` or `.PKGINFO` files) need a schema version to version their features. This is what `SchemaVersion` is for:
 
 ```rust
-use std::str::FromStr;
 use alpm_types::SchemaVersion;
+use std::str::FromStr;
 
-let version = SchemaVersion::new("1.0.0").unwrap();
+let version = SchemaVersion::from_str("1.0.0").unwrap();
 
 assert_eq!("1.0.0", format!("{}", version));
 ```
@@ -225,15 +230,15 @@ The handling of package versions is covered by the `Version` type (which consist
 Its `vercmp()` method implementation is compatible with that of libalpm/pacman's `vercmp`.
 
 ```rust
-use std::str::FromStr;
 use alpm_types::Version;
+use std::str::FromStr;
 
-let version = Version::new("1.0.0").unwrap();
+let version = Version::from_str("1.0.0").unwrap();
 
 assert_eq!("1.0.0", format!("{}", version));
 
-let version_a = Version::new("1.0.0").unwrap();
-let version_b = Version::new("1.1.0").unwrap();
+let version_a = Version::from_str("1.0.0").unwrap();
+let version_b = Version::from_str("1.1.0").unwrap();
 
 assert_eq!(Version::vercmp(&version_a, &version_b), -1);
 
@@ -245,13 +250,13 @@ assert!(Version::with_pkgrel("1.0.0").is_err());
 Version comparisons can be made using `VersionComparison` and `VersionRequirement`:
 
 ```rust
-use std::str::FromStr;
 use alpm_types::{Version, VersionComparison, VersionRequirement};
+use std::str::FromStr;
 
-let requirement = VersionRequirement::new(">=1.5-1").unwrap();
+let requirement = VersionRequirement::from_str(">=1.5-1").unwrap();
 assert_eq!(requirement.comparison, VersionComparison::GreaterOrEqual);
-assert_eq!(requirement.version, Version::new("1.5-1").unwrap());
-assert!(requirement.is_satisfied_by(&Version::new("1.5-3").unwrap()));
+assert_eq!(requirement.version, Version::from_str("1.5-1").unwrap());
+assert!(requirement.is_satisfied_by(&Version::from_str("1.5-3").unwrap()));
 ```
 
 ## Contributing

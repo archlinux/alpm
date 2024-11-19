@@ -20,7 +20,7 @@ use crate::Error;
 /// // create BuildDir from &str
 /// assert_eq!(
 ///     AbsolutePath::from_str("/"),
-///     Ok(AbsolutePath::new("/").unwrap())
+///     AbsolutePath::new(PathBuf::from("/"))
 /// );
 /// assert_eq!(
 ///     AbsolutePath::from_str("./"),
@@ -28,16 +28,17 @@ use crate::Error;
 /// );
 ///
 /// // format as String
-/// assert_eq!("/", format!("{}", AbsolutePath::new("/").unwrap()));
+/// assert_eq!("/", format!("{}", AbsolutePath::from_str("/").unwrap()));
 /// ```
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct AbsolutePath(PathBuf);
 
 impl AbsolutePath {
-    pub fn new(input: &str) -> Result<AbsolutePath, Error> {
-        match Path::new(input).is_absolute() {
-            true => Ok(AbsolutePath(PathBuf::from(input))),
-            false => Err(Error::PathNotAbsolute(PathBuf::from(input))),
+    /// Create a new `AbsolutePath`
+    pub fn new(path: PathBuf) -> Result<AbsolutePath, Error> {
+        match path.is_absolute() {
+            true => Ok(AbsolutePath(path)),
+            false => Err(Error::PathNotAbsolute(path)),
         }
     }
 
@@ -49,8 +50,17 @@ impl AbsolutePath {
 
 impl FromStr for AbsolutePath {
     type Err = Error;
-    fn from_str(input: &str) -> Result<AbsolutePath, Self::Err> {
-        AbsolutePath::new(input)
+
+    /// Parses an absolute path from a string
+    ///
+    /// ## Errors
+    ///
+    /// Returns an error if the path is not absolute
+    fn from_str(s: &str) -> Result<AbsolutePath, Self::Err> {
+        match Path::new(s).is_absolute() {
+            true => Ok(AbsolutePath(PathBuf::from(s))),
+            false => Err(Error::PathNotAbsolute(PathBuf::from(s))),
+        }
     }
 }
 
@@ -66,19 +76,20 @@ impl Display for AbsolutePath {
 ///
 /// ## Examples
 /// ```
+/// use std::path::PathBuf;
 /// use std::str::FromStr;
 ///
 /// use alpm_types::{BuildDir, Error};
 ///
 /// // create BuildDir from &str
-/// assert_eq!(BuildDir::from_str("/"), Ok(BuildDir::new("/").unwrap()));
+/// assert_eq!(BuildDir::from_str("/"), BuildDir::new(PathBuf::from("/")));
 /// assert_eq!(
 ///     BuildDir::from_str("/foo.txt"),
-///     Ok(BuildDir::new("/foo.txt").unwrap())
+///     BuildDir::new(PathBuf::from("/foo.txt"))
 /// );
 ///
 /// // format as String
-/// assert_eq!("/", format!("{}", BuildDir::new("/").unwrap()));
+/// assert_eq!("/", format!("{}", BuildDir::from_str("/").unwrap()));
 /// ```
 pub type BuildDir = AbsolutePath;
 
@@ -88,6 +99,7 @@ pub type BuildDir = AbsolutePath;
 ///
 /// ## Examples
 /// ```
+/// use std::path::PathBuf;
 /// use std::str::FromStr;
 ///
 /// use alpm_types::{Error, StartDir};
@@ -95,15 +107,15 @@ pub type BuildDir = AbsolutePath;
 /// // create StartDir from &str
 /// assert_eq!(
 ///     StartDir::from_str("/").unwrap(),
-///     StartDir::new("/").unwrap()
+///     StartDir::new(PathBuf::from("/")).unwrap()
 /// );
 /// assert_eq!(
 ///     StartDir::from_str("/foo.txt").unwrap(),
-///     StartDir::new("/foo.txt").unwrap()
+///     StartDir::new(PathBuf::from("/foo.txt")).unwrap()
 /// );
 ///
 /// // format as String
-/// assert_eq!("/", format!("{}", StartDir::new("/").unwrap()));
+/// assert_eq!("/", format!("{}", StartDir::from_str("/").unwrap()));
 /// ```
 pub type StartDir = AbsolutePath;
 
@@ -114,20 +126,20 @@ mod tests {
     use super::*;
 
     #[rstest]
-    #[case("/home", BuildDir::new("/home"))]
+    #[case("/home", BuildDir::new(PathBuf::from("/home")))]
     #[case("./", Err(Error::PathNotAbsolute(PathBuf::from("./"))))]
     #[case("~/", Err(Error::PathNotAbsolute(PathBuf::from("~/"))))]
     #[case("foo.txt", Err(Error::PathNotAbsolute(PathBuf::from("foo.txt"))))]
-    fn build_dir_from_string(#[case] from_str: &str, #[case] result: Result<BuildDir, Error>) {
-        assert_eq!(BuildDir::from_str(from_str), result);
+    fn build_dir_from_string(#[case] s: &str, #[case] result: Result<BuildDir, Error>) {
+        assert_eq!(BuildDir::from_str(s), result);
     }
 
     #[rstest]
-    #[case("/start", StartDir::new("/start"))]
+    #[case("/start", StartDir::new(PathBuf::from("/start")))]
     #[case("./", Err(Error::PathNotAbsolute(PathBuf::from("./"))))]
     #[case("~/", Err(Error::PathNotAbsolute(PathBuf::from("~/"))))]
     #[case("foo.txt", Err(Error::PathNotAbsolute(PathBuf::from("foo.txt"))))]
-    fn startdir_from_str(#[case] from_str: &str, #[case] result: Result<StartDir, Error>) {
-        assert_eq!(StartDir::from_str(from_str), result);
+    fn startdir_from_str(#[case] s: &str, #[case] result: Result<StartDir, Error>) {
+        assert_eq!(StartDir::from_str(s), result);
     }
 }

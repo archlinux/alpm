@@ -292,17 +292,17 @@ pkgver = 1:1.0.0-1
     fn buildinfov1() -> TestResult {
         assert!(BuildInfoV1::new(
             1,
-            BuildDir::new("/build")?,
+            BuildDir::from_str("/build")?,
             vec![BuildEnv::new("some")?],
-            SchemaVersion::new("1")?,
-            vec![InstalledPackage::new("bar-1:1.0.0-2-any")?],
+            SchemaVersion::from_str("1")?,
+            vec![InstalledPackage::from_str("bar-1:1.0.0-2-any")?],
             vec![PackageOption::new("buildoption")?],
-            Packager::new("Foobar McFooface <foobar@mcfooface.org>")?,
+            Packager::from_str("Foobar McFooface <foobar@mcfooface.org>")?,
             Architecture::Any,
             Name::new("foo".to_string())?,
             Checksum::<Sha256>::calculate_from("foo"),
             Name::new("foo".to_string())?,
-            Version::new("1:1.0.0-1")?,
+            Version::from_str("1:1.0.0-1")?,
         )
         .is_ok());
         Ok(())
@@ -312,17 +312,17 @@ pkgver = 1:1.0.0-1
     fn buildinfov1_invalid_schemaversion() -> TestResult {
         assert!(BuildInfoV1::new(
             1,
-            BuildDir::new("/build")?,
+            BuildDir::from_str("/build")?,
             vec![BuildEnv::new("some")?],
-            SchemaVersion::new("2")?,
-            vec![InstalledPackage::new("bar-1:1.0.0-2-any")?],
+            SchemaVersion::from_str("2")?,
+            vec![InstalledPackage::from_str("bar-1:1.0.0-2-any")?],
             vec![PackageOption::new("buildoption")?],
-            Packager::new("Foobar McFooface <foobar@mcfooface.org>")?,
+            Packager::from_str("Foobar McFooface <foobar@mcfooface.org>")?,
             Architecture::Any,
             Name::new("foo".to_string())?,
             Checksum::<Sha256>::calculate_from("foo"),
             Name::new("foo".to_string())?,
-            Version::new("1:1.0.0-1")?,
+            Version::from_str("1:1.0.0-1")?,
         )
         .is_err());
         Ok(())

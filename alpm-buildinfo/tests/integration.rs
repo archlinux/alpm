@@ -197,7 +197,7 @@ fn wrong_schema_buildinfov2_as_v1() -> TestResult {
 )]
 #[case::buildinfov2_all_fields_with_env(
     BuildInfoInput {
-        format: Schema::V2(SchemaVersion::new("2").unwrap()),
+        format: Schema::V2(SchemaVersion::from_str("2").unwrap()),
         builddate: Some("1".to_string()),
         builddir: Some("/build".to_string()),
         buildenv: Some(vec!["foo".to_string(), "bar".to_string()]),
@@ -218,7 +218,7 @@ fn wrong_schema_buildinfov2_as_v1() -> TestResult {
 )]
 #[case::buildinfov2_optional_fields_with_env(
     BuildInfoInput {
-        format: Schema::V2(SchemaVersion::new("2").unwrap()),
+        format: Schema::V2(SchemaVersion::from_str("2").unwrap()),
         builddate: Some("1".to_string()),
         builddir: Some("/build".to_string()),
         buildenv: None,
@@ -239,7 +239,7 @@ fn wrong_schema_buildinfov2_as_v1() -> TestResult {
 )]
 #[case::buildinfov2_all_fields_with_env(
     BuildInfoInput {
-        format: Schema::V2(SchemaVersion::new("2").unwrap()),
+        format: Schema::V2(SchemaVersion::from_str("2").unwrap()),
         builddate: Some("1".to_string()),
         builddir: Some("/build".to_string()),
         buildenv: Some(vec!["foo".to_string(), "bar".to_string()]),
@@ -260,7 +260,7 @@ fn wrong_schema_buildinfov2_as_v1() -> TestResult {
 )]
 #[case::buildinfov2_optional_fields_with_env(
     BuildInfoInput {
-        format: Schema::V2(SchemaVersion::new("2").unwrap()),
+        format: Schema::V2(SchemaVersion::from_str("2").unwrap()),
         builddate: Some("1".to_string()),
         builddir: Some("/build".to_string()),
         buildenv: None,

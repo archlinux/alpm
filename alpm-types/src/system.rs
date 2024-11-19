@@ -87,11 +87,8 @@ mod tests {
     #[case("x86_64_v3", Ok(Architecture::X86_64V3))]
     #[case("x86_64_v4", Ok(Architecture::X86_64V4))]
     #[case("foo", Err(ParseError::VariantNotFound))]
-    fn architecture_from_string(
-        #[case] from_str: &str,
-        #[case] arch: Result<Architecture, ParseError>,
-    ) {
-        assert_eq!(Architecture::from_str(from_str), arch);
+    fn architecture_from_string(#[case] s: &str, #[case] arch: Result<Architecture, ParseError>) {
+        assert_eq!(Architecture::from_str(s), arch);
     }
 
     #[rstest]

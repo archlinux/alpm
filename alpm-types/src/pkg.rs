@@ -27,7 +27,7 @@ pub(crate) static PACKAGER_REGEX: Lazy<Regex> =
 /// use alpm_types::{Error, Packager};
 ///
 /// // create Packager from &str
-/// let packager = Packager::new("Foobar McFooface <foobar@mcfooface.org>").unwrap();
+/// let packager = Packager::from_str("Foobar McFooface <foobar@mcfooface.org>").unwrap();
 ///
 /// // get name
 /// assert_eq!("Foobar McFooface", packager.name());
@@ -44,16 +44,34 @@ pub(crate) static PACKAGER_REGEX: Lazy<Regex> =
 ///     format!("{}", packager)
 /// );
 /// ```
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Packager {
     name: String,
     email: EmailAddress,
 }
 
 impl Packager {
-    /// Create a new Packager from a string
-    pub fn new(packager: &str) -> Result<Packager, Error> {
-        if let Some(captures) = PACKAGER_REGEX.captures(packager) {
+    /// Create a new Packager
+    pub fn new(name: String, email: EmailAddress) -> Packager {
+        Packager { name, email }
+    }
+
+    /// Return the name of the Packager
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    /// Return the email of the Packager
+    pub fn email(&self) -> &EmailAddress {
+        &self.email
+    }
+}
+
+impl FromStr for Packager {
+    type Err = Error;
+    /// Create a Packager from a string
+    fn from_str(s: &str) -> Result<Packager, Self::Err> {
+        if let Some(captures) = PACKAGER_REGEX.captures(s) {
             if captures.name("name").is_some() && captures.name("email").is_some() {
                 let email = EmailAddress::from_str(captures.name("email").unwrap().as_str())?;
                 Ok(Packager {
@@ -71,29 +89,11 @@ impl Packager {
             }
         } else {
             Err(Error::RegexDoesNotMatch {
-                value: packager.to_string(),
+                value: s.to_string(),
                 regex_type: "packager".to_string(),
                 regex: PACKAGER_REGEX.to_string(),
             })
         }
-    }
-
-    /// Return the name of the Packager
-    pub fn name(&self) -> &str {
-        &self.name
-    }
-
-    /// Return the email of the Packager
-    pub fn email(&self) -> &EmailAddress {
-        &self.email
-    }
-}
-
-impl FromStr for Packager {
-    type Err = Error;
-    /// Create a Packager from a string
-    fn from_str(input: &str) -> Result<Packager, Self::Err> {
-        Packager::new(input)
     }
 }
 
@@ -195,7 +195,7 @@ mod tests {
 
     #[rstest]
     #[case(
-        Packager::new("Foobar McFooface <foobar@mcfooface.org>").unwrap(),
+        Packager::from_str("Foobar McFooface <foobar@mcfooface.org>").unwrap(),
         "Foobar McFooface <foobar@mcfooface.org>"
     )]
     fn packager_format_string(#[case] packager: Packager, #[case] packager_str: &str) {
@@ -203,14 +203,14 @@ mod tests {
     }
 
     #[rstest]
-    #[case(Packager::new("Foobar McFooface <foobar@mcfooface.org>").unwrap(), "Foobar McFooface")]
+    #[case(Packager::from_str("Foobar McFooface <foobar@mcfooface.org>").unwrap(), "Foobar McFooface")]
     fn packager_name(#[case] packager: Packager, #[case] name: &str) {
         assert_eq!(name, packager.name());
     }
 
     #[rstest]
     #[case(
-        Packager::new("Foobar McFooface <foobar@mcfooface.org>").unwrap(),
+        Packager::from_str("Foobar McFooface <foobar@mcfooface.org>").unwrap(),
         &EmailAddress::from_str("foobar@mcfooface.org").unwrap(),
     )]
     fn packager_email(#[case] packager: Packager, #[case] email: &EmailAddress) {

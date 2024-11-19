@@ -24,20 +24,17 @@ pub(crate) static NAME_REGEX: Lazy<Regex> = lazy_regex!(r"^[a-z\d_@+]+[a-z\d\-._
 /// use alpm_types::{BuildTool, Error, Name};
 ///
 /// // create BuildTool from &str
-/// assert_eq!(
-///     BuildTool::from_str("test-123@.foo_+"),
-///     Ok(BuildTool::new("test-123@.foo_+").unwrap()),
-/// );
+/// assert!(BuildTool::from_str("test-123@.foo_+").is_ok());
 /// assert!(BuildTool::from_str(".test").is_err());
 ///
 /// // format as String
-/// assert_eq!("foo", format!("{}", BuildTool::new("foo").unwrap()));
+/// assert_eq!("foo", format!("{}", BuildTool::from_str("foo").unwrap()));
 ///
 /// // validate that BuildTool follows naming restrictions
-/// let buildtool = BuildTool::new("foo").unwrap();
+/// let buildtool = BuildTool::from_str("foo").unwrap();
 /// let restrictions = vec![
-///     Name::new("foo".to_string()).unwrap(),
-///     Name::new("bar".to_string()).unwrap(),
+///     Name::from_str("foo").unwrap(),
+///     Name::from_str("bar").unwrap(),
 /// ];
 /// assert!(buildtool.matches_restriction(&restrictions));
 /// ```
@@ -45,9 +42,9 @@ pub(crate) static NAME_REGEX: Lazy<Regex> = lazy_regex!(r"^[a-z\d_@+]+[a-z\d\-._
 pub struct BuildTool(Name);
 
 impl BuildTool {
-    /// Create a new BuildTool in a Result
-    pub fn new(buildtool: &str) -> Result<Self, Error> {
-        Name::new(buildtool.to_string()).map(BuildTool)
+    /// Create a new BuildTool
+    pub fn new(name: Name) -> Self {
+        BuildTool(name)
     }
 
     /// Create a new BuildTool in a Result, which matches one Name in a list of restrictions
@@ -64,7 +61,7 @@ impl BuildTool {
     /// );
     /// ```
     pub fn new_with_restriction(name: &str, restrictions: &[Name]) -> Result<Self, Error> {
-        let buildtool = BuildTool::new(name)?;
+        let buildtool = BuildTool::from_str(name)?;
         if buildtool.matches_restriction(restrictions) {
             Ok(buildtool)
         } else {
@@ -126,17 +123,9 @@ impl Display for BuildTool {
 pub struct Name(String);
 
 impl Name {
-    /// Create a new Name in a Result
+    /// Create a new `Name`
     pub fn new(name: String) -> Result<Self, Error> {
-        if NAME_REGEX.is_match(name.as_str()) {
-            Ok(Name(name))
-        } else {
-            Err(Error::RegexDoesNotMatch {
-                value: name,
-                regex_type: "pkgname".to_string(),
-                regex: NAME_REGEX.to_string(),
-            })
-        }
+        Self::from_str(&name)
     }
 
     /// Return a reference to the inner type
@@ -148,8 +137,16 @@ impl Name {
 impl FromStr for Name {
     type Err = Error;
     /// Create a Name from a string
-    fn from_str(input: &str) -> Result<Name, Self::Err> {
-        Name::new(input.to_string())
+    fn from_str(s: &str) -> Result<Name, Self::Err> {
+        if NAME_REGEX.is_match(s) {
+            Ok(Name(s.to_string()))
+        } else {
+            Err(Error::RegexDoesNotMatch {
+                value: s.to_string(),
+                regex_type: "pkgname".to_string(),
+                regex: NAME_REGEX.to_string(),
+            })
+        }
     }
 }
 
@@ -170,7 +167,7 @@ mod tests {
     #[case(
         "bar",
         ["foo".parse(), "bar".parse()].into_iter().flatten().collect::<Vec<Name>>(),
-        Ok(BuildTool::new("bar").unwrap()),
+        Ok(BuildTool::from_str("bar").unwrap()),
     )]
     #[case(
         "bar",
@@ -198,7 +195,7 @@ mod tests {
         #[case] restrictions: Vec<Name>,
         #[case] result: bool,
     ) {
-        let buildtool = BuildTool::new(buildtool).unwrap();
+        let buildtool = BuildTool::from_str(buildtool).unwrap();
         assert_eq!(buildtool.matches_restriction(&restrictions), result);
     }
 

@@ -24,12 +24,14 @@ pub(crate) static PKGVER_REGEX: Lazy<Regex> = lazy_regex!(r"^([[:alnum:]][[:alnu
 ///
 /// ## Examples
 /// ```
+/// use std::str::FromStr;
+///
 /// use alpm_types::BuildToolVersion;
 ///
-/// assert!(BuildToolVersion::new("1-1-any").is_ok());
-/// assert!(BuildToolVersion::new("1").is_ok());
-/// assert!(BuildToolVersion::new("1-1").is_err());
-/// assert!(BuildToolVersion::new("1-1-foo").is_err());
+/// assert!(BuildToolVersion::from_str("1-1-any").is_ok());
+/// assert!(BuildToolVersion::from_str("1").is_ok());
+/// assert!(BuildToolVersion::from_str("1-1").is_err());
+/// assert!(BuildToolVersion::from_str("1-1-foo").is_err());
 /// ```
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct BuildToolVersion {
@@ -38,38 +40,11 @@ pub struct BuildToolVersion {
 }
 
 impl BuildToolVersion {
-    /// Create a new BuildToolVersion and return it in a Result
-    ///
-    /// This can be either a fully specified [Version] string with pkgrel and
-    /// architecture, **or** it can be a [Version] string without a `pkgrel` and no architecture.
-    ///
-    /// This is needed to also support packages built with `makepkg`, which only sets its own
-    /// version.
-    ///
-    /// ## Examples
-    /// ```
-    /// use alpm_types::BuildToolVersion;
-    ///
-    /// assert!(BuildToolVersion::new("1:5.0.2-1-any").is_ok());
-    /// assert!(BuildToolVersion::new("5.0.2-1-any").is_ok());
-    /// assert!(BuildToolVersion::new("5.0.2").is_ok());
-    ///
-    /// assert!(BuildToolVersion::new("5.0.2-any").is_err());
-    /// ```
-    pub fn new(buildtoolver: &str) -> Result<Self, Error> {
-        const VERSION_DELIMITER: char = '-';
-        match buildtoolver.rsplit_once(VERSION_DELIMITER) {
-            Some((version, architecture)) => match Architecture::from_str(architecture) {
-                Ok(architecture) => Ok(BuildToolVersion {
-                    version: Version::with_pkgrel(version)?,
-                    architecture: Some(architecture),
-                }),
-                Err(err) => Err(err.into()),
-            },
-            None => Ok(BuildToolVersion {
-                version: Version::from_str(buildtoolver)?,
-                architecture: None,
-            }),
+    /// Create a new BuildToolVersion
+    pub fn new(version: Version, architecture: Option<Architecture>) -> Self {
+        BuildToolVersion {
+            version,
+            architecture,
         }
     }
 
@@ -87,8 +62,21 @@ impl BuildToolVersion {
 impl FromStr for BuildToolVersion {
     type Err = Error;
     /// Create an BuildToolVersion from a string and return it in a Result
-    fn from_str(input: &str) -> Result<Self, Self::Err> {
-        BuildToolVersion::new(input)
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        const VERSION_DELIMITER: char = '-';
+        match s.rsplit_once(VERSION_DELIMITER) {
+            Some((version, architecture)) => match Architecture::from_str(architecture) {
+                Ok(architecture) => Ok(BuildToolVersion {
+                    version: Version::with_pkgrel(version)?,
+                    architecture: Some(architecture),
+                }),
+                Err(err) => Err(err.into()),
+            },
+            None => Ok(BuildToolVersion {
+                version: Version::from_str(s)?,
+                architecture: None,
+            }),
+        }
     }
 }
 
@@ -116,29 +104,29 @@ impl Display for BuildToolVersion {
 ///
 /// use alpm_types::Epoch;
 ///
-/// assert!(Epoch::new("1").is_ok());
-/// assert!(Epoch::new("0").is_err());
+/// assert!(Epoch::from_str("1").is_ok());
+/// assert!(Epoch::from_str("0").is_err());
 /// ```
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Epoch(pub NonZeroUsize);
 
 impl Epoch {
-    /// Create a new Epoch from a string and return it in a Result
-    pub fn new(input: &str) -> Result<Self, Error> {
-        match input.parse() {
-            Ok(epoch) => Ok(Epoch(epoch)),
-            Err(source) => Err(Error::InvalidInteger {
-                kind: source.kind().clone(),
-            }),
-        }
+    /// Create a new Epoch
+    pub fn new(epoch: NonZeroUsize) -> Self {
+        Epoch(epoch)
     }
 }
 
 impl FromStr for Epoch {
     type Err = Error;
     /// Create an Epoch from a string and return it in a Result
-    fn from_str(input: &str) -> Result<Self, Self::Err> {
-        Epoch::new(input)
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.parse() {
+            Ok(epoch) => Ok(Epoch(epoch)),
+            Err(source) => Err(Error::InvalidInteger {
+                kind: source.kind().clone(),
+            }),
+        }
     }
 }
 
@@ -176,15 +164,7 @@ pub struct Pkgrel(String);
 impl Pkgrel {
     /// Create a new Pkgrel from a string and return it in a Result
     pub fn new(pkgrel: String) -> Result<Self, Error> {
-        if PKGREL_REGEX.is_match(pkgrel.as_str()) {
-            Ok(Pkgrel(pkgrel))
-        } else {
-            Err(Error::RegexDoesNotMatch {
-                value: pkgrel.to_string(),
-                regex_type: "pkgrel".to_string(),
-                regex: PKGREL_REGEX.to_string(),
-            })
-        }
+        Pkgrel::from_str(pkgrel.as_str())
     }
 
     /// Return a reference to the inner type
@@ -196,8 +176,16 @@ impl Pkgrel {
 impl FromStr for Pkgrel {
     type Err = Error;
     /// Create a Pkgrel from a string and return it in a Result
-    fn from_str(input: &str) -> Result<Self, Self::Err> {
-        Pkgrel::new(input.to_string())
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if PKGREL_REGEX.is_match(s) {
+            Ok(Pkgrel(s.to_string()))
+        } else {
+            Err(Error::RegexDoesNotMatch {
+                value: s.to_string(),
+                regex_type: "pkgrel".to_string(),
+                regex: PKGREL_REGEX.to_string(),
+            })
+        }
     }
 }
 
@@ -238,15 +226,7 @@ pub struct Pkgver(pub(crate) String);
 impl Pkgver {
     /// Create a new Pkgver from a string and return it in a Result
     pub fn new(pkgver: String) -> Result<Self, Error> {
-        if PKGVER_REGEX.is_match(pkgver.as_str()) {
-            Ok(Pkgver(pkgver))
-        } else {
-            Err(Error::RegexDoesNotMatch {
-                value: pkgver,
-                regex_type: "pkgver".to_string(),
-                regex: PKGVER_REGEX.to_string(),
-            })
-        }
+        Pkgver::from_str(pkgver.as_str())
     }
 
     /// Return a reference to the inner type
@@ -257,6 +237,28 @@ impl Pkgver {
     /// Return an iterator over all segments of this version.
     pub fn segments(&self) -> VersionSegments {
         VersionSegments::new(&self.0)
+    }
+}
+
+impl FromStr for Pkgver {
+    type Err = Error;
+    /// Create a Pkgver from a string and return it in a Result
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if PKGVER_REGEX.is_match(s) {
+            Ok(Pkgver(s.to_string()))
+        } else {
+            Err(Error::RegexDoesNotMatch {
+                value: s.to_string(),
+                regex_type: "pkgver".to_string(),
+                regex: PKGVER_REGEX.to_string(),
+            })
+        }
+    }
+}
+
+impl Display for Pkgver {
+    fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
+        write!(fmt, "{}", self.inner())
     }
 }
 
@@ -443,20 +445,6 @@ impl<'a> Iterator for VersionSegments<'a> {
         let segment_slice = &self.version[first_index..(last_char_index + last_char.len_utf8())];
 
         Some(VersionSegment::new(segment_slice, delimiter_count))
-    }
-}
-
-impl FromStr for Pkgver {
-    type Err = Error;
-    /// Create a Pkgver from a string and return it in a Result
-    fn from_str(input: &str) -> Result<Self, Self::Err> {
-        Pkgver::new(input.to_string())
-    }
-}
-
-impl Display for Pkgver {
-    fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
-        write!(fmt, "{}", self.inner())
     }
 }
 
@@ -729,7 +717,7 @@ impl PartialEq for Pkgver {
 ///
 /// // create SchemaVersion from str
 /// let version_one = SchemaVersion::from_str("1.0.0").unwrap();
-/// let version_also_one = SchemaVersion::new("1").unwrap();
+/// let version_also_one = SchemaVersion::from_str("1").unwrap();
 /// assert_eq!(version_one, version_also_one);
 ///
 /// // format as String
@@ -740,26 +728,9 @@ impl PartialEq for Pkgver {
 pub struct SchemaVersion(SemverVersion);
 
 impl SchemaVersion {
-    /// Create a new SchemaVersion from a string
-    ///
-    /// When providing a non-semver string with only a number (i.e. no minor or patch version), the
-    /// number is treated as the major version (e.g. `"23"` -> `"23.0.0"`).
-    pub fn new(version: &str) -> Result<SchemaVersion, Error> {
-        if !version.contains('.') {
-            match version.parse() {
-                Ok(major) => Ok(SchemaVersion(SemverVersion::new(major, 0, 0))),
-                Err(e) => Err(Error::InvalidInteger {
-                    kind: e.kind().clone(),
-                }),
-            }
-        } else {
-            match SemverVersion::parse(version) {
-                Ok(version) => Ok(SchemaVersion(version)),
-                Err(e) => Err(Error::InvalidSemver {
-                    kind: e.to_string(),
-                }),
-            }
-        }
+    /// Create a new SchemaVersion
+    pub fn new(version: SemverVersion) -> Self {
+        SchemaVersion(version)
     }
 
     /// Return a reference to the inner type
@@ -770,9 +741,26 @@ impl SchemaVersion {
 
 impl FromStr for SchemaVersion {
     type Err = Error;
-    /// Create a SchemaVersion from a string
-    fn from_str(input: &str) -> Result<SchemaVersion, Self::Err> {
-        SchemaVersion::new(input)
+    /// Create a new SchemaVersion from a string
+    ///
+    /// When providing a non-semver string with only a number (i.e. no minor or patch version), the
+    /// number is treated as the major version (e.g. `"23"` -> `"23.0.0"`).
+    fn from_str(s: &str) -> Result<SchemaVersion, Self::Err> {
+        if !s.contains('.') {
+            match s.parse() {
+                Ok(major) => Ok(SchemaVersion(SemverVersion::new(major, 0, 0))),
+                Err(e) => Err(Error::InvalidInteger {
+                    kind: e.kind().clone(),
+                }),
+            }
+        } else {
+            match SemverVersion::parse(s) {
+                Ok(version) => Ok(SchemaVersion(version)),
+                Err(e) => Err(Error::InvalidSemver {
+                    kind: e.to_string(),
+                }),
+            }
+        }
     }
 }
 
@@ -792,8 +780,8 @@ impl Display for SchemaVersion {
 ///
 /// use alpm_types::{Epoch, Pkgrel, Pkgver, Version};
 ///
-/// let version = Version::new("1:2-3").unwrap();
-/// assert_eq!(version.epoch, Some(Epoch::new("1").unwrap()));
+/// let version = Version::from_str("1:2-3").unwrap();
+/// assert_eq!(version.epoch, Some(Epoch::from_str("1").unwrap()));
 /// assert_eq!(version.pkgver, Pkgver::new("2".to_string()).unwrap());
 /// assert_eq!(version.pkgrel, Some(Pkgrel::new("3".to_string()).unwrap()));
 /// ```
@@ -805,12 +793,80 @@ pub struct Version {
 }
 
 impl Version {
-    /// Create a new Version from a string and return it in a Result
-    pub fn new(version: &str) -> Result<Self, Error> {
+    /// Create a new Version
+    pub fn new(pkgver: Pkgver, epoch: Option<Epoch>, pkgrel: Option<Pkgrel>) -> Self {
+        Version {
+            pkgver,
+            epoch,
+            pkgrel,
+        }
+    }
+
+    /// Create a new Version, which is guaranteed to have a Pkgrel
+    pub fn with_pkgrel(version: &str) -> Result<Self, Error> {
+        let version = Version::from_str(version)?;
+        if version.pkgrel.is_some() {
+            Ok(version)
+        } else {
+            Err(Error::MissingComponent {
+                component: "pkgrel",
+            })
+        }
+    }
+
+    /// Compare two Versions and return a number
+    ///
+    /// The comparison algorithm is based on libalpm/ pacman's vercmp behavior.
+    ///
+    /// * `1` if `a` is newer than `b`
+    /// * `0` if `a` and `b` are considered to be the same version
+    /// * `-1` if `a` is older than `b`
+    ///
+    /// ## Examples
+    /// ```
+    /// use std::str::FromStr;
+    ///
+    /// use alpm_types::Version;
+    ///
+    /// assert_eq!(
+    ///     Version::vercmp(
+    ///         &Version::from_str("1.0.0").unwrap(),
+    ///         &Version::from_str("0.1.0").unwrap()
+    ///     ),
+    ///     1
+    /// );
+    /// assert_eq!(
+    ///     Version::vercmp(
+    ///         &Version::from_str("1.0.0").unwrap(),
+    ///         &Version::from_str("1.0.0").unwrap()
+    ///     ),
+    ///     0
+    /// );
+    /// assert_eq!(
+    ///     Version::vercmp(
+    ///         &Version::from_str("0.1.0").unwrap(),
+    ///         &Version::from_str("1.0.0").unwrap()
+    ///     ),
+    ///     -1
+    /// );
+    /// ```
+    pub fn vercmp(a: &Version, b: &Version) -> i8 {
+        match a.cmp(b) {
+            Ordering::Less => -1,
+            Ordering::Equal => 0,
+            Ordering::Greater => 1,
+        }
+    }
+}
+
+impl FromStr for Version {
+    type Err = Error;
+    /// Create a SchemaVersion from a string
+    fn from_str(s: &str) -> Result<Version, Self::Err> {
         // try to split off epoch
-        let (epoch, pkgver_pkgrel) = version.split_once(':').unzip();
+        let (epoch, pkgver_pkgrel) = s.split_once(':').unzip();
         // if there's no epoch, the entire thing is pkgver and maybe pkgrel
-        let pkgver_pkgrel = pkgver_pkgrel.unwrap_or(version);
+        let pkgver_pkgrel = pkgver_pkgrel.unwrap_or(s);
 
         // try to split off pkgrel
         let (pkgver, pkgrel) = pkgver_pkgrel.split_once('-').unzip();
@@ -830,72 +886,6 @@ impl Version {
                 None
             },
         })
-    }
-
-    /// Create a new Version, which is guaranteed to have a Pkgrel
-    pub fn with_pkgrel(version: &str) -> Result<Self, Error> {
-        match Version::new(version) {
-            Ok(version) => {
-                if version.pkgrel.is_some() {
-                    Ok(version)
-                } else {
-                    Err(Error::MissingComponent {
-                        component: "pkgrel",
-                    })
-                }
-            }
-            Err(e) => Err(e),
-        }
-    }
-
-    /// Compare two Versions and return a number
-    ///
-    /// The comparison algorithm is based on libalpm/ pacman's vercmp behavior.
-    ///
-    /// * `1` if `a` is newer than `b`
-    /// * `0` if `a` and `b` are considered to be the same version
-    /// * `-1` if `a` is older than `b`
-    ///
-    /// ## Examples
-    /// ```
-    /// use alpm_types::Version;
-    ///
-    /// assert_eq!(
-    ///     Version::vercmp(
-    ///         &Version::new("1.0.0").unwrap(),
-    ///         &Version::new("0.1.0").unwrap()
-    ///     ),
-    ///     1
-    /// );
-    /// assert_eq!(
-    ///     Version::vercmp(
-    ///         &Version::new("1.0.0").unwrap(),
-    ///         &Version::new("1.0.0").unwrap()
-    ///     ),
-    ///     0
-    /// );
-    /// assert_eq!(
-    ///     Version::vercmp(
-    ///         &Version::new("0.1.0").unwrap(),
-    ///         &Version::new("1.0.0").unwrap()
-    ///     ),
-    ///     -1
-    /// );
-    /// ```
-    pub fn vercmp(a: &Version, b: &Version) -> i8 {
-        match a.cmp(b) {
-            Ordering::Less => -1,
-            Ordering::Equal => 0,
-            Ordering::Greater => 1,
-        }
-    }
-}
-
-impl FromStr for Version {
-    type Err = Error;
-    /// Create a SchemaVersion from a string
-    fn from_str(input: &str) -> Result<Version, Self::Err> {
-        Version::new(input)
     }
 }
 
@@ -1003,12 +993,14 @@ impl FromStr for VersionComparison {
 /// ## Examples
 ///
 /// ```
+/// use std::str::FromStr;
+///
 /// use alpm_types::{Version, VersionComparison, VersionRequirement};
 ///
-/// let requirement = VersionRequirement::new(">=1.5").unwrap();
+/// let requirement = VersionRequirement::from_str(">=1.5").unwrap();
 ///
 /// assert_eq!(requirement.comparison, VersionComparison::GreaterOrEqual);
-/// assert_eq!(requirement.version, Version::new("1.5").unwrap());
+/// assert_eq!(requirement.version, Version::from_str("1.5").unwrap());
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct VersionRequirement {
@@ -1017,12 +1009,45 @@ pub struct VersionRequirement {
 }
 
 impl VersionRequirement {
+    /// Create a new `VersionRequirement`
+    pub fn new(comparison: VersionComparison, version: Version) -> Self {
+        VersionRequirement {
+            comparison,
+            version,
+        }
+    }
+
+    /// Returns `true` if the requirement is satisfied by the given package version.
+    ///
+    /// ## Examples
+    ///
+    /// ```
+    /// use std::str::FromStr;
+    ///
+    /// use alpm_types::{Version, VersionRequirement};
+    ///
+    /// let requirement = VersionRequirement::from_str(">=1.5-3").unwrap();
+    ///
+    /// assert!(!requirement.is_satisfied_by(&Version::from_str("1.5").unwrap()));
+    /// assert!(requirement.is_satisfied_by(&Version::from_str("1.5-3").unwrap()));
+    /// assert!(requirement.is_satisfied_by(&Version::from_str("1.6").unwrap()));
+    /// assert!(requirement.is_satisfied_by(&Version::from_str("2:1.0").unwrap()));
+    /// assert!(!requirement.is_satisfied_by(&Version::from_str("1.0").unwrap()));
+    /// ```
+    pub fn is_satisfied_by(&self, ver: &Version) -> bool {
+        self.comparison.is_compatible_with(ver.cmp(&self.version))
+    }
+}
+
+impl FromStr for VersionRequirement {
+    type Err = Error;
+
     /// Parses a version requirement from a string.
     ///
     /// ## Errors
     ///
     /// Returns an error if the comparison function or version are malformed.
-    pub fn new(s: &str) -> Result<Self, Error> {
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         fn is_comparison_char(c: char) -> bool {
             matches!(c, '<' | '=' | '>')
         }
@@ -1043,33 +1068,6 @@ impl VersionRequirement {
             version,
         })
     }
-
-    /// Returns `true` if the requirement is satisfied by the given package version.
-    ///
-    /// ## Examples
-    ///
-    /// ```
-    /// use alpm_types::{Version, VersionRequirement};
-    ///
-    /// let requirement = VersionRequirement::new(">=1.5-3").unwrap();
-    ///
-    /// assert!(!requirement.is_satisfied_by(&Version::new("1.5").unwrap()));
-    /// assert!(requirement.is_satisfied_by(&Version::new("1.5-3").unwrap()));
-    /// assert!(requirement.is_satisfied_by(&Version::new("1.6").unwrap()));
-    /// assert!(requirement.is_satisfied_by(&Version::new("2:1.0").unwrap()));
-    /// assert!(!requirement.is_satisfied_by(&Version::new("1.0").unwrap()));
-    /// ```
-    pub fn is_satisfied_by(&self, ver: &Version) -> bool {
-        self.comparison.is_compatible_with(ver.cmp(&self.version))
-    }
-}
-
-impl FromStr for VersionRequirement {
-    type Err = Error;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Self::new(s)
-    }
 }
 
 #[cfg(test)]
@@ -1085,26 +1083,26 @@ mod tests {
     #[case("1", Ok(SchemaVersion(SemverVersion::new(1, 0, 0))))]
     #[case("-1.0.0", Err(Error::InvalidSemver { kind: String::from("unexpected character '-' while parsing major version number") }))]
     fn schema_version(#[case] version: &str, #[case] result: Result<SchemaVersion, Error>) {
-        assert_eq!(result, SchemaVersion::new(version))
+        assert_eq!(result, SchemaVersion::from_str(version))
     }
 
     /// Ensure that valid buildtool version strings are parsed as expected.
     #[rstest]
     #[case(
         "1.0.0-1-any",
-        BuildToolVersion{version: Version::new("1.0.0-1").unwrap(), architecture: Some(Architecture::from_str("any").unwrap())},
+        BuildToolVersion::new(Version::from_str("1.0.0-1").unwrap(), Some(Architecture::from_str("any").unwrap())),
     )]
     #[case(
         "1:1.0.0-1-any",
-        BuildToolVersion{version: Version::new("1:1.0.0-1").unwrap(), architecture: Some(Architecture::from_str("any").unwrap())},
+        BuildToolVersion::new(Version::from_str("1:1.0.0-1").unwrap(), Some(Architecture::from_str("any").unwrap())),
     )]
     #[case(
         "1.0.0",
-        BuildToolVersion{version: Version::new("1.0.0").unwrap(), architecture: None},
+        BuildToolVersion::new(Version::from_str("1.0.0").unwrap(), None),
     )]
     fn valid_buildtoolver_new(#[case] buildtoolver: &str, #[case] expected: BuildToolVersion) {
         assert_eq!(
-            BuildToolVersion::new(buildtoolver),
+            BuildToolVersion::from_str(buildtoolver),
             Ok(expected),
             "Expected valid parse of buildtoolver '{buildtoolver}'"
         );
@@ -1124,7 +1122,7 @@ mod tests {
     #[case("1.0.0-1-foo", strum::ParseError::VariantNotFound.into())]
     fn invalid_buildtoolver_new(#[case] buildtoolver: &str, #[case] expected: Error) {
         assert_eq!(
-            BuildToolVersion::new(buildtoolver),
+            BuildToolVersion::from_str(buildtoolver),
             Err(expected),
             "Expected error during parse of buildtoolver '{buildtoolver}'"
         );
@@ -1153,7 +1151,7 @@ mod tests {
         "1:foo-1",
         Version {
             pkgver: Pkgver::new("foo".to_string()).unwrap(),
-            epoch: Some(Epoch::new("1").unwrap()),
+            epoch: Some(Epoch::from_str("1").unwrap()),
             pkgrel: Some(Pkgrel::new("1".to_string()).unwrap()),
         },
     )]
@@ -1161,7 +1159,7 @@ mod tests {
         "1:foo",
         Version {
             pkgver: Pkgver::new("foo".to_string()).unwrap(),
-            epoch: Some(Epoch::new("1").unwrap()),
+            epoch: Some(Epoch::from_str("1").unwrap()),
             pkgrel: None,
         },
     )]
@@ -1175,7 +1173,7 @@ mod tests {
     )]
     fn valid_version_from_string(#[case] version: &str, #[case] expected: Version) {
         assert_eq!(
-            Version::new(version),
+            Version::from_str(version),
             Ok(expected),
             "Expected valid parsing for version {version}"
         )
@@ -1225,7 +1223,7 @@ mod tests {
     )]
     fn invalid_regex_in_version_from_string(#[case] version: &str, #[case] expected: Error) {
         assert_eq!(
-            Version::new(version),
+            Version::from_str(version),
             Err(expected),
             "Expected error while parsing {version}"
         )
@@ -1236,7 +1234,7 @@ mod tests {
     #[case("1-foo:1", Error::InvalidInteger { kind: IntErrorKind::InvalidDigit })]
     fn invalid_integer_in_version_from_string(#[case] version: &str, #[case] expected: Error) {
         assert_eq!(
-            Version::new(version),
+            Version::from_str(version),
             Err(expected),
             "Expected error while parsing {version}"
         )
@@ -1264,7 +1262,7 @@ mod tests {
     #[case("-0", Err(Error::InvalidInteger { kind: IntErrorKind::InvalidDigit }))]
     #[case("z", Err(Error::InvalidInteger { kind: IntErrorKind::InvalidDigit }))]
     fn epoch(#[case] version: &str, #[case] result: Result<Epoch, Error>) {
-        assert_eq!(result, Epoch::new(version));
+        assert_eq!(result, Epoch::from_str(version));
     }
 
     /// Make sure that we can parse valid **pkgver** strings.
@@ -1350,61 +1348,101 @@ mod tests {
 
     /// Ensure that versions are properly serialized back to their string representation.
     #[rstest]
-    #[case(Version::new("1:1-1").unwrap(), "1:1-1")]
-    #[case(Version::new("1-1").unwrap(), "1-1")]
-    #[case(Version::new("1").unwrap(), "1")]
-    #[case(Version::new("1:1").unwrap(), "1:1")]
+    #[case(Version::from_str("1:1-1").unwrap(), "1:1-1")]
+    #[case(Version::from_str("1-1").unwrap(), "1-1")]
+    #[case(Version::from_str("1").unwrap(), "1")]
+    #[case(Version::from_str("1:1").unwrap(), "1:1")]
     fn version_to_string(#[case] version: Version, #[case] to_str: &str) {
         assert_eq!(format!("{}", version), to_str);
     }
 
     #[rstest]
-    #[case(Version::new("1"), Version::new("1"), Ordering::Equal)]
-    #[case(Version::new("2"), Version::new("1"), Ordering::Greater)]
-    #[case(Version::new("1"), Version::new("2"), Ordering::Less)]
-    #[case(Version::new("1"), Version::new("1.1"), Ordering::Less)]
-    #[case(Version::new("1.1"), Version::new("1"), Ordering::Greater)]
-    #[case(Version::new("1.1"), Version::new("1.1"), Ordering::Equal)]
-    #[case(Version::new("1.2"), Version::new("1.1"), Ordering::Greater)]
-    #[case(Version::new("1.1"), Version::new("1.2"), Ordering::Less)]
-    #[case(Version::new("1+2"), Version::new("1+1"), Ordering::Greater)]
-    #[case(Version::new("1+1"), Version::new("1+2"), Ordering::Less)]
-    #[case(Version::new("1.1"), Version::new("1.1a"), Ordering::Greater)]
-    #[case(Version::new("1.1a"), Version::new("1.1"), Ordering::Less)]
-    #[case(Version::new("1.1"), Version::new("1.1a1"), Ordering::Greater)]
-    #[case(Version::new("1.1a1"), Version::new("1.1"), Ordering::Less)]
-    #[case(Version::new("1.1"), Version::new("1.11a"), Ordering::Less)]
-    #[case(Version::new("1.11a"), Version::new("1.1"), Ordering::Greater)]
-    #[case(Version::new("1.1_a"), Version::new("1.1"), Ordering::Greater)]
-    #[case(Version::new("1.1"), Version::new("1.1_a"), Ordering::Less)]
-    #[case(Version::new("1.1"), Version::new("1.1.a"), Ordering::Less)]
-    #[case(Version::new("1.1.a"), Version::new("1.1"), Ordering::Greater)]
-    #[case(Version::new("1.a"), Version::new("1.1"), Ordering::Less)]
-    #[case(Version::new("1.1"), Version::new("1.a"), Ordering::Greater)]
-    #[case(Version::new("1.a1"), Version::new("1.1"), Ordering::Less)]
-    #[case(Version::new("1.1"), Version::new("1.a1"), Ordering::Greater)]
-    #[case(Version::new("1.a11"), Version::new("1.1"), Ordering::Less)]
-    #[case(Version::new("1.1"), Version::new("1.a11"), Ordering::Greater)]
-    #[case(Version::new("a.1"), Version::new("1.1"), Ordering::Less)]
-    #[case(Version::new("1.1"), Version::new("a.1"), Ordering::Greater)]
-    #[case(Version::new("foo"), Version::new("1.1"), Ordering::Less)]
-    #[case(Version::new("1.1"), Version::new("foo"), Ordering::Greater)]
-    #[case(Version::new("a1a"), Version::new("a1b"), Ordering::Less)]
-    #[case(Version::new("a1b"), Version::new("a1a"), Ordering::Greater)]
-    #[case(Version::new("20220102"), Version::new("20220202"), Ordering::Less)]
-    #[case(Version::new("20220202"), Version::new("20220102"), Ordering::Greater)]
-    #[case(Version::new("1.0.."), Version::new("1.0."), Ordering::Equal)]
-    #[case(Version::new("1.0."), Version::new("1.0"), Ordering::Greater)]
-    #[case(Version::new("1..0"), Version::new("1.0"), Ordering::Greater)]
-    #[case(Version::new("1..0"), Version::new("1..0"), Ordering::Equal)]
-    #[case(Version::new("1..1"), Version::new("1..0"), Ordering::Greater)]
-    #[case(Version::new("1..0"), Version::new("1..1"), Ordering::Less)]
-    #[case(Version::new("1+0"), Version::new("1.0"), Ordering::Equal)]
-    #[case(Version::new("1.111"), Version::new("1.1a1"), Ordering::Greater)]
-    #[case(Version::new("1.1a1"), Version::new("1.111"), Ordering::Less)]
-    #[case(Version::new("01"), Version::new("1"), Ordering::Equal)]
-    #[case(Version::new("001a"), Version::new("1a"), Ordering::Equal)]
-    #[case(Version::new("1.a001a.1"), Version::new("1.a1a.1"), Ordering::Equal)]
+    #[case(Version::from_str("1"), Version::from_str("1"), Ordering::Equal)]
+    #[case(Version::from_str("2"), Version::from_str("1"), Ordering::Greater)]
+    #[case(Version::from_str("1"), Version::from_str("2"), Ordering::Less)]
+    #[case(Version::from_str("1"), Version::from_str("1.1"), Ordering::Less)]
+    #[case(Version::from_str("1.1"), Version::from_str("1"), Ordering::Greater)]
+    #[case(Version::from_str("1.1"), Version::from_str("1.1"), Ordering::Equal)]
+    #[case(Version::from_str("1.2"), Version::from_str("1.1"), Ordering::Greater)]
+    #[case(Version::from_str("1.1"), Version::from_str("1.2"), Ordering::Less)]
+    #[case(Version::from_str("1+2"), Version::from_str("1+1"), Ordering::Greater)]
+    #[case(Version::from_str("1+1"), Version::from_str("1+2"), Ordering::Less)]
+    #[case(Version::from_str("1.1"), Version::from_str("1.1a"), Ordering::Greater)]
+    #[case(Version::from_str("1.1a"), Version::from_str("1.1"), Ordering::Less)]
+    #[case(
+        Version::from_str("1.1"),
+        Version::from_str("1.1a1"),
+        Ordering::Greater
+    )]
+    #[case(Version::from_str("1.1a1"), Version::from_str("1.1"), Ordering::Less)]
+    #[case(Version::from_str("1.1"), Version::from_str("1.11a"), Ordering::Less)]
+    #[case(
+        Version::from_str("1.11a"),
+        Version::from_str("1.1"),
+        Ordering::Greater
+    )]
+    #[case(
+        Version::from_str("1.1_a"),
+        Version::from_str("1.1"),
+        Ordering::Greater
+    )]
+    #[case(Version::from_str("1.1"), Version::from_str("1.1_a"), Ordering::Less)]
+    #[case(Version::from_str("1.1"), Version::from_str("1.1.a"), Ordering::Less)]
+    #[case(
+        Version::from_str("1.1.a"),
+        Version::from_str("1.1"),
+        Ordering::Greater
+    )]
+    #[case(Version::from_str("1.a"), Version::from_str("1.1"), Ordering::Less)]
+    #[case(Version::from_str("1.1"), Version::from_str("1.a"), Ordering::Greater)]
+    #[case(Version::from_str("1.a1"), Version::from_str("1.1"), Ordering::Less)]
+    #[case(Version::from_str("1.1"), Version::from_str("1.a1"), Ordering::Greater)]
+    #[case(Version::from_str("1.a11"), Version::from_str("1.1"), Ordering::Less)]
+    #[case(
+        Version::from_str("1.1"),
+        Version::from_str("1.a11"),
+        Ordering::Greater
+    )]
+    #[case(Version::from_str("a.1"), Version::from_str("1.1"), Ordering::Less)]
+    #[case(Version::from_str("1.1"), Version::from_str("a.1"), Ordering::Greater)]
+    #[case(Version::from_str("foo"), Version::from_str("1.1"), Ordering::Less)]
+    #[case(Version::from_str("1.1"), Version::from_str("foo"), Ordering::Greater)]
+    #[case(Version::from_str("a1a"), Version::from_str("a1b"), Ordering::Less)]
+    #[case(Version::from_str("a1b"), Version::from_str("a1a"), Ordering::Greater)]
+    #[case(
+        Version::from_str("20220102"),
+        Version::from_str("20220202"),
+        Ordering::Less
+    )]
+    #[case(
+        Version::from_str("20220202"),
+        Version::from_str("20220102"),
+        Ordering::Greater
+    )]
+    #[case(Version::from_str("1.0.."), Version::from_str("1.0."), Ordering::Equal)]
+    #[case(Version::from_str("1.0."), Version::from_str("1.0"), Ordering::Greater)]
+    #[case(Version::from_str("1..0"), Version::from_str("1.0"), Ordering::Greater)]
+    #[case(Version::from_str("1..0"), Version::from_str("1..0"), Ordering::Equal)]
+    #[case(
+        Version::from_str("1..1"),
+        Version::from_str("1..0"),
+        Ordering::Greater
+    )]
+    #[case(Version::from_str("1..0"), Version::from_str("1..1"), Ordering::Less)]
+    #[case(Version::from_str("1+0"), Version::from_str("1.0"), Ordering::Equal)]
+    #[case(
+        Version::from_str("1.111"),
+        Version::from_str("1.1a1"),
+        Ordering::Greater
+    )]
+    #[case(Version::from_str("1.1a1"), Version::from_str("1.111"), Ordering::Less)]
+    #[case(Version::from_str("01"), Version::from_str("1"), Ordering::Equal)]
+    #[case(Version::from_str("001a"), Version::from_str("1a"), Ordering::Equal)]
+    #[case(
+        Version::from_str("1.a001a.1"),
+        Version::from_str("1.a1a.1"),
+        Ordering::Equal
+    )]
     fn version_cmp(
         #[case] version_a: Result<Version, Error>,
         #[case] version_b: Result<Version, Error>,
@@ -1461,15 +1499,15 @@ mod tests {
     #[rstest]
     #[case("=1", VersionRequirement {
         comparison: VersionComparison::Equal,
-        version: Version::new("1").unwrap(),
+        version: Version::from_str("1").unwrap(),
     })]
     #[case("<=42:abcd-2.4", VersionRequirement {
         comparison: VersionComparison::LessOrEqual,
-        version: Version::new("42:abcd-2.4").unwrap(),
+        version: Version::from_str("42:abcd-2.4").unwrap(),
     })]
     #[case(">3.1", VersionRequirement {
         comparison: VersionComparison::Greater,
-        version: Version::new("3.1").unwrap(),
+        version: Version::from_str("3.1").unwrap(),
     })]
     fn valid_version_requirement(#[case] requirement: &str, #[case] expected: VersionRequirement) {
         assert_eq!(

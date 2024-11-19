@@ -51,7 +51,7 @@ impl Default for Schema {
     /// Panics if the default schema version cannot be created.
     /// This should not happen normally.
     fn default() -> Self {
-        match SchemaVersion::new("1") {
+        match SchemaVersion::from_str("1") {
             Ok(v) => Schema::V1(v),
             Err(e) => panic!("failed to create default schema: {e}"),
         }

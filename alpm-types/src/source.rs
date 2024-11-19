@@ -15,24 +15,27 @@ pub struct Filename {
 }
 
 impl Filename {
-    /// Checks that the given string is a single filename.
+    /// Creates a new `Filename`
     ///
     /// ## Errors
     ///
     /// Returns an error if the string contains directories, is absolute, or is otherwise an
     /// invalid path.
-    pub fn new(s: String) -> Result<Self, Error> {
-        if s.is_empty() {
-            Err(Error::FileNameIsEmpty)
-        } else if s.contains(std::path::MAIN_SEPARATOR) {
+    pub fn new(path: PathBuf) -> Result<Self, Error> {
+        if path.components().count() > 1 {
             Err(Error::FileNameContainsInvalidChars(
-                PathBuf::from(s),
+                path,
                 std::path::MAIN_SEPARATOR,
             ))
-        } else if s.contains('\0') {
-            Err(Error::FileNameContainsInvalidChars(PathBuf::from(s), '\0'))
+        } else if path.components().any(|v| {
+            v.as_os_str()
+                .to_str()
+                .map(|v| v.contains('\0'))
+                .unwrap_or(false)
+        }) {
+            Err(Error::FileNameContainsInvalidChars(path, '\0'))
         } else {
-            Ok(Self { inner: s.into() })
+            Ok(Self { inner: path })
         }
     }
 
@@ -61,9 +64,25 @@ impl Filename {
 
 impl FromStr for Filename {
     type Err = Error;
-
+    /// Creates a new `Filename` from a string.
+    ///
+    /// ## Errors
+    ///
+    /// Returns an error if the string contains directories, is absolute, or is otherwise an
+    /// invalid path.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Self::new(s.to_owned())
+        if s.is_empty() {
+            Err(Error::FileNameIsEmpty)
+        } else if s.contains(std::path::MAIN_SEPARATOR) {
+            Err(Error::FileNameContainsInvalidChars(
+                PathBuf::from(s),
+                std::path::MAIN_SEPARATOR,
+            ))
+        } else if s.contains('\0') {
+            Err(Error::FileNameContainsInvalidChars(PathBuf::from(s), '\0'))
+        } else {
+            Ok(Self { inner: s.into() })
+        }
     }
 }
 
@@ -76,28 +95,36 @@ pub enum SourceLocation {
 }
 
 impl SourceLocation {
-    /// Parses a source location from a string. It must be either a valid URL or a plain
-    /// filename.
-    pub fn new(input: &str) -> Result<Self, Error> {
-        match input.parse() {
-            Ok(url) => Ok(Self::Url(url)),
-            Err(url::ParseError::RelativeUrlWithoutBase) => Filename::new(input.to_owned())
-                .map(Self::File)
-                .map_err(Into::into),
-            Err(e) => Err(e.into()),
-        }
+    /// Creates a new `SourceLocation` from a local file.
+    pub fn from_file(file: Filename) -> Self {
+        Self::File(file)
+    }
+
+    /// Creates a new `SourceLocation` from a URL.
+    pub fn from_url(url: Url) -> Self {
+        Self::Url(url)
     }
 }
 
 impl FromStr for SourceLocation {
     type Err = Error;
 
+    /// Parses a source location from a string. It must be either a valid URL or a plain
+    /// filename.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Self::new(s)
+        match s.parse() {
+            Ok(url) => Ok(Self::Url(url)),
+            Err(url::ParseError::RelativeUrlWithoutBase) => {
+                Filename::from_str(s).map(Self::File).map_err(Into::into)
+            }
+            Err(e) => Err(e.into()),
+        }
     }
 }
 
-/// Represents a source directive. Consists of an optional local filename and a [`SourceLocation`]
+/// Represents a source directive.
+///
+/// Consists of an optional local filename and a [`SourceLocation`]
 /// to get the file from.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Source {
@@ -106,6 +133,15 @@ pub struct Source {
 }
 
 impl Source {
+    /// Creates a new `Source` directive
+    pub fn new(filename: Option<Filename>, location: SourceLocation) -> Self {
+        Self { filename, location }
+    }
+}
+
+impl FromStr for Source {
+    type Err = Error;
+
     /// Parses a source directive. It is either a filename (in the same directory as the PKGBUILD)
     /// or a url, optionally prefixed by a destination file name (separated by `::`).
     ///
@@ -117,17 +153,19 @@ impl Source {
     /// ## Examples
     ///
     /// ```
+    /// use std::str::FromStr;
+    ///
     /// use alpm_types::{Source, SourceLocation};
     /// use url::Url;
     ///
-    /// let source = Source::new("foopkg-1.2.3.tar.gz::https://example.com/download").unwrap();
+    /// let source = Source::from_str("foopkg-1.2.3.tar.gz::https://example.com/download").unwrap();
     /// assert_eq!(source.filename.unwrap().as_str(), "foopkg-1.2.3.tar.gz");
     /// let SourceLocation::Url(url) = source.location else {
     ///     panic!()
     /// };
     /// assert_eq!(url.host_str(), Some("example.com"));
     /// ```
-    pub fn new(s: &str) -> Result<Self, Error> {
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         if let Some((filename, loc)) = s.split_once("::") {
             Ok(Self {
                 filename: Some(filename.parse()?),
@@ -139,14 +177,6 @@ impl Source {
                 location: s.parse()?,
             })
         }
-    }
-}
-
-impl FromStr for Source {
-    type Err = Error;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Self::new(s)
     }
 }
 
