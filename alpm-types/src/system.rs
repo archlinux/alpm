@@ -31,28 +31,18 @@ use strum::{Display, EnumString};
 /// ```
 #[derive(Clone, Copy, Debug, Display, EnumString, Eq, Ord, PartialEq, PartialOrd)]
 #[non_exhaustive]
+#[strum(serialize_all = "lowercase")]
 pub enum Architecture {
-    #[strum(to_string = "aarch64")]
     Aarch64,
-    #[strum(to_string = "any")]
     Any,
-    #[strum(to_string = "arm")]
     Arm,
-    #[strum(to_string = "armv6h")]
     Armv6h,
-    #[strum(to_string = "armv7h")]
     Armv7h,
-    #[strum(to_string = "i486")]
     I486,
-    #[strum(to_string = "i686")]
     I686,
-    #[strum(to_string = "pentium4")]
     Pentium4,
-    #[strum(to_string = "riscv32")]
     Riscv32,
-    #[strum(to_string = "riscv64")]
     Riscv64,
-    #[strum(to_string = "x86_64")]
     X86_64,
     #[strum(to_string = "x86_64_v2")]
     X86_64V2,
