@@ -87,8 +87,8 @@ impl BuildTool {
 impl FromStr for BuildTool {
     type Err = Error;
     /// Create a BuildTool from a string
-    fn from_str(input: &str) -> Result<BuildTool, Self::Err> {
-        BuildTool::new(input)
+    fn from_str(s: &str) -> Result<BuildTool, Self::Err> {
+        Name::new(s.to_string()).map(BuildTool)
     }
 }
 

@@ -97,8 +97,8 @@ impl<D: Digest> FromStr for Checksum<D> {
     /// assert!(Checksum::<Blake2b512>::from_str("d202d7951df2c4b711ca44b4bcc9d7b363fa4252127e058c1a910ec05b6cd038d71cc21221c031c0359f993e746b07f5965cf8c5c3746a58337ad9ab65278e7").is_err());
     /// assert!(Checksum::<Blake2b512>::from_str("d202d7951df2c4b711ca44b4bcc9d7b363fa4252127e058c1a910ec05b6cd038d71cc21221c031c0359f993e746b07f5965cf8c5c3746a58337ad9ab65278e7x").is_err());
     /// ```
-    fn from_str(input: &str) -> Result<Checksum<D>, Self::Err> {
-        let input = input.replace(' ', "").to_lowercase();
+    fn from_str(s: &str) -> Result<Checksum<D>, Self::Err> {
+        let input = s.replace(' ', "").to_lowercase();
         // the input does not have the correct length
         if input.len() != <D as Digest>::output_size() * 2 {
             return Err(Error::IncorrectLength {

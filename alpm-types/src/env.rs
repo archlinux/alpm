@@ -206,8 +206,8 @@ mod tests {
     #[case("!something", Ok(MakePkgOption{name: "something".to_string(), on: false}))]
     #[case("!!something", Err(Error::ValueContainsInvalidChars { invalid_char: '!'}))]
     #[case("foo\\", Err(Error::ValueContainsInvalidChars { invalid_char: '\\'}))]
-    fn makepkgoption(#[case] from_str: &str, #[case] result: Result<MakePkgOption, Error>) {
-        assert_eq!(MakePkgOption::from_str(from_str), result);
+    fn makepkgoption(#[case] s: &str, #[case] result: Result<MakePkgOption, Error>) {
+        assert_eq!(MakePkgOption::from_str(s), result);
     }
 
     #[rstest]
@@ -215,14 +215,14 @@ mod tests {
         "foo-bar-1:1.0.0-1-any",
         Ok(InstalledPackage{
             name: Name::new("foo-bar".to_string()).unwrap(),
-            version: Version::new("1:1.0.0-1").unwrap(),
+            version: Version::from_str("1:1.0.0-1").unwrap(),
             architecture: Architecture::Any,
         }),
     )]
     #[case("foo-bar-1:1.0.0-1", Err(strum::ParseError::VariantNotFound.into()))]
     #[case("foo-bar-1:1.0.0-any", Err(Error::InvalidInteger{ kind: std::num::IntErrorKind::InvalidDigit}))]
     #[case("1:1.0.0-1-any", Err(Error::MissingComponent { component: "name" }))]
-    fn installed_new(#[case] from_str: &str, #[case] result: Result<InstalledPackage, Error>) {
-        assert_eq!(InstalledPackage::new(from_str), result);
+    fn installed_new(#[case] s: &str, #[case] result: Result<InstalledPackage, Error>) {
+        assert_eq!(InstalledPackage::from_str(s), result);
     }
 }
