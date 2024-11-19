@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
-use clap::{ArgAction, Parser};
+use clap::{ArgAction, Parser, ValueEnum};
+use strum::Display;
 
 #[derive(Parser, Debug)]
 #[clap(name = "ALPM Dev Scripts", about = "Dev scripts for the ALPM project")]
@@ -22,8 +23,41 @@ pub enum Command {
     },
 }
 
+#[derive(Parser, ValueEnum, Display, Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TestFileType {
+    #[strum(to_string = ".BUILDINFO")]
+    BuildInfo,
+    #[strum(to_string = ".SRCINFO")]
+    SrcInfo,
+    #[strum(to_string = ".PKGINFO")]
+    PkgInfo,
+    #[strum(to_string = ".MTREE")]
+    MTree,
+    #[strum(to_string = "desc")]
+    RemoteDesc,
+    #[strum(to_string = "files")]
+    RemoteFiles,
+    #[strum(to_string = "desc")]
+    LocalDesc,
+    #[strum(to_string = "files")]
+    LocalFiles,
+}
+
 #[derive(Parser, Debug)]
 pub enum TestFilesCmd {
+    /// Download/synchronize files for testing to this machine.
+    ///
+    /// Each type of file can be downloaded individually.
+    Test {
+        // Where the local testing data is located.
+        // Defaults to `~/.cache/alpm/testing`
+        #[arg(short, long)]
+        test_data_dir: Option<PathBuf>,
+
+        /// The type of file that should be tested.
+        file_type: TestFileType,
+    },
+
     /// Download/synchronize files for testing to this machine.
     ///
     /// Each type of file can be downloaded individually.

@@ -6,10 +6,12 @@ use cli::Cli;
 use log::LevelFilter;
 use simplelog::{Config, SimpleLogger};
 use sync::{mirror::MirrorDownloader, pkgsrc::PkgSrcDownloader};
+use testing::TestRunner;
 
 mod cli;
 mod cmd;
-mod sync;
+pub mod sync;
+pub mod testing;
 mod ui;
 
 fn main() -> Result<()> {
@@ -26,6 +28,24 @@ fn main() -> Result<()> {
 
     match args.cmd {
         cli::Command::TestFiles { cmd } => match cmd {
+            cli::TestFilesCmd::Test {
+                test_data_dir,
+                file_type,
+            } => {
+                // Set a default download destination.
+                let test_data_dir = match test_data_dir {
+                    Some(test_data_dir) => test_data_dir,
+                    None => dirs::cache_dir()
+                        .context("Failed to determine home user cache directory.")?
+                        .join("alpm/testing"),
+                };
+
+                let runner = TestRunner {
+                    test_data_dir,
+                    file_type,
+                };
+                runner.run_tests()?;
+            }
             cli::TestFilesCmd::Download {
                 destination,
                 source,

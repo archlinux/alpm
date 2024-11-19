@@ -372,6 +372,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5b63caa9aa9397e2d9480a9b13673856c78d8ac123288526c37d7839f2a86990"
 
 [[package]]
+name = "colored"
+version = "2.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cbf2150cce219b664a8a70df7a1f933836724b503f8a413af9365b4dcc4d90b8"
+dependencies = [
+ "lazy_static",
+ "windows-sys 0.48.0",
+]
+
+[[package]]
 name = "console"
 version = "0.15.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -483,15 +493,19 @@ dependencies = [
 name = "dev-scripts"
 version = "0.0.0"
 dependencies = [
+ "alpm-buildinfo",
  "anyhow",
  "clap",
+ "colored",
  "dirs",
  "indicatif",
  "log",
  "rayon",
  "reqwest",
+ "rstest",
  "simplelog",
  "strum",
+ "tempfile",
 ]
 
 [[package]]
