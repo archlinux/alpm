@@ -291,7 +291,7 @@ pkgver = 1:1.0.0-1
     #[rstest]
     fn buildinfov1() -> TestResult {
         assert!(BuildInfoV1::new(
-            BuildDate::new(1),
+            1,
             BuildDir::new("/build")?,
             vec![BuildEnv::new("some")?],
             SchemaVersion::new("1")?,
@@ -311,7 +311,7 @@ pkgver = 1:1.0.0-1
     #[rstest]
     fn buildinfov1_invalid_schemaversion() -> TestResult {
         assert!(BuildInfoV1::new(
-            BuildDate::new(1),
+            1,
             BuildDir::new("/build")?,
             vec![BuildEnv::new("some")?],
             SchemaVersion::new("2")?,

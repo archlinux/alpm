@@ -20,7 +20,7 @@ pub mod digests {
 }
 
 mod date;
-pub use date::BuildDate;
+pub use date::{BuildDate, FromOffsetDateTime};
 
 mod env;
 pub use env::BuildEnv;

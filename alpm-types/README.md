@@ -72,10 +72,10 @@ Apart from creating BuildDate from i64 or str, it can also be created from `Date
 
 ```rust
 use time::OffsetDateTime;
-use alpm_types::BuildDate;
+use alpm_types::{FromOffsetDateTime, BuildDate};
 
-let datetime: BuildDate = OffsetDateTime::from_unix_timestamp(1).unwrap().into();
-assert_eq!(BuildDate::new(1), datetime);
+let datetime = BuildDate::from_offset_datetime(OffsetDateTime::from_unix_timestamp(1).unwrap());
+assert_eq!(1, datetime);
 ```
 
 ### Env
@@ -118,7 +118,7 @@ The compressed size of a package is represented by `CompressedSize` which tracks
 use alpm_types::CompressedSize;
 use std::str::FromStr;
 
-assert_eq!(CompressedSize::from_str("1"), Ok(CompressedSize(1)));
+assert_eq!(CompressedSize::from_str("1"), Ok(1));
 ```
 
 The installed size of a package is represented by `InstalledSize` which tracks the size in bytes and can also be created from str:
@@ -127,7 +127,7 @@ The installed size of a package is represented by `InstalledSize` which tracks t
 use alpm_types::InstalledSize;
 use std::str::FromStr;
 
-assert_eq!(InstalledSize::from_str("1"), Ok(InstalledSize(1)));
+assert_eq!(InstalledSize::from_str("1"), Ok(1));
 ```
 
 ### Name

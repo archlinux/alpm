@@ -1,11 +1,6 @@
-use std::{
-    fmt::{Display, Formatter},
-    str::FromStr,
-};
-
-use crate::error::Error;
-
 /// Compressed size of a file (in bytes)
+///
+/// This is a type alias for [`u64`].
 ///
 /// ## Examples
 /// ```
@@ -14,42 +9,14 @@ use crate::error::Error;
 ///
 /// use alpm_types::{CompressedSize, Error};
 ///
-/// // create CompressedSize from &str
-/// assert_eq!(CompressedSize::from_str("1"), Ok(CompressedSize(1)));
-/// assert_eq!(
-///     CompressedSize::from_str("-1"),
-///     Err(Error::InvalidInteger {
-///         kind: IntErrorKind::InvalidDigit
-///     })
-/// );
-///
-/// // format as String
-/// assert_eq!("1", format!("{}", CompressedSize(1)));
+/// assert_eq!(CompressedSize::from_str("1"), Ok(1));
+/// assert!(CompressedSize::from_str("-1").is_err());
 /// ```
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct CompressedSize(pub u64);
-
-impl FromStr for CompressedSize {
-    type Err = Error;
-
-    /// Create a CompressedSize from a string
-    fn from_str(input: &str) -> Result<CompressedSize, Self::Err> {
-        match input.parse::<u64>() {
-            Ok(compressedsize) => Ok(CompressedSize(compressedsize)),
-            Err(source) => Err(Error::InvalidInteger {
-                kind: source.kind().clone(),
-            }),
-        }
-    }
-}
-
-impl Display for CompressedSize {
-    fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
-        write!(fmt, "{}", self.0)
-    }
-}
+pub type CompressedSize = u64;
 
 /// Installed size of a package (in bytes)
+///
+/// This is a type alias for [`u64`].
 ///
 /// ## Examples
 /// ```
@@ -59,80 +26,7 @@ impl Display for CompressedSize {
 /// use alpm_types::{Error, InstalledSize};
 ///
 /// // create InstalledSize from &str
-/// assert_eq!(InstalledSize::from_str("1"), Ok(InstalledSize(1)));
-/// assert_eq!(
-///     InstalledSize::from_str("-1"),
-///     Err(Error::InvalidInteger {
-///         kind: IntErrorKind::InvalidDigit
-///     })
-/// );
-///
-/// // format as String
-/// assert_eq!("1", format!("{}", InstalledSize(1)));
+/// assert_eq!(InstalledSize::from_str("1"), Ok(1));
+/// assert!(InstalledSize::from_str("-1").is_err());
 /// ```
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct InstalledSize(pub u64);
-
-impl FromStr for InstalledSize {
-    type Err = Error;
-    /// Create a InstalledSize from a string
-    fn from_str(input: &str) -> Result<InstalledSize, Self::Err> {
-        match input.parse::<u64>() {
-            Ok(size) => Ok(InstalledSize(size)),
-            Err(source) => Err(Error::InvalidInteger {
-                kind: source.kind().clone(),
-            }),
-        }
-    }
-}
-
-impl Display for InstalledSize {
-    fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
-        write!(fmt, "{}", self.0)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use std::num::IntErrorKind;
-
-    use rstest::rstest;
-
-    use super::*;
-
-    #[rstest]
-    #[case("1", Ok(CompressedSize(1)))]
-    #[case(
-        "-1",
-        Err(Error::InvalidInteger { kind: IntErrorKind::InvalidDigit })
-    )]
-    fn compressedsize_from_string(
-        #[case] from_str: &str,
-        #[case] result: Result<CompressedSize, Error>,
-    ) {
-        assert_eq!(CompressedSize::from_str(from_str), result);
-    }
-
-    #[rstest]
-    fn compressedsize_format_string() {
-        assert_eq!("1", format!("{}", CompressedSize(1)));
-    }
-
-    #[rstest]
-    #[case("1", Ok(InstalledSize(1)))]
-    #[case(
-        "-1",
-        Err(Error::InvalidInteger { kind: IntErrorKind::InvalidDigit })
-    )]
-    fn installedsize_from_string(
-        #[case] from_str: &str,
-        #[case] result: Result<InstalledSize, Error>,
-    ) {
-        assert_eq!(InstalledSize::from_str(from_str), result);
-    }
-
-    #[rstest]
-    fn installedsize_format_string() {
-        assert_eq!("1", format!("{}", InstalledSize(1)));
-    }
-}
+pub type InstalledSize = u64;

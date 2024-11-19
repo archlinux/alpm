@@ -300,7 +300,7 @@ pkgver = 1:1.0.0-1
     #[rstest]
     fn buildinfov2() -> TestResult {
         BuildInfoV2::new(
-            BuildDate::new(1),
+            1,
             BuildDir::new("/build")?,
             StartDir::new("/startdir/")?,
             BuildTool::new("devtools")?,
@@ -323,7 +323,7 @@ pkgver = 1:1.0.0-1
     #[rstest]
     fn buildinfov2_invalid_schemaversion() -> TestResult {
         assert!(BuildInfoV2::new(
-            BuildDate::new(1),
+            1,
             BuildDir::new("/build")?,
             StartDir::new("/startdir/")?,
             BuildTool::new("devtools")?,
