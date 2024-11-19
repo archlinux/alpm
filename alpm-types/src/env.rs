@@ -9,10 +9,78 @@ use crate::Architecture;
 use crate::Name;
 use crate::Version;
 
+/// An option string
+///
+/// The option string is identified by its name and whether it is on (not prefixed with "!") or off
+/// (prefixed with "!").
+///
+/// This type is used in the context of `makepkg` options, build environment options ([`BuildEnv`]),
+/// and package options ([`PackageOption`]).
+///
+/// ## Examples
+/// ```
+/// use alpm_types::MakePkgOption;
+///
+/// let option = MakePkgOption::new("foo").unwrap();
+/// assert_eq!(option.on(), true);
+/// assert_eq!(option.name(), "foo");
+///
+/// let not_option = MakePkgOption::new("!foo").unwrap();
+/// assert_eq!(not_option.on(), false);
+/// assert_eq!(not_option.name(), "foo");
+/// ```
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct MakePkgOption {
+    name: String,
+    on: bool,
+}
+
+impl MakePkgOption {
+    /// Create a new MakePkgOption in a Result
+    pub fn new(option: &str) -> Result<Self, Error> {
+        let (name, on) = if let Some(name) = option.strip_prefix('!') {
+            (name.to_owned(), false)
+        } else {
+            (option.to_owned(), true)
+        };
+        if let Some(c) = name
+            .chars()
+            .find(|c| !(c.is_alphanumeric() || ['-', '.', '_'].contains(c)))
+        {
+            return Err(Error::ValueContainsInvalidChars { invalid_char: c });
+        }
+        Ok(MakePkgOption { name, on })
+    }
+
+    /// Get the name of the MakePkgOption
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    /// Get whether the MakePkgOption is on
+    pub fn on(&self) -> bool {
+        self.on
+    }
+}
+
+impl FromStr for MakePkgOption {
+    type Err = Error;
+    /// Create an Option from a string
+    fn from_str(input: &str) -> Result<MakePkgOption, Self::Err> {
+        MakePkgOption::new(input)
+    }
+}
+
+impl Display for MakePkgOption {
+    fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
+        write!(fmt, "{}{}", if self.on { "" } else { "!" }, self.name)
+    }
+}
+
 /// An option string used in a build environment
 ///
 /// The option string is identified by its name and whether it is on (not prefixed with "!") or off
-/// (prefixed with "!"). This type dereferences to `BuildOption`.
+/// (prefixed with "!"). This type is an alias for [`MakePkgOption`].
 ///
 /// ## Examples
 /// ```
@@ -26,109 +94,26 @@ use crate::Version;
 /// assert_eq!(not_option.on(), false);
 /// assert_eq!(not_option.name(), "foo");
 /// ```
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct BuildEnv(BuildOption);
+pub type BuildEnv = MakePkgOption;
 
-impl BuildEnv {
-    /// Create a new BuildEnv from a string
-    pub fn new(option: &str) -> Result<Self, Error> {
-        BuildOption::new(option).map(BuildEnv)
-    }
-
-    /// Return a reference to the inner type
-    pub fn inner(&self) -> &BuildOption {
-        &self.0
-    }
-
-    /// Get the name of the BuildEnv
-    pub fn name(&self) -> &str {
-        self.inner().name()
-    }
-
-    /// Get whether the BuildEnv is on
-    pub fn on(&self) -> bool {
-        self.inner().on()
-    }
-}
-
-impl FromStr for BuildEnv {
-    type Err = Error;
-    /// Create a BuildEnv from a string
-    fn from_str(input: &str) -> Result<BuildEnv, Self::Err> {
-        BuildEnv::new(input)
-    }
-}
-
-impl Display for BuildEnv {
-    fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
-        write!(fmt, "{}", self.inner())
-    }
-}
-
-/// An option string
+/// An option string used in packaging
 ///
 /// The option string is identified by its name and whether it is on (not prefixed with "!") or off
-/// (prefixed with "!").
+/// (prefixed with "!"). This type is an alias for [`MakePkgOption`].
 ///
 /// ## Examples
 /// ```
-/// use alpm_types::BuildOption;
+/// use alpm_types::PackageOption;
 ///
-/// let option = BuildOption::new("foo").unwrap();
+/// let option = PackageOption::new("foo").unwrap();
 /// assert_eq!(option.on(), true);
 /// assert_eq!(option.name(), "foo");
 ///
-/// let not_option = BuildOption::new("!foo").unwrap();
+/// let not_option = PackageOption::new("!foo").unwrap();
 /// assert_eq!(not_option.on(), false);
 /// assert_eq!(not_option.name(), "foo");
 /// ```
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct BuildOption {
-    name: String,
-    on: bool,
-}
-
-impl BuildOption {
-    /// Create a new BuildOption in a Result
-    pub fn new(option: &str) -> Result<Self, Error> {
-        let (name, on) = if let Some(name) = option.strip_prefix('!') {
-            (name.to_owned(), false)
-        } else {
-            (option.to_owned(), true)
-        };
-        if let Some(c) = name
-            .chars()
-            .find(|c| !(c.is_alphanumeric() || ['-', '.', '_'].contains(c)))
-        {
-            return Err(Error::ValueContainsInvalidChars { invalid_char: c });
-        }
-        Ok(BuildOption { name, on })
-    }
-
-    /// Get the name of the BuildOption
-    pub fn name(&self) -> &str {
-        &self.name
-    }
-
-    /// Get whether the BuildOption is on
-    pub fn on(&self) -> bool {
-        self.on
-    }
-}
-
-impl FromStr for BuildOption {
-    type Err = Error;
-    /// Create an Option from a string
-    fn from_str(input: &str) -> Result<BuildOption, Self::Err> {
-        BuildOption::new(input)
-    }
-}
-
-impl Display for BuildOption {
-    fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
-        write!(fmt, "{}{}", if self.on { "" } else { "!" }, self.name)
-    }
-}
+pub type PackageOption = MakePkgOption;
 
 /// Information on an installed package in an environment
 ///
@@ -137,21 +122,21 @@ impl Display for BuildOption {
 ///
 /// ## Examples
 /// ```
-/// use alpm_types::Installed;
+/// use alpm_types::InstalledPackage;
 ///
-/// assert!(Installed::new("foo-bar-1:1.0.0-1-any").is_ok());
-/// assert!(Installed::new("foo-bar-1:1.0.0-1").is_err());
-/// assert!(Installed::new("foo-bar-1:1.0.0-any").is_err());
-/// assert!(Installed::new("1:1.0.0-1-any").is_err());
+/// assert!(InstalledPackage::new("foo-bar-1:1.0.0-1-any").is_ok());
+/// assert!(InstalledPackage::new("foo-bar-1:1.0.0-1").is_err());
+/// assert!(InstalledPackage::new("foo-bar-1:1.0.0-any").is_err());
+/// assert!(InstalledPackage::new("1:1.0.0-1-any").is_err());
 /// ```
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub struct Installed {
+pub struct InstalledPackage {
     name: Name,
     version: Version,
     architecture: Architecture,
 }
 
-impl Installed {
+impl InstalledPackage {
     /// Create new Installed and return it in a Result
     pub fn new(installed: &str) -> Result<Self, Error> {
         const DELIMITER: char = '-';
@@ -179,7 +164,7 @@ impl Installed {
             .ok_or(Error::MissingComponent { component: "name" })?
             .to_string();
 
-        Ok(Installed {
+        Ok(InstalledPackage {
             name: Name::new(name)?,
             version: Version::with_pkgrel(version.as_str())?,
             architecture,
@@ -187,73 +172,17 @@ impl Installed {
     }
 }
 
-impl FromStr for Installed {
+impl FromStr for InstalledPackage {
     type Err = Error;
     /// Create an Installed from a string
-    fn from_str(input: &str) -> Result<Installed, Self::Err> {
-        Installed::new(input)
+    fn from_str(input: &str) -> Result<InstalledPackage, Self::Err> {
+        InstalledPackage::new(input)
     }
 }
 
-impl Display for Installed {
+impl Display for InstalledPackage {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
         write!(fmt, "{}-{}-{}", self.name, self.version, self.architecture)
-    }
-}
-
-/// An option string used in packaging
-///
-/// The option string is identified by its name and whether it is on (not prefixed with "!") or off
-/// (prefixed with "!"). This type dereferences to `BuildOption`.
-///
-/// ## Examples
-/// ```
-/// use alpm_types::PackageOption;
-///
-/// let option = PackageOption::new("foo").unwrap();
-/// assert_eq!(option.on(), true);
-/// assert_eq!(option.name(), "foo");
-///
-/// let not_option = PackageOption::new("!foo").unwrap();
-/// assert_eq!(not_option.on(), false);
-/// assert_eq!(not_option.name(), "foo");
-/// ```
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct PackageOption(BuildOption);
-
-impl PackageOption {
-    /// Create a new PackageOption in a Result
-    pub fn new(option: &str) -> Result<Self, Error> {
-        BuildOption::new(option).map(PackageOption)
-    }
-
-    /// Return a reference to the inner type
-    pub fn inner(&self) -> &BuildOption {
-        &self.0
-    }
-
-    /// Get the name of the PackageOption
-    pub fn name(&self) -> &str {
-        self.inner().name()
-    }
-
-    /// Get whether the PackageOption is on
-    pub fn on(&self) -> bool {
-        self.inner().on()
-    }
-}
-
-impl FromStr for PackageOption {
-    type Err = Error;
-    /// Create a PackageOption from a string
-    fn from_str(input: &str) -> Result<PackageOption, Self::Err> {
-        PackageOption::new(input)
-    }
-}
-
-impl Display for PackageOption {
-    fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
-        write!(fmt, "{}", self.inner())
     }
 }
 
@@ -264,29 +193,21 @@ mod tests {
     use super::*;
 
     #[rstest]
-    #[case("something", Ok(BuildEnv(BuildOption{name: "something".to_string(), on: true})))]
-    #[case("!something", Ok(BuildEnv(BuildOption{name: "something".to_string(), on: false})))]
-    #[case("foo\\", Err(Error::ValueContainsInvalidChars { invalid_char: '\\'}))]
-    fn buildenv(#[case] from_str: &str, #[case] result: Result<BuildEnv, Error>) {
-        assert_eq!(BuildEnv::from_str(from_str), result);
-    }
-
-    #[rstest]
-    #[case("something", Ok(BuildOption{name: "something".to_string(), on: true}))]
-    #[case("1cool.build-option", Ok(BuildOption{name: "1cool.build-option".to_string(), on: true}))]
-    #[case("üñıçøĐë", Ok(BuildOption{name: "üñıçøĐë".to_string(), on: true}))]
-    #[case("!üñıçøĐë", Ok(BuildOption{name: "üñıçøĐë".to_string(), on: false}))]
-    #[case("!something", Ok(BuildOption{name: "something".to_string(), on: false}))]
+    #[case("something", Ok(MakePkgOption{name: "something".to_string(), on: true}))]
+    #[case("1cool.build-option", Ok(MakePkgOption{name: "1cool.build-option".to_string(), on: true}))]
+    #[case("üñıçøĐë", Ok(MakePkgOption{name: "üñıçøĐë".to_string(), on: true}))]
+    #[case("!üñıçøĐë", Ok(MakePkgOption{name: "üñıçøĐë".to_string(), on: false}))]
+    #[case("!something", Ok(MakePkgOption{name: "something".to_string(), on: false}))]
     #[case("!!something", Err(Error::ValueContainsInvalidChars { invalid_char: '!'}))]
     #[case("foo\\", Err(Error::ValueContainsInvalidChars { invalid_char: '\\'}))]
-    fn buildoption(#[case] from_str: &str, #[case] result: Result<BuildOption, Error>) {
-        assert_eq!(BuildOption::from_str(from_str), result);
+    fn makepkgoption(#[case] from_str: &str, #[case] result: Result<MakePkgOption, Error>) {
+        assert_eq!(MakePkgOption::from_str(from_str), result);
     }
 
     #[rstest]
     #[case(
         "foo-bar-1:1.0.0-1-any",
-        Ok(Installed{
+        Ok(InstalledPackage{
             name: Name::new("foo-bar".to_string()).unwrap(),
             version: Version::new("1:1.0.0-1").unwrap(),
             architecture: Architecture::Any,
@@ -295,15 +216,7 @@ mod tests {
     #[case("foo-bar-1:1.0.0-1", Err(strum::ParseError::VariantNotFound.into()))]
     #[case("foo-bar-1:1.0.0-any", Err(Error::InvalidInteger{ kind: std::num::IntErrorKind::InvalidDigit}))]
     #[case("1:1.0.0-1-any", Err(Error::MissingComponent { component: "name" }))]
-    fn installed_new(#[case] from_str: &str, #[case] result: Result<Installed, Error>) {
-        assert_eq!(Installed::new(from_str), result);
-    }
-
-    #[rstest]
-    #[case("something", Ok(PackageOption(BuildOption{name: "something".to_string(), on: true})))]
-    #[case("!something", Ok(PackageOption(BuildOption{name: "something".to_string(), on: false})))]
-    #[case("foo\\", Err(Error::ValueContainsInvalidChars { invalid_char: '\\'}))]
-    fn packageoption(#[case] from_str: &str, #[case] result: Result<PackageOption, Error>) {
-        assert_eq!(PackageOption::from_str(from_str), result);
+    fn installed_new(#[case] from_str: &str, #[case] result: Result<InstalledPackage, Error>) {
+        assert_eq!(InstalledPackage::new(from_str), result);
     }
 }

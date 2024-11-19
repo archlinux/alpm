@@ -8,7 +8,7 @@ use alpm_types::BuildDate;
 use alpm_types::BuildDir;
 use alpm_types::BuildEnv;
 use alpm_types::Checksum;
-use alpm_types::Installed;
+use alpm_types::InstalledPackage;
 use alpm_types::Name;
 use alpm_types::PackageOption;
 use alpm_types::Packager;
@@ -97,7 +97,7 @@ pub struct BuildInfoV1 {
 
     #[serde_as(as = "Vec<DisplayFromStr>")]
     #[serde(default)]
-    pub(crate) installed: Vec<Installed>,
+    pub(crate) installed: Vec<InstalledPackage>,
 }
 
 impl BuildInfoV1 {
@@ -108,7 +108,7 @@ impl BuildInfoV1 {
         builddir: BuildDir,
         buildenv: Vec<BuildEnv>,
         format: SchemaVersion,
-        installed: Vec<Installed>,
+        installed: Vec<InstalledPackage>,
         options: Vec<PackageOption>,
         packager: Packager,
         pkgarch: Architecture,
@@ -192,7 +192,7 @@ impl BuildInfoV1 {
     }
 
     /// Returns a list of installed dependencies or components.
-    pub fn installed(&self) -> &Vec<Installed> {
+    pub fn installed(&self) -> &Vec<InstalledPackage> {
         &self.installed
     }
 }
@@ -295,7 +295,7 @@ pkgver = 1:1.0.0-1
             BuildDir::new("/build")?,
             vec![BuildEnv::new("some")?],
             SchemaVersion::new("1")?,
-            vec![Installed::new("bar-1:1.0.0-2-any")?],
+            vec![InstalledPackage::new("bar-1:1.0.0-2-any")?],
             vec![PackageOption::new("buildoption")?],
             Packager::new("Foobar McFooface <foobar@mcfooface.org>")?,
             Architecture::Any,
@@ -315,7 +315,7 @@ pkgver = 1:1.0.0-1
             BuildDir::new("/build")?,
             vec![BuildEnv::new("some")?],
             SchemaVersion::new("2")?,
-            vec![Installed::new("bar-1:1.0.0-2-any")?],
+            vec![InstalledPackage::new("bar-1:1.0.0-2-any")?],
             vec![PackageOption::new("buildoption")?],
             Packager::new("Foobar McFooface <foobar@mcfooface.org>")?,
             Architecture::Any,

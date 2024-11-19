@@ -9,7 +9,7 @@ use alpm_types::BuildDir;
 use alpm_types::BuildEnv;
 use alpm_types::BuildTool;
 use alpm_types::BuildToolVer;
-use alpm_types::Installed;
+use alpm_types::InstalledPackage;
 use alpm_types::Name;
 use alpm_types::PackageOption;
 use alpm_types::Packager;
@@ -114,7 +114,7 @@ pub struct V1CreateArgs {
         value_delimiter = ' ',
         value_name = "INSTALLED"
     )]
-    pub installed: Vec<Installed>,
+    pub installed: Vec<InstalledPackage>,
     /// Provide one or more options
     #[arg(
         env = "BUILDINFO_OPTIONS",
