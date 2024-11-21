@@ -1,0 +1,27 @@
+[package]
+homepage = "https://gitlab.archlinux.org/archlinux/alpm/alpm"
+repository = "https://gitlab.archlinux.org/archlinux/alpm/alpm"
+name = "uapi-certificate-directory-openpgp"
+description = "OpenPGP layer for UAPI Certificate Directory for distributions"
+license = "Apache-2.0 OR MIT"
+version = "0.1.0"
+edition = "2021"
+authors = ["Heiko Schaefer <heiko@schaefer.name>"]
+
+
+[lib]
+name = "uapi_certificate_directory_openpgp"
+path = "src/lib.rs"
+
+[[bin]]
+name = "uapi-openpgp-test"
+path = "src/main.rs"
+
+[dependencies]
+uapi-certificate-directory = { path = "../certificate-dir" }
+env_logger = "0.11"
+hex = "0.4"
+log = "0.4"
+pgp = "0.14"
+rpgpie = "0.4"
+thiserror = "2"
