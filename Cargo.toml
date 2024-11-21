@@ -2,6 +2,7 @@
 authors = [
     "Arne Beer <contact@arne.beer>",
     "David Runge <dvzrv@archlinux.org>",
+    "Heiko Schaefer <heiko@schaefer.name>",
     "Orhun Parmaksız <orhun@archlinux.org>",
 ]
 edition = "2021"
@@ -12,7 +13,13 @@ readme = "README.md"
 repository = "https://gitlab.archlinux.org/archlinux/alpm/alpm"
 
 [workspace]
-members = ["alpm-buildinfo", "alpm-parsers", "alpm-types", "dev-scripts"]
+members = [
+    "alpm-buildinfo",
+    "alpm-parsers",
+    "alpm-types",
+    "dev-scripts",
+    "uapi-verifier-directory",
+]
 resolver = "2"
 
 [workspace.dependencies]
