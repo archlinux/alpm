@@ -941,6 +941,14 @@ impl PartialOrd for Version {
 /// - greater than (`>`)
 ///
 /// the specified version.
+///
+/// ## Note
+///
+/// The variants of this enum are sorted in a way, that prefers the two-letter comparators over
+/// the one-letter ones.
+/// This is because when splitting a string on the string representation of [`VersionComparison`]
+/// variant and relying on the ordering of [`strum::EnumIter`], the two-letter comparators must be
+/// checked before checking the one-letter ones to yield robust results.
 #[derive(
     strum::AsRefStr,
     Clone,
@@ -954,17 +962,17 @@ impl PartialOrd for Version {
     strum::VariantNames,
 )]
 pub enum VersionComparison {
-    #[strum(to_string = "<")]
-    Less,
-
     #[strum(to_string = "<=")]
     LessOrEqual,
+
+    #[strum(to_string = ">=")]
+    GreaterOrEqual,
 
     #[strum(to_string = "=")]
     Equal,
 
-    #[strum(to_string = ">=")]
-    GreaterOrEqual,
+    #[strum(to_string = "<")]
+    Less,
 
     #[strum(to_string = ">")]
     Greater,
