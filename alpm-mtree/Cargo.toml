@@ -15,5 +15,8 @@ repository.workspace = true
 [dependencies]
 alpm-types = { path = "../alpm-types" }
 clap.workspace = true
+flate2 = "1"
+thiserror.workspace = true
+winnow = "0.6.20"
 
 [dev-dependencies]

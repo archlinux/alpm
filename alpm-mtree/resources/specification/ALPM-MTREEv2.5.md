@@ -83,7 +83,7 @@ The information in this document is for version 2, which is the current version.
 
 ### Changes since the last version
 
-The **md5** field has been removed, effectively making this a breaking change.
+The **md5** field is no longer generated, effectively making this a breaking change.
 
 # EXAMPLES
 
