@@ -2,6 +2,7 @@
 authors = [
     "Arne Beer <contact@arne.beer>",
     "David Runge <dvzrv@archlinux.org>",
+    "Heiko Schaefer <heiko@schaefer.name>",
     "Orhun Parmaksız <orhun@archlinux.org>",
 ]
 edition = "2024"
@@ -22,6 +23,7 @@ members = [
     "alpm-srcinfo",
     "alpm-types",
     "dev-scripts",
+    "uapi-verifier-directory",
 ]
 resolver = "3"
 
