@@ -12,7 +12,13 @@ readme = "README.md"
 repository = "https://gitlab.archlinux.org/archlinux/alpm/alpm"
 
 [workspace]
-members = ["alpm-buildinfo", "alpm-parsers", "alpm-types", "dev-scripts"]
+members = [
+    "alpm-buildinfo",
+    "alpm-mtree",
+    "alpm-parsers",
+    "alpm-types",
+    "dev-scripts",
+]
 resolver = "2"
 
 [workspace.dependencies]
@@ -26,7 +32,7 @@ serde = { version = "1.0", features = ["derive"] }
 strum = { version = "0.26.3", features = ["derive"] }
 testresult = "0.4.1"
 thiserror = "2.0.0"
-winnow = "0.6"
+winnow = { version = "0.6" }
 
 [profile.release]
 codegen-units = 1

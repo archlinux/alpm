@@ -15,5 +15,8 @@ repository.workspace = true
 [dependencies]
 alpm-types.workspace = true
 clap.workspace = true
+flate2 = "1"
+thiserror.workspace = true
+winnow.workspace = true
 
 [dev-dependencies]
