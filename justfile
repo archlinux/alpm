@@ -169,6 +169,7 @@ lint:
     just ensure-command shellcheck
 
     tangler bash < alpm-buildinfo/README.md | shellcheck --shell bash -
+    tangler bash < alpm-mtree/README.md | shellcheck --shell bash -
 
     just lint-recipe 'test-readme alpm-buildinfo'
     just lint-recipe check-commits

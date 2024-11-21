@@ -1,0 +1,19 @@
+[package]
+name = "alpm-mtree"
+description = "Library and commandline toolkit for the specification, writing and parsing of ALPM .MTREE files"
+version = "0.1.0"
+rust-version = "1.70.0"
+
+authors.workspace = true
+edition.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+license.workspace = true
+readme.workspace = true
+repository.workspace = true
+
+[dependencies]
+alpm-types = { path = "../alpm-types" }
+clap.workspace = true
+
+[dev-dependencies]
