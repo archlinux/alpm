@@ -56,9 +56,10 @@ For an overview of planned specifications and components, refer to the [mileston
 
 Currently the following components are available:
 
-- [alpm-types]: a central library for types used by other ALPM libraries and tools
+- [alpm-mtree]: a library and commandline interface to work with `.MTREE` and `mtree` files
 - [alpm-buildinfo]: a library and commandline interface to work with `BUILDINFO` files
 - [alpm-parsers]: a library for providing various custom parsers/deserializers for file types used in ALPM
+- [alpm-types]: a central library for types used by other ALPM libraries and tools
 
 ## Specifications
 
@@ -70,6 +71,9 @@ Legacy versions of specifications may be deprecated and removed as needed, if th
 
 ## File types
 
+- [ALPM-MTREE][ALPM-MTREE-SPEC]
+  - [ALPM-MTREEv1]
+  - [ALPM-MTREEv2]
 - [BUILDINFO]
   - [BUILDINFOv1]
   - [BUILDINFOv2]
@@ -97,6 +101,9 @@ Please refer to the [contribution guidelines] to learn how to contribute to this
 This project can be used under the terms of the [Apache-2.0] or [MIT].
 Contributions to this project, unless noted otherwise, are automatically licensed under the terms of both of those licenses.
 
+[ALPM-MTREE-SPEC]: alpm-mtree/resources/specification/ALPM-MTREE.5.md
+[ALPM-MTREEv1]: alpm-mtree/resources/specification/ALPM-MTREEv1.5.md
+[ALPM-MTREEv2]: alpm-mtree/resources/specification/ALPM-MTREEv2.5.md
 [Apache-2.0]: LICENSES/Apache-2.0.txt
 [BUILDINFO]: alpm-buildinfo/resources/specification/BUILDINFO.5.md
 [BUILDINFOv1]: alpm-buildinfo/resources/specification/BUILDINFOv1.5.md
@@ -117,6 +124,7 @@ Contributions to this project, unless noted otherwise, are automatically license
 [alpm-pkgrel]: alpm-types/resources/specification/alpm-package-pkgrel.7.md
 [alpm-pkgver]: alpm-types/resources/specification/alpm-package-pkgver.7.md
 [alpm-types]: alpm-types/
+[alpm-mtree]: alpm-mtree/
 [components]: #components
 [contribution guidelines]: CONTRIBUTING.md
 [milestones]: https://gitlab.archlinux.org/archlinux/alpm/alpm/-/milestones
