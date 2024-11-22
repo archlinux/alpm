@@ -14,7 +14,8 @@ use super::filenames_in_dir;
 use crate::{cmd::ensure_success, ui::get_progress_bar};
 
 const PKGBASE_MAINTAINER_URL: &str = "https://archlinux.org/packages/pkgbase-maintainer";
-const BASE_SSH_URL: &str = "git@gitlab.archlinux.org:archlinux/packaging/packages";
+const SSH_HOST: &str = "git@gitlab.archlinux.org";
+const SSH_BASE_URL: &str = "git@gitlab.archlinux.org:archlinux/packaging/packages";
 
 /// This struct is the entry point for downloading package source repositories from ArchLinux's
 /// Gitlab.
@@ -90,6 +91,9 @@ impl PkgSrcDownloader {
     fn parallel_update_or_clone(&self, repos: &[String], download_dir: &Path) -> Result<()> {
         let progress_bar = get_progress_bar(repos.len() as u64);
 
+        // Prepare a ssh session for better performance.
+        warmup_ssh_session()?;
+
         // Clone/update all repositories in parallel
         let results: Vec<Result<(), RepoUpdateError>> = repos
             .par_iter()
@@ -127,6 +131,21 @@ impl PkgSrcDownloader {
 
         Ok(())
     }
+}
+
+/// Create a new ssh connection that doesn't get bound to a given session.
+/// This allows that session to be reused, effectively eliminating the need to authenticate every
+/// time a git repository is cloned/pulled.
+///
+/// This is especially necessary for users that have their SSH key on a physical device, such as a
+/// NitroKey, as authentications with such devices are sequential and take quite some time.
+pub fn warmup_ssh_session() -> Result<()> {
+    let output = &Command::new("ssh")
+        .args(vec!["-T", SSH_HOST])
+        .output()
+        .context("Failed to start ssh warmup command")?;
+
+    ensure_success(output).context("Failed to run ssh warmup command:")
 }
 
 #[derive(Display)]
@@ -180,7 +199,7 @@ fn update_repo(repo: &str, target_dir: &Path) -> Result<(), RepoUpdateError> {
 
 /// Clone a git repository into a target directory.
 fn clone_repo(repo: &str, target_dir: &Path) -> Result<(), RepoUpdateError> {
-    let ssh_url = format!("{BASE_SSH_URL}/{repo}.git");
+    let ssh_url = format!("{SSH_HOST}{SSH_BASE_URL}/{repo}.git");
     let output = &Command::new("git")
         .arg("clone")
         .arg(&ssh_url)
