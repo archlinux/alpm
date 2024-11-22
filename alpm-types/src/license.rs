@@ -152,7 +152,10 @@ mod tests {
         "NonStandard-License",
         License::Unknown(String::from("NonStandard-License"))
     )]
-    fn test_parse_license(#[case] input: &str, #[case] expected: License) -> Result<(), Error> {
+    fn test_parse_license(
+        #[case] input: &str,
+        #[case] expected: License,
+    ) -> testresult::TestResult<()> {
         let license = input.parse::<License>()?;
         assert_eq!(license, expected);
         assert_eq!(license.to_string(), input.to_string());
@@ -190,7 +193,7 @@ mod tests {
     #[rstest]
     #[case("MIT", true)]
     #[case("Custom-License", false)]
-    fn test_license_kind(#[case] input: &str, #[case] is_spdx: bool) -> Result<(), Error> {
+    fn test_license_kind(#[case] input: &str, #[case] is_spdx: bool) -> testresult::TestResult<()> {
         let spdx_license = License::from_str(input)?;
         assert_eq!(spdx_license.is_spdx(), is_spdx);
 

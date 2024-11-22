@@ -67,6 +67,7 @@ dependencies = [
  "sha2",
  "spdx",
  "strum",
+ "testresult",
  "thiserror",
  "time",
  "url",
