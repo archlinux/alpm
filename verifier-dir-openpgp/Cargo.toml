@@ -1,8 +1,8 @@
 [package]
 homepage = "https://gitlab.archlinux.org/archlinux/alpm/alpm"
 repository = "https://gitlab.archlinux.org/archlinux/alpm/alpm"
-name = "uapi-certificate-directory-openpgp"
-description = "OpenPGP layer for UAPI Certificate Directory for distributions"
+name = "uapi-verifier-directory-openpgp"
+description = "OpenPGP layer for UAPI Signature Verifier Directory for distributions"
 license = "Apache-2.0 OR MIT"
 version = "0.1.0"
 edition = "2021"
@@ -18,7 +18,7 @@ name = "uapi-openpgp-test"
 path = "src/main.rs"
 
 [dependencies]
-uapi-certificate-directory = { path = "../certificate-dir" }
+uapi-verifier-directory = { path = "../verifier-dir" }
 env_logger = "0.11"
 hex = "0.4"
 log = "0.4"

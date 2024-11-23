@@ -9,11 +9,12 @@ authors = [
     "David Runge <dvzrv@archlinux.org>",
     "Orhun Parmaksız <orhun@archlinux.org>",
     "Arne Beer <contact@arne.beer>",
+    "Heiko Schaefer <heiko@schaefer.name>"
 ]
 
 [workspace]
 resolver = "2"
-members = ["alpm-buildinfo", "alpm-parsers", "alpm-types", "certificate-dir", "certificate-dir-openpgp"]
+members = ["alpm-buildinfo", "alpm-parsers", "alpm-types", "verifier-dir", "verifier-dir-openpgp"]
 
 [workspace.dependencies]
 clap = { version = "4.5.19", features = ["derive", "env", "string"] }
