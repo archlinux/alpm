@@ -1,6 +1,8 @@
+use pgp::Signature;
 use rpgpie::certificate::{Certificate, Checked};
 use std::fmt::{Debug, Formatter};
 use std::ops::Add;
+use std::path::Path;
 use std::time::SystemTime;
 use uapi_verifier_directory::{OpaqueVerifier, Technology, VerifierDirectory};
 
@@ -72,6 +74,28 @@ impl OpenPGPCert {
     /// Fingerprint of the certificate (i.e. the primary key fingerprint), as lower-case hex string
     fn fingerprint(&self) -> String {
         hex::encode(self.certificate.fingerprint().as_bytes())
+    }
+
+    /// Dummy package verification function.
+    ///
+    /// FIXME: Currently only prints results on stdout, return structured information.
+    pub fn verify(&self, file: &Path, sigs: &[Signature]) {
+        let checked = Checked::from(&self.certificate);
+
+        let data = std::fs::read(file).expect("read package data");
+
+        for verifier in checked.valid_signing_capable_component_keys_at(&SystemTime::now().into()) {
+            for sig in sigs {
+                if verifier.verify(sig, &data).is_ok() {
+                    println!(
+                        "Good signature for {:?} by signer {}, issued at {:?}",
+                        file,
+                        self.fingerprint(),
+                        sig.created().unwrap()
+                    )
+                }
+            }
+        }
     }
 }
 
