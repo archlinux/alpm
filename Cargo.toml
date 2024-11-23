@@ -3,6 +3,7 @@ authors = [
     "Arne Beer <contact@arne.beer>",
     "David Runge <dvzrv@archlinux.org>",
     "Orhun Parmaksız <orhun@archlinux.org>",
+    "Heiko Schaefer <heiko@schaefer.name>",
 ]
 edition = "2021"
 homepage = "https://gitlab.archlinux.org/archlinux/alpm/alpm"
@@ -12,7 +13,7 @@ readme = "README.md"
 repository = "https://gitlab.archlinux.org/archlinux/alpm/alpm"
 
 [workspace]
-members = ["alpm-buildinfo", "alpm-parsers", "alpm-types", "dev-scripts"]
+members = ["alpm-buildinfo", "alpm-parsers", "alpm-types", "dev-scripts", "verifier-dir", "verifier-dir-openpgp"]
 resolver = "2"
 
 [workspace.dependencies]
