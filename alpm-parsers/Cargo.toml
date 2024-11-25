@@ -14,3 +14,5 @@ repository.workspace = true
 
 [dependencies]
 serde.workspace = true
+testresult.workspace = true
+winnow.workspace = true

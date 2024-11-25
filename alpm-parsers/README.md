@@ -15,11 +15,11 @@ A library for providing various custom parsers/deserializers for the specificati
 use serde::Deserialize;
 
 const DATA: &str = "
-    num=42
-    text=foo
-    list=bar
-    list=baz
-    list=qux
+num = 42
+text = foo
+list = bar
+list = baz
+list = qux
 ";
 
 #[derive(Debug, Deserialize)]
@@ -35,6 +35,8 @@ fn main() {
 ```
 
 The main difference between the regular INI parser and this one is that it allows duplicate keys in a section and collects them into a `Vec`.
+
+Furthermore, the delimiter must be a ` = `, which is much more rigid than classic `ini`, as that allows to not use surrounding whitespaces or even other characters as delimiters.
 
 ## Contributing
 

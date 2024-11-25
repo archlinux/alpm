@@ -48,6 +48,8 @@ name = "alpm-parsers"
 version = "0.1.0"
 dependencies = [
  "serde",
+ "testresult",
+ "winnow",
 ]
 
 [[package]]

@@ -21,11 +21,11 @@
 //!
 //! fn main() -> custom_ini::Result<()> {
 //!     let content = "
-//!         num=42
-//!         text=foo
-//!         list=bar
-//!         list=baz
-//!         list=qux
+//!         num = 42
+//!         text = foo
+//!         list = bar
+//!         list = baz
+//!         list = qux
 //!     ";
 //!
 //!     let data = custom_ini::from_str::<Data>(content)?;
@@ -49,6 +49,9 @@ use serde::{
     forward_to_deserialize_any,
     Deserialize,
 };
+use winnow::Parser;
+
+use super::parser::{ini_file, Item};
 
 #[derive(Debug, Clone)]
 pub enum Error {
@@ -116,23 +119,6 @@ impl de::Error for Error {
 
 pub type Result<T> = std::result::Result<T, Error>;
 
-/// Representation of parsed items.
-#[derive(Debug, Clone, Deserialize)]
-#[serde(untagged)]
-pub enum Item {
-    Value(String),
-    List(Vec<String>),
-}
-
-impl Item {
-    pub fn value_or_error(&self) -> Result<&str> {
-        match self {
-            Item::Value(value) => Ok(value),
-            Item::List(_) => Err(Error::InvalidState),
-        }
-    }
-}
-
 impl IntoDeserializer<'_, Error> for Item {
     type Deserializer = ItemDeserializer<Error>;
 
@@ -156,30 +142,9 @@ impl<'a> TryFrom<&'a str> for Deserializer {
     type Error = Error;
 
     fn try_from(contents: &'a str) -> Result<Self> {
-        let mut input = BTreeMap::new();
-        let mut items: Vec<(String, Vec<String>)> = Vec::new();
-
-        for line in contents.lines().filter(|line| !line.trim().is_empty()) {
-            let mut parts = line.splitn(2, '=');
-            let (Some(key), Some(value)) = (parts.next(), parts.next()) else {
-                return Err(Error::Custom(format!("invalid line: {line}")));
-            };
-            let key = key.trim().to_string();
-            let value = value.trim().to_string();
-            if let Some((_, existing_values)) = items.iter_mut().find(|(k, _)| *k == key) {
-                existing_values.push(value);
-            } else {
-                items.push((key, vec![value]));
-            }
-        }
-
-        items.into_iter().for_each(|(key, values)| {
-            if values.len() == 1 {
-                input.insert(key, Item::Value(values[0].clone()));
-            } else {
-                input.insert(key, Item::List(values.clone()));
-            }
-        });
+        let input = ini_file
+            .parse(contents)
+            .map_err(|err| Error::Custom(format!("{err}")))?;
 
         Ok(Deserializer { input })
     }
@@ -440,17 +405,17 @@ mod tests {
     }
 
     const TYPE_TEST_INPUT: &str = "
-        i64= -64
-        i32= -32
-        u64= 64
-        u32= 32
-        list= a
-        list= b
-        list= c
-        u64_list= 1
-        u64_list= 2
-        u64_list= 3
-        bool= true";
+        i64 = -64
+        i32 = -32
+        u64 = 64
+        u32 = 32
+        list = a
+        list = b
+        list = c
+        u64_list = 1
+        u64_list = 2
+        u64_list = 3
+        bool = true";
     #[test]
     fn deserialize_types() {
         let value = from_str::<TypeTestModel>(TYPE_TEST_INPUT).unwrap();

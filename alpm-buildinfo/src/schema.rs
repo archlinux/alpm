@@ -4,7 +4,7 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::custom_ini::Item;
+use alpm_parsers::custom_ini::parser::Item;
 use alpm_types::SchemaVersion;
 
 use crate::Error;
