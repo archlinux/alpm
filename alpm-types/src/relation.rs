@@ -191,7 +191,7 @@ impl FromStr for PackageRelation {
 /// let opt_depend = OptDepend::from_str("example: this is an example dependency")?;
 ///
 /// // Get the name
-/// assert_eq!("example", opt_depend.name().to_string());
+/// assert_eq!("example", opt_depend.name().as_ref());
 ///
 /// // Get the description
 /// assert_eq!(

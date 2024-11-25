@@ -156,6 +156,12 @@ impl Display for Name {
     }
 }
 
+impl AsRef<str> for Name {
+    fn as_ref(&self) -> &str {
+        self.inner()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use proptest::prelude::*;
