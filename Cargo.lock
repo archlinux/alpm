@@ -47,6 +47,8 @@ dependencies = [
 name = "alpm-parsers"
 version = "0.1.0"
 dependencies = [
+ "insta",
+ "rstest",
  "serde",
  "testresult",
  "winnow",

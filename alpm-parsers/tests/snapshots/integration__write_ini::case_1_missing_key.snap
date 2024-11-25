@@ -1,0 +1,9 @@
+---
+source: alpm-parsers/tests/integration.rs
+expression: "format!(\"{err}\")"
+snapshot_kind: text
+---
+= value
+^
+invalid key
+expected a key followed by a ` = ` delimiter.

@@ -16,3 +16,8 @@ repository.workspace = true
 serde.workspace = true
 testresult.workspace = true
 winnow.workspace = true
+
+[dev-dependencies]
+insta.workspace = true
+rstest.workspace = true
+testresult.workspace = true
