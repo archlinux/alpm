@@ -17,6 +17,9 @@ alpm-types = { path = "../alpm-types" }
 clap.workspace = true
 flate2 = "1"
 thiserror.workspace = true
-winnow = "0.6.20"
+winnow.workspace = true
 
 [dev-dependencies]
+insta.workspace = true
+rstest.workspace = true
+testresult.workspace = true

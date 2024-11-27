@@ -53,6 +53,9 @@ dependencies = [
  "alpm-types",
  "clap",
  "flate2",
+ "insta",
+ "rstest",
+ "testresult",
  "thiserror 2.0.3",
  "winnow",
 ]
