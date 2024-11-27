@@ -1,0 +1,12 @@
+---
+source: alpm-mtree/tests/parse_errors.rs
+description: "./testfile time=1700000000a.0\n"
+expression: error
+snapshot_kind: text
+---
+parse error at line 1, column 27
+  |
+1 | ./testfile time=1700000000a.0
+  |                           ^
+invalid unix epoch
+expected A unix epoch in float notation.

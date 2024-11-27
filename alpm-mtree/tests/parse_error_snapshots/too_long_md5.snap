@@ -1,0 +1,12 @@
+---
+source: alpm-mtree/tests/parse_errors.rs
+description: "#mtree\n/set mode=755\n./testfile md5digest=0123456789abcdef0123456789abcdef0 type=file\n"
+expression: error
+snapshot_kind: text
+---
+parse error at line 3, column 22
+  |
+3 | ./testfile md5digest=0123456789abcdef0123456789abcdef0 type=file
+  |                      ^
+invalid md5 hash
+expected 32 char long hexadecimal string

@@ -20,3 +20,6 @@ thiserror.workspace = true
 winnow.workspace = true
 
 [dev-dependencies]
+insta.workspace = true
+rstest.workspace = true
+testresult.workspace = true

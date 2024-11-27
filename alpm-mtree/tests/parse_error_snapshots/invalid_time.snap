@@ -1,0 +1,12 @@
+---
+source: alpm-mtree/tests/parse_errors.rs
+description: "./testfile size=1337a\n"
+expression: error
+snapshot_kind: text
+---
+parse error at line 1, column 17
+  |
+1 | ./testfile size=1337a
+  |                 ^
+invalid file size
+expected a positive integer representing the file's size.
