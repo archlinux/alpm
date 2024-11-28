@@ -99,7 +99,7 @@ mod tests {
     use rstest::rstest;
 
     use super::*;
-    use crate::{name::NAME_REGEX, pkg::PACKAGER_REGEX};
+    use crate::{name::NAME_REGEX, openpgp::PACKAGER_REGEX};
 
     #[rstest]
     #[case(

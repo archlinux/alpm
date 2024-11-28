@@ -55,9 +55,9 @@ pub use path::StartDir;
 
 mod openpgp;
 pub use openpgp::OpenPGPv4Fingerprint;
+pub use openpgp::Packager;
 
 mod pkg;
-pub use pkg::Packager;
 pub use pkg::PkgBase;
 pub use pkg::PkgDesc;
 pub use pkg::PkgType;
