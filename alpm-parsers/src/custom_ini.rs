@@ -133,7 +133,7 @@ impl Item {
     }
 }
 
-impl<'de> IntoDeserializer<'de, Error> for Item {
+impl IntoDeserializer<'_, Error> for Item {
     type Deserializer = ItemDeserializer<Error>;
 
     fn into_deserializer(self) -> Self::Deserializer {
@@ -185,7 +185,7 @@ impl<'a> TryFrom<&'a str> for Deserializer {
     }
 }
 
-impl<'de, 'a> de::Deserializer<'de> for &'a mut Deserializer {
+impl<'de> de::Deserializer<'de> for &mut Deserializer {
     type Error = Error;
 
     fn is_human_readable(&self) -> bool {
@@ -347,7 +347,7 @@ impl<'de> de::Deserializer<'de> for SeqItemDeserializer {
     }
 }
 
-impl<'de> IntoDeserializer<'de> for SeqItemDeserializer {
+impl IntoDeserializer<'_> for SeqItemDeserializer {
     type Deserializer = SeqItemDeserializer;
     fn into_deserializer(self) -> Self::Deserializer {
         SeqItemDeserializer(self.0)
