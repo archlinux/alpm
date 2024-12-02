@@ -9,7 +9,7 @@ use lazy_regex::{lazy_regex, Lazy};
 use regex::Regex;
 use strum::{Display, EnumString};
 
-use crate::error::Error;
+use crate::{error::Error, Name};
 
 pub(crate) static PACKAGER_REGEX: Lazy<Regex> =
     lazy_regex!(r"^(?P<name>[\w\s\-().]+) <(?P<email>.*)>$");
@@ -149,6 +149,28 @@ pub enum PkgType {
 /// let desc: PkgDesc = "A simple package".to_string();
 /// ```
 pub type PkgDesc = String;
+
+/// Name of the base package information that one or more packages are built from.
+///
+/// This is a type alias for [`Name`].
+///
+/// ## Examples
+/// ```
+/// use std::str::FromStr;
+///
+/// use alpm_types::{Error, Name};
+///
+/// # fn main() -> Result<(), alpm_types::Error> {
+/// // create PkgBase from &str
+/// let pkgbase = Name::from_str("test-123@.foo_+")?;
+///
+/// // format as String
+/// let pkgbase = Name::from_str("foo")?;
+/// assert_eq!("foo", pkgbase.to_string());
+/// # Ok(())
+/// # }
+/// ```
+pub type PkgBase = Name;
 
 #[cfg(test)]
 mod tests {

@@ -52,6 +52,7 @@ pub use path::StartDir;
 
 mod pkg;
 pub use pkg::Packager;
+pub use pkg::PkgBase;
 pub use pkg::PkgDesc;
 pub use pkg::PkgType;
 
