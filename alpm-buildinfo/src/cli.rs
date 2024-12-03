@@ -18,6 +18,8 @@ use alpm_types::Version;
 use clap::Args;
 use clap::Parser;
 use clap::Subcommand;
+use clap::ValueEnum;
+use strum::Display;
 
 use crate::schema::Schema;
 use crate::Error;
@@ -59,32 +61,57 @@ pub struct Cli {
 #[allow(clippy::large_enum_variant)]
 #[derive(Clone, Debug, Subcommand)]
 pub enum Command {
-    #[command()]
     /// Create a BUILDINFO file according to a schema
     ///
     /// If the input can be validated according to the schema, the program exits with no output and
     /// a return code of 0. If the input can not be validated according to the schema, an error
     /// is emitted on stderr and the program exits with a non-zero exit code.
+    #[command()]
     Create {
         #[command(subcommand)]
         command: CreateCommand,
     },
-    #[command()]
+
     /// Validate a BUILDINFO file
     ///
     /// Validate a BUILDINFO file according to a schema.
     /// If the file can be validated, the program exits with no output and a return code of 0.
     /// If the file can not be validated, an error is emitted on stderr and the program exits with
     /// a non-zero exit code.
+    #[command()]
     Validate {
-        /// Provide the BUILDINFO schema version to use.
-        ///
-        /// If no schema version is provided, it will be deduced from the file itself.
-        #[arg(short, long, value_name = "VERSION")]
-        schema: Option<Schema>,
-        #[arg(value_name = "FILE")]
-        file: Option<PathBuf>,
+        #[command(flatten)]
+        args: ValidateArgs,
     },
+
+    /// Parse a BUILDINFO file and output it in a different format
+    #[command()]
+    Format {
+        #[command(flatten)]
+        args: ValidateArgs,
+
+        /// Provide the output format
+        #[arg(
+            short,
+            long,
+            value_name = "OUTPUT_FORMAT",
+            default_value_t = OutputFormat::Json
+        )]
+        output_format: OutputFormat,
+    },
+}
+
+/// Arguments for validating and parsing a BUILDINFO file
+#[derive(Clone, Debug, Args)]
+pub struct ValidateArgs {
+    /// Provide the BUILDINFO schema version to use.
+    ///
+    /// If no schema version is provided, it will be deduced from the file itself.
+    #[arg(short, long, value_name = "VERSION")]
+    pub schema: Option<Schema>,
+    /// Provide the file to read
+    #[arg(value_name = "FILE")]
+    pub file: Option<PathBuf>,
 }
 
 /// Arguments for creating a BUILDINFO file according to the format version 1 schema
@@ -179,4 +206,13 @@ pub enum CreateCommand {
         #[arg(env = "BUILDINFO_BUILDTOOLVER", long, value_name = "BUILDTOOLVER")]
         buildtoolver: BuildToolVersion,
     },
+}
+
+/// Output format for the format command
+#[derive(Clone, Debug, Default, Display, ValueEnum)]
+#[non_exhaustive]
+pub enum OutputFormat {
+    #[default]
+    #[strum(to_string = "json")]
+    Json,
 }

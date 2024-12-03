@@ -23,6 +23,9 @@ use std::str::FromStr;
 use alpm_types::SchemaVersion;
 use alpm_types::Sha256Checksum;
 use cli::CreateCommand;
+use cli::OutputFormat;
+use cli::ValidateArgs;
+use erased_serde::Serialize;
 use schema::Schema;
 
 pub use crate::error::Error;
@@ -93,16 +96,16 @@ pub fn create_file(command: CreateCommand) -> Result<(), Error> {
     Ok(())
 }
 
-/// Validate a file according to a BUILDINFO schema.
+/// Parses a file according to a BUILDINFO schema.
 ///
-/// This function reads the contents of a file or stdin, and validates it according to a schema.
+/// Returns a serializable BuildInfo if the file is valid, otherwise an error is returned.
 ///
 /// NOTE: If a command is piped to this process, the input is read from stdin.
 /// See [`IsTerminal`] for more information about how terminal detection works.
 ///
 /// [`IsTerminal`]: https://doc.rust-lang.org/stable/std/io/trait.IsTerminal.html
-pub fn validate(file: Option<&PathBuf>, schema: Option<&Schema>) -> Result<(), Error> {
-    let contents = if let Some(file) = file {
+pub fn parse(args: ValidateArgs) -> Result<Box<dyn Serialize>, Error> {
+    let contents = if let Some(file) = &args.file {
         read_to_string(file)
             .map_err(|e| Error::IoPathError(file.clone(), "reading file contents", e))?
     } else if !io::stdin().is_terminal() {
@@ -120,20 +123,36 @@ pub fn validate(file: Option<&PathBuf>, schema: Option<&Schema>) -> Result<(), E
     // Determine the schema that should be used to validate the file.
     // If no explicit schema version is provided, the version will be deduced from the contents of
     // the file itself. If the file does not contain a version, an error will be returned.
-    let schema = if let Some(schema) = schema {
+    let schema = if let Some(schema) = args.schema {
         schema.clone()
     } else {
         Schema::from_contents(&contents)?
     };
 
     match schema {
-        Schema::V1(_) => {
-            BuildInfoV1::from_str(&contents)?;
-        }
-        Schema::V2(_) => {
-            BuildInfoV2::from_str(&contents)?;
-        }
-    };
+        Schema::V1(_) => Ok(Box::new(BuildInfoV1::from_str(&contents)?)),
+        Schema::V2(_) => Ok(Box::new(BuildInfoV2::from_str(&contents)?)),
+    }
+}
 
+/// Validate a file according to a BUILDINFO schema.
+///
+/// This is a thin wrapper around [`parse`] that only checks if the file is valid.
+pub fn validate(args: ValidateArgs) -> Result<(), Error> {
+    let _ = parse(args)?;
+    Ok(())
+}
+
+/// Formats a file according to a BUILDINFO schema.
+///
+/// Validates and prints the parsed file in the specified output format to stdout.
+pub fn format(args: ValidateArgs, output_format: OutputFormat) -> Result<(), Error> {
+    let build_info = parse(args)?;
+    match output_format {
+        OutputFormat::Json => {
+            let json = serde_json::to_string(&build_info)?;
+            println!("{json}");
+        }
+    }
     Ok(())
 }

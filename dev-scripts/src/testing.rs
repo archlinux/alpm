@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
+use alpm_buildinfo::cli::ValidateArgs;
 use anyhow::{Context, Result};
 use colored::Colorize;
 use log::{debug, info};
@@ -39,9 +40,11 @@ impl TestRunner {
             .into_par_iter()
             .map(|file| {
                 let result = match self.file_type {
-                    TestFileType::BuildInfo => {
-                        alpm_buildinfo::validate(Some(&file), None).map_err(|err| err.into())
-                    }
+                    TestFileType::BuildInfo => alpm_buildinfo::validate(ValidateArgs {
+                        file: Some(file.clone()),
+                        schema: None,
+                    })
+                    .map_err(|err| err.into()),
                     TestFileType::SrcInfo => unimplemented!(),
                     TestFileType::PkgInfo => unimplemented!(),
                     TestFileType::MTree => unimplemented!(),

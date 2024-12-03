@@ -38,4 +38,8 @@ pub enum Error {
     /// BuildInfo file is missing the format field
     #[error("Missing format field")]
     MissingFormatField,
+
+    /// JSON error
+    #[error("JSON error: {0}")]
+    Json(#[from] serde_json::Error),
 }

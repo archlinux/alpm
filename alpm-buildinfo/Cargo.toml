@@ -16,8 +16,11 @@ repository.workspace = true
 alpm-parsers = { path = "../alpm-parsers" }
 alpm-types = { path = "../alpm-types" }
 clap.workspace = true
+erased-serde = "0.4.5"
 serde.workspace = true
+serde_json = "1.0.133"
 serde_with = "3.11.0"
+strum.workspace = true
 thiserror.workspace = true
 
 [dev-dependencies]
