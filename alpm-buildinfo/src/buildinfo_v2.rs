@@ -17,7 +17,6 @@ use alpm_types::Packager;
 use alpm_types::SchemaVersion;
 use alpm_types::StartDir;
 use alpm_types::Version;
-use serde::Deserialize;
 use serde_with::serde_as;
 use serde_with::DisplayFromStr;
 

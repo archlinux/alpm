@@ -14,7 +14,6 @@ use alpm_types::PackageOption;
 use alpm_types::Packager;
 use alpm_types::SchemaVersion;
 use alpm_types::Version;
-use serde::Deserialize;
 use serde_with::serde_as;
 use serde_with::DisplayFromStr;
 
@@ -29,7 +28,7 @@ macro_rules! generate_buildinfo {
     ($(#[$meta:meta])* $name:ident { $($extra_fields:tt)* }) => {
         $(#[$meta])*
         #[serde_as]
-        #[derive(Clone, Debug, Deserialize)]
+        #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
         #[serde(deny_unknown_fields)]
         pub struct $name {
             #[serde_as(as = "DisplayFromStr")]
