@@ -146,11 +146,18 @@ pub fn validate(args: ValidateArgs) -> Result<(), Error> {
 /// Formats a file according to a BUILDINFO schema.
 ///
 /// Validates and prints the parsed file in the specified output format to stdout.
-pub fn format(args: ValidateArgs, output_format: OutputFormat) -> Result<(), Error> {
+///
+/// The output will be pretty-printed if the `pretty` flag is set to `true` and if the format
+/// supports it.
+pub fn format(args: ValidateArgs, output_format: OutputFormat, pretty: bool) -> Result<(), Error> {
     let build_info = parse(args)?;
     match output_format {
         OutputFormat::Json => {
-            let json = serde_json::to_string(&build_info)?;
+            let json = if pretty {
+                serde_json::to_string_pretty(&build_info)?
+            } else {
+                serde_json::to_string(&build_info)?
+            };
             println!("{json}");
         }
     }

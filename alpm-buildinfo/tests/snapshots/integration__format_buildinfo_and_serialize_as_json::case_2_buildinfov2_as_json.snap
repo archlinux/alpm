@@ -3,4 +3,29 @@ source: alpm-buildinfo/tests/integration.rs
 expression: build_info.to_string()
 snapshot_kind: text
 ---
-{"format":"2","pkgname":"foo","pkgbase":"foo","pkgver":"1:1.0.0-1","pkgarch":"any","pkgbuild_sha256sum":"b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c","packager":"Foobar McFooface <foobar@mcfooface.org>","builddate":"1","builddir":"/build","buildenv":["envfoo","envbar"],"options":["some_option","!other_option"],"installed":["bar-1.2.3-1-any","beh-2.2.3-4-any"],"startdir":"/startdir/","buildtool":"devtools","buildtoolver":"1:1.2.1-1-any"}
+{
+  "format": "2",
+  "pkgname": "foo",
+  "pkgbase": "foo",
+  "pkgver": "1:1.0.0-1",
+  "pkgarch": "any",
+  "pkgbuild_sha256sum": "b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c",
+  "packager": "Foobar McFooface <foobar@mcfooface.org>",
+  "builddate": "1",
+  "builddir": "/build",
+  "buildenv": [
+    "envfoo",
+    "envbar"
+  ],
+  "options": [
+    "some_option",
+    "!other_option"
+  ],
+  "installed": [
+    "bar-1.2.3-1-any",
+    "beh-2.2.3-4-any"
+  ],
+  "startdir": "/startdir/",
+  "buildtool": "devtools",
+  "buildtoolver": "1:1.2.1-1-any"
+}

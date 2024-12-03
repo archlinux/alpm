@@ -16,7 +16,8 @@ fn main() -> ExitCode {
         Command::Format {
             args,
             output_format,
-        } => format(args, output_format),
+            pretty,
+        } => format(args, output_format, pretty),
     };
 
     if let Err(error) = result {

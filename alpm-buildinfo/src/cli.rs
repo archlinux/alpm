@@ -98,6 +98,10 @@ pub enum Command {
             default_value_t = OutputFormat::Json
         )]
         output_format: OutputFormat,
+
+        /// Pretty-print the output
+        #[arg(short, long)]
+        pretty: bool,
     },
 }
 

@@ -116,7 +116,7 @@ fn wrong_schema_buildinfov2_as_v1() -> TestResult {
 #[case::buildinfov2_as_json(VALID_BUILDINFO_V2_DATA)]
 fn format_buildinfo_and_serialize_as_json(#[case] data: &str) -> TestResult {
     let mut cmd = Command::cargo_bin("alpm-buildinfo")?;
-    cmd.arg("format");
+    cmd.args(["format", "-p"]);
     cmd.write_stdin(data);
     let cmd = cmd.unwrap();
     let build_info = String::from_utf8_lossy(&cmd.stdout);
