@@ -27,6 +27,7 @@ strum.workspace = true
 thiserror.workspace = true
 time = "0.3.22"
 url = "2.4.0"
+winnow.workspace = true
 
 [dev-dependencies]
 proptest = "1.4.0"

@@ -1,5 +1,7 @@
 use std::path::PathBuf;
 
+use winnow::error::{ContextError, ParseError};
+
 /// The library's error type
 ///
 /// These errors are usually parsing errors and they each contain a context
@@ -94,6 +96,16 @@ pub enum Error {
         "Invalid OpenPGP v4 fingerprint, only 40 uppercase hexadecimal characters are allowed"
     )]
     InvalidOpenPGPv4Fingerprint,
+
+    /// Failed to parse a value
+    #[error("{0}")]
+    ParseError(String),
+}
+
+impl<'a> From<ParseError<&'a str, ContextError>> for Error {
+    fn from(value: ParseError<&'a str, ContextError>) -> Self {
+        Self::ParseError(value.to_string())
+    }
 }
 
 #[cfg(test)]
@@ -103,7 +115,7 @@ mod tests {
     use rstest::rstest;
 
     use super::*;
-    use crate::{name::NAME_REGEX, openpgp::PACKAGER_REGEX};
+    use crate::name::NAME_REGEX;
 
     #[rstest]
     #[case(
@@ -137,14 +149,6 @@ mod tests {
         "Invalid integer (caused by InvalidDigit)",
         Error::InvalidInteger {
             kind: IntErrorKind::InvalidDigit
-        }
-    )]
-    #[case(
-        "Value '€i²' does not match the 'packager' regex: ^(?P<name>[\\w\\s\\-().]+) <(?P<email>.*)>$",
-        Error::RegexDoesNotMatch {
-            value: "€i²".to_string(),
-            regex_type: "packager".to_string(),
-            regex: PACKAGER_REGEX.to_string(),
         }
     )]
     #[case(

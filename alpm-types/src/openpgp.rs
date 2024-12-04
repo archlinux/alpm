@@ -5,8 +5,13 @@ use std::{
 };
 
 use email_address::EmailAddress;
-use lazy_regex::{lazy_regex, Lazy};
-use regex::Regex;
+use winnow::{
+    ascii::space0,
+    combinator::{delimited, seq},
+    error::{StrContext, StrContextValue},
+    prelude::*,
+    token::{take_till, take_while},
+};
 
 use crate::Error;
 
@@ -96,9 +101,6 @@ impl Display for OpenPGPv4Fingerprint {
     }
 }
 
-pub(crate) static PACKAGER_REGEX: Lazy<Regex> =
-    lazy_regex!(r"^(?P<name>[\w\s\-().]+) <(?P<email>.*)>$");
-
 /// A packager of a package
 ///
 /// A `Packager` is represented by a User ID (e.g. `"Foobar McFooFace <foobar@mcfooface.org>"`).
@@ -150,35 +152,50 @@ impl Packager {
     pub fn email(&self) -> &EmailAddress {
         &self.email
     }
+
+    /// Parse the name of a Packager
+    fn parse_name(input: &mut &str) -> PResult<String> {
+        take_till(0.., '<')
+            .verify(|s: &str| !s.is_empty())
+            .verify(|s: &str| {
+                s.chars()
+                    .all(|c| c.is_alphanumeric() || matches!(c, ' ' | '-' | '(' | ')'))
+            })
+            .context(StrContext::Label("name"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "an alphanumeric packager name before '<'",
+            )))
+            .parse_next(input)
+            .map(|v| v.trim().to_string())
+    }
+
+    /// Parse the email of a Packager
+    fn parse_email(input: &mut &str) -> PResult<EmailAddress> {
+        delimited('<', take_while(0.., |c| c != '>'), '>')
+            .parse_to()
+            .context(StrContext::Label("email"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "a valid email address between '<' and '>'",
+            )))
+            .parse_next(input)
+    }
+
+    /// Parse a Packager from a string
+    fn parse(input: &mut &str) -> PResult<Packager> {
+        seq!(Packager {
+            name: Self::parse_name,
+            _: space0,
+            email: Self::parse_email,
+        })
+        .parse_next(input)
+    }
 }
 
 impl FromStr for Packager {
     type Err = Error;
     /// Create a Packager from a string
     fn from_str(s: &str) -> Result<Packager, Self::Err> {
-        if let Some(captures) = PACKAGER_REGEX.captures(s) {
-            if captures.name("name").is_some() && captures.name("email").is_some() {
-                let email = EmailAddress::from_str(captures.name("email").unwrap().as_str())?;
-                Ok(Packager {
-                    name: captures.name("name").unwrap().as_str().to_string(),
-                    email,
-                })
-            } else {
-                Err(Error::MissingComponent {
-                    component: if captures.name("name").is_none() {
-                        "name"
-                    } else {
-                        "email"
-                    },
-                })
-            }
-        } else {
-            Err(Error::RegexDoesNotMatch {
-                value: s.to_string(),
-                regex_type: "packager".to_string(),
-                regex: PACKAGER_REGEX.to_string(),
-            })
-        }
+        Ok(Self::parse.parse(s)?)
     }
 }
 
@@ -247,34 +264,50 @@ mod tests {
         assert_eq!(Packager::from_str(from_str), Ok(packager));
     }
 
-    /// Test that invalid packager email expressions throw the expected email errors.
     #[rstest]
     #[case(
         "Foobar McFooface <@mcfooface.org>",
-        email_address::Error::LocalPartEmpty
+        "                 ^
+invalid email
+expected a valid email address between '<' and '>'"
     )]
     #[case(
         "Foobar McFooface <foobar@mcfooface.org> <foobar@mcfoofacemcfooface.org>",
-        email_address::Error::MissingEndBracket
+        "                                       ^"
     )]
-    fn invalid_packager_email(#[case] packager: &str, #[case] error: email_address::Error) {
-        assert_eq!(Packager::from_str(packager), Err(error.into()));
-    }
-
-    /// Test that invalid packager expressionare detected as such throw the expected Regex error.
-    #[rstest]
-    #[case("<foobar@mcfooface.org>")]
-    #[case("[foo] <foobar@mcfooface.org>")]
-    #[case("foobar@mcfooface.org")]
-    #[case("Foobar McFooface")]
-    fn invalid_packager_regex(#[case] packager: &str) {
+    #[case(
+        "<foobar@mcfooface.org>",
+        "^
+invalid name
+expected an alphanumeric packager name before '<'"
+    )]
+    #[case(
+        "[foo] <foobar@mcfooface.org>",
+        "^
+invalid name
+expected an alphanumeric packager name before '<'"
+    )]
+    #[case(
+        "foobar@mcfooface.org",
+        "^
+invalid name
+expected an alphanumeric packager name before '<'"
+    )]
+    #[case(
+        "Foobar McFooface",
+        "                ^
+invalid email
+expected a valid email address between '<' and '>'"
+    )]
+    fn invalid_packager_email(#[case] packager: &str, #[case] error: &str) {
         assert_eq!(
-            Packager::from_str(packager),
-            Err(Error::RegexDoesNotMatch {
-                value: packager.to_string(),
-                regex_type: "packager".to_string(),
-                regex: PACKAGER_REGEX.to_string(),
-            })
+            Packager::from_str(packager).map_err(|e| e
+                .to_string()
+                .lines()
+                .skip(1)
+                .collect::<Vec<_>>()
+                .join("\n")),
+            Err(error.into())
         );
     }
 
