@@ -73,6 +73,10 @@ pub enum Error {
     #[error("The path is not absolute: {0}")]
     PathNotAbsolute(PathBuf),
 
+    /// An invalid relative path (i.e. starts with a `/`)
+    #[error("The path is not relative: {0}")]
+    PathNotRelative(PathBuf),
+
     /// File name contains invalid characters
     #[error("File name ({0}) contains invalid characters: {1:?}")]
     FileNameContainsInvalidChars(PathBuf, char),
