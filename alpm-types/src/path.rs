@@ -17,7 +17,8 @@ use crate::Error;
 ///
 /// use alpm_types::{AbsolutePath, Error};
 ///
-/// // create BuildDir from &str
+/// # fn main() -> Result<(), alpm_types::Error> {
+/// // Create AbsolutePath from &str
 /// assert_eq!(
 ///     AbsolutePath::from_str("/"),
 ///     AbsolutePath::new(PathBuf::from("/"))
@@ -27,8 +28,10 @@ use crate::Error;
 ///     Err(Error::PathNotAbsolute(PathBuf::from("./")))
 /// );
 ///
-/// // format as String
-/// assert_eq!("/", format!("{}", AbsolutePath::from_str("/").unwrap()));
+/// // Format as String
+/// assert_eq!("/", format!("{}", AbsolutePath::from_str("/")?));
+/// # Ok(())
+/// # }
 /// ```
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct AbsolutePath(PathBuf);
@@ -76,21 +79,18 @@ impl Display for AbsolutePath {
 ///
 /// ## Examples
 /// ```
-/// use std::path::PathBuf;
 /// use std::str::FromStr;
 ///
-/// use alpm_types::{BuildDir, Error};
+/// use alpm_types::{Error, BuildDir};
 ///
-/// // create BuildDir from &str
-/// assert_eq!(BuildDir::from_str("/"), BuildDir::new(PathBuf::from("/")));
+/// # fn main() -> Result<(), alpm_types::Error> {
+/// // Create BuildDir from &str and format it
 /// assert_eq!(
-///     BuildDir::from_str("/foo.txt"),
-///     BuildDir::new(PathBuf::from("/foo.txt"))
+///     "/etc",
+///     BuildDir::from_str("/etc")?.to_string()
 /// );
-///
-/// // format as String
-/// assert_eq!("/", format!("{}", BuildDir::from_str("/").unwrap()));
-/// ```
+/// # Ok(())
+/// # }
 pub type BuildDir = AbsolutePath;
 
 /// An absolute path used as start directory in a package build environment
@@ -99,24 +99,18 @@ pub type BuildDir = AbsolutePath;
 ///
 /// ## Examples
 /// ```
-/// use std::path::PathBuf;
 /// use std::str::FromStr;
 ///
 /// use alpm_types::{Error, StartDir};
 ///
-/// // create StartDir from &str
+/// # fn main() -> Result<(), alpm_types::Error> {
+/// // Create StartDir from &str and format it
 /// assert_eq!(
-///     StartDir::from_str("/").unwrap(),
-///     StartDir::new(PathBuf::from("/")).unwrap()
+///     "/etc",
+///     StartDir::from_str("/etc")?.to_string()
 /// );
-/// assert_eq!(
-///     StartDir::from_str("/foo.txt").unwrap(),
-///     StartDir::new(PathBuf::from("/foo.txt")).unwrap()
-/// );
-///
-/// // format as String
-/// assert_eq!("/", format!("{}", StartDir::from_str("/").unwrap()));
-/// ```
+/// # Ok(())
+/// # }
 pub type StartDir = AbsolutePath;
 
 /// A representation of a relative file path
@@ -125,13 +119,15 @@ pub type StartDir = AbsolutePath;
 /// relative file path (i.e. it does not end with a `/`).
 ///
 /// ## Examples
+///
 /// ```
 /// use std::path::PathBuf;
 /// use std::str::FromStr;
 ///
 /// use alpm_types::{Error, RelativePath};
 ///
-/// // create RelativePath from &str
+/// # fn main() -> Result<(), alpm_types::Error> {
+/// // Create RelativePath from &str
 /// assert_eq!(
 ///     RelativePath::from_str("etc/test.conf"),
 ///     RelativePath::new(PathBuf::from("etc/test.conf"))
@@ -141,11 +137,13 @@ pub type StartDir = AbsolutePath;
 ///     Err(Error::PathNotRelative(PathBuf::from("/etc/test.conf")))
 /// );
 ///
-/// // format as String
+/// // Format as String
 /// assert_eq!(
 ///     "test/test.txt",
-///     format!("{}", RelativePath::from_str("test/test.txt").unwrap())
+///     RelativePath::from_str("test/test.txt")?.to_string()
 /// );
+/// # Ok(())
+/// # }
 /// ```
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RelativePath(PathBuf);
@@ -194,17 +192,18 @@ impl Display for RelativePath {
 ///
 /// ## Examples
 /// ```
-/// use std::path::PathBuf;
 /// use std::str::FromStr;
 ///
 /// use alpm_types::Backup;
 ///
-/// // create Backup from &str and format it
+/// # fn main() -> Result<(), alpm_types::Error> {
+/// // Create Backup from &str and format it
 /// assert_eq!(
 ///     "etc/test.conf",
-///     Backup::from_str("etc/test.conf").unwrap().to_string()
+///     Backup::from_str("etc/test.conf")?.to_string()
 /// );
-/// ```
+/// # Ok(())
+/// # }
 pub type Backup = RelativePath;
 
 #[cfg(test)]
