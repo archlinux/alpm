@@ -256,6 +256,26 @@ impl Display for OptDepend {
     }
 }
 
+/// Group of a package
+///
+/// Represents an arbitrary collection of packages that share a common
+/// characteristic or functionality.
+///
+/// While group names can be any valid UTF-8 string, it is recommended to follow
+/// the format of [`Name`] (`[a-z\d\-._@+]` but must not start with `[-.]`)
+/// to ensure consistency and ease of use.
+///
+/// This is a type alias for [`String`].
+///
+/// ## Examples
+/// ```
+/// use alpm_types::Group;
+///
+/// // Create a Group
+/// let group: Group = "package-group".to_string();
+/// ```
+pub type Group = String;
+
 #[cfg(test)]
 mod tests {
     use proptest::{prop_assert_eq, proptest, test_runner::Config as ProptestConfig};
