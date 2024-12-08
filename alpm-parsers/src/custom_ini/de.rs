@@ -432,4 +432,44 @@ mod tests {
             value
         );
     }
+
+    #[derive(Deserialize, Clone, PartialEq, Default, Debug)]
+    struct FlattenTestModelInner {
+        u64_list: Vec<u64>,
+        u64: u64,
+    }
+
+    #[derive(Deserialize, Clone, PartialEq, Default, Debug)]
+    struct FlattenTestModel {
+        #[serde(flatten)]
+        flattened: FlattenTestModelInner,
+    }
+
+    const FLATTEN_TEST_INPUT: &str = "
+        u64 = 42
+        u64_list = 1";
+
+    // Flattened structs are not expected to work due to the limitations of serde.
+    //
+    // See these issues for more information:
+    //
+    // - https://gitlab.archlinux.org/archlinux/alpm/alpm/-/issues/78
+    // - https://github.com/serde-rs/serde/issues/1881
+    // - https://github.com/serde-rs/serde/issues/1183
+    //
+    // This test asserts that the deserialization fails. If the behavior changes in the future,
+    // this test should be updated to assert that the deserialization succeeds.
+    #[test]
+    fn deserialize_with_flatten() {
+        let expected = FlattenTestModelInner {
+            u64: 42,
+            u64_list: vec![1],
+        };
+
+        let value = from_str::<FlattenTestModelInner>(FLATTEN_TEST_INPUT).unwrap();
+        assert_eq!(expected, value);
+
+        let value = from_str::<FlattenTestModel>(FLATTEN_TEST_INPUT);
+        assert!(value.is_err());
+    }
 }

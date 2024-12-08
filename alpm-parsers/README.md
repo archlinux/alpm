@@ -38,6 +38,8 @@ The main difference between the regular INI parser and this one is that it allow
 
 Furthermore, the delimiter must be a ` = `, which is much more rigid than classic `ini`, as that allows to not use surrounding whitespaces or even other characters as delimiters.
 
+**Note:** Serde's [`flatten`](https://serde.rs/attr-flatten.html) attribute is currently not supported. See [this issue](https://gitlab.archlinux.org/archlinux/alpm/alpm/-/issues/78) for more details.
+
 ## Contributing
 
 Please refer to the [contribution guidelines] to learn how to contribute to this project.
