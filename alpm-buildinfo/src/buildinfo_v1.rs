@@ -21,83 +21,159 @@ use serde_with::DisplayFromStr;
 use crate::schema::Schema;
 use crate::Error;
 
-/// BUILDINFO version 1
-///
-/// `BuildInfoV1` is (exclusively) compatible with data following the first specification of the
-/// BUILDINFO file.
-///
-/// ## Examples
-///
-/// ```
-/// use std::str::FromStr;
-///
-/// use alpm_buildinfo::BuildInfoV1;
-///
-/// let buildinfo_data = r#"format = 1
-/// pkgname = foo
-/// pkgbase = foo
-/// pkgver = 1:1.0.0-1
-/// pkgarch = any
-/// pkgbuild_sha256sum = b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c
-/// packager = Foobar McFooface <foobar@mcfooface.org>
-/// builddate = 1
-/// builddir = /build
-/// buildenv = envfoo
-/// buildenv = envbar
-/// options = some_option
-/// options = !other_option
-/// installed = bar-1.2.3-1-any
-/// installed = beh-2.2.3-4-any
-/// "#;
-///
-/// let buildinfo = BuildInfoV1::from_str(buildinfo_data).unwrap();
-/// assert_eq!(buildinfo.to_string(), buildinfo_data);
-/// ```
-// NOTE: The fields are defined as `pub(crate)` to allow for internal reuse of this
-// struct in `BuildInfoV2`. In other words, we can construct this struct without
-// validating the format version, which is done in the `new` function.
-#[serde_as]
-#[derive(Clone, Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct BuildInfoV1 {
-    #[serde_as(as = "DisplayFromStr")]
-    pub(crate) format: Schema,
+/// Generates a struct based on the BUILDINFO version 1 specification with additional fields.
+macro_rules! generate_buildinfo {
+    // Meta: The meta information for the struct (e.g. doc comments)
+    // Name: The name of the struct
+    // Extra fields: Additional fields that should be added to the struct
+    ($(#[$meta:meta])* $name:ident { $($extra_fields:tt)* }) => {
+        $(#[$meta])*
+        #[serde_as]
+        #[derive(Clone, Debug, Deserialize)]
+        #[serde(deny_unknown_fields)]
+        pub struct $name {
+            #[serde_as(as = "DisplayFromStr")]
+            format: Schema,
 
-    #[serde_as(as = "DisplayFromStr")]
-    pub(crate) pkgname: Name,
+            #[serde_as(as = "DisplayFromStr")]
+            pkgname: Name,
 
-    #[serde_as(as = "DisplayFromStr")]
-    pub(crate) pkgbase: Name,
+            #[serde_as(as = "DisplayFromStr")]
+            pkgbase: Name,
 
-    #[serde_as(as = "DisplayFromStr")]
-    pub(crate) pkgver: Version,
+            #[serde_as(as = "DisplayFromStr")]
+            pkgver: Version,
 
-    #[serde_as(as = "DisplayFromStr")]
-    pub(crate) pkgarch: Architecture,
+            #[serde_as(as = "DisplayFromStr")]
+            pkgarch: Architecture,
 
-    #[serde_as(as = "DisplayFromStr")]
-    pub(crate) pkgbuild_sha256sum: Checksum<Sha256>,
+            #[serde_as(as = "DisplayFromStr")]
+            pkgbuild_sha256sum: Checksum<Sha256>,
 
-    #[serde_as(as = "DisplayFromStr")]
-    pub(crate) packager: Packager,
+            #[serde_as(as = "DisplayFromStr")]
+            packager: Packager,
 
-    #[serde_as(as = "DisplayFromStr")]
-    pub(crate) builddate: BuildDate,
+            #[serde_as(as = "DisplayFromStr")]
+            builddate: BuildDate,
 
-    #[serde_as(as = "DisplayFromStr")]
-    pub(crate) builddir: BuildDir,
+            #[serde_as(as = "DisplayFromStr")]
+            builddir: BuildDir,
 
-    #[serde_as(as = "Vec<DisplayFromStr>")]
-    #[serde(default)]
-    pub(crate) buildenv: Vec<BuildEnv>,
+            #[serde_as(as = "Vec<DisplayFromStr>")]
+            #[serde(default)]
+            buildenv: Vec<BuildEnv>,
 
-    #[serde_as(as = "Vec<DisplayFromStr>")]
-    #[serde(default)]
-    pub(crate) options: Vec<PackageOption>,
+            #[serde_as(as = "Vec<DisplayFromStr>")]
+            #[serde(default)]
+            options: Vec<PackageOption>,
 
-    #[serde_as(as = "Vec<DisplayFromStr>")]
-    #[serde(default)]
-    pub(crate) installed: Vec<InstalledPackage>,
+            #[serde_as(as = "Vec<DisplayFromStr>")]
+            #[serde(default)]
+            installed: Vec<InstalledPackage>,
+
+            $($extra_fields)*
+        }
+
+        impl $name {
+            /// Returns the format of the BUILDINFO file
+            pub fn format(&self) -> &SchemaVersion {
+                self.format.inner()
+            }
+
+            /// Returns the package name
+            pub fn pkgname(&self) -> &Name {
+                &self.pkgname
+            }
+
+            /// Returns the package base
+            pub fn pkgbase(&self) -> &Name {
+                &self.pkgbase
+            }
+
+            /// Returns the package version
+            pub fn pkgver(&self) -> &Version {
+                &self.pkgver
+            }
+
+            /// Returns the package architecture
+            pub fn pkgarch(&self) -> &Architecture {
+                &self.pkgarch
+            }
+
+            /// Returns the package build SHA-256 checksum
+            pub fn pkgbuild_sha256sum(&self) -> &Checksum<Sha256> {
+                &self.pkgbuild_sha256sum
+            }
+
+            /// Returns the packager
+            pub fn packager(&self) -> &Packager {
+                &self.packager
+            }
+
+            /// Returns the build date
+            pub fn builddate(&self) -> &BuildDate {
+                &self.builddate
+            }
+
+            /// Returns the build directory
+            pub fn builddir(&self) -> &BuildDir {
+                &self.builddir
+            }
+
+            /// Returns the build environment
+            pub fn buildenv(&self) -> &Vec<BuildEnv> {
+                &self.buildenv
+            }
+
+            /// Returns the package options
+            pub fn options(&self) -> &Vec<PackageOption> {
+                &self.options
+            }
+
+            /// Returns the installed packages
+            pub fn installed(&self) -> &Vec<InstalledPackage> {
+                &self.installed
+            }
+        }
+    }
+}
+
+pub(crate) use generate_buildinfo;
+
+generate_buildinfo! {
+    /// BUILDINFO version 1
+    ///
+    /// `BuildInfoV1` is (exclusively) compatible with data following the first specification of the
+    /// BUILDINFO file.
+    ///
+    /// ## Examples
+    ///
+    /// ```
+    /// use std::str::FromStr;
+    ///
+    /// use alpm_buildinfo::BuildInfoV1;
+    ///
+    /// let buildinfo_data = r#"format = 1
+    /// pkgname = foo
+    /// pkgbase = foo
+    /// pkgver = 1:1.0.0-1
+    /// pkgarch = any
+    /// pkgbuild_sha256sum = b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c
+    /// packager = Foobar McFooface <foobar@mcfooface.org>
+    /// builddate = 1
+    /// builddir = /build
+    /// buildenv = envfoo
+    /// buildenv = envbar
+    /// options = some_option
+    /// options = !other_option
+    /// installed = bar-1.2.3-1-any
+    /// installed = beh-2.2.3-4-any
+    /// "#;
+    ///
+    /// let buildinfo = BuildInfoV1::from_str(buildinfo_data).unwrap();
+    /// assert_eq!(buildinfo.to_string(), buildinfo_data);
+    /// ```
+    BuildInfoV1 {}
 }
 
 impl BuildInfoV1 {
@@ -134,66 +210,6 @@ impl BuildInfoV1 {
             pkgname,
             pkgver,
         })
-    }
-
-    /// Returns the schema version of the package format.
-    pub fn format(&self) -> &SchemaVersion {
-        self.format.inner()
-    }
-
-    /// Returns the package name.
-    pub fn pkgname(&self) -> &Name {
-        &self.pkgname
-    }
-
-    /// Returns the base name of the package.
-    pub fn pkgbase(&self) -> &Name {
-        &self.pkgbase
-    }
-
-    /// Returns the package version.
-    pub fn pkgver(&self) -> &Version {
-        &self.pkgver
-    }
-
-    /// Returns the architecture of the package.
-    pub fn pkgarch(&self) -> &Architecture {
-        &self.pkgarch
-    }
-
-    /// Returns the SHA256 checksum of the PKGBUILD file.
-    pub fn pkgbuild_sha256sum(&self) -> &Checksum<Sha256> {
-        &self.pkgbuild_sha256sum
-    }
-
-    /// Returns information about the packager.
-    pub fn packager(&self) -> &Packager {
-        &self.packager
-    }
-
-    /// Returns the build date of the package.
-    pub fn builddate(&self) -> &BuildDate {
-        &self.builddate
-    }
-
-    /// Returns the directory where the build took place.
-    pub fn builddir(&self) -> &BuildDir {
-        &self.builddir
-    }
-
-    /// Returns the build environment variables.
-    pub fn buildenv(&self) -> &Vec<BuildEnv> {
-        &self.buildenv
-    }
-
-    /// Returns the options used during package building.
-    pub fn options(&self) -> &Vec<PackageOption> {
-        &self.options
-    }
-
-    /// Returns a list of installed dependencies or components.
-    pub fn installed(&self) -> &Vec<InstalledPackage> {
-        &self.installed
     }
 }
 

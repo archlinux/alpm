@@ -21,60 +21,56 @@ use serde::Deserialize;
 use serde_with::serde_as;
 use serde_with::DisplayFromStr;
 
-use crate::BuildInfoV1;
+use crate::buildinfo_v1::generate_buildinfo;
+use crate::schema::Schema;
 use crate::Error;
 
-/// BUILDINFO version 2
-///
-/// `BuildInfoV2` is (exclusively) compatible with data following the first specification of the
-/// BUILDINFO file.
-///
-/// ## Examples
-///
-/// ```
-/// use std::str::FromStr;
-///
-/// use alpm_buildinfo::BuildInfoV2;
-///
-/// let buildinfo_data = r#"format = 2
-/// pkgname = foo
-/// pkgbase = foo
-/// pkgver = 1:1.0.0-1
-/// pkgarch = any
-/// pkgbuild_sha256sum = b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c
-/// packager = Foobar McFooface <foobar@mcfooface.org>
-/// builddate = 1
-/// builddir = /build
-/// startdir = /startdir/
-/// buildtool = devtools
-/// buildtoolver = 1:1.2.1-1-any
-/// buildenv = envfoo
-/// buildenv = envbar
-/// options = some_option
-/// options = !other_option
-/// installed = bar-1.2.3-1-any
-/// installed = beh-2.2.3-4-any
-/// "#;
-///
-/// let buildinfo = BuildInfoV2::from_str(buildinfo_data).unwrap();
-/// assert_eq!(buildinfo.to_string(), buildinfo_data);
-/// ```
-#[serde_as]
-#[derive(Clone, Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct BuildInfoV2 {
-    // Carry over all fields from BuildInfoV1
-    #[serde(flatten)]
-    v1: BuildInfoV1,
+generate_buildinfo! {
+    /// BUILDINFO version 2
+    ///
+    /// `BuildInfoV2` is (exclusively) compatible with data following the v2 specification of the
+    /// BUILDINFO file.
+    ///
+    /// ## Examples
+    ///
+    /// ```
+    /// use std::str::FromStr;
+    ///
+    /// use alpm_buildinfo::BuildInfoV2;
+    ///
+    /// let buildinfo_data = r#"format = 2
+    /// pkgname = foo
+    /// pkgbase = foo
+    /// pkgver = 1:1.0.0-1
+    /// pkgarch = any
+    /// pkgbuild_sha256sum = b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c
+    /// packager = Foobar McFooface <foobar@mcfooface.org>
+    /// builddate = 1
+    /// builddir = /build
+    /// startdir = /startdir/
+    /// buildtool = devtools
+    /// buildtoolver = 1:1.2.1-1-any
+    /// buildenv = envfoo
+    /// buildenv = envbar
+    /// options = some_option
+    /// options = !other_option
+    /// installed = bar-1.2.3-1-any
+    /// installed = beh-2.2.3-4-any
+    /// "#;
+    ///
+    /// let buildinfo = BuildInfoV2::from_str(buildinfo_data).unwrap();
+    /// assert_eq!(buildinfo.to_string(), buildinfo_data);
+    /// ```
+    BuildInfoV2 {
+        #[serde_as(as = "DisplayFromStr")]
+        startdir: StartDir,
 
-    #[serde_as(as = "DisplayFromStr")]
-    startdir: StartDir,
+        #[serde_as(as = "DisplayFromStr")]
+        buildtool: BuildTool,
 
-    #[serde_as(as = "DisplayFromStr")]
-    buildtool: BuildTool,
-
-    #[serde_as(as = "DisplayFromStr")]
-    buildtoolver: BuildToolVersion,
+        #[serde_as(as = "DisplayFromStr")]
+        buildtoolver: BuildToolVersion,
+    }
 }
 
 impl BuildInfoV2 {
@@ -101,84 +97,22 @@ impl BuildInfoV2 {
             return Err(Error::WrongSchemaVersion(format));
         }
         Ok(BuildInfoV2 {
+            builddate,
+            builddir,
+            buildenv,
+            format: format.try_into()?,
+            installed,
+            options,
+            packager,
+            pkgarch,
+            pkgbase,
+            pkgbuild_sha256sum,
+            pkgname,
+            pkgver,
             startdir,
             buildtool,
             buildtoolver,
-            v1: BuildInfoV1 {
-                builddate,
-                builddir,
-                buildenv,
-                format: format.try_into()?,
-                installed,
-                options,
-                packager,
-                pkgarch,
-                pkgbase,
-                pkgbuild_sha256sum,
-                pkgname,
-                pkgver,
-            },
         })
-    }
-
-    /// Returns the schema version of the package format.
-    pub fn format(&self) -> &SchemaVersion {
-        self.v1.format()
-    }
-
-    /// Returns the package name.
-    pub fn pkgname(&self) -> &Name {
-        self.v1.pkgname()
-    }
-
-    /// Returns the base name of the package.
-    pub fn pkgbase(&self) -> &Name {
-        self.v1.pkgbase()
-    }
-
-    /// Returns the package version.
-    pub fn pkgver(&self) -> &Version {
-        self.v1.pkgver()
-    }
-
-    /// Returns the architecture of the package.
-    pub fn pkgarch(&self) -> &Architecture {
-        self.v1.pkgarch()
-    }
-
-    /// Returns the SHA256 checksum of the PKGBUILD file.
-    pub fn pkgbuild_sha256sum(&self) -> &Checksum<Sha256> {
-        self.v1.pkgbuild_sha256sum()
-    }
-
-    /// Returns information about the packager.
-    pub fn packager(&self) -> &Packager {
-        self.v1.packager()
-    }
-
-    /// Returns the build date of the package.
-    pub fn builddate(&self) -> &BuildDate {
-        self.v1.builddate()
-    }
-
-    /// Returns the directory where the build took place.
-    pub fn builddir(&self) -> &BuildDir {
-        self.v1.builddir()
-    }
-
-    /// Returns the build environment variables.
-    pub fn buildenv(&self) -> &Vec<BuildEnv> {
-        self.v1.buildenv()
-    }
-
-    /// Returns the options used during package building.
-    pub fn options(&self) -> &Vec<PackageOption> {
-        self.v1.options()
-    }
-
-    /// Returns a list of installed dependencies or components.
-    pub fn installed(&self) -> &Vec<InstalledPackage> {
-        self.v1.installed()
     }
 
     /// Returns the start directory of the build process.
@@ -267,15 +201,14 @@ impl Display for BuildInfoV2 {
 
 #[cfg(test)]
 mod tests {
-    use rstest::fixture;
     use rstest::rstest;
     use testresult::TestResult;
 
     use super::*;
 
-    #[fixture]
-    fn valid_buildinfov2() -> String {
-        r#"builddate = 1
+    // Test data
+    const VALID_BUILDINFOV2_CASE1: &str = r#"
+builddate = 1
 builddir = /build
 startdir = /startdir/
 buildtool = devtools
@@ -293,8 +226,33 @@ pkgbase = foo
 pkgbuild_sha256sum = b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c
 pkgname = foo
 pkgver = 1:1.0.0-1
-"#
-        .to_string()
+"#;
+
+    // Test data without multiple values
+    const VALID_BUILDINFOV2_CASE2: &str = r#"
+builddate = 1
+builddir = /build
+startdir = /startdir/
+buildtool = devtools
+buildtoolver = 1:1.2.1-1-any
+buildenv = envfoo
+format = 2
+installed = bar-1.2.3-1-any
+options = some_option
+packager = Foobar McFooface <foobar@mcfooface.org>
+pkgarch = any
+pkgbase = foo
+pkgbuild_sha256sum = b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c
+pkgname = foo
+pkgver = 1:1.0.0-1
+"#;
+
+    #[rstest]
+    #[case(VALID_BUILDINFOV2_CASE1)]
+    #[case(VALID_BUILDINFOV2_CASE2)]
+    fn buildinfov2_from_str(#[case] buildinfo: &str) -> TestResult {
+        BuildInfoV2::from_str(buildinfo)?;
+        Ok(())
     }
 
     #[rstest]
@@ -315,8 +273,7 @@ pkgver = 1:1.0.0-1
             Checksum::<Sha256>::calculate_from("foo"),
             Name::new("foo".to_string())?,
             Version::from_str("1:1.0.0-1")?,
-        )
-        .unwrap();
+        )?;
         Ok(())
     }
 
@@ -344,11 +301,6 @@ pkgver = 1:1.0.0-1
     }
 
     #[rstest]
-    fn buildinfov2_from_str(valid_buildinfov2: String) {
-        BuildInfoV2::from_str(&valid_buildinfov2).unwrap();
-    }
-
-    #[rstest]
     #[case("builddate = 2")]
     #[case("builddir = /build2")]
     #[case("startdir = /startdir2/")]
@@ -361,8 +313,9 @@ pkgver = 1:1.0.0-1
     #[case("pkgbuild_sha256sum = b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c")]
     #[case("pkgname = foo")]
     #[case("pkgver = 1:1.0.0-1")]
-    fn buildinfov2_from_str_duplicate_fail(mut valid_buildinfov2: String, #[case] duplicate: &str) {
-        valid_buildinfov2.push_str(duplicate);
-        assert!(BuildInfoV2::from_str(&valid_buildinfov2).is_err());
+    fn buildinfov2_from_str_duplicate_fail(#[case] duplicate: &str) {
+        let mut buildinfov2 = VALID_BUILDINFOV2_CASE1.to_string();
+        buildinfov2.push_str(duplicate);
+        assert!(BuildInfoV2::from_str(&buildinfov2).is_err());
     }
 }
