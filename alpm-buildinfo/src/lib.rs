@@ -20,9 +20,8 @@ use std::io::Write;
 use std::path::PathBuf;
 use std::str::FromStr;
 
-use alpm_types::digests::Sha256;
-use alpm_types::Checksum;
 use alpm_types::SchemaVersion;
+use alpm_types::Sha256Checksum;
 use cli::CreateCommand;
 use schema::Schema;
 
@@ -42,12 +41,7 @@ pub fn create_file(command: CreateCommand) -> Result<(), Error> {
                 args.packager,
                 args.pkgarch,
                 args.pkgbase,
-                Checksum::<Sha256>::from_str(&args.pkgbuild_sha256sum).map_err(|_| {
-                    Error::Default(format!(
-                        "The provided SHA-256 checksum is not valid: {}",
-                        &args.pkgbuild_sha256sum,
-                    ))
-                })?,
+                Sha256Checksum::from_str(&args.pkgbuild_sha256sum)?,
                 args.pkgname,
                 args.pkgver,
             )?
@@ -73,12 +67,7 @@ pub fn create_file(command: CreateCommand) -> Result<(), Error> {
                 args.packager,
                 args.pkgarch,
                 args.pkgbase,
-                Checksum::<Sha256>::from_str(&args.pkgbuild_sha256sum).map_err(|_| {
-                    Error::Default(format!(
-                        "The provided SHA-256 checksum is not valid: {}",
-                        &args.pkgbuild_sha256sum,
-                    ))
-                })?,
+                Sha256Checksum::from_str(&args.pkgbuild_sha256sum)?,
                 args.pkgname,
                 args.pkgver,
             )?
@@ -89,14 +78,17 @@ pub fn create_file(command: CreateCommand) -> Result<(), Error> {
 
     // create any parent directories if necessary
     if let Some(output_dir) = output.0.parent() {
-        create_dir_all(output_dir)
-            .map_err(|_| Error::FailedDirCreation(format!("{}", output_dir.display())))?;
+        create_dir_all(output_dir).map_err(|e| {
+            Error::IoPathError(output_dir.to_path_buf(), "creating output directory", e)
+        })?;
     }
 
     let mut out = File::create(&output.0)
-        .map_err(|_| Error::FailedFileCreation(format!("{}", output.0.display())))?;
-    out.write(data.as_bytes())
-        .map_err(|_| Error::FailedWriting(format!("{}", output.0.display())))?;
+        .map_err(|e| Error::IoPathError(output.0.clone(), "creating output file", e))?;
+
+    let _ = out
+        .write(data.as_bytes())
+        .map_err(|e| Error::IoPathError(output.0, "writing to output file", e))?;
 
     Ok(())
 }
@@ -111,13 +103,15 @@ pub fn create_file(command: CreateCommand) -> Result<(), Error> {
 /// [`IsTerminal`]: https://doc.rust-lang.org/stable/std/io/trait.IsTerminal.html
 pub fn validate(file: Option<&PathBuf>, schema: Option<&Schema>) -> Result<(), Error> {
     let contents = if let Some(file) = file {
-        read_to_string(file).map_err(|_| Error::FailedReadingFile(format!("{}", file.display())))?
+        read_to_string(file)
+            .map_err(|e| Error::IoPathError(file.clone(), "reading file contents", e))?
     } else if !io::stdin().is_terminal() {
         let mut buffer = Vec::new();
         let mut stdin = io::stdin();
-        stdin
-            .read_to_end(&mut buffer)
-            .map_err(|e| Error::FailedReadingStdin(e.to_string()))?;
+        stdin.read_to_end(&mut buffer).map_err(|e| {
+            Error::IoPathError(PathBuf::from("/dev/stdin"), "reading from stdin", e)
+        })?;
+
         String::from_utf8(buffer)?.to_string()
     } else {
         return Err(Error::NoInputFile);

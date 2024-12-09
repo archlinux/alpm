@@ -65,7 +65,7 @@ impl FromStr for Schema {
     fn from_str(s: &str) -> Result<Schema, Self::Err> {
         match SchemaVersion::from_str(s) {
             Ok(version) => Self::try_from(version),
-            Err(_) => Err(Error::InvalidBuildInfoVersion(s.to_string())),
+            Err(_) => Err(Error::UnsupportedSchemaVersion(s.to_string())),
         }
     }
 }
@@ -78,7 +78,7 @@ impl TryFrom<SchemaVersion> for Schema {
         match value.inner().major {
             1 => Ok(Schema::V1(value)),
             2 => Ok(Schema::V2(value)),
-            _ => Err(Error::InvalidBuildInfoVersion(value.to_string())),
+            _ => Err(Error::UnsupportedSchemaVersion(value.to_string())),
         }
     }
 }
