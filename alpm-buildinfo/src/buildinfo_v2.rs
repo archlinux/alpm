@@ -38,6 +38,7 @@ generate_buildinfo! {
     ///
     /// use alpm_buildinfo::BuildInfoV2;
     ///
+    /// # fn main() -> Result<(), alpm_buildinfo::Error> {
     /// let buildinfo_data = r#"format = 2
     /// pkgname = foo
     /// pkgbase = foo
@@ -58,8 +59,10 @@ generate_buildinfo! {
     /// installed = beh-2.2.3-4-any
     /// "#;
     ///
-    /// let buildinfo = BuildInfoV2::from_str(buildinfo_data).unwrap();
+    /// let buildinfo = BuildInfoV2::from_str(buildinfo_data)?;
     /// assert_eq!(buildinfo.to_string(), buildinfo_data);
+    /// # Ok(())
+    /// # }
     /// ```
     BuildInfoV2 {
         #[serde_as(as = "DisplayFromStr")]
