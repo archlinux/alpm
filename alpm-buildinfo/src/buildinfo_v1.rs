@@ -308,8 +308,14 @@ pkgver = 1:1.0.0-1
     }
 
     #[rstest]
+    fn buildinfov1_from_str(valid_buildinfov1: String) -> TestResult {
+        BuildInfoV1::from_str(&valid_buildinfov1)?;
+        Ok(())
+    }
+
+    #[rstest]
     fn buildinfov1() -> TestResult {
-        assert!(BuildInfoV1::new(
+        BuildInfoV1::new(
             1,
             BuildDir::from_str("/build")?,
             vec![BuildEnv::new("some")?],
@@ -322,8 +328,7 @@ pkgver = 1:1.0.0-1
             Checksum::<Sha256>::calculate_from("foo"),
             Name::new("foo".to_string())?,
             Version::from_str("1:1.0.0-1")?,
-        )
-        .is_ok());
+        )?;
         Ok(())
     }
 
@@ -345,11 +350,6 @@ pkgver = 1:1.0.0-1
         )
         .is_err());
         Ok(())
-    }
-
-    #[rstest]
-    fn buildinfov1_from_str(valid_buildinfov1: String) {
-        assert!(BuildInfoV1::from_str(&valid_buildinfov1).is_ok());
     }
 
     #[rstest]
