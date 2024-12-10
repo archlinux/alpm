@@ -1,40 +1,23 @@
-use std::process::exit;
+use std::process::ExitCode;
 
 use alpm_buildinfo::{
     cli::{Cli, Command},
     create_file,
     validate,
-    Error,
 };
 use clap::Parser;
 
-/// Implements helper for exit code handling
-trait ExitResult {
-    fn handle_exit_code(&self);
-}
-
-impl ExitResult for Result<(), Error> {
-    /// Handle a [`Result`] by differing exit code and potentially printing to stderr
-    ///
-    /// If `self` contains `()`, exit with an exit code of 0.
-    /// If `self` contains [`Error`], print it to stderr and exit with an exit code of 1.
-    fn handle_exit_code(&self) {
-        match self {
-            Ok(_) => exit(0),
-            Err(error) => {
-                eprintln!("{}", error);
-                exit(1)
-            }
-        }
-    }
-}
-
-fn main() {
+fn main() -> ExitCode {
     let cli = Cli::parse();
-    match cli.command {
-        Command::Create { command } => create_file(command).handle_exit_code(),
-        Command::Validate { file, schema } => {
-            validate(file.as_ref(), schema.as_ref()).handle_exit_code()
-        }
+    let result = match cli.command {
+        Command::Create { command } => create_file(command),
+        Command::Validate { file, schema } => validate(file.as_ref(), schema.as_ref()),
+    };
+
+    if let Err(error) = result {
+        eprintln!("{error}");
+        ExitCode::FAILURE
+    } else {
+        ExitCode::SUCCESS
     }
 }
