@@ -8,10 +8,13 @@ use std::{
 
 use error::Error;
 use flate2::read::GzDecoder;
-use winnow::Parser;
+use mtree_v2::parse_mtree_v2;
 
 pub mod cli;
 pub mod error;
+/// Interpreter for the v2 specification of MTREE format
+pub mod mtree_v2;
+/// Parser for MTREE files
 pub mod parser;
 
 /// A small wrapper around the parsing of an MTREE file that simply ensures that there were no
@@ -24,7 +27,7 @@ pub fn validate(file: Option<&PathBuf>) -> Result<(), Error> {
     Ok(())
 }
 
-/// Parse and interpret a Mtree file.
+/// Parse and interpret an MTREE file.
 ///
 /// 1. Reads the contents of a file or stdin.
 /// 2. Check whether the input is gzip compressed as that's how it's delivered inside of packages.
@@ -44,7 +47,7 @@ pub fn validate(file: Option<&PathBuf>) -> Result<(), Error> {
 /// - [Error::InvalidUTF8] if the given file contains invalid UTF-8.
 /// - [Error::ParseError] if a malformed MTREE file is encountered.
 /// - [Error::InterpreterError] if expected properties for a given type aren't set.
-pub fn parse(file: Option<&PathBuf>) -> Result<(), Error> {
+pub fn parse(file: Option<&PathBuf>) -> Result<Vec<mtree_v2::Path>, Error> {
     // The buffer that'll contain the raw file.
     let mut buffer = Vec::new();
 
@@ -80,15 +83,6 @@ pub fn parse(file: Option<&PathBuf>) -> Result<(), Error> {
         String::from_utf8(buffer)?.to_string()
     };
 
-    let result = parser::mtree.parse(&contents);
-    match result {
-        Ok(ast) => {
-            println!("{:#?}", ast);
-        }
-        Err(e) => {
-            eprintln!("{e}");
-        }
-    }
-
-    Ok(())
+    // Parse the given mtree file.
+    parse_mtree_v2(contents)
 }

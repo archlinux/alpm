@@ -14,7 +14,7 @@ pub struct Cli {
 #[derive(Clone, Debug, Subcommand)]
 pub enum Command {
     #[command()]
-    /// Validate a MTREE file
+    /// Validate an MTREE file
     ///
     /// Validate an MTREE file according to a schema.
     /// If the file can be validated, the program exits with no output and a return code of 0.
