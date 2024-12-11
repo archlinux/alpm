@@ -2,7 +2,7 @@
 
 These are the contributing guidelines for the alpm project.
 
-Development takes place at https://gitlab.archlinux.org/archlinux/alpm/alpm.
+Development takes place at <https://gitlab.archlinux.org/archlinux/alpm/alpm>.
 
 ## Writing code
 
