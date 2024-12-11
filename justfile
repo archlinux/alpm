@@ -298,7 +298,7 @@ generate kind pkg:
 
     set -Eeuo pipefail
 
-    readonly output_dir="${CARGO_TARGET_DIR:-$PWD/output}"
+    readonly output_dir="{{ output_dir }}"
     mkdir --parents "$output_dir"
 
     kind="{{ kind }}"
