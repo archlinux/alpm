@@ -1,5 +1,5 @@
 use std::{
-    fmt::{Display, Formatter},
+    fmt::{Debug, Display, Formatter},
     marker::PhantomData,
     str::FromStr,
 };
@@ -76,7 +76,7 @@ pub type Sha512Checksum = Checksum<Sha512>;
 /// let checksum = Checksum::<Blake2b512>::from_str("d202d7951df2c4b711ca44b4bcc9d7b363fa4252127e058c1a910ec05b6cd038d71cc21221c031c0359f993e746b07f5965cf8c5c3746a58337ad9ab65278e77").unwrap();
 /// assert_eq!(checksum.inner(), digest);
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct Checksum<D: Digest> {
     digest: Vec<u8>,
     _marker: PhantomData<*const D>,
@@ -170,6 +170,14 @@ impl<D: Digest> Display for Checksum<D> {
                 .collect::<Vec<String>>()
                 .join("")
         )
+    }
+}
+
+/// Use [Display] as [Debug] impl, since the byte representation and [PhantomData] field aren't
+/// relevant for debugging purposes.
+impl<D: Digest> Debug for Checksum<D> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        Display::fmt(&self, f)
     }
 }
 
