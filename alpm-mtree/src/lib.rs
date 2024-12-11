@@ -8,10 +8,11 @@ use std::{
 
 use error::Error;
 use flate2::read::GzDecoder;
-use winnow::Parser;
+use mtree_v2::parse_mtree_v2;
 
 pub mod cli;
 pub mod error;
+pub mod mtree_v2;
 pub mod parser;
 
 /// A small wrapper around the parsing of a Mtree file that simply ensures that there were no
@@ -32,7 +33,7 @@ pub fn validate(file: Option<&PathBuf>) -> Result<(), Error> {
 /// See [`IsTerminal`] for more information about how terminal detection works.
 ///
 /// [`IsTerminal`]: https://doc.rust-lang.org/stable/std/io/trait.IsTerminal.html
-pub fn parse(file: Option<&PathBuf>) -> Result<(), Error> {
+pub fn parse(file: Option<&PathBuf>) -> Result<Vec<mtree_v2::Path>, Error> {
     // The buffer that'll contain the raw file.
     let mut buffer = Vec::new();
 
@@ -66,15 +67,6 @@ pub fn parse(file: Option<&PathBuf>) -> Result<(), Error> {
         String::from_utf8(buffer)?.to_string()
     };
 
-    let result = parser::mtree.parse(&contents);
-    match result {
-        Ok(ast) => {
-            println!("{:#?}", ast);
-        }
-        Err(e) => {
-            eprintln!("{e}");
-        }
-    }
-
-    Ok(())
+    // Parse the given mtree file.
+    parse_mtree_v2(contents)
 }

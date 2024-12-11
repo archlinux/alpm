@@ -26,4 +26,12 @@ pub enum Error {
     /// No input file given
     #[error("No input file given.")]
     NoInputFile,
+
+    /// A Parsing error that occurred during the winnow file parsing.
+    #[error("File parsing error:\n{0}")]
+    ParseError(String),
+
+    /// An error occurred during the interpretation phase of the language.
+    #[error("Error while interpreting file in line {0}:\nAffected line:\n{1}\n\nReason:\n{2}")]
+    InterpreterError(usize, String, String),
 }
