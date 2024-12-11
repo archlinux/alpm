@@ -1,0 +1,1 @@
+../../../../alpm-types/resources/specification/alpm-architecture.7.md

@@ -1,0 +1,1 @@
+../../../../alpm-types/resources/specification/alpm-pkgrel.7.md

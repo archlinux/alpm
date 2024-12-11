@@ -1,0 +1,1 @@
+../../../../alpm-types/resources/specification/alpm-package-name.7.md

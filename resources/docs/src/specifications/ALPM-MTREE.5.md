@@ -1,0 +1,1 @@
+../../../../alpm-mtree/resources/specification/ALPM-MTREE.5.md

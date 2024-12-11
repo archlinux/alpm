@@ -1,0 +1,1 @@
+../../../../alpm-types/resources/specification/alpm-epoch.7.md

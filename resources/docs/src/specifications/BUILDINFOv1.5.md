@@ -1,0 +1,1 @@
+../../../../alpm-buildinfo/resources/specification/BUILDINFOv1.5.md

@@ -1,2 +1,4 @@
+output/
+resources/docs/mermaid*.js
 target/
 *.5

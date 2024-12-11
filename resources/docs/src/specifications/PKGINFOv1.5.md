@@ -1,0 +1,1 @@
+../../../../alpm-pkginfo/resources/specification/PKGINFOv1.5.md
