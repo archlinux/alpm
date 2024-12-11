@@ -36,10 +36,7 @@ check-commits:
     #!/usr/bin/env bash
     set -euo pipefail
 
-    just ensure-command rg
-    just ensure-command cog
-    just ensure-command codespell
-    just ensure-command committed
+    just ensure-command codespell cog committed rg
 
     readonly default_branch="${CI_DEFAULT_BRANCH:-main}"
 
@@ -165,8 +162,7 @@ dry-update:
 
 # Lints the source code
 lint:
-    just ensure-command tangler
-    just ensure-command shellcheck
+    just ensure-command shellcheck tangler
 
     tangler bash < alpm-buildinfo/README.md | shellcheck --shell bash -
     tangler bash < alpm-mtree/README.md | shellcheck --shell bash -
@@ -404,10 +400,16 @@ ci-publish:
     printf "Found tag %s (crate %s in version %s).\n" "$tag" "$crate" "$version"
     cargo publish -p "$crate"
 
-# Ensures that a required command is installed
-ensure-command command:
-    #!/bin/bash
-    if ! command -v {{ command }} > /dev/null 2>&1 ; then
-        echo "Couldn't find executable '{{ command }}'"
-        exit 1
-    fi
+# Ensures that one or more required commands are installed
+ensure-command +command:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    read -r -a commands <<< "{{ command }}"
+
+    for cmd in "${commands[@]}"; do
+        if ! command -v "$cmd" > /dev/null 2>&1 ; then
+            printf "Couldn't find required executable '%s'\n" "$cmd" >&2
+            exit 1
+        fi
+    done
