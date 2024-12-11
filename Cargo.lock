@@ -521,6 +521,7 @@ name = "dev-scripts"
 version = "0.0.0"
 dependencies = [
  "alpm-buildinfo",
+ "alpm-mtree",
  "anyhow",
  "clap",
  "colored",
