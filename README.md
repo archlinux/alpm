@@ -9,6 +9,10 @@ Currently, this project aims to maintain compatibility with [pacman] `5.1.0` and
 The scope of this project is to provide robust integration for all relevant package creation and consumption, as well as repository management tasks.
 As such, the ALPM project also aims at providing drop-in replacements or alternatives for some facilities provided by [pacman].
 
+## Documentation
+
+The latest project documentation can be found at <https://alpm.archlinux.page>
+
 ## Overview
 
 The following mindmap attempts to provide a high-level overview of the project and put file types as well as (existing and upcoming) libraries into context.

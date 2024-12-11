@@ -8,7 +8,7 @@ This library strives to provide all underlying types for writing ALPM based soft
 
 ## Documentation
 
-- <https://alpm.archlinux.page/alpm_types/> for development version of the crate
+- <https://alpm.archlinux.page/rustdoc/alpm_types/> for development version of the crate
 - <https://docs.rs/alpm-types/latest/alpm_types/> for released versions of the crate
 
 ## Examples

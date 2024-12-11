@@ -1,3 +1,7 @@
 file:///somewhere/else
+# the following crates need a release first to make their documentation available on docs.rs
 https://docs.rs/alpm-buildinfo/latest/alpm_buildinfo/
 https://docs.rs/alpm-parsers
+
+# the top-level location is now used for mdbook and Rust docs are moved to their own namespace, so we ignore all associated links until the new documentation is deployed to GitLab pages
+https://alpm.archlinux.page

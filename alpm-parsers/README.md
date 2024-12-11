@@ -4,7 +4,7 @@ A library for providing various custom parsers/deserializers for the specificati
 
 ## Documentation
 
-- <https://alpm.archlinux.page/alpm_parsers/> for development version of the crate
+- <https://alpm.archlinux.page/rustdoc/alpm_parsers/> for development version of the crate
 - <https://docs.rs/alpm-parsers> for released versions of the crate
 
 ## Examples

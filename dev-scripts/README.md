@@ -6,6 +6,10 @@ Currently supported features:
 - Download current live data from an Arch Linux Mirror.
 - Test existing parsers against downloaded data.
 
+## Documentation
+
+- <https://alpm.archlinux.page/rustdoc/dev_scripts/> for development version of the crate
+
 ## Prerequisites
 
 - `rsync` for package and database downloads.
