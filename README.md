@@ -65,37 +65,6 @@ Currently the following components are available:
 - [alpm-parsers]: a library for providing various custom parsers/deserializers for file types used in ALPM
 - [alpm-types]: a central library for types used by other ALPM libraries and tools
 
-## Specifications
-
-Specifications for various formats are provided in the context of the [components] that make use of them and are located in a component's `resources/specification/` directory.
-The implementations encourage robust, but lenient parsing of file formats (unknown key-value pairs are discarded with a warning).
-
-Several versions of specifications may exist side-by-side, but only the latest version is actively supported.
-Legacy versions of specifications may be deprecated and removed as needed, if they hinder further development.
-
-## File types
-
-- [ALPM-MTREE][ALPM-MTREE-SPEC]
-  - [ALPM-MTREEv1]
-  - [ALPM-MTREEv2]
-- [BUILDINFO]
-  - [BUILDINFOv1]
-  - [BUILDINFOv2]
-- [PKGINFO]
-  - [PKGINFOv1]
-  - [PKGINFOv2]
-
-## Fields and composite types
-
-- [alpm-architecture]
-- [alpm-comparison]
-- [alpm-epoch]
-- [alpm-package-name]
-- [alpm-package-relation]
-- [alpm-package-version]
-- [alpm-pkgrel]
-- [alpm-pkgver]
-
 ## Contributing
 
 Please refer to the [contribution guidelines] to learn how to contribute to this project.
@@ -105,30 +74,13 @@ Please refer to the [contribution guidelines] to learn how to contribute to this
 This project can be used under the terms of the [Apache-2.0] or [MIT].
 Contributions to this project, unless noted otherwise, are automatically licensed under the terms of both of those licenses.
 
-[ALPM-MTREE-SPEC]: alpm-mtree/resources/specification/ALPM-MTREE.5.md
-[ALPM-MTREEv1]: alpm-mtree/resources/specification/ALPM-MTREEv1.5.md
-[ALPM-MTREEv2]: alpm-mtree/resources/specification/ALPM-MTREEv2.5.md
 [Apache-2.0]: LICENSES/Apache-2.0.txt
-[BUILDINFO]: alpm-buildinfo/resources/specification/BUILDINFO.5.md
-[BUILDINFOv1]: alpm-buildinfo/resources/specification/BUILDINFOv1.5.md
-[BUILDINFOv2]: alpm-buildinfo/resources/specification/BUILDINFOv2.5.md
 [MIT]: LICENSES/MIT.txt
-[PKGINFO]: alpm-pkginfo/resources/specification/PKGINFO.5.md
-[PKGINFOv1]: alpm-pkginfo/resources/specification/PKGINFOv1.5.md
-[PKGINFOv2]: alpm-pkginfo/resources/specification/PKGINFOv2.5.md
 [Rust]: https://www.rust-lang.org/
-[alpm-architecture]: alpm-types/resources/specification/alpm-architecture.7.md
 [alpm-buildinfo]: alpm-buildinfo/
-[alpm-comparison]: alpm-types/resources/specification/alpm-comparison.7.md
-[alpm-epoch]: alpm-types/resources/specification/alpm-epoch.7.md
-[alpm-package-name]: alpm-types/resources/specification/alpm-package-name.7.md
-[alpm-package-relation]: alpm-types/resources/specification/alpm-package-relation.7.md
-[alpm-package-version]: alpm-types/resources/specification/alpm-package-version.7.md
-[alpm-parsers]: alpm-parsers/
-[alpm-pkgrel]: alpm-types/resources/specification/alpm-package-pkgrel.7.md
-[alpm-pkgver]: alpm-types/resources/specification/alpm-package-pkgver.7.md
-[alpm-types]: alpm-types/
 [alpm-mtree]: alpm-mtree/
+[alpm-parsers]: alpm-parsers/
+[alpm-types]: alpm-types/
 [components]: #components
 [contribution guidelines]: CONTRIBUTING.md
 [milestones]: https://gitlab.archlinux.org/archlinux/alpm/alpm/-/milestones
