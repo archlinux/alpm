@@ -7,6 +7,10 @@ set dotenv-load := true
 
 ignored := "false"
 
+# The output directory for documentation artifacts
+
+output_dir := "output"
+
 # Runs all checks and tests. Since this is the first recipe it is run by default.
 run-pre-commit-hook: check test
 
@@ -168,6 +172,7 @@ lint:
     tangler bash < alpm-mtree/README.md | shellcheck --shell bash -
 
     just lint-recipe 'test-readme alpm-buildinfo'
+    just lint-recipe build-book
     just lint-recipe check-commits
     just lint-recipe check-unused-deps
     just lint-recipe ci-publish
@@ -413,3 +418,38 @@ ensure-command +command:
             exit 1
         fi
     done
+
+# Builds the documentation book using mdbook and stages all necessary rustdocs alongside
+build-book:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    just ensure-command cargo jq mdbook mdbook-mermaid
+
+    target_dir="$(cargo metadata --format-version 1 | jq -r  .target_directory)"
+    readonly target_dir="$target_dir"
+    readonly output_dir="{{ output_dir }}"
+    readonly rustdoc_dir="$output_dir/docs/rustdoc/"
+    mapfile -t workspace_members < <(just get-workspace-members 2>/dev/null)
+
+    just docs
+    mdbook-mermaid install resources/docs/
+    mdbook build resources/docs/
+
+    # move rust docs to their own namespaced dir
+    mkdir -p "$rustdoc_dir"
+    for name in "${workspace_members[@]}"; do
+        cp -r "$target_dir/doc/${name//-/_}" "$rustdoc_dir"
+    done
+    cp -r "$target_dir/doc/"{search.desc,src,static.files,trait.impl,type.impl} "$rustdoc_dir"
+    cp -r "$target_dir/doc/"*.{js,html} "$rustdoc_dir"
+
+# Serves the documentation book using miniserve
+serve-book: build-book
+    just ensure-command miniserve
+    miniserve --index=index.html {{ output_dir }}/docs
+
+# Watches the documentation book contents and rebuilds on change using mdbook (useful for development)
+watch-book:
+    just ensure-command watchexec
+    watchexec --exts md,toml,js --delay-run 5s -- just build-book
