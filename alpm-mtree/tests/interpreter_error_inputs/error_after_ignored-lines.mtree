@@ -1,0 +1,8 @@
+#mtree
+#
+#
+/set mode=755 gid=0
+
+
+# The next line is missing the uid. The error message should show the correct line.
+./some_link type=link link=some_path

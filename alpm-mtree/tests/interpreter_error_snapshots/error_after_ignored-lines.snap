@@ -1,0 +1,12 @@
+---
+source: alpm-mtree/tests/interpreter_errors.rs
+description: "#mtree\n#\n#\n/set mode=755 gid=0\n\n\n# The next line is missing the uid\n./some_link type=link link=some_path\n"
+expression: error
+snapshot_kind: text
+---
+Error while interpreting file in line 7:
+Affected line:
+./some_link type=link link=some_path
+
+Reason:
+Couldn't find property uid for path.
