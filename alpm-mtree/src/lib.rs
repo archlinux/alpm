@@ -6,6 +6,7 @@ use std::{
     path::PathBuf,
 };
 
+use cli::OutputFormat;
 use error::Error;
 use flate2::read::GzDecoder;
 use mtree_v2::parse_mtree_v2;
@@ -26,6 +27,33 @@ pub fn validate(file: Option<&PathBuf>) -> Result<(), Error> {
 
     Ok(())
 }
+
+/// Parse a given file and output it in the specified format to stdout.
+///
+/// # Errors
+///
+/// Returns an error if the input can not be parsed and validated, or if the output can not be
+/// formatted in the selected output format.
+pub fn format(file: Option<&PathBuf>, format: OutputFormat, pretty: bool) -> Result<(), Error> {
+    let files = parse(file)?;
+
+    match format {
+        OutputFormat::Json => {
+            let json = if pretty {
+                serde_json::to_string_pretty(&files)?
+            } else {
+                serde_json::to_string(&files)?
+            };
+            println!("{json}");
+        }
+    }
+
+    Ok(())
+}
+
+/// Two magic bytes that occur at the beginning of gzip files and can be used to detect whether a
+/// file is gzip compressed.
+const GZIP_MAGIC_NUMBER: [u8; 2] = [0x1f, 0x8b];
 
 /// Parse and interpret an MTREE file.
 ///
