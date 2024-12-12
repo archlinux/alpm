@@ -2,6 +2,7 @@ use std::process::ExitCode;
 
 use alpm_mtree::{
     cli::{Cli, Command},
+    format,
     validate,
 };
 use clap::Parser;
@@ -13,6 +14,11 @@ fn main() -> ExitCode {
     let cli = Cli::parse();
     let result = match cli.command {
         Command::Validate { file } => validate(file.as_ref()),
+        Command::Format {
+            file,
+            output_format,
+            pretty,
+        } => format(file.as_ref(), output_format, pretty),
     };
 
     if let Err(error) = result {

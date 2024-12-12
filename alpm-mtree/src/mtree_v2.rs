@@ -2,7 +2,8 @@
 
 use std::path::PathBuf;
 
-use alpm_types::{Md5Checksum, Sha256Checksum};
+use alpm_types::{Checksum, Digest, Md5Checksum, Sha256Checksum};
+use serde::{Serialize, Serializer};
 use winnow::Parser;
 
 pub use crate::parser::PathType;
@@ -49,7 +50,8 @@ impl PathDefaults {
     }
 }
 
-#[derive(Debug, Clone)]
+/// A directory type path statement in an mtree file.
+#[derive(Debug, Clone, Serialize)]
 pub struct Directory {
     path: PathBuf,
     uid: usize,
@@ -58,8 +60,10 @@ pub struct Directory {
     time: usize,
 }
 
-/// A link that's contained inside the
-#[derive(Debug, Clone)]
+/// A file type path statement in an mtree file.
+///
+/// The md5_digest is accepted for backwards compatibility reasons in v2 as well.
+#[derive(Debug, Clone, Serialize)]
 pub struct File {
     path: PathBuf,
     uid: usize,
@@ -67,12 +71,46 @@ pub struct File {
     mode: String,
     size: usize,
     time: usize,
+    #[serde(
+        skip_serializing_if = "Option::is_none",
+        serialize_with = "serialize_optional_checksum_as_hex"
+    )]
     md5_digest: Option<Md5Checksum>,
+    #[serde(serialize_with = "serialize_checksum_as_hex")]
     sha256_digest: Sha256Checksum,
 }
 
-/// A link that points to a file somewhere on the system.
-#[derive(Debug, Clone)]
+/// Serialize an `Option<Checksum<D>>` as a HexString.
+fn serialize_checksum_as_hex<S, D>(checksum: &Checksum<D>, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+    D: Digest,
+{
+    let hex_string = checksum.to_string();
+    serializer.serialize_str(&hex_string)
+}
+
+/// Serialize an `Option<Checksum<D>>`
+///
+/// Sadly this is needed in addition to the function above, even though we know that it won't be
+/// called due to the `skip_serializing_if` check above.
+fn serialize_optional_checksum_as_hex<S, D>(
+    checksum: &Option<Checksum<D>>,
+    serializer: S,
+) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+    D: Digest,
+{
+    let hex_string = checksum
+        .as_ref()
+        .expect("Empty checksums won't be serialized")
+        .to_string();
+    serializer.serialize_str(&hex_string)
+}
+
+/// A link type path in an mtree file that points to a file somewhere on the system.
+#[derive(Debug, Clone, Serialize)]
 pub struct Link {
     path: PathBuf,
     uid: usize,
@@ -83,7 +121,12 @@ pub struct Link {
 }
 
 /// Represents the three possible types inside a path type line of an mtree file.
-#[derive(Debug, Clone)]
+///
+/// While serializing, the type is converted into a `type` field on the inner struct.
+/// This means that `Vec<Path>` will be serialized to a list of maps where each map has a `type`
+/// entry with the respective name.
+#[derive(Debug, Clone, Serialize)]
+#[serde(tag = "type")]
 pub enum Path {
     #[serde(rename = "dir")]
     Directory(Directory),

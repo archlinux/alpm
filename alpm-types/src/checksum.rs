@@ -4,7 +4,7 @@ use std::{
     str::FromStr,
 };
 
-use digest::Digest;
+pub use digest::Digest;
 
 use crate::digests::{Blake2b512, Sha1, Sha224, Sha256, Sha384, Sha512};
 use crate::Error;
