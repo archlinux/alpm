@@ -1,0 +1,5 @@
+#mtree
+/set mode=755 gid=0 uid=0
+/unset uid
+# The next line is missing the `uid` property
+./some_file time=1706086640.0 size=14272 sha256digest=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef type=file
