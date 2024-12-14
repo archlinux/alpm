@@ -12,6 +12,7 @@ The linking is performed via [`mold`].
 All contributions are linted using [`clippy`] and spell checked using [`codespell`].
 The dependencies are linted with [`cargo-deny`] and unused dependencies are detected using [`cargo-machete`].
 License identifiers and copyright statements are checked using [`reuse`].
+Toml files are formatted via [`taplo-cli`].
 
 Various [`just`] targets are used to run checks and tests.
 [`shellcheck`] is used to check the just targets for correctness.
@@ -127,6 +128,7 @@ For a full list of individual contributors, refer to `git log --format="%an <%aE
 [`lychee`]: https://github.com/lycheeverse/lychee
 [`just`]: https://github.com/casey/just
 [`tangler`]: https://github.com/wiktor-k/tangler
+[`taplo`]: https://github.com/tamasfe/taplo
 [`cargo-machete`]: https://github.com/bnjbvr/cargo-machete
 [git pre-commit]: https://man.archlinux.org/man/githooks.5#pre-commit
 [git pre-push]: https://man.archlinux.org/man/githooks.5#pre-push

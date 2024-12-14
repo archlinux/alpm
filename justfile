@@ -156,9 +156,13 @@ check-unused-deps:
 
 # Checks source code formatting
 check-formatting:
+    just ensure-command taplo
+
     just --unstable --fmt --check
     # We're using nightly to properly group imports, see rustfmt.toml
     cargo +nightly fmt -- --check
+
+    taplo format --check
 
 # Updates the local cargo index and displays which crates would be updated
 dry-update:
