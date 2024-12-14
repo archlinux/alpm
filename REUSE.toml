@@ -1,21 +1,21 @@
 # NOTE: This project does not attribute contributors individually. Instead refer to `git log --format="%an <%aE>" | sort -u` for a list of individual contributors.
-version = 1
+SPDX-PackageDownloadLocation = "https://gitlab.archlinux.org/archlinux/alpm/alpm"
 SPDX-PackageName = "alpm"
 SPDX-PackageSupplier = "Arch Linux"
-SPDX-PackageDownloadLocation = "https://gitlab.archlinux.org/archlinux/alpm/alpm"
+version = 1
 
 [[annotations]]
-path = [
-    "**.ers",
-    "**.rs",
-]
-precedence = "aggregate"
 SPDX-FileCopyrightText = "ALPM Contributors"
 SPDX-License-Identifier = "Apache-2.0 OR MIT"
+path = ["**.ers", "**.rs"]
+precedence = "aggregate"
 
 [[annotations]]
+SPDX-FileCopyrightText = "ALPM Contributors"
+SPDX-License-Identifier = "CC0-1.0"
 path = [
     "**.sh",
+    "**.snap",
     "**.toml",
     "*.json",
     "*.lock",
@@ -26,16 +26,11 @@ path = [
     ".gitlab/CODEOWNERS",
     ".lycheeignore",
     "justfile",
-    "**.snap"
 ]
 precedence = "aggregate"
-SPDX-FileCopyrightText = "ALPM Contributors"
-SPDX-License-Identifier = "CC0-1.0"
 
 [[annotations]]
-path = [
-    "**.md",
-]
-precedence = "aggregate"
 SPDX-FileCopyrightText = "ALPM Contributors"
 SPDX-License-Identifier = "CC-BY-SA-4.0"
+path = ["**.md"]
+precedence = "aggregate"

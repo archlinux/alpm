@@ -1,9 +1,5 @@
 [book]
-authors = [
-    "Arne Beer",
-    "David Runge",
-    "Orhun Parmaksız",
-]
+authors = ["Arne Beer", "David Runge", "Orhun Parmaksız"]
 language = "en"
 multilingual = false
 src = "src"
@@ -21,4 +17,4 @@ command = "mdbook-mermaid"
 [output]
 
 [output.html]
-additional-js = ["mermaid.min.js", "mermaid-init.js"]
+additional-js = ["mermaid-init.js", "mermaid.min.js"]

@@ -1,19 +1,19 @@
 [workspace.package]
+authors = [
+    "Arne Beer <contact@arne.beer>",
+    "David Runge <dvzrv@archlinux.org>",
+    "Orhun Parmaksız <orhun@archlinux.org>",
+]
+edition = "2021"
 homepage = "https://gitlab.archlinux.org/archlinux/alpm/alpm"
-repository = "https://gitlab.archlinux.org/archlinux/alpm/alpm"
 keywords = ["alpm", "arch", "linux", "packaging"]
 license = "Apache-2.0 OR MIT"
 readme = "README.md"
-edition = "2021"
-authors = [
-  "David Runge <dvzrv@archlinux.org>",
-  "Orhun Parmaksız <orhun@archlinux.org>",
-  "Arne Beer <contact@arne.beer>",
-]
+repository = "https://gitlab.archlinux.org/archlinux/alpm/alpm"
 
 [workspace]
-resolver = "2"
 members = ["alpm-buildinfo", "alpm-parsers", "alpm-types", "dev-scripts"]
+resolver = "2"
 
 [workspace.dependencies]
 assert_cmd = "2.0.11"
@@ -27,6 +27,6 @@ thiserror = "2.0.0"
 winnow = "0.6"
 
 [profile.release]
-lto = true
 codegen-units = 1
+lto = true
 opt-level = "z"

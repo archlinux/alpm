@@ -2,14 +2,14 @@
 ## see the reference: <https://github.com/crate-ci/committed/blob/master/docs/reference.md>
 
 # commit message rules
+imperative_subject = true
+line_length = 72
 style = "conventional"
 subject_capitalized = false
-imperative_subject = true
+subject_length = 0            # disable the check
 subject_not_punctuated = true
-line_length = 72
-subject_length = 0 # disable the check
 
 # commit types
+merge_commit = false
 no_fixup = true
 no_wip = true
-merge_commit = false
