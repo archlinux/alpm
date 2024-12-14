@@ -9,6 +9,9 @@ Currently, this project aims to maintain compatibility with [pacman] `5.1.0` and
 The scope of this project is to provide robust integration for all relevant package creation and consumption, as well as repository management tasks.
 As such, the ALPM project also aims at providing drop-in replacements or alternatives for some facilities provided by [pacman].
 
+This project is currently supported by the [Sovereign Tech Agency].
+Read the [official announcement] for more information.
+
 ## Documentation
 
 The latest project documentation can be found at <https://alpm.archlinux.page>
@@ -85,3 +88,5 @@ Contributions to this project, unless noted otherwise, are automatically license
 [contribution guidelines]: CONTRIBUTING.md
 [milestones]: https://gitlab.archlinux.org/archlinux/alpm/alpm/-/milestones
 [pacman]: https://gitlab.archlinux.org/pacman/pacman
+[Sovereign Tech Agency]: https://www.sovereign.tech/tech/arch-linux-package-management
+[official announcement]: https://lists.archlinux.org/archives/list/arch-dev-public@lists.archlinux.org/thread/MZLH43574GGP7QQ7RKAAIRFT5LJPCEB4/
