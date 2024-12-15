@@ -29,7 +29,11 @@ use crate::Error;
 /// ```
 #[derive(Debug, Clone, PartialEq)]
 pub enum License {
-    Spdx(Box<spdx::Expression>), // Boxed to avoid large allocations
+    /// A valid SPDX license expression
+    ///
+    /// This variant is boxed to avoid large allocations
+    Spdx(Box<spdx::Expression>),
+    /// A non-standard license identifier
     Unknown(String),
 }
 

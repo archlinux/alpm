@@ -786,8 +786,11 @@ impl Display for SchemaVersion {
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Version {
+    /// The version of the package
     pub pkgver: Pkgver,
+    /// The epoch of the package
     pub epoch: Option<Epoch>,
+    /// The release of the package
     pub pkgrel: Option<Pkgrel>,
 }
 
@@ -970,18 +973,23 @@ impl PartialOrd for Version {
     strum::VariantNames,
 )]
 pub enum VersionComparison {
+    /// Less than or equal to
     #[strum(to_string = "<=")]
     LessOrEqual,
 
+    /// Greater than or equal to
     #[strum(to_string = ">=")]
     GreaterOrEqual,
 
+    /// Equal to
     #[strum(to_string = "=")]
     Equal,
 
+    /// Less than
     #[strum(to_string = "<")]
     Less,
 
+    /// Greater than
     #[strum(to_string = ">")]
     Greater,
 }
@@ -1025,7 +1033,9 @@ impl VersionComparison {
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct VersionRequirement {
+    /// Version comparison function
     pub comparison: VersionComparison,
+    /// Target version
     pub version: Version,
 }
 
