@@ -18,11 +18,18 @@ pub enum Source {
     /// The location must be a pure file name, without any path components (`/`).
     /// Hence, the file must be located directly next to the PKGBUILD.
     File {
+        /// The optional destination file name.
         filename: Option<PathBuf>,
+        /// The source file name.
         location: PathBuf,
     },
     /// A URL source.
-    Url { filename: Option<PathBuf>, url: Url },
+    Url {
+        /// The optional destination file name.
+        filename: Option<PathBuf>,
+        /// The source URL.
+        url: Url,
+    },
 }
 
 impl Source {

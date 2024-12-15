@@ -33,21 +33,35 @@ use strum::{Display, EnumString};
 #[non_exhaustive]
 #[strum(serialize_all = "lowercase")]
 pub enum Architecture {
+    /// ARMv8 64-bit
     Aarch64,
+    /// Any architecture
     Any,
+    /// ARM
     Arm,
+    /// ARMv6 hard-float
     Armv6h,
+    /// ARMv7 hard-float
     Armv7h,
+    /// Intel 486
     I486,
+    /// Intel 686
     I686,
+    /// Intel Pentium 4
     Pentium4,
+    /// RISC-V 32-bit
     Riscv32,
+    /// RISC-V 64-bit
     Riscv64,
+    /// Intel x86_64
     X86_64,
+    /// Intel x86_64 version 2
     #[strum(to_string = "x86_64_v2")]
     X86_64V2,
+    /// Intel x86_64 version 3
     #[strum(to_string = "x86_64_v3")]
     X86_64V3,
+    /// Intel x86_64 version 4
     #[strum(to_string = "x86_64_v4")]
     X86_64V4,
 }
