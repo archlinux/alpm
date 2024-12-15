@@ -17,6 +17,8 @@ use crate::Version;
 /// This type is used in the context of `makepkg` options, build environment options ([`BuildEnv`]),
 /// and package options ([`PackageOption`]).
 ///
+/// See [`man makepkg.conf`](https://man.archlinux.org/man/makepkg.conf.5.en) for more information.
+///
 /// ## Examples
 /// ```
 /// use alpm_types::MakePkgOption;
