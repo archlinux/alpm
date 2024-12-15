@@ -19,7 +19,9 @@ use crate::{Error, Name, VersionComparison, VersionRequirement};
 /// dependencies, as those behave differently.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PackageRelation {
+    /// The name of the package
     pub name: Name,
+    /// The version requirement for the package
     pub version_requirement: Option<VersionRequirement>,
 }
 

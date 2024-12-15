@@ -32,6 +32,7 @@ use strum::{Display, EnumString};
 #[derive(Clone, Copy, Debug, Display, EnumString, Eq, Ord, PartialEq, PartialOrd)]
 #[non_exhaustive]
 #[strum(serialize_all = "lowercase")]
+#[allow(missing_docs)]
 pub enum Architecture {
     Aarch64,
     Any,

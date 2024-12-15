@@ -10,6 +10,7 @@ use std::path::PathBuf;
 /// See [Error::source](https://doc.rust-lang.org/std/error/trait.Error.html#method.source) for
 /// more information.
 #[derive(Debug, thiserror::Error, PartialEq)]
+#[allow(missing_docs)]
 pub enum Error {
     /// An invalid integer
     #[error("Invalid integer (caused by {kind:?})")]
