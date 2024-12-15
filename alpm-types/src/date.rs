@@ -24,6 +24,7 @@ pub type BuildDate = i64;
 
 /// A trait for allowing conversion from an [`OffsetDateTime`] to a type.
 pub trait FromOffsetDateTime {
+    /// Converts an [`OffsetDateTime`] into a type.
     fn from_offset_datetime(input: OffsetDateTime) -> Self;
 }
 
