@@ -35,15 +35,18 @@ pub type Sha512Checksum = Checksum<Sha512>;
 /// A checksum using a supported algorithm
 ///
 /// Checksums are created using one of the supported algorithms:
+///
 /// - `Blake2b512`
-/// - `Md5` (WARNING: Use is highly discouraged, because it is cryptographically unsafe)
-/// - `Sha1` (WARNING: Use is highly discouraged, because it is cryptographically unsafe)
+/// - `Md5` (**WARNING**: Use of this algorithm is highly discouraged, because it is
+///   cryptographically unsafe)
+/// - `Sha1` (**WARNING**: Use of this algorithm is highly discouraged, because it is
+///   cryptographically unsafe)
 /// - `Sha224`
 /// - `Sha256`
 /// - `Sha384`
 /// - `Sha512`
 ///
-/// NOTE: Contrary to makepkg/pacman, this crate *does not* support using cksum-style CRC-32 as it
+/// Contrary to makepkg/pacman, this crate *does not* support using cksum-style CRC-32 as it
 /// is non-standard (different implementations throughout libraries) and cryptographically unsafe.
 ///
 /// ## Note
