@@ -1,0 +1,29 @@
+---
+source: alpm-mtree/tests/happy_path.rs
+description: "#mtree\n/set mode=644 uid=0 gid=0 type=file\n./some_file time=1706086640.0 size=1337 sha256digest=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\n./other_file time=1706086640.0 size=13371337 sha256digest=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef md5digest=0123456789abcdef0123456789abcdef\n"
+expression: pretty_json
+snapshot_kind: text
+---
+[
+  {
+    "type": "file",
+    "path": "./some_file",
+    "uid": 0,
+    "gid": 0,
+    "mode": "644",
+    "size": 1337,
+    "time": 1706086640,
+    "sha256_digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+  },
+  {
+    "type": "file",
+    "path": "./other_file",
+    "uid": 0,
+    "gid": 0,
+    "mode": "644",
+    "size": 13371337,
+    "time": 1706086640,
+    "md5_digest": "0123456789abcdef0123456789abcdef",
+    "sha256_digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+  }
+]

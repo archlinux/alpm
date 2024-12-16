@@ -1,0 +1,7 @@
+#mtree
+/set mode=644 uid=0 gid=0 type=file
+./some_file time=1706086640.0 size=1337 sha256digest=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+/set mode=755 uid=1000 gid=1000 type=dir
+./some_dir time=1706086640.0
+/unset mode uid gid type
+./some_link mode=400 uid=0 gid=0 type=link time=1706086640.0 link=some_file
