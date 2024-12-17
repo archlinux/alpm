@@ -10,7 +10,7 @@ This functionality is used in the context of distributions to release new builds
 For each rebuild, the **pkgrel** value is incremented by '1'.
 Once the upstream version represented by **pkgver** is incremented, the **pkgrel** is reset to '1'.
 
-The **pkgrel** value is represented by a positive integer, or a positive integer directly followed by a '.' sign and another positive integer.
+The **pkgrel** value must consist of one or more numeric digits, optionally followed by a period (`.`) and one or more additional numeric digits.
 The default value when using **pkgrel** is '1'.
 
 When used in a composite version string, **pkgver** is directly followed by a '-' sign and the **pkgrel**.

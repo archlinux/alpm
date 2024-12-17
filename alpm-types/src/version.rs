@@ -13,7 +13,7 @@ use semver::Version as SemverVersion;
 use crate::error::Error;
 use crate::Architecture;
 
-pub(crate) static PKGREL_REGEX: Lazy<Regex> = lazy_regex!(r"^[1-9]+[0-9]*(|[.]{1}[1-9]+[0-9]*)$");
+pub(crate) static PKGREL_REGEX: Lazy<Regex> = lazy_regex!(r"^[0-9]+(\.[0-9]+)?$");
 pub(crate) static PKGVER_REGEX: Lazy<Regex> = lazy_regex!(r"^([[:alnum:]][[:alnum:]_+.]*)$");
 
 /// The version and architecture of a build tool
@@ -142,9 +142,8 @@ impl Display for Epoch {
 /// delimited by a `"-"` (e.g. `-2` is added to `1.0.0` to form `1.0.0-2` which then orders newer
 /// than `1.0.0-1`).
 ///
-/// A Pkgrel wraps a String which is guaranteed to not start with a `"0"`, to contain only numeric
-/// characters (optionally delimited by a single `"."`, which must be followed by at least one
-/// non-`"0"` numeric character).
+/// A Pkgrel wraps a String which must consist of one or more numeric digits,
+/// optionally followed by a period (`.`) and one or more additional numeric digits.
 ///
 /// ## Examples
 /// ```
@@ -154,9 +153,9 @@ impl Display for Epoch {
 ///
 /// assert!(Pkgrel::new("1".to_string()).is_ok());
 /// assert!(Pkgrel::new("1.1".to_string()).is_ok());
-/// assert!(Pkgrel::new("0".to_string()).is_err());
-/// assert!(Pkgrel::new("0.1".to_string()).is_err());
-/// assert!(Pkgrel::new("1.0".to_string()).is_err());
+/// assert!(Pkgrel::new("0".to_string()).is_ok());
+/// assert!(Pkgrel::new("a".to_string()).is_err());
+/// assert!(Pkgrel::new("1.a".to_string()).is_err());
 /// ```
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Pkgrel(String);
@@ -1333,8 +1332,12 @@ mod tests {
 
     /// Make sure that we can parse valid **pkgrel** strings.
     #[rstest]
+    #[case("0")]
     #[case("1")]
-    #[case("1.1")]
+    #[case("10")]
+    #[case("1.0")]
+    #[case("10.5")]
+    #[case("0.1")]
     fn valid_pkgrel(#[case] pkgrel: &str) {
         let parsed = Pkgrel::new(pkgrel.to_string());
         assert!(parsed.is_ok(), "Expected pkgrel {pkgrel} to be valid.");
@@ -1349,8 +1352,14 @@ mod tests {
 
     /// Ensure that invalid **pkgrel**s are throwing errors.
     #[rstest]
-    #[case("0.1")]
-    #[case("0")]
+    #[case(".1")]
+    #[case("1.")]
+    #[case("1..1")]
+    #[case("-1")]
+    #[case("a")]
+    #[case("1.a")]
+    #[case("1.0.0")]
+    #[case("")]
     fn invalid_pkgrel(#[case] pkgrel: &str) {
         assert_eq!(
             Pkgrel::new(pkgrel.to_string()),
