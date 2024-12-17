@@ -12,7 +12,13 @@ readme = "README.md"
 repository = "https://gitlab.archlinux.org/archlinux/alpm/alpm"
 
 [workspace]
-members = ["alpm-buildinfo", "alpm-parsers", "alpm-types", "dev-scripts"]
+members = [
+    "alpm-buildinfo",
+    "alpm-parsers",
+    "alpm-srcinfo",
+    "alpm-types",
+    "dev-scripts",
+]
 resolver = "2"
 
 [workspace.dependencies]
