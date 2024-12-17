@@ -67,6 +67,7 @@ Currently the following components are available:
 - [alpm-buildinfo]: a library and commandline interface to work with `BUILDINFO` files
 - [alpm-parsers]: a library for providing various custom parsers/deserializers for file types used in ALPM
 - [alpm-pkginfo]: a library and commandline interface to work with `.PKGINFO` files
+- [alpm-srcinfo]: a library and commandline interface to work with `SRCINFO` files
 - [alpm-types]: a central library for types used by other ALPM libraries and tools
 
 ## Contributing
@@ -96,6 +97,7 @@ Contributions to this project, unless noted otherwise, are automatically license
 [alpm-mtree]: alpm-mtree/
 [alpm-parsers]: alpm-parsers/
 [alpm-pkginfo]: alpm-pkginfo/
+[alpm-srcinfo]: alpm-srcinfo/
 [alpm-types]: alpm-types/
 [archlinux-keyring]: https://gitlab.archlinux.org/archlinux/archlinux-keyring
 [components]: #components

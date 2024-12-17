@@ -26,6 +26,7 @@ path = [
     ".gitignore",
     ".gitlab/CODEOWNERS",
     ".lycheeignore",
+    "alpm-srcinfo/tests/files/*.srcinfo",
     "justfile",
 ]
 precedence = "aggregate"

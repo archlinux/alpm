@@ -96,6 +96,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "alpm-srcinfo"
+version = "0.1.0"
+dependencies = [
+ "alpm-types",
+ "clap",
+ "insta",
+ "rstest",
+ "strum",
+ "testresult",
+ "thiserror",
+ "winnow 0.7.0",
+]
+
+[[package]]
 name = "alpm-types"
 version = "0.4.0"
 dependencies = [
