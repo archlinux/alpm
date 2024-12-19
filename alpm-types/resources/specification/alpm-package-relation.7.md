@@ -14,6 +14,11 @@ Every **package relation** contains an **alpm-package-name**, which may be used 
 *Virtual components* do not represent the names of existing packages, but instead a component that is implicitly defined by package metadata.
 With the help of **package relations**, *virtual components* are defined and used similarly to names of existing packages (see **EXAMPLES** for further information).
 
+## Architecture specific use
+
+**Package relations** may be used in contexts that can describe multiple **alpm-architectures** at the same time.
+For these situations, architecture-specific identifiers are available and may be used.
+
 ## Types of package relations
 
 The definition of a **package relation** is bound to a set of types.
@@ -27,8 +32,10 @@ This **package relation** specifies a hard requirement (another package, optiona
 The value for a run-time dependency is either an **alpm-package-name** or an **alpm-comparison** (e.g. `example` or `example>=1.0.0`).
 
 - In **PKGBUILD** files zero or more run-time dependencies of a package are specified using the **depends** array.
+  Architecture-specific run-time dependencies may be specified using an array named 'depends', directly followed by an '_' sign, directly followed by an **alpm-architecture** (all **alpm-architectures** except `any` can be used), e.g. `depends_aarch64`.
 - In **PKGINFO** files the **depend** keyword is used to specify a run-time dependency.
 - In **SRCINFO** files the **depends** keyword is used to specify a run-time dependency.
+  An architecture-specific run-time dependency may be specified using a keyword consisting of 'depends', directly followed by an '_' sign, directly followed by an **alpm-architecture** (all **alpm-architectures** except `any` can be used), e.g. `depends_aarch64`.
 
 ### Build dependency
 
@@ -38,8 +45,10 @@ This **package relation** specifies a build requirement (another package, option
 The value for a build dependency is either an **alpm-package-name** or an **alpm-comparison** (e.g. `example` or `example>=1.0.0`).
 
 - In **PKGBUILD** files zero or more build-time dependencies of a package are specified using the **makedepends** array.
+  Architecture-specific build dependencies may be specified using an array named 'makedepends', directly followed by an '_' sign, directly followed by an **alpm-architecture** (all **alpm-architectures** except `any` can be used), e.g. `makedepends_aarch64`.
 - In **PKGINFO** files the **makedepend** keyword is used to specify a build-time dependency.
 - In **SRCINFO** files the **makedepends** keyword is used to specify a build-time dependency.
+  An architecture-specific build dependency may be specified using a keyword consisting of 'makedepends', directly followed by an '_' sign, directly followed by an **alpm-architecture** (all **alpm-architectures** except `any` can be used), e.g. `makedepends_aarch64`.
 
 ### Test dependency
 
@@ -49,8 +58,10 @@ This **package relation** specifies a test requirement (another package, optiona
 The value for a test dependency is either an **alpm-package-name** or an **alpm-comparison** (e.g. `example` or `example>=1.0.0`).
 
 - In **PKGBUILD** files zero or more test dependencies of a package are specified using the **checkdepends** array.
+  Architecture-specific test dependencies may be specified using an array named 'makedepends', directly followed by an '_' sign, directly followed by an **alpm-architecture** (all **alpm-architectures** except `any` can be used), e.g. `checkdepends_aarch64`.
 - In **PKGINFO** files the **checkdepend** keyword is used to specify a test dependency.
 - In **SRCINFO** files the **checkdepends** keyword is used to specify a test dependency.
+  An architecture-specific test dependency may be specified using a keyword consisting of 'checkdepends', directly followed by an '_' sign, directly followed by an **alpm-architecture** (all **alpm-architectures** except `any` can be used), e.g. `checkdepends_aarch64`.
 
 ### Optional dependency
 
@@ -63,8 +74,10 @@ The value for an optional dependency can be one of the following:
 2. An **alpm-package-name** or **alpm-comparison** followed by a `:` sign, a whitespace, and a UTF-8-formatted description string that specifies the reason for the optional dependency (e.g., `example: for feature X` or `example>=1.2.3: for feature X`)
 
 - In **PKGBUILD** files zero or more optional dependencies of a package are specified using the **optdepends** array.
+  Architecture-specific optional dependencies may be specified using an array named 'optdepends', directly followed by an '_' sign, directly followed by an **alpm-architecture** (all **alpm-architectures** except `any` can be used), e.g. `optdepends_aarch64`.
 - In **PKGINFO** files the **optdepend** keyword is used to specify an optional dependency.
 - In **SRCINFO** files the **optdepends** keyword is used to specify an optional dependency.
+  An architecture-specific optional dependency may be specified using a keyword consisting of 'optdepends', directly followed by an '_' sign, directly followed by an **alpm-architecture** (all **alpm-architectures** except `any` can be used), e.g. `optdepends_aarch64`.
 
 ### Provision
 
@@ -74,8 +87,10 @@ The use of a provision allows for scenarios in which e.g. several packages provi
 The value for a **provision** is either an **alpm-package-name** or an **alpm-comparison** (e.g. `example` or `example>=1.0.0`).
 
 - In **PKGBUILD** files zero or more provisions are specified using the **provides** array.
+  Architecture-specific provisions may be specified using an array named 'provides', directly followed by an '_' sign, directly followed by an **alpm-architecture** (all **alpm-architectures** except `any` can be used), e.g. `provides_aarch64`.
 - In **PKGINFO** files the **provides** keyword is used to specify a provision.
 - In **SRCINFO** files the **provides** keyword is used to specify a provision.
+  An architecture-specific provision may be specified using a keyword consisting of 'provides', directly followed by an '_' sign, directly followed by an **alpm-architecture** (all **alpm-architectures** except `any` can be used), e.g. `provides_aarch64`.
 
 ### Conflict
 
@@ -85,8 +100,10 @@ A conflict is usually used to ensure that package managers are not able to insta
 The value for a conflict is either an **alpm-package-name** or an **alpm-comparison** (e.g. `example` or `example>=1.0.0`).
 
 - In **PKGBUILD** files zero or more conflicts are specified using the **conflicts** array.
+  Architecture-specific conflicts may be specified using an array named 'conflicts', directly followed by an '_' sign, directly followed by an **alpm-architecture** (all **alpm-architectures** except `any` can be used), e.g. `conflicts_aarch64`.
 - In **PKGINFO** files the **conflict** keyword is used to specify a conflict.
 - In **SRCINFO** files the **conflicts** keyword is used to specify a conflict.
+  An architecture-specific conflict may be specified using a keyword consisting of 'conflicts', directly followed by an '_' sign, directly followed by an **alpm-architecture** (all **alpm-architectures** except `any` can be used), e.g. `conflicts_aarch64`.
 
 ### Replacement
 
@@ -96,8 +113,10 @@ The feature is used e.g. by package managers to replace existing packages or vir
 The value for a replacement is either an **alpm-package-name** or an **alpm-comparison** (e.g. `example` or `example>=1.0.0`).
 
 - In **PKGBUILD** files zero or more replacements are specified using the **replaces** array.
+  Architecture-specific replacements may be specified using an array named 'replaces', directly followed by an '_' sign, directly followed by an **alpm-architecture** (all **alpm-architectures** except `any` can be used), e.g. `replaces_aarch64`.
 - In **PKGINFO** files the **replaces** keyword is used to specify a conflict.
 - In **SRCINFO** files the **replaces** keyword is used to specify a conflict.
+  An architecture-specific replacement may be specified using a keyword consisting of 'replaces', directly followed by an '_' sign, directly followed by an **alpm-architecture** (all **alpm-architectures** except `any` can be used), e.g. `replaces_aarch64`.
 
 # EXAMPLES
 
@@ -115,4 +134,4 @@ This scenario enables a package manager to provide the user with the choice to r
 
 # SEE ALSO
 
-BUILDINFO(5), PKGBUILD(5), PKGINFO(5), alpm-comparison(7), alpm-epoch(7), alpm-pkgrel(7), alpm-pkgver(7), vercmp(8)
+BUILDINFO(5), PKGBUILD(5), PKGINFO(5), alpm-architecture(7), alpm-comparison(7), alpm-epoch(7), alpm-pkgrel(7), alpm-pkgver(7), vercmp(8))
