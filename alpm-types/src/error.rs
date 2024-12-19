@@ -96,6 +96,15 @@ pub enum Error {
     InvalidOpenPGPv4Fingerprint,
 }
 
+/// Convert a `std::num::ParseIntError` into a `Error::InvalidInteger`
+impl From<std::num::ParseIntError> for crate::error::Error {
+    fn from(e: std::num::ParseIntError) -> Self {
+        Self::InvalidInteger {
+            kind: e.kind().clone(),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::num::IntErrorKind;
