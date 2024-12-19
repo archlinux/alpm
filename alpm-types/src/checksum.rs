@@ -6,7 +6,7 @@ use std::{
 
 pub use digest::Digest;
 
-use crate::digests::{Blake2b512, Sha1, Sha224, Sha256, Sha384, Sha512};
+use crate::digests::{Blake2b512, Md5, Sha1, Sha224, Sha256, Sha384, Sha512};
 use crate::Error;
 
 // Convenience type aliases for the supported checksums
@@ -15,7 +15,7 @@ use crate::Error;
 pub type Blake2b512Checksum = Checksum<Blake2b512>;
 
 /// A checksum using the Md5 algorithm
-pub type Md5Checksum = Checksum<md5::Md5>;
+pub type Md5Checksum = Checksum<Md5>;
 
 /// A checksum using the Sha1 algorithm
 pub type Sha1Checksum = Checksum<Sha1>;
