@@ -105,6 +105,25 @@ impl From<std::num::ParseIntError> for crate::error::Error {
     }
 }
 
+/// Allows infallible conversions to `Error`
+///
+/// Since `std::convert::Infallible` represents an impossible case (e.g., an operation
+/// that cannot fail), this implementation is provided to satisfy API constraints
+/// where an `Error` type is required.
+///
+/// # Example
+///
+/// ```
+/// # fn main() -> Result<(), alpm_types::Error> {
+/// let test: String = String::from("test").parse()?;
+/// # Ok(())
+/// # }
+impl From<std::convert::Infallible> for crate::error::Error {
+    fn from(_: std::convert::Infallible) -> Self {
+        unreachable!()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::num::IntErrorKind;
