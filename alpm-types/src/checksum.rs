@@ -62,6 +62,7 @@ pub type Sha512Checksum = Checksum<Sha512>;
 /// use std::str::FromStr;
 /// use alpm_types::{digests::Blake2b512, Checksum};
 ///
+/// # fn main() -> Result<(), alpm_types::Error> {
 /// let checksum = Checksum::<Blake2b512>::calculate_from("foo\n");
 /// let digest = vec![
 ///     210, 2, 215, 149, 29, 242, 196, 183, 17, 202, 68, 180, 188, 201, 215, 179, 99, 250, 66,
@@ -76,8 +77,10 @@ pub type Sha512Checksum = Checksum<Sha512>;
 /// );
 ///
 /// // create checksum from hex string
-/// let checksum = Checksum::<Blake2b512>::from_str("d202d7951df2c4b711ca44b4bcc9d7b363fa4252127e058c1a910ec05b6cd038d71cc21221c031c0359f993e746b07f5965cf8c5c3746a58337ad9ab65278e77").unwrap();
+/// let checksum = Checksum::<Blake2b512>::from_str("d202d7951df2c4b711ca44b4bcc9d7b363fa4252127e058c1a910ec05b6cd038d71cc21221c031c0359f993e746b07f5965cf8c5c3746a58337ad9ab65278e77")?;
 /// assert_eq!(checksum.inner(), digest);
+/// # Ok(())
+/// # }
 /// ```
 #[derive(Debug, Clone)]
 pub struct Checksum<D: Digest> {
