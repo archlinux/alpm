@@ -21,15 +21,18 @@ use crate::Version;
 ///
 /// ## Examples
 /// ```
+/// # fn main() -> Result<(), alpm_types::Error> {
 /// use alpm_types::MakePkgOption;
 ///
-/// let option = MakePkgOption::new("foo").unwrap();
+/// let option = MakePkgOption::new("foo")?;
 /// assert_eq!(option.on(), true);
 /// assert_eq!(option.name(), "foo");
 ///
-/// let not_option = MakePkgOption::new("!foo").unwrap();
+/// let not_option = MakePkgOption::new("!foo")?;
 /// assert_eq!(not_option.on(), false);
 /// assert_eq!(not_option.name(), "foo");
+/// # Ok(())
+/// # }
 /// ```
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct MakePkgOption {
@@ -86,15 +89,18 @@ impl Display for MakePkgOption {
 ///
 /// ## Examples
 /// ```
+/// # fn main() -> Result<(), alpm_types::Error> {
 /// use alpm_types::BuildEnv;
 ///
-/// let option = BuildEnv::new("foo").unwrap();
+/// let option = BuildEnv::new("foo")?;
 /// assert_eq!(option.on(), true);
 /// assert_eq!(option.name(), "foo");
 ///
-/// let not_option = BuildEnv::new("!foo").unwrap();
+/// let not_option = BuildEnv::new("!foo")?;
 /// assert_eq!(not_option.on(), false);
 /// assert_eq!(not_option.name(), "foo");
+/// # Ok(())
+/// # }
 /// ```
 pub type BuildEnv = MakePkgOption;
 
@@ -105,15 +111,18 @@ pub type BuildEnv = MakePkgOption;
 ///
 /// ## Examples
 /// ```
+/// # fn main() -> Result<(), alpm_types::Error> {
 /// use alpm_types::PackageOption;
 ///
-/// let option = PackageOption::new("foo").unwrap();
+/// let option = PackageOption::new("foo")?;
 /// assert_eq!(option.on(), true);
 /// assert_eq!(option.name(), "foo");
 ///
-/// let not_option = PackageOption::new("!foo").unwrap();
+/// let not_option = PackageOption::new("!foo")?;
 /// assert_eq!(not_option.on(), false);
 /// assert_eq!(not_option.name(), "foo");
+/// # Ok(())
+/// # }
 /// ```
 pub type PackageOption = MakePkgOption;
 

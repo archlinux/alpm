@@ -111,8 +111,9 @@ pub(crate) static PACKAGER_REGEX: Lazy<Regex> =
 ///
 /// use alpm_types::{Error, Packager};
 ///
+/// # fn main() -> Result<(), alpm_types::Error> {
 /// // create Packager from &str
-/// let packager = Packager::from_str("Foobar McFooface <foobar@mcfooface.org>").unwrap();
+/// let packager = Packager::from_str("Foobar McFooface <foobar@mcfooface.org>")?;
 ///
 /// // get name
 /// assert_eq!("Foobar McFooface", packager.name());
@@ -128,6 +129,8 @@ pub(crate) static PACKAGER_REGEX: Lazy<Regex> =
 ///     "Foobar McFooface <foobar@mcfooface.org>",
 ///     format!("{}", packager)
 /// );
+/// # Ok(())
+/// # }
 /// ```
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Packager {

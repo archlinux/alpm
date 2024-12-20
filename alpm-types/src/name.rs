@@ -23,20 +23,20 @@ pub(crate) static NAME_REGEX: Lazy<Regex> = lazy_regex!(r"^[a-zA-Z\d_@+]+[a-zA-Z
 ///
 /// use alpm_types::{BuildTool, Error, Name};
 ///
+/// # fn main() -> Result<(), alpm_types::Error> {
 /// // create BuildTool from &str
 /// assert!(BuildTool::from_str("test-123@.foo_+").is_ok());
 /// assert!(BuildTool::from_str(".test").is_err());
 ///
 /// // format as String
-/// assert_eq!("foo", format!("{}", BuildTool::from_str("foo").unwrap()));
+/// assert_eq!("foo", format!("{}", BuildTool::from_str("foo")?));
 ///
 /// // validate that BuildTool follows naming restrictions
-/// let buildtool = BuildTool::from_str("foo").unwrap();
-/// let restrictions = vec![
-///     Name::from_str("foo").unwrap(),
-///     Name::from_str("bar").unwrap(),
-/// ];
+/// let buildtool = BuildTool::from_str("foo")?;
+/// let restrictions = vec![Name::from_str("foo")?, Name::from_str("bar")?];
 /// assert!(buildtool.matches_restriction(&restrictions));
+/// # Ok(())
+/// # }
 /// ```
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct BuildTool(Name);
@@ -53,12 +53,11 @@ impl BuildTool {
     /// ```
     /// use alpm_types::{BuildTool, Error, Name};
     ///
-    /// assert!(
-    ///     BuildTool::new_with_restriction("foo", &[Name::new("foo".to_string()).unwrap()]).is_ok()
-    /// );
-    /// assert!(
-    ///     BuildTool::new_with_restriction("foo", &[Name::new("bar".to_string()).unwrap()]).is_err()
-    /// );
+    /// # fn main() -> Result<(), alpm_types::Error> {
+    /// assert!(BuildTool::new_with_restriction("foo", &[Name::new("foo".to_string())?]).is_ok());
+    /// assert!(BuildTool::new_with_restriction("foo", &[Name::new("bar".to_string())?]).is_err());
+    /// # Ok(())
+    /// # }
     /// ```
     pub fn new_with_restriction(name: &str, restrictions: &[Name]) -> Result<Self, Error> {
         let buildtool = BuildTool::from_str(name)?;
@@ -109,15 +108,18 @@ impl Display for BuildTool {
 ///
 /// use alpm_types::{Error, Name};
 ///
+/// # fn main() -> Result<(), alpm_types::Error> {
 /// // create Name from &str
 /// assert_eq!(
 ///     Name::from_str("test-123@.foo_+"),
-///     Ok(Name::new("test-123@.foo_+".to_string()).unwrap())
+///     Ok(Name::new("test-123@.foo_+".to_string())?)
 /// );
 /// assert!(Name::from_str(".test").is_err());
 ///
 /// // format as String
-/// assert_eq!("foo", format!("{}", Name::new("foo".to_string()).unwrap()));
+/// assert_eq!("foo", format!("{}", Name::new("foo".to_string())?));
+/// # Ok(())
+/// # }
 /// ```
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Name(String);

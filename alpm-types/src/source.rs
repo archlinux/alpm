@@ -65,7 +65,8 @@ impl FromStr for Source {
     /// use alpm_types::Source;
     /// use url::Url;
     ///
-    /// let source = Source::from_str("foopkg-1.2.3.tar.gz::https://example.com/download").unwrap();
+    /// # fn main() -> Result<(), alpm_types::Error> {
+    /// let source = Source::from_str("foopkg-1.2.3.tar.gz::https://example.com/download")?;
     /// assert_eq!(source.filename().unwrap(), Path::new("foopkg-1.2.3.tar.gz"));
     ///
     /// let Source::Url { url, .. } = source else {
@@ -73,7 +74,7 @@ impl FromStr for Source {
     /// };
     /// assert_eq!(url.host_str(), Some("example.com"));
     ///
-    /// let source = Source::from_str("renamed-source.tar.gz::test.tar.gz").unwrap();
+    /// let source = Source::from_str("renamed-source.tar.gz::test.tar.gz")?;
     /// assert_eq!(
     ///     source.filename().unwrap(),
     ///     Path::new("renamed-source.tar.gz")
@@ -83,6 +84,8 @@ impl FromStr for Source {
     ///     panic!()
     /// };
     /// assert_eq!(location, Path::new("test.tar.gz"));
+    /// # Ok(())
+    /// # }
     /// ```
     fn from_str(mut s: &str) -> Result<Self, Self::Err> {
         let filename = if let Some((filename, location)) = s.split_once("::") {
