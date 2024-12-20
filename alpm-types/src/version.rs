@@ -714,14 +714,17 @@ impl PartialEq for Pkgver {
 ///
 /// use alpm_types::SchemaVersion;
 ///
+/// # fn main() -> Result<(), alpm_types::Error> {
 /// // create SchemaVersion from str
-/// let version_one = SchemaVersion::from_str("1.0.0").unwrap();
-/// let version_also_one = SchemaVersion::from_str("1").unwrap();
+/// let version_one = SchemaVersion::from_str("1.0.0")?;
+/// let version_also_one = SchemaVersion::from_str("1")?;
 /// assert_eq!(version_one, version_also_one);
 ///
 /// // format as String
 /// assert_eq!("1.0.0", format!("{}", version_one));
 /// assert_eq!("1.0.0", format!("{}", version_also_one));
+/// # Ok(())
+/// # }
 /// ```
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct SchemaVersion(SemverVersion);
@@ -779,10 +782,14 @@ impl Display for SchemaVersion {
 ///
 /// use alpm_types::{Epoch, Pkgrel, Pkgver, Version};
 ///
-/// let version = Version::from_str("1:2-3").unwrap();
-/// assert_eq!(version.epoch, Some(Epoch::from_str("1").unwrap()));
-/// assert_eq!(version.pkgver, Pkgver::new("2".to_string()).unwrap());
-/// assert_eq!(version.pkgrel, Some(Pkgrel::new("3".to_string()).unwrap()));
+/// # fn main() -> Result<(), alpm_types::Error> {
+///
+/// let version = Version::from_str("1:2-3")?;
+/// assert_eq!(version.epoch, Some(Epoch::from_str("1")?));
+/// assert_eq!(version.pkgver, Pkgver::new("2".to_string())?);
+/// assert_eq!(version.pkgrel, Some(Pkgrel::new("3".to_string())?));
+/// # Ok(())
+/// # }
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Version {
@@ -830,27 +837,22 @@ impl Version {
     ///
     /// use alpm_types::Version;
     ///
+    /// # fn main() -> Result<(), alpm_types::Error> {
+    ///
     /// assert_eq!(
-    ///     Version::vercmp(
-    ///         &Version::from_str("1.0.0").unwrap(),
-    ///         &Version::from_str("0.1.0").unwrap()
-    ///     ),
+    ///     Version::vercmp(&Version::from_str("1.0.0")?, &Version::from_str("0.1.0")?),
     ///     1
     /// );
     /// assert_eq!(
-    ///     Version::vercmp(
-    ///         &Version::from_str("1.0.0").unwrap(),
-    ///         &Version::from_str("1.0.0").unwrap()
-    ///     ),
+    ///     Version::vercmp(&Version::from_str("1.0.0")?, &Version::from_str("1.0.0")?),
     ///     0
     /// );
     /// assert_eq!(
-    ///     Version::vercmp(
-    ///         &Version::from_str("0.1.0").unwrap(),
-    ///         &Version::from_str("1.0.0").unwrap()
-    ///     ),
+    ///     Version::vercmp(&Version::from_str("0.1.0")?, &Version::from_str("1.0.0")?),
     ///     -1
     /// );
+    /// # Ok(())
+    /// # }
     /// ```
     pub fn vercmp(a: &Version, b: &Version) -> i8 {
         match a.cmp(b) {
@@ -1026,10 +1028,13 @@ impl VersionComparison {
 ///
 /// use alpm_types::{Version, VersionComparison, VersionRequirement};
 ///
-/// let requirement = VersionRequirement::from_str(">=1.5").unwrap();
+/// # fn main() -> Result<(), alpm_types::Error> {
+/// let requirement = VersionRequirement::from_str(">=1.5")?;
 ///
 /// assert_eq!(requirement.comparison, VersionComparison::GreaterOrEqual);
-/// assert_eq!(requirement.version, Version::from_str("1.5").unwrap());
+/// assert_eq!(requirement.version, Version::from_str("1.5")?);
+/// # Ok(())
+/// # }
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct VersionRequirement {
@@ -1057,13 +1062,16 @@ impl VersionRequirement {
     ///
     /// use alpm_types::{Version, VersionRequirement};
     ///
-    /// let requirement = VersionRequirement::from_str(">=1.5-3").unwrap();
+    /// # fn main() -> Result<(), alpm_types::Error> {
+    /// let requirement = VersionRequirement::from_str(">=1.5-3")?;
     ///
-    /// assert!(!requirement.is_satisfied_by(&Version::from_str("1.5").unwrap()));
-    /// assert!(requirement.is_satisfied_by(&Version::from_str("1.5-3").unwrap()));
-    /// assert!(requirement.is_satisfied_by(&Version::from_str("1.6").unwrap()));
-    /// assert!(requirement.is_satisfied_by(&Version::from_str("2:1.0").unwrap()));
-    /// assert!(!requirement.is_satisfied_by(&Version::from_str("1.0").unwrap()));
+    /// assert!(!requirement.is_satisfied_by(&Version::from_str("1.5")?));
+    /// assert!(requirement.is_satisfied_by(&Version::from_str("1.5-3")?));
+    /// assert!(requirement.is_satisfied_by(&Version::from_str("1.6")?));
+    /// assert!(requirement.is_satisfied_by(&Version::from_str("2:1.0")?));
+    /// assert!(!requirement.is_satisfied_by(&Version::from_str("1.0")?));
+    /// # Ok(())
+    /// # }
     /// ```
     pub fn is_satisfied_by(&self, ver: &Version) -> bool {
         self.comparison.is_compatible_with(ver.cmp(&self.version))
