@@ -5,7 +5,6 @@ use anyhow::{Context, Result};
 use colored::Colorize;
 use log::{debug, info};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
-use strum::IntoEnumIterator;
 
 use crate::{cli::TestFileType, sync::PackageRepositories, ui::get_progress_bar};
 
@@ -17,6 +16,7 @@ static DATABASES_DIR: &str = "databases";
 pub struct TestRunner {
     pub test_data_dir: PathBuf,
     pub file_type: TestFileType,
+    pub repositories: Vec<PackageRepositories>,
 }
 
 impl TestRunner {
@@ -100,15 +100,17 @@ impl TestRunner {
         let type_folders = match self.file_type {
             // All package related file types are nested in the subdirectories of the respective
             // package's package repository.
-            TestFileType::BuildInfo | TestFileType::PkgInfo | TestFileType::MTree => {
-                PackageRepositories::iter()
-                    .map(|repo| self.test_data_dir.join(PACKAGES_DIR).join(repo.to_string()))
-                    .collect()
-            }
+            TestFileType::BuildInfo | TestFileType::PkgInfo | TestFileType::MTree => self
+                .repositories
+                .iter()
+                .map(|repo| self.test_data_dir.join(PACKAGES_DIR).join(repo.to_string()))
+                .collect(),
             TestFileType::SrcInfo => vec![self.test_data_dir.join(PKGSRC_DIR)],
             // The `desc` and `files` file types are nested in the subdirectories of the respective
             // package's package repository.
-            TestFileType::RemoteDesc | TestFileType::RemoteFiles => PackageRepositories::iter()
+            TestFileType::RemoteDesc | TestFileType::RemoteFiles => self
+                .repositories
+                .iter()
                 .map(|repo| {
                     self.test_data_dir
                         .join(DATABASES_DIR)
@@ -146,6 +148,7 @@ mod tests {
     use std::{collections::HashSet, fs::create_dir};
 
     use rstest::rstest;
+    use strum::IntoEnumIterator;
 
     use super::*;
 
@@ -197,6 +200,7 @@ mod tests {
         let runner = TestRunner {
             test_data_dir: tmp_dir.path().to_owned(),
             file_type,
+            repositories: PackageRepositories::iter().collect(),
         };
         let found_files = HashSet::from_iter(runner.find_files_of_type()?.into_iter());
 
@@ -248,6 +252,7 @@ mod tests {
         let runner = TestRunner {
             test_data_dir: tmp_dir.path().to_owned(),
             file_type,
+            repositories: PackageRepositories::iter().collect(),
         };
         let found_files = HashSet::from_iter(runner.find_files_of_type()?.into_iter());
 
@@ -293,6 +298,7 @@ mod tests {
         let runner = TestRunner {
             test_data_dir: tmp_dir.path().to_owned(),
             file_type,
+            repositories: PackageRepositories::iter().collect(),
         };
         let found_files = HashSet::from_iter(runner.find_files_of_type()?.into_iter());
 
