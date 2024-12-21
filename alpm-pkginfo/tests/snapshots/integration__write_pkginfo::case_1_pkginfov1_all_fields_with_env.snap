@@ -1,0 +1,33 @@
+---
+source: alpm-pkginfo/tests/integration.rs
+expression: pkg_info.to_string()
+snapshot_kind: text
+---
+pkgname = example
+pkgbase = example
+pkgver = 1:1.0.0-1
+pkgdesc = A project that does something
+url = https://example.org/
+builddate = 1729181726
+packager = John Doe <john@example.org>
+size = 181849963
+arch = any
+license = GPL-3.0-or-later
+license = LGPL-3.0-or-later
+replaces = other-package>0.9.0-3
+group = package-group
+group = other-package-group
+conflict = conflicting-package<1.0.0
+conflict = other-conflicting-package<1.0.0
+provides = some-component
+provides = some-other-component=1:1.0.0-1
+backup = etc/example/config.toml
+backup = etc/example/other-config.txt
+depend = glibc
+depend = gcc-libs
+optdepend = python: for special-python-script.py
+optdepend = ruby: for special-ruby-script.rb
+makedepend = cmake
+makedepend = python-sphinx
+checkdepend = extra-test-tool
+checkdepend = other-extra-test-tool
