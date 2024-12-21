@@ -3,6 +3,8 @@ use std::path::PathBuf;
 use clap::{ArgAction, Parser, ValueEnum};
 use strum::Display;
 
+use crate::sync::PackageRepositories;
+
 #[derive(Parser, Debug)]
 #[clap(name = "ALPM Dev Scripts", about = "Dev scripts for the ALPM project")]
 pub struct Cli {
@@ -68,6 +70,12 @@ pub enum TestFilesCmd {
         // if `$XDG_CACHE_HOME` isn't set, it falls back to to `~/.cache/alpm/testing`.
         #[arg(short, long)]
         destination: Option<PathBuf>,
+
+        /// Package repositories to download.
+        ///
+        /// If not set, all official repositories are downloaded.
+        #[arg(short, long)]
+        repositories: Option<Vec<PackageRepositories>>,
 
         #[clap(subcommand)]
         source: DownloadCmd,

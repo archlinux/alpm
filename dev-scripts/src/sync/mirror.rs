@@ -8,7 +8,6 @@ use std::{
 use anyhow::{bail, Context, Result};
 use log::{debug, info};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
-use strum::IntoEnumIterator;
 
 use super::{filenames_in_dir, PackageRepositories};
 use crate::{cmd::ensure_success, ui::get_progress_bar};
@@ -19,6 +18,8 @@ pub struct MirrorDownloader {
     pub dest: PathBuf,
     /// The mirror url from which files will be downloaded.
     pub mirror: String,
+    /// The repositories that should be downloaded.
+    pub repositories: Vec<PackageRepositories>,
 }
 
 impl MirrorDownloader {
@@ -40,7 +41,7 @@ impl MirrorDownloader {
                 .context("Failed to create pacman cache target directory")?;
         }
 
-        for repo in PackageRepositories::iter() {
+        for repo in self.repositories.iter() {
             let name = repo.to_string();
             info!("Downloading database for repository {name}");
 
@@ -119,7 +120,7 @@ impl MirrorDownloader {
                 .context("Failed to create pacman cache target directory")?;
         }
 
-        for repo in PackageRepositories::iter() {
+        for repo in self.repositories.iter() {
             let repo_name = repo.to_string();
             info!("Downloading packages for repository {repo_name}");
 
@@ -166,7 +167,7 @@ impl MirrorDownloader {
         }
 
         // Clean up package data of packages that're no longer on the mirror.
-        for repo in PackageRepositories::iter() {
+        for repo in self.repositories.iter() {
             let mirror_packages = filenames_in_dir(&download_dir.join(repo.to_string()))?
                 .into_iter()
                 .map(remove_tarball_suffix)

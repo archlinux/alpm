@@ -5,6 +5,7 @@ use std::{
 };
 
 use anyhow::Result;
+use clap::ValueEnum;
 use strum::{Display, EnumIter};
 
 /// The [mirror] module contains all logic to download data from an Arch Linux package mirror.
@@ -16,7 +17,7 @@ pub mod mirror;
 pub mod pkgsrc;
 
 /// All Arch Linux package repositories we may want to test.
-#[derive(EnumIter, Display, Debug, PartialEq)]
+#[derive(Clone, Display, Debug, EnumIter, PartialEq, ValueEnum)]
 pub enum PackageRepositories {
     #[strum(to_string = "core")]
     Core,

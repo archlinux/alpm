@@ -5,7 +5,8 @@ use clap::Parser;
 use cli::Cli;
 use log::LevelFilter;
 use simplelog::{Config, SimpleLogger};
-use sync::{mirror::MirrorDownloader, pkgsrc::PkgSrcDownloader};
+use strum::IntoEnumIterator;
+use sync::{mirror::MirrorDownloader, pkgsrc::PkgSrcDownloader, PackageRepositories};
 use testing::TestRunner;
 
 mod cli;
@@ -48,6 +49,7 @@ fn main() -> Result<()> {
             }
             cli::TestFilesCmd::Download {
                 destination,
+                repositories,
                 source,
             } => {
                 // Set a default download destination.
@@ -57,18 +59,28 @@ fn main() -> Result<()> {
                         .context("Failed to determine home user cache directory.")?
                         .join("alpm/testing"),
                 };
-
+                let repositories = PackageRepositories::iter()
+                    .filter(|v| repositories.clone().is_none_or(|r| r.contains(v)))
+                    .collect();
                 match source {
                     cli::DownloadCmd::PkgSrcRepositories {} => {
                         let downloader = PkgSrcDownloader { dest };
                         downloader.download_package_source_repositories()?;
                     }
                     cli::DownloadCmd::Databases { mirror } => {
-                        let downloader = MirrorDownloader { dest, mirror };
+                        let downloader = MirrorDownloader {
+                            dest,
+                            mirror,
+                            repositories,
+                        };
                         downloader.sync_remote_databases()?;
                     }
                     cli::DownloadCmd::Packages { mirror } => {
-                        let downloader = MirrorDownloader { dest, mirror };
+                        let downloader = MirrorDownloader {
+                            dest,
+                            mirror,
+                            repositories,
+                        };
                         downloader.sync_remote_packages()?;
                     }
                 };
