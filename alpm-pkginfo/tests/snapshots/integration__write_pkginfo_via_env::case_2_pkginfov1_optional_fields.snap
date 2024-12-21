@@ -1,0 +1,14 @@
+---
+source: alpm-pkginfo/tests/integration.rs
+expression: pkg_info.to_string()
+snapshot_kind: text
+---
+pkgname = example
+pkgbase = example
+pkgver = 1:1.0.0-1
+pkgdesc = A project that does something
+url = https://example.org/
+builddate = 1729181726
+packager = John Doe <john@example.org>
+size = 181849963
+arch = any
