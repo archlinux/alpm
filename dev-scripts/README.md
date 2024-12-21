@@ -52,7 +52,7 @@ Currently the following file types are supported:
 - [ ] ALPM-REPO-DESC
 - [ ] ALPM-REPO-FILES
 - [x] BUILDINFO
-- [ ] PKGINFO
+- [x] PKGINFO
 - [ ] SRCINFO
 
 <!-- somewhere at the bottom of the file -->
