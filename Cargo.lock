@@ -81,6 +81,8 @@ dependencies = [
  "alpm-parsers",
  "alpm-types",
  "assert_cmd",
+ "clap",
+ "erased-serde",
  "insta",
  "pretty_assertions",
  "rstest",
