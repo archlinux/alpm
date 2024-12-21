@@ -56,6 +56,12 @@ pub enum TestFilesCmd {
         #[arg(short, long)]
         test_data_dir: Option<PathBuf>,
 
+        /// Package repositories to test.
+        ///
+        /// If not set, all official repositories are tested.
+        #[arg(short, long)]
+        repositories: Option<Vec<PackageRepositories>>,
+
         /// The type of file that should be tested.
         file_type: TestFileType,
     },

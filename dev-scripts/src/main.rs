@@ -31,6 +31,7 @@ fn main() -> Result<()> {
         cli::Command::TestFiles { cmd } => match cmd {
             cli::TestFilesCmd::Test {
                 test_data_dir,
+                repositories,
                 file_type,
             } => {
                 // Set a default download destination.
@@ -40,10 +41,13 @@ fn main() -> Result<()> {
                         .context("Failed to determine home user cache directory.")?
                         .join("alpm/testing"),
                 };
-
+                let repositories = PackageRepositories::iter()
+                    .filter(|v| repositories.clone().is_none_or(|r| r.contains(v)))
+                    .collect();
                 let runner = TestRunner {
                     test_data_dir,
                     file_type,
+                    repositories,
                 };
                 runner.run_tests()?;
             }
@@ -62,6 +66,7 @@ fn main() -> Result<()> {
                 let repositories = PackageRepositories::iter()
                     .filter(|v| repositories.clone().is_none_or(|r| r.contains(v)))
                     .collect();
+
                 match source {
                     cli::DownloadCmd::PkgSrcRepositories {} => {
                         let downloader = PkgSrcDownloader { dest };
