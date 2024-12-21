@@ -1,3 +1,5 @@
+#![doc = include_str!("../README.md")]
+
 mod pkginfo_v1;
 pub use crate::pkginfo_v1::PkgInfoV1;
 
