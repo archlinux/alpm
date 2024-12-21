@@ -46,7 +46,9 @@ impl TestRunner {
                     })
                     .map_err(|err| err.into()),
                     TestFileType::SrcInfo => unimplemented!(),
-                    TestFileType::PkgInfo => unimplemented!(),
+                    TestFileType::PkgInfo => {
+                        alpm_pkginfo::validate(Some(file.clone())).map_err(|err| err.into())
+                    }
                     TestFileType::MTree => unimplemented!(),
                     TestFileType::RemoteDesc => unimplemented!(),
                     TestFileType::RemoteFiles => unimplemented!(),
