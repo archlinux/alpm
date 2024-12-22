@@ -36,6 +36,8 @@ As an example, this is how you would test the `.BUILDINFO` validation:
    cargo run -- test-files test build-info
    ```
 
+You can use the `--repository` flag for specifying repositories. The available package repositories are `core`, `extra` and `multilib`.
+
 ## Tests against live data
 
 The `test-files` subcommand of the `scripts` binary downloads live data from Arch mirrors and Arch's GitLab to test the parser binaries on them.
