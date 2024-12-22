@@ -134,7 +134,7 @@ mod tests {
         }
     )]
     #[case(
-        "Value '€i²' does not match the 'pkgname' regex: ^[a-z\\d_@+]+[a-z\\d\\-._@+]*$",
+        "Value '€i²' does not match the 'pkgname' regex: ^[a-zA-Z\\d_@+]+[a-zA-Z\\d\\-._@+]*$",
         Error::RegexDoesNotMatch {
             value: "€i²".to_string(),
             regex_type: "pkgname".to_string(),
