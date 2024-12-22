@@ -9,7 +9,7 @@ use regex::Regex;
 
 use crate::Error;
 
-pub(crate) static NAME_REGEX: Lazy<Regex> = lazy_regex!(r"^[a-z\d_@+]+[a-z\d\-._@+]*$");
+pub(crate) static NAME_REGEX: Lazy<Regex> = lazy_regex!(r"^[a-zA-Z\d_@+]+[a-zA-Z\d\-._@+]*$");
 
 /// A build tool name
 ///
@@ -209,13 +209,23 @@ mod tests {
         #![proptest_config(ProptestConfig::with_cases(1000))]
 
         #[test]
-        fn valid_name_from_string(name_str in r"[a-z\d_@+]+[a-z\d\-._@+]*") {
+        fn valid_name_from_string(name_str in r"[a-zA-Z\d_@+]+[a-zA-Z\d\-._@+]*") {
             let name = Name::from_str(&name_str).unwrap();
             prop_assert_eq!(name_str, format!("{}", name));
         }
 
         #[test]
-        fn invalid_name_from_string_start(name_str in r"[\-.]+[a-z\d\-._@+]*") {
+        fn invalid_name_from_string_start(name_str in r"[-.][a-zA-Z0-9@._+-]*") {
+            let error = Name::from_str(&name_str).unwrap_err();
+            assert_eq!(error, Error::RegexDoesNotMatch {
+                value: name_str.to_string(),
+                regex_type: "pkgname".to_string(),
+                regex: NAME_REGEX.to_string(),
+            });
+        }
+
+        #[test]
+        fn invalid_name_with_invalid_characters(name_str in r"[^\w@._+-]+") {
             let error = Name::from_str(&name_str).unwrap_err();
             assert_eq!(error, Error::RegexDoesNotMatch {
                 value: name_str.to_string(),
