@@ -3,7 +3,17 @@ use std::collections::BTreeMap;
 use serde::Deserialize;
 use winnow::{
     ascii::{newline, space0, till_line_ending},
-    combinator::{cut_err, eof, opt, preceded, repeat, repeat_till, separated_pair, terminated},
+    combinator::{
+        alt,
+        cut_err,
+        eof,
+        opt,
+        preceded,
+        repeat,
+        repeat_till,
+        separated_pair,
+        terminated,
+    },
     error::{StrContext, StrContextValue},
     token::none_of,
     PResult,
@@ -29,6 +39,15 @@ impl Item {
             Item::List(_) => Err(Error::InvalidState),
         }
     }
+}
+
+/// Representation of a parsed line.
+#[derive(Debug)]
+enum ParsedLine<'s> {
+    /// A key value pair.
+    KeyValue { key: &'s str, value: &'s str },
+    /// A comment.
+    Comment(&'s str),
 }
 
 /// Take all chars, until we hit a char that isn't allowed in a key.
@@ -67,13 +86,23 @@ fn newlines(input: &mut &str) -> PResult<()> {
     repeat(0.., (newline, space0)).parse_next(input)
 }
 
-/// Parse a single line consisting of a key value pair, followed by 0 or more newlines.
-fn line<'s>(input: &mut &'s str) -> PResult<(&'s str, &'s str)> {
-    terminated(key_value, opt(newlines)).parse_next(input)
+/// Parse a comment (a line starting with `#`).
+fn comment<'s>(input: &mut &'s str) -> PResult<&'s str> {
+    preceded('#', till_line_ending).parse_next(input)
+}
+
+/// Parse a single line consisting of a key value pair or a comment, followed by 0 or more newlines.
+fn line<'s>(input: &mut &'s str) -> PResult<ParsedLine<'s>> {
+    alt((
+        terminated(comment, opt(newlines)).map(ParsedLine::Comment),
+        terminated(key_value, opt(newlines))
+            .map(|(key, value)| ParsedLine::KeyValue { key, value }),
+    ))
+    .parse_next(input)
 }
 
 /// Parse multiple lines.
-fn lines<'s>(input: &mut &'s str) -> PResult<Vec<(&'s str, &'s str)>> {
+fn lines<'s>(input: &mut &'s str) -> PResult<Vec<ParsedLine<'s>>> {
     let (value, _terminator) = repeat_till(0.., line, eof).parse_next(input)?;
 
     Ok(value)
@@ -84,10 +113,15 @@ pub fn ini_file(input: &mut &str) -> PResult<BTreeMap<String, Item>> {
     let mut items: BTreeMap<String, Vec<String>> = BTreeMap::new();
 
     // Ignore any preceding newlines at the start of the file.
-    let raw_items = preceded(newlines, lines).parse_next(input)?;
-    for (key, value) in raw_items {
-        let values = items.entry(key.to_string()).or_default();
-        values.push(value.to_string());
+    let parsed_lines = preceded(newlines, lines).parse_next(input)?;
+    for parsed_line in parsed_lines {
+        match parsed_line {
+            ParsedLine::KeyValue { key, value } => {
+                let values = items.entry(key.to_string()).or_default();
+                values.push(value.to_string());
+            }
+            ParsedLine::Comment(_v) => {}
+        }
     }
 
     // Collapse the list of all items into their final representation.
@@ -155,6 +189,28 @@ test = indeed";
                 "indeed".to_string(),
             ]),
         );
+
+        assert_eq!(expected, results);
+
+        Ok(())
+    }
+
+    static TEST_COMMENT_INPUT: &str = "
+# Hey
+# This is a comment
+foo = bar
+# This is another comment
+bar = baz
+# And another one";
+
+    /// Ensure that comments are ignored.
+    #[test]
+    fn test_comments() -> TestResult<()> {
+        let results = ini_file(&mut TEST_COMMENT_INPUT.to_string().as_str())?;
+
+        let mut expected = BTreeMap::new();
+        expected.insert("foo".to_string(), Item::Value("bar".to_string()));
+        expected.insert("bar".to_string(), Item::Value("baz".to_string()));
 
         assert_eq!(expected, results);
 
