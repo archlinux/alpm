@@ -16,6 +16,8 @@ members = ["alpm-buildinfo", "alpm-parsers", "alpm-types", "dev-scripts"]
 resolver = "2"
 
 [workspace.dependencies]
+alpm-parsers = { path = "./alpm-parsers" }
+alpm-types = { path = "./alpm-types" }
 assert_cmd = "2.0.11"
 clap = { version = "4.5.19", features = ["derive", "env", "string"] }
 insta = "1.40.0"

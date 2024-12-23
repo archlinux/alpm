@@ -13,7 +13,7 @@ readme.workspace = true
 repository.workspace = true
 
 [dependencies]
-alpm-types = { path = "../alpm-types" }
+alpm-types.workspace = true
 clap.workspace = true
 
 [dev-dependencies]

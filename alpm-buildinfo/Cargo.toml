@@ -13,8 +13,8 @@ readme.workspace = true
 repository.workspace = true
 
 [dependencies]
-alpm-parsers = { path = "../alpm-parsers" }
-alpm-types = { path = "../alpm-types" }
+alpm-parsers.workspace = true
+alpm-types.workspace = true
 clap.workspace = true
 erased-serde = "0.4.5"
 serde.workspace = true
