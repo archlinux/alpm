@@ -283,12 +283,15 @@ fn unset_properties(input: &mut &str) -> PResult<Vec<UnsetProperty>> {
 
 /// Normalize the path by replacing all whitespace character escapes with their actual equivalent.
 ///
-/// MTREE uses the VIS_CSTYLE encoding of `strsvis(3)`, which encodes a specific set of characters.
-/// Of these, only the following control characters are allowed in filenames:
-/// - \s Space
-/// - \t Tab
-/// - \r Carriage Return
-/// - \n Line Feed
+/// MTREE uses two different encodings.
+/// 1. the VIS_CSTYLE encoding of `strsvis(3)`, which encodes a specific set of characters. Of
+///    these, only the following control characters are allowed in filenames:
+///    - \s Space
+///    - \t Tab
+///    - \r Carriage Return
+///    - \n Line Feed
+/// 2. For all other chars, octal triplets in the style of `\360\237\214\240` are used. Check
+///    [decode_utf8_chars] for more info.
 fn normalize_path(path: &str) -> PathBuf {
     let path = path
         .replace("\\s", " ")

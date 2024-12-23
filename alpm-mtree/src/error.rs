@@ -17,6 +17,11 @@ pub enum Error {
     #[error(transparent)]
     InvalidUTF8(#[from] FromUtf8Error),
 
+    /// MTREE has its own unicode encoding for non-ascii chars.
+    /// This error is thrown if an malformed sequence is found.
+    #[error("Malformed mtree unicode encoding has been found in sequence {0}:\nError: {1}\n")]
+    InvalidMtreeUnicode(String, String),
+
     /// No input file given
     #[error("No input file given.")]
     NoInputFile,

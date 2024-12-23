@@ -1,0 +1,4 @@
+#mtree
+/set type=file uid=1000 gid=1000 mode=2755
+./some_dir time=1734966984.287449476 type=dir
+./some_dir/test\360\237\214\240\342\232\231test time=1734966825.937826103 mode=644 size=0 sha256digest=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
