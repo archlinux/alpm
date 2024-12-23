@@ -16,6 +16,7 @@ members = [
     "alpm-buildinfo",
     "alpm-mtree",
     "alpm-parsers",
+    "alpm-pkginfo",
     "alpm-types",
     "dev-scripts",
 ]
