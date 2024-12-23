@@ -3,13 +3,25 @@ use std::path::PathBuf;
 use alpm_types::{Md5Checksum, Sha256Checksum};
 use winnow::{
     ascii::{digit1, line_ending, space0},
-    combinator::{alt, cut_err, eof, preceded, repeat_till, separated, separated_pair, terminated},
+    combinator::{
+        alt,
+        cut_err,
+        eof,
+        fail,
+        preceded,
+        repeat_till,
+        separated,
+        separated_pair,
+        terminated,
+    },
     error::{StrContext, StrContextValue},
     stream::AsChar,
     token::{take_until, take_while},
     PResult,
     Parser as WinnowParser,
 };
+
+use crate::path_decoder::decode_utf8_chars;
 
 /// Each line represents a line in a .MTREE file.
 #[derive(Debug, Clone)]
@@ -187,9 +199,11 @@ fn md5(input: &mut &str) -> PResult<Md5Checksum> {
 
 /// Consume all chars of a link until a newline or space is hit.
 ///
-/// Check [`normalize_path`] for more info on how special chars in paths are escaped.
-fn link<'s>(input: &mut &'s str) -> PResult<&'s str> {
-    take_while(0.., |c| c != ' ' && c != '\n').parse_next(input)
+/// Check [`decode_utf8_chars`] for more info on how special chars in paths are escaped.
+fn link(input: &mut &str) -> PResult<String> {
+    take_while(0.., |c| c != ' ' && c != '\n')
+        .and_then(decode_utf8_chars)
+        .parse_next(input)
 }
 
 /// Get a string representing a size by consuming all integers.
@@ -243,7 +257,7 @@ fn property<'s>(input: &mut &'s str) -> PResult<PathProperty<'s>> {
         "gid" => PathProperty::Gid(system_id("group id", input)?),
         "mode" => PathProperty::Mode(mode(input)?),
         "size" => PathProperty::Size(size.parse_next(input)?),
-        "link" => PathProperty::Link(normalize_path(link.parse_next(input)?)),
+        "link" => PathProperty::Link(PathBuf::from(link.parse_next(input)?)),
         "md5digest" => PathProperty::Md5Digest(md5(input)?),
         "sha256digest" => PathProperty::Sha256Digest(sha256(input)?),
         "time" => PathProperty::Time(timestamp(input)?),
@@ -281,28 +295,10 @@ fn unset_properties(input: &mut &str) -> PResult<Vec<UnsetProperty>> {
     cut_err(terminated(separated(0.., unset_property, " "), line_ending)).parse_next(input)
 }
 
-/// Normalize the path by replacing all whitespace character escapes with their actual equivalent.
-///
-/// MTREE uses the VIS_CSTYLE encoding of `strsvis(3)`, which encodes a specific set of characters.
-/// Of these, only the following control characters are allowed in filenames:
-/// - \s Space
-/// - \t Tab
-/// - \r Carriage Return
-/// - \n Line Feed
-fn normalize_path(path: &str) -> PathBuf {
-    let path = path
-        .replace("\\s", " ")
-        .replace("\\t", "\t")
-        .replace("\\r", "\r")
-        .replace("\\n", "\n");
-
-    PathBuf::from(path)
-}
-
 /// Parse the next statement in the file.
 fn statement<'s>(input: &mut &'s str) -> PResult<Statement<'s>> {
     // First, we figure out what kind of line we're looking at.
-    let statement_type: &str = cut_err(alt((
+    let statement_type: String = alt((
         // A Path statement line
         //
         // Path statements may be preceded with whitespaces.
@@ -312,18 +308,19 @@ fn statement<'s>(input: &mut &'s str) -> PResult<Statement<'s>> {
         preceded(
             space0,
             terminated((".", take_until(0.., " ")).take(), alt((' ', '\n'))),
-        ),
-        terminated("/set", " "),
-        terminated("/unset", " "),
+        ).and_then(decode_utf8_chars),
+        terminated("/set", " ").map(|s: &str| s.to_string()),
+        terminated("/unset", " ").map(|s: &str| s.to_string()),
         // A comment line that starts with `#`.
-        preceded(("#", take_until(0.., "\n")), line_ending),
+        preceded(("#", take_until(0.., "\n")), line_ending).map(|s: &str| s.to_string()),
         // An empty line that possibly contains spaces.
-        preceded(space0, line_ending),
-    )))
-    .context(StrContext::Label("statement"))
-    .context(StrContext::Expected(StrContextValue::Description(
-        "'/set', '/unset', or a relative local path (./some/path) followed by their respective properties.",
-    )))
+        preceded(space0, line_ending).map(|s: &str| s.to_string()),
+        // If none of the above match, fail hard with a correct error message.
+        fail.context(StrContext::Label("statement"))
+        .context(StrContext::Expected(StrContextValue::Description(
+            "'/set', '/unset', or a relative local path (./some/path) followed by their respective properties.",
+        )))
+    ))
     .parse_next(input)?;
 
     // Ignore comments and empty lines.
@@ -332,7 +329,7 @@ fn statement<'s>(input: &mut &'s str) -> PResult<Statement<'s>> {
     }
 
     // Now parse the properties based on the statement type until the end of line.
-    let statement = match statement_type {
+    let statement = match statement_type.as_str() {
         "/set" => Statement::Set(set_properties.parse_next(input)?),
         "/unset" => Statement::Unset(unset_properties.parse_next(input)?),
         path => Statement::Path {

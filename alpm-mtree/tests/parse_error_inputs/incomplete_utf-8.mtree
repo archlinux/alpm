@@ -1,0 +1,4 @@
+#mtree
+/set type=file uid=1000 gid=1000
+# The unicode char expects 4 bytes (4 leading ones) but only 3 bytes are given.
+./test\360\237\214test time=1735223362.298404625 mode=644 size=0 sha256digest=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855

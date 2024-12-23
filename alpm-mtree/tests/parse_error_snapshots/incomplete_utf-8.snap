@@ -1,0 +1,12 @@
+---
+source: alpm-mtree/tests/parse_errors.rs
+description: "#mtree\n/set type=file uid=1000 gid=1000\n# The unicode char expects 4 bytes (4 leading ones) but only 3 bytes are given.\n./test\\360\\237\\214test time=1735223362.298404625 mode=644 size=0 sha256digest=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\n"
+expression: error
+snapshot_kind: text
+---
+parse error at line 4, column 1
+  |
+4 | ./test\360\237\214test time=1735223362.298404625 mode=644 size=0 sha256digest=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  | ^
+invalid utf8 encoded byte
+expected octal triplet encoded unicode byte.

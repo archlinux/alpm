@@ -1,0 +1,11 @@
+---
+source: alpm-mtree/tests/parse_errors.rs
+description: "#mtree\n/set type=file uid=1000 gid=1000\n# The unicode char expects 4 bytes. The first two bits of bytes 2-4 must be `10`, otherwise\n# it cannot be parsed. The last byte has `11` as the first two bits, and this would thereby fail.\n./test\\360\\237\\214\\360test time=1735223362.298404625 mode=644 size=0 sha256digest=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\n"
+expression: error
+snapshot_kind: text
+---
+parse error at line 5, column 1
+  |
+5 | ./test\360\237\214\360test time=1735223362.298404625 mode=644 size=0 sha256digest=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  | ^
+invalid UTF-8 byte sequence

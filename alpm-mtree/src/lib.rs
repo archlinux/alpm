@@ -17,6 +17,8 @@ pub mod error;
 pub mod mtree_v2;
 /// Parser for MTREE files
 pub mod parser;
+/// MTREE files use a special non-ascii encoding for their paths.
+mod path_decoder;
 
 /// A small wrapper around the parsing of an MTREE file that simply ensures that there were no
 /// errors.

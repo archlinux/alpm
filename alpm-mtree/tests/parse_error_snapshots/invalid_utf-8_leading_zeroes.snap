@@ -1,0 +1,11 @@
+---
+source: alpm-mtree/tests/parse_errors.rs
+description: "#mtree\n/set type=file uid=1000 gid=1000\n# The first byte of a unicode char must have 0, 2, 3 or 4 leading ones.\n# `0o370` has 5 leading ones, so this should fail hard.\n./test\\370\\237\\214\\240 time=1735223362.298404625 mode=644 size=0 sha256digest=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\n"
+expression: error
+snapshot_kind: text
+---
+parse error at line 5, column 1
+  |
+5 | ./test\370\237\214\240 time=1735223362.298404625 mode=644 size=0 sha256digest=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  | ^
+invalid amount of leading zeroes in first UTF-8 byte
