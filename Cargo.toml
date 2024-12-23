@@ -12,10 +12,18 @@ readme = "README.md"
 repository = "https://gitlab.archlinux.org/archlinux/alpm/alpm"
 
 [workspace]
-members = ["alpm-buildinfo", "alpm-parsers", "alpm-types", "dev-scripts"]
+members = [
+    "alpm-buildinfo",
+    "alpm-parsers",
+    "alpm-pkginfo",
+    "alpm-types",
+    "dev-scripts",
+]
 resolver = "2"
 
 [workspace.dependencies]
+alpm-parsers = { path = "alpm-parsers" }
+alpm-types = { path = "alpm-types" }
 assert_cmd = "2.0.11"
 clap = { version = "4.5.19", features = ["derive", "env", "string"] }
 erased-serde = "0.4.5"
