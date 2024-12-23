@@ -26,11 +26,13 @@ alpm-parsers = { path = "./alpm-parsers" }
 alpm-types = { path = "./alpm-types" }
 assert_cmd = "2.0.11"
 clap = { version = "4.5.19", features = ["derive", "env", "string"] }
+erased-serde = "0.4.5"
 insta = "1.40.0"
 rstest = "0.24.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 strum = { version = "0.26.3", features = ["derive"] }
+testdir = "0.9.1"
 testresult = "0.4.1"
 thiserror = "2.0.0"
 winnow = "0.6"
