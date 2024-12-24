@@ -1,17 +1,17 @@
 //! "Hierarchy for the Verification of Distribution Artifacts (VDA)"
 //!
-//! A specification for technology-agnostic storage and retrieval or signature verifiers.
+//! A mechanism for technology-agnostic storage and retrieval or signature verifiers.
 //!
-//! (Specification link pending.)
-//!
-//! (Also see https://github.com/uapi-group/specifications/issues/115 for initial discussion)
+//! (Specification link pending,
+//! see https://github.com/uapi-group/specifications/issues/115 for initial discussion)
 
 use std::path::PathBuf;
 
 /// Earlier entries have precedence over later entries.
 ///
-/// TODO: depending on the technology, we will want to either "shadow" one version with another,
-///       or merge the data from different versions into one coherent view.
+/// NOTE: Depending on the technology, we will want to either "shadow" one version with another,
+/// or merge the data from different versions into one coherent view.
+/// Shadowing is technology-specific and must be handled in the technology layer.
 ///
 /// We expect that the filename is a strong identifier that can also be used to check if two
 /// verifiers are the same, between roots, based on their filename.
@@ -30,6 +30,125 @@ const _ROOTS_DEFAULT: &[&str] = &[
 /// Top level directory of the "Verification of Distribution Artifacts" hierarchy
 const VDA: &str = "vda";
 
+/// Version specifier, currently only version 1 of VDA is defined
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Version {
+    V1,
+}
+
+impl Version {
+    fn path(&self) -> &str {
+        match self {
+            Self::V1 => "v1",
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+#[non_exhaustive]
+pub struct Distribution {
+    id: String,
+    version_id: Option<String>,
+    variant_id: Option<String>,
+    image_id: Option<String>,
+    image_version: Option<String>,
+}
+
+impl Distribution {
+    pub fn new(
+        id: String,
+        version_id: Option<String>,
+        variant_id: Option<String>,
+        image_id: Option<String>,
+        image_version: Option<String>,
+    ) -> Self {
+        Self {
+            id,
+            version_id,
+            variant_id,
+            image_id,
+            image_version,
+        }
+    }
+
+    /// A string representation of this Distribution specifier.
+    ///
+    /// All parts are joined with `:`, trailing colons are omitted.
+    fn path(&self) -> String {
+        let distro = format!(
+            "{}:{}:{}:{}:{}",
+            &self.id,
+            self.version_id.as_deref().unwrap_or(""),
+            self.variant_id.as_deref().unwrap_or(""),
+            self.image_id.as_deref().unwrap_or(""),
+            self.image_version.as_deref().unwrap_or(""),
+        );
+
+        distro.trim_end_matches(':').to_string()
+    }
+}
+
+/// The current fixed default value for version (used to form verifier paths)
+const VERSION: Version = Version::V1;
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+#[non_exhaustive]
+pub enum Purpose {
+    /// For verifying signatures for packages
+    Packages,
+
+    /// For verifying signatures for repository metadata
+    RepositoryMetadata,
+
+    /// For verifying signatures for installation media
+    InstallationMedia,
+
+    /// For verifying signatures for virtual machines
+    VirtualMachines,
+
+    /// For verifying signatures for updates to image-based machines
+    ImageUpdate,
+}
+
+impl Purpose {
+    fn path(&self, trust_anchor: bool) -> String {
+        let base = match self {
+            Self::Packages => "packages",
+            Self::RepositoryMetadata => "repository-metadata",
+            Self::InstallationMedia => "installation-media",
+            Self::VirtualMachines => "virtual-machines",
+            Self::ImageUpdate => "image-update",
+        };
+
+        match trust_anchor {
+            true => format! { "trust-anchor-{base}" },
+            false => base.to_string(),
+        }
+    }
+}
+
+/// The context layer allows defining specific verifiers for a particular context within a
+/// distribution’s [Purpose].
+///
+/// An example for context is the name of a specific software repository when certificates are
+/// used in the context of the packages purpose (e.g. "core").
+///
+/// If no specific context is required, the context `Default` must be used.
+#[derive(Clone, Debug, PartialEq)]
+#[non_exhaustive]
+pub enum Context {
+    Default,
+    Specified(String),
+}
+
+impl Context {
+    fn path(&self) -> &str {
+        match self {
+            Self::Default => "default",
+            Self::Specified(context) => context,
+        }
+    }
+}
 #[derive(Clone, Copy, Debug, PartialEq)]
 #[non_exhaustive]
 pub enum Technology {
@@ -46,6 +165,50 @@ impl Technology {
     }
 }
 
+/// Specification of a path in a VDA structure, at the "leaf" level, where verifier files are stored
+#[derive(Clone, Debug, PartialEq)]
+pub struct VerifierSourcePath {
+    root: String,
+    version: Version,
+    distribution: Distribution,
+    purpose: Purpose,
+    trust_anchor: bool,
+    context: Context,
+    technology: Technology,
+}
+
+impl VerifierSourcePath {
+    fn path(&self) -> PathBuf {
+        PathBuf::from(&self.root)
+            .join(VDA)
+            .join(self.version.path())
+            .join(self.distribution.path())
+            .join(self.purpose.path(self.trust_anchor))
+            .join(self.context.path())
+            .join(self.technology.path())
+    }
+
+    pub fn version(&self) -> Version {
+        self.version
+    }
+
+    pub fn distribution(&self) -> &Distribution {
+        &self.distribution
+    }
+
+    pub fn purpose(&self) -> Purpose {
+        self.purpose
+    }
+
+    pub fn trust_anchor(&self) -> bool {
+        self.trust_anchor
+    }
+
+    pub fn technology(&self) -> Technology {
+        self.technology
+    }
+}
+
 /// A signature verifier, loaded as an opaque blob of data.
 ///
 /// Depending on the technology, this may represent, e.g.:
@@ -54,8 +217,8 @@ impl Technology {
 /// - a set of individual verifiers in one shared data structure
 pub struct OpaqueVerifier {
     data: Vec<u8>,
-    source: PathBuf,
-    technology: Technology,
+    path: VerifierSourcePath,
+    filename: String,
 }
 
 impl OpaqueVerifier {
@@ -65,25 +228,12 @@ impl OpaqueVerifier {
     }
 
     /// The source file path of this certificate data
-    pub fn source(&self) -> &PathBuf {
-        &self.source
+    pub fn source(&self) -> &VerifierSourcePath {
+        &self.path
     }
 
-    pub fn file_name(&self) -> Option<String> {
-        // FIXME: such panic, wow!
-        Some(
-            self.source
-                .file_name()
-                .unwrap()
-                .to_str()
-                .unwrap()
-                .to_string(),
-        )
-    }
-
-    /// The technology of this certificate data
-    pub fn technology(&self) -> Technology {
-        self.technology
+    pub fn filename(&self) -> &str {
+        &self.filename
     }
 }
 
@@ -111,9 +261,10 @@ impl<'a> VerifierDirectory<'a> {
     /// $technology: e.g. "openpgp"
     pub fn load(
         &self,
-        distribution: &str,
-        purpose: &str,
-        context: &str,
+        distribution: Distribution,
+        purpose: Purpose,
+        trust_anchor: bool,
+        context: Context,
         technology: Technology,
     ) -> Vec<OpaqueVerifier> {
         let mut certs = vec![];
@@ -121,44 +272,45 @@ impl<'a> VerifierDirectory<'a> {
         // FIXME: don't error out (or panic) for most cases, just warn and proceed on most issues
 
         for root in self.roots {
-            log::debug!("Looking for signature verifiers in root dir {root}");
+            log::trace!("Looking for signature verifiers in root dir '{root}'");
 
-            let path = PathBuf::from(root)
-                .join(VDA)
-                .join(distribution)
-                .join(purpose)
-                .join(context)
-                .join(technology.path());
+            let path = VerifierSourcePath {
+                root: root.to_string(),
+                version: VERSION,
+                distribution: distribution.clone(),
+                purpose,
+                trust_anchor,
+                context: context.clone(),
+                technology,
+            };
 
-            log::trace!("opening path {:?}", path.to_str().unwrap_or("-"));
+            let source_path = path.path();
 
-            if !path.is_dir() {
-                log::trace!("  path is not a dir in this root");
+            log::trace!("Opening VDA path {:?}", source_path);
+
+            if !source_path.is_dir() {
+                log::trace!("  Path is not a directory");
                 continue; // try next root
             }
 
-            log::trace!("  path is a dir");
-
-            if let Ok(dir) = std::fs::read_dir(path) {
+            if let Ok(dir) = std::fs::read_dir(source_path) {
                 for entry in dir {
                     match entry {
                         Ok(file) => {
-                            log::debug!("loading {:?}", file);
+                            log::trace!("Loading verifier file {:?}", file);
 
-                            let source = file.path();
-
-                            match std::fs::read(&source) {
+                            match std::fs::read(file.path()) {
                                 Ok(data) => {
                                     certs.push(OpaqueVerifier {
                                         data,
-                                        source,
-                                        technology,
+                                        path: path.clone(),
+                                        filename: file.file_name().to_str().unwrap().to_string(), // FIXME!
                                     });
                                 }
-                                Err(err) => log::debug!("  file loading error {err}"),
+                                Err(err) => log::debug!("  Error while loading file {err}"),
                             }
                         }
-                        Err(err) => log::debug!("  dir entry error {err}"),
+                        Err(err) => log::debug!("  DirEntry error {err}"),
                     }
                 }
             }

@@ -4,7 +4,9 @@ use std::fmt::{Debug, Formatter};
 use std::ops::Add;
 use std::path::Path;
 use std::time::SystemTime;
-use uapi_verifier_directory::{OpaqueVerifier, Technology, VerifierDirectory};
+use uapi_verifier_directory::{
+    Context, Distribution, OpaqueVerifier, Purpose, Technology, VerifierDirectory,
+};
 
 const FILE_ENDING: &str = ".openpgp";
 
@@ -30,7 +32,7 @@ impl Debug for OpenPGPCert {
 
         let checked = Checked::from(&self.certificate);
 
-        writeln!(f, "Certificate {}", self.fingerprint())?;
+        writeln!(f, "OpenPGP certificate {}", self.fingerprint())?;
 
         // TODO: get creation time
         // TODO: get revocation/expiry status
@@ -58,7 +60,7 @@ impl Debug for OpenPGPCert {
         writeln!(f)?;
         writeln!(
             f,
-            " {:?}",
+            " {:#?}",
             self.sources
                 .iter()
                 .map(OpaqueVerifier::source)
@@ -110,10 +112,20 @@ impl<'a> CertificateDirectoryOpenPGP<'a> {
         Self { dir }
     }
 
-    pub fn load(&self, distribution: &str, purpose: &str, context: &str) -> Vec<OpenPGPCert> {
-        let certs = self
-            .dir
-            .load(distribution, purpose, context, Technology::OpenPGP);
+    pub fn load(
+        &self,
+        distribution: Distribution,
+        purpose: Purpose,
+        trust_anchor: bool,
+        context: Context,
+    ) -> Vec<OpenPGPCert> {
+        let certs = self.dir.load(
+            distribution,
+            purpose,
+            trust_anchor,
+            context,
+            Technology::OpenPGP,
+        );
 
         let openpgp_certs = certs
             .into_iter()
@@ -121,10 +133,10 @@ impl<'a> CertificateDirectoryOpenPGP<'a> {
                 log::debug!("Processing {:?}", opaque.source());
 
                 // TODO: should the `Technology` be encoded at the type level in OpaqueVerifierData?
-                if opaque.technology() != Technology::OpenPGP {
+                if opaque.source().technology() != Technology::OpenPGP {
                     log::warn!(
                         "Unexpected technology {:?} in {:?}, skipping",
-                        opaque.technology(),
+                        opaque.source().technology(),
                         opaque.source()
                     );
                     return None;
@@ -142,8 +154,8 @@ impl<'a> CertificateDirectoryOpenPGP<'a> {
                 let expected_filename = fingerprint.add(FILE_ENDING);
 
                 // The filename must match the certificate fingerprint
-                let source_filename = opaque.file_name();
-                if source_filename.as_deref() != Some(&expected_filename) {
+                let source_filename = opaque.filename();
+                if source_filename != expected_filename {
                     log::warn!(
                         "Filename {:?} doesn't match expectation ({}), skipping",
                         source_filename,
