@@ -77,7 +77,7 @@ impl FromStr for OpenPGPv4Fingerprint {
     /// A valid OpenPGP v4 fingerprint should be exactly 40 characters long and consist only
     /// of digits (`0-9`) and hexadecimal letters (`A-F`).
     ///
-    /// ## Errors
+    /// # Errors
     ///
     /// Returns an error if the OpenPGP v4 fingerprint is not valid.
     fn from_str(s: &str) -> Result<Self, Self::Err> {

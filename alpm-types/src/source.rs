@@ -49,7 +49,7 @@ impl FromStr for Source {
     /// It is either a filename (in the same directory as the PKGBUILD)
     /// or a url, optionally prefixed by a destination file name (separated by `::`).
     ///
-    /// ## Errors
+    /// # Errors
     ///
     /// This function returns an error in the following cases:
     ///

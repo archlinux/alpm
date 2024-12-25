@@ -219,7 +219,7 @@ impl FromStr for BuildInfoV1 {
     type Err = Error;
     /// Create a BuildInfoV1 from a &str
     ///
-    /// ## Errors
+    /// # Errors
     ///
     /// Returns an `Error` if any of the fields in `input` can not be validated according to
     /// `BuildInfoV1` or their respective own specification.

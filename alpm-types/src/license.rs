@@ -70,7 +70,7 @@ impl License {
     /// # }
     /// ```
     ///
-    /// ## Errors
+    /// # Errors
     ///
     /// Returns an error if the given input cannot be parsed or is a deprecated license.
     pub fn from_valid_spdx(identifier: String) -> Result<Self, Error> {
@@ -119,7 +119,7 @@ impl FromStr for License {
     /// # }
     /// ```
     ///
-    /// ## Errors
+    /// # Errors
     ///
     /// Returns an error if the given input is a deprecated SPDX license.
     fn from_str(s: &str) -> Result<Self, Self::Err> {

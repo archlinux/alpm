@@ -1089,7 +1089,7 @@ impl FromStr for VersionRequirement {
 
     /// Parses a version requirement from a string.
     ///
-    /// ## Errors
+    /// # Errors
     ///
     /// Returns an error if the comparison function or version are malformed.
     fn from_str(s: &str) -> Result<Self, Self::Err> {

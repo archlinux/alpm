@@ -56,7 +56,7 @@ impl FromStr for AbsolutePath {
 
     /// Parses an absolute path from a string
     ///
-    /// ## Errors
+    /// # Errors
     ///
     /// Returns an error if the path is not absolute
     fn from_str(s: &str) -> Result<AbsolutePath, Self::Err> {
@@ -172,7 +172,7 @@ impl FromStr for RelativePath {
 
     /// Parses a relative path from a string
     ///
-    /// ## Errors
+    /// # Errors
     ///
     /// Returns an error if the path is not relative
     fn from_str(s: &str) -> Result<RelativePath, Self::Err> {
