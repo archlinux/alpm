@@ -226,6 +226,26 @@ pub type Backup = RelativePath;
 /// # }
 pub type Install = RelativePath;
 
+/// The relative path to a changelog file that may be included in a package
+///
+/// This is a type alias for [`RelativePath`]
+///
+/// ## Examples
+/// ```
+/// use std::str::FromStr;
+///
+/// use alpm_types::{Error, Changelog};
+///
+/// # fn main() -> Result<(), alpm_types::Error> {
+/// // Create Changelog from &str and format it
+/// assert_eq!(
+///     "changelog.md",
+///     Changelog::from_str("changelog.md")?.to_string()
+/// );
+/// # Ok(())
+/// # }
+pub type Changelog = RelativePath;
+
 #[cfg(test)]
 mod tests {
     use rstest::rstest;
