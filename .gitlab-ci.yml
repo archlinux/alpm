@@ -49,6 +49,7 @@ test:
   script:
     - just test
     - just build-book
+    - just test-readme alpm-pkginfo
   stage: test
 
 integration-test:

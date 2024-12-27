@@ -94,7 +94,17 @@ assert!(PkgInfoV1::from_str(pkginfo_data).is_ok());
 
 Create a PKGINFO version 2 file using `alpm-pkginfo`:
 
-```shell
+<!--
+```bash
+# use a custom, temporary directory for all generated files
+test_tmpdir="$(mktemp --directory --suffix '.pkginfo-test')"
+# set a custom, temporary output file location
+PKGINFO_OUTPUT_FILE="$(mktemp --tmpdir="$test_tmpdir" --suffix '-PKGINFO' --dry-run)"
+export PKGINFO_OUTPUT_FILE
+```
+-->
+
+```bash
 alpm-pkginfo create v2 \
   --pkgname "example" \
   --pkgbase "example" \
@@ -127,9 +137,53 @@ alpm-pkginfo create v2 \
   --checkdepend "other-extra-test-tool"
 ```
 
+<!--
+
+Asserts the contents of .PKGINFO that is created above:
+
+```bash
+# set a custom, temporary file location for the expected output
+PKGINFO_OUTPUT_FILE_EXPECTED="$(mktemp --tmpdir="$test_tmpdir" --suffix '-PKGINFO.expected' --dry-run)"
+
+cat > "$PKGINFO_OUTPUT_FILE_EXPECTED" <<EOF
+pkgname = example
+pkgbase = example
+xdata = pkgtype=pkg
+pkgver = 1:1.0.0-1
+pkgdesc = A project that does something
+url = https://example.org/
+builddate = 1729181726
+packager = John Doe <john@example.org>
+size = 181849963
+arch = any
+license = GPL-3.0-or-later
+license = LGPL-3.0-or-later
+replaces = other-package>0.9.0-3
+group = package-group
+group = other-package-group
+conflict = conflicting-package<1.0.0
+conflict = other-conflicting-package<1.0.0
+provides = some-component
+provides = some-other-component=1:1.0.0-1
+backup = etc/example/config.toml
+backup = etc/example/other-config.txt
+depend = glibc
+depend = gcc-libs
+optdepend = python: for special-python-script.py
+optdepend = ruby: for special-ruby-script.rb
+makedepend = cmake
+makedepend = python-sphinx
+checkdepend = extra-test-tool
+checkdepend = other-extra-test-tool
+EOF
+
+diff --ignore-trailing-space "$PKGINFO_OUTPUT_FILE" "$PKGINFO_OUTPUT_FILE_EXPECTED"
+```
+-->
+
 All options for `alpm-pkginfo` can also be provided as environment variables. The following is equivalent to the above:
 
-```shell
+```bash
 PKGINFO_PKGNAME="example" \
 PKGINFO_PKGBASE="example" \
 PKGINFO_XDATA="pkgtype=pkg" \
@@ -152,6 +206,48 @@ PKGINFO_MAKEDEPEND="cmake python-sphinx" \
 PKGINFO_CHECKDEPEND="extra-test-tool other-extra-test-tool" \
 alpm-pkginfo create v2
 ```
+
+<!--
+
+Asserts the contents of .PKGINFO that is created above:
+
+```bash
+cat > "$PKGINFO_OUTPUT_FILE_EXPECTED" <<EOF
+pkgname = example
+pkgbase = example
+xdata = pkgtype=pkg
+pkgver = 1:1.0.0-1
+pkgdesc = A project that does something
+url = https://example.org/
+builddate = 1729181726
+packager = John Doe <john@example.org>
+size = 181849963
+arch = any
+license = GPL-3.0-or-later
+license = LGPL-3.0-or-later
+replaces = other-package>0.9.0-3
+group = package-group
+group = other-package-group
+conflict = conflicting-package<1.0.0
+conflict = other-conflicting-package<1.0.0
+provides = some-component
+provides = some-other-component=1:1.0.0-1
+backup = etc/example/config.toml
+backup = etc/example/other-config.txt
+depend = glibc
+depend = gcc-libs
+optdepend = python: for special-python-script.py
+optdepend = ruby: for special-ruby-script.rb
+makedepend = cmake
+makedepend = python-sphinx
+checkdepend = extra-test-tool
+checkdepend = other-extra-test-tool
+EOF
+
+diff --ignore-trailing-space "$PKGINFO_OUTPUT_FILE" "$PKGINFO_OUTPUT_FILE_EXPECTED"
+rm -r -- "$test_tmpdir"
+```
+-->
 
 ## Contributing
 

@@ -174,8 +174,10 @@ lint:
 
     tangler bash < alpm-buildinfo/README.md | shellcheck --shell bash -
     tangler bash < alpm-mtree/README.md | shellcheck --shell bash -
+    tangler bash < alpm-pkginfo/README.md | shellcheck --shell bash -
 
     just lint-recipe 'test-readme alpm-buildinfo'
+    just lint-recipe 'test-readme alpm-pkginfo'
     just lint-recipe build-book
     just lint-recipe check-commits
     just lint-recipe check-unused-deps
