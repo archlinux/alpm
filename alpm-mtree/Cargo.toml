@@ -12,6 +12,9 @@ license.workspace = true
 readme.workspace = true
 repository.workspace = true
 
+[features]
+winnow-debug = ["winnow/debug"]
+
 [dependencies]
 alpm-types.workspace = true
 clap.workspace = true

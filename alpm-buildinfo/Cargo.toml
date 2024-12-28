@@ -12,6 +12,9 @@ license.workspace = true
 readme.workspace = true
 repository.workspace = true
 
+[features]
+winnow-debug = ["alpm-parsers/winnow-debug"]
+
 [dependencies]
 alpm-parsers.workspace = true
 alpm-types.workspace = true

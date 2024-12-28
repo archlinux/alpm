@@ -2,6 +2,10 @@
 
 ## Documentation
 
+## Features
+
+- `winnow-debug` enables the `winnow/debug` feature, which shows the exact parsing process of winnow.
+
 ## Contributing
 
 Please refer to the [contribution guidelines] to learn how to contribute to this project.

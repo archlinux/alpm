@@ -1,5 +1,9 @@
 [advisories]
-ignore = []
+ignore = [
+    # Possible valid string to invalid string bug.
+    # This dependency is only included when winnow is compiled with the debug flag.
+    "RUSTSEC-2024-0404",
+]
 version = 2
 yanked = "deny"
 

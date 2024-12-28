@@ -75,6 +75,10 @@ BUILDINFO_PKGVER="1.0.0-1" \
 alpm-buildinfo create v1
 ```
 
+## Features
+
+- `winnow-debug` enables the `winnow/debug` feature, which shows the exact parsing process of winnow.
+
 ## Contributing
 
 Please refer to the [contribution guidelines] to learn how to contribute to this project.
