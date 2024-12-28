@@ -15,8 +15,8 @@ A library and commandline toolkit for the specification, writing and parsing of 
 
 ```rust
 use std::str::FromStr;
-use alpm_buildinfo::BuildInfoV1;
-let buildinfo_data = r#"format = 1
+use alpm_buildinfo::BuildInfoV2;
+let buildinfo_data = r#"format = 2
 pkgname = foo
 pkgbase = foo
 pkgver = 1:1.0.0-1
@@ -31,9 +31,12 @@ options = some_option
 options = !other_option
 installed = bar-1.2.3-1-any
 installed = beh-2.2.3-4-any
+startdir = /startdir/
+buildtool = devtools
+buildtoolver = 1:1.2.1-1-any
 "#;
 
-assert!(BuildInfoV1::from_str(buildinfo_data).is_ok());
+assert!(BuildInfoV2::from_str(buildinfo_data).is_ok());
 ```
 
 ### Commandline
@@ -51,7 +54,7 @@ export BUILDINFO_OUTPUT_FILE
 Create a BUILDINFO version 1 file using `alpm-buildinfo`:
 
 ```bash
-alpm-buildinfo create v1 \
+alpm-buildinfo create v2 \
     --builddate 1 \
     --builddir /build \
     --buildenv env \
@@ -65,7 +68,10 @@ alpm-buildinfo create v1 \
     --pkgbase foo \
     --pkgbuild-sha256sum b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c \
     --pkgname foo \
-    --pkgver 1.0.0-1
+    --pkgver 1.0.0-1 \
+    --startdir /startdir/ \
+    --buildtool devtools \
+    --buildtoolver '1:1.2.1-1-any'
 ```
 
 <!--
@@ -77,7 +83,7 @@ Asserts the contents of .BUILDINFO that is created above:
 BUILDINFO_OUTPUT_FILE_EXPECTED="$(mktemp --tmpdir="$test_tmpdir" --suffix '-BUILDINFO.expected' --dry-run)"
 
 cat > "$BUILDINFO_OUTPUT_FILE_EXPECTED" <<EOF
-format = 1
+format = 2
 pkgname = foo
 pkgbase = foo
 pkgver = 1.0.0-1
@@ -86,6 +92,9 @@ pkgbuild_sha256sum = b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae
 packager = Foobar McFooface <foobar@mcfooface.org>
 builddate = 1
 builddir = /build
+startdir = /startdir/
+buildtool = devtools
+buildtoolver = 1:1.2.1-1-any
 buildenv = env
 buildenv = !otherenv
 options = something
@@ -113,7 +122,10 @@ BUILDINFO_PKGBASE="foo" \
 BUILDINFO_PKGBUILD_SHA256SUM="b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c" \
 BUILDINFO_PKGNAME="foo" \
 BUILDINFO_PKGVER="1.0.0-1" \
-alpm-buildinfo create v1
+BUILDINFO_STARTDIR="/startdir/" \
+BUILDINFO_BUILDTOOL="devtools" \
+BUILDINFO_BUILDTOOLVER="1:1.2.1-1-any" \
+alpm-buildinfo create v2
 ```
 
 <!--
@@ -122,7 +134,7 @@ Asserts the contents of .BUILDINFO that is created above:
 
 ```bash
 cat > "$BUILDINFO_OUTPUT_FILE_EXPECTED" <<EOF
-format = 1
+format = 2
 pkgname = foo
 pkgbase = foo
 pkgver = 1.0.0-1
@@ -131,6 +143,9 @@ pkgbuild_sha256sum = b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae
 packager = Foobar McFooface <foobar@mcfooface.org>
 builddate = 1
 builddir = /build
+startdir = /startdir/
+buildtool = devtools
+buildtoolver = 1:1.2.1-1-any
 buildenv = env
 buildenv = !otherenv
 options = something
