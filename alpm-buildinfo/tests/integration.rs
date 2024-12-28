@@ -128,7 +128,7 @@ fn format_buildinfo_and_serialize_as_json(#[case] data: &str) -> TestResult {
 }
 
 #[rstest]
-#[case::buildinfov1_all_fields_with_env(
+#[case::buildinfov1_all_fields(
     BuildInfoInput {
         format: Schema::default(),
         builddate: Some("1".to_string()),
@@ -146,10 +146,8 @@ fn format_buildinfo_and_serialize_as_json(#[case] data: &str) -> TestResult {
         buildtool: None,
         buildtoolver: None,
     },
-    true,
-    true
 )]
-#[case::buildinfov1_optional_fields_with_env(
+#[case::buildinfov1_optional_fields(
     BuildInfoInput {
         format: Schema::default(),
         builddate: Some("1".to_string()),
@@ -167,10 +165,51 @@ fn format_buildinfo_and_serialize_as_json(#[case] data: &str) -> TestResult {
         buildtool: None,
         buildtoolver: None,
     },
-    true,
-    true
 )]
-#[case::buildinfov1_all_fields_with_cli(
+#[case::buildinfov2_all_fields(
+    BuildInfoInput {
+        format: Schema::V2(SchemaVersion::from_str("2").unwrap()),
+        builddate: Some("1".to_string()),
+        builddir: Some("/build".to_string()),
+        buildenv: Some(vec!["foo".to_string(), "bar".to_string()]),
+        installed: Some(vec!["bar-1.2.3-1-any".to_string(), "beh-2.2.3-4-any".to_string()]),
+        options: Some(vec!["some_option".to_string(), "!other_option".to_string()]),
+        packager: Some("Foobar McFooface <foobar@mcfooface.org>".to_string()),
+        pkgarch: Some("any".to_string()),
+        pkgbase: Some("foo".to_string()),
+        pkgbuild_sha256sum: Some("b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c".to_string()),
+        pkgname: Some("foo".to_string()),
+        pkgver: Some("1:1.0.0-1".to_string()),
+        startdir: Some("/startdir/".to_string()),
+        buildtool: Some("devtools".to_string()),
+        buildtoolver: Some("1:1.2.1-1-any".to_string()),
+    },
+)]
+#[case::buildinfov2_optional_fields(
+    BuildInfoInput {
+        format: Schema::V2(SchemaVersion::from_str("2").unwrap()),
+        builddate: Some("1".to_string()),
+        builddir: Some("/build".to_string()),
+        buildenv: None,
+        installed: None,
+        options: None,
+        packager: Some("Foobar McFooface <foobar@mcfooface.org>".to_string()),
+        pkgarch: Some("any".to_string()),
+        pkgbase: Some("foo".to_string()),
+        pkgbuild_sha256sum: Some("b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c".to_string()),
+        pkgname: Some("foo".to_string()),
+        pkgver: Some("1:1.0.0-1".to_string()),
+        startdir: Some("/startdir/".to_string()),
+        buildtool: Some("devtools".to_string()),
+        buildtoolver: Some("1:1.2.1-1-any".to_string()),
+    },
+)]
+fn write_buildinfo_via_env(#[case] buildinfo_input: BuildInfoInput) -> TestResult {
+    test_write_buildinfo(buildinfo_input, true)
+}
+
+#[rstest]
+#[case::buildinfov1_all_fields(
     BuildInfoInput {
         format: Schema::default(),
         builddate: Some("1".to_string()),
@@ -188,10 +227,8 @@ fn format_buildinfo_and_serialize_as_json(#[case] data: &str) -> TestResult {
         buildtool: None,
         buildtoolver: None,
     },
-    true,
-    false
 )]
-#[case::buildinfov1_optional_fields_with_cli(
+#[case::buildinfov1_optional_fields(
     BuildInfoInput {
         format: Schema::default(),
         builddate: Some("1".to_string()),
@@ -209,10 +246,8 @@ fn format_buildinfo_and_serialize_as_json(#[case] data: &str) -> TestResult {
         buildtool: None,
         buildtoolver: None,
     },
-    true,
-    false
 )]
-#[case::buildinfov2_all_fields_with_env(
+#[case::buildinfov2_all_fields(
     BuildInfoInput {
         format: Schema::V2(SchemaVersion::from_str("2").unwrap()),
         builddate: Some("1".to_string()),
@@ -230,10 +265,8 @@ fn format_buildinfo_and_serialize_as_json(#[case] data: &str) -> TestResult {
         buildtool: Some("devtools".to_string()),
         buildtoolver: Some("1:1.2.1-1-any".to_string()),
     },
-    true,
-    true
 )]
-#[case::buildinfov2_optional_fields_with_env(
+#[case::buildinfov2_optional_fields(
     BuildInfoInput {
         format: Schema::V2(SchemaVersion::from_str("2").unwrap()),
         builddate: Some("1".to_string()),
@@ -251,57 +284,16 @@ fn format_buildinfo_and_serialize_as_json(#[case] data: &str) -> TestResult {
         buildtool: Some("devtools".to_string()),
         buildtoolver: Some("1:1.2.1-1-any".to_string()),
     },
-    true,
-    true
 )]
-#[case::buildinfov2_all_fields_with_env(
-    BuildInfoInput {
-        format: Schema::V2(SchemaVersion::from_str("2").unwrap()),
-        builddate: Some("1".to_string()),
-        builddir: Some("/build".to_string()),
-        buildenv: Some(vec!["foo".to_string(), "bar".to_string()]),
-        installed: Some(vec!["bar-1.2.3-1-any".to_string(), "beh-2.2.3-4-any".to_string()]),
-        options: Some(vec!["some_option".to_string(), "!other_option".to_string()]),
-        packager: Some("Foobar McFooface <foobar@mcfooface.org>".to_string()),
-        pkgarch: Some("any".to_string()),
-        pkgbase: Some("foo".to_string()),
-        pkgbuild_sha256sum: Some("b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c".to_string()),
-        pkgname: Some("foo".to_string()),
-        pkgver: Some("1:1.0.0-1".to_string()),
-        startdir: Some("/startdir/".to_string()),
-        buildtool: Some("devtools".to_string()),
-        buildtoolver: Some("1:1.2.1-1-any".to_string()),
-    },
-    true,
-    false
-)]
-#[case::buildinfov2_optional_fields_with_env(
-    BuildInfoInput {
-        format: Schema::V2(SchemaVersion::from_str("2").unwrap()),
-        builddate: Some("1".to_string()),
-        builddir: Some("/build".to_string()),
-        buildenv: None,
-        installed: None,
-        options: None,
-        packager: Some("Foobar McFooface <foobar@mcfooface.org>".to_string()),
-        pkgarch: Some("any".to_string()),
-        pkgbase: Some("foo".to_string()),
-        pkgbuild_sha256sum: Some("b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c".to_string()),
-        pkgname: Some("foo".to_string()),
-        pkgver: Some("1:1.0.0-1".to_string()),
-        startdir: Some("/startdir/".to_string()),
-        buildtool: Some("devtools".to_string()),
-        buildtoolver: Some("1:1.2.1-1-any".to_string()),
-    },
-    true,
-    false
-)]
-fn write_buildinfo(
-    #[case] buildinfo_input: BuildInfoInput,
-    #[case] should_be_valid: bool,
-    #[case] use_env: bool,
-) -> TestResult {
+fn write_buildinfo_via_cli(#[case] buildinfo_input: BuildInfoInput) -> TestResult {
+    test_write_buildinfo(buildinfo_input, true)
+}
+
+/// Test writing a buildinfo file either via CLI or environment variables.
+fn test_write_buildinfo(buildinfo_input: BuildInfoInput, use_env: bool) -> TestResult {
     let dir = testdir!();
+    let test_name = thread::current().name().unwrap().to_string();
+
     let mut cmd = Command::cargo_bin("alpm-buildinfo")?;
     cmd.args(["create".to_string(), format!("v{}", buildinfo_input.format)])
         .current_dir(dir.clone());
@@ -310,33 +302,26 @@ fn write_buildinfo(
     } else {
         set_buildinfo_args(&mut cmd, &buildinfo_input);
     }
-    if should_be_valid {
-        cmd.assert().success();
-        let file = dir.join(".BUILDINFO");
-        assert!(file.exists());
+    cmd.assert().success();
+    let file = dir.join(".BUILDINFO");
+    assert!(file.exists());
 
-        let contents = std::fs::read_to_string(&file)?;
-        let build_info = match buildinfo_input.format {
-            Schema::V1(_) => BuildInfoV1::from_str(&contents)?.to_string(),
-            Schema::V2(_) => BuildInfoV2::from_str(&contents)?.to_string(),
-            _ => unimplemented!("Unimplemented schema!"),
-        };
-        assert_snapshot!(
-            thread::current().name().unwrap_or("?").to_string(),
-            build_info.to_string()
-        );
+    let contents = std::fs::read_to_string(&file)?;
+    let build_info = match buildinfo_input.format {
+        Schema::V1(_) => BuildInfoV1::from_str(&contents)?.to_string(),
+        Schema::V2(_) => BuildInfoV2::from_str(&contents)?.to_string(),
+        _ => unimplemented!("Unimplemented schema!"),
+    };
+    assert_snapshot!(test_name, build_info.to_string());
 
-        let mut cmd = Command::cargo_bin("alpm-buildinfo")?;
-        cmd.args([
-            "validate".to_string(),
-            "-s".to_string(),
-            buildinfo_input.format.to_string(),
-            file.to_string_lossy().to_string(),
-        ]);
-        cmd.assert().success();
-    } else {
-        cmd.assert().failure();
-    }
+    let mut cmd = Command::cargo_bin("alpm-buildinfo")?;
+    cmd.args([
+        "validate".to_string(),
+        "-s".to_string(),
+        buildinfo_input.format.to_string(),
+        file.to_string_lossy().to_string(),
+    ]);
+    cmd.assert().success();
 
     Ok(())
 }
