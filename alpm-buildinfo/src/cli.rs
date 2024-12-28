@@ -177,7 +177,7 @@ pub struct V1CreateArgs {
     #[arg(env = "BUILDINFO_PKGVER", long, value_name = "PKGVER")]
     pub pkgver: Version,
     /// Provide a file to write to
-    #[arg(default_value_t = OutputFile::default(), value_name = "FILE")]
+    #[arg(default_value_t = OutputFile::default(), env = "BUILDINFO_OUTPUT_FILE", value_name = "FILE")]
     pub output: OutputFile,
 }
 
