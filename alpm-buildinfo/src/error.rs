@@ -1,10 +1,9 @@
 use std::{path::PathBuf, string::FromUtf8Error};
 
 use alpm_types::SchemaVersion;
-use thiserror::Error;
 
 /// The Error that can occur when working with BUILDINFO files
-#[derive(Debug, Error)]
+#[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
 pub enum Error {
     /// ALPM type error
