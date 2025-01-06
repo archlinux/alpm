@@ -160,3 +160,41 @@ fn bytes_to_string(
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use rstest::rstest;
+
+    use super::*;
+
+    #[rstest]
+    #[case(r"hello\sworld", "hello world")]
+    #[case(r"\#", "#")]
+    #[case(r"\n", "\n")]
+    #[case(r"\r", "\r")]
+    #[case(r"\360\237\214\240", "🌠")]
+    #[case(
+        r"./test\360\237\214\240\342\232\231\302\247\134test\360\237\214\240t\342\232\231e\302\247s\134t",
+        "./test🌠⚙§\\test🌠t⚙e§s\\t"
+    )]
+    fn test_decode_utf8_chars(#[case] input: &str, #[case] expected: &str) {
+        let input = input.to_string();
+        let result = decode_utf8_chars(&mut input.as_str());
+        assert_eq!(result, Ok(expected.to_string()));
+    }
+
+    #[rstest]
+    // Unknown escape sequence
+    #[case(r"invalid\escape")]
+    // First octal triplet will result in u8 int overflow.
+    #[case(r"\460\237\214\240")]
+    // 4 byte segments are expected, 3 are passed.
+    #[case(r"\360\237\214")]
+    // 5 leading zeroes in first byte.
+    #[case(r"\370\237\214\240")]
+    fn test_decode_utf8_chars_invalid_escape(#[case] input: &str) {
+        let input = input.to_string();
+        let result = decode_utf8_chars(&mut input.as_str());
+        assert!(result.is_err());
+    }
+}
