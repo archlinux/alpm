@@ -1,0 +1,16 @@
+# for a list of excluded URLs see `.lycheeignore`
+
+# suggested setting for non-interactive environments such as CIs
+no_progress = true
+
+# we use localhost links extensively in end-to-end tests
+exclude_loopback = true
+
+# enable cache since the check will be performed frequently
+cache = true
+
+# discard all cached requests older than this duration.
+max_cache_age = "2d"
+
+# only check 5 URLs at a time
+max_concurrency = 5
