@@ -17,7 +17,7 @@ alpm-buildinfo = { path = "../alpm-buildinfo" }
 alpm-mtree = { path = "../alpm-mtree" }
 anyhow = "1"
 clap.workspace = true
-colored = "2"
+colored = "3"
 dirs = "5"
 indicatif = "0.17"
 log = "0.4"
