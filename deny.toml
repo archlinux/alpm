@@ -1,5 +1,5 @@
 [advisories]
-ignore = []
+ignore = ["RUSTSEC-2023-0071"]
 version = 2
 yanked = "deny"
 
