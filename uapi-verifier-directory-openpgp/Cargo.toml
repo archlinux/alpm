@@ -1,0 +1,27 @@
+[package]
+name = "uapi-verifier-directory-openpgp"
+description = "OpenPGP layer for UAPI Signature Verifier Directory for distributions"
+version = "0.1.0"
+
+authors.workspace = true
+edition.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+license.workspace = true
+readme.workspace = true
+repository.workspace = true
+
+[lib]
+name = "uapi_verifier_directory_openpgp"
+
+[[bin]]
+name = "uapi-openpgp-test"
+path = "src/main.rs"
+
+[dependencies]
+env_logger = "0.11"
+hex = "0.4"
+log = "0.4"
+pgp = "0.14"
+rpgpie = "0.4"
+uapi-verifier-directory = { path = "../uapi-verifier-directory" }

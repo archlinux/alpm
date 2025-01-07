@@ -24,6 +24,7 @@ members = [
     "alpm-types",
     "dev-scripts",
     "uapi-verifier-directory",
+    "uapi-verifier-directory-openpgp",
 ]
 resolver = "3"
 
