@@ -18,3 +18,5 @@ command = "mdbook-mermaid"
 
 [output.html]
 additional-js = ["mermaid-init.js", "mermaid.min.js"]
+git-repository-icon = "fa-code-fork"
+git-repository-url = "https://gitlab.archlinux.org/archlinux/alpm/alpm"
