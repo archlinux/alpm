@@ -1,0 +1,15 @@
+# Media
+
+## Videos
+
+### 2024: GitHub and Sovereign Tech Agency: Funding Open Source Ecosystems
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/M_flWJy-MwI?si=9bqU3RiIViqlYKgb" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+### 2023: Oxidizing the Arch Linux packaging infrastructure (FrOSCon)
+
+<iframe width="560" height="315" src="https://media.ccc.de/v/froscon2023-2909-oxidizing_the_arch_linux_packaging_infrastructure/oembed" title="CCC video player" frameborder="0" allowfullscreen></iframe>
+
+### 2023: Oxidizing the Arch Linux packaging infrastructure (All Systems Go!)
+
+<iframe width="560" height="315" src="https://media.ccc.de/v/all-systems-go-2023-207-oxidizing-the-arch-linux-packaging-infrastructure/oembed" title="CCC video player" frameborder="0" allowfullscreen></iframe>
