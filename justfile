@@ -26,7 +26,7 @@ dev-install: install-pacman-dev-packages install-rust-dev-tools
 # Installs development packages using pacman
 install-pacman-dev-packages:
     # All packages are set in the `.env` file
-    pacman -Syu --needed --noconfirm $PACMAN_DEV_PACKAGES
+    run0 pacman -S --needed --noconfirm $PACMAN_PACKAGES
 
 # Installs all Rust tools required for development
 install-rust-dev-tools:
