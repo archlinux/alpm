@@ -39,3 +39,7 @@
 - [API Documentation](./api-docs/README.md)
 - [Contributing Guidelines](./CONTRIBUTING.md)
 - [Development Scripts](./dev-scripts/README.md)
+
+# About
+
+- [Related Projects](./related-projects.md)
