@@ -43,3 +43,4 @@
 # About
 
 - [Related Projects](./related-projects.md)
+- [Community](./community.md)
