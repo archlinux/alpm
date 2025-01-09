@@ -1,0 +1,1 @@
+../../../../alpm-srcinfo/resources/specification/SRCINFO.5.md
