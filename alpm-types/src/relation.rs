@@ -150,7 +150,7 @@ impl FromStr for PackageRelation {
         for comparison in VersionComparison::iter() {
             if let Some((name, version)) = s.split_once(comparison.as_ref()) {
                 return Ok(Self {
-                    name: Name::new(name.to_string())?,
+                    name: Name::new(name)?,
                     version_requirement: Some(VersionRequirement {
                         comparison,
                         version: version.parse()?,
@@ -160,7 +160,7 @@ impl FromStr for PackageRelation {
         }
 
         Ok(Self {
-            name: Name::new(s.to_string())?,
+            name: Name::new(s)?,
             version_requirement: None,
         })
     }
@@ -240,11 +240,11 @@ impl FromStr for OptDepend {
         if let Some((name, description)) = s.split_once(":") {
             let description = description.trim_start();
             Ok(Self::new(
-                Name::new(name.to_string())?,
+                Name::new(name)?,
                 (!description.is_empty()).then_some(description.to_string()),
             ))
         } else {
-            Ok(Self::new(Name::new(s.to_string())?, None))
+            Ok(Self::new(Name::new(s)?, None))
         }
     }
 }
@@ -321,28 +321,28 @@ mod tests {
     #[case(
         "example: this is an example dependency",
         Ok(OptDepend {
-            name: Name::new("example".to_string()).unwrap(),
+            name: Name::new("example").unwrap(),
             description: Some("this is an example dependency".to_string()),
         }),
     )]
     #[case(
         "dep_name",
         Ok(OptDepend {
-            name: Name::new("dep_name".to_string()).unwrap(),
+            name: Name::new("dep_name").unwrap(),
             description: None,
         }),
     )]
     #[case(
         "dep_name: ",
         Ok(OptDepend {
-            name: Name::new("dep_name".to_string()).unwrap(),
+            name: Name::new("dep_name").unwrap(),
             description: None,
         }),
     )]
     #[case(
         "dep_name_with_special_chars-123: description with !@#$%^&*",
         Ok(OptDepend {
-            name: Name::new("dep_name_with_special_chars-123".to_string()).unwrap(),
+            name: Name::new("dep_name_with_special_chars-123").unwrap(),
             description: Some("description with !@#$%^&*".to_string()),
         }),
     )]

@@ -54,8 +54,8 @@ impl BuildTool {
     /// use alpm_types::{BuildTool, Error, Name};
     ///
     /// # fn main() -> Result<(), alpm_types::Error> {
-    /// assert!(BuildTool::new_with_restriction("foo", &[Name::new("foo".to_string())?]).is_ok());
-    /// assert!(BuildTool::new_with_restriction("foo", &[Name::new("bar".to_string())?]).is_err());
+    /// assert!(BuildTool::new_with_restriction("foo", &[Name::new("foo")?]).is_ok());
+    /// assert!(BuildTool::new_with_restriction("foo", &[Name::new("bar")?]).is_err());
     /// # Ok(())
     /// # }
     /// ```
@@ -87,7 +87,7 @@ impl FromStr for BuildTool {
     type Err = Error;
     /// Create a BuildTool from a string
     fn from_str(s: &str) -> Result<BuildTool, Self::Err> {
-        Name::new(s.to_string()).map(BuildTool)
+        Name::new(s).map(BuildTool)
     }
 }
 
@@ -112,12 +112,12 @@ impl Display for BuildTool {
 /// // create Name from &str
 /// assert_eq!(
 ///     Name::from_str("test-123@.foo_+"),
-///     Ok(Name::new("test-123@.foo_+".to_string())?)
+///     Ok(Name::new("test-123@.foo_+")?)
 /// );
 /// assert!(Name::from_str(".test").is_err());
 ///
 /// // format as String
-/// assert_eq!("foo", format!("{}", Name::new("foo".to_string())?));
+/// assert_eq!("foo", format!("{}", Name::new("foo")?));
 /// # Ok(())
 /// # }
 /// ```
@@ -126,8 +126,8 @@ pub struct Name(String);
 
 impl Name {
     /// Create a new `Name`
-    pub fn new(name: String) -> Result<Self, Error> {
-        Self::from_str(&name)
+    pub fn new(name: &str) -> Result<Self, Error> {
+        Self::from_str(name)
     }
 
     /// Return a reference to the inner type

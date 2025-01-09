@@ -271,9 +271,9 @@ pkgver = 1:1.0.0-1
             vec![PackageOption::new("buildoption")?],
             Packager::from_str("Foobar McFooface <foobar@mcfooface.org>")?,
             Architecture::Any,
-            Name::new("foo".to_string())?,
+            Name::new("foo")?,
             Checksum::<Sha256>::calculate_from("foo"),
-            Name::new("foo".to_string())?,
+            Name::new("foo")?,
             Version::from_str("1:1.0.0-1")?,
         )?;
         Ok(())
@@ -293,9 +293,9 @@ pkgver = 1:1.0.0-1
             vec![PackageOption::new("buildoption")?],
             Packager::from_str("Foobar McFooface <foobar@mcfooface.org>")?,
             Architecture::Any,
-            Name::new("foo".to_string())?,
+            Name::new("foo")?,
             Checksum::<Sha256>::calculate_from("foo"),
-            Name::new("foo".to_string())?,
+            Name::new("foo")?,
             Version::from_str("1:1.0.0-1")?,
         )
         .is_err());

@@ -190,7 +190,7 @@ impl FromStr for InstalledPackage {
             .to_string();
 
         Ok(InstalledPackage {
-            name: Name::new(name)?,
+            name: Name::new(&name)?,
             version: Version::with_pkgrel(version.as_str())?,
             architecture,
         })
@@ -225,7 +225,7 @@ mod tests {
     #[case(
         "foo-bar-1:1.0.0-1-any",
         Ok(InstalledPackage{
-            name: Name::new("foo-bar".to_string()).unwrap(),
+            name: Name::new("foo-bar").unwrap(),
             version: Version::from_str("1:1.0.0-1").unwrap(),
             architecture: Architecture::Any,
         }),
