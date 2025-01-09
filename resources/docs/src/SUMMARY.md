@@ -24,6 +24,7 @@
   - [PKGINFO](./specifications/PKGINFO.5.md)
     - [PKGINFOv1](./specifications/PKGINFOv1.5.md)
     - [PKGINFOv2](./specifications/PKGINFOv2.5.md)
+  - [SRCINFO](./specifications/SRCINFO.5.md)
 - [Concepts](./specifications/concepts.md)
   - [alpm-architecture](./specifications/alpm-architecture.7.md)
   - [alpm-comparison](./specifications/alpm-comparison.7.md)
@@ -32,9 +33,12 @@
   - [alpm-package-group](./specifications/alpm-package-group.7.md)
   - [alpm-package-name](./specifications/alpm-package-name.7.md)
   - [alpm-package-relation](./specifications/alpm-package-relation.7.md)
+  - [alpm-package-source](./specifications/alpm-package-source.7.md)
+  - [alpm-package-source-checksum](./specifications/alpm-package-source-checksum.7.md)
   - [alpm-package-version](./specifications/alpm-package-version.7.md)
   - [alpm-pkgrel](./specifications/alpm-pkgrel.7.md)
   - [alpm-pkgver](./specifications/alpm-pkgver.7.md)
+  - [alpm-split-package](./specifications/alpm-split-package.7.md)
 
 # Development
 

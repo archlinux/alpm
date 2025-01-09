@@ -1,0 +1,1 @@
+../../../../alpm-types/resources/specification/alpm-split-package.7.md
