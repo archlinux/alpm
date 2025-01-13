@@ -18,7 +18,7 @@ alpm-mtree = { path = "../alpm-mtree" }
 anyhow = "1"
 clap.workspace = true
 colored = "3"
-dirs = "5"
+dirs = "6"
 indicatif = "0.17"
 log = "0.4"
 rayon = "1"
