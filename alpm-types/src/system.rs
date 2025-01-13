@@ -19,6 +19,7 @@ use strum::{Display, EnumString};
 /// assert_eq!("arm", format!("{}", Architecture::Arm));
 /// assert_eq!("armv6h", format!("{}", Architecture::Armv6h));
 /// assert_eq!("armv7h", format!("{}", Architecture::Armv7h));
+/// assert_eq!("i386", format!("{}", Architecture::I386));
 /// assert_eq!("i486", format!("{}", Architecture::I486));
 /// assert_eq!("i686", format!("{}", Architecture::I686));
 /// assert_eq!("pentium4", format!("{}", Architecture::Pentium4));
@@ -43,6 +44,8 @@ pub enum Architecture {
     Armv6h,
     /// ARMv7 hard-float
     Armv7h,
+    /// Intel 386
+    I386,
     /// Intel 486
     I486,
     /// Intel 686
@@ -81,6 +84,7 @@ mod tests {
     #[case("arm", Ok(Architecture::Arm))]
     #[case("armv6h", Ok(Architecture::Armv6h))]
     #[case("armv7h", Ok(Architecture::Armv7h))]
+    #[case("i386", Ok(Architecture::I386))]
     #[case("i486", Ok(Architecture::I486))]
     #[case("i686", Ok(Architecture::I686))]
     #[case("pentium4", Ok(Architecture::Pentium4))]
@@ -101,6 +105,7 @@ mod tests {
     #[case(Architecture::Arm, "arm")]
     #[case(Architecture::Armv6h, "armv6h")]
     #[case(Architecture::Armv7h, "armv7h")]
+    #[case(Architecture::I386, "i386")]
     #[case(Architecture::I486, "i486")]
     #[case(Architecture::I686, "i686")]
     #[case(Architecture::Pentium4, "pentium4")]
