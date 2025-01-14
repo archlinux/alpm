@@ -16,6 +16,7 @@ publish = false
 alpm-buildinfo = { path = "../alpm-buildinfo" }
 alpm-mtree = { path = "../alpm-mtree" }
 alpm-pkginfo = { path = "../alpm-pkginfo" }
+alpm-srcinfo = { path = "../alpm-srcinfo" }
 anyhow = "1"
 clap.workspace = true
 colored.workspace = true
