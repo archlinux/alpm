@@ -561,6 +561,7 @@ dependencies = [
  "alpm-buildinfo",
  "alpm-mtree",
  "alpm-pkginfo",
+ "alpm-srcinfo",
  "anyhow",
  "clap",
  "colored",
