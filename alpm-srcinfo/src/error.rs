@@ -37,3 +37,58 @@ pub enum Error {
     #[error("File parsing error:\n{0}")]
     ParseError(String),
 }
+
+/// A helper struct to provide proper line based error/linting messages.
+///
+/// This is just a list of [`SourceInfoError`]s, in combination with the file's content on which the
+/// errors where thrown. It implements several functions for error handling and error formatting.
+#[derive(Debug)]
+pub struct SourceInfoErrors {
+    pub inner: Vec<SourceInfoError>,
+    pub file_content: String,
+}
+
+/// This error describes some error variants that may appear when going through the parsed content
+/// of a SRCINFO file.
+///
+/// This includes linting errors, deprecation warnings and hard unrecoverable errors.
+#[derive(Debug)]
+pub struct SourceInfoError {
+    pub error_type: SourceInfoErrorType,
+    pub line: Option<usize>,
+    pub message: String,
+}
+
+#[derive(Debug)]
+pub enum SourceInfoErrorType {
+    Lint,
+    Deprecation,
+    Unrecoverable,
+}
+
+/// Create an unrecoverable SourceInfo error.
+pub fn unrecoverable(line: Option<usize>, message: impl ToString) -> SourceInfoError {
+    SourceInfoError {
+        error_type: SourceInfoErrorType::Unrecoverable,
+        line,
+        message: message.to_string(),
+    }
+}
+
+/// Create a SourceInfo linter error.
+pub fn lint(line: Option<usize>, message: impl ToString) -> SourceInfoError {
+    SourceInfoError {
+        error_type: SourceInfoErrorType::Lint,
+        line,
+        message: message.to_string(),
+    }
+}
+
+/// Create a SourceInfo deprecation warning.
+pub fn deprecation(line: Option<usize>, message: impl ToString) -> SourceInfoError {
+    SourceInfoError {
+        error_type: SourceInfoErrorType::Deprecation,
+        line,
+        message: message.to_string(),
+    }
+}
