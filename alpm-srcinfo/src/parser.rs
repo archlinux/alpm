@@ -1,12 +1,11 @@
 use std::str::FromStr;
 
 use alpm_types::{
-    digests::{Blake2b512, Digest, Md5, Sha1, Sha224, Sha256, Sha384, Sha512},
+    digests::{Blake2b512, Md5, Sha1, Sha224, Sha256, Sha384, Sha512},
     Architecture,
     Backup,
     Blake2b512Checksum,
     Changelog,
-    Checksum,
     Epoch,
     Group,
     Install,
@@ -52,13 +51,7 @@ use winnow::{
     Parser,
 };
 
-/// Represent a checksum check that is allowed to be skipped.
-/// If the `SKIP` keyword is found, a source file won't be checked for this type of checksum.
-#[derive(Debug, Clone)]
-pub enum SkippableChecksum<D: Digest + Clone> {
-    Skip,
-    Checksum(Checksum<D>),
-}
+use crate::source_info::SkippableChecksum;
 
 /// Parse the delimiter between keywords, i.e. ` = `.
 ///
