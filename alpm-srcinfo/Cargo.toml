@@ -25,6 +25,7 @@ winnow-debug = ["winnow/debug"]
 [dependencies]
 alpm-types.workspace = true
 clap = { workspace = true, optional = true }
+colored.workspace = true
 strum.workspace = true
 thiserror.workspace = true
 winnow.workspace = true
