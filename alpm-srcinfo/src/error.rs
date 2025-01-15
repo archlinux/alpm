@@ -1,7 +1,12 @@
+use std::fmt::Display;
 use std::path::PathBuf;
 use std::string::FromUtf8Error;
 
+use colored::Colorize;
 use thiserror::Error;
+
+#[cfg(doc)]
+use crate::{parser::SourceInfoContent, source_info::SourceInfo};
 
 /// The high-level error that can occur when using this crate.
 ///
@@ -38,4 +43,226 @@ pub enum Error {
     /// A parsing error that occurred during winnow file parsing.
     #[error("File parsing error:\n{0}")]
     ParseError(String),
+
+    /// A list of errors that occurred during the final parsing step of the SRCINFO file.
+    ///
+    /// These may contain any combination of [`SourceInfoError`].
+    #[error("Errors while parsing source info file:\n\n{0}")]
+    SourceInfoErrors(SourceInfoErrors),
+}
+
+/// A helper struct to provide proper line based error/linting messages.
+///
+/// This is just a list of [`SourceInfoError`]s, in combination with the content in which the
+/// errors where encountered.
+#[derive(Debug, Clone)]
+pub struct SourceInfoErrors {
+    inner: Vec<SourceInfoError>,
+    file_content: String,
+}
+
+impl Display for SourceInfoErrors {
+    /// Display all errors in one big well-formatted error message.
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // We go through all errors and print them out one after another.
+        let mut error_iter = self.inner.iter().enumerate().peekable();
+        while let Some((index, error)) = error_iter.next() {
+            // Line and message are generic and the same for every error message.
+            let line_nr = error.line;
+            let message = &error.message;
+
+            // Build the the headline based on the error type.
+            let specific_line =
+                line_nr.map_or("".to_string(), |line| format!(" on line {}", line + 1));
+            let headline = match error.error_type {
+                SourceInfoErrorType::LintWarning => {
+                    format!("{}{specific_line}:", "Linter Warning".yellow())
+                }
+                SourceInfoErrorType::DeprecationWarning => {
+                    format!("{}{specific_line}:", "Deprecation Warning".yellow())
+                }
+                SourceInfoErrorType::Unrecoverable => {
+                    format!("{}{specific_line}:", "Logical Error".red())
+                }
+            };
+
+            // Write the headline
+            let error_index = format!("[{index}]").bold().red();
+            // Print the error details slightly indented based on the length of the error index
+            // prefix.
+            let indentation = " ".repeat(error_index.len() + 1);
+            write!(f, "{error_index} {headline}")?;
+            // Add the line, if it exists.
+            // Prefix it with a bold line number for better visibility.
+            if let Some(line_nr) = line_nr {
+                let content_line = self
+                    .file_content
+                    .lines()
+                    .nth(line_nr)
+                    .expect("Error: Couldn't seek to line. Please report bug upstream.");
+                // Lines aren't 0 indexed.
+                let human_line_nr = line_nr + 1;
+                write!(
+                    f,
+                    "\n{indentation}{} {content_line }\n",
+                    format!("{human_line_nr}: |").to_string().bold()
+                )?;
+            }
+
+            // Write the message with some spacing
+            write!(f, "\n{indentation}{message}")?;
+
+            // Write two newlines with a red separator between this and the next error
+            if error_iter.peek().is_some() {
+                write!(f, "\n\n{}", "──────────────────────────────\n".bold())?;
+            }
+        }
+
+        Ok(())
+    }
+}
+
+impl SourceInfoErrors {
+    /// Create a new `SourceInfoErrors`.
+    pub fn new(errors: Vec<SourceInfoError>, file_content: String) -> Self {
+        Self {
+            inner: errors,
+            file_content,
+        }
+    }
+
+    /// Filter the inner errors based on a given closure.
+    pub fn filter<F>(&mut self, filter: F)
+    where
+        F: Fn(&SourceInfoError) -> bool,
+    {
+        self.inner.retain(filter);
+    }
+
+    /// Get a handle to the error list.
+    pub fn errors(&self) -> &Vec<SourceInfoError> {
+        &self.inner
+    }
+
+    /// Filters for and errors on unrecoverable errors.
+    ///
+    /// Consumes `self` and simply returns if `self` contains no [`SourceInfoError`] of type
+    /// [`SourceInfoErrorType::Unrecoverable`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if `self` contains any [`SourceInfoError`] of type
+    /// [`SourceInfoErrorType::Unrecoverable`].
+    pub fn check_unrecoverable_errors(mut self) -> Result<(), Error> {
+        // Filter only for errors that're unrecoverable, i.e. critical.
+        self.filter(|err| matches!(err.error_type, SourceInfoErrorType::Unrecoverable));
+
+        if !self.inner.is_empty() {
+            self.sort_errors();
+            return Err(Error::SourceInfoErrors(self));
+        }
+
+        Ok(())
+    }
+
+    /// Sorts the errors.
+    ///
+    /// The following order is applied:
+    ///
+    /// - Hard errors without line numbers
+    /// - Hard errors with line numbers, by ascending line number
+    /// - Deprecation warnings without line numbers
+    /// - Deprecation warnings with line numbers, by ascending line number
+    /// - Linter warnings without line numbers
+    /// - Linter warnings with line numbers, by ascending line number
+    fn sort_errors(&mut self) {
+        self.inner.sort_by(|a, b| {
+            use std::cmp::Ordering;
+
+            let prio = |error: &SourceInfoError| match error.error_type {
+                SourceInfoErrorType::Unrecoverable => 0,
+                SourceInfoErrorType::DeprecationWarning => 1,
+                SourceInfoErrorType::LintWarning => 2,
+            };
+
+            // Extract ordering criteria based on error type.
+            let a_prio = prio(a);
+            let b_prio = prio(b);
+
+            // Compare by error severity first.
+            match a_prio.cmp(&b_prio) {
+                // If it's the same error, do a comparison on a line basis.
+                // Unspecific errors should come first!
+                Ordering::Equal => match (a.line, b.line) {
+                    (Some(a), Some(b)) => a.cmp(&b),
+                    (Some(_), None) => Ordering::Less,
+                    (None, Some(_)) => Ordering::Greater,
+                    (None, None) => Ordering::Equal,
+                },
+                // If it's not the same error, the ordering is clear.
+                other => other,
+            }
+        });
+    }
+}
+
+/// This error describes some error variants that may appear when going converting the
+/// the parsed [`SourceInfoContent`] of a SRCINFO file into a [`SourceInfo`].
+///
+/// The severity of an error is defined by its [`SourceInfoErrorType`], which may range from linting
+/// errors, deprecation warnings to hard unrecoverable errors.
+#[derive(Debug, Clone)]
+pub struct SourceInfoError {
+    pub error_type: SourceInfoErrorType,
+    pub line: Option<usize>,
+    pub message: String,
+}
+
+/// A [`SourceInfoError`] type.
+///
+/// Provides context for the severity of a [`SourceInfoError`].
+/// The type of "error" that has occurred.
+#[derive(Debug, Clone)]
+pub enum SourceInfoErrorType {
+    /// A simple linter error type. Can be ignored but should be fixed.
+    LintWarning,
+    /// Something changed in the SRCINFO format and this should be removed for future
+    /// compatibility.
+    DeprecationWarning,
+    /// A hard unrecoverable logic error has been detected.
+    /// The returned [SourceInfo] representation is faulty and should not be used.
+    Unrecoverable,
+}
+
+/// Creates a [`SourceInfoError`] for unrecoverable issues.
+///
+/// Takes an optional `line` on which the issue occurred and a `message`.
+pub fn unrecoverable(line: Option<usize>, message: impl ToString) -> SourceInfoError {
+    SourceInfoError {
+        error_type: SourceInfoErrorType::Unrecoverable,
+        line,
+        message: message.to_string(),
+    }
+}
+
+/// Creates a [`SourceInfoError`] for linting issues.
+///
+/// Takes an optional `line` on which the issue occurred and a `message`.
+pub fn lint(line: Option<usize>, message: impl ToString) -> SourceInfoError {
+    SourceInfoError {
+        error_type: SourceInfoErrorType::LintWarning,
+        line,
+        message: message.to_string(),
+    }
+}
+
+/// Creates a [`SourceInfoError`] for deprecation warnings.
+///
+/// Takes an optional `line` on which the issue occurred and a `message`.
+pub fn deprecation(line: Option<usize>, message: impl ToString) -> SourceInfoError {
+    SourceInfoError {
+        error_type: SourceInfoErrorType::DeprecationWarning,
+        line,
+        message: message.to_string(),
+    }
 }
