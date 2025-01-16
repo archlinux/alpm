@@ -1,0 +1,1 @@
+../../../../alpm-types/resources/specification/alpm-soname.v1.7.md
