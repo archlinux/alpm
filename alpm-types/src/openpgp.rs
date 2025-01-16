@@ -10,6 +10,90 @@ use regex::Regex;
 
 use crate::Error;
 
+/// An OpenPGP Key ID.
+///
+/// The `OpenPGPKeyId` type wraps a `String` representing an [OpenPGP Key ID],
+/// ensuring that it consists of exactly 16 uppercase hexadecimal characters.
+///
+/// [OpenPGP Key ID]: https://openpgp.dev/book/glossary.html#term-Key-ID
+///
+/// ## Note
+///
+/// - This type supports constructing from both uppercase and lowercase hexadecimal characters but
+///   guarantees to return the key ID in uppercase.
+///
+/// - The usage of this type is highly discouraged as the keys may not be unique. This will lead to
+///   a linting error in the future.
+///
+/// ## Examples
+///
+/// ```
+/// use std::str::FromStr;
+///
+/// use alpm_types::{Error, OpenPGPKeyId};
+///
+/// # fn main() -> Result<(), alpm_types::Error> {
+/// // Create OpenPGPKeyId from a valid key ID
+/// let key = OpenPGPKeyId::from_str("2F2670AC164DB36F")?;
+/// assert_eq!(key.as_str(), "2F2670AC164DB36F");
+///
+/// // Attempting to create an OpenPGPKeyId from an invalid key ID will fail
+/// assert!(OpenPGPKeyId::from_str("INVALIDKEYID").is_err());
+///
+/// // Format as String
+/// assert_eq!(format!("{key}"), "2F2670AC164DB36F");
+/// # Ok(())
+/// # }
+/// ```
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct OpenPGPKeyId(String);
+
+impl OpenPGPKeyId {
+    /// Creates a new `OpenPGPKeyId` instance.
+    ///
+    /// See [`OpenPGPKeyId::from_str`] for more information on how the OpenPGP Key ID is validated.
+    pub fn new(key_id: String) -> Result<Self, Error> {
+        if key_id.len() == 16 && key_id.chars().all(|c| c.is_ascii_hexdigit()) {
+            Ok(Self(key_id.to_ascii_uppercase()))
+        } else {
+            Err(Error::InvalidOpenPGPKeyId(key_id))
+        }
+    }
+
+    /// Returns a reference to the inner OpenPGP Key ID as a `&str`.
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+
+    /// Consumes the `OpenPGPKeyId` and returns the inner `String`.
+    pub fn into_inner(self) -> String {
+        self.0
+    }
+}
+
+impl FromStr for OpenPGPKeyId {
+    type Err = Error;
+
+    /// Creates a new `OpenPGPKeyId` instance after validating that it follows the correct format.
+    ///
+    /// A valid OpenPGP Key ID should be exactly 16 characters long and consist only
+    /// of digits (`0-9`) and hexadecimal letters (`A-F`).
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the OpenPGP Key ID is not valid.
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Self::new(s.to_string())
+    }
+}
+
+impl Display for OpenPGPKeyId {
+    /// Converts the `OpenPGPKeyId` to an uppercase `String`.
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
 /// An OpenPGP v4 fingerprint.
 ///
 /// The `OpenPGPv4Fingerprint` type wraps a `String` representing an [OpenPGP v4 fingerprint],
@@ -228,6 +312,31 @@ mod tests {
         #[case] expected: Result<OpenPGPv4Fingerprint, Error>,
     ) {
         let result = input.parse::<OpenPGPv4Fingerprint>();
+        assert_eq!(result, expected);
+    }
+
+    #[rstest]
+    #[case("2F2670AC164DB36F")]
+    #[case("584A3EBFE705CDCD")]
+    fn test_parse_openpgp_key_id(#[case] input: &str) -> Result<(), Error> {
+        input.parse::<OpenPGPKeyId>()?;
+        Ok(())
+    }
+
+    #[rstest]
+    // Contains non-hex characters 'G' and 'H'
+    #[case("1234567890ABCGH", Err(Error::InvalidOpenPGPKeyId("1234567890ABCGH".to_string())))]
+    // Less than 16 characters
+    #[case("1234567890ABCDE", Err(Error::InvalidOpenPGPKeyId("1234567890ABCDE".to_string())))]
+    // More than 16 characters
+    #[case("1234567890ABCDEF0", Err(Error::InvalidOpenPGPKeyId("1234567890ABCDEF0".to_string())))]
+    // Just invalid
+    #[case("invalid", Err(Error::InvalidOpenPGPKeyId("invalid".to_string())))]
+    fn test_parse_invalid_openpgp_key_id(
+        #[case] input: &str,
+        #[case] expected: Result<OpenPGPKeyId, Error>,
+    ) {
+        let result = input.parse::<OpenPGPKeyId>();
         assert_eq!(result, expected);
     }
 

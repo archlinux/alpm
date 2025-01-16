@@ -95,6 +95,10 @@ pub enum Error {
         "Invalid OpenPGP v4 fingerprint, only 40 uppercase hexadecimal characters are allowed"
     )]
     InvalidOpenPGPv4Fingerprint,
+
+    /// An invalid OpenPGP key ID
+    #[error("The string is not a valid OpenPGP key ID: {0}, must be 16 hexadecimal characters")]
+    InvalidOpenPGPKeyId(String),
 }
 
 /// Convert a `std::num::ParseIntError` into a `Error::InvalidInteger`
