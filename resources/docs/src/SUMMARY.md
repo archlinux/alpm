@@ -35,6 +35,7 @@
   - [alpm-package-version](./specifications/alpm-package-version.7.md)
   - [alpm-pkgrel](./specifications/alpm-pkgrel.7.md)
   - [alpm-pkgver](./specifications/alpm-pkgver.7.md)
+  - [alpm-soname](./specifications/alpm-sonamev1.7.md)
 
 # Development
 
