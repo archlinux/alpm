@@ -5,3 +5,5 @@ https://docs.rs/alpm-parsers
 https://docs.rs/alpm-srcinfo
 https://docs.rs/alpm-pkginfo
 https://alpm.archlinux.page/alpm-srcinfo/ARCHITECTURE.html
+# The host uses hard rate-limiting
+https://www.gnu.org/software/libtool/manual/html_node/Versioning.html

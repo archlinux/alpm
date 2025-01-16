@@ -1,0 +1,1 @@
+../../../../alpm-types/resources/specification/alpm-sonamev1.7.md
