@@ -62,6 +62,7 @@ pub use path::RelativePath;
 pub use path::StartDir;
 
 mod openpgp;
+pub use openpgp::OpenPGPIdentifier;
 pub use openpgp::OpenPGPKeyId;
 pub use openpgp::OpenPGPv4Fingerprint;
 pub use openpgp::Packager;

@@ -10,6 +10,89 @@ use regex::Regex;
 
 use crate::Error;
 
+/// An OpenPGP key identifier.
+///
+/// The `OpenPGPIdentifier` enum represents a valid OpenPGP identifier, which can be either an
+/// OpenPGP Key ID or an OpenPGP v4 fingerprint.
+///
+/// This type wraps an [`OpenPGPKeyId`] and an [`OpenPGPv4Fingerprint`] and provides a unified
+/// interface for both.
+///
+/// ## Examples
+///
+/// ```
+/// use std::str::FromStr;
+///
+/// use alpm_types::{Error, OpenPGPIdentifier, OpenPGPKeyId, OpenPGPv4Fingerprint};
+/// # fn main() -> Result<(), alpm_types::Error> {
+/// // Create a OpenPGPIdentifier from a valid OpenPGP v4 fingerprint
+/// let key = OpenPGPIdentifier::from_str("4A0C4DFFC02E1A7ED969ED231C2358A25A10D94E")?;
+/// assert_eq!(
+///     key,
+///     OpenPGPIdentifier::OpenPGPv4Fingerprint(OpenPGPv4Fingerprint::from_str(
+///         "4A0C4DFFC02E1A7ED969ED231C2358A25A10D94E"
+///     )?)
+/// );
+/// assert_eq!(key.to_string(), "4A0C4DFFC02E1A7ED969ED231C2358A25A10D94E");
+/// assert_eq!(
+///     key,
+///     OpenPGPv4Fingerprint::from_str("4A0C4DFFC02E1A7ED969ED231C2358A25A10D94E")?.into()
+/// );
+///
+/// // Create a OpenPGPIdentifier from a valid OpenPGP Key ID
+/// let key = OpenPGPIdentifier::from_str("2F2670AC164DB36F")?;
+/// assert_eq!(
+///     key,
+///     OpenPGPIdentifier::OpenPGPKeyId(OpenPGPKeyId::from_str("2F2670AC164DB36F")?)
+/// );
+/// assert_eq!(key.to_string(), "2F2670AC164DB36F");
+/// assert_eq!(key, OpenPGPKeyId::from_str("2F2670AC164DB36F")?.into());
+/// # Ok(())
+/// # }
+/// ```
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum OpenPGPIdentifier {
+    /// An OpenPGP Key ID.
+    OpenPGPKeyId(OpenPGPKeyId),
+    /// An OpenPGP v4 fingerprint.
+    OpenPGPv4Fingerprint(OpenPGPv4Fingerprint),
+}
+
+impl FromStr for OpenPGPIdentifier {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.parse::<OpenPGPv4Fingerprint>() {
+            Ok(fingerprint) => Ok(OpenPGPIdentifier::OpenPGPv4Fingerprint(fingerprint)),
+            Err(_) => match s.parse::<OpenPGPKeyId>() {
+                Ok(key_id) => Ok(OpenPGPIdentifier::OpenPGPKeyId(key_id)),
+                Err(e) => Err(e),
+            },
+        }
+    }
+}
+
+impl From<OpenPGPKeyId> for OpenPGPIdentifier {
+    fn from(key_id: OpenPGPKeyId) -> Self {
+        OpenPGPIdentifier::OpenPGPKeyId(key_id)
+    }
+}
+
+impl From<OpenPGPv4Fingerprint> for OpenPGPIdentifier {
+    fn from(fingerprint: OpenPGPv4Fingerprint) -> Self {
+        OpenPGPIdentifier::OpenPGPv4Fingerprint(fingerprint)
+    }
+}
+
+impl Display for OpenPGPIdentifier {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        match self {
+            OpenPGPIdentifier::OpenPGPKeyId(key_id) => write!(f, "{key_id}"),
+            OpenPGPIdentifier::OpenPGPv4Fingerprint(fingerprint) => write!(f, "{fingerprint}"),
+        }
+    }
+}
+
 /// An OpenPGP Key ID.
 ///
 /// The `OpenPGPKeyId` type wraps a `String` representing an [OpenPGP Key ID],
