@@ -5,7 +5,115 @@ use std::{
 
 use strum::IntoEnumIterator;
 
-use crate::{Error, Name, VersionComparison, VersionRequirement};
+use crate::{ArchitectureBit, Error, Name, VersionComparison, VersionRequirement};
+
+/// A `soname` dependency of a package.
+///
+/// Describes a `soname` shared object file dependency of a package, which consists of a [`Name`],
+/// an optional version and an optional architecture.
+///
+/// The version is untyped, as there's no real convention on how such a version should look like.
+/// Hence, it's a freeform string field.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Soname {
+    /// Name.
+    pub name: Name,
+    /// Version.
+    pub version: Option<String>,
+    /// Architecture bit.
+    pub architecture: Option<ArchitectureBit>,
+}
+
+impl Soname {
+    /// Creates a new [`Soname`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use alpm_types::{ArchitectureBit, Soname};
+    ///
+    /// # fn main() -> Result<(), alpm_types::Error> {
+    /// Soname::new(
+    ///     "example.so".parse()?,
+    ///     Some("1.0.0".to_string()),
+    ///     Some(ArchitectureBit::Bit64),
+    /// );
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn new(name: Name, version: Option<String>, architecture: Option<ArchitectureBit>) -> Self {
+        Self {
+            name,
+            version,
+            architecture,
+        }
+    }
+}
+
+impl FromStr for Soname {
+    type Err = Error;
+    /// Parses a [`Soname`] from a string slice.
+    ///
+    /// The string slice must be in the format `name[=version-architecture]`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if a [`Soname`] can not be parsed from input.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::str::FromStr;
+    ///
+    /// use alpm_types::{ArchitectureBit, Soname};
+    ///
+    /// # fn main() -> Result<(), alpm_types::Error> {
+    /// assert_eq!(
+    ///     Soname::from_str("example.so=1.0.0-64")?,
+    ///     Soname::new(
+    ///         "example.so".parse()?,
+    ///         Some("1.0.0".to_string()),
+    ///         Some(ArchitectureBit::Bit64),
+    ///     ),
+    /// );
+    /// assert_eq!(
+    ///     Soname::from_str("example.so=1.0.0")?,
+    ///     Soname::new("example.so".parse()?, Some("1.0.0".to_string()), None),
+    /// );
+    /// assert_eq!(
+    ///     Soname::from_str("example.so")?,
+    ///     Soname::new("example.so".parse()?, None, None),
+    /// );
+    /// # Ok(())
+    /// # }
+    /// ```
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut parts = s.split('=');
+        let name = Name::new(
+            parts
+                .next()
+                .ok_or(Error::MissingComponent { component: "name" })?,
+        )?;
+        let mut version = None;
+        let mut architecture = None;
+        if let Some(rest) = parts.next() {
+            let mut rest_parts = rest.split('-');
+            if let Some(value) = rest_parts.next() {
+                if !name.to_string().contains(value) {
+                    version = Some(value.to_string());
+                }
+            }
+            if let Some(value) = rest_parts.last() {
+                architecture = Some(value.parse()?);
+            }
+        }
+        Ok(Self {
+            name,
+            version,
+            architecture,
+        })
+    }
+}
 
 /// A package relation
 ///
@@ -368,5 +476,26 @@ mod tests {
     ) {
         let opt_depend_result = OptDepend::from_str(input);
         assert_eq!(expected_result, opt_depend_result);
+    }
+
+    #[rstest]
+    #[case("example.so", Soname::new("example.so".parse().unwrap(), None, None))]
+    #[case("example.so=1.0.0", Soname::new("example.so".parse().unwrap(), Some("1.0.0".to_string()), None))]
+    #[case("example.so=1.0.0-64", Soname::new("example.so".parse().unwrap(), Some("1.0.0".to_string()), Some(ArchitectureBit::Bit64)))]
+    #[case(
+        "libwlroots-0.18.so=libwlroots-0.18.so-64",
+        Soname::new(
+            "libwlroots-0.18.so".parse().unwrap(),
+            None,
+            Some(ArchitectureBit::Bit64),
+        )
+    )]
+    fn soname_from_string(
+        #[case] input: &str,
+        #[case] expected_result: Soname,
+    ) -> testresult::TestResult<()> {
+        let soname = Soname::from_str(input)?;
+        assert_eq!(expected_result, soname);
+        Ok(())
     }
 }

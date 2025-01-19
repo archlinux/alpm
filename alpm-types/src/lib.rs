@@ -75,6 +75,7 @@ mod relation;
 pub use relation::Group;
 pub use relation::OptDepend;
 pub use relation::PackageRelation;
+pub use relation::Soname;
 
 mod size;
 pub use size::CompressedSize;
@@ -82,6 +83,7 @@ pub use size::InstalledSize;
 
 mod system;
 pub use system::Architecture;
+pub use system::ArchitectureBit;
 
 mod version;
 pub use version::BuildToolVersion;

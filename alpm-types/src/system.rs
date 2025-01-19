@@ -69,6 +69,38 @@ pub enum Architecture {
     X86_64V4,
 }
 
+/// Architecture bit width.
+///
+/// ## Examples
+///
+/// ```
+/// use std::str::FromStr;
+///
+/// use alpm_types::ArchitectureBit;
+///
+/// # fn main() -> Result<(), alpm_types::Error> {
+/// // create ArchitectureBit from str
+/// assert_eq!(ArchitectureBit::from_str("32"), Ok(ArchitectureBit::Bit32));
+/// assert_eq!(ArchitectureBit::from_str("64"), Ok(ArchitectureBit::Bit64));
+///
+/// // format as String
+/// assert_eq!("32", format!("{}", ArchitectureBit::Bit32));
+/// assert_eq!("64", format!("{}", ArchitectureBit::Bit64));
+/// # Ok(())
+/// # }
+/// ```
+#[derive(Clone, Copy, Debug, Display, EnumString, Eq, Ord, PartialEq, PartialOrd)]
+#[non_exhaustive]
+#[strum(serialize_all = "lowercase")]
+pub enum ArchitectureBit {
+    /// 32-bit
+    #[strum(to_string = "32")]
+    Bit32 = 32,
+    /// 64-bit
+    #[strum(to_string = "64")]
+    Bit64 = 64,
+}
+
 #[cfg(test)]
 mod tests {
     use std::str::FromStr;
@@ -116,6 +148,24 @@ mod tests {
     #[case(Architecture::X86_64V3, "x86_64_v3")]
     #[case(Architecture::X86_64V4, "x86_64_v4")]
     fn architecture_format_string(#[case] arch: Architecture, #[case] arch_str: &str) {
+        assert_eq!(arch_str, format!("{}", arch));
+    }
+
+    #[rstest]
+    #[case("32", Ok(ArchitectureBit::Bit32))]
+    #[case("64", Ok(ArchitectureBit::Bit64))]
+    #[case("foo", Err(ParseError::VariantNotFound))]
+    fn architecture_bit_from_string(
+        #[case] s: &str,
+        #[case] arch: Result<ArchitectureBit, ParseError>,
+    ) {
+        assert_eq!(ArchitectureBit::from_str(s), arch);
+    }
+
+    #[rstest]
+    #[case(ArchitectureBit::Bit32, "32")]
+    #[case(ArchitectureBit::Bit64, "64")]
+    fn architecture_bit_format_string(#[case] arch: ArchitectureBit, #[case] arch_str: &str) {
         assert_eq!(arch_str, format!("{}", arch));
     }
 }
