@@ -6,7 +6,173 @@ use std::{
 use serde::Serialize;
 use strum::IntoEnumIterator;
 
-use crate::{Error, Name, VersionComparison, VersionRequirement};
+use crate::{ArchitectureBit, Error, Name, Version, VersionComparison, VersionRequirement};
+
+/// Representation of [soname] data of a shared object based on the [alpm-sonamev1] specification.
+///
+/// Soname data may be used as package relation of type provision and runtime dependency.
+/// The data consists of the shared object file `name` (a [`Name`]), and the optional `version` (a
+/// [`Version`]) and `architecture` (an [`ArchitectureBit`]).
+///
+/// If only `name` is provided, the [`SonameV1`] denotes the _basic_ form which can be used in files
+/// that may contain static data about package sources (e.g. [PKGBUILD] or [SRCINFO] files).
+/// If `name`, `version` and `architecture` are provided this denotes the _explicit_ form which can
+/// be used in files that may contain dynamic data derived from a specific package build environment
+/// (i.e. [PKGINFO]).
+///
+/// # Note
+///
+/// If the [soname] of the targeted library does not contain version information (i.e. there is no
+/// trailing string after a `.so.`), the `version` component is [`None`]. In this case the string
+/// representation of this type uses the `name` component instead of the `version` component.
+///
+/// # Warning
+///
+/// This type is **deprecated** and [`SonameV2`] should be preferred instead!
+/// Due to the loose nature of the [alpm-sonamev1] specification, the _basic_ form overlaps with the
+/// specification of [`Name`] and the _explicit_ form overlaps with that of [`PackageRelation`].
+///
+/// # Examples
+///
+/// ```
+/// use alpm_types::{ArchitectureBit, SonameV1};
+///
+/// # fn main() -> Result<(), alpm_types::Error> {
+/// let basic_soname = SonameV1::Basic("example.so".parse()?);
+/// let explicit_soname = SonameV1::Explicit {
+///     name: "example.so".parse()?,
+///     version: "1.0.0".parse()?,
+///     architecture: ArchitectureBit::Bit64,
+/// };
+/// # Ok(())
+/// # }
+/// ```
+///
+/// [alpm-sonamev1]: https://alpm.archlinux.page/specifications/alpm-sonamev1.7.html
+/// [soname]: https://en.wikipedia.org/wiki/Soname
+/// [PKGBUILD]: https://man.archlinux.org/man/PKGBUILD.5
+/// [SRCINFO]: https://alpm.archlinux.page/specifications/SRCINFO.5.html
+/// [PKGINFO]: https://alpm.archlinux.page/specifications/PKGINFO.5.html
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum SonameV1 {
+    /// Basic form of soname which only contains the name of the shared object.
+    Basic(Name),
+    /// Explicit form of soname which contains the name, version and architecture of the shared
+    /// object.
+    Explicit {
+        /// Name.
+        name: Name,
+        /// Version.
+        version: Version,
+        /// Architecture bit.
+        architecture: ArchitectureBit,
+    },
+}
+
+impl SonameV1 {
+    /// Creates a new [`SonameV1`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use alpm_types::{ArchitectureBit, SonameV1};
+    ///
+    /// # fn main() -> Result<(), alpm_types::Error> {
+    /// let basic_soname = SonameV1::new("example.so".parse()?, None, None);
+    /// let explicit_soname = SonameV1::new(
+    ///     "example.so".parse()?,
+    ///     Some("1.0.0".parse()?),
+    ///     Some(ArchitectureBit::Bit64),
+    /// );
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn new(
+        name: Name,
+        version: Option<Version>,
+        architecture: Option<ArchitectureBit>,
+    ) -> Self {
+        if let (Some(version), Some(architecture)) = (version, architecture) {
+            Self::Explicit {
+                name,
+                version,
+                architecture,
+            }
+        } else {
+            Self::Basic(name)
+        }
+    }
+}
+
+impl FromStr for SonameV1 {
+    type Err = Error;
+    /// Parses a [`SonameV1`] from a string slice.
+    ///
+    /// The string slice must be in the format `name[=version-architecture]`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if a [`SonameV1`] can not be parsed from input.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::str::FromStr;
+    ///
+    /// use alpm_types::{ArchitectureBit, SonameV1};
+    ///
+    /// # fn main() -> Result<(), alpm_types::Error> {
+    /// assert_eq!(
+    ///     SonameV1::from_str("example.so=1.0.0-64")?,
+    ///     SonameV1::Explicit {
+    ///         name: "example.so".parse()?,
+    ///         version: "1.0.0".parse()?,
+    ///         architecture: ArchitectureBit::Bit64,
+    ///     },
+    /// );
+    /// assert_eq!(
+    ///     SonameV1::from_str("example.so")?,
+    ///     SonameV1::Basic("example.so".parse()?),
+    /// );
+    /// # Ok(())
+    /// # }
+    /// ```
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut parts = s.split('=');
+        let name = Name::new(
+            parts
+                .next()
+                .ok_or(Error::MissingComponent { component: "name" })?,
+        )?;
+        let mut version = None;
+        let mut architecture = None;
+        if let Some(rest) = parts.next() {
+            let mut rest_parts = rest.split('-');
+            if let Some(value) = rest_parts.next() {
+                if !name.to_string().contains(value) {
+                    version = Some(value.parse()?);
+                }
+            }
+            if let Some(value) = rest_parts.last() {
+                architecture = Some(value.parse()?);
+            }
+        }
+        Ok(Self::new(name, version, architecture))
+    }
+}
+
+impl Display for SonameV1 {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Basic(name) => write!(f, "{name}"),
+            Self::Explicit {
+                name,
+                version,
+                architecture,
+            } => write!(f, "{name}={version}-{architecture}"),
+        }
+    }
+}
 
 /// A package relation
 ///
@@ -429,5 +595,36 @@ mod tests {
     ) {
         let opt_depend_result = OptionalDependency::from_str(input);
         assert_eq!(expected_result, opt_depend_result);
+    }
+
+    #[rstest]
+    #[case("example.so", SonameV1::new("example.so".parse().unwrap(), None, None))]
+    #[case("example.so=1.0.0-64", SonameV1::new("example.so".parse().unwrap(), Some("1.0.0".parse().unwrap()), Some(ArchitectureBit::Bit64)))]
+    fn sonamev1_from_string(
+        #[case] input: &str,
+        #[case] expected_result: SonameV1,
+    ) -> testresult::TestResult<()> {
+        let soname = SonameV1::from_str(input)?;
+        assert_eq!(expected_result, soname);
+        assert_eq!(input, soname.to_string());
+        Ok(())
+    }
+
+    #[rstest]
+    #[case(
+        "libwlroots-0.18.so=libwlroots-0.18.so-64",
+        SonameV1::new(
+            "libwlroots-0.18.so".parse().unwrap(),
+            None,
+            Some(ArchitectureBit::Bit64),
+        )
+    )]
+    fn sonamev1_from_string_without_version(
+        #[case] input: &str,
+        #[case] expected_result: SonameV1,
+    ) -> testresult::TestResult<()> {
+        let soname = SonameV1::from_str(input)?;
+        assert_eq!(expected_result, soname);
+        Ok(())
     }
 }
