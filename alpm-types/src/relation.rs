@@ -6,7 +6,138 @@ use std::{
 use serde::Serialize;
 use strum::IntoEnumIterator;
 
-use crate::{Error, Name, VersionComparison, VersionRequirement};
+use crate::{ArchitectureBit, Error, Name, Version, VersionComparison, VersionRequirement};
+
+/// The legacy representation of [soname] data of a shared object.
+///
+/// Soname data may be used as package relations, such as provisions and runtime dependencies.
+/// The data consists of the shared object file `name` (a [`Name`]), an optional `version` (a
+/// [`Version`]) and an optional `architecture` (an [`ArchitectureBit`]).
+///
+/// # Note
+///
+/// If the [soname] of the targeted library does not contain version information (i.e. there is no
+/// trailing string after a `.so.`), the `version` component is [`None`]. In this case the string
+/// representation of this type uses the `name` component instead of the `version` component.
+///
+/// [soname]: https://en.wikipedia.org/wiki/Soname
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SonameV1 {
+    /// Name.
+    pub name: Name,
+    /// Version.
+    pub version: Option<Version>,
+    /// Architecture bit.
+    pub architecture: Option<ArchitectureBit>,
+}
+
+impl SonameV1 {
+    /// Creates a new [`SonameV1`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use alpm_types::{ArchitectureBit, SonameV1};
+    ///
+    /// # fn main() -> Result<(), alpm_types::Error> {
+    /// SonameV1::new(
+    ///     "example.so".parse()?,
+    ///     Some("1.0.0".parse()?),
+    ///     Some(ArchitectureBit::Bit64),
+    /// );
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn new(
+        name: Name,
+        version: Option<Version>,
+        architecture: Option<ArchitectureBit>,
+    ) -> Self {
+        Self {
+            name,
+            version,
+            architecture,
+        }
+    }
+}
+
+impl FromStr for SonameV1 {
+    type Err = Error;
+    /// Parses a [`SonameV1`] from a string slice.
+    ///
+    /// The string slice must be in the format `name[=version-architecture]`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if a [`SonameV1`] can not be parsed from input.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::str::FromStr;
+    ///
+    /// use alpm_types::{ArchitectureBit, SonameV1};
+    ///
+    /// # fn main() -> Result<(), alpm_types::Error> {
+    /// assert_eq!(
+    ///     SonameV1::from_str("example.so=1.0.0-64")?,
+    ///     SonameV1::new(
+    ///         "example.so".parse()?,
+    ///         Some("1.0.0".parse()?),
+    ///         Some(ArchitectureBit::Bit64),
+    ///     ),
+    /// );
+    /// assert_eq!(
+    ///     SonameV1::from_str("example.so=1.0.0")?,
+    ///     SonameV1::new("example.so".parse()?, Some("1.0.0".parse()?), None),
+    /// );
+    /// assert_eq!(
+    ///     SonameV1::from_str("example.so")?,
+    ///     SonameV1::new("example.so".parse()?, None, None),
+    /// );
+    /// # Ok(())
+    /// # }
+    /// ```
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut parts = s.split('=');
+        let name = Name::new(
+            parts
+                .next()
+                .ok_or(Error::MissingComponent { component: "name" })?,
+        )?;
+        let mut version = None;
+        let mut architecture = None;
+        if let Some(rest) = parts.next() {
+            let mut rest_parts = rest.split('-');
+            if let Some(value) = rest_parts.next() {
+                if !name.to_string().contains(value) {
+                    version = Some(value.parse()?);
+                }
+            }
+            if let Some(value) = rest_parts.last() {
+                architecture = Some(value.parse()?);
+            }
+        }
+        Ok(Self {
+            name,
+            version,
+            architecture,
+        })
+    }
+}
+
+impl Display for SonameV1 {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.name)?;
+        if let Some(version) = self.version.as_ref() {
+            write!(f, "={}", version)?;
+        }
+        if let Some(architecture) = self.architecture.as_ref() {
+            write!(f, "-{}", architecture)?;
+        }
+        Ok(())
+    }
+}
 
 /// A package relation
 ///
@@ -429,5 +560,37 @@ mod tests {
     ) {
         let opt_depend_result = OptionalDependency::from_str(input);
         assert_eq!(expected_result, opt_depend_result);
+    }
+
+    #[rstest]
+    #[case("example.so", SonameV1::new("example.so".parse().unwrap(), None, None))]
+    #[case("example.so=1.0.0", SonameV1::new("example.so".parse().unwrap(), Some("1.0.0".parse().unwrap()), None))]
+    #[case("example.so=1.0.0-64", SonameV1::new("example.so".parse().unwrap(), Some("1.0.0".parse().unwrap()), Some(ArchitectureBit::Bit64)))]
+    fn sonamev1_from_string(
+        #[case] input: &str,
+        #[case] expected_result: SonameV1,
+    ) -> testresult::TestResult<()> {
+        let soname = SonameV1::from_str(input)?;
+        assert_eq!(expected_result, soname);
+        assert_eq!(input, soname.to_string());
+        Ok(())
+    }
+
+    #[rstest]
+    #[case(
+        "libwlroots-0.18.so=libwlroots-0.18.so-64",
+        SonameV1::new(
+            "libwlroots-0.18.so".parse().unwrap(),
+            None,
+            Some(ArchitectureBit::Bit64),
+        )
+    )]
+    fn sonamev1_from_string_without_version(
+        #[case] input: &str,
+        #[case] expected_result: SonameV1,
+    ) -> testresult::TestResult<()> {
+        let soname = SonameV1::from_str(input)?;
+        assert_eq!(expected_result, soname);
+        Ok(())
     }
 }
