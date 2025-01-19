@@ -72,6 +72,48 @@ pub enum Architecture {
     X86_64V4,
 }
 
+/// ELF architecture format.
+///
+/// This enum represents the _Class_ field in the [_ELF Header_].
+///
+/// ## Examples
+///
+/// ```
+/// use std::str::FromStr;
+///
+/// use alpm_types::ElfArchitectureFormat;
+///
+/// # fn main() -> Result<(), alpm_types::Error> {
+/// // create ElfArchitectureFormat from str
+/// assert_eq!(
+///     ElfArchitectureFormat::from_str("32"),
+///     Ok(ElfArchitectureFormat::Bit32)
+/// );
+/// assert_eq!(
+///     ElfArchitectureFormat::from_str("64"),
+///     Ok(ElfArchitectureFormat::Bit64)
+/// );
+///
+/// // format as String
+/// assert_eq!("32", format!("{}", ElfArchitectureFormat::Bit32));
+/// assert_eq!("64", format!("{}", ElfArchitectureFormat::Bit64));
+/// # Ok(())
+/// # }
+/// ```
+///
+/// [_ELF Header_]: https://en.wikipedia.org/wiki/Executable_and_Linkable_Format#ELF_header
+#[derive(Clone, Copy, Debug, Display, EnumString, Eq, Ord, PartialEq, PartialOrd)]
+#[non_exhaustive]
+#[strum(serialize_all = "lowercase")]
+pub enum ElfArchitectureFormat {
+    /// 32-bit
+    #[strum(to_string = "32")]
+    Bit32 = 32,
+    /// 64-bit
+    #[strum(to_string = "64")]
+    Bit64 = 64,
+}
+
 #[cfg(test)]
 mod tests {
     use std::str::FromStr;
@@ -119,6 +161,27 @@ mod tests {
     #[case(Architecture::X86_64V3, "x86_64_v3")]
     #[case(Architecture::X86_64V4, "x86_64_v4")]
     fn architecture_format_string(#[case] arch: Architecture, #[case] arch_str: &str) {
+        assert_eq!(arch_str, format!("{}", arch));
+    }
+
+    #[rstest]
+    #[case("32", Ok(ElfArchitectureFormat::Bit32))]
+    #[case("64", Ok(ElfArchitectureFormat::Bit64))]
+    #[case("foo", Err(ParseError::VariantNotFound))]
+    fn elf_architecture_format_from_string(
+        #[case] s: &str,
+        #[case] arch: Result<ElfArchitectureFormat, ParseError>,
+    ) {
+        assert_eq!(ElfArchitectureFormat::from_str(s), arch);
+    }
+
+    #[rstest]
+    #[case(ElfArchitectureFormat::Bit32, "32")]
+    #[case(ElfArchitectureFormat::Bit64, "64")]
+    fn elf_architecture_format_display(
+        #[case] arch: ElfArchitectureFormat,
+        #[case] arch_str: &str,
+    ) {
         assert_eq!(arch_str, format!("{}", arch));
     }
 }

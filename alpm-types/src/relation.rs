@@ -5,8 +5,461 @@ use std::{
 
 use serde::Serialize;
 use strum::IntoEnumIterator;
+use winnow::{
+    ModalResult,
+    Parser,
+    ascii::digit1,
+    combinator::{alt, cut_err, eof, fail, peek, repeat_till},
+    error::{StrContext, StrContextValue},
+    stream::Stream,
+    token::{any, rest, take_while},
+};
 
-use crate::{Error, Name, VersionComparison, VersionRequirement};
+use crate::{
+    ElfArchitectureFormat,
+    Error,
+    Name,
+    SharedObjectName,
+    Version,
+    VersionComparison,
+    VersionRequirement,
+};
+
+/// Provides either a [`Version`] or a [`SharedObjectName`].
+///
+/// This enum is used when creating [`SonameV1`].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum VersionOrSoname {
+    /// A version for a [`SonameV1`].
+    Version(Version),
+
+    /// A soname for a [`SonameV1`].
+    Soname(SharedObjectName),
+}
+
+impl FromStr for VersionOrSoname {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self::parser.parse(s)?)
+    }
+}
+
+impl VersionOrSoname {
+    /// Recognizes a [`Version`] or [`SharedObjectName`] in a string slice.
+    ///
+    /// First attempts to recognize a [`SharedObjectName`] and if that fails, falls back to
+    /// recognizing a [`Version`].
+    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+        // In the following, we're doing our own `alt` implementation.
+        // The reason for this is that we build our type parsers so that they throw errors
+        // if they encounter unexpected input instead of backtracking.
+        let checkpoint = input.checkpoint();
+        let soname_result = SharedObjectName::parser.parse_next(input);
+        if soname_result.is_ok() {
+            let soname = soname_result?;
+            return Ok(VersionOrSoname::Soname(soname));
+        }
+
+        input.reset(&checkpoint);
+        let version_result = rest.try_map(Version::from_str).parse_next(input);
+        if version_result.is_ok() {
+            let version = version_result?;
+            return Ok(VersionOrSoname::Version(version));
+        }
+
+        cut_err(fail)
+            .context(StrContext::Expected(StrContextValue::Description(
+                "version or shared object name",
+            )))
+            .parse_next(input)
+    }
+}
+
+impl Display for VersionOrSoname {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            VersionOrSoname::Version(version) => write!(f, "{version}"),
+            VersionOrSoname::Soname(soname) => write!(f, "{soname}"),
+        }
+    }
+}
+
+/// Representation of [soname] data of a shared object based on the [alpm-sonamev1] specification.
+///
+/// Soname data may be used as package relation of type provision and runtime dependency.
+/// The data consists of the shared object file `name` (a [`Name`]), and the optional `version` (a
+/// [`Version`]) and `architecture` (an [`ElfArchitectureFormat`]).
+///
+/// This type distinguishes between three forms: _basic_, _unversioned_ and _explicit_.
+///
+/// - [`SonameV1::Basic`] is used when only the `name` of a _shared object_ file is used. This form
+///   can be used in files that may contain static data about package sources (e.g. [PKGBUILD] or
+///   [SRCINFO] files).
+/// - [`SonameV1::Unversioned`] is used when the `name` of a _shared object_ file, its _soname_
+///   (which does _not_ expose a specific version) and its `architecture` (derived from the [ELF]
+///   class of the file) are used. This form can be used in files that may contain dynamic data
+///   derived from a specific package build environment (i.e. [PKGINFO]). It is discouraged to use
+///   this form in files that contain static data about package sources (e.g. [PKGBUILD] or
+///   [SRCINFO] files).
+/// - [`SonameV1::Explicit`] is used when the `name` of a _shared object_ file, the `version` from
+///   its _soname_ and its `architecture` (derived from the [ELF] class of the file) are used. This
+///   form can be used in files that may contain dynamic data derived from a specific package build
+///   environment (i.e. [PKGINFO]). It is discouraged to use this form in files that contain static
+///   data about package sources (e.g. [PKGBUILD] or [SRCINFO] files).
+///
+/// # Warning
+///
+/// This type is **deprecated** and `SonameV2` should be preferred instead!
+/// Due to the loose nature of the [alpm-sonamev1] specification, the _basic_ form overlaps with the
+/// specification of [`Name`] and the _explicit_ form overlaps with that of [`PackageRelation`].
+///
+/// # Examples
+///
+/// ```
+/// use alpm_types::{ElfArchitectureFormat, SonameV1};
+///
+/// # fn main() -> Result<(), alpm_types::Error> {
+/// let basic_soname = SonameV1::Basic("example.so".parse()?);
+/// let unversioned_soname = SonameV1::Unversioned {
+///     name: "example.so".parse()?,
+///     soname: "example.so".parse()?,
+///     architecture: ElfArchitectureFormat::Bit64,
+/// };
+/// let explicit_soname = SonameV1::Explicit {
+///     name: "example.so".parse()?,
+///     version: "1.0.0".parse()?,
+///     architecture: ElfArchitectureFormat::Bit64,
+/// };
+/// # Ok(())
+/// # }
+/// ```
+///
+/// [alpm-sonamev1]: https://alpm.archlinux.page/specifications/alpm-sonamev1.7.html
+/// [ELF]: https://en.wikipedia.org/wiki/Executable_and_Linkable_Format
+/// [soname]: https://en.wikipedia.org/wiki/Soname
+/// [PKGBUILD]: https://man.archlinux.org/man/PKGBUILD.5
+/// [SRCINFO]: https://alpm.archlinux.page/specifications/SRCINFO.5.html
+/// [PKGINFO]: https://alpm.archlinux.page/specifications/PKGINFO.5.html
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum SonameV1 {
+    /// Basic representation of a _shared object_ file.
+    ///
+    /// Tracks the `name` of a _shared object_ file.
+    /// This form is used when referring to _shared object_ files without their soname data.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::str::FromStr;
+    ///
+    /// use alpm_types::SonameV1;
+    ///
+    /// # fn main() -> Result<(), alpm_types::Error> {
+    /// let soname = SonameV1::from_str("example.so")?;
+    /// assert_eq!(soname, SonameV1::Basic("example.so".parse()?));
+    /// # Ok(())
+    /// # }
+    /// ```
+    Basic(SharedObjectName),
+
+    /// Unversioned representation of an ELF file's soname data.
+    ///
+    /// Tracks the `name` of a _shared object_ file, its _soname_ instead of a version and its
+    /// `architecture`. This form is used if the _soname data_ of a _shared object_ does not
+    /// expose a version.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::str::FromStr;
+    ///
+    /// use alpm_types::{ElfArchitectureFormat, SonameV1};
+    ///
+    /// # fn main() -> Result<(), alpm_types::Error> {
+    /// let soname = SonameV1::from_str("example.so=example.so-64")?;
+    /// assert_eq!(
+    ///     soname,
+    ///     SonameV1::Unversioned {
+    ///         name: "example.so".parse()?,
+    ///         soname: "example.so".parse()?,
+    ///         architecture: ElfArchitectureFormat::Bit64,
+    ///     }
+    /// );
+    /// # Ok(())
+    /// # }
+    /// ```
+    Unversioned {
+        /// The least specific name of the shared object file.
+        name: SharedObjectName,
+        /// The value of the shared object's _SONAME_ field in its _dynamic section_.
+        soname: SharedObjectName,
+        /// The ELF architecture format of the shared object file.
+        architecture: ElfArchitectureFormat,
+    },
+
+    /// Explicit representation of an ELF file's soname data.
+    ///
+    /// Tracks the `name` of a _shared object_ file, the `version` of its _soname_ and its
+    /// `architecture`. This form is used if the _soname data_ of a _shared object_ exposes a
+    /// specific version.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::str::FromStr;
+    ///
+    /// use alpm_types::{ElfArchitectureFormat, SonameV1};
+    ///
+    /// # fn main() -> Result<(), alpm_types::Error> {
+    /// let soname = SonameV1::from_str("example.so=1.0.0-64")?;
+    /// assert_eq!(
+    ///    soname,
+    ///    SonameV1::Explicit {
+    ///         name: "example.so".parse()?,
+    ///         version: "1.0.0".parse()?,
+    ///         architecture: ElfArchitectureFormat::Bit64,
+    ///     }
+    /// );
+    /// # Ok(())
+    /// # }
+    Explicit {
+        /// The least specific name of the shared object file.
+        name: SharedObjectName,
+        /// Version.
+        version: Version,
+        /// The ELF architecture format of the shared object file.
+        architecture: ElfArchitectureFormat,
+    },
+}
+
+impl SonameV1 {
+    /// Creates a new [`SonameV1`].
+    ///
+    /// Depending on input, this function returns different variants of [`SonameV1`]:
+    ///
+    /// - [`SonameV1::Basic`], if both `version_or_soname` and `architecture` are [`None`]
+    /// - [`SonameV1::Unversioned`], if `version_or_soname` is [`VersionOrSoname::Soname`] and
+    ///   `architecture` is [`Some`]
+    /// - [`SonameV1::Explicit`], if `version_or_soname` is [`VersionOrSoname::Version`] and
+    ///   `architecture` is [`Some`]
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use alpm_types::{ElfArchitectureFormat, SonameV1};
+    ///
+    /// # fn main() -> Result<(), alpm_types::Error> {
+    /// let basic_soname = SonameV1::new("example.so".parse()?, None, None)?;
+    /// assert_eq!(basic_soname, SonameV1::Basic("example.so".parse()?));
+    ///
+    /// let unversioned_soname = SonameV1::new(
+    ///     "example.so".parse()?,
+    ///     Some("example.so".parse()?),
+    ///     Some(ElfArchitectureFormat::Bit64),
+    /// )?;
+    /// assert_eq!(
+    ///     unversioned_soname,
+    ///     SonameV1::Unversioned {
+    ///         name: "example.so".parse()?,
+    ///         soname: "example.so".parse()?,
+    ///         architecture: "64".parse()?
+    ///     }
+    /// );
+    ///
+    /// let explicit_soname = SonameV1::new(
+    ///     "example.so".parse()?,
+    ///     Some("1.0.0".parse()?),
+    ///     Some(ElfArchitectureFormat::Bit64),
+    /// )?;
+    /// assert_eq!(
+    ///     explicit_soname,
+    ///     SonameV1::Explicit {
+    ///         name: "example.so".parse()?,
+    ///         version: "1.0.0".parse()?,
+    ///         architecture: "64".parse()?
+    ///     }
+    /// );
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn new(
+        name: SharedObjectName,
+        version_or_soname: Option<VersionOrSoname>,
+        architecture: Option<ElfArchitectureFormat>,
+    ) -> Result<Self, Error> {
+        match (version_or_soname, architecture) {
+            (None, None) => Ok(Self::Basic(name)),
+            (Some(VersionOrSoname::Version(version)), Some(architecture)) => Ok(Self::Explicit {
+                name,
+                version,
+                architecture,
+            }),
+            (Some(VersionOrSoname::Soname(soname)), Some(architecture)) => Ok(Self::Unversioned {
+                name,
+                soname,
+                architecture,
+            }),
+            (None, Some(_)) => Err(Error::InvalidSonameV1(
+                "SonameV1 needs a version when specifying architecture",
+            )),
+            (Some(_), None) => Err(Error::InvalidSonameV1(
+                "SonameV1 needs an architecture when specifying version",
+            )),
+        }
+    }
+
+    /// Parses a [`SonameV1`] from a string slice.
+    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+        // Parse the shared object name.
+        let name = Self::parse_shared_object_name(input)?;
+
+        // Parse the version delimiter `=`.
+        //
+        // If it doesn't exist, it is the basic form.
+        if Self::parse_version_delimiter(input).is_err() {
+            return Ok(SonameV1::Basic(name));
+        }
+
+        // Take all input until we hit the delimiter and architecture.
+        let (raw_version_or_soname, _): (String, _) =
+            cut_err(repeat_till(1.., any, peek(("-", digit1, eof))))
+                .context(StrContext::Expected(StrContextValue::Description(
+                    "a version or shared object name, followed by an ELF architecture format",
+                )))
+                .parse_next(input)?;
+
+        // Two cases are possible here:
+        //
+        // 1. Unversioned: `name=soname-architecture`
+        // 2. Explicit: `name=version-architecture`
+        let version_or_soname =
+            VersionOrSoname::parser.parse_next(&mut raw_version_or_soname.as_str())?;
+
+        // Parse the `-` delimiter
+        Self::parse_architecture_delimiter(input)?;
+
+        // Parse the architecture
+        let architecture = Self::parse_architecture(input)?;
+
+        match version_or_soname {
+            VersionOrSoname::Version(version) => Ok(SonameV1::Explicit {
+                name,
+                version,
+                architecture,
+            }),
+            VersionOrSoname::Soname(soname) => Ok(SonameV1::Unversioned {
+                name,
+                soname,
+                architecture,
+            }),
+        }
+    }
+
+    /// Parses the shared object name until the version delimiter `=`.
+    fn parse_shared_object_name(input: &mut &str) -> ModalResult<SharedObjectName> {
+        repeat_till(1.., any, peek(alt(("=", eof))))
+            .try_map(|(name, _): (String, &str)| SharedObjectName::from_str(&name))
+            .context(StrContext::Label("shared object name"))
+            .parse_next(input)
+    }
+
+    /// Parses the version delimiter `=`.
+    ///
+    /// This function discards the result for only checking if the version delimiter is present.
+    fn parse_version_delimiter(input: &mut &str) -> ModalResult<()> {
+        cut_err("=")
+            .context(StrContext::Label("version delimiter"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "version delimiter `=`",
+            )))
+            .parse_next(input)
+            .map(|_| ())
+    }
+
+    /// Parses the architecture delimiter `-`.
+    fn parse_architecture_delimiter(input: &mut &str) -> ModalResult<()> {
+        cut_err("-")
+            .context(StrContext::Label("architecture delimiter"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "architecture delimiter `-`",
+            )))
+            .parse_next(input)
+            .map(|_| ())
+    }
+
+    /// Parses the architecture.
+    fn parse_architecture(input: &mut &str) -> ModalResult<ElfArchitectureFormat> {
+        cut_err(take_while(1.., |c: char| c.is_ascii_digit()))
+            .try_map(ElfArchitectureFormat::from_str)
+            .context(StrContext::Label("architecture"))
+            .parse_next(input)
+    }
+}
+
+impl FromStr for SonameV1 {
+    type Err = Error;
+    /// Parses a [`SonameV1`] from a string slice.
+    ///
+    /// The string slice must be in the format `name[=version-architecture]`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if a [`SonameV1`] can not be parsed from input.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::str::FromStr;
+    ///
+    /// use alpm_types::{ElfArchitectureFormat, SonameV1};
+    ///
+    /// # fn main() -> Result<(), alpm_types::Error> {
+    /// assert_eq!(
+    ///     SonameV1::from_str("example.so=1.0.0-64")?,
+    ///     SonameV1::Explicit {
+    ///         name: "example.so".parse()?,
+    ///         version: "1.0.0".parse()?,
+    ///         architecture: ElfArchitectureFormat::Bit64,
+    ///     },
+    /// );
+    /// assert_eq!(
+    ///     SonameV1::from_str("example.so=example.so-64")?,
+    ///     SonameV1::Unversioned {
+    ///         name: "example.so".parse()?,
+    ///         soname: "example.so".parse()?,
+    ///         architecture: ElfArchitectureFormat::Bit64,
+    ///     },
+    /// );
+    /// assert_eq!(
+    ///     SonameV1::from_str("example.so")?,
+    ///     SonameV1::Basic("example.so".parse()?),
+    /// );
+    /// # Ok(())
+    /// # }
+    /// ```
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self::parser.parse(s)?)
+    }
+}
+
+impl Display for SonameV1 {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Basic(name) => write!(f, "{name}"),
+            Self::Unversioned {
+                name,
+                soname,
+                architecture,
+            } => write!(f, "{name}={soname}-{architecture}"),
+            Self::Explicit {
+                name,
+                version,
+                architecture,
+            } => write!(f, "{name}={version}-{architecture}"),
+        }
+    }
+}
 
 /// A package relation
 ///
@@ -429,5 +882,94 @@ mod tests {
     ) {
         let opt_depend_result = OptionalDependency::from_str(input);
         assert_eq!(expected_result, opt_depend_result);
+    }
+
+    #[rstest]
+    #[case("example.so", SonameV1::Basic("example.so".parse().unwrap()))]
+    #[case("example.so=1.0.0-64", SonameV1::Explicit {
+        name: "example.so".parse().unwrap(),
+        version: "1.0.0".parse().unwrap(),
+        architecture: ElfArchitectureFormat::Bit64,
+    })]
+    fn sonamev1_from_string(
+        #[case] input: &str,
+        #[case] expected_result: SonameV1,
+    ) -> testresult::TestResult<()> {
+        let soname = SonameV1::from_str(input)?;
+        assert_eq!(expected_result, soname);
+        assert_eq!(input, soname.to_string());
+        Ok(())
+    }
+
+    #[rstest]
+    #[case(
+        "libwlroots-0.18.so=libwlroots-0.18.so-64",
+        SonameV1::Unversioned {
+            name: "libwlroots-0.18.so".parse().unwrap(),
+            soname: "libwlroots-0.18.so".parse().unwrap(),
+            architecture: ElfArchitectureFormat::Bit64,
+        },
+    )]
+    #[case(
+        "libexample.so=otherlibexample.so-64",
+        SonameV1::Unversioned {
+            name: "libexample.so".parse().unwrap(),
+            soname: "otherlibexample.so".parse().unwrap(),
+            architecture: ElfArchitectureFormat::Bit64,
+        },
+    )]
+    fn sonamev1_from_string_without_version(
+        #[case] input: &str,
+        #[case] expected_result: SonameV1,
+    ) -> testresult::TestResult<()> {
+        let soname = SonameV1::from_str(input)?;
+        assert_eq!(expected_result, soname);
+        assert_eq!(input, soname.to_string());
+        Ok(())
+    }
+
+    #[rstest]
+    #[case("noso", "invalid shared object name")]
+    #[case("invalidversion.so=1*2-64", "expected version or shared object name")]
+    #[case(
+        "nodelimiter.so=1.64",
+        "expected a version or shared object name, followed by an ELF architecture format"
+    )]
+    #[case(
+        "noarchitecture.so=1-",
+        "expected a version or shared object name, followed by an ELF architecture format"
+    )]
+    #[case("invalidarchitecture.so=1-82", "invalid architecture")]
+    #[case("invalidsoname.so~1.64", "unexpected trailing content")]
+    fn invalid_sonamev1_parser(#[case] input: &str, #[case] error_snippet: &str) {
+        let result = SonameV1::from_str(input);
+        assert!(result.is_err(), "Expected SonameV1 parsing to fail");
+        let err = result.unwrap_err();
+        let pretty_error = err.to_string();
+        assert!(
+            pretty_error.contains(error_snippet),
+            "Error:\n=====\n{pretty_error}\n=====\nshould contain snippet:\n\n{error_snippet}"
+        );
+    }
+
+    #[rstest]
+    #[case(
+        "otherlibexample.so",
+        VersionOrSoname::Soname(
+            SharedObjectName::new("otherlibexample.so").unwrap())
+    )]
+    #[case(
+        "5:1.0.0-2",
+        VersionOrSoname::Version(
+            Version::from_str("5:1.0.0-2").unwrap())
+    )]
+    fn version_or_soname_from_string(
+        #[case] input: &str,
+        #[case] expected_result: VersionOrSoname,
+    ) -> testresult::TestResult<()> {
+        let version = VersionOrSoname::from_str(input)?;
+        assert_eq!(expected_result, version);
+        assert_eq!(input, version.to_string());
+        Ok(())
     }
 }

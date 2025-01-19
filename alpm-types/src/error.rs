@@ -101,6 +101,10 @@ pub enum Error {
     /// An invalid OpenPGP key ID
     #[error("The string is not a valid OpenPGP key ID: {0}, must be 16 hexadecimal characters")]
     InvalidOpenPGPKeyId(String),
+
+    /// An invalid shared object name (v1)
+    #[error("Invalid shared object name (v1): {0}")]
+    InvalidSonameV1(&'static str),
 }
 
 /// Convert a `std::num::ParseIntError` into a `Error::InvalidInteger`
@@ -109,6 +113,15 @@ impl From<std::num::ParseIntError> for crate::error::Error {
         Self::InvalidInteger {
             kind: e.kind().clone(),
         }
+    }
+}
+
+impl<'a> From<winnow::error::ParseError<&'a str, winnow::error::ContextError>>
+    for crate::error::Error
+{
+    /// Converts a [`winnow::error::ContextError`] into an [`Error::ParseError`].
+    fn from(value: winnow::error::ParseError<&'a str, winnow::error::ContextError>) -> Self {
+        Self::ParseError(value.to_string())
     }
 }
 

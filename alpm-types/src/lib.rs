@@ -44,7 +44,7 @@ mod license;
 pub use license::License;
 
 mod name;
-pub use name::{BuildTool, Name};
+pub use name::{BuildTool, Name, SharedObjectName};
 
 mod path;
 pub use path::{
@@ -64,13 +64,13 @@ mod pkg;
 pub use pkg::{ExtraData, PackageBaseName, PackageDescription, PackageType};
 
 mod relation;
-pub use relation::{Group, OptionalDependency, PackageRelation};
+pub use relation::{Group, OptionalDependency, PackageRelation, SonameV1, VersionOrSoname};
 
 mod size;
 pub use size::{CompressedSize, InstalledSize};
 
 mod system;
-pub use system::Architecture;
+pub use system::{Architecture, ElfArchitectureFormat};
 
 mod version;
 pub use version::{
