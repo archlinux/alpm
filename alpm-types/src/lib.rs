@@ -64,13 +64,13 @@ mod pkg;
 pub use pkg::{ExtraData, PackageBaseName, PackageDescription, PackageType};
 
 mod relation;
-pub use relation::{Group, OptionalDependency, PackageRelation};
+pub use relation::{Group, OptionalDependency, PackageRelation, SonameV1};
 
 mod size;
 pub use size::{CompressedSize, InstalledSize};
 
 mod system;
-pub use system::Architecture;
+pub use system::{Architecture, ElfArchitectureFormat};
 
 mod version;
 pub use version::{
