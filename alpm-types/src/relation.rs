@@ -172,15 +172,12 @@ impl FromStr for PackageRelation {
 /// This type is used for representing dependencies that are not essential for base functionality
 /// of a package, but may be necessary to make use of certain features of a package.
 ///
-/// An [`OptDepend`] consists of a name and an optional description separated by a colon (`:`).
+/// An [`OptDepend`] consists of a package relation and an optional description separated by a colon
+/// (`:`).
 ///
-/// - The name component must be a valid [`Name`].
+/// - The package relation component must be a valid [`PackageRelation`]. This means that you can
+///   specify name and version requirements for the optional dependency.
 /// - If a description is provided it must be at least one character long.
-///
-/// ## Note
-///
-/// It's currently not possible to specify a version in an optional dependency due to
-/// the limitations of the current file format.
 ///
 /// ## Examples
 ///
@@ -210,21 +207,29 @@ impl FromStr for PackageRelation {
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct OptDepend {
-    name: Name,
+    package_relation: PackageRelation,
     description: Option<String>,
 }
 
 impl OptDepend {
     /// Create a new OptDepend in a Result
-    pub fn new(name: Name, description: Option<String>) -> OptDepend {
-        OptDepend { name, description }
+    pub fn new(package_relation: PackageRelation, description: Option<String>) -> OptDepend {
+        OptDepend {
+            package_relation,
+            description,
+        }
     }
 
     /// Return the name of the optional dependency
     pub fn name(&self) -> &Name {
-        &self.name
+        &self.package_relation.name
+    }
+
+    /// Return the version requirement of the optional dependency
+    pub fn version_requirement(&self) -> &Option<VersionRequirement> {
+        &self.package_relation.version_requirement
     }
 
     /// Return the description for the optional dependency, if it exists
@@ -240,12 +245,13 @@ impl FromStr for OptDepend {
     fn from_str(s: &str) -> Result<OptDepend, Self::Err> {
         if let Some((name, description)) = s.split_once(":") {
             let description = description.trim_start();
+            let relation = PackageRelation::from_str(name)?;
             Ok(Self::new(
-                Name::new(name)?,
+                relation,
                 (!description.is_empty()).then_some(description.to_string()),
             ))
         } else {
-            Ok(Self::new(Name::new(s)?, None))
+            Ok(Self::new(PackageRelation::new(Name::new(s)?, None), None))
         }
     }
 }
@@ -322,28 +328,40 @@ mod tests {
     #[case(
         "example: this is an example dependency",
         Ok(OptDepend {
-            name: Name::new("example").unwrap(),
+            package_relation: PackageRelation {
+                name: Name::new("example").unwrap(),
+                version_requirement: None,
+            },
             description: Some("this is an example dependency".to_string()),
         }),
     )]
     #[case(
         "dep_name",
         Ok(OptDepend {
-            name: Name::new("dep_name").unwrap(),
+            package_relation: PackageRelation {
+                name: Name::new("dep_name").unwrap(),
+                version_requirement: None,
+            },
             description: None,
         }),
     )]
     #[case(
         "dep_name: ",
         Ok(OptDepend {
-            name: Name::new("dep_name").unwrap(),
+            package_relation: PackageRelation {
+                name: Name::new("dep_name").unwrap(),
+                version_requirement: None,
+            },
             description: None,
         }),
     )]
     #[case(
         "dep_name_with_special_chars-123: description with !@#$%^&*",
         Ok(OptDepend {
-            name: Name::new("dep_name_with_special_chars-123").unwrap(),
+            package_relation: PackageRelation {
+                name: Name::new("dep_name_with_special_chars-123").unwrap(),
+                version_requirement: None,
+            },
             description: Some("description with !@#$%^&*".to_string()),
         }),
     )]
@@ -361,6 +379,46 @@ mod tests {
             value: "".to_string(),
             regex_type: "pkgname".to_string(),
             regex: crate::name::NAME_REGEX.to_string(),
+        }),
+    )]
+    // versioned optional dependencies
+    #[case(
+        "elfutils=0.192: for translations",
+        Ok(OptDepend {
+            package_relation: PackageRelation {
+                name: Name::new("elfutils").unwrap(),
+                version_requirement: Some(VersionRequirement {
+                    comparison: VersionComparison::Equal,
+                    version: "0.192".parse().unwrap(),
+                }),
+            },
+            description: Some("for translations".to_string()),
+        }),
+    )]
+    #[case(
+        "python>=3: For Python bindings",
+        Ok(OptDepend {
+            package_relation: PackageRelation {
+                name: Name::new("python").unwrap(),
+                version_requirement: Some(VersionRequirement {
+                    comparison: VersionComparison::GreaterOrEqual,
+                    version: "3".parse().unwrap(),
+                }),
+            },
+            description: Some("For Python bindings".to_string()),
+        }),
+    )]
+    #[case(
+        "java-environment>=17: required by extension-wiki-publisher and extension-nlpsolver",
+        Ok(OptDepend {
+            package_relation: PackageRelation {
+                name: Name::new("java-environment").unwrap(),
+                version_requirement: Some(VersionRequirement {
+                    comparison: VersionComparison::GreaterOrEqual,
+                    version: "17".parse().unwrap(),
+                }),
+            },
+            description: Some("required by extension-wiki-publisher and extension-nlpsolver".to_string()),
         }),
     )]
     fn opt_depend_from_string(
