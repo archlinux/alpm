@@ -20,23 +20,32 @@ use alpm_types::{
     Version,
 };
 
-use super::lints::{
-    duplicate_architecture,
-    missing_architecture_for_property,
-    non_spdx_license,
-    unsafe_checksum,
+use super::{
+    lints::{
+        duplicate_architecture,
+        missing_architecture_for_property,
+        non_spdx_license,
+        unsafe_checksum,
+    },
+    package::PackageArchitecture,
 };
-#[cfg(doc)]
-use crate::source_info::Package;
 use crate::{
     error::{lint, unrecoverable, SourceInfoError},
     parser::{self, PackageBaseProperty, RawPackageBase, SharedMetaProperty},
+};
+#[cfg(doc)]
+use crate::{
+    merged::MergedPackage,
+    source_info::{Package, SourceInfo},
 };
 
 /// Package base metadata based on the `pkgbase` section in SRCINFO data.
 ///
 /// All values in this struct act as default values for all [`Package`]s in the scope of specific
 /// SRCINFO data.
+///
+/// A [`MergedPackage`] (a full view on a package's metadata) can be created using
+/// [`SourceInfo::packages_for_architecture`].
 #[derive(Debug, Clone)]
 pub struct PackageBase {
     pub name: Name,
@@ -108,6 +117,30 @@ pub struct PackageBaseArchitecture {
     pub sha256_checksums: Vec<SkippableChecksum<Sha256>>,
     pub sha384_checksums: Vec<SkippableChecksum<Sha384>>,
     pub sha512_checksums: Vec<SkippableChecksum<Sha512>>,
+}
+
+impl PackageBaseArchitecture {
+    /// Merges in the architecture specific properties of a package.
+    ///
+    /// Each existing field of `properties` overrides the architecture-independent pendant on
+    /// `self`.
+    pub fn merge_package_properties(&mut self, properties: PackageArchitecture) {
+        if let Some(dependencies) = properties.dependencies {
+            self.dependencies = dependencies;
+        }
+        if let Some(optional_dependencies) = properties.optional_dependencies {
+            self.optional_dependencies = optional_dependencies;
+        }
+        if let Some(provides) = properties.provides {
+            self.provides = provides;
+        }
+        if let Some(conflicts) = properties.conflicts {
+            self.conflicts = conflicts;
+        }
+        if let Some(replaces) = properties.replaces {
+            self.replaces = replaces;
+        }
+    }
 }
 
 /// Handles all potentially architecture specific Vector entries in the [`PackageBase::from_parsed`]

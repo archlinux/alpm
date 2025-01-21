@@ -14,8 +14,6 @@ use alpm_types::{
 use lints::{duplicate_architecture, missing_architecture_for_property, non_spdx_license};
 
 use super::lints;
-#[cfg(doc)]
-use crate::source_info::PackageBase;
 use crate::{
     error::SourceInfoError,
     parser::{
@@ -26,6 +24,11 @@ use crate::{
         SharedMetaProperty,
     },
     source_info::lints::reassigned_cleared_property,
+};
+#[cfg(doc)]
+use crate::{
+    merged::MergedPackage,
+    source_info::{PackageBase, SourceInfo},
 };
 
 /// Package metadata based on a `pkgname` section in SRCINFO data.
@@ -44,6 +47,9 @@ use crate::{
 ///
 /// This struct merely contains the overrides that should be applied on top of the
 /// [PackageBase] to get the final definition of this package.
+//
+/// Take a look at [SourceInfo::packages_for_architecture] on how to get the merged representation
+/// [MergedPackage] of a package.
 #[derive(Debug, Clone)]
 pub struct Package {
     pub name: Name,

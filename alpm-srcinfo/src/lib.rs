@@ -8,6 +8,8 @@ pub mod cli;
 pub mod commands;
 /// All error types that are exposed by this crate.
 pub mod error;
+/// Provides fully resolved package metadata derived from SRCINFO data.
+pub mod merged;
 /// The parser for SRCINFO data.
 ///
 /// It returns a rather raw line-based, but already typed representation of the contents.
@@ -20,4 +22,5 @@ pub mod parser;
 pub mod source_info;
 
 pub use error::Error;
+pub use merged::MergedPackage;
 pub use source_info::{SourceInfo, SourceInfoResult};
