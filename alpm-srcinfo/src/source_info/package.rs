@@ -16,6 +16,9 @@ use super::*;
 ///
 /// This struct merely contains the overrides that should be applied on top of the
 /// [PackageBase] to get the final definition of this package.
+///
+/// Take a look at [SourceInfo::packages_for_architecture] on how to get the merged representation
+/// [MergedPackage](crate::merged::MergedPackage) of a package.
 #[derive(Debug)]
 pub struct Package {
     pub name: Name,
