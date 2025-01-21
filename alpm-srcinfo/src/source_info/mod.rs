@@ -35,6 +35,7 @@ mod lints;
 
 use crate::{
     error::{lint, unrecoverable, Error, SourceInfoError, SourceInfoErrors},
+    merged::MergedPackagesIterator,
     parser::{self, PackageBaseProperty, SharedMetaProperty, SourceInfoContent},
     source_info::{package::Package, package_base::PackageBase},
 };
@@ -133,5 +134,16 @@ impl SourceInfo {
         }
 
         (SourceInfo { base, packages }, errors)
+    }
+
+    pub fn packages_for_architecture(
+        &self,
+        architecture: Architecture,
+    ) -> MergedPackagesIterator<'_> {
+        MergedPackagesIterator {
+            architecture,
+            source_info: self,
+            package_iterator: self.packages.iter(),
+        }
     }
 }
