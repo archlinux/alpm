@@ -55,9 +55,12 @@ The value for a test dependency is either an **alpm-package-name** or an **alpm-
 ### Optional dependency
 
 A package dependency, that provides optional functionality for a package but is otherwise not required during run-time.
-This **package relation** specifies a requirement (another package and an optional description), that is only needed for optional functionality of a given package.
+This **package relation** specifies a requirement (another package with optional version constraints and an optional description) that is only needed to enable optional functionality of a given package.
 
-The value for an optional dependency is either an **alpm-package-name** or an **alpm-package-name** directly followed by a ':' sign, a whitespace and a UTF-8-formatted description string that specifies a reason for the optional dependency for the given package (e.g. `example` or `example: for feature X`).
+The value for an optional dependency can be one of the following:
+
+1. An **alpm-package-name** (e.g., `example`) or an **alpm-comparison** (e.g., `example>=1.2.3`)
+2. An **alpm-package-name** or **alpm-comparison** followed by a `:` sign, a whitespace, and a UTF-8-formatted description string that specifies the reason for the optional dependency (e.g., `example: for feature X` or `example>=1.2.3: for feature X`)
 
 - In **PKGBUILD** files zero or more optional dependencies of a package are specified using the **optdepends** array.
 - In **PKGINFO** files the **optdepend** keyword is used to specify an optional dependency.

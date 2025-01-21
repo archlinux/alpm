@@ -175,8 +175,7 @@ impl FromStr for PackageRelation {
 /// An [`OptDepend`] consists of a package relation and an optional description separated by a colon
 /// (`:`).
 ///
-/// - The package relation component must be a valid [`PackageRelation`]. This means that you can
-///   specify name and version requirements for the optional dependency.
+/// - The package relation component must be a valid [`PackageRelation`].
 /// - If a description is provided it must be at least one character long.
 ///
 /// ## Examples
