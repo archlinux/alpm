@@ -9,6 +9,7 @@ use std::{
     path::Path,
 };
 
+use alpm_types::Architecture;
 use winnow::Parser;
 
 use crate::{
@@ -21,10 +22,17 @@ mod lints;
 pub mod package;
 pub mod package_base;
 
+#[cfg(doc)]
+use crate::merged::MergedPackage;
+use crate::merged::MergedPackagesIterator;
+
 /// The representation of SRCINFO data.
 ///
 /// Provides access to a [`PackageBase`] which tracks all data in a `pkgbase` section and a list of
 /// [`Package`] instances that provide the accumulated data of all `pkgname` sections.
+///
+/// This is the entry point for parsing SRCINFO files. Once created,
+/// [`Self::packages_for_architecture`] can be used to create usable [`MergedPackage`]s.
 #[derive(Debug, Clone)]
 pub struct SourceInfo {
     pub base: PackageBase,
@@ -155,6 +163,60 @@ impl SourceInfo {
         }
 
         (SourceInfo { base, packages }, errors)
+    }
+
+    /// Get an iterator over all packages
+    ///
+    /// ```
+    /// use alpm_srcinfo::{MergedPackage, SourceInfo};
+    /// use alpm_types::{Architecture, Name, PackageRelation};
+    ///
+    /// # fn main() -> Result<(), alpm_srcinfo::Error> {
+    /// let source_info_data = r#"
+    /// pkgbase = example
+    ///     pkgver = 1.0.0
+    ///     epoch = 1
+    ///     pkgrel = 1
+    ///     arch = x86_64
+    ///
+    /// pkgname = example
+    ///     pkgdesc = Example split package
+    ///
+    /// pkgname = example_other
+    ///     pkgdesc = The other example split package
+    /// "#;
+    /// // Parse the file. This might already error if the file cannot be parsed on a low level.
+    /// let result = SourceInfo::from_string(source_info_data)?;
+    /// // Make sure there're aren't unrecoverable logic errors, such as missing values.
+    /// let source_info = result.source_info()?;
+    ///
+    /// /// Get all merged package representations for the x86_64 architecture.
+    /// let mut packages = source_info.packages_for_architecture(Architecture::X86_64);
+    ///
+    /// let example = packages.next().unwrap();
+    /// assert_eq!(
+    ///     example.description,
+    ///     Some("Example split package".to_string())
+    /// );
+    ///
+    /// let example_other = packages.next().unwrap();
+    /// assert_eq!(
+    ///     example_other.description,
+    ///     Some("The other example split package".to_string())
+    /// );
+    ///
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn packages_for_architecture(
+        &self,
+        architecture: Architecture,
+    ) -> MergedPackagesIterator<'_> {
+        MergedPackagesIterator {
+            architecture,
+            source_info: self,
+            package_iterator: self.packages.iter(),
+        }
     }
 }
 
