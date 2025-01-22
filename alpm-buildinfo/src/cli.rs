@@ -120,7 +120,7 @@ pub struct ValidateArgs {
 
 /// Arguments for creating a BUILDINFO file according to the format version 1 schema
 ///
-/// This struct is defined separately for re-using it for both v1 and v2 since they have
+/// This struct is defined separately for reusing it for both v1 and v2 since they have
 /// an overlapping set of fields.
 #[derive(Clone, Debug, Args)]
 pub struct V1CreateArgs {
