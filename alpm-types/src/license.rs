@@ -1,6 +1,7 @@
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 
+use serde::{Serialize, Serializer};
 use spdx::Expression;
 
 use crate::Error;
@@ -35,6 +36,16 @@ pub enum License {
     Spdx(Box<spdx::Expression>),
     /// A non-standard license identifier
     Unknown(String),
+}
+
+impl Serialize for License {
+    /// Custom serde serialization as Spdx doesn't provide a serde [`Serialize`] implementation.
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+    }
 }
 
 impl License {

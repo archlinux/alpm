@@ -6,6 +6,7 @@ use std::{
 
 use lazy_regex::{lazy_regex, Lazy};
 use regex::Regex;
+use serde::Serialize;
 
 use crate::Error;
 
@@ -121,7 +122,7 @@ impl Display for BuildTool {
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Name(String);
 
 impl Name {

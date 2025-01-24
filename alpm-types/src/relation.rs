@@ -3,6 +3,7 @@ use std::{
     str::FromStr,
 };
 
+use serde::Serialize;
 use strum::IntoEnumIterator;
 
 use crate::{Error, Name, VersionComparison, VersionRequirement};
@@ -17,7 +18,7 @@ use crate::{Error, Name, VersionComparison, VersionRequirement};
 ///
 /// A [`PackageRelation`] covers all **alpm-package-relations** *except* optional
 /// dependencies, as those behave differently.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct PackageRelation {
     /// The name of the package
     pub name: Name,
@@ -209,7 +210,7 @@ impl FromStr for PackageRelation {
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct OptDepend {
     name: Name,
     description: Option<String>,

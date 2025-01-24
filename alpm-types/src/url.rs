@@ -1,6 +1,8 @@
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 
+use serde::Serialize;
+
 use crate::Error;
 
 /// Represents a URL.
@@ -27,7 +29,7 @@ use crate::Error;
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct Url(url::Url);
 
 impl Url {

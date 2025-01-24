@@ -5,6 +5,7 @@ use std::{
 };
 
 pub use digest::Digest;
+use serde::{Serialize, Serializer};
 
 use crate::digests::{Blake2b512, Md5, Sha1, Sha224, Sha256, Sha384, Sha512};
 use crate::Error;
@@ -82,10 +83,45 @@ pub type Sha512Checksum = Checksum<Sha512>;
 /// # Ok(())
 /// # }
 /// ```
+///
+/// # Developer Note
+///
+/// In case you want to wrap this type and make the parent `Serialize`able, please note the
+/// following:
+///
+/// Serde automatically adds a `Serialize` trait bound on top of it trait bounds in wrapper
+/// types. **However**, that's not needed as we use `D` simply as a phantom marker that
+/// isn't serialized in the first place.
+/// To fix this in your wrapper type, make use of the [bound container attribute], e.g.:
+///
+/// ```
+/// use alpm_types::digests::Digest;
+/// use alpm_types::Checksum;
+/// use serde::Serialize;
+///
+/// #[derive(Serialize)]
+/// struct Wrapper<D: Digest> {
+///     #[serde(bound = "D: Digest")]
+///     checksum: Checksum<D>,
+/// }
+/// ```
 #[derive(Clone)]
 pub struct Checksum<D: Digest> {
     digest: Vec<u8>,
     _marker: PhantomData<*const D>,
+}
+
+impl<D: Digest> Serialize for Checksum<D> {
+    /// Serialize a [`Checksum`] into a hex `String` representation.
+    ///
+    /// We chose hex as byte vectors are imperformant and considered bad practice for non-binary
+    /// formats like `JSON` or `YAML`
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+    }
 }
 
 impl<D: Digest> Checksum<D> {

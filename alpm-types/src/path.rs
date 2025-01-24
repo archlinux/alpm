@@ -4,6 +4,8 @@ use std::{
     str::FromStr,
 };
 
+use serde::Serialize;
+
 use crate::Error;
 
 /// A representation of an absolute path
@@ -33,7 +35,7 @@ use crate::Error;
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct AbsolutePath(PathBuf);
 
 impl AbsolutePath {
@@ -145,7 +147,7 @@ pub type StartDir = AbsolutePath;
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct RelativePath(PathBuf);
 
 impl RelativePath {

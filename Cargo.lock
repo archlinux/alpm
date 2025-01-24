@@ -108,6 +108,7 @@ dependencies = [
  "regex",
  "rstest",
  "semver",
+ "serde",
  "sha1",
  "sha2",
  "spdx",
@@ -2401,6 +2402,7 @@ dependencies = [
  "form_urlencoded",
  "idna",
  "percent-encoding",
+ "serde",
 ]
 
 [[package]]

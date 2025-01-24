@@ -4,6 +4,8 @@ use std::{
     string::ToString,
 };
 
+use serde::Serialize;
+
 use crate::error::Error;
 use crate::Architecture;
 use crate::Name;
@@ -34,7 +36,7 @@ use crate::Version;
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct MakePkgOption {
     name: String,
     on: bool,
@@ -142,7 +144,7 @@ pub type PackageOption = MakePkgOption;
 /// assert!(InstalledPackage::from_str("foo-bar-1:1.0.0-any").is_err());
 /// assert!(InstalledPackage::from_str("1:1.0.0-1-any").is_err());
 /// ```
-#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct InstalledPackage {
     name: Name,
     version: Version,

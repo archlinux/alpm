@@ -9,6 +9,7 @@ use std::{
 use lazy_regex::{lazy_regex, Lazy};
 use regex::Regex;
 use semver::Version as SemverVersion;
+use serde::Serialize;
 
 use crate::error::Error;
 use crate::Architecture;
@@ -33,7 +34,7 @@ pub(crate) static PKGVER_REGEX: Lazy<Regex> = lazy_regex!(r"^([[:alnum:]][[:alnu
 /// assert!(BuildToolVersion::from_str("1-1").is_err());
 /// assert!(BuildToolVersion::from_str("1-1-foo").is_err());
 /// ```
-#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct BuildToolVersion {
     version: Version,
     architecture: Option<Architecture>,
@@ -107,7 +108,7 @@ impl Display for BuildToolVersion {
 /// assert!(Epoch::from_str("1").is_ok());
 /// assert!(Epoch::from_str("0").is_err());
 /// ```
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Epoch(pub NonZeroUsize);
 
 impl Epoch {
@@ -157,7 +158,7 @@ impl Display for Epoch {
 /// assert!(Pkgrel::new("a".to_string()).is_err());
 /// assert!(Pkgrel::new("1.a".to_string()).is_err());
 /// ```
-#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Pkgrel(String);
 
 impl Pkgrel {
@@ -219,7 +220,7 @@ impl Display for Pkgrel {
 /// assert!(Pkgver::new("_1.0".to_string()).is_err());
 /// assert!(Pkgver::new("+1.0".to_string()).is_err());
 /// ```
-#[derive(Clone, Debug, Eq)]
+#[derive(Clone, Debug, Eq, Serialize)]
 pub struct Pkgver(pub(crate) String);
 
 impl Pkgver {
@@ -791,7 +792,7 @@ impl Display for SchemaVersion {
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct Version {
     /// The version of the package
     pub pkgver: Pkgver,
@@ -973,6 +974,7 @@ impl PartialOrd for Version {
     PartialEq,
     Eq,
     strum::VariantNames,
+    Serialize,
 )]
 pub enum VersionComparison {
     /// Less than or equal to
@@ -1036,7 +1038,7 @@ impl VersionComparison {
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct VersionRequirement {
     /// Version comparison function
     pub comparison: VersionComparison,

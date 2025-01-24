@@ -1,3 +1,4 @@
+use serde::Serialize;
 use strum::{Display, EnumString};
 
 /// CPU architecture
@@ -30,7 +31,9 @@ use strum::{Display, EnumString};
 /// assert_eq!("x86_64_v3", format!("{}", Architecture::X86_64V3));
 /// assert_eq!("x86_64_v4", format!("{}", Architecture::X86_64V4));
 /// ```
-#[derive(Clone, Copy, Debug, Display, EnumString, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(
+    Clone, Copy, Debug, Display, EnumString, Eq, Ord, Hash, PartialEq, PartialOrd, Serialize,
+)]
 #[non_exhaustive]
 #[strum(serialize_all = "lowercase")]
 pub enum Architecture {

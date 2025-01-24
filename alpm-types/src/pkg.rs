@@ -1,6 +1,7 @@
 use std::fmt::Display;
 use std::str::FromStr;
 
+use serde::Serialize;
 use strum::{Display, EnumString};
 
 use crate::{Error, Name};
@@ -22,7 +23,7 @@ use crate::{Error, Name};
 /// assert_eq!("src", format!("{}", PkgType::Source));
 /// assert_eq!("split", format!("{}", PkgType::Split));
 /// ```
-#[derive(Copy, Clone, Debug, Display, EnumString, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Display, EnumString, Eq, PartialEq, Serialize)]
 #[non_exhaustive]
 pub enum PkgType {
     /// a debug package
@@ -77,7 +78,7 @@ pub type PkgBase = Name;
 /// Extra data associated with a package
 ///
 /// This type wraps a key-value pair of data as String, which is separated by an equal sign (`=`).
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct ExtraData {
     key: String,
     value: String,
