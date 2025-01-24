@@ -36,6 +36,10 @@ pub enum Error {
     /// A Parsing error that occurred during the winnow file parsing.
     #[error("File parsing error:\n{0}")]
     ParseError(String),
+
+    /// JSON error
+    #[error("JSON error: {0}")]
+    Json(#[from] serde_json::Error),
 }
 
 /// A helper struct to provide proper line based error/linting messages.

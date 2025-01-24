@@ -13,6 +13,7 @@ use alpm_types::{
     Url,
     Version,
 };
+use serde::Serialize;
 
 use crate::source_info::{
     package::{Package, PackageArchitecture},
@@ -26,7 +27,7 @@ use crate::source_info::{
 ///
 /// This struct is created by the [SourceInfo::packages_for_architecture] function.
 /// This incorporates all [PackageBase] properties and the [Package] specific overrides.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct MergedPackage {
     pub name: Name,
     pub description: Option<PackageDescription>,

@@ -5,9 +5,14 @@ use std::{
     path::PathBuf,
 };
 
-use error::SourceInfoErrors;
+use alpm_types::Architecture;
 
-use crate::{error::Error, source_info::SourceInfo};
+use crate::{
+    cli::OutputFormat,
+    error::{Error, SourceInfoErrors},
+    merged::MergedPackage,
+    source_info::SourceInfo,
+};
 
 /// Commandline argument handling. This is most likely not interesting for you.
 pub mod cli;
@@ -36,6 +41,38 @@ pub mod source_info;
 /// errors.
 pub fn validate(file: Option<&PathBuf>) -> Result<(), Error> {
     parse(file)?;
+
+    Ok(())
+}
+
+/// Parse a given file and output it in the specified format to stdout.
+///
+/// # Errors
+///
+/// Returns an error if the input can not be parsed and validated, or if the output can not be
+/// formatted in the selected output format.
+pub fn format(
+    file: Option<&PathBuf>,
+    output_format: OutputFormat,
+    architecture: Architecture,
+    pretty: bool,
+) -> Result<(), Error> {
+    let (source_info, _errors) = parse(file)?;
+
+    let packages: Vec<MergedPackage> = source_info
+        .packages_for_architecture(architecture)
+        .collect();
+
+    match output_format {
+        OutputFormat::Json => {
+            let json = if pretty {
+                serde_json::to_string_pretty(&packages)?
+            } else {
+                serde_json::to_string(&packages)?
+            };
+            println!("{json}");
+        }
+    }
 
     Ok(())
 }

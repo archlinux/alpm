@@ -24,6 +24,7 @@ use alpm_types::{
     Url,
     Version,
 };
+use serde::Serialize;
 use winnow::Parser;
 
 /// Representation of [`Package`] (`pkgname`) specific overrides.
@@ -43,9 +44,15 @@ use crate::{
 
 /// Represent a checksum check that is allowed to be skipped.
 /// If the `SKIP` keyword is found, a source file won't be checked for this type of checksum.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub enum SkippableChecksum<D: Digest + Clone> {
     Skip,
+    // Overwrite the inferred trait bounds on the `D` bound.
+    // Serde automatically adds a `Serialize` trait bound on top of it, which fails as the digests
+    // don't implement `Serialize`.
+    // **However**, that's also not needed as we use those types simply as phantom markers that
+    // aren't serialized in the first place. So we're good to go here.
+    #[serde(bound = "D: Digest + Clone")]
     Checksum(Checksum<D>),
 }
 
