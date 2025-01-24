@@ -1,6 +1,7 @@
 //! Commandline argument handling.
 use std::path::PathBuf;
 
+use alpm_types::Architecture;
 use clap::{Parser, Subcommand};
 
 #[derive(Clone, Debug, Parser)]
@@ -10,7 +11,14 @@ pub struct Cli {
     pub command: Command,
 }
 
-#[allow(clippy::large_enum_variant)]
+/// Output format for the parse command
+#[derive(Clone, Debug, Default, clap::ValueEnum, strum::Display)]
+pub enum OutputFormat {
+    #[default]
+    #[strum(serialize = "json")]
+    Json,
+}
+
 #[derive(Clone, Debug, Subcommand)]
 pub enum Command {
     /// Validate a SRCINFO file from a path or `stdin`.
@@ -23,7 +31,37 @@ pub enum Command {
         #[arg(value_name = "FILE")]
         file: Option<PathBuf>,
     },
+    /// Format a SRCINFO file from a path or `stdin`
+    ///
+    /// Read, validate and print all of the SRCINFO's packages in their final representation for a
+    /// specific architecture. If the file is valid, the program prints the data in the
+    /// requested file format to stdout and returns with an exit status of 0.
+    #[command()]
+    FormatPackages {
+        #[arg(value_name = "FILE")]
+        file: Option<PathBuf>,
 
+        /// The selected architecture that should be used to interpret the SRCINFO file.
+        ///
+        /// Only [split-]packages that are applicable for this architecture will be returned.
+        #[arg(short, long, alias = "arch")]
+        architecture: Architecture,
+
+        /// Provide the output format
+        #[arg(
+            short,
+            long,
+            value_name = "OUTPUT_FORMAT",
+            default_value_t = OutputFormat::Json
+        )]
+        output_format: OutputFormat,
+
+        /// Pretty-print the output.
+        ///
+        /// Only applies to formats that support pretty output and is otherwise ignored.
+        #[arg(short, long)]
+        pretty: bool,
+    },
     /// Read a SRCINFO file from a path or `stdin` and perform linter checks on it.
     ///
     /// This ensures that the SRCINFO file is both **valid** and adheres to currently known best
