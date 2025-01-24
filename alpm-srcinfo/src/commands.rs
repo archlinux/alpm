@@ -4,7 +4,15 @@ use std::{
     path::PathBuf,
 };
 
-use crate::{Error, SourceInfo, SourceInfoResult};
+use alpm_types::Architecture;
+
+use crate::{
+    cli::OutputFormat,
+    error::Error,
+    merged::MergedPackage,
+    source_info::SourceInfo,
+    SourceInfoResult,
+};
 
 /// Validates a SRCINFO file from a path or stdin.
 ///
@@ -25,6 +33,39 @@ pub fn validate(file: Option<&PathBuf>) -> Result<(), Error> {
 pub fn check(file: Option<&PathBuf>) -> Result<(), Error> {
     let result = parse(file)?;
     result.lint()?;
+
+    Ok(())
+}
+
+/// Parses a SRCINFO file from a path or stdin and outputs it in the specified format on stdout.
+///
+/// # Errors
+///
+/// Returns an error if the input can not be parsed and validated, or if the output can not be
+/// formatted in the selected output format.
+pub fn format_packages(
+    file: Option<&PathBuf>,
+    output_format: OutputFormat,
+    architecture: Architecture,
+    pretty: bool,
+) -> Result<(), Error> {
+    let result = parse(file)?;
+    let source_info = result.source_info()?;
+
+    let packages: Vec<MergedPackage> = source_info
+        .packages_for_architecture(architecture)
+        .collect();
+
+    match output_format {
+        OutputFormat::Json => {
+            let json = if pretty {
+                serde_json::to_string_pretty(&packages)?
+            } else {
+                serde_json::to_string(&packages)?
+            };
+            println!("{json}");
+        }
+    }
 
     Ok(())
 }
