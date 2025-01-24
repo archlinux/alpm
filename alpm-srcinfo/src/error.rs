@@ -49,6 +49,12 @@ pub enum Error {
     /// These may contain any combination of [`SourceInfoError`].
     #[error("Errors while parsing source info file:\n\n{0}")]
     SourceInfoErrors(SourceInfoErrors),
+
+    /// JSON error while creating JSON formatted output.
+    ///
+    /// This error only occurs when running the [`crate::commands`] functions.
+    #[error("JSON error: {0}")]
+    Json(#[from] serde_json::Error),
 }
 
 /// A helper struct to provide proper line based error/linting messages.

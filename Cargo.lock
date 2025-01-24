@@ -104,6 +104,8 @@ dependencies = [
  "colored",
  "insta",
  "rstest",
+ "serde",
+ "serde_json",
  "strum",
  "testresult",
  "thiserror",
