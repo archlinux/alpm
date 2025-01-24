@@ -38,9 +38,27 @@ pub mod parser;
 pub mod source_info;
 
 /// A small wrapper around the parsing of a Srcinfo file that simply ensures that there were no
-/// errors.
+/// critical parser or logical errors.
 pub fn validate(file: Option<&PathBuf>) -> Result<(), Error> {
-    parse(file)?;
+    let (_, errors) = parse(file)?;
+
+    // Check if there're any unrecoverable errors.
+    if let Some(errors) = errors {
+        errors.check_unrecoverable_errors()?;
+    };
+
+    Ok(())
+}
+
+/// A small wrapper around the parsing of a Srcinfo file that simply ensures that there were no
+/// errors, logical errors and not even linter errors.
+pub fn check(file: Option<&PathBuf>) -> Result<(), Error> {
+    let (_, errors) = parse(file)?;
+
+    if let Some(mut errors) = errors {
+        errors.sort_errors();
+        return Err(Error::SourceInfoErrors(errors));
+    }
 
     Ok(())
 }
