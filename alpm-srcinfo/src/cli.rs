@@ -66,4 +66,15 @@ pub enum Command {
         #[arg(short, long)]
         pretty: bool,
     },
+    /// Read an SRCINFO file and perform linter checks on it.
+    ///
+    /// This ensures that the SRCINFO file is both **valid** and adheres to currently known best
+    /// practices.
+    ///
+    /// This returns a non-zero exit code as soon as any lint issue is found.
+    #[command()]
+    Check {
+        #[arg(value_name = "FILE")]
+        file: Option<PathBuf>,
+    },
 }

@@ -1,6 +1,8 @@
+use std::fmt::Display;
 use std::path::PathBuf;
 use std::string::FromUtf8Error;
 
+use colored::Colorize;
 use thiserror::Error;
 
 /// The high-level error that can occur when using this crate.
@@ -37,6 +39,12 @@ pub enum Error {
     #[error("File parsing error:\n{0}")]
     ParseError(String),
 
+    /// A list of errors that occurred during the final parsing step of the SRCINFO file.
+    ///
+    /// These may contain any combination of [`SourceInfoError`].
+    #[error("Errors while parsing source info file:\n\n{0}")]
+    SourceInfoErrors(SourceInfoErrors),
+
     /// JSON error
     #[error("JSON error: {0}")]
     Json(#[from] serde_json::Error),
@@ -52,6 +60,134 @@ pub struct SourceInfoErrors {
     pub file_content: String,
 }
 
+impl Display for SourceInfoErrors {
+    /// Display all errors in one big well-formatted error message.
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // We to through all errors and print them out one after another.
+        let mut error_iter = self.inner.iter().enumerate().peekable();
+        while let Some((index, error)) = error_iter.next() {
+            // Line and message are generic and the same for every error message.
+            let line_nr = error.line;
+            let message = &error.message;
+
+            // Build the the headline based on the error type.
+            let specific_line = line_nr.map_or("".to_string(), |line| format!(" on line {line}"));
+            let headline = match error.error_type {
+                SourceInfoErrorType::Lint => {
+                    format!("{}{specific_line}:", "Linter Warning".yellow())
+                }
+                SourceInfoErrorType::Deprecation => {
+                    format!("{}{specific_line}:", "Deprecation Warning".yellow())
+                }
+                SourceInfoErrorType::Unrecoverable => {
+                    format!("{}{specific_line}:", "Logical Error".red())
+                }
+            };
+
+            // Write the headline
+            let error_index = format!("[{index}]").bold().red();
+            // Print the error details slightly indented based on the length of the error index
+            // prefix.
+            let indentation = " ".repeat(error_index.len() + 1);
+            write!(f, "{error_index} {headline}")?;
+            // Add the line, if it exists.
+            // Prefix it with a bold line number for better visibility.
+            if let Some(line_nr) = line_nr {
+                let content_line = self
+                    .file_content
+                    .lines()
+                    .nth(line_nr)
+                    .unwrap_or("Error: Couldn't seek to line. Please report bug upstream.");
+                // Lines aren't 0 indexed.
+                let human_line_nr = line_nr + 1;
+                write!(
+                    f,
+                    "\n{indentation}{} {content_line }\n",
+                    format!("{human_line_nr}: |").to_string().bold()
+                )?;
+            }
+
+            // Write the message with some spacing
+            write!(f, "\n{indentation}{message}")?;
+
+            // Write two newlines with a red separator between this and the next error
+            if error_iter.peek().is_some() {
+                write!(f, "\n\n{}", "──────────────────────────────\n".bold())?;
+            }
+        }
+
+        Ok(())
+    }
+}
+
+impl SourceInfoErrors {
+    /// Filter the inner errors based on a given closure.
+    pub fn filter<F>(&mut self, filter: F)
+    where
+        F: Fn(&SourceInfoError) -> bool,
+    {
+        self.inner.retain(filter);
+    }
+
+    /// A check function for [`SourceInfoErrors`] to ease converting it into an error in case
+    ///
+    /// If the [SourceInfoErrors] contains [SourceInfoErrorType::Unrecoverable] errors, they're
+    /// filtered and returned as an [Error::SourceInfoErrors]. Otherwise, this is a no-op.
+    ///
+    /// This consumes Self.
+    pub fn check_unrecoverable_errors(mut self) -> Result<(), Error> {
+        // Filter only for errors that're unrecoverable, i.e. critical.
+        self.filter(|err| matches!(err.error_type, SourceInfoErrorType::Unrecoverable));
+
+        if !self.inner.is_empty() {
+            self.sort_errors();
+            return Err(Error::SourceInfoErrors(self));
+        }
+
+        Ok(())
+    }
+
+    /// Sort the errors in the following order:
+    ///
+    /// - Hard errors without line numbers
+    /// - Hard errors with line numbers
+    /// - Deprecation warnings without line numbers
+    /// - Deprecation warnings with line numbers
+    /// - Linter warnings without line numbers
+    /// - Linter warnings with line numbers
+    ///
+    /// When a line number is set, the first lines should come first.
+    pub fn sort_errors(&mut self) {
+        self.inner.sort_by(|a, b| {
+            use std::cmp::Ordering;
+
+            let prio = |error: &SourceInfoError| match error.error_type {
+                SourceInfoErrorType::Unrecoverable => 0,
+                SourceInfoErrorType::Deprecation => 1,
+                SourceInfoErrorType::Lint => 2,
+            };
+
+            // Extract ordering criteria based on error type.
+            let a_prio = prio(a);
+            let b_prio = prio(b);
+
+            // Compare by error severity first.
+            match a_prio.cmp(&b_prio) {
+                // If it's the same error, do a comparison on a line basis.
+                // Unspecific errors should come first!
+                Ordering::Equal => match (a.line, b.line) {
+                    (Some(a), Some(b)) => a.cmp(&b),
+                    (Some(_), None) => Ordering::Less,
+                    (None, Some(_)) => Ordering::Greater,
+                    (None, None) => Ordering::Equal,
+                },
+                // If it's not the same error, the ordering is clear.
+                other => other,
+            }
+        });
+    }
+}
+
 /// This error describes some error variants that may appear when going through the parsed content
 /// of a SRCINFO file.
 ///
@@ -63,10 +199,17 @@ pub struct SourceInfoError {
     pub message: String,
 }
 
+/// The type of "error" that has occurred.
 #[derive(Debug)]
 pub enum SourceInfoErrorType {
+    /// A simple linter error type. Can be ignored but should be fixed.
     Lint,
+    /// Something changed in the SRCINFO format and this should be removed for future
+    /// compatibility.
     Deprecation,
+    /// A hard unrecoverable logic error has been detected.
+    /// The returned [SourceInfo](crate::source_info::SourceInfo) representation is faulty and
+    /// should not be used.
     Unrecoverable,
 }
 
