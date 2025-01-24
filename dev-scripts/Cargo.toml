@@ -18,7 +18,7 @@ alpm-mtree = { path = "../alpm-mtree" }
 alpm-pkginfo = { path = "../alpm-pkginfo" }
 anyhow = "1"
 clap.workspace = true
-colored = "3"
+colored.workspace = true
 dirs = "6"
 indicatif = "0.17"
 log = "0.4"
