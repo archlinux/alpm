@@ -1,28 +1,28 @@
-use std::fmt::Display;
-use std::fmt::Formatter;
-use std::str::FromStr;
+use std::{
+    fmt::{Display, Formatter},
+    str::FromStr,
+};
 
-use alpm_types::digests::Sha256;
-use alpm_types::Architecture;
-use alpm_types::BuildDate;
-use alpm_types::BuildDir;
-use alpm_types::BuildEnv;
-use alpm_types::BuildTool;
-use alpm_types::BuildToolVersion;
-use alpm_types::Checksum;
-use alpm_types::InstalledPackage;
-use alpm_types::Name;
-use alpm_types::PackageOption;
-use alpm_types::Packager;
-use alpm_types::SchemaVersion;
-use alpm_types::StartDir;
-use alpm_types::Version;
-use serde_with::serde_as;
-use serde_with::DisplayFromStr;
+use alpm_types::{
+    digests::Sha256,
+    Architecture,
+    BuildDate,
+    BuildDir,
+    BuildEnv,
+    BuildTool,
+    BuildToolVersion,
+    Checksum,
+    InstalledPackage,
+    Name,
+    PackageOption,
+    Packager,
+    SchemaVersion,
+    StartDir,
+    Version,
+};
+use serde_with::{serde_as, DisplayFromStr};
 
-use crate::buildinfo_v1::generate_buildinfo;
-use crate::schema::Schema;
-use crate::Error;
+use crate::{buildinfo_v1::generate_buildinfo, Error, Schema};
 
 generate_buildinfo! {
     /// BUILDINFO version 2

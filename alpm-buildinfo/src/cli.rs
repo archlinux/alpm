@@ -1,24 +1,24 @@
-use std::fmt::Display;
-use std::fmt::Formatter;
-use std::path::PathBuf;
-use std::str::FromStr;
+use std::{
+    fmt::{Display, Formatter},
+    path::PathBuf,
+    str::FromStr,
+};
 
-use alpm_types::Architecture;
-use alpm_types::BuildDate;
-use alpm_types::BuildDir;
-use alpm_types::BuildEnv;
-use alpm_types::BuildTool;
-use alpm_types::BuildToolVersion;
-use alpm_types::InstalledPackage;
-use alpm_types::Name;
-use alpm_types::PackageOption;
-use alpm_types::Packager;
-use alpm_types::StartDir;
-use alpm_types::Version;
-use clap::Args;
-use clap::Parser;
-use clap::Subcommand;
-use clap::ValueEnum;
+use alpm_types::{
+    Architecture,
+    BuildDate,
+    BuildDir,
+    BuildEnv,
+    BuildTool,
+    BuildToolVersion,
+    InstalledPackage,
+    Name,
+    PackageOption,
+    Packager,
+    StartDir,
+    Version,
+};
+use clap::{Args, Parser, Subcommand, ValueEnum};
 use strum::Display;
 
 use crate::schema::Schema;
