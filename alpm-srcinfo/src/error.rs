@@ -31,7 +31,9 @@ pub enum Error {
     #[error(transparent)]
     InvalidUTF8(#[from] FromUtf8Error),
 
-    /// No input file given
+    /// No input file given.
+    ///
+    /// This error only occurs when running the [`crate::commands`] functions.
     #[error("No input file given.")]
     NoInputFile,
 
@@ -45,7 +47,9 @@ pub enum Error {
     #[error("Errors while parsing source info file:\n\n{0}")]
     SourceInfoErrors(SourceInfoErrors),
 
-    /// JSON error
+    /// JSON error while creating JSON formatted output.
+    ///
+    /// This error only occurs when running the [`crate::commands`] functions.
     #[error("JSON error: {0}")]
     Json(#[from] serde_json::Error),
 }

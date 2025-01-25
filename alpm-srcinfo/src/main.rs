@@ -1,10 +1,8 @@
 use std::process::ExitCode;
 
 use alpm_srcinfo::{
-    check,
     cli::{Cli, Command},
-    format,
-    validate,
+    commands::{check, format, validate},
 };
 use clap::Parser;
 
