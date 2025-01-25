@@ -2,8 +2,7 @@ use std::process::ExitCode;
 
 use alpm_mtree::{
     cli::{Cli, Command},
-    format,
-    validate,
+    commands::{format, validate},
 };
 use clap::Parser;
 

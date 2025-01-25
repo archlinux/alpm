@@ -1,6 +1,6 @@
 use std::{fs::read_to_string, path::PathBuf};
 
-use alpm_mtree::parse;
+use alpm_mtree::commands::parse;
 use insta::assert_snapshot;
 use rstest::rstest;
 use testresult::TestResult;

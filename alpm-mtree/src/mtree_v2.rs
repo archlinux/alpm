@@ -6,8 +6,8 @@ use winnow::Parser;
 
 pub use crate::parser::PathType;
 use crate::{
-    error::Error,
     parser::{self, SetProperty, UnsetProperty},
+    Error,
 };
 
 /// Represents a `/set` line in an MTREE file.
@@ -138,14 +138,17 @@ pub enum Path {
     Link(Link),
 }
 
-/// Parse the content of an MTREE file.
+/// Parse the content of an MTREE v2 file.
+///
+/// This parser is backwards compatible to `v1`, in the sense that it allows `md5` checksums, but
+/// doesn't require them.
 ///
 /// # Example
 ///
 /// ```
 /// use alpm_mtree::mtree_v2::parse_mtree_v2;
 ///
-/// # fn main() -> Result<(), alpm_mtree::error::Error> {
+/// # fn main() -> Result<(), alpm_mtree::Error> {
 /// let content = r#"
 /// /set uid=0 gid=0 mode=644 type=link
 /// ./some_link link=/etc time=1706086640.0
