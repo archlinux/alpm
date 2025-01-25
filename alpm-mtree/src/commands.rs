@@ -4,9 +4,7 @@ use std::{
     path::PathBuf,
 };
 
-use flate2::read::GzDecoder;
-
-use crate::{cli::OutputFormat, mtree_v2::parse_mtree_v2, Error};
+use crate::{cli::OutputFormat, mtree_v2::parse_raw_mtree_v2, Error};
 
 /// A small wrapper around the parsing of an MTREE file that simply ensures that there were no
 /// errors.
@@ -40,10 +38,6 @@ pub fn format(file: Option<&PathBuf>, format: OutputFormat, pretty: bool) -> Res
 
     Ok(())
 }
-
-/// Two magic bytes that occur at the beginning of gzip files and can be used to detect whether a
-/// file is gzip compressed.
-const GZIP_MAGIC_NUMBER: [u8; 2] = [0x1f, 0x8b];
 
 /// Parse and interpret an MTREE file.
 ///
@@ -87,20 +81,6 @@ pub fn parse(file: Option<&PathBuf>) -> Result<Vec<crate::mtree_v2::Path>, Error
         return Err(Error::NoInputFile);
     };
 
-    // Check if the file starts with `0x1f8b`, which is the magic number that marks files
-    // as gzip compressed. If that's the case, decompress the content first.
-    let contents = if buffer.len() >= 2 && [buffer[0], buffer[1]] == GZIP_MAGIC_NUMBER {
-        let mut decoder = GzDecoder::new(buffer.as_slice());
-
-        let mut content = String::new();
-        decoder
-            .read_to_string(&mut content)
-            .map_err(Error::InvalidGzip)?;
-        content
-    } else {
-        String::from_utf8(buffer)?.to_string()
-    };
-
     // Parse the given mtree file.
-    parse_mtree_v2(contents)
+    parse_raw_mtree_v2(buffer)
 }
