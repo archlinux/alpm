@@ -49,9 +49,8 @@ impl TestRunner {
                     TestFileType::MTree => {
                         alpm_mtree::validate(Some(&file)).map_err(|err| err.into())
                     }
-                    TestFileType::PkgInfo => {
-                        alpm_pkginfo::validate(Some(file.clone())).map_err(|err| err.into())
-                    }
+                    TestFileType::PkgInfo => alpm_pkginfo::commands::validate(Some(file.clone()))
+                        .map_err(|err| err.into()),
                     TestFileType::RemoteDesc => unimplemented!(),
                     TestFileType::RemoteFiles => unimplemented!(),
                     TestFileType::LocalDesc => unimplemented!(),
