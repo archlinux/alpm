@@ -26,15 +26,15 @@ mindmap
     📂 Source
       📄 PKGBUILD
       📄 .SRCINFO
-      📚️ alpm-srcinfo*
+      📚️ alpm-srcinfo
     📦 Package
       📄 .BUILDINFO
       📄 .PKGINFO
       📄 .INSTALL
       📄 .MTREE
       📚️ alpm-buildinfo
-      📚️ alpm-pkginfo*
-      📚️ alpm-mtree*
+      📚️ alpm-pkginfo
+      📚️ alpm-mtree
       📚️ alpm-package*
       📚️ alpm-package-verify*
       📚️ alpm-package-verify-vda*
