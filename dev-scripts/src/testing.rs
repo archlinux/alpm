@@ -40,7 +40,7 @@ impl TestRunner {
             .into_par_iter()
             .map(|file| {
                 let result = match self.file_type {
-                    TestFileType::BuildInfo => alpm_buildinfo::validate(ValidateArgs {
+                    TestFileType::BuildInfo => alpm_buildinfo::commands::validate(ValidateArgs {
                         file: Some(file.clone()),
                         schema: None,
                     })

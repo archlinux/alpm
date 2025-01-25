@@ -2,9 +2,7 @@ use std::process::ExitCode;
 
 use alpm_buildinfo::{
     cli::{Cli, Command},
-    create_file,
-    format,
-    validate,
+    commands::{create_file, format, validate},
 };
 use clap::Parser;
 

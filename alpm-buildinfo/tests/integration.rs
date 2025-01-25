@@ -1,6 +1,6 @@
 use std::{str::FromStr, thread};
 
-use alpm_buildinfo::{schema::Schema, BuildInfoV1, BuildInfoV2};
+use alpm_buildinfo::{BuildInfoV1, BuildInfoV2, Schema};
 use alpm_types::SchemaVersion;
 use assert_cmd::Command;
 use insta::assert_snapshot;
