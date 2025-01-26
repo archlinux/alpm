@@ -1,4 +1,4 @@
-use std::{str::FromStr, thread};
+use std::{path::Path, str::FromStr, thread};
 
 use alpm_pkginfo::{PkgInfoV1, PkgInfoV2};
 use assert_cmd::Command;
@@ -256,9 +256,11 @@ fn write_pkginfo_via_env(#[case] pkginfo_input: PkgInfoInput) -> TestResult {
 
 /// Test writing a pkginfo file either via CLI or environment variables.
 fn test_write_pkginfo(pkginfo_input: PkgInfoInput, use_env: bool) -> TestResult {
-    // Create a temporary directory for the test
-    let dir = testdir!();
     let test_name = thread::current().name().unwrap().to_string();
+
+    // Create a temporary directory for the test
+    let test_dir_path = Path::new(&test_name);
+    let dir = testdir!(test_dir_path);
 
     // Write the PKGINFO file
     let mut cmd = Command::cargo_bin("alpm-pkginfo")?;
