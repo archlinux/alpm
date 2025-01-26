@@ -225,6 +225,11 @@ test:
         just docs
     fi
 
+# Run end-to-end tests for README files of projects
+test-readmes:
+    just test-readme alpm-buildinfo
+    just test-readme alpm-pkginfo
+
 # Runs per project end-to-end tests found in a project README.md
 test-readme project:
     #!/usr/bin/env bash
