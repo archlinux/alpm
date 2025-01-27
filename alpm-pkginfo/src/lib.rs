@@ -6,7 +6,9 @@ pub use crate::package_info_v1::PackageInfoV1;
 mod package_info_v2;
 pub use crate::package_info_v2::PackageInfoV2;
 
+#[cfg(feature = "cli")]
 pub mod cli;
+#[cfg(feature = "cli")]
 pub mod commands;
 
 mod error;
