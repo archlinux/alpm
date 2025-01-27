@@ -21,7 +21,7 @@ pub(crate) static PKGVER_REGEX: Lazy<Regex> = lazy_regex!(r"^([[:alnum:]][[:alnu
 ///
 /// `BuildToolVersion` is used in conjunction with `BuildTool` to denote the specific build tool a
 /// package is built with. A `BuildToolVersion` wraps a `Version` (that is guaranteed to have a
-/// `Pkgrel`) and an `Architecture`.
+/// `PackageRelease`) and an `Architecture`.
 ///
 /// ## Examples
 /// ```
@@ -139,32 +139,32 @@ impl Display for Epoch {
 
 /// A pkgrel of a package
 ///
-/// Pkgrel is used to indicate the build version of a package and is appended to a version,
+/// PackageRelease is used to indicate the build version of a package and is appended to a version,
 /// delimited by a `"-"` (e.g. `-2` is added to `1.0.0` to form `1.0.0-2` which then orders newer
 /// than `1.0.0-1`).
 ///
-/// A Pkgrel wraps a String which must consist of one or more numeric digits,
+/// A PackageRelease wraps a String which must consist of one or more numeric digits,
 /// optionally followed by a period (`.`) and one or more additional numeric digits.
 ///
 /// ## Examples
 /// ```
 /// use std::str::FromStr;
 ///
-/// use alpm_types::Pkgrel;
+/// use alpm_types::PackageRelease;
 ///
-/// assert!(Pkgrel::new("1".to_string()).is_ok());
-/// assert!(Pkgrel::new("1.1".to_string()).is_ok());
-/// assert!(Pkgrel::new("0".to_string()).is_ok());
-/// assert!(Pkgrel::new("a".to_string()).is_err());
-/// assert!(Pkgrel::new("1.a".to_string()).is_err());
+/// assert!(PackageRelease::new("1".to_string()).is_ok());
+/// assert!(PackageRelease::new("1.1".to_string()).is_ok());
+/// assert!(PackageRelease::new("0".to_string()).is_ok());
+/// assert!(PackageRelease::new("a".to_string()).is_err());
+/// assert!(PackageRelease::new("1.a".to_string()).is_err());
 /// ```
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize)]
-pub struct Pkgrel(String);
+pub struct PackageRelease(String);
 
-impl Pkgrel {
-    /// Create a new Pkgrel from a string and return it in a Result
+impl PackageRelease {
+    /// Create a new PackageRelease from a string and return it in a Result
     pub fn new(pkgrel: String) -> Result<Self, Error> {
-        Pkgrel::from_str(pkgrel.as_str())
+        PackageRelease::from_str(pkgrel.as_str())
     }
 
     /// Return a reference to the inner type
@@ -173,12 +173,12 @@ impl Pkgrel {
     }
 }
 
-impl FromStr for Pkgrel {
+impl FromStr for PackageRelease {
     type Err = Error;
-    /// Create a Pkgrel from a string and return it in a Result
+    /// Create a PackageRelease from a string and return it in a Result
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if PKGREL_REGEX.is_match(s) {
-            Ok(Pkgrel(s.to_string()))
+            Ok(PackageRelease(s.to_string()))
         } else {
             Err(Error::RegexDoesNotMatch {
                 value: s.to_string(),
@@ -189,7 +189,7 @@ impl FromStr for Pkgrel {
     }
 }
 
-impl Display for Pkgrel {
+impl Display for PackageRelease {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
         write!(fmt, "{}", self.inner())
     }
@@ -775,20 +775,20 @@ impl Display for SchemaVersion {
 
 /// A version of a package
 ///
-/// A `Version` tracks an optional `Epoch`, a `Pkgver` and an optional `Pkgrel`.
+/// A `Version` tracks an optional `Epoch`, a `Pkgver` and an optional `PackageRelease`.
 ///
 /// ## Examples
 /// ```
 /// use std::str::FromStr;
 ///
-/// use alpm_types::{Epoch, Pkgrel, Pkgver, Version};
+/// use alpm_types::{Epoch, PackageRelease, Pkgver, Version};
 ///
 /// # fn main() -> Result<(), alpm_types::Error> {
 ///
 /// let version = Version::from_str("1:2-3")?;
 /// assert_eq!(version.epoch, Some(Epoch::from_str("1")?));
 /// assert_eq!(version.pkgver, Pkgver::new("2".to_string())?);
-/// assert_eq!(version.pkgrel, Some(Pkgrel::new("3".to_string())?));
+/// assert_eq!(version.pkgrel, Some(PackageRelease::new("3".to_string())?));
 /// # Ok(())
 /// # }
 /// ```
@@ -799,12 +799,12 @@ pub struct Version {
     /// The epoch of the package
     pub epoch: Option<Epoch>,
     /// The release of the package
-    pub pkgrel: Option<Pkgrel>,
+    pub pkgrel: Option<PackageRelease>,
 }
 
 impl Version {
     /// Create a new Version
-    pub fn new(pkgver: Pkgver, epoch: Option<Epoch>, pkgrel: Option<Pkgrel>) -> Self {
+    pub fn new(pkgver: Pkgver, epoch: Option<Epoch>, pkgrel: Option<PackageRelease>) -> Self {
         Version {
             pkgver,
             epoch,
@@ -812,7 +812,7 @@ impl Version {
         }
     }
 
-    /// Create a new Version, which is guaranteed to have a Pkgrel
+    /// Create a new Version, which is guaranteed to have a PackageRelease
     pub fn with_pkgrel(version: &str) -> Result<Self, Error> {
         let version = Version::from_str(version)?;
         if version.pkgrel.is_some() {
@@ -1199,7 +1199,7 @@ mod tests {
         Version {
             pkgver: Pkgver::new("foo".to_string()).unwrap(),
             epoch: Some(Epoch::from_str("1").unwrap()),
-            pkgrel: Some(Pkgrel::new("1".to_string()).unwrap()),
+            pkgrel: Some(PackageRelease::new("1".to_string()).unwrap()),
         },
     )]
     #[case(
@@ -1215,7 +1215,7 @@ mod tests {
         Version {
             pkgver: Pkgver::new("foo".to_string()).unwrap(),
             epoch: None,
-            pkgrel: Some(Pkgrel::new("1".to_string()).unwrap())
+            pkgrel: Some(PackageRelease::new("1".to_string()).unwrap())
         }
     )]
     fn valid_version_from_string(#[case] version: &str, #[case] expected: Version) {
@@ -1294,7 +1294,7 @@ mod tests {
         "1.0.0-1",
         Ok(Version{
             pkgver: Pkgver::new("1.0.0".to_string()).unwrap(),
-            pkgrel: Some(Pkgrel::new("1".to_string()).unwrap()),
+            pkgrel: Some(PackageRelease::new("1".to_string()).unwrap()),
             epoch: None,
         })
     )]
@@ -1359,12 +1359,12 @@ mod tests {
     #[case("10.5")]
     #[case("0.1")]
     fn valid_pkgrel(#[case] pkgrel: &str) {
-        let parsed = Pkgrel::new(pkgrel.to_string());
+        let parsed = PackageRelease::new(pkgrel.to_string());
         assert!(parsed.is_ok(), "Expected pkgrel {pkgrel} to be valid.");
         assert_eq!(
             parsed.as_ref().unwrap().to_string(),
             pkgrel,
-            "Expected parsed Pkgrel representation '{}' to be identical to input '{}'",
+            "Expected parsed PackageRelease representation '{}' to be identical to input '{}'",
             parsed.unwrap(),
             pkgrel
         );
@@ -1382,7 +1382,7 @@ mod tests {
     #[case("")]
     fn invalid_pkgrel(#[case] pkgrel: &str) {
         assert_eq!(
-            Pkgrel::new(pkgrel.to_string()),
+            PackageRelease::new(pkgrel.to_string()),
             Err(Error::RegexDoesNotMatch {
                 value: pkgrel.to_string(),
                 regex_type: "pkgrel".to_string(),
@@ -1398,8 +1398,8 @@ mod tests {
     #[case("1", "1.1")]
     #[case("1", "11")]
     fn pkgrel_cmp(#[case] lesser: &str, #[case] bigger: &str) {
-        let lesser = Pkgrel::new(lesser.to_string()).unwrap();
-        let bigger = Pkgrel::new(bigger.to_string()).unwrap();
+        let lesser = PackageRelease::new(lesser.to_string()).unwrap();
+        let bigger = PackageRelease::new(bigger.to_string()).unwrap();
         assert!(lesser.lt(&bigger));
     }
 
