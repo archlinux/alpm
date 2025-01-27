@@ -12,20 +12,20 @@ use crate::{Error, Name};
 /// ```
 /// use std::str::FromStr;
 ///
-/// use alpm_types::PkgType;
+/// use alpm_types::PackageType;
 ///
-/// // create PkgType from str
-/// assert_eq!(PkgType::from_str("pkg"), Ok(PkgType::Package));
+/// // create PackageType from str
+/// assert_eq!(PackageType::from_str("pkg"), Ok(PackageType::Package));
 ///
 /// // format as String
-/// assert_eq!("debug", format!("{}", PkgType::Debug));
-/// assert_eq!("pkg", format!("{}", PkgType::Package));
-/// assert_eq!("src", format!("{}", PkgType::Source));
-/// assert_eq!("split", format!("{}", PkgType::Split));
+/// assert_eq!("debug", format!("{}", PackageType::Debug));
+/// assert_eq!("pkg", format!("{}", PackageType::Package));
+/// assert_eq!("src", format!("{}", PackageType::Source));
+/// assert_eq!("split", format!("{}", PackageType::Split));
 /// ```
 #[derive(Copy, Clone, Debug, Display, EnumString, Eq, PartialEq, Serialize)]
 #[non_exhaustive]
-pub enum PkgType {
+pub enum PackageType {
     /// a debug package
     #[strum(to_string = "debug")]
     Debug,
@@ -117,7 +117,7 @@ impl FromStr for ExtraData {
     /// ```
     /// use std::str::FromStr;
     ///
-    /// use alpm_types::{Error, ExtraData, PkgType};
+    /// use alpm_types::{Error, ExtraData, PackageType};
     ///
     /// # fn main() -> Result<(), alpm_types::Error> {
     /// // create ExtraData from str
@@ -159,24 +159,24 @@ mod tests {
     use super::*;
 
     #[rstest]
-    #[case("debug", Ok(PkgType::Debug))]
-    #[case("pkg", Ok(PkgType::Package))]
-    #[case("src", Ok(PkgType::Source))]
-    #[case("split", Ok(PkgType::Split))]
+    #[case("debug", Ok(PackageType::Debug))]
+    #[case("pkg", Ok(PackageType::Package))]
+    #[case("src", Ok(PackageType::Source))]
+    #[case("split", Ok(PackageType::Split))]
     #[case("foo", Err(strum::ParseError::VariantNotFound))]
     fn pkgtype_from_string(
         #[case] from_str: &str,
-        #[case] result: Result<PkgType, strum::ParseError>,
+        #[case] result: Result<PackageType, strum::ParseError>,
     ) {
-        assert_eq!(PkgType::from_str(from_str), result);
+        assert_eq!(PackageType::from_str(from_str), result);
     }
 
     #[rstest]
-    #[case(PkgType::Debug, "debug")]
-    #[case(PkgType::Package, "pkg")]
-    #[case(PkgType::Source, "src")]
-    #[case(PkgType::Split, "split")]
-    fn pkgtype_format_string(#[case] pkgtype: PkgType, #[case] pkgtype_str: &str) {
+    #[case(PackageType::Debug, "debug")]
+    #[case(PackageType::Package, "pkg")]
+    #[case(PackageType::Source, "src")]
+    #[case(PackageType::Split, "split")]
+    fn pkgtype_format_string(#[case] pkgtype: PackageType, #[case] pkgtype_str: &str) {
         assert_eq!(pkgtype_str, format!("{}", pkgtype));
     }
 
