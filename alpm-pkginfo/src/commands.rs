@@ -10,8 +10,8 @@ use erased_serde::Serialize;
 use crate::{
     cli::{CreateCommand, OutputFormat},
     Error,
-    PkgInfoV1,
-    PkgInfoV2,
+    PackageInfoV1,
+    PackageInfoV2,
 };
 
 /// Create a file according to a PKGINFO schema
@@ -23,7 +23,7 @@ use crate::{
 pub fn create_file(command: CreateCommand) -> Result<(), Error> {
     let (data, output) = match command {
         CreateCommand::V1 { args } => (
-            PkgInfoV1::new(
+            PackageInfoV1::new(
                 args.pkgname,
                 args.pkgbase,
                 args.pkgver,
@@ -48,7 +48,7 @@ pub fn create_file(command: CreateCommand) -> Result<(), Error> {
             args.output,
         ),
         CreateCommand::V2 { args, xdata } => (
-            PkgInfoV2::new(
+            PackageInfoV2::new(
                 args.pkgname,
                 args.pkgbase,
                 args.pkgver,
@@ -94,7 +94,7 @@ pub fn create_file(command: CreateCommand) -> Result<(), Error> {
 
 /// Parses a file according to a PKGINFO schema.
 ///
-/// Returns a serializable PkgInfo if the file is valid, otherwise an error is returned.
+/// Returns a serializable PackageInfo if the file is valid, otherwise an error is returned.
 ///
 /// NOTE: If a command is piped to this process, the input is read from stdin.
 /// See [`IsTerminal`] for more information about how terminal detection works.
@@ -121,9 +121,9 @@ pub fn parse(file: Option<PathBuf>) -> Result<Box<dyn Serialize>, Error> {
         return Err(Error::NoInputFile);
     };
 
-    match PkgInfoV2::from_str(&contents) {
+    match PackageInfoV2::from_str(&contents) {
         Ok(pkg_info) => Ok(Box::new(pkg_info)),
-        Err(_) => Ok(Box::new(PkgInfoV1::from_str(&contents)?)),
+        Err(_) => Ok(Box::new(PackageInfoV1::from_str(&contents)?)),
     }
 }
 

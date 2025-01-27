@@ -49,8 +49,10 @@ impl TestRunner {
                     TestFileType::MTree => {
                         alpm_mtree::commands::validate(Some(&file)).map_err(|err| err.into())
                     }
-                    TestFileType::PkgInfo => alpm_pkginfo::commands::validate(Some(file.clone()))
-                        .map_err(|err| err.into()),
+                    TestFileType::PackageInfo => {
+                        alpm_pkginfo::commands::validate(Some(file.clone()))
+                            .map_err(|err| err.into())
+                    }
                     TestFileType::RemoteDesc => unimplemented!(),
                     TestFileType::RemoteFiles => unimplemented!(),
                     TestFileType::LocalDesc => unimplemented!(),
@@ -101,7 +103,7 @@ impl TestRunner {
         let type_folders = match self.file_type {
             // All package related file types are nested in the subdirectories of the respective
             // package's package repository.
-            TestFileType::BuildInfo | TestFileType::PkgInfo | TestFileType::MTree => self
+            TestFileType::BuildInfo | TestFileType::PackageInfo | TestFileType::MTree => self
                 .repositories
                 .iter()
                 .map(|repo| self.test_data_dir.join(PACKAGES_DIR).join(repo.to_string()))
@@ -165,7 +167,7 @@ mod tests {
     /// `target-dir/packages/${pacman-repo}/${package-name}`
     #[rstest]
     #[case(TestFileType::BuildInfo)]
-    #[case(TestFileType::PkgInfo)]
+    #[case(TestFileType::PackageInfo)]
     #[case(TestFileType::MTree)]
     fn test_find_files_for_packages(#[case] file_type: TestFileType) -> Result<()> {
         // Create a temporary directory for testing.

@@ -17,7 +17,7 @@ Create a PKGINFO version 2 file:
 
 ```rust
 use std::str::FromStr;
-use alpm_pkginfo::PkgInfoV2;
+use alpm_pkginfo::PackageInfoV2;
 let pkginfo_data = r#"
 pkgname = example
 pkgbase = example
@@ -49,14 +49,14 @@ makedepend = python-sphinx
 checkdepend = extra-test-tool
 checkdepend = other-extra-test-tool
 "#;
-assert!(PkgInfoV2::from_str(pkginfo_data).is_ok());
+assert!(PackageInfoV2::from_str(pkginfo_data).is_ok());
 ```
 
 Create a PKGINFO version 1 file:
 
 ```rust
 use std::str::FromStr;
-use alpm_pkginfo::PkgInfoV1;
+use alpm_pkginfo::PackageInfoV1;
 let pkginfo_data = r#"
 pkgname = example
 pkgbase = example
@@ -87,7 +87,7 @@ makedepend = python-sphinx
 checkdepend = extra-test-tool
 checkdepend = other-extra-test-tool
 "#;
-assert!(PkgInfoV1::from_str(pkginfo_data).is_ok());
+assert!(PackageInfoV1::from_str(pkginfo_data).is_ok());
 ```
 
 ### Commandline

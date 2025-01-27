@@ -5,7 +5,6 @@ use std::str::FromStr;
 use alpm_types::Architecture;
 use alpm_types::Backup;
 use alpm_types::BuildDate;
-use alpm_types::ExtraData;
 use alpm_types::Group;
 use alpm_types::InstalledSize;
 use alpm_types::License;
@@ -13,20 +12,201 @@ use alpm_types::Name;
 use alpm_types::OptionalDependency;
 use alpm_types::PackageDescription;
 use alpm_types::PackageRelation;
-use alpm_types::PackageType;
 use alpm_types::Packager;
 use alpm_types::Url;
 use alpm_types::Version;
 use serde_with::serde_as;
 use serde_with::DisplayFromStr;
 
-use crate::pkginfo_v1::generate_pkginfo;
 use crate::Error;
 
+/// Generates a struct based on the PKGINFO version 1 specification with additional fields.
+macro_rules! generate_pkginfo {
+    // Meta: The meta information for the struct (e.g. doc comments)
+    // Name: The name of the struct
+    // Extra fields: Additional fields that should be added to the struct
+    ($(#[$meta:meta])* $name:ident { $($extra_fields:tt)* }) => {
+
+        $(#[$meta])*
+        #[serde_as]
+        #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+        #[serde(deny_unknown_fields)]
+        pub struct $name {
+            #[serde_as(as = "DisplayFromStr")]
+            pkgname: Name,
+
+            #[serde_as(as = "DisplayFromStr")]
+            pkgbase: Name,
+
+            #[serde_as(as = "DisplayFromStr")]
+            pkgver: Version,
+
+            #[serde_as(as = "DisplayFromStr")]
+            pkgdesc: PackageDescription,
+
+            #[serde_as(as = "DisplayFromStr")]
+            url: Url,
+
+            #[serde_as(as = "DisplayFromStr")]
+            builddate: BuildDate,
+
+            #[serde_as(as = "DisplayFromStr")]
+            packager: Packager,
+
+            #[serde_as(as = "DisplayFromStr")]
+            size: InstalledSize,
+
+            #[serde_as(as = "DisplayFromStr")]
+            arch: Architecture,
+
+            #[serde_as(as = "Vec<DisplayFromStr>")]
+            #[serde(default)]
+            license: Vec<License>,
+
+            #[serde_as(as = "Vec<DisplayFromStr>")]
+            #[serde(default)]
+            replaces: Vec<PackageRelation>,
+
+            #[serde_as(as = "Vec<DisplayFromStr>")]
+            #[serde(default)]
+            group: Vec<Group>,
+
+            #[serde_as(as = "Vec<DisplayFromStr>")]
+            #[serde(default)]
+            conflict: Vec<PackageRelation>,
+
+            #[serde_as(as = "Vec<DisplayFromStr>")]
+            #[serde(default)]
+            provides: Vec<PackageRelation>,
+
+            #[serde_as(as = "Vec<DisplayFromStr>")]
+            #[serde(default)]
+            backup: Vec<Backup>,
+
+            #[serde_as(as = "Vec<DisplayFromStr>")]
+            #[serde(default)]
+            depend: Vec<PackageRelation>,
+
+            #[serde_as(as = "Vec<DisplayFromStr>")]
+            #[serde(default)]
+            optdepend: Vec<OptionalDependency>,
+
+            #[serde_as(as = "Vec<DisplayFromStr>")]
+            #[serde(default)]
+            makedepend: Vec<PackageRelation>,
+
+            #[serde_as(as = "Vec<DisplayFromStr>")]
+            #[serde(default)]
+            checkdepend: Vec<PackageRelation>,
+
+            $($extra_fields)*
+        }
+
+        impl $name {
+            /// Returns the name of the package
+            pub fn pkgname(&self) -> &Name {
+                &self.pkgname
+            }
+
+            /// Returns the base name of the package
+            pub fn pkgbase(&self) -> &Name {
+                &self.pkgbase
+            }
+
+            /// Returns the version of the package
+            pub fn pkgver(&self) -> &Version {
+                &self.pkgver
+            }
+
+            /// Returns the description of the package
+            pub fn pkgdesc(&self) -> &PackageDescription {
+                &self.pkgdesc
+            }
+
+            /// Returns the URL of the package
+            pub fn url(&self) -> &Url {
+                &self.url
+            }
+
+            /// Returns the build date of the package
+            pub fn builddate(&self) -> &BuildDate {
+                &self.builddate
+            }
+
+            /// Returns the packager of the package
+            pub fn packager(&self) -> &Packager {
+                &self.packager
+            }
+
+            /// Returns the size of the package
+            pub fn size(&self) -> &InstalledSize {
+                &self.size
+            }
+
+            /// Returns the architecture of the package
+            pub fn arch(&self) -> &Architecture {
+                &self.arch
+            }
+
+            /// Returns the licenses of the package
+            pub fn license(&self) -> &[License] {
+                &self.license
+            }
+
+            /// Returns the packages this package replaces
+            pub fn replaces(&self) -> &[PackageRelation] {
+                &self.replaces
+            }
+
+            /// Returns the group of the package
+            pub fn group(&self) -> &[Group] {
+                &self.group
+            }
+
+            /// Returns the packages this package conflicts with
+            pub fn conflict(&self) -> &[PackageRelation] {
+                &self.conflict
+            }
+
+            /// Returns the packages this package provides
+            pub fn provides(&self) -> &[PackageRelation] {
+                &self.provides
+            }
+
+            /// Returns the backup files of the package
+            pub fn backup(&self) -> &[Backup] {
+                &self.backup
+            }
+
+            /// Returns the packages this package depends on
+            pub fn depend(&self) -> &[PackageRelation] {
+                &self.depend
+            }
+
+            /// Returns the optional dependencies of the package
+            pub fn optdepend(&self) -> &[OptionalDependency] {
+                &self.optdepend
+            }
+
+            /// Returns the packages this package is built with
+            pub fn makedepend(&self) -> &[PackageRelation] {
+                &self.makedepend
+            }
+
+            /// Returns the packages this package is checked with
+            pub fn checkdepend(&self) -> &[PackageRelation] {
+                &self.checkdepend
+            }
+        }
+    }
+}
+
+pub(crate) use generate_pkginfo;
+
 generate_pkginfo! {
-    /// PKGINFO version 2
+    /// PKGINFO version 1
     ///
-    /// `PkgInfoV2` is (exclusively) compatible with data following the v2 specification of the
+    /// `PackageInfoV1` is (exclusively) compatible with data following the first specification of the
     /// PKGINFO file.
     ///
     /// ## Examples
@@ -34,12 +214,11 @@ generate_pkginfo! {
     /// ```
     /// use std::str::FromStr;
     ///
-    /// use alpm_pkginfo::PkgInfoV2;
+    /// use alpm_pkginfo::PackageInfoV1;
     ///
     /// # fn main() -> Result<(), alpm_pkginfo::Error> {
     /// let pkginfo_data = r#"pkgname = example
     /// pkgbase = example
-    /// xdata = pkgtype=pkg
     /// pkgver = 1:1.0.0-1
     /// pkgdesc = A project that does something
     /// url = https://example.org/
@@ -66,25 +245,22 @@ generate_pkginfo! {
     /// makedepend = python-sphinx
     /// checkdepend = extra-test-tool
     /// checkdepend = other-extra-test-tool"#;
-    /// let pkginfo = PkgInfoV2::from_str(pkginfo_data)?;
+    /// let pkginfo = PackageInfoV1::from_str(pkginfo_data)?;
     /// assert_eq!(pkginfo.to_string(), pkginfo_data);
     /// # Ok(())
     /// # }
     /// ```
-    PkgInfoV2 {
-        #[serde_as(as = "Vec<DisplayFromStr>")]
-        xdata: Vec<ExtraData>,
-    }
+    PackageInfoV1 {}
 }
 
-impl PkgInfoV2 {
-    /// Create a new PkgInfoV2 from all required components
+impl PackageInfoV1 {
+    /// Create a new PackageInfoV1 from all required components
     #[allow(clippy::too_many_arguments)]
     pub fn new(
-        pkgname: Name,
-        pkgbase: Name,
-        pkgver: Version,
-        pkgdesc: PackageDescription,
+        name: Name,
+        base: Name,
+        version: Version,
+        desc: PackageDescription,
         url: Url,
         builddate: BuildDate,
         packager: Packager,
@@ -100,13 +276,12 @@ impl PkgInfoV2 {
         optdepend: Vec<OptionalDependency>,
         makedepend: Vec<PackageRelation>,
         checkdepend: Vec<PackageRelation>,
-        xdata: Vec<ExtraData>,
-    ) -> Result<Self, Error> {
-        let pkg_info = Self {
-            pkgname,
-            pkgbase,
-            pkgver,
-            pkgdesc,
+    ) -> Self {
+        Self {
+            pkgname: name,
+            pkgbase: base,
+            pkgver: version,
+            pkgdesc: desc,
             url,
             builddate,
             packager,
@@ -122,64 +297,25 @@ impl PkgInfoV2 {
             optdepend,
             makedepend,
             checkdepend,
-            xdata,
-        };
-        pkg_info.check_pkg_type()?;
-        Ok(pkg_info)
-    }
-
-    /// Get the extra data
-    pub fn xdata(&self) -> &Vec<ExtraData> {
-        &self.xdata
-    }
-
-    /// Returns the package type.
-    ///
-    /// # Panics
-    ///
-    /// This function panics if the `xdata` field does not contain a `pkgtype` key.
-    pub fn pkg_type(&self) -> PackageType {
-        self.xdata
-            .iter()
-            .find(|v| v.key() == "pkgtype")
-            .map(|v| PackageType::from_str(v.value()).expect("Invalid package type"))
-            .unwrap_or_else(|| panic!("Missing extra data"))
-    }
-
-    /// Checks if the package type exists.
-    ///
-    /// # Errors
-    ///
-    /// This function returns an error in the following cases:
-    ///
-    /// - if the `xdata` field does not contain a `pkgtype` key.
-    /// - if the `pkgtype` key does not contain a valid package type.
-    fn check_pkg_type(&self) -> Result<(), Error> {
-        if let Some(pkg_type) = self.xdata.iter().find(|v| v.key() == "pkgtype") {
-            let _ = PackageType::from_str(pkg_type.value())?;
-            Ok(())
-        } else {
-            Err(Error::MissingExtraData)
         }
     }
 }
 
-impl FromStr for PkgInfoV2 {
+impl FromStr for PackageInfoV1 {
     type Err = Error;
-    /// Create a PkgInfoV2 from a &str
+    /// Create a PackageInfoV1 from a &str
     ///
     /// ## Errors
     ///
     /// Returns an `Error` if any of the fields in `input` can not be validated according to
-    /// `PkgInfoV2` or their respective own specification.
-    fn from_str(input: &str) -> Result<PkgInfoV2, Self::Err> {
-        let pkg_info: PkgInfoV2 = alpm_parsers::custom_ini::from_str(input)?;
-        pkg_info.check_pkg_type()?;
-        Ok(pkg_info)
+    /// `PackageInfoV1` or their respective own specification.
+    fn from_str(input: &str) -> Result<PackageInfoV1, Self::Err> {
+        let pkginfo: PackageInfoV1 = alpm_parsers::custom_ini::from_str(input)?;
+        Ok(pkginfo)
     }
 }
 
-impl Display for PkgInfoV2 {
+impl Display for PackageInfoV1 {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
         fn format_list(label: &str, items: &[impl Display]) -> String {
             if items.is_empty() {
@@ -193,21 +329,10 @@ impl Display for PkgInfoV2 {
                     + "\n"
             }
         }
-        let pkg_type = self
-            .xdata
-            .iter()
-            .find(|v| v.key() == "pkgtype")
-            .ok_or(std::fmt::Error)?;
-        let other_xdata = self
-            .xdata
-            .iter()
-            .filter(|v| v.key() != "pkgtype")
-            .collect::<Vec<_>>();
         write!(
             fmt,
             "pkgname = {}\n\
             pkgbase = {}\n\
-            xdata = {pkg_type}\n\
             pkgver = {}\n\
             pkgdesc = {}\n\
             url = {}\n\
@@ -224,7 +349,7 @@ impl Display for PkgInfoV2 {
             {}\
             {}\
             {}\
-            {}{}",
+            {}",
             self.pkgname(),
             self.pkgbase(),
             self.pkgver(),
@@ -244,18 +369,6 @@ impl Display for PkgInfoV2 {
             format_list("optdepend", self.optdepend()),
             format_list("makedepend", self.makedepend()),
             format_list("checkdepend", self.checkdepend()).trim_end_matches('\n'),
-            if other_xdata.is_empty() {
-                String::new()
-            } else {
-                format!(
-                    "\n{}",
-                    other_xdata
-                        .iter()
-                        .map(|v| format!("xdata = {v}"))
-                        .collect::<Vec<_>>()
-                        .join("\n"),
-                )
-            },
         )
     }
 }
@@ -263,15 +376,16 @@ impl Display for PkgInfoV2 {
 #[cfg(test)]
 mod tests {
     use pretty_assertions::assert_eq;
+    use rstest::fixture;
     use rstest::rstest;
     use testresult::TestResult;
 
     use super::*;
 
-    // Test data
-    const VALID_PKGINFOV2_CASE1: &str = r#"pkgname = example
+    #[fixture]
+    fn valid_pkginfov1() -> String {
+        r#"pkgname = example
 pkgbase = example
-xdata = pkgtype=pkg
 pkgver = 1:1.0.0-1
 pkgdesc = A project that does something
 url = https://example.org/
@@ -297,42 +411,19 @@ optdepend = ruby: for special-ruby-script.rb
 makedepend = cmake
 makedepend = python-sphinx
 checkdepend = extra-test-tool
-checkdepend = other-extra-test-tool"#;
-
-    // Test data without multiple values
-    const VALID_PKGINFOV2_CASE2: &str = r#"
-pkgname = example
-pkgbase = example
-xdata = pkgtype=pkg
-pkgver = 1:1.0.0-1
-pkgdesc = A project that does something
-url = https://example.org
-builddate = 1729181726
-packager = John Doe <john@example.org>
-size = 181849963
-arch = any
-license = GPL-3.0-or-later
-replaces = other-package>0.9.0-3
-group = package-group
-conflict = conflicting-package<1.0.0
-provides = some-component
-backup = etc/example/config.toml
-depend = glibc
-optdepend = python: for special-python-script.py
-makedepend = cmake
-checkdepend = extra-test-tool
-"#;
+checkdepend = other-extra-test-tool"#
+            .to_string()
+    }
 
     #[rstest]
-    #[case(VALID_PKGINFOV2_CASE1)]
-    #[case(VALID_PKGINFOV2_CASE2)]
-    fn pkginfov2_from_str(#[case] pkginfo: &str) -> TestResult {
-        PkgInfoV2::from_str(pkginfo)?;
+    fn pkginfov1_from_str(valid_pkginfov1: String) -> TestResult {
+        PackageInfoV1::from_str(&valid_pkginfov1)?;
         Ok(())
     }
 
-    fn pkg_info() -> TestResult<PkgInfoV2> {
-        let pkg_info = PkgInfoV2::new(
+    #[rstest]
+    fn pkginfov1() -> TestResult {
+        let pkg_info = PackageInfoV1::new(
             Name::new("example")?,
             Name::new("example")?,
             Version::from_str("1:1.0.0-1")?,
@@ -379,72 +470,8 @@ checkdepend = extra-test-tool
                 PackageRelation::from_str("extra-test-tool")?,
                 PackageRelation::from_str("other-extra-test-tool")?,
             ],
-            vec![ExtraData::from_str("pkgtype=pkg")?],
-        )?;
-        assert_eq!(PackageType::Package, pkg_info.pkg_type());
-        Ok(pkg_info)
-    }
-
-    #[rstest]
-    fn pkginfov2() -> TestResult {
-        let pkg_info = pkg_info()?;
-        assert_eq!(pkg_info.to_string(), VALID_PKGINFOV2_CASE1);
-        Ok(())
-    }
-
-    #[rstest]
-    fn pkginfov2_invalid_xdata_fail() -> TestResult {
-        let mut pkg_info = pkg_info()?;
-        pkg_info.xdata = vec![];
-        assert!(pkg_info.check_pkg_type().is_err());
-
-        pkg_info.xdata = vec![ExtraData::from_str("pkgtype=foo")?];
-        assert!(pkg_info.check_pkg_type().is_err());
-        Ok(())
-    }
-
-    #[rstest]
-    fn pkginfov2_multiple_xdata() -> TestResult {
-        let mut pkg_info = pkg_info()?;
-        pkg_info.xdata.push(ExtraData::from_str("foo=bar")?);
-        pkg_info.xdata.push(ExtraData::from_str("baz=qux")?);
-        assert_eq!(
-            pkg_info.to_string(),
-            format!("{VALID_PKGINFOV2_CASE1}\nxdata = foo=bar\nxdata = baz=qux")
         );
-        Ok(())
-    }
-
-    #[rstest]
-    fn pkginfov2_missing_xdata_fail() -> TestResult {
-        let mut pkg_info_str = VALID_PKGINFOV2_CASE1.to_string();
-        pkg_info_str = pkg_info_str.replace("xdata = pkgtype=pkg\n", "");
-        assert!(PkgInfoV2::from_str(&pkg_info_str).is_err());
-
-        let pkg_info = pkg_info()?;
-        assert!(PkgInfoV2::new(
-            pkg_info.pkgname,
-            pkg_info.pkgbase,
-            pkg_info.pkgver,
-            pkg_info.pkgdesc,
-            pkg_info.url,
-            pkg_info.builddate,
-            pkg_info.packager,
-            pkg_info.size,
-            pkg_info.arch,
-            pkg_info.license,
-            pkg_info.replaces,
-            pkg_info.group,
-            pkg_info.conflict,
-            pkg_info.provides,
-            pkg_info.backup,
-            pkg_info.depend,
-            pkg_info.optdepend,
-            pkg_info.makedepend,
-            pkg_info.checkdepend,
-            vec![]
-        )
-        .is_err());
+        assert_eq!(pkg_info.to_string(), valid_pkginfov1());
         Ok(())
     }
 
@@ -454,9 +481,8 @@ checkdepend = extra-test-tool
     #[case("pkgver = 1:1.0.0-1")]
     #[case("packager = Foobar McFooface <foobar@mcfooface.org>")]
     #[case("pkgarch = any")]
-    fn pkginfov2_from_str_duplicate_fail(#[case] duplicate: &str) {
-        let mut pkginfov2 = VALID_PKGINFOV2_CASE1.to_string();
-        pkginfov2.push_str(duplicate);
-        assert!(PkgInfoV2::from_str(&pkginfov2).is_err());
+    fn pkginfov1_from_str_duplicate_fail(mut valid_pkginfov1: String, #[case] duplicate: &str) {
+        valid_pkginfov1.push_str(duplicate);
+        assert!(PackageInfoV1::from_str(&valid_pkginfov1).is_err());
     }
 }
