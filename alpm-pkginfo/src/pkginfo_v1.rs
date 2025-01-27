@@ -9,7 +9,7 @@ use alpm_types::Group;
 use alpm_types::InstalledSize;
 use alpm_types::License;
 use alpm_types::Name;
-use alpm_types::OptDepend;
+use alpm_types::OptionalDependency;
 use alpm_types::PackageDescription;
 use alpm_types::PackageRelation;
 use alpm_types::Packager;
@@ -89,7 +89,7 @@ macro_rules! generate_pkginfo {
 
             #[serde_as(as = "Vec<DisplayFromStr>")]
             #[serde(default)]
-            optdepend: Vec<OptDepend>,
+            optdepend: Vec<OptionalDependency>,
 
             #[serde_as(as = "Vec<DisplayFromStr>")]
             #[serde(default)]
@@ -184,7 +184,7 @@ macro_rules! generate_pkginfo {
             }
 
             /// Returns the optional dependencies of the package
-            pub fn optdepend(&self) -> &[OptDepend] {
+            pub fn optdepend(&self) -> &[OptionalDependency] {
                 &self.optdepend
             }
 
@@ -273,7 +273,7 @@ impl PkgInfoV1 {
         provides: Vec<PackageRelation>,
         backup: Vec<Backup>,
         depend: Vec<PackageRelation>,
-        optdepend: Vec<OptDepend>,
+        optdepend: Vec<OptionalDependency>,
         makedepend: Vec<PackageRelation>,
         checkdepend: Vec<PackageRelation>,
     ) -> Self {
@@ -459,8 +459,8 @@ checkdepend = other-extra-test-tool"#
                 PackageRelation::from_str("gcc-libs")?,
             ],
             vec![
-                OptDepend::from_str("python: for special-python-script.py")?,
-                OptDepend::from_str("ruby: for special-ruby-script.rb")?,
+                OptionalDependency::from_str("python: for special-python-script.py")?,
+                OptionalDependency::from_str("ruby: for special-ruby-script.rb")?,
             ],
             vec![
                 PackageRelation::from_str("cmake")?,

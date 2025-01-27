@@ -11,7 +11,7 @@ use alpm_types::Group;
 use alpm_types::InstalledSize;
 use alpm_types::License;
 use alpm_types::Name;
-use alpm_types::OptDepend;
+use alpm_types::OptionalDependency;
 use alpm_types::PackageDescription;
 use alpm_types::PackageRelation;
 use alpm_types::Packager;
@@ -244,7 +244,7 @@ pub struct V1CreateArgs {
         long,
         value_name = "OPTDEPEND"
     )]
-    pub optdepend: Vec<OptDepend>,
+    pub optdepend: Vec<OptionalDependency>,
 
     /// Provide one or more makedepend
     #[arg(
