@@ -71,7 +71,7 @@ mod pkg;
 pub use pkg::ExtraData;
 pub use pkg::PackageBaseName;
 pub use pkg::PackageDescription;
-pub use pkg::PkgType;
+pub use pkg::PackageType;
 
 mod relation;
 pub use relation::Group;

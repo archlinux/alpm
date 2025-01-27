@@ -13,8 +13,8 @@ use alpm_types::Name;
 use alpm_types::OptDepend;
 use alpm_types::PackageDescription;
 use alpm_types::PackageRelation;
+use alpm_types::PackageType;
 use alpm_types::Packager;
-use alpm_types::PkgType;
 use alpm_types::Url;
 use alpm_types::Version;
 use serde_with::serde_as;
@@ -138,11 +138,11 @@ impl PkgInfoV2 {
     /// # Panics
     ///
     /// This function panics if the `xdata` field does not contain a `pkgtype` key.
-    pub fn pkg_type(&self) -> PkgType {
+    pub fn pkg_type(&self) -> PackageType {
         self.xdata
             .iter()
             .find(|v| v.key() == "pkgtype")
-            .map(|v| PkgType::from_str(v.value()).expect("Invalid package type"))
+            .map(|v| PackageType::from_str(v.value()).expect("Invalid package type"))
             .unwrap_or_else(|| panic!("Missing extra data"))
     }
 
@@ -156,7 +156,7 @@ impl PkgInfoV2 {
     /// - if the `pkgtype` key does not contain a valid package type.
     fn check_pkg_type(&self) -> Result<(), Error> {
         if let Some(pkg_type) = self.xdata.iter().find(|v| v.key() == "pkgtype") {
-            let _ = PkgType::from_str(pkg_type.value())?;
+            let _ = PackageType::from_str(pkg_type.value())?;
             Ok(())
         } else {
             Err(Error::MissingExtraData)
@@ -381,7 +381,7 @@ checkdepend = extra-test-tool
             ],
             vec![ExtraData::from_str("pkgtype=pkg")?],
         )?;
-        assert_eq!(PkgType::Package, pkg_info.pkg_type());
+        assert_eq!(PackageType::Package, pkg_info.pkg_type());
         Ok(pkg_info)
     }
 
