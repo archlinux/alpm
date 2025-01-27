@@ -77,6 +77,7 @@ alpm-buildinfo create v1
 
 ## Features
 
+- `cli` adds the commandline handling needed for the `almp-buildinfo` binary.
 - `winnow-debug` enables the `winnow/debug` feature, which shows the exact parsing process of winnow.
 
 ## Contributing
