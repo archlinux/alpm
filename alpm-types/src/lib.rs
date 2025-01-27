@@ -75,7 +75,7 @@ pub use pkg::PackageType;
 
 mod relation;
 pub use relation::Group;
-pub use relation::OptDepend;
+pub use relation::OptionalDependency;
 pub use relation::PackageRelation;
 
 mod size;

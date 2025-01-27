@@ -172,8 +172,8 @@ impl FromStr for PackageRelation {
 /// This type is used for representing dependencies that are not essential for base functionality
 /// of a package, but may be necessary to make use of certain features of a package.
 ///
-/// An [`OptDepend`] consists of a package relation and an optional description separated by a colon
-/// (`:`).
+/// An [`OptionalDependency`] consists of a package relation and an optional description separated
+/// by a colon (`:`).
 ///
 /// - The package relation component must be a valid [`PackageRelation`].
 /// - If a description is provided it must be at least one character long.
@@ -183,11 +183,11 @@ impl FromStr for PackageRelation {
 /// ```
 /// use std::str::FromStr;
 ///
-/// use alpm_types::{Name, OptDepend};
+/// use alpm_types::{Name, OptionalDependency};
 ///
 /// # fn main() -> Result<(), alpm_types::Error> {
-/// // Create OptDepend from &str
-/// let opt_depend = OptDepend::from_str("example: this is an example dependency")?;
+/// // Create OptionalDependency from &str
+/// let opt_depend = OptionalDependency::from_str("example: this is an example dependency")?;
 ///
 /// // Get the name
 /// assert_eq!("example", opt_depend.name().as_ref());
@@ -207,15 +207,18 @@ impl FromStr for PackageRelation {
 /// # }
 /// ```
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
-pub struct OptDepend {
+pub struct OptionalDependency {
     package_relation: PackageRelation,
     description: Option<String>,
 }
 
-impl OptDepend {
-    /// Create a new OptDepend in a Result
-    pub fn new(package_relation: PackageRelation, description: Option<String>) -> OptDepend {
-        OptDepend {
+impl OptionalDependency {
+    /// Create a new OptionalDependency in a Result
+    pub fn new(
+        package_relation: PackageRelation,
+        description: Option<String>,
+    ) -> OptionalDependency {
+        OptionalDependency {
             package_relation,
             description,
         }
@@ -237,11 +240,11 @@ impl OptDepend {
     }
 }
 
-impl FromStr for OptDepend {
+impl FromStr for OptionalDependency {
     type Err = Error;
 
-    /// Create an OptDepend from a string slice
-    fn from_str(s: &str) -> Result<OptDepend, Self::Err> {
+    /// Create an OptionalDependency from a string slice
+    fn from_str(s: &str) -> Result<OptionalDependency, Self::Err> {
         if let Some((name, description)) = s.split_once(":") {
             let description = description.trim_start();
             let relation = PackageRelation::from_str(name)?;
@@ -255,7 +258,7 @@ impl FromStr for OptDepend {
     }
 }
 
-impl Display for OptDepend {
+impl Display for OptionalDependency {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
         match self.description {
             Some(ref description) => write!(fmt, "{}: {}", self.name(), description),
@@ -317,7 +320,7 @@ mod tests {
         #[test]
         fn opt_depend_from_str(s in format!("{NAME_REGEX}(: {DESCRIPTION_REGEX})?").as_str()) {
             println!("s: {s}");
-            let opt_depend = OptDepend::from_str(&s).unwrap();
+            let opt_depend = OptionalDependency::from_str(&s).unwrap();
             let formatted = format!("{}", opt_depend);
             prop_assert_eq!(s.trim_end(), formatted.trim_end(), "Formatted output doesn't match input");
         }
@@ -326,7 +329,7 @@ mod tests {
     #[rstest]
     #[case(
         "example: this is an example dependency",
-        Ok(OptDepend {
+        Ok(OptionalDependency {
             package_relation: PackageRelation {
                 name: Name::new("example").unwrap(),
                 version_requirement: None,
@@ -336,7 +339,7 @@ mod tests {
     )]
     #[case(
         "dep_name",
-        Ok(OptDepend {
+        Ok(OptionalDependency {
             package_relation: PackageRelation {
                 name: Name::new("dep_name").unwrap(),
                 version_requirement: None,
@@ -346,7 +349,7 @@ mod tests {
     )]
     #[case(
         "dep_name: ",
-        Ok(OptDepend {
+        Ok(OptionalDependency {
             package_relation: PackageRelation {
                 name: Name::new("dep_name").unwrap(),
                 version_requirement: None,
@@ -356,7 +359,7 @@ mod tests {
     )]
     #[case(
         "dep_name_with_special_chars-123: description with !@#$%^&*",
-        Ok(OptDepend {
+        Ok(OptionalDependency {
             package_relation: PackageRelation {
                 name: Name::new("dep_name_with_special_chars-123").unwrap(),
                 version_requirement: None,
@@ -383,7 +386,7 @@ mod tests {
     // versioned optional dependencies
     #[case(
         "elfutils=0.192: for translations",
-        Ok(OptDepend {
+        Ok(OptionalDependency {
             package_relation: PackageRelation {
                 name: Name::new("elfutils").unwrap(),
                 version_requirement: Some(VersionRequirement {
@@ -396,7 +399,7 @@ mod tests {
     )]
     #[case(
         "python>=3: For Python bindings",
-        Ok(OptDepend {
+        Ok(OptionalDependency {
             package_relation: PackageRelation {
                 name: Name::new("python").unwrap(),
                 version_requirement: Some(VersionRequirement {
@@ -409,7 +412,7 @@ mod tests {
     )]
     #[case(
         "java-environment>=17: required by extension-wiki-publisher and extension-nlpsolver",
-        Ok(OptDepend {
+        Ok(OptionalDependency {
             package_relation: PackageRelation {
                 name: Name::new("java-environment").unwrap(),
                 version_requirement: Some(VersionRequirement {
@@ -422,9 +425,9 @@ mod tests {
     )]
     fn opt_depend_from_string(
         #[case] input: &str,
-        #[case] expected_result: Result<OptDepend, Error>,
+        #[case] expected_result: Result<OptionalDependency, Error>,
     ) {
-        let opt_depend_result = OptDepend::from_str(input);
+        let opt_depend_result = OptionalDependency::from_str(input);
         assert_eq!(expected_result, opt_depend_result);
     }
 }
