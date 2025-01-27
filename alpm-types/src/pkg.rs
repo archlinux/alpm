@@ -46,12 +46,12 @@ pub enum PkgType {
 ///
 /// ## Examples
 /// ```
-/// use alpm_types::{Error, PkgDesc};
+/// use alpm_types::{Error, PackageDescription};
 ///
-/// // Create a PkgDesc
-/// let desc: PkgDesc = "A simple package".to_string();
+/// // Create a PackageDescription
+/// let desc: PackageDescription = "A simple package".to_string();
 /// ```
-pub type PkgDesc = String;
+pub type PackageDescription = String;
 
 /// Name of the base package information that one or more packages are built from.
 ///

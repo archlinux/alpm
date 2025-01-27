@@ -11,9 +11,9 @@ use alpm_types::InstalledSize;
 use alpm_types::License;
 use alpm_types::Name;
 use alpm_types::OptDepend;
+use alpm_types::PackageDescription;
 use alpm_types::PackageRelation;
 use alpm_types::Packager;
-use alpm_types::PkgDesc;
 use alpm_types::PkgType;
 use alpm_types::Url;
 use alpm_types::Version;
@@ -84,7 +84,7 @@ impl PkgInfoV2 {
         pkgname: Name,
         pkgbase: Name,
         pkgver: Version,
-        pkgdesc: PkgDesc,
+        pkgdesc: PackageDescription,
         url: Url,
         builddate: BuildDate,
         packager: Packager,
