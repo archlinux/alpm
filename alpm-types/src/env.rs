@@ -24,45 +24,45 @@ use crate::Version;
 /// ## Examples
 /// ```
 /// # fn main() -> Result<(), alpm_types::Error> {
-/// use alpm_types::MakePkgOption;
+/// use alpm_types::MakepkgOption;
 ///
-/// let option = MakePkgOption::new("foo")?;
+/// let option = MakepkgOption::new("foo")?;
 /// assert_eq!(option.on(), true);
 /// assert_eq!(option.name(), "foo");
 ///
-/// let not_option = MakePkgOption::new("!foo")?;
+/// let not_option = MakepkgOption::new("!foo")?;
 /// assert_eq!(not_option.on(), false);
 /// assert_eq!(not_option.name(), "foo");
 /// # Ok(())
 /// # }
 /// ```
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
-pub struct MakePkgOption {
+pub struct MakepkgOption {
     name: String,
     on: bool,
 }
 
-impl MakePkgOption {
-    /// Create a new MakePkgOption in a Result
+impl MakepkgOption {
+    /// Create a new MakepkgOption in a Result
     pub fn new(option: &str) -> Result<Self, Error> {
         Self::from_str(option)
     }
 
-    /// Get the name of the MakePkgOption
+    /// Get the name of the MakepkgOption
     pub fn name(&self) -> &str {
         &self.name
     }
 
-    /// Get whether the MakePkgOption is on
+    /// Get whether the MakepkgOption is on
     pub fn on(&self) -> bool {
         self.on
     }
 }
 
-impl FromStr for MakePkgOption {
+impl FromStr for MakepkgOption {
     type Err = Error;
     /// Create an Option from a string
-    fn from_str(s: &str) -> Result<MakePkgOption, Self::Err> {
+    fn from_str(s: &str) -> Result<MakepkgOption, Self::Err> {
         let (name, on) = if let Some(name) = s.strip_prefix('!') {
             (name.to_owned(), false)
         } else {
@@ -74,11 +74,11 @@ impl FromStr for MakePkgOption {
         {
             return Err(Error::ValueContainsInvalidChars { invalid_char: c });
         }
-        Ok(MakePkgOption { name, on })
+        Ok(MakepkgOption { name, on })
     }
 }
 
-impl Display for MakePkgOption {
+impl Display for MakepkgOption {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
         write!(fmt, "{}{}", if self.on { "" } else { "!" }, self.name)
     }
@@ -87,7 +87,7 @@ impl Display for MakePkgOption {
 /// An option string used in a build environment
 ///
 /// The option string is identified by its name and whether it is on (not prefixed with "!") or off
-/// (prefixed with "!"). This type is an alias for [`MakePkgOption`].
+/// (prefixed with "!"). This type is an alias for [`MakepkgOption`].
 ///
 /// ## Examples
 /// ```
@@ -104,12 +104,12 @@ impl Display for MakePkgOption {
 /// # Ok(())
 /// # }
 /// ```
-pub type BuildEnv = MakePkgOption;
+pub type BuildEnv = MakepkgOption;
 
 /// An option string used in packaging
 ///
 /// The option string is identified by its name and whether it is on (not prefixed with "!") or off
-/// (prefixed with "!"). This type is an alias for [`MakePkgOption`].
+/// (prefixed with "!"). This type is an alias for [`MakepkgOption`].
 ///
 /// ## Examples
 /// ```
@@ -126,7 +126,7 @@ pub type BuildEnv = MakePkgOption;
 /// # Ok(())
 /// # }
 /// ```
-pub type PackageOption = MakePkgOption;
+pub type PackageOption = MakepkgOption;
 
 /// Information on an installed package in an environment
 ///
@@ -212,15 +212,15 @@ mod tests {
     use super::*;
 
     #[rstest]
-    #[case("something", Ok(MakePkgOption{name: "something".to_string(), on: true}))]
-    #[case("1cool.build-option", Ok(MakePkgOption{name: "1cool.build-option".to_string(), on: true}))]
-    #[case("üñıçøĐë", Ok(MakePkgOption{name: "üñıçøĐë".to_string(), on: true}))]
-    #[case("!üñıçøĐë", Ok(MakePkgOption{name: "üñıçøĐë".to_string(), on: false}))]
-    #[case("!something", Ok(MakePkgOption{name: "something".to_string(), on: false}))]
+    #[case("something", Ok(MakepkgOption{name: "something".to_string(), on: true}))]
+    #[case("1cool.build-option", Ok(MakepkgOption{name: "1cool.build-option".to_string(), on: true}))]
+    #[case("üñıçøĐë", Ok(MakepkgOption{name: "üñıçøĐë".to_string(), on: true}))]
+    #[case("!üñıçøĐë", Ok(MakepkgOption{name: "üñıçøĐë".to_string(), on: false}))]
+    #[case("!something", Ok(MakepkgOption{name: "something".to_string(), on: false}))]
     #[case("!!something", Err(Error::ValueContainsInvalidChars { invalid_char: '!'}))]
     #[case("foo\\", Err(Error::ValueContainsInvalidChars { invalid_char: '\\'}))]
-    fn makepkgoption(#[case] s: &str, #[case] result: Result<MakePkgOption, Error>) {
-        assert_eq!(MakePkgOption::from_str(s), result);
+    fn makepkgoption(#[case] s: &str, #[case] result: Result<MakepkgOption, Error>) {
+        assert_eq!(MakepkgOption::from_str(s), result);
     }
 
     #[rstest]
