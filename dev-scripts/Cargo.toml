@@ -15,7 +15,7 @@ publish = false
 [dependencies]
 alpm-buildinfo = { path = "../alpm-buildinfo", features = ["cli"] }
 alpm-mtree = { path = "../alpm-mtree", features = ["cli"] }
-alpm-pkginfo = { path = "../alpm-pkginfo" }
+alpm-pkginfo = { path = "../alpm-pkginfo", features = ["cli"] }
 anyhow = "1"
 clap.workspace = true
 colored = "3"
