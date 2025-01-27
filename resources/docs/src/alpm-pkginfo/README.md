@@ -1,0 +1,1 @@
+../../../../alpm-pkginfo/README.md
