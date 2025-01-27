@@ -12,13 +12,20 @@ license.workspace = true
 readme.workspace = true
 repository.workspace = true
 
+[[bin]]
+name = "alpm-buildinfo"
+path = "src/main.rs"
+required-features = ["cli"]
+
 [features]
+cli = ["dep:clap"]
+default = ["cli"]
 winnow-debug = ["alpm-parsers/winnow-debug"]
 
 [dependencies]
 alpm-parsers.workspace = true
 alpm-types.workspace = true
-clap.workspace = true
+clap = { workspace = true, optional = true }
 erased-serde.workspace = true
 serde.workspace = true
 serde_json = "1.0.133"

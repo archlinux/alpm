@@ -13,7 +13,7 @@ authors.workspace = true
 publish = false
 
 [dependencies]
-alpm-buildinfo = { path = "../alpm-buildinfo" }
+alpm-buildinfo = { path = "../alpm-buildinfo", features = ["cli"] }
 alpm-mtree = { path = "../alpm-mtree" }
 alpm-pkginfo = { path = "../alpm-pkginfo" }
 anyhow = "1"
