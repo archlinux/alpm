@@ -10,9 +10,9 @@ use alpm_types::InstalledSize;
 use alpm_types::License;
 use alpm_types::Name;
 use alpm_types::OptDepend;
+use alpm_types::PackageDescription;
 use alpm_types::PackageRelation;
 use alpm_types::Packager;
-use alpm_types::PkgDesc;
 use alpm_types::Url;
 use alpm_types::Version;
 use serde_with::serde_as;
@@ -42,7 +42,7 @@ macro_rules! generate_pkginfo {
             pkgver: Version,
 
             #[serde_as(as = "DisplayFromStr")]
-            pkgdesc: PkgDesc,
+            pkgdesc: PackageDescription,
 
             #[serde_as(as = "DisplayFromStr")]
             url: Url,
@@ -119,7 +119,7 @@ macro_rules! generate_pkginfo {
             }
 
             /// Returns the description of the package
-            pub fn pkgdesc(&self) -> &PkgDesc {
+            pub fn pkgdesc(&self) -> &PackageDescription {
                 &self.pkgdesc
             }
 
@@ -260,7 +260,7 @@ impl PkgInfoV1 {
         name: Name,
         base: Name,
         version: Version,
-        desc: PkgDesc,
+        desc: PackageDescription,
         url: Url,
         builddate: BuildDate,
         packager: Packager,

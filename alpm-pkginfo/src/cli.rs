@@ -12,9 +12,9 @@ use alpm_types::InstalledSize;
 use alpm_types::License;
 use alpm_types::Name;
 use alpm_types::OptDepend;
+use alpm_types::PackageDescription;
 use alpm_types::PackageRelation;
 use alpm_types::Packager;
-use alpm_types::PkgDesc;
 use alpm_types::Url;
 use alpm_types::Version;
 use clap::Args;
@@ -152,7 +152,7 @@ pub struct V1CreateArgs {
     ///
     /// The value must follow the format described in the PKGINFO format (see `man 5 PKGINFO`).
     #[arg(env = "PKGINFO_PKGDESC", long, value_name = "PKGDESC")]
-    pub pkgdesc: PkgDesc,
+    pub pkgdesc: PackageDescription,
 
     /// Provide a url
     #[arg(env = "PKGINFO_URL", long, value_name = "URL")]
