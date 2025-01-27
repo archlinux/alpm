@@ -1,6 +1,6 @@
 use std::{path::Path, str::FromStr, thread};
 
-use alpm_pkginfo::{PkgInfoV1, PkgInfoV2};
+use alpm_pkginfo::{PackageInfoV1, PackageInfoV2};
 use assert_cmd::Command;
 use insta::assert_snapshot;
 use rstest::rstest;
@@ -71,7 +71,7 @@ checkdepend = other-extra-test-tool
 "#;
 
 #[derive(Default)]
-pub struct PkgInfoInput {
+pub struct PackageInfoInput {
     pub pkgname: String,
     pub pkgbase: String,
     pub pkgver: String,
@@ -156,8 +156,8 @@ fn format_pkginfo_and_serialize_as_json(#[case] data: &str) -> TestResult {
 }
 
 /// Return a valid PKGINFO file with all fields filled in.
-fn pkginfo_all_fields(xdata: Option<Vec<String>>) -> PkgInfoInput {
-    PkgInfoInput {
+fn pkginfo_all_fields(xdata: Option<Vec<String>>) -> PackageInfoInput {
+    PackageInfoInput {
         pkgname: "example".to_string(),
         pkgbase: "example".to_string(),
         pkgver: "1:1.0.0-1".to_string(),
@@ -203,8 +203,8 @@ fn pkginfo_all_fields(xdata: Option<Vec<String>>) -> PkgInfoInput {
 }
 
 /// Return a valid PKGINFO file with only the required fields filled in.
-fn pkginfo_optional_fields(xdata: Option<Vec<String>>) -> PkgInfoInput {
-    PkgInfoInput {
+fn pkginfo_optional_fields(xdata: Option<Vec<String>>) -> PackageInfoInput {
+    PackageInfoInput {
         pkgname: "example".to_string(),
         pkgbase: "example".to_string(),
         pkgver: "1:1.0.0-1".to_string(),
@@ -237,7 +237,7 @@ fn pkginfo_optional_fields(xdata: Option<Vec<String>>) -> PkgInfoInput {
 #[case::pkginfov2_optional_fields(
     pkginfo_optional_fields(Some( vec!["pkgtype=pkg".to_string()]))
 )]
-fn write_pkginfo_via_cli(#[case] pkginfo_input: PkgInfoInput) -> TestResult {
+fn write_pkginfo_via_cli(#[case] pkginfo_input: PackageInfoInput) -> TestResult {
     test_write_pkginfo(pkginfo_input, false)
 }
 
@@ -250,12 +250,12 @@ fn write_pkginfo_via_cli(#[case] pkginfo_input: PkgInfoInput) -> TestResult {
 #[case::pkginfov2_optional_fields(
     pkginfo_optional_fields(Some( vec!["pkgtype=pkg".to_string()]))
 )]
-fn write_pkginfo_via_env(#[case] pkginfo_input: PkgInfoInput) -> TestResult {
+fn write_pkginfo_via_env(#[case] pkginfo_input: PackageInfoInput) -> TestResult {
     test_write_pkginfo(pkginfo_input, true)
 }
 
 /// Test writing a pkginfo file either via CLI or environment variables.
-fn test_write_pkginfo(pkginfo_input: PkgInfoInput, use_env: bool) -> TestResult {
+fn test_write_pkginfo(pkginfo_input: PackageInfoInput, use_env: bool) -> TestResult {
     let test_name = thread::current().name().unwrap().to_string();
 
     // Create a temporary directory for the test
@@ -281,9 +281,9 @@ fn test_write_pkginfo(pkginfo_input: PkgInfoInput, use_env: bool) -> TestResult 
     // Validate the contents of the PKGINFO file
     let contents = std::fs::read_to_string(&file)?;
     let pkg_info = if pkginfo_input.xdata.is_some() {
-        PkgInfoV2::from_str(&contents)?.to_string()
+        PackageInfoV2::from_str(&contents)?.to_string()
     } else {
-        PkgInfoV1::from_str(&contents)?.to_string()
+        PackageInfoV1::from_str(&contents)?.to_string()
     };
     assert_snapshot!(test_name, pkg_info.to_string());
 
@@ -295,7 +295,7 @@ fn test_write_pkginfo(pkginfo_input: PkgInfoInput, use_env: bool) -> TestResult 
     Ok(())
 }
 
-fn set_pkginfo_args(cmd: &mut Command, input: &PkgInfoInput) {
+fn set_pkginfo_args(cmd: &mut Command, input: &PackageInfoInput) {
     cmd.args(["--pkgname", &input.pkgname]);
     cmd.args(["--pkgbase", &input.pkgbase]);
     cmd.args(["--pkgver", &input.pkgver]);
@@ -362,7 +362,7 @@ fn set_pkginfo_args(cmd: &mut Command, input: &PkgInfoInput) {
     }
 }
 
-fn set_pkginfo_env(cmd: &mut Command, input: &PkgInfoInput) {
+fn set_pkginfo_env(cmd: &mut Command, input: &PackageInfoInput) {
     cmd.env("PKGINFO_PKGNAME", &input.pkgname);
     cmd.env("PKGINFO_PKGBASE", &input.pkgbase);
     cmd.env("PKGINFO_PKGVER", &input.pkgver);

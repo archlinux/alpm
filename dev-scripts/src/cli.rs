@@ -32,7 +32,7 @@ pub enum TestFileType {
     #[strum(to_string = ".SRCINFO")]
     SrcInfo,
     #[strum(to_string = ".PKGINFO")]
-    PkgInfo,
+    PackageInfo,
     #[strum(to_string = ".MTREE")]
     MTree,
     #[strum(to_string = "desc")]
