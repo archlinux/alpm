@@ -69,7 +69,7 @@ pub use openpgp::Packager;
 
 mod pkg;
 pub use pkg::ExtraData;
-pub use pkg::PkgBase;
+pub use pkg::PackageBaseName;
 pub use pkg::PkgDesc;
 pub use pkg::PkgType;
 

@@ -64,7 +64,7 @@ pub type PkgDesc = String;
 /// use alpm_types::{Error, Name};
 ///
 /// # fn main() -> Result<(), alpm_types::Error> {
-/// // create PkgBase from &str
+/// // create PackageBaseName from &str
 /// let pkgbase = Name::from_str("test-123@.foo_+")?;
 ///
 /// // format as String
@@ -73,7 +73,7 @@ pub type PkgDesc = String;
 /// # Ok(())
 /// # }
 /// ```
-pub type PkgBase = Name;
+pub type PackageBaseName = Name;
 
 /// Extra data associated with a package
 ///
