@@ -89,7 +89,7 @@ mod version;
 pub use version::BuildToolVersion;
 pub use version::Epoch;
 pub use version::PackageRelease;
-pub use version::Pkgver;
+pub use version::PackageVersion;
 pub use version::SchemaVersion;
 pub use version::Version;
 pub use version::VersionComparison;

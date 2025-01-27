@@ -197,36 +197,37 @@ impl Display for PackageRelease {
 
 /// A pkgver of a package
 ///
-/// Pkgver is used to denote the upstream version of a package.
+/// PackageVersion is used to denote the upstream version of a package.
 ///
-/// A Pkgver wraps a `String`, which is guaranteed to only contain alphanumeric characters, `"_"`,
-/// `"+"` or `"."`, but to not start with a `"_"`, a `"+"` or a `"."` character and to be at least
-/// one char long.
+/// A PackageVersion wraps a `String`, which is guaranteed to only contain alphanumeric characters,
+/// `"_"`, `"+"` or `"."`, but to not start with a `"_"`, a `"+"` or a `"."` character and to be at
+/// least one char long.
 ///
-/// NOTE: This implementation of Pkgver is stricter than that of libalpm/pacman. It does not allow
-/// empty strings `""`, or chars that are not in the allowed set, or `"."` as the first character.
+/// NOTE: This implementation of PackageVersion is stricter than that of libalpm/pacman. It does not
+/// allow empty strings `""`, or chars that are not in the allowed set, or `"."` as the first
+/// character.
 ///
 /// ## Examples
 /// ```
 /// use std::str::FromStr;
 ///
-/// use alpm_types::Pkgver;
+/// use alpm_types::PackageVersion;
 ///
-/// assert!(Pkgver::new("1".to_string()).is_ok());
-/// assert!(Pkgver::new("1.1".to_string()).is_ok());
-/// assert!(Pkgver::new("foo".to_string()).is_ok());
-/// assert!(Pkgver::new("0".to_string()).is_ok());
-/// assert!(Pkgver::new(".0.1".to_string()).is_err());
-/// assert!(Pkgver::new("_1.0".to_string()).is_err());
-/// assert!(Pkgver::new("+1.0".to_string()).is_err());
+/// assert!(PackageVersion::new("1".to_string()).is_ok());
+/// assert!(PackageVersion::new("1.1".to_string()).is_ok());
+/// assert!(PackageVersion::new("foo".to_string()).is_ok());
+/// assert!(PackageVersion::new("0".to_string()).is_ok());
+/// assert!(PackageVersion::new(".0.1".to_string()).is_err());
+/// assert!(PackageVersion::new("_1.0".to_string()).is_err());
+/// assert!(PackageVersion::new("+1.0".to_string()).is_err());
 /// ```
 #[derive(Clone, Debug, Eq, Serialize)]
-pub struct Pkgver(pub(crate) String);
+pub struct PackageVersion(pub(crate) String);
 
-impl Pkgver {
-    /// Create a new Pkgver from a string and return it in a Result
+impl PackageVersion {
+    /// Create a new PackageVersion from a string and return it in a Result
     pub fn new(pkgver: String) -> Result<Self, Error> {
-        Pkgver::from_str(pkgver.as_str())
+        PackageVersion::from_str(pkgver.as_str())
     }
 
     /// Return a reference to the inner type
@@ -240,12 +241,12 @@ impl Pkgver {
     }
 }
 
-impl FromStr for Pkgver {
+impl FromStr for PackageVersion {
     type Err = Error;
-    /// Create a Pkgver from a string and return it in a Result
+    /// Create a PackageVersion from a string and return it in a Result
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if PKGVER_REGEX.is_match(s) {
-            Ok(Pkgver(s.to_string()))
+            Ok(PackageVersion(s.to_string()))
         } else {
             Err(Error::RegexDoesNotMatch {
                 value: s.to_string(),
@@ -256,7 +257,7 @@ impl FromStr for Pkgver {
     }
 }
 
-impl Display for Pkgver {
+impl Display for PackageVersion {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
         write!(fmt, "{}", self.inner())
     }
@@ -448,7 +449,7 @@ impl<'a> Iterator for VersionSegments<'a> {
     }
 }
 
-impl Ord for Pkgver {
+impl Ord for PackageVersion {
     /// This block implements the logic to determine which of two package versions is newer or
     /// whether they're considered equal.
     ///
@@ -691,13 +692,13 @@ impl Ord for Pkgver {
     }
 }
 
-impl PartialOrd for Pkgver {
+impl PartialOrd for PackageVersion {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
-impl PartialEq for Pkgver {
+impl PartialEq for PackageVersion {
     fn eq(&self, other: &Self) -> bool {
         self.cmp(other).is_eq()
     }
@@ -775,19 +776,19 @@ impl Display for SchemaVersion {
 
 /// A version of a package
 ///
-/// A `Version` tracks an optional `Epoch`, a `Pkgver` and an optional `PackageRelease`.
+/// A `Version` tracks an optional `Epoch`, a `PackageVersion` and an optional `PackageRelease`.
 ///
 /// ## Examples
 /// ```
 /// use std::str::FromStr;
 ///
-/// use alpm_types::{Epoch, PackageRelease, Pkgver, Version};
+/// use alpm_types::{Epoch, PackageRelease, PackageVersion, Version};
 ///
 /// # fn main() -> Result<(), alpm_types::Error> {
 ///
 /// let version = Version::from_str("1:2-3")?;
 /// assert_eq!(version.epoch, Some(Epoch::from_str("1")?));
-/// assert_eq!(version.pkgver, Pkgver::new("2".to_string())?);
+/// assert_eq!(version.pkgver, PackageVersion::new("2".to_string())?);
 /// assert_eq!(version.pkgrel, Some(PackageRelease::new("3".to_string())?));
 /// # Ok(())
 /// # }
@@ -795,7 +796,7 @@ impl Display for SchemaVersion {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct Version {
     /// The version of the package
-    pub pkgver: Pkgver,
+    pub pkgver: PackageVersion,
     /// The epoch of the package
     pub epoch: Option<Epoch>,
     /// The release of the package
@@ -804,7 +805,11 @@ pub struct Version {
 
 impl Version {
     /// Create a new Version
-    pub fn new(pkgver: Pkgver, epoch: Option<Epoch>, pkgrel: Option<PackageRelease>) -> Self {
+    pub fn new(
+        pkgver: PackageVersion,
+        epoch: Option<Epoch>,
+        pkgrel: Option<PackageRelease>,
+    ) -> Self {
         Version {
             pkgver,
             epoch,
@@ -1190,14 +1195,14 @@ mod tests {
         "foo",
         Version {
             epoch: None,
-            pkgver: Pkgver::new("foo".to_string()).unwrap(),
+            pkgver: PackageVersion::new("foo".to_string()).unwrap(),
             pkgrel: None
         },
     )]
     #[case(
         "1:foo-1",
         Version {
-            pkgver: Pkgver::new("foo".to_string()).unwrap(),
+            pkgver: PackageVersion::new("foo".to_string()).unwrap(),
             epoch: Some(Epoch::from_str("1").unwrap()),
             pkgrel: Some(PackageRelease::new("1".to_string()).unwrap()),
         },
@@ -1205,7 +1210,7 @@ mod tests {
     #[case(
         "1:foo",
         Version {
-            pkgver: Pkgver::new("foo".to_string()).unwrap(),
+            pkgver: PackageVersion::new("foo".to_string()).unwrap(),
             epoch: Some(Epoch::from_str("1").unwrap()),
             pkgrel: None,
         },
@@ -1213,7 +1218,7 @@ mod tests {
     #[case(
         "foo-1",
         Version {
-            pkgver: Pkgver::new("foo".to_string()).unwrap(),
+            pkgver: PackageVersion::new("foo".to_string()).unwrap(),
             epoch: None,
             pkgrel: Some(PackageRelease::new("1".to_string()).unwrap())
         }
@@ -1293,7 +1298,7 @@ mod tests {
     #[case(
         "1.0.0-1",
         Ok(Version{
-            pkgver: Pkgver::new("1.0.0".to_string()).unwrap(),
+            pkgver: PackageVersion::new("1.0.0".to_string()).unwrap(),
             pkgrel: Some(PackageRelease::new("1".to_string()).unwrap()),
             epoch: None,
         })
@@ -1317,12 +1322,12 @@ mod tests {
     #[case("foo")]
     #[case("1.0.0")]
     fn valid_pkgver(#[case] pkgver: &str) {
-        let parsed = Pkgver::new(pkgver.to_string());
+        let parsed = PackageVersion::new(pkgver.to_string());
         assert!(parsed.is_ok(), "Expected pkgver {pkgver} to be valid.");
         assert_eq!(
             parsed.as_ref().unwrap().to_string(),
             pkgver,
-            "Expected parsed Pkgver representation '{}' to be identical to input '{}'",
+            "Expected parsed PackageVersion representation '{}' to be identical to input '{}'",
             parsed.unwrap(),
             pkgver
         );
@@ -1340,7 +1345,7 @@ mod tests {
     #[case("1.ß")]
     fn invalid_pkgver(#[case] pkgver: &str) {
         assert_eq!(
-            Pkgver::new(pkgver.to_string()).as_ref(),
+            PackageVersion::new(pkgver.to_string()).as_ref(),
             Err(&Error::RegexDoesNotMatch {
                 value: pkgver.to_string(),
                 regex_type: "pkgver".to_string(),
@@ -1639,7 +1644,7 @@ mod tests {
         #[case] version: &str,
         #[case] expected_segments: Vec<(&'static str, usize)>,
     ) {
-        let version = Pkgver(version.to_string());
+        let version = PackageVersion(version.to_string());
         // Convert the simplified definition above into actual VersionSegment instances.
         let expected = expected_segments
             .into_iter()
