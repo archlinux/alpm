@@ -17,7 +17,7 @@ use alpm_types::{
     PackageOption,
     Packager,
     SchemaVersion,
-    StartDir,
+    StartDirectory,
     Version,
 };
 use serde_with::{serde_as, DisplayFromStr};
@@ -65,7 +65,7 @@ generate_buildinfo! {
     /// ```
     BuildInfoV2 {
         #[serde_as(as = "DisplayFromStr")]
-        startdir: StartDir,
+        startdir: StartDirectory,
 
         #[serde_as(as = "DisplayFromStr")]
         buildtool: BuildTool,
@@ -81,7 +81,7 @@ impl BuildInfoV2 {
     pub fn new(
         builddate: BuildDate,
         builddir: BuildDirectory,
-        startdir: StartDir,
+        startdir: StartDirectory,
         buildtool: BuildTool,
         buildtoolver: BuildToolVersion,
         buildenv: Vec<BuildEnv>,
@@ -118,7 +118,7 @@ impl BuildInfoV2 {
     }
 
     /// Returns the start directory of the build process.
-    pub fn startdir(&self) -> &StartDir {
+    pub fn startdir(&self) -> &StartDirectory {
         &self.startdir
     }
 
@@ -262,7 +262,7 @@ pkgver = 1:1.0.0-1
         BuildInfoV2::new(
             1,
             BuildDirectory::from_str("/build")?,
-            StartDir::from_str("/startdir/")?,
+            StartDirectory::from_str("/startdir/")?,
             BuildTool::from_str("devtools")?,
             BuildToolVersion::from_str("1:1.2.1-1-any")?,
             vec![BuildEnv::new("some")?],
@@ -284,7 +284,7 @@ pkgver = 1:1.0.0-1
         assert!(BuildInfoV2::new(
             1,
             BuildDirectory::from_str("/build")?,
-            StartDir::from_str("/startdir/")?,
+            StartDirectory::from_str("/startdir/")?,
             BuildTool::from_str("devtools")?,
             BuildToolVersion::from_str("1:1.2.1-1-any")?,
             vec![BuildEnv::new("some")?],

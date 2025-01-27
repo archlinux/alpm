@@ -59,7 +59,7 @@ pub use path::BuildDirectory;
 pub use path::Changelog;
 pub use path::Install;
 pub use path::RelativePath;
-pub use path::StartDir;
+pub use path::StartDirectory;
 
 mod openpgp;
 pub use openpgp::OpenPGPIdentifier;

@@ -15,7 +15,7 @@ use alpm_types::{
     Name,
     PackageOption,
     Packager,
-    StartDir,
+    StartDirectory,
     Version,
 };
 use clap::{Args, Parser, Subcommand, ValueEnum};
@@ -200,7 +200,7 @@ pub enum CreateCommand {
 
         /// Provide a startdir
         #[arg(env = "BUILDINFO_STARTDIR", long, value_name = "STARTDIR")]
-        startdir: StartDir,
+        startdir: StartDirectory,
 
         /// Provide a buildtool
         #[arg(env = "BUILDINFO_BUILDTOOL", long, value_name = "BUILDTOOL")]

@@ -103,17 +103,17 @@ pub type BuildDirectory = AbsolutePath;
 /// ```
 /// use std::str::FromStr;
 ///
-/// use alpm_types::{Error, StartDir};
+/// use alpm_types::{Error, StartDirectory};
 ///
 /// # fn main() -> Result<(), alpm_types::Error> {
-/// // Create StartDir from &str and format it
+/// // Create StartDirectory from &str and format it
 /// assert_eq!(
 ///     "/etc",
-///     StartDir::from_str("/etc")?.to_string()
+///     StartDirectory::from_str("/etc")?.to_string()
 /// );
 /// # Ok(())
 /// # }
-pub type StartDir = AbsolutePath;
+pub type StartDirectory = AbsolutePath;
 
 /// A representation of a relative file path
 ///
@@ -264,12 +264,12 @@ mod tests {
     }
 
     #[rstest]
-    #[case("/start", StartDir::new(PathBuf::from("/start")))]
+    #[case("/start", StartDirectory::new(PathBuf::from("/start")))]
     #[case("./", Err(Error::PathNotAbsolute(PathBuf::from("./"))))]
     #[case("~/", Err(Error::PathNotAbsolute(PathBuf::from("~/"))))]
     #[case("foo.txt", Err(Error::PathNotAbsolute(PathBuf::from("foo.txt"))))]
-    fn startdir_from_str(#[case] s: &str, #[case] result: Result<StartDir, Error>) {
-        assert_eq!(StartDir::from_str(s), result);
+    fn startdir_from_str(#[case] s: &str, #[case] result: Result<StartDirectory, Error>) {
+        assert_eq!(StartDirectory::from_str(s), result);
     }
 
     #[rstest]
