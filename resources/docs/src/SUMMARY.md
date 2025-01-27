@@ -7,6 +7,7 @@
 - [alpm-buildinfo](./alpm-buildinfo/README.md)
 - [alpm-mtree](./alpm-mtree/README.md)
 - [alpm-parsers](./alpm-parsers/README.md)
+- [alpm-pkginfo](./alpm-pkginfo/README.md)
 - [alpm-types](./alpm-types/README.md)
   - [CHANGELOG](./alpm-types/CHANGELOG.md)
 
