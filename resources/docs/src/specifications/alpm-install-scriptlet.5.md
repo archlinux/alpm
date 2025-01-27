@@ -1,0 +1,1 @@
+../../../../alpm-types/resources/specification/alpm-install-scriptlet.5.md

@@ -13,6 +13,7 @@
 # Specifications
 
 - [File formats](./specifications/file-formats.md)
+  - [alpm-install-scriptlet](./specifications/alpm-install-scriptlet.5.md)
   - [ALPM-MTREE](./specifications/ALPM-MTREE.5.md)
     - [ALPM-MTREEv1](./specifications/ALPM-MTREEv1.5.md)
     - [ALPM-MTREEv2](./specifications/ALPM-MTREEv2.5.md)
