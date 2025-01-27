@@ -184,6 +184,7 @@ lint:
     just lint-recipe ci-publish
     just lint-recipe 'generate shell_completions alpm-buildinfo'
     just lint-recipe 'is-workspace-member alpm-buildinfo'
+    just lint-recipe 'prepare-release alpm-buildinfo'
     just lint-recipe 'release alpm-buildinfo'
     just lint-recipe flaky
     just lint-recipe test
@@ -355,9 +356,45 @@ flaky test='just test-readme alpm-buildinfo' rounds='999999999999':
       echo
     done
 
-# Prepares the release of a crate by updating dependencies, incrementing the crate version and creating a changelog entry
-prepare-release package:
-    release-plz update -u -p {{ package }}
+# Prepares the release of a crate by updating dependencies, incrementing the crate version and creating a changelog entry (optionally, the version can be set explicitly)
+prepare-release package version="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    readonly package_name="{{ package }}"
+    if [[ -z "$package_name" ]]; then
+        printf "No package name provided!\n"
+        exit 1
+    fi
+    readonly package_version="{{ version }}"
+    branch_name=""
+
+    just ensure-command git release-plz
+
+    release-plz update -u -p "$package_name"
+
+    # NOTE: When setting the version specifically, we are likely in a situation where `release-plz` did not detect a version change (e.g. when only changes to top-level files took place since last release).
+    # In this case we are fine to potentially have no changes in the CHANGELOG.md or having to adjust it manually afterwards.
+    if [[ -n "$package_version" ]]; then
+        release-plz set-version "${package_name}@${package_version}"
+    fi
+
+    # make sure that the current version would be publishable, but ignore files not added to git
+    cargo publish -p "$package_name" --dry-run --allow-dirty
+
+    updated_package_version="$(just get-workspace-member-version "$package_name")"
+    readonly updated_package_version="$updated_package_version"
+
+    if [[ -n "$package_version" ]]; then
+        branch_name="release/$package_name/$package_version"
+    else
+        branch_name="release/$package_name/$updated_package_version"
+    fi
+    git checkout -b "$branch_name"
+
+    git add Cargo.* "$package_name"/{Cargo.toml,CHANGELOG.md}
+    git commit --gpg-sign --signoff --message "chore: Upgrade $package_name crate to $updated_package_version"
+    git push --set-upstream origin "$branch_name"
 
 # Creates a release of a crate in the workspace by creating a tag and pushing it
 release package:
@@ -370,6 +407,8 @@ release package:
         exit 1
     fi
     readonly current_version="{{ package }}/$package_version"
+
+    just ensure-command git
 
     if [[ -n "$(git tag -l "$current_version")" ]]; then
         printf "The tag %s exists already!\n" "$current_version" >&2
@@ -392,6 +431,8 @@ ci-publish:
     readonly tag="${CI_COMMIT_TAG:-}"
     readonly crate="${tag//\/*/}"
     readonly version="${tag#*/}"
+
+    just ensure-command cargo mold
 
     if [[ -z "$tag" ]]; then
         printf "There is no tag!\n" >&2
