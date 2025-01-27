@@ -1,7 +1,5 @@
 # the following crates need a release first to make their documentation available on docs.rs
-https://alpm.archlinux.page/rustdoc/alpm_mtree/
-https://docs.rs/alpm-buildinfo/latest/alpm_buildinfo/
-https://docs.rs/alpm-mtree/latest/alpm_mtree/
+https://docs.rs/alpm-buildinfo
+https://docs.rs/alpm-mtree
 https://docs.rs/alpm-parsers
 https://docs.rs/alpm-pkginfo
-https://alpm.archlinux.page/rustdoc/alpm_pkginfo
