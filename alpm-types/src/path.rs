@@ -83,17 +83,17 @@ impl Display for AbsolutePath {
 /// ```
 /// use std::str::FromStr;
 ///
-/// use alpm_types::{Error, BuildDir};
+/// use alpm_types::{Error, BuildDirectory};
 ///
 /// # fn main() -> Result<(), alpm_types::Error> {
-/// // Create BuildDir from &str and format it
+/// // Create BuildDirectory from &str and format it
 /// assert_eq!(
 ///     "/etc",
-///     BuildDir::from_str("/etc")?.to_string()
+///     BuildDirectory::from_str("/etc")?.to_string()
 /// );
 /// # Ok(())
 /// # }
-pub type BuildDir = AbsolutePath;
+pub type BuildDirectory = AbsolutePath;
 
 /// An absolute path used as start directory in a package build environment
 ///
@@ -255,12 +255,12 @@ mod tests {
     use super::*;
 
     #[rstest]
-    #[case("/home", BuildDir::new(PathBuf::from("/home")))]
+    #[case("/home", BuildDirectory::new(PathBuf::from("/home")))]
     #[case("./", Err(Error::PathNotAbsolute(PathBuf::from("./"))))]
     #[case("~/", Err(Error::PathNotAbsolute(PathBuf::from("~/"))))]
     #[case("foo.txt", Err(Error::PathNotAbsolute(PathBuf::from("foo.txt"))))]
-    fn build_dir_from_string(#[case] s: &str, #[case] result: Result<BuildDir, Error>) {
-        assert_eq!(BuildDir::from_str(s), result);
+    fn build_dir_from_string(#[case] s: &str, #[case] result: Result<BuildDirectory, Error>) {
+        assert_eq!(BuildDirectory::from_str(s), result);
     }
 
     #[rstest]

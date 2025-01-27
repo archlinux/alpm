@@ -7,7 +7,7 @@ use alpm_types::{
     digests::Sha256,
     Architecture,
     BuildDate,
-    BuildDir,
+    BuildDirectory,
     BuildEnv,
     BuildTool,
     BuildToolVersion,
@@ -80,7 +80,7 @@ impl BuildInfoV2 {
     #[allow(clippy::too_many_arguments)]
     pub fn new(
         builddate: BuildDate,
-        builddir: BuildDir,
+        builddir: BuildDirectory,
         startdir: StartDir,
         buildtool: BuildTool,
         buildtoolver: BuildToolVersion,
@@ -261,7 +261,7 @@ pkgver = 1:1.0.0-1
     fn buildinfov2() -> TestResult {
         BuildInfoV2::new(
             1,
-            BuildDir::from_str("/build")?,
+            BuildDirectory::from_str("/build")?,
             StartDir::from_str("/startdir/")?,
             BuildTool::from_str("devtools")?,
             BuildToolVersion::from_str("1:1.2.1-1-any")?,
@@ -283,7 +283,7 @@ pkgver = 1:1.0.0-1
     fn buildinfov2_invalid_schemaversion() -> TestResult {
         assert!(BuildInfoV2::new(
             1,
-            BuildDir::from_str("/build")?,
+            BuildDirectory::from_str("/build")?,
             StartDir::from_str("/startdir/")?,
             BuildTool::from_str("devtools")?,
             BuildToolVersion::from_str("1:1.2.1-1-any")?,

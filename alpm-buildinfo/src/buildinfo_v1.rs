@@ -7,7 +7,7 @@ use alpm_types::{
     digests::Sha256,
     Architecture,
     BuildDate,
-    BuildDir,
+    BuildDirectory,
     BuildEnv,
     Checksum,
     InstalledPackage,
@@ -57,7 +57,7 @@ macro_rules! generate_buildinfo {
             builddate: BuildDate,
 
             #[serde_as(as = "DisplayFromStr")]
-            builddir: BuildDir,
+            builddir: BuildDirectory,
 
             #[serde_as(as = "Vec<DisplayFromStr>")]
             #[serde(default)]
@@ -116,7 +116,7 @@ macro_rules! generate_buildinfo {
             }
 
             /// Returns the build directory
-            pub fn builddir(&self) -> &BuildDir {
+            pub fn builddir(&self) -> &BuildDirectory {
                 &self.builddir
             }
 
@@ -184,7 +184,7 @@ impl BuildInfoV1 {
     #[allow(clippy::too_many_arguments)]
     pub fn new(
         builddate: BuildDate,
-        builddir: BuildDir,
+        builddir: BuildDirectory,
         buildenv: Vec<BuildEnv>,
         format: SchemaVersion,
         installed: Vec<InstalledPackage>,
@@ -317,7 +317,7 @@ pkgver = 1:1.0.0-1
     fn buildinfov1() -> TestResult {
         BuildInfoV1::new(
             1,
-            BuildDir::from_str("/build")?,
+            BuildDirectory::from_str("/build")?,
             vec![BuildEnv::new("some")?],
             SchemaVersion::from_str("1")?,
             vec![InstalledPackage::from_str("bar-1:1.0.0-2-any")?],
@@ -336,7 +336,7 @@ pkgver = 1:1.0.0-1
     fn buildinfov1_invalid_schemaversion() -> TestResult {
         assert!(BuildInfoV1::new(
             1,
-            BuildDir::from_str("/build")?,
+            BuildDirectory::from_str("/build")?,
             vec![BuildEnv::new("some")?],
             SchemaVersion::from_str("2")?,
             vec![InstalledPackage::from_str("bar-1:1.0.0-2-any")?],

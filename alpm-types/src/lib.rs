@@ -55,7 +55,7 @@ pub use name::Name;
 mod path;
 pub use path::AbsolutePath;
 pub use path::Backup;
-pub use path::BuildDir;
+pub use path::BuildDirectory;
 pub use path::Changelog;
 pub use path::Install;
 pub use path::RelativePath;

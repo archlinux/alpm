@@ -7,7 +7,7 @@ use std::{
 use alpm_types::{
     Architecture,
     BuildDate,
-    BuildDir,
+    BuildDirectory,
     BuildEnv,
     BuildTool,
     BuildToolVersion,
@@ -129,7 +129,7 @@ pub struct V1CreateArgs {
     pub builddate: BuildDate,
     /// Provide a builddir
     #[arg(env = "BUILDINFO_BUILDDIR", long, value_name = "BUILDDIR")]
-    pub builddir: BuildDir,
+    pub builddir: BuildDirectory,
     /// Provide one or more buildenv
     #[arg(
         env = "BUILDINFO_BUILDENV",
