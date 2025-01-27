@@ -12,12 +12,19 @@ license.workspace = true
 readme.workspace = true
 repository.workspace = true
 
+[[bin]]
+name = "alpm-mtree"
+path = "src/main.rs"
+required-features = ["cli"]
+
 [features]
+cli = ["dep:clap"]
+default = ["cli"]
 winnow-debug = ["winnow/debug"]
 
 [dependencies]
 alpm-types.workspace = true
-clap.workspace = true
+clap = { workspace = true, optional = true }
 flate2 = "1"
 serde.workspace = true
 serde_json.workspace = true

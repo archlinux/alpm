@@ -1,8 +1,10 @@
 #![doc = include_str!("../README.md")]
 
 /// Commandline argument handling. This is most likely not interesting for you.
+#[cfg(feature = "cli")]
 pub mod cli;
 /// Commandline functions, that're called by the `alpm-mtree` executable.
+#[cfg(feature = "cli")]
 pub mod commands;
 mod error;
 pub use error::Error;
