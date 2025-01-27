@@ -130,8 +130,8 @@ pub type PackageOption = MakePkgOption;
 
 /// Information on an installed package in an environment
 ///
-/// Tracks a `Name`, `Version` (which is guaranteed to have a `Pkgrel`) and `Architecture` of a
-/// package in an environment.
+/// Tracks a `Name`, `Version` (which is guaranteed to have a `PackageRelease`) and `Architecture`
+/// of a package in an environment.
 ///
 /// ## Examples
 /// ```

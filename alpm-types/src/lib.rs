@@ -88,7 +88,7 @@ pub use system::Architecture;
 mod version;
 pub use version::BuildToolVersion;
 pub use version::Epoch;
-pub use version::Pkgrel;
+pub use version::PackageRelease;
 pub use version::Pkgver;
 pub use version::SchemaVersion;
 pub use version::Version;
