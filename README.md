@@ -84,6 +84,7 @@ Contributions to this project, unless noted otherwise, are automatically license
 [alpm-buildinfo]: alpm-buildinfo/
 [alpm-mtree]: alpm-mtree/
 [alpm-parsers]: alpm-parsers/
+[alpm-pkginfo]: alpm-pkginfo/
 [alpm-types]: alpm-types/
 [components]: #components
 [contribution guidelines]: CONTRIBUTING.md
