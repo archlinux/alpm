@@ -1,0 +1,6 @@
+pkgbase = test
+    pkgver = 1.0.0
+	pkgrel = 1
+    # No architecture
+
+pkgname = test
