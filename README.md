@@ -95,6 +95,7 @@ Contributions to this project, unless noted otherwise, are automatically license
 [alpm-buildinfo]: alpm-buildinfo/
 [alpm-mtree]: alpm-mtree/
 [alpm-parsers]: alpm-parsers/
+[alpm-pkginfo]: alpm-pkginfo/
 [alpm-types]: alpm-types/
 [archlinux-keyring]: https://gitlab.archlinux.org/archlinux/archlinux-keyring
 [components]: #components
