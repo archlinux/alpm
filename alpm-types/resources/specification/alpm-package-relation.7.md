@@ -10,9 +10,14 @@ Software such as package managers or package build software rely on **package re
 
 ## Packages and virtual components
 
-Every **package relation** contains an **alpm-package-name**, which may be used to refer to an existing package or a *virtual component*.
+Any **package relation** may contain an **alpm-package-name**, which may be used to refer to an existing package or a *virtual component*.
 *Virtual components* do not represent the names of existing packages, but instead a component that is implicitly defined by package metadata.
 With the help of **package relations**, *virtual components* are defined and used similarly to names of existing packages (see **EXAMPLES** for further information).
+
+## Sonames
+
+A **package relation** of type **provision** or **run-time dependency** may contain an **alpm-soname** that represents a hard dependency based on a specific _shared object_ in a package.
+They are used to encode compatibility guarantees between **ELF**[1] and _shared object_ files with the help of **soname**[2] data (see **EXAMPLES** for further information).
 
 ## Architecture specific use
 
@@ -29,7 +34,7 @@ Which keywords and what data structures are used for each type depends on the co
 A run-time dependency of a package.
 This **package relation** specifies a hard requirement (another package, optionally in a specific version), that must be present when using a given package.
 
-The value for a run-time dependency is either an **alpm-package-name** or an **alpm-comparison** (e.g. `example` or `example>=1.0.0`).
+The value for a run-time dependency is either an **alpm-package-name**, an **alpm-comparison** or an **alpm-soname** (e.g. `example`, `example>=1.0.0`, or `lib:libexample.so.1`, respectively).
 
 - In **PKGBUILD** files zero or more run-time dependencies of a package are specified using the **depends** array.
   Architecture-specific run-time dependencies may be specified using an array named 'depends', directly followed by an '_' sign, directly followed by an **alpm-architecture** (all **alpm-architectures** except `any` can be used), e.g. `depends_aarch64`.
@@ -81,10 +86,10 @@ The value for an optional dependency can be one of the following:
 
 ### Provision
 
-This **package relation** specifies a component name (an **alpm-package-name** or a *virtual component*), that is provided by a given package.
+This **package relation** specifies a component name (an **alpm-package-name**, a *virtual component*, or an **alpm-soname**) that is provided by a given package.
 The use of a provision allows for scenarios in which e.g. several packages provide the same component, allowing package managers to provide a choice.
 
-The value for a **provision** is either an **alpm-package-name** or an **alpm-comparison** (e.g. `example` or `example>=1.0.0`).
+The value for a **provision** is either an **alpm-package-name**, an **alpm-comparison**, or an **alpm-soname** (e.g. `example`, `example>=1.0.0`, or `lib:libexample.so.1`, respectively).
 
 - In **PKGBUILD** files zero or more provisions are specified using the **provides** array.
   Architecture-specific provisions may be specified using an array named 'provides', directly followed by an '_' sign, directly followed by an **alpm-architecture** (all **alpm-architectures** except `any` can be used), e.g. `provides_aarch64`.
@@ -132,6 +137,38 @@ Given the monitoring package `my-monitoring`, which allows sending out monitorin
 
 This scenario enables a package manager to provide the user with the choice to rely on one of the providers of `smtp-forwarder` (i.e. `my-mailserver` or `minimal-mailserver`).
 
+## Dependencies using sonames
+
+Some packages provide _shared object_ files that **ELF**[1] files in other packages may dynamically link against.
+
+For example, the package `example` may contain the following files:
+
+```bash
+/usr/lib/libexample.so -> libexample.so.1
+/usr/lib/libexample.so.1 -> libexample.so.1.0.0
+/usr/lib/libexample.so.1.0.0
+```
+
+Here, the shared object file `/usr/lib/libexample.so.1.0.0` encodes the **soname**[2] `libexample.so.1`.
+
+Following the **alpm-soname** specification, `lib:libexample.so.1` can be added as a **provision** to the **PKGINFO** file of the `example` package, if the library _lookup directory_ `/usr/lib` is represented by the _prefix_ `lib`.
+
+Afterwards, another example package called `application` may contain the **ELF**[1] file `/usr/bin/application`, which dynamically links against the _shared object_ `/usr/lib/libexample.so.1` contained in the `example` package.
+The **ELF**[1] file encodes this requirement by relying on the **soname**[2] `libexample.so.1`.
+
+Following the **alpm-soname** specification, `lib:libexample.so.1` can be added as a **run-time dependency** to the **PKGINFO** file of the `application` package, if the library _lookup directory_ `/usr/lib` is represented by the _prefix_ `lib` and the _shared object_ encoding the `libexample.so.1` **soname**[2] (here `/usr/lib/libexample.so.1.0.0`) is present in the _lookup directory_.
+
+**Note**: For legacy behavior of **alpm-soname** refer to **alpm-sonamev1**.
 # SEE ALSO
 
-BUILDINFO(5), PKGBUILD(5), PKGINFO(5), alpm-architecture(7), alpm-comparison(7), alpm-epoch(7), alpm-pkgrel(7), alpm-pkgver(7), vercmp(8))
+BUILDINFO(5), PKGBUILD(5), PKGINFO(5), alpm-architecture(7), alpm-comparison(7), alpm-epoch(7), alpm-pkgrel(7), alpm-pkgver(7), alpm-soname(7), vercmp(8))
+
+# NOTES
+
+1. **ELF**
+
+   https://en.wikipedia.org/wiki/Executable_and_Linkable_Format
+
+2. **soname**
+
+   https://en.wikipedia.org/wiki/Soname
