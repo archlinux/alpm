@@ -33,7 +33,7 @@ clap = { version = "4.5.19", features = [
     "string",
     "wrap_help",
 ] }
-colored = "3"
+colored = { version = "3", features = ["no-color"] }
 erased-serde = "0.4.5"
 insta = "1.40.0"
 rstest = "0.24.0"

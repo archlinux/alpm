@@ -1,0 +1,17 @@
+---
+source: alpm-srcinfo/tests/lints.rs
+description: "pkgbase = test\n    pkgver = 1.0.0\n\tpkgrel = 1\n    arch = any\n    source = https://domain.tld/testing/test.tar.gz\n    depends = glibc\n\npkgname = test\n    depends = llvm\n    # Depends clears a property that has just been set.\n    depends =\n\npkgname = test_other\n    depends =\n    # Any declaration in a package implicitly clears the default values,\n    # so this isn't necessary\n    depends = llvm\n"
+expression: error_msg
+---
+Errors while parsing SRCINFO data:
+
+[0] Linter Warning on line 9:
+    9: |     depends = llvm
+
+    This keyword is set and unset for this package. A keyword should either only be unset or overridden.
+
+──────────────────────────────
+[1] Linter Warning on line 17:
+    17: |     depends = llvm
+
+    This keyword is set and unset for this package. A keyword should either only be unset or overridden.

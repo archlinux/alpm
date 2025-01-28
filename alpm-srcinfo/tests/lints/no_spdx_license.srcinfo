@@ -1,0 +1,7 @@
+pkgbase = test
+    pkgver = 1.0.0
+	pkgrel = 1
+    arch = any
+    license = "BSD_4*Clause"
+
+pkgname = test
