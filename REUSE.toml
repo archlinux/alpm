@@ -17,6 +17,7 @@ path = [
     "**.mtree",
     "**.sh",
     "**.snap",
+    "**.srcinfo",
     "**.toml",
     "*.json",
     "*.lock",

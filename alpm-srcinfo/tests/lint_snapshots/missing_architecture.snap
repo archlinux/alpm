@@ -1,0 +1,9 @@
+---
+source: alpm-srcinfo/tests/lints.rs
+description: "pkgbase = test\n    pkgver = 1.0.0\n\tpkgrel = 1\n    # No architecture\n\npkgname = test\n"
+expression: error_msg
+---
+Errors while parsing SRCINFO data:
+
+[0] Linter Warning:
+    No architecture has been specified. Assuming `any`.
