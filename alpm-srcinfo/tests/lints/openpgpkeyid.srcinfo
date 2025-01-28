@@ -1,0 +1,7 @@
+pkgbase = test
+    pkgver = 1.0.0
+	pkgrel = 1
+    arch = any
+    validpgpkeys = 2F2670AC164DB36F
+
+pkgname = test
