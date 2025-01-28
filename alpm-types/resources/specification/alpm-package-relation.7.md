@@ -10,9 +10,10 @@ Software such as package managers or package build software rely on **package re
 
 ## Packages and virtual components
 
-Every **package relation** contains an **alpm-package-name**, which may be used to refer to an existing package or a *virtual component*.
-*Virtual components* do not represent the names of existing packages, but instead a component that is implicitly defined by package metadata.
-With the help of **package relations**, *virtual components* are defined and used similarly to names of existing packages (see **EXAMPLES** for further information).
+Every **package relation** contains an **alpm-package-name**, which may be used to refer to an existing package, a *virtual component*, or a **shared object name (soname)**.  
+*Virtual components* do not represent the names of existing packages but instead define components implicitly via package metadata.  
+**Sonames** represent shared library dependencies and may be used in **package relations** to specify compatibility between dynamically linked binaries and library providers.  
+With the help of **package relations**, *virtual components* and **sonames** are defined and used similarly to package names (see **EXAMPLES** for further information).
 
 ## Types of package relations
 
@@ -24,7 +25,7 @@ The keyword definition for each type depends on the context it is used in.
 A run-time dependency of a package.
 This **package relation** specifies a hard requirement (another package, optionally in a specific version), that must be present when using a given package.
 
-The value for a run-time dependency is either an **alpm-package-name** or an **alpm-comparison** (e.g. `example` or `example>=1.0.0`).
+The value for a run-time dependency is either an **alpm-package-name**, an **alpm-comparison** or a **soname** (e.g. `example`, `example>=1.0.0`, or `libexample.so.3`).
 
 - In **PKGBUILD** files zero or more run-time dependencies of a package are specified using the **depends** array.
 - In **PKGINFO** files the **depend** keyword is used to specify a run-time dependency.
@@ -35,7 +36,7 @@ The value for a run-time dependency is either an **alpm-package-name** or an **a
 A build-time dependency of a package.
 This **package relation** specifies a build requirement (another package, optionally in a specific version), that must be present when building a given package.
 
-The value for a build dependency is either an **alpm-package-name** or an **alpm-comparison** (e.g. `example` or `example>=1.0.0`).
+The value for a build dependency is either an **alpm-package-name**, an **alpm-comparison** or a **soname** (e.g. `example`, `example>=1.0.0`, or `libexample.so.3`).
 
 - In **PKGBUILD** files zero or more build-time dependencies of a package are specified using the **makedepends** array.
 - In **PKGINFO** files the **makedepend** keyword is used to specify a build-time dependency.
@@ -68,10 +69,10 @@ The value for an optional dependency can be one of the following:
 
 ### Provision
 
-This **package relation** specifies a component name (an **alpm-package-name** or a *virtual component*), that is provided by a given package.
-The use of a provision allows for scenarios in which e.g. several packages provide the same component, allowing package managers to provide a choice.
+This **package relation** specifies a component name (an **alpm-package-name**, a *virtual component*, or a **SONAME**) that is provided by a given package.  
+The use of a provision allows for scenarios in which multiple packages provide the same component, including shared libraries.
 
-The value for a **provision** is either an **alpm-package-name** or an **alpm-comparison** (e.g. `example` or `example>=1.0.0`).
+The value for a **provision** is either an **alpm-package-name**, an **alpm-comparison**, or a **soname** (e.g. `example`, `example>=1.0.0`, or `libexample.so.3`).
 
 - In **PKGBUILD** files zero or more provisions are specified using the **provides** array.
 - In **PKGINFO** files the **provides** keyword is used to specify a provision.
@@ -113,6 +114,12 @@ Given the monitoring package `my-monitoring`, which allows sending out monitorin
 
 This scenario enables a package manager to provide the user with the choice to rely on one of the providers of `smtp-forwarder` (i.e. `my-mailserver` or `minimal-mailserver`).
 
+## Provisions including sonames
+
+Some packages provide shared libraries that other packages dynamically link against.  
+For example, the package `example-lib` may provide the shared library `libexample.so.3.0`.  
+Instead of requiring specific package names, dependent software may declare a run-time dependency on the **soname** such as `libexample.so.3`.
+
 # SEE ALSO
 
-BUILDINFO(5), PKGBUILD(5), PKGINFO(5), alpm-comparison(7), alpm-epoch(7), alpm-pkgrel(7), alpm-pkgver(7), vercmp(8)
+BUILDINFO(5), PKGBUILD(5), PKGINFO(5), alpm-comparison(7), alpm-epoch(7), alpm-pkgrel(7), alpm-pkgver(7), alpm-soname(7), vercmp(8)
