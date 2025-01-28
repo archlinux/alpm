@@ -73,6 +73,17 @@ Currently the following components are available:
 
 Please refer to the [contribution guidelines] to learn how to contribute to this project.
 
+## Releases
+
+Releases of [components] are created by the developers of this project.
+
+[OpenPGP certificates] with the following [OpenPGP fingerprints] can be used to verify signed tags:
+
+- `991F6E3F0765CF6295888586139B09DA5BF0D338` (David Runge <dvzrv@archlinux.org>)
+- `165E0FF7C48C226E1EC363A7F83424824B3E4B90` (Orhun Parmaksız <orhun@archlinux.org>)
+
+The above are part of [archlinux-keyring] and certified by at least three [main signing keys] of the distribution.
+
 ## License
 
 This project can be used under the terms of the [Apache-2.0] or [MIT].
@@ -85,9 +96,13 @@ Contributions to this project, unless noted otherwise, are automatically license
 [alpm-mtree]: alpm-mtree/
 [alpm-parsers]: alpm-parsers/
 [alpm-types]: alpm-types/
+[archlinux-keyring]: https://gitlab.archlinux.org/archlinux/archlinux-keyring
 [components]: #components
 [contribution guidelines]: CONTRIBUTING.md
+[main signing keys]: https://archlinux.org/master-keys/
 [milestones]: https://gitlab.archlinux.org/archlinux/alpm/alpm/-/milestones
+[OpenPGP certificates]: https://openpgp.dev/book/certificates.html
+[OpenPGP fingerprints]: https://openpgp.dev/book/certificates.html#fingerprint
 [pacman]: https://gitlab.archlinux.org/pacman/pacman
 [Sovereign Tech Agency]: https://www.sovereign.tech/tech/arch-linux-package-management
 [official announcement]: https://lists.archlinux.org/archives/list/arch-dev-public@lists.archlinux.org/thread/MZLH43574GGP7QQ7RKAAIRFT5LJPCEB4/
