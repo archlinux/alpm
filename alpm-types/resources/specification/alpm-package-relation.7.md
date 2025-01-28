@@ -10,9 +10,15 @@ Software such as package managers or package build software rely on **package re
 
 ## Packages and virtual components
 
-Every **package relation** contains an **alpm-package-name**, which may be used to refer to an existing package or a *virtual component*.
-*Virtual components* do not represent the names of existing packages, but instead a component that is implicitly defined by package metadata.
-With the help of **package relations**, *virtual components* are defined and used similarly to names of existing packages (see **EXAMPLES** for further information).
+A **package relation** contains an **alpm-package-name**, or an **alpm-soname**.
+
+An **alpm-package-name** may be use in any **package relation** and refers to an existing package, or a *virtual component*.
+*Virtual components* do not represent the names of existing packages but instead define components implicitly via package metadata.  
+
+An **alpm-soname** on the other hand may only be used as a **provision** or **run-time dependency**, as it represents a hard dependency based on shared object data.
+They are used to encode compatibility between specific versions of shared objects and their consumers with the help of **soname** data.
+
+Both *virtual components* and **alpm-sonames** are defined and used similarly to package names in **package relations** (see **EXAMPLES** for further information).
 
 ## Architecture specific use
 
@@ -29,7 +35,7 @@ The keyword definition for each type depends on the context it is used in.
 A run-time dependency of a package.
 This **package relation** specifies a hard requirement (another package, optionally in a specific version), that must be present when using a given package.
 
-The value for a run-time dependency is either an **alpm-package-name** or an **alpm-comparison** (e.g. `example` or `example>=1.0.0`).
+The value for a run-time dependency is either an **alpm-package-name**, an **alpm-comparison** or an **alpm-soname** (e.g. `example`, `example>=1.0.0`, or `libexample.so=3-64`).
 
 - In **PKGBUILD** files zero or more run-time dependencies of a package are specified using the **depends** array.
   Architecture-specific run-time dependencies may be specified using an array named 'depends', directly followed by an '_' sign, directly followed by an **alpm-architecture** (all **alpm-architectures** except `any` can be used), e.g. `depends_aarch64`.
@@ -81,10 +87,10 @@ The value for an optional dependency can be one of the following:
 
 ### Provision
 
-This **package relation** specifies a component name (an **alpm-package-name** or a *virtual component*), that is provided by a given package.
+This **package relation** specifies a component name (an **alpm-package-name**, a *virtual component*, or an **alpm-soname**) that is provided by a given package.  
 The use of a provision allows for scenarios in which e.g. several packages provide the same component, allowing package managers to provide a choice.
 
-The value for a **provision** is either an **alpm-package-name** or an **alpm-comparison** (e.g. `example` or `example>=1.0.0`).
+The value for a **provision** is either an **alpm-package-name**, an **alpm-comparison**, or an **alpm-soname** (e.g. `example`, `example>=1.0.0`, or `libexample.so=3-64`).
 
 - In **PKGBUILD** files zero or more provisions are specified using the **provides** array.
   Architecture-specific provisions may be specified using an array named 'provides', directly followed by an '_' sign, directly followed by an **alpm-architecture** (all **alpm-architectures** except `any` can be used), e.g. `provides_aarch64`.
@@ -132,6 +138,20 @@ Given the monitoring package `my-monitoring`, which allows sending out monitorin
 
 This scenario enables a package manager to provide the user with the choice to rely on one of the providers of `smtp-forwarder` (i.e. `my-mailserver` or `minimal-mailserver`).
 
+## Provisions including sonames
+
+Some packages provide shared objects that other shared objects or executables in other packages may dynamically link against.
+For example, the package `libexample` may contain the shared object file `/usr/lib/libexample.so.3.0`, which provides the **soname** `libexample.so.3`.
+
+In accordance with the **alpm-sonamev1** format, the following **provision** can be added for the `libexample` package:
+
+- `libexample.so=3-64` in its **PKGINFO** file
+- `libexample.so` in its **PKGBUILD** and **SRCINFO** file
+
+Other packages, which provide shared objects or executables that dynamically link against a version of the shared object providing the **soname** `libexample.so.3` may introduce the following **run-time dependency** following the **alpm-sonamev1** format:
+- `libexample.so=3-64` in their **PKGINFO** file
+- `libexample.so` in their **PKGBUILD** and **SRCINFO** file
+
 # SEE ALSO
 
-BUILDINFO(5), PKGBUILD(5), PKGINFO(5), alpm-architecture(7), alpm-comparison(7), alpm-epoch(7), alpm-pkgrel(7), alpm-pkgver(7), vercmp(8))
+BUILDINFO(5), PKGBUILD(5), PKGINFO(5), alpm-architecture(7), alpm-comparison(7), alpm-epoch(7), alpm-pkgrel(7), alpm-pkgver(7), alpm-sonamev1(7), vercmp(8))
