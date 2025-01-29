@@ -52,6 +52,7 @@ use crate::Error;
 /// # }
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(tag = "type")]
 pub enum OpenPGPIdentifier {
     /// An OpenPGP Key ID.
     OpenPGPKeyId(OpenPGPKeyId),

@@ -13,6 +13,7 @@ use crate::Error;
 ///
 /// It can be either a local file (next to the PKGBUILD) or a URL.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(tag = "type")]
 pub enum Source {
     /// A local file source.
     ///
