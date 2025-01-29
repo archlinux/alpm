@@ -66,6 +66,10 @@ pub enum Error {
         regex: String,
     },
 
+    /// A winnow parser for a type didn't work and produced an error.
+    #[error("Parser failed with the following error:\n{0}")]
+    ParseError(String),
+
     /// Missing field in a value
     #[error("Missing component: {component}")]
     MissingComponent { component: &'static str },
