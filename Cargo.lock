@@ -117,6 +117,7 @@ dependencies = [
  "thiserror",
  "time",
  "url",
+ "winnow 0.7.0",
 ]
 
 [[package]]
