@@ -26,7 +26,12 @@ resolver = "2"
 alpm-parsers = { path = "./alpm-parsers" }
 alpm-types = { path = "./alpm-types" }
 assert_cmd = "2.0.11"
-clap = { version = "4.5.19", features = ["derive", "env", "string"] }
+clap = { version = "4.5.19", features = [
+    "derive",
+    "env",
+    "string",
+    "wrap_help",
+] }
 erased-serde = "0.4.5"
 insta = "1.40.0"
 rstest = "0.24.0"
