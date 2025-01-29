@@ -166,6 +166,11 @@ assert_eq!(package.dependencies, vec![
 # }
 ```
 
+## Features
+
+- `cli` adds the commandline handling needed for the `almp-srcinfo` binary (enabled by default).
+- `winnow-debug` enables the `winnow/debug` feature, which shows the exact parsing process of winnow.
+
 ## Contributing
 
 Please refer to the [contribution guidelines] to learn how to contribute to this project.

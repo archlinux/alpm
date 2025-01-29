@@ -1,8 +1,10 @@
 #![doc = include_str!("../README.md")]
 
 /// Commandline argument handling. This is most likely not interesting for you.
+#[cfg(feature = "cli")]
 pub mod cli;
-/// Commandline argument handling. This is most likely not interesting for you.
+/// Functions called from the binary. This is most likely not interesting for you.
+#[cfg(feature = "cli")]
 pub mod commands;
 /// All error types that're exposed by this crate.
 pub mod error;
