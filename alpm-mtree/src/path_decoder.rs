@@ -5,7 +5,7 @@ use winnow::{
     error::{AddContext, ContextError, ErrMode, StrContext, StrContextValue},
     stream::{Checkpoint, Stream},
     token::take_while,
-    PResult,
+    ModalResult,
     Parser,
 };
 
@@ -27,7 +27,7 @@ use winnow::{
 /// To effectively decode this pattern we use winnow instead of a handwritten parser, mostly to
 /// have convenient backtracking and error messages in case we encounter invalid escape
 /// sequences or malformed escaped UTF-8.
-pub fn decode_utf8_chars(input: &mut &str) -> PResult<String> {
+pub fn decode_utf8_chars(input: &mut &str) -> ModalResult<String> {
     // This is the string we'll accumulated the decoded path into.
     let mut path = String::new();
 
@@ -76,7 +76,7 @@ pub fn decode_utf8_chars(input: &mut &str) -> PResult<String> {
 /// This isn't a trivial conversion as an octal has three bits and an octal triplet has thereby 9
 /// bits. The highest bit is expected to be always `0`. This is ensured via the conversion to `u8`,
 /// which would otherwise overflow and throw an error.
-fn octal_triplet(input: &mut &str) -> PResult<u8> {
+fn octal_triplet(input: &mut &str) -> ModalResult<u8> {
     preceded('\\', take_while(3, |c: char| c.is_digit(8)))
         .verify_map(|octals| u8::from_str_radix(octals, 8).ok())
         .parse_next(input)
@@ -88,7 +88,7 @@ fn octal_triplet(input: &mut &str) -> PResult<u8> {
 /// `0xf0 0x9f 0x8c 0xa0` hex encoding.
 ///
 /// Each triplet represents a single UTF-8 byte segment, check [`octal_triplet`] for more details.
-fn unicode_char(input: &mut &str) -> PResult<String> {
+fn unicode_char(input: &mut &str) -> ModalResult<String> {
     // A unicode char can consist of up to 4 bytes, which is what we use this buffer for.
     let mut unicode_bytes = Vec::new();
 
@@ -150,7 +150,7 @@ fn bytes_to_string(
     input: &mut &str,
     checkpoint: Checkpoint<&str, &str>,
     bytes: Vec<u8>,
-) -> PResult<String> {
+) -> ModalResult<String> {
     match String::from_utf8(bytes) {
         Ok(decoded) => Ok(decoded),
         Err(_) => {

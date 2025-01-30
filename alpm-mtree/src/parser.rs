@@ -17,7 +17,7 @@ use winnow::{
     error::{StrContext, StrContextValue},
     stream::AsChar,
     token::{take_until, take_while},
-    PResult,
+    ModalResult,
     Parser as WinnowParser,
 };
 
@@ -84,7 +84,7 @@ pub enum PathType {
 }
 
 /// Parse a single `/set` property.
-fn set_property<'s>(input: &mut &'s str) -> PResult<SetProperty<'s>> {
+fn set_property<'s>(input: &mut &'s str) -> ModalResult<SetProperty<'s>> {
     // First off, get the type of the property.
     let property_type = cut_err(alt(("uid", "gid", "type", "mode")))
         .context(StrContext::Label("property"))
@@ -120,7 +120,7 @@ fn set_property<'s>(input: &mut &'s str) -> PResult<SetProperty<'s>> {
 }
 
 /// Parse a single `/unset` property.
-fn unset_property(input: &mut &str) -> PResult<UnsetProperty> {
+fn unset_property(input: &mut &str) -> ModalResult<UnsetProperty> {
     // First off, get the type of the property.
     let property_type = cut_err(alt(("uid", "gid", "type", "mode")))
         .context(StrContext::Label("property"))
@@ -142,7 +142,7 @@ fn unset_property(input: &mut &str) -> PResult<UnsetProperty> {
 }
 
 /// Parse a simple system id as usize.
-fn system_id(id_type: &'static str, input: &mut &str) -> PResult<usize> {
+fn system_id(id_type: &'static str, input: &mut &str) -> ModalResult<usize> {
     cut_err(digit1.parse_to())
         .context(StrContext::Label(id_type))
         .context(StrContext::Expected(StrContextValue::Description(
@@ -154,7 +154,7 @@ fn system_id(id_type: &'static str, input: &mut &str) -> PResult<usize> {
 /// Parse a Unix timestamp.
 ///
 /// In mtree, this is a float for some reason, even though the decimal place is always a `0`.
-fn timestamp(input: &mut &str) -> PResult<usize> {
+fn timestamp(input: &mut &str) -> ModalResult<usize> {
     let (timestamp, _) = cut_err(separated_pair(digit1.parse_to(), '.', digit1))
         .context(StrContext::Label("unix epoch"))
         .context(StrContext::Expected(StrContextValue::Description(
@@ -168,7 +168,7 @@ fn timestamp(input: &mut &str) -> PResult<usize> {
 /// Parse a filesystem mode.
 ///
 /// Should be between 3-5 octal numbers **without** a `0o` prefix.
-fn mode<'s>(input: &mut &'s str) -> PResult<&'s str> {
+fn mode<'s>(input: &mut &'s str) -> ModalResult<&'s str> {
     cut_err(take_while(3..5, AsChar::is_oct_digit))
         .context(StrContext::Label("file mode"))
         .context(StrContext::Expected(StrContextValue::Description(
@@ -178,7 +178,7 @@ fn mode<'s>(input: &mut &'s str) -> PResult<&'s str> {
 }
 
 /// Parse a SHA-256 hash.
-fn sha256(input: &mut &str) -> PResult<Sha256Checksum> {
+fn sha256(input: &mut &str) -> ModalResult<Sha256Checksum> {
     cut_err(take_while(64.., AsChar::is_hex_digit).parse_to())
         .context(StrContext::Label("sha256 hash"))
         .context(StrContext::Expected(StrContextValue::Description(
@@ -188,7 +188,7 @@ fn sha256(input: &mut &str) -> PResult<Sha256Checksum> {
 }
 
 /// Parse an MD5 hash.
-fn md5(input: &mut &str) -> PResult<Md5Checksum> {
+fn md5(input: &mut &str) -> ModalResult<Md5Checksum> {
     cut_err(take_while(32.., AsChar::is_hex_digit).parse_to())
         .context(StrContext::Label("md5 hash"))
         .context(StrContext::Expected(StrContextValue::Description(
@@ -200,14 +200,14 @@ fn md5(input: &mut &str) -> PResult<Md5Checksum> {
 /// Consume all chars of a link until a newline or space is hit.
 ///
 /// Check [`decode_utf8_chars`] for more info on how special chars in paths are escaped.
-fn link(input: &mut &str) -> PResult<String> {
+fn link(input: &mut &str) -> ModalResult<String> {
     take_while(0.., |c| c != ' ' && c != '\n')
         .and_then(decode_utf8_chars)
         .parse_next(input)
 }
 
 /// Get a string representing a size by consuming all integers.
-fn size(input: &mut &str) -> PResult<usize> {
+fn size(input: &mut &str) -> ModalResult<usize> {
     cut_err(take_while(0.., |c| c != ' ' && c != '\n').parse_to())
         .context(StrContext::Label("file size"))
         .context(StrContext::Expected(StrContextValue::Description(
@@ -217,7 +217,7 @@ fn size(input: &mut &str) -> PResult<usize> {
 }
 
 /// Parse a single property.
-fn property<'s>(input: &mut &'s str) -> PResult<PathProperty<'s>> {
+fn property<'s>(input: &mut &'s str) -> ModalResult<PathProperty<'s>> {
     // First off, get the type of the property.
     let property_type = cut_err(alt((
         "type",
@@ -273,7 +273,7 @@ fn property<'s>(input: &mut &'s str) -> PResult<PathProperty<'s>> {
 /// E.g. `./some_path uid=0 gid=0 type=file`
 ///                   ↑                   ↑
 ///                         This part
-fn properties<'s>(input: &mut &'s str) -> PResult<Vec<PathProperty<'s>>> {
+fn properties<'s>(input: &mut &'s str) -> ModalResult<Vec<PathProperty<'s>>> {
     cut_err(terminated(separated(0.., property, " "), line_ending)).parse_next(input)
 }
 
@@ -282,7 +282,7 @@ fn properties<'s>(input: &mut &'s str) -> PResult<Vec<PathProperty<'s>>> {
 /// E.g. `/set uid=0 gid=0`
 ///            ↑         ↑
 ///             This part
-fn set_properties<'s>(input: &mut &'s str) -> PResult<Vec<SetProperty<'s>>> {
+fn set_properties<'s>(input: &mut &'s str) -> ModalResult<Vec<SetProperty<'s>>> {
     cut_err(terminated(separated(0.., set_property, " "), line_ending)).parse_next(input)
 }
 
@@ -291,12 +291,12 @@ fn set_properties<'s>(input: &mut &'s str) -> PResult<Vec<SetProperty<'s>>> {
 /// E.g. `/unset uid gid`
 ///              ↑     ↑
 ///             This part
-fn unset_properties(input: &mut &str) -> PResult<Vec<UnsetProperty>> {
+fn unset_properties(input: &mut &str) -> ModalResult<Vec<UnsetProperty>> {
     cut_err(terminated(separated(0.., unset_property, " "), line_ending)).parse_next(input)
 }
 
 /// Parse the next statement in the file.
-fn statement<'s>(input: &mut &'s str) -> PResult<Statement<'s>> {
+fn statement<'s>(input: &mut &'s str) -> ModalResult<Statement<'s>> {
     // First, we figure out what kind of line we're looking at.
     let statement_type: String = alt((
         // A Path statement line
@@ -350,7 +350,7 @@ fn statement<'s>(input: &mut &'s str) -> PResult<Statement<'s>> {
 /// # Errors
 ///
 /// - `Error::ParseError` if a malformed MTREE file is encountered.
-pub fn mtree<'s>(input: &mut &'s str) -> PResult<Vec<Statement<'s>>> {
+pub fn mtree<'s>(input: &mut &'s str) -> ModalResult<Vec<Statement<'s>>> {
     let (statements, _eof): (Vec<Statement<'s>>, _) =
         repeat_till(0.., statement, eof).parse_next(input)?;
 

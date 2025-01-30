@@ -16,7 +16,7 @@ use winnow::{
     },
     error::{StrContext, StrContextValue},
     token::none_of,
-    PResult,
+    ModalResult,
     Parser,
 };
 
@@ -51,7 +51,7 @@ enum ParsedLine<'s> {
 }
 
 /// Take all chars, until we hit a char that isn't allowed in a key.
-fn key(input: &mut &str) -> PResult<()> {
+fn key(input: &mut &str) -> ModalResult<()> {
     repeat(1.., none_of(INVALID_KEY_NAME_SYMBOLS)).parse_next(input)
 }
 
@@ -63,7 +63,7 @@ fn key(input: &mut &str) -> PResult<()> {
 /// ```ini
 /// key = value
 /// ```
-fn key_value<'s>(input: &mut &'s str) -> PResult<(&'s str, &'s str)> {
+fn key_value<'s>(input: &mut &'s str) -> ModalResult<(&'s str, &'s str)> {
     separated_pair(
         cut_err(key.take())
             .context(StrContext::Label("key"))
@@ -82,17 +82,17 @@ fn key_value<'s>(input: &mut &'s str) -> PResult<(&'s str, &'s str)> {
 
 /// One or multiple newlines.
 /// This also handles the case where there might be multiple lines with spaces.
-fn newlines(input: &mut &str) -> PResult<()> {
+fn newlines(input: &mut &str) -> ModalResult<()> {
     repeat(0.., (newline, space0)).parse_next(input)
 }
 
 /// Parse a comment (a line starting with `#`).
-fn comment<'s>(input: &mut &'s str) -> PResult<&'s str> {
+fn comment<'s>(input: &mut &'s str) -> ModalResult<&'s str> {
     preceded('#', till_line_ending).parse_next(input)
 }
 
 /// Parse a single line consisting of a key value pair or a comment, followed by 0 or more newlines.
-fn line<'s>(input: &mut &'s str) -> PResult<ParsedLine<'s>> {
+fn line<'s>(input: &mut &'s str) -> ModalResult<ParsedLine<'s>> {
     alt((
         terminated(comment, opt(newlines)).map(ParsedLine::Comment),
         terminated(key_value, opt(newlines))
@@ -102,14 +102,14 @@ fn line<'s>(input: &mut &'s str) -> PResult<ParsedLine<'s>> {
 }
 
 /// Parse multiple lines.
-fn lines<'s>(input: &mut &'s str) -> PResult<Vec<ParsedLine<'s>>> {
+fn lines<'s>(input: &mut &'s str) -> ModalResult<Vec<ParsedLine<'s>>> {
     let (value, _terminator) = repeat_till(0.., line, eof).parse_next(input)?;
 
     Ok(value)
 }
 
 /// Parse the content of a whole ini file.
-pub fn ini_file(input: &mut &str) -> PResult<BTreeMap<String, Item>> {
+pub fn ini_file(input: &mut &str) -> ModalResult<BTreeMap<String, Item>> {
     let mut items: BTreeMap<String, Vec<String>> = BTreeMap::new();
 
     // Ignore any preceding newlines at the start of the file.
