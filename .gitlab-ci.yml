@@ -8,69 +8,119 @@ stages:
   - report
   - pages
 
-check-commits:
+# default setup running on default branch and in MRs
+.default:
   before_script:
     - pacman-key --init
     - pacman -Sy --needed --noconfirm archlinux-keyring
     - source .env && pacman -Syu --needed --noconfirm $PACMAN_PACKAGES
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# default setup with Rust tools running on default branch and in MRs
+.default-with-rust:
+  extends: .default
+  before_script:
+    - pacman-key --init
+    - pacman -Sy --needed --noconfirm archlinux-keyring
+    - source .env && pacman -Syu --needed --noconfirm $PACMAN_PACKAGES
+    - just install-rust-dev-tools
+
+commits:
+  extends: .default
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  script:
     # fetch the default branch as we need it for comparison
     - git fetch origin $CI_DEFAULT_BRANCH
     # setup a dummy user as `cog verify` needs that
     - git config --local user.name "Foobar McFooface"
     - git config --local user.email "foobar@mcfooface.com"
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-  script:
     - just check-commits
   stage: check
 
-check:
-  before_script:
-    - pacman-key --init
-    - pacman -Sy --needed --noconfirm archlinux-keyring
-    - source .env && pacman -Syu --needed --noconfirm $PACMAN_PACKAGES
-    - just install-rust-dev-tools
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+spelling:
+  extends: .default
   script:
-    - just check
+    - just check-spelling
+  stage: check
+
+formatting:
+  extends: .default-with-rust
+  script:
+    - just check-formatting
+  stage: check
+
+lint:
+  extends: .default-with-rust
+  script:
+    - just lint
+  stage: check
+
+unused-deps:
+  extends: .default-with-rust
+  script:
+    - just check-unused-deps
+  stage: check
+
+dependencies:
+  extends: .default-with-rust
+  script:
+    - just check-dependencies
+  stage: check
+
+licenses:
+  extends: .default-with-rust
+  script:
+    - just check-licenses
+  stage: check
+
+links:
+  extends: .default-with-rust
+  script:
+    - just check-links
   stage: check
 
 test:
-  before_script:
-    - pacman-key --init
-    - pacman -Sy --needed --noconfirm archlinux-keyring
-    - source .env && pacman -Syu --needed --noconfirm $PACMAN_PACKAGES
-    - just install-rust-dev-tools
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  extends: .default-with-rust
   script:
     - just test
+  stage: test
+
+test-readmes:
+  extends: .default-with-rust
+  script:
+    - just test-readmes
+  stage: test
+
+build-book:
+  extends: .default-with-rust
+  script:
     - just build-book
+  stage: test
+
+manpages-specs-completions:
+  extends: .default-with-rust
+  script:
+    - just generate-manpages-and-specs
+    - just generate-completions
+  stage: test
+
+test-readmes:
+  extends: .default-with-rust
+  script:
     - just test-readmes
   stage: test
 
 integration-test:
-  before_script:
-    - pacman-key --init
-    - pacman -Sy --needed --noconfirm archlinux-keyring
-    - source .env && pacman -Syu --needed --noconfirm $PACMAN_PACKAGES
-    - just install-rust-dev-tools
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  extends: .default-with-rust
   script:
     - just ignored=true test
   stage: test
 
 crates_publish:
-  before_script:
-    - pacman-key --init
-    - pacman -Sy --needed --noconfirm archlinux-keyring
-    - source .env && pacman -Syu --needed --noconfirm $PACMAN_PACKAGES
-    - just install-rust-dev-tools
+  extends: .default-with-rust
   dependencies: []
   rules:
     - if: '$CARGO_REGISTRY_TOKEN && $CI_COMMIT_TAG && $CI_PROJECT_PATH == "archlinux/alpm/alpm"'
@@ -81,25 +131,21 @@ crates_publish:
     - secure
 
 issue-bot:
-  stage: report
   image: registry.gitlab.com/gitlab-org/distribution/issue-bot:latest
-  script: /issue-bot
   rules:
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
       when: on_failure
+  script: /issue-bot
+  stage: report
 
 pages:
-  before_script:
-    - pacman-key --init
-    - pacman -Sy --needed --noconfirm archlinux-keyring
-    - source .env && pacman -Syu --needed --noconfirm $PACMAN_PACKAGES
-    - just install-rust-dev-tools
-  stage: pages
-  script:
-    - just build-book
   artifacts:
     paths:
       - output/docs
+  extends: .default-with-rust
   publish: output/docs
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  script:
+    - just build-book
+  stage: pages
