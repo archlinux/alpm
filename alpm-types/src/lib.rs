@@ -13,6 +13,7 @@ pub use checksum::{
     Sha256Checksum,
     Sha384Checksum,
     Sha512Checksum,
+    SkippableChecksum,
 };
 
 mod source;

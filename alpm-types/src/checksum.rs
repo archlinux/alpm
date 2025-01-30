@@ -33,7 +33,7 @@ pub type Sha384Checksum = Checksum<Sha384>;
 /// A checksum using the Sha512 algorithm
 pub type Sha512Checksum = Checksum<Sha512>;
 
-/// A checksum using a supported algorithm
+/// A [checksum] using a supported algorithm
 ///
 /// Checksums are created using one of the supported algorithms:
 ///
@@ -94,6 +94,7 @@ pub type Sha512Checksum = Checksum<Sha512>;
 /// isn't serialized in the first place.
 /// To fix this in your wrapper type, make use of the [bound container attribute], e.g.:
 ///
+/// [checksum]: https://en.wikipedia.org/wiki/Checksum
 /// ```
 /// use alpm_types::digests::Digest;
 /// use alpm_types::Checksum;
@@ -220,6 +221,86 @@ impl<D: Digest> Display for Checksum<D> {
 impl<D: Digest> Debug for Checksum<D> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         Display::fmt(&self, f)
+    }
+}
+
+impl<D: Digest> PartialEq for Checksum<D> {
+    fn eq(&self, other: &Self) -> bool {
+        self.digest == other.digest
+    }
+}
+
+/// A [`Checksum`] that may be skipped.
+///
+/// Strings representing checksums are used to verify the integrity of files.
+/// If the `"SKIP"` keyword is found, the integrity check is skipped.
+#[derive(Debug, Clone, Serialize)]
+#[serde(tag = "type")]
+pub enum SkippableChecksum<D: Digest + Clone> {
+    /// Sourcefile checksum validation may be skipped, which is expressed with this variant.
+    Skip,
+    /// The related source file should be validated via the provided checksum.
+    #[serde(bound = "D: Digest + Clone")]
+    Checksum {
+        /// The checksum to be used for the validation.
+        digest: Checksum<D>,
+    },
+}
+
+impl<D: Digest + Clone> FromStr for SkippableChecksum<D> {
+    type Err = Error;
+    /// Create a new [`SkippableChecksum`] from a string slice and return it in a Result.
+    ///
+    /// First checks for the special `SKIP` keyword, before trying [`Checksum::from_str`].
+    ///
+    /// ## Examples
+    /// ```
+    /// use std::str::FromStr;
+    ///
+    /// use alpm_types::{digests::Sha256, SkippableChecksum};
+    ///
+    /// assert!(SkippableChecksum::<Sha256>::from_str("SKIP").is_ok());
+    /// assert!(SkippableChecksum::<Sha256>::from_str(
+    ///     "b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c"
+    /// )
+    /// .is_ok());
+    /// ```
+    fn from_str(s: &str) -> Result<SkippableChecksum<D>, Self::Err> {
+        // Check for the special SKIP Keyword.
+        if s.trim() == "SKIP" {
+            return Ok(SkippableChecksum::Skip);
+        }
+
+        // Try to get a checksum, as this isn't a skip.
+        let checksum = Checksum::from_str(s)?;
+
+        Ok(SkippableChecksum::Checksum { digest: checksum })
+    }
+}
+
+impl<D: Digest + Clone> Display for SkippableChecksum<D> {
+    fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
+        let output = match self {
+            SkippableChecksum::Skip => "SKIP".to_string(),
+            SkippableChecksum::Checksum { digest } => digest.to_string(),
+        };
+        write!(fmt, "{output}",)
+    }
+}
+
+impl<D: Digest + Clone> PartialEq for SkippableChecksum<D> {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (SkippableChecksum::Skip, SkippableChecksum::Skip) => true,
+            (SkippableChecksum::Skip, SkippableChecksum::Checksum { .. }) => false,
+            (SkippableChecksum::Checksum { .. }, SkippableChecksum::Skip) => false,
+            (
+                SkippableChecksum::Checksum { digest },
+                SkippableChecksum::Checksum {
+                    digest: digest_other,
+                },
+            ) => digest == digest_other,
+        }
     }
 }
 
@@ -464,6 +545,22 @@ mod tests {
 
         let checksum = Sha512Checksum::from_str(hex_digest).unwrap();
         assert_eq!(digest, checksum.inner());
+        assert_eq!(format!("{}", &checksum), hex_digest);
+    }
+
+    #[rstest]
+    fn skippable_checksum_sha256() {
+        let hex_digest = "b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c";
+        let checksum = SkippableChecksum::<Sha256>::from_str(hex_digest).unwrap();
+        assert_eq!(format!("{}", &checksum), hex_digest);
+    }
+
+    #[rstest]
+    fn skippable_checksum_skip() {
+        let hex_digest = "SKIP";
+        let checksum = SkippableChecksum::<Sha256>::from_str(hex_digest).unwrap();
+
+        assert_eq!(SkippableChecksum::Skip, checksum);
         assert_eq!(format!("{}", &checksum), hex_digest);
     }
 }
