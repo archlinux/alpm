@@ -16,8 +16,8 @@ use crate::Version;
 /// The option string is identified by its name and whether it is on (not prefixed with "!") or off
 /// (prefixed with "!").
 ///
-/// This type is used in the context of `makepkg` options, build environment options ([`BuildEnv`]),
-/// and package options ([`PackageOption`]).
+/// This type is used in the context of `makepkg` options, build environment options
+/// ([`BuildEnvironmentOption`]), and package options ([`PackageOption`]).
 ///
 /// See [the makepkg.conf manpage](https://man.archlinux.org/man/makepkg.conf.5.en) for more information.
 ///
@@ -92,19 +92,19 @@ impl Display for MakepkgOption {
 /// ## Examples
 /// ```
 /// # fn main() -> Result<(), alpm_types::Error> {
-/// use alpm_types::BuildEnv;
+/// use alpm_types::BuildEnvironmentOption;
 ///
-/// let option = BuildEnv::new("foo")?;
+/// let option = BuildEnvironmentOption::new("foo")?;
 /// assert_eq!(option.on(), true);
 /// assert_eq!(option.name(), "foo");
 ///
-/// let not_option = BuildEnv::new("!foo")?;
+/// let not_option = BuildEnvironmentOption::new("!foo")?;
 /// assert_eq!(not_option.on(), false);
 /// assert_eq!(not_option.name(), "foo");
 /// # Ok(())
 /// # }
 /// ```
-pub type BuildEnv = MakepkgOption;
+pub type BuildEnvironmentOption = MakepkgOption;
 
 /// An option string used in packaging
 ///

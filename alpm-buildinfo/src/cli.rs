@@ -8,7 +8,7 @@ use alpm_types::{
     Architecture,
     BuildDate,
     BuildDirectory,
-    BuildEnv,
+    BuildEnvironmentOption,
     BuildTool,
     BuildToolVersion,
     InstalledPackage,
@@ -137,7 +137,7 @@ pub struct V1CreateArgs {
         value_delimiter = ' ',
         value_name = "BUILDENV"
     )]
-    pub buildenv: Vec<BuildEnv>,
+    pub buildenv: Vec<BuildEnvironmentOption>,
     /// Provide one or more installed
     #[arg(
         env = "BUILDINFO_INSTALLED",

@@ -37,7 +37,7 @@ mod date;
 pub use date::{BuildDate, FromOffsetDateTime};
 
 mod env;
-pub use env::BuildEnv;
+pub use env::BuildEnvironmentOption;
 pub use env::InstalledPackage;
 pub use env::MakepkgOption;
 pub use env::PackageOption;

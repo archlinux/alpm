@@ -8,7 +8,7 @@ use alpm_types::{
     Architecture,
     BuildDate,
     BuildDirectory,
-    BuildEnv,
+    BuildEnvironmentOption,
     Checksum,
     InstalledPackage,
     Name,
@@ -61,7 +61,7 @@ macro_rules! generate_buildinfo {
 
             #[serde_as(as = "Vec<DisplayFromStr>")]
             #[serde(default)]
-            buildenv: Vec<BuildEnv>,
+            buildenv: Vec<BuildEnvironmentOption>,
 
             #[serde_as(as = "Vec<DisplayFromStr>")]
             #[serde(default)]
@@ -121,7 +121,7 @@ macro_rules! generate_buildinfo {
             }
 
             /// Returns the build environment
-            pub fn buildenv(&self) -> &Vec<BuildEnv> {
+            pub fn buildenv(&self) -> &Vec<BuildEnvironmentOption> {
                 &self.buildenv
             }
 
@@ -185,7 +185,7 @@ impl BuildInfoV1 {
     pub fn new(
         builddate: BuildDate,
         builddir: BuildDirectory,
-        buildenv: Vec<BuildEnv>,
+        buildenv: Vec<BuildEnvironmentOption>,
         format: SchemaVersion,
         installed: Vec<InstalledPackage>,
         options: Vec<PackageOption>,
@@ -318,7 +318,7 @@ pkgver = 1:1.0.0-1
         BuildInfoV1::new(
             1,
             BuildDirectory::from_str("/build")?,
-            vec![BuildEnv::new("some")?],
+            vec![BuildEnvironmentOption::new("some")?],
             SchemaVersion::from_str("1")?,
             vec![InstalledPackage::from_str("bar-1:1.0.0-2-any")?],
             vec![PackageOption::new("buildoption")?],
@@ -337,7 +337,7 @@ pkgver = 1:1.0.0-1
         assert!(BuildInfoV1::new(
             1,
             BuildDirectory::from_str("/build")?,
-            vec![BuildEnv::new("some")?],
+            vec![BuildEnvironmentOption::new("some")?],
             SchemaVersion::from_str("2")?,
             vec![InstalledPackage::from_str("bar-1:1.0.0-2-any")?],
             vec![PackageOption::new("buildoption")?],
