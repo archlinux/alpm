@@ -1,0 +1,12 @@
+---
+source: alpm-srcinfo/tests/parse_errors.rs
+description: "pkgbase = test\n    pkgver = 1.0.0\n\tpkgrel = 1\n\npkgname = test\n    # validpgpkeys is not valid in the context of pkgname\n    validpgpkeys = 4A0C4DFFC02E1A7ED969ED231C2358A25A10D94E\n"
+expression: "format!(\"{error}\")"
+---
+File parsing error:
+parse error at line 7, column 5
+  |
+7 |     validpgpkeys = 4A0C4DFFC02E1A7ED969ED231C2358A25A10D94E
+  |     ^
+invalid package property
+expected one of the allowed pkgname properties.
