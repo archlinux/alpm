@@ -60,7 +60,7 @@ dependencies = [
  "strum",
  "testresult",
  "thiserror",
- "winnow",
+ "winnow 0.7.0",
 ]
 
 [[package]]
@@ -71,7 +71,7 @@ dependencies = [
  "rstest",
  "serde",
  "testresult",
- "winnow",
+ "winnow 0.7.0",
 ]
 
 [[package]]
@@ -2330,7 +2330,7 @@ checksum = "4ae48d6208a266e853d946088ed816055e556cc6028c5e8e2b84d9fa5dd7c7f5"
 dependencies = [
  "indexmap 2.6.0",
  "toml_datetime",
- "winnow",
+ "winnow 0.6.25",
 ]
 
 [[package]]
@@ -2802,6 +2802,15 @@ name = "winnow"
 version = "0.6.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ad699df48212c6cc6eb4435f35500ac6fd3b9913324f938aea302022ce19d310"
+dependencies = [
+ "memchr",
+]
+
+[[package]]
+name = "winnow"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7e49d2d35d3fad69b39b94139037ecfb4f359f08958b9c11e7315ce770462419"
 dependencies = [
  "anstream 0.3.2",
  "anstyle",
