@@ -1,0 +1,4 @@
+# Immediately start with the pkgname. A pkgbase is required first.
+pkgname = test
+    desc = "Test library"
+

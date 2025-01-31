@@ -1,0 +1,12 @@
+---
+source: alpm-srcinfo/tests/parse_errors.rs
+description: "# Delimiter should have spaces.\npkgbase=test\n    pkgver = 1.0.0\n\tpkgrel = 1\n"
+expression: "format!(\"{error}\")"
+---
+File parsing error:
+parse error at line 2, column 8
+  |
+2 | pkgbase=test
+  |        ^
+invalid pkgbase section header delimiter
+expected ' = '
