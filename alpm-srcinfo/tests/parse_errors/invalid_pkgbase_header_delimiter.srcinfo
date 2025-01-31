@@ -1,0 +1,4 @@
+# Delimiter should have spaces.
+pkgbase=test
+    pkgver = 1.0.0
+	pkgrel = 1
