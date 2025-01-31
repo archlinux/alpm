@@ -109,6 +109,7 @@ dependencies = [
  "rstest",
  "semver",
  "serde",
+ "serde_json",
  "sha1",
  "sha2",
  "spdx",
