@@ -5,9 +5,8 @@ use std::{
 };
 
 use serde::Serialize;
-use url::Url;
 
-use crate::Error;
+use crate::{Error, SourceUrl};
 
 /// Represents the location that a source file should be retrieved from
 ///
@@ -26,11 +25,11 @@ pub enum Source {
         location: PathBuf,
     },
     /// A URL source.
-    Url {
+    SourceUrl {
         /// The optional destination file name.
         filename: Option<PathBuf>,
         /// The source URL.
-        url: Url,
+        source_url: SourceUrl,
     },
 }
 
@@ -38,7 +37,7 @@ impl Source {
     /// Returns the filename of the source if it is set.
     pub fn filename(&self) -> Option<&PathBuf> {
         match self {
-            Self::File { filename, .. } | Self::Url { filename, .. } => filename.as_ref(),
+            Self::File { filename, .. } | Self::SourceUrl { filename, .. } => filename.as_ref(),
         }
     }
 }
@@ -67,56 +66,77 @@ impl FromStr for Source {
     /// use url::Url;
     ///
     /// # fn main() -> Result<(), alpm_types::Error> {
-    /// let source = Source::from_str("foopkg-1.2.3.tar.gz::https://example.com/download")?;
-    /// assert_eq!(source.filename().unwrap(), Path::new("foopkg-1.2.3.tar.gz"));
     ///
-    /// let Source::Url { url, .. } = source else {
+    /// // Parse from a string that represents a remote file link.
+    /// let source = Source::from_str("foopkg-1.2.3.tar.gz::https://example.com/download")?;
+    /// let Source::SourceUrl {
+    ///     source_url,
+    ///     filename,
+    /// } = source
+    /// else {
     ///     panic!()
     /// };
-    /// assert_eq!(url.host_str(), Some("example.com"));
     ///
+    /// assert_eq!(filename.unwrap(), Path::new("foopkg-1.2.3.tar.gz"));
+    /// assert_eq!(source_url.url.inner().host_str(), Some("example.com"));
+    /// assert_eq!(source_url.to_string(), "https://example.com/download");
+    ///
+    /// // Parse from a string that represents a local file.
     /// let source = Source::from_str("renamed-source.tar.gz::test.tar.gz")?;
-    /// assert_eq!(
-    ///     source.filename().unwrap(),
-    ///     Path::new("renamed-source.tar.gz")
-    /// );
-    ///
-    /// let Source::File { location, .. } = source else {
+    /// let Source::File { location, filename } = source else {
     ///     panic!()
     /// };
     /// assert_eq!(location, Path::new("test.tar.gz"));
+    /// assert_eq!(filename.unwrap(), Path::new("renamed-source.tar.gz"));
+    ///
     /// # Ok(())
     /// # }
     /// ```
-    fn from_str(mut s: &str) -> Result<Self, Self::Err> {
-        let filename = if let Some((filename, location)) = s.split_once("::") {
-            s = location;
-            Some(filename.into())
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        // First up, check if there's a filename prefix e.g. `filename::...`.
+        let (filename, location) = if let Some((filename, location)) = s.split_once("::") {
+            (Some(filename.into()), location)
         } else {
-            None
+            (None, s)
         };
 
-        match s.parse() {
-            Ok(url) => Ok(Self::Url { filename, url }),
+        // The following logic is a bit convoluted:
+        //
+        // - Check if we have a valid URL
+        // - If we don't have an URL, check if we have a valid relative filename.
+        // - If it is a valid URL go ahead and do the next parsing sequence into a SourceUrl.
+        match location.parse::<url::Url>() {
+            Ok(_) => {}
             Err(url::ParseError::RelativeUrlWithoutBase) => {
-                if s.is_empty() {
-                    Err(Error::FileNameIsEmpty)
-                } else if s.contains(std::path::MAIN_SEPARATOR) {
-                    Err(Error::FileNameContainsInvalidChars(
-                        PathBuf::from(s),
+                if location.is_empty() {
+                    return Err(Error::FileNameIsEmpty);
+                } else if location.contains(std::path::MAIN_SEPARATOR) {
+                    return Err(Error::FileNameContainsInvalidChars(
+                        PathBuf::from(location),
                         std::path::MAIN_SEPARATOR,
-                    ))
-                } else if s.contains('\0') {
-                    Err(Error::FileNameContainsInvalidChars(PathBuf::from(s), '\0'))
+                    ));
+                } else if location.contains('\0') {
+                    return Err(Error::FileNameContainsInvalidChars(
+                        PathBuf::from(location),
+                        '\0',
+                    ));
                 } else {
-                    Ok(Self::File {
+                    // We have a valid relative file. Return early
+                    return Ok(Self::File {
                         filename,
-                        location: s.into(),
-                    })
+                        location: location.into(),
+                    });
                 }
             }
-            Err(e) => Err(e.into()),
+            Err(e) => return Err(e.into()),
         }
+
+        // Parse potential extra syntax from the URL.
+        let source_url = SourceUrl::from_str(location)?;
+        Ok(Self::SourceUrl {
+            filename,
+            source_url,
+        })
     }
 }
 
@@ -130,11 +150,14 @@ impl Display for Source {
                     write!(f, "{}", location.display())
                 }
             }
-            Self::Url { filename, url } => {
+            Self::SourceUrl {
+                filename,
+                source_url,
+            } => {
                 if let Some(filename) = filename {
-                    write!(f, "{}::{}", filename.display(), url)
+                    write!(f, "{}::{}", filename.display(), source_url)
                 } else {
-                    write!(f, "{}", url)
+                    write!(f, "{}", source_url)
                 }
             }
         }
@@ -186,18 +209,27 @@ mod tests {
         filename: Some(PathBuf::from("renamed")),
         location: PathBuf::from("local"),
     }))]
-    #[case("foo-1.2.3.tar.gz::https://example.com/download", Ok(Source::Url {
-        filename: Some(PathBuf::from("foo-1.2.3.tar.gz")),
-        url: Url::parse("https://example.com/download").unwrap(),
-    }))]
-    #[case("my-git-repo::git+https://example.com/project/repo.git#commit=deadbeef?signed", Ok(Source::Url {
-        filename: Some(PathBuf::from("my-git-repo")),
-        url: Url::parse("git+https://example.com/project/repo.git#commit=deadbeef?signed").unwrap(),
-    }))]
-    #[case("file:///somewhere/else", Ok(Source::Url {
-        filename: None,
-        url: Url::parse("file:///somewhere/else").unwrap(),
-    }))]
+    #[case(
+        "foo-1.2.3.tar.gz::https://example.com/download",
+        Ok(Source::SourceUrl {
+            filename: Some(PathBuf::from("foo-1.2.3.tar.gz")),
+            source_url: SourceUrl::from_str("https://example.com/download").unwrap(),
+        })
+    )]
+    #[case(
+        "my-git-repo::git+https://example.com/project/repo.git?signed#commit=deadbeef",
+        Ok(Source::SourceUrl {
+            filename: Some(PathBuf::from("my-git-repo")),
+            source_url: SourceUrl::from_str("git+https://example.com/project/repo.git?signed#commit=deadbeef").unwrap(),
+        })
+    )]
+    #[case(
+        "file:///somewhere/else",
+        Ok(Source::SourceUrl {
+            filename: None,
+            source_url: SourceUrl::from_str("file:///somewhere/else").unwrap(),
+        })
+    )]
     #[case(
         "/absolute/path",
         Err(Error::FileNameContainsInvalidChars(PathBuf::from("/absolute/path"), '/'))
