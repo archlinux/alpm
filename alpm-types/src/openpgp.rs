@@ -52,11 +52,12 @@ use crate::Error;
 /// # }
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-#[serde(tag = "type")]
 pub enum OpenPGPIdentifier {
     /// An OpenPGP Key ID.
+    #[serde(rename = "openpgp_key_id")]
     OpenPGPKeyId(OpenPGPKeyId),
     /// An OpenPGP v4 fingerprint.
+    #[serde(rename = "openpgp_v4_fingerprint")]
     OpenPGPv4Fingerprint(OpenPGPv4Fingerprint),
 }
 
@@ -363,6 +364,7 @@ impl Display for Packager {
 #[cfg(test)]
 mod tests {
     use rstest::rstest;
+    use testresult::TestResult;
 
     use super::*;
 
@@ -405,6 +407,27 @@ mod tests {
     #[case("584A3EBFE705CDCD")]
     fn test_parse_openpgp_key_id(#[case] input: &str) -> Result<(), Error> {
         input.parse::<OpenPGPKeyId>()?;
+        Ok(())
+    }
+
+    #[test]
+    fn test_serialize_openpgp_key_id() -> TestResult {
+        let id = "584A3EBFE705CDCD".parse::<OpenPGPKeyId>()?;
+        let json = serde_json::to_string(&OpenPGPIdentifier::OpenPGPKeyId(id))?;
+        assert_eq!(r#"{"openpgp_key_id":"584A3EBFE705CDCD"}"#, json);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_serialize_openpgp_v4_fingerprint() -> TestResult {
+        let print = "1234567890abcdef1234567890abcdef12345678".parse::<OpenPGPv4Fingerprint>()?;
+        let json = serde_json::to_string(&OpenPGPIdentifier::OpenPGPv4Fingerprint(print))?;
+        assert_eq!(
+            r#"{"openpgp_v4_fingerprint":"1234567890ABCDEF1234567890ABCDEF12345678"}"#,
+            json
+        );
+
         Ok(())
     }
 
