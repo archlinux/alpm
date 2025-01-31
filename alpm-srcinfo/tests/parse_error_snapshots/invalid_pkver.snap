@@ -1,0 +1,11 @@
+---
+source: alpm-srcinfo/tests/parse_errors.rs
+description: "pkgbase = test\n    # The pkgver is definitely **not** valid\n    pkgver = $!@#%1.0.0\n\tpkgrel = 1\n\npkgname = test\n"
+expression: "format!(\"{error}\")"
+---
+File parsing error:
+parse error at line 3, column 14
+  |
+3 |     pkgver = $!@#%1.0.0
+  |              ^
+Value '$!@#%1.0.0' does not match the 'pkgver' regex: ^([[:alnum:]][[:alnum:]_+.]*)$
