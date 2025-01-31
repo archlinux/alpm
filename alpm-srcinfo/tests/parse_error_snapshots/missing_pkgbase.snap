@@ -1,0 +1,11 @@
+---
+source: alpm-srcinfo/tests/parse_errors.rs
+description: "# Immediately start with the pkgname. A pkgbase is required first.\npkgname = test\n    desc = \"Test library\"\n\n"
+expression: "format!(\"{error}\")"
+---
+File parsing error:
+parse error at line 2, column 1
+  |
+2 | pkgname = test
+  | ^
+invalid pkgbase section header
