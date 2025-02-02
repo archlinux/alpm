@@ -1,10 +1,10 @@
-use std::{path::Path, str::FromStr, thread};
+use std::{str::FromStr, thread};
 
 use alpm_pkginfo::{PackageInfoV1, PackageInfoV2};
 use assert_cmd::Command;
 use insta::assert_snapshot;
 use rstest::rstest;
-use testdir::testdir;
+use tempfile::tempdir;
 use testresult::TestResult;
 
 pub const VALID_PKGINFO_V1_DATA: &str = r#"
@@ -259,8 +259,7 @@ fn test_write_pkginfo(pkginfo_input: PackageInfoInput, use_env: bool) -> TestRes
     let test_name = thread::current().name().unwrap().to_string();
 
     // Create a temporary directory for the test
-    let test_dir_path = Path::new(&test_name);
-    let dir = testdir!(test_dir_path);
+    let dir = tempdir()?;
 
     // Write the PKGINFO file
     let mut cmd = Command::cargo_bin("alpm-pkginfo")?;
@@ -268,14 +267,14 @@ fn test_write_pkginfo(pkginfo_input: PackageInfoInput, use_env: bool) -> TestRes
         "create".to_string(),
         format!("v{}", if pkginfo_input.xdata.is_some() { 2 } else { 1 }),
     ])
-    .current_dir(dir.clone());
+    .current_dir(dir.path());
     if use_env {
         set_pkginfo_env(&mut cmd, &pkginfo_input);
     } else {
         set_pkginfo_args(&mut cmd, &pkginfo_input);
     }
     cmd.assert().success();
-    let file = dir.join(".PKGINFO");
+    let file = dir.path().join(".PKGINFO");
     assert!(file.exists());
 
     // Validate the contents of the PKGINFO file

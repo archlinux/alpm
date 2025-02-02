@@ -5,7 +5,7 @@ use alpm_types::SchemaVersion;
 use assert_cmd::Command;
 use insta::assert_snapshot;
 use rstest::rstest;
-use testdir::testdir;
+use tempfile::tempdir;
 use testresult::TestResult;
 
 pub const VALID_BUILDINFO_V1_DATA: &str = r#"
@@ -291,19 +291,19 @@ fn write_buildinfo_via_cli(#[case] buildinfo_input: BuildInfoInput) -> TestResul
 
 /// Test writing a buildinfo file either via CLI or environment variables.
 fn test_write_buildinfo(buildinfo_input: BuildInfoInput, use_env: bool) -> TestResult {
-    let dir = testdir!();
+    let dir = tempdir()?;
     let test_name = thread::current().name().unwrap().to_string();
 
     let mut cmd = Command::cargo_bin("alpm-buildinfo")?;
     cmd.args(["create".to_string(), format!("v{}", buildinfo_input.format)])
-        .current_dir(dir.clone());
+        .current_dir(dir.path());
     if use_env {
         set_buildinfo_env(&mut cmd, &buildinfo_input);
     } else {
         set_buildinfo_args(&mut cmd, &buildinfo_input);
     }
     cmd.assert().success();
-    let file = dir.join(".BUILDINFO");
+    let file = dir.path().join(".BUILDINFO");
     assert!(file.exists());
 
     let contents = std::fs::read_to_string(&file)?;
