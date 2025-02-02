@@ -37,5 +37,5 @@ thiserror.workspace = true
 assert_cmd.workspace = true
 insta.workspace = true
 rstest.workspace = true
-testdir.workspace = true
+tempfile.workspace = true
 testresult.workspace = true
