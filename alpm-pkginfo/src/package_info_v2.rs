@@ -1,27 +1,28 @@
-use std::fmt::Display;
-use std::fmt::Formatter;
-use std::str::FromStr;
+use std::{
+    fmt::{Display, Formatter},
+    str::FromStr,
+};
 
-use alpm_types::Architecture;
-use alpm_types::Backup;
-use alpm_types::BuildDate;
-use alpm_types::ExtraData;
-use alpm_types::Group;
-use alpm_types::InstalledSize;
-use alpm_types::License;
-use alpm_types::Name;
-use alpm_types::OptionalDependency;
-use alpm_types::PackageDescription;
-use alpm_types::PackageRelation;
-use alpm_types::PackageType;
-use alpm_types::Packager;
-use alpm_types::Url;
-use alpm_types::Version;
-use serde_with::serde_as;
-use serde_with::DisplayFromStr;
+use alpm_types::{
+    Architecture,
+    Backup,
+    BuildDate,
+    ExtraData,
+    Group,
+    InstalledSize,
+    License,
+    Name,
+    OptionalDependency,
+    PackageDescription,
+    PackageRelation,
+    PackageType,
+    Packager,
+    Url,
+    Version,
+};
+use serde_with::{serde_as, DisplayFromStr};
 
-use crate::package_info_v1::generate_pkginfo;
-use crate::Error;
+use crate::{package_info_v1::generate_pkginfo, Error};
 
 generate_pkginfo! {
     /// PKGINFO version 2

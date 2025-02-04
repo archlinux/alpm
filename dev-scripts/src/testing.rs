@@ -147,8 +147,10 @@ impl TestRunner {
 
 #[cfg(test)]
 mod tests {
-    use std::fs::OpenOptions;
-    use std::{collections::HashSet, fs::create_dir};
+    use std::{
+        collections::HashSet,
+        fs::{create_dir, OpenOptions},
+    };
 
     use rstest::rstest;
     use strum::IntoEnumIterator;

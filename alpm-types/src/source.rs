@@ -61,8 +61,7 @@ impl FromStr for Source {
     /// ## Examples
     ///
     /// ```
-    /// use std::path::Path;
-    /// use std::str::FromStr;
+    /// use std::{path::Path, str::FromStr};
     ///
     /// use alpm_types::Source;
     /// use url::Url;

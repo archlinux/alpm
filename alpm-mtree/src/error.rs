@@ -1,5 +1,4 @@
-use std::path::PathBuf;
-use std::string::FromUtf8Error;
+use std::{path::PathBuf, string::FromUtf8Error};
 
 /// The Error that can occur when working with ALPM-MTREE
 #[derive(Debug, thiserror::Error)]

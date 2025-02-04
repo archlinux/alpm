@@ -1,5 +1,7 @@
-use std::fmt::{Display, Formatter};
-use std::str::FromStr;
+use std::{
+    fmt::{Display, Formatter},
+    str::FromStr,
+};
 
 use serde::{Serialize, Serializer};
 use spdx::Expression;
@@ -62,8 +64,7 @@ impl License {
     /// ## Examples
     ///
     /// ```
-    /// use alpm_types::Error;
-    /// use alpm_types::License;
+    /// use alpm_types::{Error, License};
     ///
     /// # fn main() -> Result<(), alpm_types::Error> {
     /// let license = License::from_valid_spdx("Apache-2.0".to_string())?;

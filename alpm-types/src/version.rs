@@ -11,8 +11,7 @@ use regex::Regex;
 use semver::Version as SemverVersion;
 use serde::Serialize;
 
-use crate::error::Error;
-use crate::Architecture;
+use crate::{error::Error, Architecture};
 
 pub(crate) static PKGREL_REGEX: Lazy<Regex> = lazy_regex!(r"^[0-9]+(\.[0-9]+)?$");
 pub(crate) static PKGVER_REGEX: Lazy<Regex> = lazy_regex!(r"^([[:alnum:]][[:alnum:]_+.]*)$");

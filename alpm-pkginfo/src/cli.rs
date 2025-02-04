@@ -1,26 +1,26 @@
-use std::fmt::Display;
-use std::fmt::Formatter;
-use std::path::PathBuf;
-use std::str::FromStr;
+use std::{
+    fmt::{Display, Formatter},
+    path::PathBuf,
+    str::FromStr,
+};
 
-use alpm_types::Architecture;
-use alpm_types::Backup;
-use alpm_types::BuildDate;
-use alpm_types::ExtraData;
-use alpm_types::Group;
-use alpm_types::InstalledSize;
-use alpm_types::License;
-use alpm_types::Name;
-use alpm_types::OptionalDependency;
-use alpm_types::PackageDescription;
-use alpm_types::PackageRelation;
-use alpm_types::Packager;
-use alpm_types::Url;
-use alpm_types::Version;
-use clap::Args;
-use clap::Parser;
-use clap::Subcommand;
-use clap::ValueEnum;
+use alpm_types::{
+    Architecture,
+    Backup,
+    BuildDate,
+    ExtraData,
+    Group,
+    InstalledSize,
+    License,
+    Name,
+    OptionalDependency,
+    PackageDescription,
+    PackageRelation,
+    Packager,
+    Url,
+    Version,
+};
+use clap::{Args, Parser, Subcommand, ValueEnum};
 use strum::Display;
 
 use crate::Error;

@@ -1,22 +1,24 @@
-use std::fmt::Display;
-use std::fmt::Formatter;
-use std::str::FromStr;
+use std::{
+    fmt::{Display, Formatter},
+    str::FromStr,
+};
 
-use alpm_types::Architecture;
-use alpm_types::Backup;
-use alpm_types::BuildDate;
-use alpm_types::Group;
-use alpm_types::InstalledSize;
-use alpm_types::License;
-use alpm_types::Name;
-use alpm_types::OptionalDependency;
-use alpm_types::PackageDescription;
-use alpm_types::PackageRelation;
-use alpm_types::Packager;
-use alpm_types::Url;
-use alpm_types::Version;
-use serde_with::serde_as;
-use serde_with::DisplayFromStr;
+use alpm_types::{
+    Architecture,
+    Backup,
+    BuildDate,
+    Group,
+    InstalledSize,
+    License,
+    Name,
+    OptionalDependency,
+    PackageDescription,
+    PackageRelation,
+    Packager,
+    Url,
+    Version,
+};
+use serde_with::{serde_as, DisplayFromStr};
 
 use crate::Error;
 
@@ -376,8 +378,7 @@ impl Display for PackageInfoV1 {
 #[cfg(test)]
 mod tests {
     use pretty_assertions::assert_eq;
-    use rstest::fixture;
-    use rstest::rstest;
+    use rstest::{fixture, rstest};
     use testresult::TestResult;
 
     use super::*;

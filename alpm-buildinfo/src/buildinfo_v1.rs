@@ -280,8 +280,7 @@ impl Display for BuildInfoV1 {
 
 #[cfg(test)]
 mod tests {
-    use rstest::fixture;
-    use rstest::rstest;
+    use rstest::{fixture, rstest};
     use testresult::TestResult;
 
     use super::*;

@@ -21,8 +21,7 @@ use alpm_types::{
 use clap::{Args, Parser, Subcommand, ValueEnum};
 use strum::Display;
 
-use crate::schema::Schema;
-use crate::Error;
+use crate::{schema::Schema, Error};
 
 /// A type wrapping a PathBuf with a default value
 ///

@@ -4,8 +4,7 @@
 ///
 /// ## Examples
 /// ```
-/// use std::num::IntErrorKind;
-/// use std::str::FromStr;
+/// use std::{num::IntErrorKind, str::FromStr};
 ///
 /// use alpm_types::{CompressedSize, Error};
 ///
@@ -20,8 +19,7 @@ pub type CompressedSize = u64;
 ///
 /// ## Examples
 /// ```
-/// use std::num::IntErrorKind;
-/// use std::str::FromStr;
+/// use std::{num::IntErrorKind, str::FromStr};
 ///
 /// use alpm_types::{Error, InstalledSize};
 ///

@@ -7,8 +7,10 @@ use std::{
 pub use digest::Digest;
 use serde::{Serialize, Serializer};
 
-use crate::digests::{Blake2b512, Md5, Sha1, Sha224, Sha256, Sha384, Sha512};
-use crate::Error;
+use crate::{
+    digests::{Blake2b512, Md5, Sha1, Sha224, Sha256, Sha384, Sha512},
+    Error,
+};
 
 // Convenience type aliases for the supported checksums
 
@@ -96,8 +98,7 @@ pub type Sha512Checksum = Checksum<Sha512>;
 ///
 /// [checksum]: https://en.wikipedia.org/wiki/Checksum
 /// ```
-/// use alpm_types::digests::Digest;
-/// use alpm_types::Checksum;
+/// use alpm_types::{digests::Digest, Checksum};
 /// use serde::Serialize;
 ///
 /// #[derive(Serialize)]

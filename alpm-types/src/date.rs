@@ -6,8 +6,7 @@ use time::OffsetDateTime;
 ///
 /// # Examples
 /// ```
-/// use std::num::IntErrorKind;
-/// use std::str::FromStr;
+/// use std::{num::IntErrorKind, str::FromStr};
 ///
 /// use alpm_types::{BuildDate, Error, FromOffsetDateTime};
 /// use time::OffsetDateTime;

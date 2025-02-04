@@ -1,8 +1,6 @@
 use std::path::PathBuf;
 
-use clap::Parser;
-use clap::Subcommand;
-use clap::ValueEnum;
+use clap::{Parser, Subcommand, ValueEnum};
 
 #[derive(Clone, Debug, Parser)]
 #[command(about, author, name = "alpm-mtree", version)]

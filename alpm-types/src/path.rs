@@ -14,8 +14,7 @@ use crate::Error;
 ///
 /// ## Examples
 /// ```
-/// use std::path::PathBuf;
-/// use std::str::FromStr;
+/// use std::{path::PathBuf, str::FromStr};
 ///
 /// use alpm_types::{AbsolutePath, Error};
 ///
@@ -123,8 +122,7 @@ pub type StartDirectory = AbsolutePath;
 /// ## Examples
 ///
 /// ```
-/// use std::path::PathBuf;
-/// use std::str::FromStr;
+/// use std::{path::PathBuf, str::FromStr};
 ///
 /// use alpm_types::{Error, RelativePath};
 ///

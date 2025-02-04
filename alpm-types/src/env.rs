@@ -6,10 +6,7 @@ use std::{
 
 use serde::Serialize;
 
-use crate::error::Error;
-use crate::Architecture;
-use crate::Name;
-use crate::Version;
+use crate::{error::Error, Architecture, Name, Version};
 
 /// An option string
 ///

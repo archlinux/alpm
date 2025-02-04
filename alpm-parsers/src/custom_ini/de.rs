@@ -37,15 +37,18 @@
 //!     Ok(())
 //! }
 //! ```
-use std::collections::BTreeMap;
-use std::fmt::{self, Display};
-use std::marker::PhantomData;
-use std::str::{FromStr, ParseBoolError};
-use std::{error, num, str};
+use std::{
+    collections::BTreeMap,
+    error,
+    fmt::{self, Display},
+    marker::PhantomData,
+    num,
+    str,
+    str::{FromStr, ParseBoolError},
+};
 
-use serde::de::value::SeqDeserializer;
 use serde::{
-    de::{self, DeserializeOwned, IntoDeserializer, Visitor},
+    de::{self, value::SeqDeserializer, DeserializeOwned, IntoDeserializer, Visitor},
     forward_to_deserialize_any,
     Deserialize,
 };
