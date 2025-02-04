@@ -88,6 +88,12 @@ test:
     - just test
   stage: test
 
+test-docs:
+  extends: .default-with-rust
+  script:
+    - just test-docs
+  stage: test
+
 test-readmes:
   extends: .default-with-rust
   script:
