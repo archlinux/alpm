@@ -219,12 +219,16 @@ test:
     readonly ignored="{{ ignored }}"
 
     if [[ "${ignored}" == "true" ]]; then
-        cargo test --all -- --ignored
-        cargo test --doc
+        cargo nextest run --workspace --run-ignored all
     else
-        cargo test --all
-        just docs
+        cargo nextest run --workspace
     fi
+    just docs
+
+# Runs all doc tests
+test-docs:
+    just ensure-command cargo
+    cargo test --doc
 
 # Run end-to-end tests for README files of projects
 test-readmes:
