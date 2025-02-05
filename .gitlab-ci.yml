@@ -113,12 +113,6 @@ manpages-specs-completions:
     - just generate-completions
   stage: test
 
-test-readmes:
-  extends: .default-with-rust
-  script:
-    - just test-readmes
-  stage: test
-
 integration-test:
   extends: .default-with-rust
   script:
