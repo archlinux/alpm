@@ -1,6 +1,6 @@
 [package]
-name = "uapi-verifier-directory-openpgp"
-description = "OpenPGP layer for UAPI Signature Verifier Directory for distributions"
+description = "Verification of OS Artifacts: OpenPGP technology backend"
+name = "voa-openpgp"
 version = "0.1.0"
 
 authors.workspace = true
@@ -12,10 +12,10 @@ readme.workspace = true
 repository.workspace = true
 
 [lib]
-name = "uapi_verifier_directory_openpgp"
+name = "voa_openpgp"
 
 [[bin]]
-name = "uapi-openpgp-test"
+name = "voa-openpgp-test"
 path = "src/main.rs"
 
 [dependencies]

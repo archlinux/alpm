@@ -5,8 +5,8 @@ use std::fs::File;
 use std::io::BufReader;
 use std::path::Path;
 
-use uapi_verifier_directory_openpgp::CertificateDirectoryOpenPGP;
 use voa_core::{Context, Distribution, Purpose};
+use voa_openpgp::CertificateDirectoryOpenPGP;
 
 const ROOTS_TEST: &[&str] = &["/tmp/pki1/", "/tmp/pki2/"];
 
