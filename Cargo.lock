@@ -3230,13 +3230,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "42ff0bf0c66b8238c6f3b578df37d0b7848e55df8577b3f74f92a69acceeb825"
 
 [[package]]
-name = "uapi-verifier-directory"
-version = "0.1.0"
-dependencies = [
- "log",
-]
-
-[[package]]
 name = "uapi-verifier-directory-openpgp"
 version = "0.1.0"
 dependencies = [
@@ -3245,7 +3238,7 @@ dependencies = [
  "log",
  "pgp",
  "rpgpie",
- "uapi-verifier-directory",
+ "voa-core",
 ]
 
 [[package]]
@@ -3328,6 +3321,13 @@ name = "version_check"
 version = "0.9.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
+
+[[package]]
+name = "voa-core"
+version = "0.1.0"
+dependencies = [
+ "log",
+]
 
 [[package]]
 name = "wait-timeout"

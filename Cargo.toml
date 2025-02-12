@@ -18,7 +18,7 @@ members = [
     "alpm-parsers",
     "alpm-types",
     "dev-scripts",
-    "uapi-verifier-directory",
+    "voa-core",
     "uapi-verifier-directory-openpgp",
 ]
 resolver = "2"

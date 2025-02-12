@@ -5,14 +5,7 @@ use std::time::SystemTime;
 
 use pgp::Signature;
 use rpgpie::certificate::{Certificate, Checked};
-use uapi_verifier_directory::{
-    Context,
-    Distribution,
-    OpaqueVerifier,
-    Purpose,
-    Technology,
-    VerifierDirectory,
-};
+use voa_core::{Context, Distribution, OpaqueVerifier, Purpose, Technology, VerifierDirectory};
 
 const FILE_ENDING: &str = ".openpgp";
 

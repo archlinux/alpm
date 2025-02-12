@@ -1,6 +1,6 @@
 [package]
-name = "uapi-verifier-directory"
-description = "UAPI Signature Verifier Directory for distributions"
+name = "voa-core"
+description = "File Hierarchy for the Verification of OS Artifacts (VOA)"
 version = "0.1.0"
 
 authors.workspace = true
