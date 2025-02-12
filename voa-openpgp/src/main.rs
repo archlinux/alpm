@@ -5,7 +5,7 @@ use std::fs::File;
 use std::io::BufReader;
 use std::path::Path;
 
-use voa_core::{Context, Distribution, Purpose};
+use voa_core::{Context, Mode, Os, Purpose, Role};
 use voa_openpgp::CertificateDirectoryOpenPGP;
 
 const ROOTS_TEST: &[&str] = &["/tmp/pki1/", "/tmp/pki2/"];
@@ -19,9 +19,8 @@ fn main() {
     // Load OpenPGP certificate directory
     let dir = CertificateDirectoryOpenPGP::new(ROOTS_TEST);
     let verifiers = dir.load(
-        Distribution::new("arch".to_string(), None, None, None, None),
-        Purpose::Packages,
-        false,
+        Os::new("arch".to_string(), None, None, None, None),
+        Purpose::new(Role::Packages, Mode::ArtifactVerifier),
         Context::Default,
     );
 

@@ -5,7 +5,7 @@
 
 # Download some OpenPGP certificates for testing
 ROOT1=/tmp/pki1
-VDA_PATH=$ROOT1/vda/v1/arch/packages/default/openpgp
+VDA_PATH=$ROOT1/voa/arch/packages/default/openpgp
 
 mkdir -p $VDA_PATH
 cd $VDA_PATH || exit
