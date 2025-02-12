@@ -7,7 +7,7 @@ use std::{
 
 use pgp::Signature;
 use rpgpie::certificate::{Certificate, Checked};
-use voa_core::{Context, Distribution, OpaqueVerifier, Purpose, Technology, VerifierDirectory};
+use voa_core::{Context, OpaqueVerifier, Os, Purpose, Technology, VerifierDirectory};
 
 const FILE_ENDING: &str = ".openpgp";
 
@@ -18,15 +18,15 @@ fn fingerprint(cert: &Certificate) -> String {
     hex::encode(cert.fingerprint().as_bytes())
 }
 
-/// An OpenPGP certificate for "Verification of Distribution Artifacts"
+/// An OpenPGP certificate for "Verification of OS Artifacts (VOA)"
 pub struct OpenPGPCert {
     /// An OpenPGP Certificate that is synthesized from the data in `sources` below
     certificate: Certificate,
 
     /// Opaque verifiers, loaded from the filesystem.
     ///
-    /// There may be multiple sources for one OpenPGP certificate, if the files contain data about
-    /// the same Certificate (as detected by a shared primary key fingerprint).
+    /// There may be multiple sources for one OpenPGP certificate, if multiple files contain data
+    /// about one common Certificate (as defined by a shared primary key fingerprint).
     sources: Vec<OpaqueVerifier>,
 }
 
@@ -140,20 +140,10 @@ impl<'a> CertificateDirectoryOpenPGP<'a> {
         Self(VerifierDirectory::new(roots))
     }
 
-    pub fn load(
-        &self,
-        distribution: Distribution,
-        purpose: Purpose,
-        trust_anchor: bool,
-        context: Context,
-    ) -> Vec<OpenPGPCert> {
-        let opaque = self.0.load(
-            distribution,
-            purpose,
-            trust_anchor,
-            context,
-            Technology::OpenPGP,
-        );
+    pub fn load(&self, distribution: Os, purpose: Purpose, context: Context) -> Vec<OpenPGPCert> {
+        let opaque = self
+            .0
+            .load(distribution, purpose, context, Technology::OpenPGP);
 
         // TODO: If we obtained different versions of the same certificate, merge them!
         //
@@ -165,7 +155,7 @@ impl<'a> CertificateDirectoryOpenPGP<'a> {
         let openpgp_certs = opaque
             .into_iter()
             .filter_map(|opaque| {
-                log::trace!("Processing VDA folder {:?}", opaque.source_path());
+                log::trace!("Processing VOA folder {:?}", opaque.source_path());
 
                 // TODO: Encode the `Technology` at the type level in OpaqueVerifierData?
                 if opaque.source_path().technology() != Technology::OpenPGP {
