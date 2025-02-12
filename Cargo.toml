@@ -23,7 +23,7 @@ members = [
     "alpm-srcinfo",
     "alpm-types",
     "dev-scripts",
-    "uapi-verifier-directory",
+    "voa-core",
     "uapi-verifier-directory-openpgp",
 ]
 resolver = "3"

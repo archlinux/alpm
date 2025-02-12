@@ -24,4 +24,4 @@ hex = "0.4"
 log = "0.4"
 pgp = "0.14"
 rpgpie = "0.4"
-uapi-verifier-directory = { path = "../uapi-verifier-directory" }
+voa-core = { path = "../voa-core" }
