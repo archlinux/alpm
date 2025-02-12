@@ -3376,18 +3376,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1dccffe3ce07af9386bfd29e80c0ab1a8205a2fc34e4bcd40364df902cfa8f3f"
 
 [[package]]
-name = "uapi-verifier-directory-openpgp"
-version = "0.1.0"
-dependencies = [
- "env_logger",
- "hex",
- "log",
- "pgp",
- "rpgpie",
- "voa-core",
-]
-
-[[package]]
 name = "unarray"
 version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3468,6 +3456,18 @@ name = "voa-core"
 version = "0.1.0"
 dependencies = [
  "log",
+]
+
+[[package]]
+name = "voa-openpgp"
+version = "0.1.0"
+dependencies = [
+ "env_logger",
+ "hex",
+ "log",
+ "pgp",
+ "rpgpie",
+ "voa-core",
 ]
 
 [[package]]
