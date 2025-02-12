@@ -1,9 +1,8 @@
-//! "Hierarchy for the Verification of Distribution Artifacts (VDA)"
+//! "File Hierarchy for the Verification of OS Artifacts (VOA)"
 //!
 //! A mechanism for technology-agnostic storage and retrieval or signature verifiers.
 //!
-//! (Specification link pending,
-//! see <https://github.com/uapi-group/specifications/issues/115> for initial discussion)
+//! (For draft specification see <https://github.com/uapi-group/specifications/pull/134>)
 
 use std::path::PathBuf;
 
@@ -16,7 +15,7 @@ use std::path::PathBuf;
 /// We expect that the filename is a strong identifier that can also be used to check if two
 /// verifiers are the same, between roots, based on their filename.
 ///
-///E.g. OpenPGP certificates must have names based in fingerprints.
+/// E.g. OpenPGP certificates must have names based in fingerprints.
 ///
 /// The technology-specific layers are expected to warn or error when filenames and their content
 /// are inconsistent.
@@ -27,26 +26,12 @@ const _ROOTS_DEFAULT: &[&str] = &[
     "/usr/share/pki/",
 ];
 
-/// Top level directory of the "Verification of Distribution Artifacts" hierarchy
-const VDA: &str = "vda";
-
-/// Version specifier, currently only version 1 of VDA is defined
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub enum Version {
-    V1,
-}
-
-impl Version {
-    fn path(&self) -> &str {
-        match self {
-            Self::V1 => "v1",
-        }
-    }
-}
+/// Top level directory of the "Verification of OS Artifacts (VOA)" hierarchy
+const VOA: &str = "voa";
 
 #[derive(Clone, Debug, PartialEq)]
 #[non_exhaustive]
-pub struct Distribution {
+pub struct Os {
     id: String,
     version_id: Option<String>,
     variant_id: Option<String>,
@@ -54,7 +39,7 @@ pub struct Distribution {
     image_version: Option<String>,
 }
 
-impl Distribution {
+impl Os {
     pub fn new(
         id: String,
         version_id: Option<String>,
@@ -62,6 +47,8 @@ impl Distribution {
         image_id: Option<String>,
         image_version: Option<String>,
     ) -> Self {
+        assert!(!id.is_empty()); // FIXME: do we want to enforce this, and return a [Result]?
+
         Self {
             id,
             version_id,
@@ -71,7 +58,7 @@ impl Distribution {
         }
     }
 
-    /// A string representation of this Distribution specifier.
+    /// A string representation of this Os specifier.
     ///
     /// All parts are joined with `:`, trailing colons are omitted.
     fn path(&self) -> String {
@@ -88,47 +75,56 @@ impl Distribution {
     }
 }
 
-/// The current fixed default value for version (used to form verifier paths)
-const VERSION: Version = Version::V1;
+/// A Purpose combines a [Role] and a [Mode], and reflects one directory layer in the VOA file
+/// hierarchy.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Purpose {
+    role: Role,
+    mode: Mode,
+}
 
+impl Purpose {
+    pub fn new(role: Role, mode: Mode) -> Self {
+        Self { role, mode }
+    }
+
+    fn path(&self) -> String {
+        let base = match self.role {
+            Role::Packages => "packages",
+            Role::RepositoryMetadata => "repository-metadata",
+            Role::Image => "image",
+        };
+
+        match self.mode {
+            Mode::TrustAnchor => format! { "trust-anchor-{base}" },
+            Mode::ArtifactVerifier => base.to_string(),
+        }
+    }
+}
+
+/// A Role acts as a trust domain that is associated with one set of verifiers.
 #[derive(Clone, Copy, Debug, PartialEq)]
 #[non_exhaustive]
-pub enum Purpose {
+pub enum Role {
     /// For verifying signatures for packages
     Packages,
 
     /// For verifying signatures for repository metadata
     RepositoryMetadata,
 
-    /// For verifying signatures for installation media
-    InstallationMedia,
-
-    /// For verifying signatures for virtual machines
-    VirtualMachines,
-
-    /// For verifying signatures for updates to image-based machines
-    ImageUpdate,
+    /// For verifying signatures for OS images
+    Image,
 }
 
-impl Purpose {
-    fn path(&self, trust_anchor: bool) -> String {
-        let base = match self {
-            Self::Packages => "packages",
-            Self::RepositoryMetadata => "repository-metadata",
-            Self::InstallationMedia => "installation-media",
-            Self::VirtualMachines => "virtual-machines",
-            Self::ImageUpdate => "image-update",
-        };
-
-        match trust_anchor {
-            true => format! { "trust-anchor-{base}" },
-            false => base.to_string(),
-        }
-    }
+/// The Mode (of a [Purpose]) distinguishes between direct artifact verifiers and trust anchors.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Mode {
+    ArtifactVerifier,
+    TrustAnchor,
 }
 
 /// The context layer allows defining specific verifiers for a particular context within a
-/// distribution’s [Purpose].
+/// [Purpose].
 ///
 /// An example for context is the name of a specific software repository when certificates are
 /// used in the context of the packages purpose (e.g. "core").
@@ -165,14 +161,12 @@ impl Technology {
     }
 }
 
-/// Specification of a path in a VDA structure, at the "leaf" level, where verifier files are stored
+/// Specification of a path in a VOA structure, at the "leaf" level, where verifier files are stored
 #[derive(Clone, Debug, PartialEq)]
 pub struct VerifierSourcePath {
     root: String,
-    version: Version,
-    distribution: Distribution,
+    os: Os,
     purpose: Purpose,
-    trust_anchor: bool,
     context: Context,
     technology: Technology,
 }
@@ -180,28 +174,19 @@ pub struct VerifierSourcePath {
 impl VerifierSourcePath {
     fn path(&self) -> PathBuf {
         PathBuf::from(&self.root)
-            .join(VDA)
-            .join(self.version.path())
-            .join(self.distribution.path())
-            .join(self.purpose.path(self.trust_anchor))
+            .join(VOA)
+            .join(self.os.path())
+            .join(self.purpose.path())
             .join(self.context.path())
             .join(self.technology.path())
     }
 
-    pub fn version(&self) -> Version {
-        self.version
-    }
-
-    pub fn distribution(&self) -> &Distribution {
-        &self.distribution
+    pub fn os(&self) -> &Os {
+        &self.os
     }
 
     pub fn purpose(&self) -> Purpose {
         self.purpose
-    }
-
-    pub fn trust_anchor(&self) -> bool {
-        self.trust_anchor
     }
 
     pub fn technology(&self) -> Technology {
@@ -266,10 +251,10 @@ impl<'a> VerifierDirectory<'a> {
     /// Load a set of (opaque) signature verifiers from the filesystem.
     ///
     /// Paths in a VerifierDirectory have the shape:
-    /// ROOT/VDA/$version/$distribution/purpose/$context/$technology
+    /// ROOT/VOA/$os/$purpose/$context/$technology
     ///
-    /// $distribution: e.g. "arch"
-    /// purpose: e.g. "trust-anchor-packages", "packages"
+    /// os: e.g. "arch"
+    /// $purpose: e.g. "trust-anchor-packages", "packages"
     /// $context: e.g. "default"
     /// $technology: e.g. "openpgp"
     ///
@@ -281,9 +266,8 @@ impl<'a> VerifierDirectory<'a> {
     ///   (e.g. grouped by common filename, or organized by `trust_anchor` value?)
     pub fn load(
         &self,
-        distribution: Distribution,
+        os: Os,
         purpose: Purpose,
-        trust_anchor: bool,
         context: Context,
         technology: Technology,
     ) -> Vec<OpaqueVerifier> {
@@ -294,17 +278,15 @@ impl<'a> VerifierDirectory<'a> {
 
             let path = VerifierSourcePath {
                 root: root.to_string(),
-                version: VERSION,
-                distribution: distribution.clone(),
+                os: os.clone(),
                 purpose,
-                trust_anchor,
                 context: context.clone(),
                 technology,
             };
 
             let source_path = path.path();
 
-            log::trace!("Opening VDA path {:?}", source_path);
+            log::trace!("Opening VOA path {:?}", source_path);
 
             let res = std::fs::read_dir(source_path);
             let Ok(dir) = res else {
