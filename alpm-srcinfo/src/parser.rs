@@ -30,7 +30,7 @@ use alpm_types::{
     Source,
     Url,
 };
-use strum::EnumString;
+use strum::{EnumString, VariantNames};
 use winnow::{
     ascii::{alpha1, alphanumeric1, line_ending, newline, space0, till_line_ending},
     combinator::{
@@ -46,21 +46,57 @@ use winnow::{
         terminated,
         trace,
     },
-    error::{ErrMode, ParserError, StrContext, StrContextValue},
+    error::{ContextError, ErrMode, ParserError},
     token::{take_till, take_until},
     ModalResult,
     Parser,
 };
 
+/// A Parser context type that allows attaching `String`s to Parser errors.
+#[derive(Clone, Debug)]
+pub struct StringContext(pub String);
+
+impl StringContext {
+    pub fn new(value: impl Into<String>) -> Self {
+        Self(value.into())
+    }
+}
+
+impl std::fmt::Display for StringContext {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl std::fmt::Display for ContextError<StringContext> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let output = self.context().fold(String::new(), |mut acc, s| {
+            if !acc.is_empty() {
+                acc.push('\n');
+            }
+            acc.push_str(&s.0);
+            acc
+        });
+        writeln!(f, "{output}")?;
+
+        if let Some(cause) = self.cause() {
+            writeln!(f)?;
+            write!(f, "{cause}")?;
+        }
+
+        Ok(())
+    }
+}
+
 /// Parses the ` = ` delimiter between keywords.
 ///
 /// This function expects the delimiter to exist.
-fn delimiter<'s>(input: &mut &'s str) -> ModalResult<&'s str> {
+fn delimiter<'s>(input: &mut &'s str) -> ModalResult<&'s str, ContextError<StringContext>> {
     cut_err(" = ")
-        .context(StrContext::Label("delimiter"))
-        .context(StrContext::Expected(StrContextValue::Description(
-            "an equal sign surrounded by spaces: ' = '.",
-        )))
+        .context::<StringContext>(StringContext("Invalid delimiter".to_string()))
+        .context::<StringContext>(StringContext(
+            "Expected an equal sign surrounded by spaces: ' = '.".to_string(),
+        ))
         .parse_next(input)
 }
 
@@ -69,7 +105,7 @@ fn delimiter<'s>(input: &mut &'s str) -> ModalResult<&'s str> {
 /// This function is called after a ` = ` has been recognized using [`delimiter`].
 /// It extends upon winnow's [`till_line_ending`] by also consuming the newline character.
 /// [`till_line_ending`]: <https://docs.rs/winnow/latest/winnow/ascii/fn.till_line_ending.html>
-fn till_line_end<'s>(input: &mut &'s str) -> ModalResult<&'s str> {
+fn till_line_end<'s>(input: &mut &'s str) -> ModalResult<&'s str, ContextError<StringContext>> {
     // Get the content til the end of line.
     let out = till_line_ending.parse_next(input)?;
 
@@ -141,7 +177,9 @@ pub struct ArchProperty<T> {
 ///           ^^^^^
 ///         This is the suffix with `i386` being the architecture.
 /// ```
-fn architecture_suffix(input: &mut &str) -> ModalResult<Option<Architecture>> {
+fn architecture_suffix(
+    input: &mut &str,
+) -> ModalResult<Option<Architecture>, ContextError<StringContext>> {
     // First up, check if there's an underscore.
     // If there's none, there's no suffix and we can return early.
     let underscore = opt('_').parse_next(input)?;
@@ -155,10 +193,13 @@ fn architecture_suffix(input: &mut &str) -> ModalResult<Option<Architecture>> {
     // alpm_types::Architecture.
     let architecture =
         cut_err(take_till(0.., |c| c == ' ' || c == '=').try_map(Architecture::from_str))
-            .context(StrContext::Label("architecture"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "an alpm-architecture compatible suffix (e.g. '_i386` or `_x86_64`)",
-            )))
+            .context(StringContext(
+                "Unknown or invalid architecture.".to_string(),
+            ))
+            .context(StringContext(
+                "Expected an alpm-architecture compatible suffix (e.g. '_i386` or `_x86_64`)"
+                    .to_string(),
+            ))
             .parse_next(input)?;
 
     Ok(Some(architecture))
@@ -187,7 +228,9 @@ impl SourceInfoContent {
     /// This consumes the first few lines until the `pkgbase` section is hit.
     /// Further comments and newlines are handled in the scope of the respective `pkgbase`/`pkgname`
     /// sections.
-    fn preceding_lines_parser(input: &mut &str) -> ModalResult<Ignored> {
+    fn preceding_lines_parser(
+        input: &mut &str,
+    ) -> ModalResult<Ignored, ContextError<StringContext>> {
         trace(
             "preceding_lines",
             alt((
@@ -232,7 +275,7 @@ impl SourceInfoContent {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn parser(input: &mut &str) -> ModalResult<SourceInfoContent> {
+    pub fn parser(input: &mut &str) -> ModalResult<SourceInfoContent, ContextError<StringContext>> {
         // Handle any comments or empty lines at the start of the line..
         let preceding_lines: Vec<Ignored> =
             repeat(0.., Self::preceding_lines_parser).parse_next(input)?;
@@ -262,24 +305,22 @@ pub struct RawPackageBase {
 
 impl RawPackageBase {
     /// Recognizes the entire `pkgbase` section in SRCINFO data.
-    fn parser(input: &mut &str) -> ModalResult<RawPackageBase> {
+    fn parser(input: &mut &str) -> ModalResult<RawPackageBase, ContextError<StringContext>> {
         cut_err("pkgbase")
-            .context(StrContext::Label("pkgbase section header"))
+            .context(StringContext("Invalid pkgbase header".to_string()))
             .parse_next(input)?;
 
         cut_err(" = ")
-            .context(StrContext::Label("pkgbase section header delimiter"))
-            .context(StrContext::Expected(StrContextValue::Description("' = '")))
+            .context(StringContext(
+                "Invalid pkgbase section header delimiter. Expected ' = '".to_string(),
+            ))
             .parse_next(input)?;
 
         // Get the name of the base package.
         // Don't use `till_line_ending`, as we want the name to have a length of at least one.
         let name =
             cut_err(terminated(take_till(1.., |c| c == '\n'), line_ending).try_map(Name::from_str))
-                .context(StrContext::Label("package base name"))
-                .context(StrContext::Expected(StrContextValue::Description(
-                    "the name of the base package",
-                )))
+                .context(StringContext("Invalid package base name.".to_string()))
                 .parse_next(input)?;
 
         // Go through the lines after the initial `pkgbase` statement.
@@ -307,23 +348,21 @@ pub struct RawPackage {
 
 impl RawPackage {
     /// Recognizes an entire single `pkgname` section in SRCINFO data.
-    fn parser(input: &mut &str) -> ModalResult<RawPackage> {
+    fn parser(input: &mut &str) -> ModalResult<RawPackage, ContextError<StringContext>> {
         cut_err("pkgname")
-            .context(StrContext::Label("pkgname section header"))
+            .context(StringContext("Invalid pkgname header.".to_string()))
             .parse_next(input)?;
 
         cut_err(" = ")
-            .context(StrContext::Label("pkgname section header delimiter"))
-            .context(StrContext::Expected(StrContextValue::Description("' = '")))
+            .context(StringContext(
+                "Invalid pkgname section header delimiter. Expected ' = '".to_string(),
+            ))
             .parse_next(input)?;
 
         // Get the name of the base package.
         let name =
             cut_err(terminated(take_till(1.., |c| c == '\n'), line_ending).try_map(Name::from_str))
-                .context(StrContext::Label("package name"))
-                .context(StrContext::Expected(StrContextValue::Description(
-                    "the name of a package",
-                )))
+                .context(StringContext("Invalid package name.".to_string()))
                 .parse_next(input)?;
 
         // Go through the lines after the initial `pkgname` statement.
@@ -344,7 +383,7 @@ impl RawPackage {
 }
 
 /// Keywords that're exclusive to the `pkgbase` section
-#[derive(Debug, EnumString)]
+#[derive(Debug, EnumString, VariantNames)]
 #[strum(serialize_all = "lowercase")]
 pub enum PackageBaseKeyword {
     CheckDepends,
@@ -386,7 +425,7 @@ impl PackageBaseProperty {
     ///
     /// This is a wrapper to separate the logic between comments/empty lines and actual `pkgbase`
     /// properties.
-    fn parser(input: &mut &str) -> ModalResult<PackageBaseProperty> {
+    fn parser(input: &mut &str) -> ModalResult<PackageBaseProperty, ContextError<StringContext>> {
         // Trim any leading spaces, which are allowed per spec.
         let _ = space0.parse_next(input)?;
 
@@ -410,11 +449,6 @@ impl PackageBaseProperty {
                 preceded(space0, line_ending).map(|_| PackageBaseProperty::EmptyLine),
                 // In case we got text, start parsing properties
                 Self::property_parser,
-                cut_err(fail)
-                    .context(StrContext::Label("package base property"))
-                    .context(StrContext::Expected(StrContextValue::Description(
-                        "one of the allowed pkgbase properties",
-                    ))),
             )),
         )
         .parse_next(input)
@@ -434,7 +468,9 @@ impl PackageBaseProperty {
     ///   [`Self::exclusive_property_parser`].
     /// - Other fields that're unique to the [`RawPackageBase`] are handled in
     ///   [`Self::exclusive_property_parser`].
-    fn property_parser(input: &mut &str) -> ModalResult<PackageBaseProperty> {
+    fn property_parser(
+        input: &mut &str,
+    ) -> ModalResult<PackageBaseProperty, ContextError<StringContext>> {
         // First off, get the type of the property.
         trace(
             "pkgbase_property",
@@ -443,9 +479,18 @@ impl PackageBaseProperty {
                 SharedMetaProperty::parser.map(PackageBaseProperty::MetaProperty),
                 RelationProperty::parser.map(PackageBaseProperty::RelationProperty),
                 PackageBaseProperty::exclusive_property_parser,
-                fail.context(StrContext::Label("file property type"))
-                    .context(StrContext::Expected(StrContextValue::Description(
-                        "one of the allowed pkgbase properties.",
+                cut_err(fail)
+                    .context(StringContext("Unknown package base property.".to_string()))
+                    .context(StringContext(format!(
+                        "Expected one of the following keywords: [{}]",
+                        vec![
+                            SourceKeyword::VARIANTS,
+                            SharedMetaKeyword::VARIANTS,
+                            RelationKeyword::VARIANTS,
+                            PackageBaseKeyword::VARIANTS,
+                        ]
+                        .concat()
+                        .join(", ")
                     ))),
             )),
         )
@@ -453,7 +498,9 @@ impl PackageBaseProperty {
     }
 
     /// Parse a [`PackageBaseKeyword`].
-    fn keyword_parser(input: &mut &str) -> ModalResult<PackageBaseKeyword> {
+    fn keyword_parser(
+        input: &mut &str,
+    ) -> ModalResult<PackageBaseKeyword, ContextError<StringContext>> {
         trace(
             "package_base_keyword",
             // Read until we hit something non alphabetical.
@@ -466,14 +513,12 @@ impl PackageBaseProperty {
     /// Recognizes keyword definitions exclusive to the `pkgbase` section in SRCINFO data.
     ///
     /// This function backtracks in case no keyword in this group matches.
-    fn exclusive_property_parser(input: &mut &str) -> ModalResult<PackageBaseProperty> {
+    fn exclusive_property_parser(
+        input: &mut &str,
+    ) -> ModalResult<PackageBaseProperty, ContextError<StringContext>> {
         // First off, get the type of the property.
-        let keyword = trace("exclusive_pkgbase_property", Self::keyword_parser)
-            .context(StrContext::Label("file property type"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "'checkdepends', 'makedepends', 'pkgver', 'pkgrel', 'epoch', 'validpgpkeys'",
-            )))
-            .parse_next(input)?;
+        let keyword =
+            trace("exclusive_pkgbase_property", Self::keyword_parser).parse_next(input)?;
 
         // Parse a possible architecture suffix for architecture specific fields.
         let architecture = match keyword {
@@ -558,7 +603,7 @@ impl PackageProperty {
     ///
     /// This is a wrapper to separate the logic between comments/empty lines and actual package
     /// properties.
-    fn parser(input: &mut &str) -> ModalResult<PackageProperty> {
+    fn parser(input: &mut &str) -> ModalResult<PackageProperty, ContextError<StringContext>> {
         // Trim any leading spaces, which are allowed per spec.
         let _ = space0.parse_next(input)?;
 
@@ -588,11 +633,7 @@ impl PackageProperty {
                 preceded(space0, alt((line_ending, eof))).map(|_| PackageProperty::EmptyLine),
                 // In case we got text, start parsing properties
                 Self::property_parser,
-                cut_err(fail)
-                    .context(StrContext::Label("package property"))
-                    .context(StrContext::Expected(StrContextValue::Description(
-                        "one of the allowed pkgname properties.",
-                    ))),
+                cut_err(fail),
             )),
         )
         .parse_next(input)
@@ -610,7 +651,9 @@ impl PackageProperty {
     /// - [`RelationProperty`] are keywords that describe the relation of the package to other
     ///   packages. [`RawPackageBase`] has two special relations that are explicitly handled in that
     ///   enum.
-    fn property_parser(input: &mut &str) -> ModalResult<PackageProperty> {
+    fn property_parser(
+        input: &mut &str,
+    ) -> ModalResult<PackageProperty, ContextError<StringContext>> {
         // The way we handle `ClearableProperty` is a bit imperformant.
         // Since clearable properties are only allowed to occur in `pkgname` sections, I decided to
         // not handle clearable properties in the respective property parsers to keep the
@@ -630,10 +673,7 @@ impl PackageProperty {
                 ClearableProperty::shared_meta_parser.map(PackageProperty::Clear),
                 SharedMetaProperty::parser.map(PackageProperty::MetaProperty),
                 RelationProperty::parser.map(PackageProperty::RelationProperty),
-                fail.context(StrContext::Label("file property type"))
-                    .context(StrContext::Expected(StrContextValue::Description(
-                        "one of the allowed pkgname properties.",
-                    ))),
+                fail,
             )),
         )
         .parse_next(input)
@@ -641,7 +681,7 @@ impl PackageProperty {
 }
 
 /// Keywords that're related to meta data that's exists on both `pkgbase` and `pkgname` sections.
-#[derive(Debug, EnumString)]
+#[derive(Debug, EnumString, VariantNames)]
 #[strum(serialize_all = "lowercase")]
 pub enum SharedMetaKeyword {
     PkgDesc,
@@ -676,7 +716,7 @@ impl SharedMetaProperty {
     /// This function relies on [`Self::keyword_parser`] to recognize the relevant keywords.
     ///
     /// This function backtracks in case no keyword in this group matches.
-    fn parser(input: &mut &str) -> ModalResult<SharedMetaProperty> {
+    fn parser(input: &mut &str) -> ModalResult<SharedMetaProperty, ContextError<StringContext>> {
         // Now get the type of the property.
         let keyword = Self::keyword_parser.parse_next(input)?;
 
@@ -740,7 +780,9 @@ impl SharedMetaProperty {
     }
 
     /// Parse a [`SharedMetaKeyword`].
-    fn keyword_parser(input: &mut &str) -> ModalResult<SharedMetaKeyword> {
+    fn keyword_parser(
+        input: &mut &str,
+    ) -> ModalResult<SharedMetaKeyword, ContextError<StringContext>> {
         // Read until we hit something non alphabetical.
         // This could be either a space or a `_` in case there's an architecture specifier.
         trace(
@@ -752,7 +794,7 @@ impl SharedMetaProperty {
 }
 
 /// Keywords that're exclusive to the `pkgbase` section
-#[derive(Debug, EnumString)]
+#[derive(Debug, EnumString, VariantNames)]
 #[strum(serialize_all = "lowercase")]
 pub enum RelationKeyword {
     Depends,
@@ -784,7 +826,7 @@ impl RelationProperty {
     ///
     /// This function relies on [`Self::keyword_parser`] to recognize the relevant keywords.
     /// This function backtracks in case no keyword in this group matches.
-    fn parser(input: &mut &str) -> ModalResult<RelationProperty> {
+    fn parser(input: &mut &str) -> ModalResult<RelationProperty, ContextError<StringContext>> {
         // First off, get the type of the property.
         let keyword = Self::keyword_parser.parse_next(input)?;
 
@@ -835,7 +877,9 @@ impl RelationProperty {
     }
 
     /// Parse a [`RelationKeyword`].
-    fn keyword_parser(input: &mut &str) -> ModalResult<RelationKeyword> {
+    fn keyword_parser(
+        input: &mut &str,
+    ) -> ModalResult<RelationKeyword, ContextError<StringContext>> {
         // Read until we hit something non alphabetical.
         // This could be either a space or a `_` in case there's an architecture specifier.
         trace(
@@ -860,7 +904,7 @@ impl RelationProperty {
 }
 
 /// Keywords that're exclusive to the `pkgbase` section
-#[derive(Debug, EnumString)]
+#[derive(Debug, EnumString, VariantNames)]
 #[strum(serialize_all = "lowercase")]
 pub enum SourceKeyword {
     Source,
@@ -901,7 +945,7 @@ impl SourceProperty {
     /// This function relies on [`Self::keyword_parser`] to recognize the relevant keywords.
     ///
     /// This function backtracks in case no keyword in this group matches.
-    fn parser(input: &mut &str) -> ModalResult<SourceProperty> {
+    fn parser(input: &mut &str) -> ModalResult<SourceProperty, ContextError<StringContext>> {
         // First off, get the type of the property.
         let keyword = Self::keyword_parser.parse_next(input)?;
 
@@ -1038,7 +1082,7 @@ impl SourceProperty {
     }
 
     /// Parse a [`SourceKeyword`].
-    fn keyword_parser(input: &mut &str) -> ModalResult<SourceKeyword> {
+    fn keyword_parser(input: &mut &str) -> ModalResult<SourceKeyword, ContextError<StringContext>> {
         // Read until we hit something non alphabetical.
         // This could be either a space or a `_` in case there's an architecture specifier.
         trace(
@@ -1096,7 +1140,9 @@ impl ClearableProperty {
     ///
     /// This function backtracks in case no keyword in this group matches or in case the property is
     /// not cleared.
-    fn shared_meta_parser(input: &mut &str) -> ModalResult<ClearableProperty> {
+    fn shared_meta_parser(
+        input: &mut &str,
+    ) -> ModalResult<ClearableProperty, ContextError<StringContext>> {
         // First off, check if this is any of the clearable properties.
         let keyword = trace(
             "clearable_shared_meta_property",
@@ -1129,7 +1175,9 @@ impl ClearableProperty {
     }
 
     /// Same as [`Self::shared_meta_parser`], but for clearable [RelationProperty].
-    fn relation_parser(input: &mut &str) -> ModalResult<ClearableProperty> {
+    fn relation_parser(
+        input: &mut &str,
+    ) -> ModalResult<ClearableProperty, ContextError<StringContext>> {
         // First off, check if this is any of the clearable properties.
         let keyword =
             trace("clearable_property", RelationProperty::keyword_parser).parse_next(input)?;
