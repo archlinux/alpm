@@ -1,0 +1,95 @@
+---
+source: alpm-srcinfo/tests/correct.rs
+expression: json
+---
+[
+  {
+    "name": "example",
+    "description": "overridden",
+    "url": "https://overridden.com/",
+    "licenses": [
+      "Apache-2.0"
+    ],
+    "architecture": "X86_64",
+    "changelog": "overridden.stub",
+    "install": "overridden.stub",
+    "groups": [
+      "overridden"
+    ],
+    "options": [
+      {
+        "name": "emptydirs",
+        "on": true
+      }
+    ],
+    "backups": [
+      "overridden"
+    ],
+    "version": {
+      "pkgver": "0.1.0",
+      "epoch": 1,
+      "pkgrel": "1"
+    },
+    "pgp_fingerprints": [],
+    "dependencies": [
+      {
+        "name": "overridden",
+        "version_requirement": null
+      },
+      {
+        "name": "arch_overridden",
+        "version_requirement": null
+      }
+    ],
+    "optional_dependencies": [
+      {
+        "package_relation": {
+          "name": "overridden",
+          "version_requirement": null
+        },
+        "description": null
+      },
+      {
+        "package_relation": {
+          "name": "arch_overridden",
+          "version_requirement": null
+        },
+        "description": null
+      }
+    ],
+    "provides": [
+      {
+        "name": "overridden",
+        "version_requirement": null
+      },
+      {
+        "name": "arch_overridden",
+        "version_requirement": null
+      }
+    ],
+    "conflicts": [
+      {
+        "name": "overridden",
+        "version_requirement": null
+      },
+      {
+        "name": "arch_overridden",
+        "version_requirement": null
+      }
+    ],
+    "replaces": [
+      {
+        "name": "overridden",
+        "version_requirement": null
+      },
+      {
+        "name": "arch_overridden",
+        "version_requirement": null
+      }
+    ],
+    "check_dependencies": [],
+    "make_dependencies": [],
+    "sources": [],
+    "no_extracts": []
+  }
+]

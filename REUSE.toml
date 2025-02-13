@@ -14,10 +14,13 @@ precedence = "aggregate"
 SPDX-FileCopyrightText = "ALPM Contributors"
 SPDX-License-Identifier = "CC0-1.0"
 path = [
+    "**.bash",
     "**.mtree",
+    "**.pkgbuild",
     "**.sh",
     "**.snap",
     "**.srcinfo",
+    "**.stub",
     "**.toml",
     "*.json",
     "*.lock",
