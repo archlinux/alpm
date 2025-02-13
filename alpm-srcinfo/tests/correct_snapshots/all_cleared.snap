@@ -1,0 +1,33 @@
+---
+source: alpm-srcinfo/tests/correct.rs
+expression: json
+---
+[
+  {
+    "name": "example",
+    "description": "A example with all pkgbase properties set.",
+    "url": "https://archlinux.org/",
+    "licenses": [],
+    "architecture": "X86_64",
+    "changelog": "changelog.stub",
+    "install": "install.sh.stub",
+    "groups": [],
+    "options": [],
+    "backups": [],
+    "version": {
+      "pkgver": "0.1.0",
+      "epoch": 1,
+      "pkgrel": "1"
+    },
+    "pgp_fingerprints": [],
+    "dependencies": [],
+    "optional_dependencies": [],
+    "provides": [],
+    "conflicts": [],
+    "replaces": [],
+    "check_dependencies": [],
+    "make_dependencies": [],
+    "sources": [],
+    "no_extracts": []
+  }
+]

@@ -177,6 +177,8 @@ lint:
     tangler bash < alpm-pkginfo/README.md | shellcheck --shell bash -
     tangler bash < alpm-srcinfo/README.md | shellcheck --shell bash -
 
+    shellcheck --shell bash alpm-srcinfo/tests/generate_srcinfo.bash
+
     just lint-recipe 'test-readme alpm-buildinfo'
     just lint-recipe 'test-readme alpm-pkginfo'
     just lint-recipe 'test-readme alpm-srcinfo'
