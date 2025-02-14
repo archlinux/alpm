@@ -63,8 +63,8 @@ For an overview of planned specifications and components, refer to the [mileston
 
 Currently the following components are available:
 
-- [alpm-mtree]: a library and commandline interface to work with `.MTREE` and `mtree` files
 - [alpm-buildinfo]: a library and commandline interface to work with `BUILDINFO` files
+- [alpm-mtree]: a library and commandline interface to work with `.MTREE` and `mtree` files
 - [alpm-parsers]: a library for providing various custom parsers/deserializers for file types used in ALPM
 - [alpm-pkginfo]: a library and commandline interface to work with `.PKGINFO` files
 - [alpm-srcinfo]: a library and commandline interface to work with `SRCINFO` files
