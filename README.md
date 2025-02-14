@@ -91,8 +91,6 @@ This project can be used under the terms of the [Apache-2.0] or [MIT].
 Contributions to this project, unless noted otherwise, are automatically licensed under the terms of both of those licenses.
 
 [Apache-2.0]: LICENSES/Apache-2.0.txt
-[MIT]: LICENSES/MIT.txt
-[Rust]: https://www.rust-lang.org/
 [alpm-buildinfo]: alpm-buildinfo/
 [alpm-mtree]: alpm-mtree/
 [alpm-parsers]: alpm-parsers/
@@ -104,8 +102,10 @@ Contributions to this project, unless noted otherwise, are automatically license
 [contribution guidelines]: CONTRIBUTING.md
 [main signing keys]: https://archlinux.org/master-keys/
 [milestones]: https://gitlab.archlinux.org/archlinux/alpm/alpm/-/milestones
+[MIT]: LICENSES/MIT.txt
+[official announcement]: https://lists.archlinux.org/archives/list/arch-dev-public@lists.archlinux.org/thread/MZLH43574GGP7QQ7RKAAIRFT5LJPCEB4/
 [OpenPGP certificates]: https://openpgp.dev/book/certificates.html
 [OpenPGP fingerprints]: https://openpgp.dev/book/certificates.html#fingerprint
 [pacman]: https://gitlab.archlinux.org/pacman/pacman
+[Rust]: https://www.rust-lang.org/
 [Sovereign Tech Agency]: https://www.sovereign.tech/tech/arch-linux-package-management
-[official announcement]: https://lists.archlinux.org/archives/list/arch-dev-public@lists.archlinux.org/thread/MZLH43574GGP7QQ7RKAAIRFT5LJPCEB4/
