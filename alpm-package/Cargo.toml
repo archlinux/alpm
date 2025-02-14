@@ -1,0 +1,14 @@
+[package]
+authors.workspace = true
+description = "Library and command line tool for the creation of ALPM based packages"
+edition.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+license.workspace = true
+name = "alpm-package"
+readme.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+version = "0.1.0"
+
+[dependencies]

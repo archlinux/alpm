@@ -64,6 +64,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "alpm-package"
+version = "0.1.0"
+
+[[package]]
 name = "alpm-parsers"
 version = "0.1.0"
 dependencies = [
