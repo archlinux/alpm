@@ -16,6 +16,7 @@ rust-version = "1.85.0"
 members = [
     "alpm-buildinfo",
     "alpm-mtree",
+    "alpm-package",
     "alpm-parsers",
     "alpm-pkginfo",
     "alpm-srcinfo",
