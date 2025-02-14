@@ -21,10 +21,10 @@ Unless noted otherwise, the information contained in a **BUILDINFO** file is con
 
 ## Keywords
 
-The information encoded on each line is represented by a single keyword definition.
-Each such definition consists of a key from the following list immediately followed by a whitespace, an '=' sign, another whitespace and a value.
+Each line encodes information that represents one keyword assignment.
+All keyword assignments consist of a key from the following list immediately followed by a whitespace, an '=' sign, another whitespace and a value.
 
-By default, the below keyword definitions must be used once per **BUILDINFO**.
+By default, exactly one keyword assignment must be present per keyword in a **BUILDINFO**.
 As exception to this rule, the keywords **buildenv**, **options** and **installed** may be provided zero or more times.
 
 ### format
@@ -81,19 +81,19 @@ The value is a UTF-8-encoded string and must represent a valid absolute director
 ### buildenv
 
 A build environment used by the package build tool (i.e. `makepkg`, defined in `BUILDENV` of makepkg.conf) when building the package.
-This keyword definition may be provided zero or more times.
+This keyword may be assigned zero or more times.
 The value must be a unique word, optionally prefixed by a single '!', which indicates the negation of the environment (e.g. `color` or `!color`).
 
 ### options
 
 An option used by the package build tool (i.e. `makepkg`, defined in `OPTIONS` of makepkg.conf) when building the package.
-This keyword definition may be provided zero or more times.
+This keyword may be assigned zero or more times.
 The value must be a unique word, optionally prefixed by a single '!', which indicates the negation of the option (e.g. `debug` or `!debug`).
 
 ### installed
 
 The information about an installed package during build time of the package.
-This keyword definition may be provided zero or more times.
+This keyword may be assigned zero or more times.
 The value represents a composite string, composed of an **alpm-package-name**, directly followed by a '-' sign, directly followed by an **alpm-package-version** (in *full* or in *full in epoch* form), directly followed by a '-' sign, followed by an **alpm-architecture** (e.g. `example-1:1.0.0-1-x86_64`).
 
 # EXAMPLES

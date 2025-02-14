@@ -22,7 +22,7 @@ For these situations, architecture-specific identifiers are available and may be
 ## Types of package relations
 
 The definition of a **package relation** is bound to a set of types.
-The keyword definition for each type depends on the context it is used in.
+Which keywords and what data structures are used for each type depends on the context they are used in.
 
 ### Run-time dependency
 

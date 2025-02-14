@@ -26,10 +26,10 @@ The new keyword **xdata** has been added to track extra data for a package.
 
 ## Keywords
 
-Each line encodes information that represents one keyword definition.
-All keyword definitions consist of a key from the following list immediately followed by a whitespace, an '=' sign, another whitespace and a value.
+Each line encodes information that represents one keyword assignment.
+All keyword assignments consist of a key from the following list immediately followed by a whitespace, an '=' sign, another whitespace and a value.
 
-By default, exactly one keyword definition must be present per keyword in a **PKGINFO**.
+By default, exactly one keyword assignment must be present per keyword in a **PKGINFO**.
 As exception to this rule, the keywords **license**, **replaces**, **group**, **conflict**, **provides**, **backup**, **depend**, **optdepend**, **makedepend** and **checkdepend** may be provided zero or more times.
 As additional exception, the keyword **xdata** is provided one or more times.
 
@@ -49,13 +49,13 @@ The value is an **alpm-package-name** (e.g. `example`).
 ### xdata
 
 The e*x*tra *data* associated with the package.
-This keyword definition must be provided once to define a specific value, but may be provided several times after that to provide further extra data.
+This keyword must be assigned once to define a specific value, but may be provided several times after that to provide further extra data.
 The value is a UTF-8-encoded string, that represents another key-value pair, delimited by a '=' sign (e.g. `key=value`).
 
-A **PKGINFO** must contain an **xdata** keyword definition that defines a **pkgtype** assignment in its value (e.g. `pkgtype=pkg`).
+A **PKGINFO** must contain an **xdata** keyword assignment that defines a **pkgtype** assignment in its value (e.g. `pkgtype=pkg`).
 The valid **pkgtype** values are `debug` (for debug packages), `pkg` (for single packages), `src` (for source packages) and `split` (for split packages).
 
-Additional **xdata** keyword definitions may be provided following the general rules around formatting of its values.
+Additional **xdata** keyword assignments may be provided following the general rules around formatting of its values.
 
 ### pkgver
 
@@ -98,64 +98,64 @@ The value must be covered by the set of alphanumeric characters and '_' (e.g. `x
 ### license
 
 A license that applies for the package.
-This keyword definition may be provided zero or more times.
+This keyword may be assigned zero or more times.
 The value represents a license identifier, which is a string of non-zero length (e.g. `GPL`).
 Although no specific restrictions are enforced for the value aside from its length, it is highly recommended to rely on SPDX license expressions (e.g. `GPL-3.0-or-later` or `Apache-2.0 OR MIT`). See **SPDX License List**[4] for further information.
 
 ### replaces
 
 Another *virtual component* or package, that the package replaces upon installation.
-This keyword definition may be provided zero or more times.
+This keyword may be assigned zero or more times.
 The value is an **alpm-package-relation** of type **replacement** (e.g. `example` or `example=1.0.0`).
 
 ### group
 
 An arbitrary string, that denotes a distribution-wide group the package is in.
 Groups are made use of e.g. by package managers to group packages and allow to bulk install them, or by other software to display information on these related packages.
-This keyword definition may be provided zero or more times.
+This keyword may be assigned zero or more times.
 The value is represented by a UTF-8 string.
 Although it is possible to use a UTF-8 string, it is highly recommended to rely on the **pkgname** format for the value instead, as package managers may use **group** to install an entire group of packages.
 
 ### conflict
 
 Another *virtual component* or package, that the package conflicts with.
-This keyword definition may be provided zero or more times.
+This keyword may be assigned zero or more times.
 The value is an **alpm-package-relation** of type **conflict** (e.g. `example` or `example=1.0.0`).
 
 ### provides
 
 Another *virtual component* or package, that the package provides.
-This keyword definition may be provided zero or more times.
+This keyword may be assigned zero or more times.
 The value is an **alpm-package-relation** of type **provision** (e.g. `example` or `example=1.0.0`).
 
 ### backup
 
 A relative file path of a file in the package, that denotes a file for the package manager to keep backups for in case it changes or is deleted during a package update action (see **pacman** '.pacnew' and '.pacsave' files).
-This keyword definition may be provided zero or more times.
+This keyword may be assigned zero or more times.
 The value must be a valid relative Unix file path (e.g. `etc/package.conf`).
 
 ### depend
 
 A run-time dependency of the package (*virtual component* or package).
-This keyword definition may be provided zero or more times.
+This keyword may be assigned zero or more times.
 The value is an **alpm-package-relation** of type **run-time dependency** (e.g. `example` or `example=1.0.0`).
 
 ### optdepend
 
 An optional dependency of the package (*virtual component* or package).
-This keyword definition may be provided zero or more times.
+This keyword may be assigned zero or more times.
 The value is an **alpm-package-relation** of type **optional dependency** (e.g. `example` or `example: this is a description`).
 
 ### makedepend
 
 A build time dependency of the package (*virtual component* or package).
-This keyword definition may be provided zero or more times.
+This keyword may be assigned zero or more times.
 The value is an **alpm-package-relation** of type **build dependency** (e.g. `example` or `example=1.0.0`).
 
 ### checkdepend
 
 A dependency for running tests of the package's upstream project.
-This keyword definition may be provided zero or more times.
+This keyword may be assigned zero or more times.
 The value is an **alpm-package-relation** of type **test dependency** (e.g. `example` or `example=1.0.0`).
 
 # EXAMPLES
