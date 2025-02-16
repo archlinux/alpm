@@ -41,7 +41,9 @@
   - [alpm-pkgrel](./specifications/alpm-pkgrel.7.md)
   - [alpm-pkgver](./specifications/alpm-pkgver.7.md)
   - [alpm-split-package](./specifications/alpm-split-package.7.md)
-  - [alpm-sonamev1](./specifications/alpm-sonamev1.7.md)
+  - [alpm-soname](./specifications/alpm-soname.7.md)
+    - [alpm-sonamev1](./specifications/alpm-sonamev1.7.md)
+    - [alpm-sonamev2](./specifications/alpm-sonamev2.7.md)
 
 # Development
 
