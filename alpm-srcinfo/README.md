@@ -6,7 +6,7 @@ A library and command line tool for the specification, parsing and linting of **
 
 ## Documentation
 
-- <./ARCHITECTURE.md> A high-level overview on how this project works.
+- <https://alpm.archlinux.page/alpm-srcinfo/ARCHITECTURE.html> A high-level overview on how this project works.
 - <https://alpm.archlinux.page/rustdoc/alpm_srcinfo/> for development version of the crate
 - <https://docs.rs/alpm-srcinfo/latest/alpm_srcinfo/> for released versions of the crate
 
