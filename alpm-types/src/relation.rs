@@ -9,7 +9,7 @@ use winnow::{
     ModalResult,
     Parser,
     ascii::digit1,
-    combinator::{alt, cut_err, eof, fail, peek, repeat_till},
+    combinator::{alt, cut_err, eof, fail, peek, repeat, repeat_till},
     error::{StrContext, StrContextValue},
     stream::Stream,
     token::{any, rest, take_while},
@@ -19,6 +19,7 @@ use crate::{
     ElfArchitectureFormat,
     Error,
     Name,
+    PackageVersion,
     SharedObjectName,
     Version,
     VersionComparison,
@@ -458,6 +459,272 @@ impl Display for SonameV1 {
                 architecture,
             } => write!(f, "{name}={version}-{architecture}"),
         }
+    }
+}
+
+/// A prefix associated with a library lookup directory.
+///
+/// Library lookup directories are used when detecting shared object files on a system.
+/// Each such lookup directory can be assigned to a _prefix_, which allows identifying them in other
+/// contexts. E.g. `lib` may serve as _prefix_ for the lookup directory `/usr/lib`.
+///
+/// This is a type alias for [`Name`].
+pub type SharedLibraryPrefix = Name;
+
+/// The value of a shared object's _soname_.
+///
+/// This data may be present in the _SONAME_ or _NEEDED_ fields of a shared object's _dynamic
+/// section_.
+///
+/// The _soname_ data may contain only a shared object name (e.g. `libexample.so`) or a shared
+/// object name, that also encodes version information (e.g. `libexample.so.1`).
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Soname {
+    /// The name part of a shared object's _soname_.
+    pub name: SharedObjectName,
+    /// The optional version part of a shared object's _soname_.
+    pub version: Option<PackageVersion>,
+}
+
+impl Soname {
+    /// Creates a new [`Soname`].
+    pub fn new(name: SharedObjectName, version: Option<PackageVersion>) -> Self {
+        Self { name, version }
+    }
+
+    /// Recognizes a [`Soname`] in a string slice.
+    ///
+    /// The passed data can be in the following formats:
+    ///
+    /// - `<name>.so`: A shared object name without a version. (e.g. `libexample.so`)
+    /// - `<name>.so.<version>`: A shared object name with a version. (e.g. `libexample.so.1`)
+    ///     - The version must be a valid [`PackageVersion`].
+    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+        let name = cut_err(
+            (
+                // Parse the name of the shared object until eof or the `.so` is hit.
+                repeat_till::<_, _, String, _, _, _, _>(1.., any, peek(alt((".so", eof)))),
+                // Parse at least one or more `.so` suffix(es).
+                cut_err(repeat::<_, _, String, _, _>(1.., ".so"))
+                    .context(StrContext::Label("suffix"))
+                    .context(StrContext::Expected(StrContextValue::Description(
+                        "shared object name suffix '.so'",
+                    ))),
+            )
+                // Take both parts and map them onto a SharedObjectName
+                .take()
+                .try_map(Name::from_str)
+                .map(SharedObjectName),
+        )
+        .context(StrContext::Label("shared object name"))
+        .parse_next(input)?;
+
+        // Parse the version delimiter.
+        let delimiter = cut_err(alt((".", eof)))
+            .context(StrContext::Label("version delimiter"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "version delimiter `.`",
+            )))
+            .parse_next(input)?;
+
+        // If a `.` is found, map the rest of the string to a version.
+        // Otherwise, we hit the `eof` and there's no version.
+        let version = match delimiter {
+            "" => None,
+            "." => Some(rest.try_map(PackageVersion::from_str).parse_next(input)?),
+            _ => unreachable!(),
+        };
+
+        Ok(Self { name, version })
+    }
+}
+
+impl Display for Soname {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match &self.version {
+            Some(version) => write!(f, "{name}.{version}", name = self.name),
+            None => write!(f, "{name}", name = self.name),
+        }
+    }
+}
+
+impl FromStr for Soname {
+    type Err = Error;
+
+    /// Recognizes a [`Soname`] in a string slice.
+    ///
+    /// The string slice must be in the format of `<name>.so` or `<name>.so.<version>`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if a [`Soname`] can not be parsed from input.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::str::FromStr;
+    ///
+    /// use alpm_types::Soname;
+    /// # fn main() -> Result<(), alpm_types::Error> {
+    /// assert_eq!(
+    ///     Soname::from_str("libexample.so.1")?,
+    ///     Soname::new("libexample.so".parse()?, Some("1".parse()?)),
+    /// );
+    /// assert_eq!(
+    ///     Soname::from_str("libexample.so")?,
+    ///     Soname::new("libexample.so".parse()?, None),
+    /// );
+    /// # Ok(())
+    /// # }
+    /// ```
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self::parser.parse(s)?)
+    }
+}
+
+/// Representation of [soname] data of a shared object based on the [alpm-sonamev2] specification.
+///
+/// Soname data may be used as [alpm-package-relation] of type _provision_ or _run-time dependency_
+/// in [`PackageInfoV1`] and [`PackageInfoV2`]. The data consists of the arbitrarily
+/// defined `prefix`, which denotes the use name of a specific library directory, and the `soname`,
+/// which refers to the value of either the _SONAME_ or a _NEEDED_ field in the _dynamic section_ of
+/// an [ELF] file.
+///
+/// # Examples
+///
+/// This example assumpes that `lib` is used as the `prefix` for the library directory `/usr/lib`
+/// and the following files are contained in it:
+///
+/// ```bash
+/// /usr/lib/libexample.so -> libexample.so.1
+/// /usr/lib/libexample.so.1 -> libexample.so.1.0.0
+/// /usr/lib/libexample.so.1.0.0
+/// ```
+///
+/// The above file `/usr/lib/libexample.so.1.0.0` represents an [ELF] file, that exposes
+/// `libexample.so.1` as value of the _SONAME_ field in its _dynamic section_. This data can be
+/// represented as follows, using [`SonameV2`]:
+///
+/// ```rust
+/// use alpm_types::{Soname, SonameV2};
+///
+/// # fn main() -> Result<(), alpm_types::Error> {
+/// let soname_data = SonameV2 {
+///     prefix: "lib".parse()?,
+///     soname: Soname {
+///         name: "libexample.so".parse()?,
+///         version: Some("1".parse()?),
+///     },
+/// };
+/// assert_eq!(soname_data.to_string(), "lib:libexample.so.1");
+/// # Ok(())
+/// # }
+/// ```
+///
+/// [alpm-sonamev2]: https://alpm.archlinux.page/specifications/alpm-sonamev2.7.html
+/// [alpm-package-relation]: https://alpm.archlinux.page/specifications/alpm-package-relation.7.html
+/// [ELF]: https://en.wikipedia.org/wiki/Executable_and_Linkable_Format
+/// [soname]: https://en.wikipedia.org/wiki/Soname
+/// [`PackageInfoV1`]: https://docs.rs/alpm_pkginfo/latest/alpm_pkginfo/struct.PackageInfoV1.html
+/// [`PackageInfoV2`]: https://docs.rs/alpm_pkginfo/latest/alpm_pkginfo/struct.PackageInfoV2.html
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SonameV2 {
+    /// The directory prefix of the shared object file.
+    pub prefix: SharedLibraryPrefix,
+    /// The _soname_ of a shared object file.
+    pub soname: Soname,
+}
+
+impl SonameV2 {
+    /// Creates a new [`SonameV2`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use alpm_types::SonameV2;
+    ///
+    /// # fn main() -> Result<(), alpm_types::Error> {
+    /// SonameV2::new("lib".parse()?, "libexample.so.1".parse()?);
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn new(prefix: SharedLibraryPrefix, soname: Soname) -> Self {
+        Self { prefix, soname }
+    }
+
+    /// Recognizes a [`SonameV2`] in a string slice.
+    ///
+    /// The passed data must be in the format `<prefix>:<soname>`. (e.g. `lib:libexample.so.1`)
+    ///
+    /// See [`Soname::parser`] for details on the format of `<soname>`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if no [`SonameV2`] can be created from `input`.
+    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+        // Parse everything from the start to the first `:` and parse as `SharedLibraryPrefix`.
+        let prefix = cut_err(
+            repeat_till(1.., any, peek(alt((":", eof))))
+                .try_map(|(name, _): (String, &str)| SharedLibraryPrefix::from_str(&name)),
+        )
+        .context(StrContext::Label("prefix for a shared object lookup path"))
+        .parse_next(input)?;
+
+        cut_err(":")
+            .context(StrContext::Label("shared library prefix delimiter"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "shared library prefix `:`",
+            )))
+            .parse_next(input)?;
+
+        let soname = Soname::parser.parse_next(input)?;
+
+        Ok(Self { prefix, soname })
+    }
+}
+
+impl FromStr for SonameV2 {
+    type Err = Error;
+
+    /// Parses a [`SonameV2`] from a string slice.
+    ///
+    /// The string slice must be in the format `<prefix>:<soname>`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if a [`SonameV2`] can not be parsed from input.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::str::FromStr;
+    ///
+    /// use alpm_types::{Soname, SonameV2};
+    ///
+    /// # fn main() -> Result<(), alpm_types::Error> {
+    /// assert_eq!(
+    ///     SonameV2::from_str("lib:libexample.so.1")?,
+    ///     SonameV2::new(
+    ///         "lib".parse()?,
+    ///         Soname::new("libexample.so".parse()?, Some("1".parse()?))
+    ///     ),
+    /// );
+    /// # Ok(())
+    /// # }
+    /// ```
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self::parser.parse(s)?)
+    }
+}
+
+impl Display for SonameV2 {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{prefix}:{soname}",
+            prefix = self.prefix,
+            soname = self.soname
+        )
     }
 }
 
@@ -971,5 +1238,88 @@ mod tests {
         assert_eq!(expected_result, version);
         assert_eq!(input, version.to_string());
         Ok(())
+    }
+
+    #[rstest]
+    #[case(
+        "lib:libexample.so",
+        SonameV2 {
+            prefix: "lib".parse().unwrap(),
+            soname: Soname {
+                name: "libexample.so".parse().unwrap(),
+                version: None,
+            },
+        },
+    )]
+    #[case(
+        "usr:libexample.so.1",
+        SonameV2 {
+            prefix: "usr".parse().unwrap(),
+            soname: Soname {
+                name: "libexample.so".parse().unwrap(),
+                version: "1".parse().ok(),
+            },
+        },
+    )]
+    #[case(
+        "lib:libexample.so.1.2.3",
+        SonameV2 {
+            prefix: "lib".parse().unwrap(),
+            soname: Soname {
+                name: "libexample.so".parse().unwrap(),
+                version: "1.2.3".parse().ok(),
+            },
+        },
+    )]
+    #[case(
+        "lib:libexample.so.so.420",
+        SonameV2 {
+            prefix: "lib".parse().unwrap(),
+            soname: Soname {
+                name: "libexample.so.so".parse().unwrap(),
+                version: "420".parse().ok(),
+            },
+        },
+    )]
+    #[case(
+        "lib:libexample.so.test",
+        SonameV2 {
+            prefix: "lib".parse().unwrap(),
+            soname: Soname {
+                name: "libexample.so".parse().unwrap(),
+                version: "test".parse().ok(),
+            },
+        },
+    )]
+    fn sonamev2_from_string(
+        #[case] input: &str,
+        #[case] expected_result: SonameV2,
+    ) -> testresult::TestResult<()> {
+        let soname = SonameV2::from_str(input)?;
+        assert_eq!(expected_result, soname);
+        assert_eq!(input, soname.to_string());
+        Ok(())
+    }
+
+    #[rstest]
+    #[case("libexample.so.1", "invalid shared library prefix delimiter")]
+    #[case("lib:libexample.so-abc", "invalid version delimiter")]
+    #[case(
+        "lib:libexample.so.10-10",
+        "Value '10-10' does not match the 'pkgver' regex"
+    )]
+    #[case(
+        "lib:libexample.so.1.0.0-64",
+        "Value '1.0.0-64' does not match the 'pkgver' regex"
+    )]
+    fn invalid_sonamev2_parser(#[case] input: &str, #[case] error_snippet: &str) {
+        let result = SonameV2::from_str(input);
+        assert!(result.is_err(), "Expected SonameV2 parsing to fail");
+        let err = result.unwrap_err();
+        let pretty_error = err.to_string();
+        assert!(
+            pretty_error.contains(error_snippet),
+            "Error:\n=====\n{pretty_error}\n=====\nshould contain snippet:\n\n{error_snippet}"
+        );
     }
 }
