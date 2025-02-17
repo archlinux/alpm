@@ -9,6 +9,7 @@
 - [alpm-parsers](./alpm-parsers/README.md)
 - [alpm-pkginfo](./alpm-pkginfo/README.md)
 - [alpm-srcinfo](./alpm-srcinfo/README.md)
+  - [ARCHITECTURE](./alpm-srcinfo/ARCHITECTURE.md)
 - [alpm-types](./alpm-types/README.md)
   - [CHANGELOG](./alpm-types/CHANGELOG.md)
 

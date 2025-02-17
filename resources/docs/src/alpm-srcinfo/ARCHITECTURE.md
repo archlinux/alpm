@@ -1,0 +1,1 @@
+../../../../alpm-srcinfo/ARCHITECTURE.md
