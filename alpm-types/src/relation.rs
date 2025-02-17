@@ -8,6 +8,118 @@ use strum::IntoEnumIterator;
 
 use crate::{Error, Name, VersionComparison, VersionRequirement};
 
+/// Representation of [soname] data of a shared object based on the [alpm-sonamev2] specification.
+///
+/// Soname data may be used as [alpm-package-relation] of type _provision_ or _run-time dependency_
+/// in [`PackageInfoV1`] and [`PackageInfoV2`]. The data consists of the arbitrarily
+/// defined `prefix`, which denotes the use name of a specific library directory, and the `soname`,
+/// which refers to the value of either the _SONAME_ or a _NEEDED_ field in the _dynamic section_ of
+/// an [ELF] file.
+///
+/// # Examples
+///
+/// This example assumpes that `lib` is used as the `prefix` for the library directory `/usr/lib`
+/// and the following files are contained in it:
+///
+/// ```bash
+/// /usr/lib/libexample.so -> libexample.so.1
+/// /usr/lib/libexample.so.1 -> libexample.so.1.0.0
+/// /usr/lib/libexample.so.1.0.0
+/// ```
+///
+/// The above file `/usr/lib/libexample.so.1.0.0` represents an [ELF] file, that exposes
+/// `libexample.so.1` as value of the _SONAME_ field in its _dynamic section_. This data can be
+/// represented as follows, using [`SonameV2`]:
+///
+/// ```rust
+/// use alpm_types::SonameV2;
+///
+/// let soname_data = SonameV2 {
+///     prefix: "lib".to_string(),
+///     soname: "libexample.so.1".to_string(),
+/// };
+/// assert_eq!(soname_data.to_string(), "lib:libexample.so.1");
+/// ```
+///
+/// [alpm-sonamev2]: https://alpm.archlinux.page/specifications/alpm-sonamev2.7.html
+/// [alpm-package-relation]: https://alpm.archlinux.page/specifications/alpm-package-relation.7.html
+/// [ELF]: https://en.wikipedia.org/wiki/Executable_and_Linkable_Format
+/// [soname]: https://en.wikipedia.org/wiki/Soname
+/// [`PackageInfoV1`]: https://docs.rs/alpm_pkginfo/latest/alpm_pkginfo/struct.PackageInfoV1.html
+/// [`PackageInfoV2`]: https://docs.rs/alpm_pkginfo/latest/alpm_pkginfo/struct.PackageInfoV2.html
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SonameV2 {
+    /// The directory prefix of the shared object file.
+    pub prefix: String,
+    /// The shared object name.
+    pub soname: String,
+}
+
+impl SonameV2 {
+    /// Creates a new [`SonameV2`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use alpm_types::SonameV2;
+    ///
+    /// # fn main() -> Result<(), alpm_types::Error> {
+    /// SonameV2::new("lib".to_string(), "libexample.so.1".into());
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn new(prefix: String, soname: String) -> Self {
+        Self { prefix, soname }
+    }
+}
+
+impl FromStr for SonameV2 {
+    type Err = Error;
+
+    /// Parses a [`SonameV2`] from a string slice.
+    ///
+    /// The string slice must be in the format `<prefix>:<soname>`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if a [`SonameV2`] can not be parsed from input.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::str::FromStr;
+    ///
+    /// use alpm_types::SonameV2;
+    ///
+    /// # fn main() -> Result<(), alpm_types::Error> {
+    /// assert_eq!(
+    ///     SonameV2::from_str("lib:libexample.so.1")?,
+    ///     SonameV2::new("lib".to_string(), "libexample.so.1".into()),
+    /// );
+    /// # Ok(())
+    /// # }
+    /// ```
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut parts = s.splitn(2, ':');
+        let prefix = parts.next().ok_or(Error::MissingComponent {
+            component: "prefix",
+        })?;
+        let soname = parts
+            .next()
+            .ok_or(Error::MissingComponent {
+                component: "soname",
+            })
+            .map(String::from)?;
+        Ok(Self::new(prefix.to_string(), soname))
+    }
+}
+
+impl Display for SonameV2 {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}:{}", self.prefix, self.soname)
+    }
+}
+
 /// A package relation
 ///
 /// Describes a relation to a component.
@@ -429,5 +541,37 @@ mod tests {
     ) {
         let opt_depend_result = OptionalDependency::from_str(input);
         assert_eq!(expected_result, opt_depend_result);
+    }
+
+    #[rstest]
+    #[case(
+        "lib:libexample.so.1",
+        SonameV2 {
+            prefix: "lib".to_string(),
+            soname: "libexample.so.1".parse().unwrap(),
+        },
+    )]
+    #[case(
+        "usr:libexample.so.1",
+        SonameV2 {
+            prefix: "usr".to_string(),
+            soname: "libexample.so.1".parse().unwrap(),
+        },
+    )]
+    #[case(
+        "lib:libexample.so.1.2.3",
+        SonameV2 {
+            prefix: "lib".to_string(),
+            soname: "libexample.so.1.2.3".parse().unwrap(),
+        },
+    )]
+    fn sonamev2_from_string(
+        #[case] input: &str,
+        #[case] expected_result: SonameV2,
+    ) -> testresult::TestResult<()> {
+        let soname = SonameV2::from_str(input)?;
+        assert_eq!(expected_result, soname);
+        assert_eq!(input, soname.to_string());
+        Ok(())
     }
 }

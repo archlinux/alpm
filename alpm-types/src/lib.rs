@@ -64,7 +64,7 @@ mod pkg;
 pub use pkg::{ExtraData, PackageBaseName, PackageDescription, PackageType};
 
 mod relation;
-pub use relation::{Group, OptionalDependency, PackageRelation};
+pub use relation::{Group, OptionalDependency, PackageRelation, SonameV2};
 
 mod size;
 pub use size::{CompressedSize, InstalledSize};
