@@ -449,16 +449,16 @@ alpm-buildinfo(1), bash(1), makepkg.conf(5), PKGBUILD(5), alpm-architecture(7), 
 
 6. **MD5**
 
-  https://en.wikipedia.org/wiki/MD5
+   https://en.wikipedia.org/wiki/MD5
 
 7. **SHA-1**
 
-  https://en.wikipedia.org/wiki/SHA-1
+   https://en.wikipedia.org/wiki/SHA-1
 
 8. **SHA-2**
 
-  https://en.wikipedia.org/wiki/SHA-2
+   https://en.wikipedia.org/wiki/SHA-2
 
 9. **BLAKE2**
 
-  https://en.wikipedia.org/wiki/BLAKE_(hash_function)#BLAKE2
+   https://en.wikipedia.org/wiki/BLAKE_(hash_function)#BLAKE2
