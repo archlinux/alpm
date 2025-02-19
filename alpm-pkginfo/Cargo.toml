@@ -2,7 +2,6 @@
 name = "alpm-pkginfo"
 description = "Library and commandline toolkit for the specification, writing and parsing of ALPM PKGINFO files"
 version = "0.1.0"
-rust-version = "1.70.0"
 
 authors.workspace = true
 edition.workspace = true
@@ -11,6 +10,7 @@ keywords.workspace = true
 license.workspace = true
 readme.workspace = true
 repository.workspace = true
+rust-version.workspace = true
 
 [[bin]]
 name = "alpm-pkginfo"
