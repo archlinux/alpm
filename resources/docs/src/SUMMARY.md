@@ -46,6 +46,7 @@
 
 - [API Documentation](./api-docs/README.md)
 - [Contributing Guidelines](./CONTRIBUTING.md)
+- [Security Policy](./SECURITY.md)
 - [Development Scripts](./dev-scripts/README.md)
 
 # About
