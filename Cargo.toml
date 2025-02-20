@@ -4,13 +4,13 @@ authors = [
     "David Runge <dvzrv@archlinux.org>",
     "Orhun Parmaksız <orhun@archlinux.org>",
 ]
-edition = "2021"
+edition = "2024"
 homepage = "https://gitlab.archlinux.org/archlinux/alpm/alpm"
 keywords = ["alpm", "arch", "linux", "packaging"]
 license = "Apache-2.0 OR MIT"
 readme = "README.md"
 repository = "https://gitlab.archlinux.org/archlinux/alpm/alpm"
-rust-version = "1.70.0"
+rust-version = "1.85.0"
 
 [workspace]
 members = [
@@ -22,7 +22,7 @@ members = [
     "alpm-types",
     "dev-scripts",
 ]
-resolver = "2"
+resolver = "3"
 
 [workspace.dependencies]
 alpm-parsers = { path = "./alpm-parsers" }
