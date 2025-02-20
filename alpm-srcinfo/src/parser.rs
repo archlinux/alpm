@@ -280,7 +280,7 @@ impl RawPackageBase {
         // Get the name of the base package.
         // Don't use `till_line_ending`, as we want the name to have a length of at least one.
         let name =
-            cut_err(terminated(take_till(1.., |c| c == '\n'), line_ending).try_map(Name::from_str))
+            cut_err(terminated(take_till(1.., |c| c == '\n'), line_ending).and_then(Name::parser))
                 .context(StrContext::Label("package base name"))
                 .context(StrContext::Expected(StrContextValue::Description(
                     "the name of the base package",
@@ -324,7 +324,7 @@ impl RawPackage {
 
         // Get the name of the base package.
         let name =
-            cut_err(terminated(take_till(1.., |c| c == '\n'), line_ending).try_map(Name::from_str))
+            cut_err(terminated(take_till(1.., |c| c == '\n'), line_ending).and_then(Name::parser))
                 .context(StrContext::Label("package name"))
                 .context(StrContext::Expected(StrContextValue::Description(
                     "the name of a package",
