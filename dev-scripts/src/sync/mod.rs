@@ -1,6 +1,6 @@
 use std::{
     collections::HashSet,
-    fs::{read_dir, DirEntry},
+    fs::{DirEntry, read_dir},
     path::Path,
 };
 

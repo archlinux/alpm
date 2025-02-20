@@ -4,7 +4,6 @@ use std::{
 };
 
 use alpm_types::{
-    digests::Sha256,
     Architecture,
     BuildDate,
     BuildDirectory,
@@ -16,8 +15,9 @@ use alpm_types::{
     Packager,
     SchemaVersion,
     Version,
+    digests::Sha256,
 };
-use serde_with::{serde_as, DisplayFromStr};
+use serde_with::{DisplayFromStr, serde_as};
 
 use crate::{Error, Schema};
 
@@ -333,21 +333,23 @@ pkgver = 1:1.0.0-1
 
     #[rstest]
     fn buildinfov1_invalid_schemaversion() -> TestResult {
-        assert!(BuildInfoV1::new(
-            1,
-            BuildDirectory::from_str("/build")?,
-            vec![BuildEnvironmentOption::new("some")?],
-            SchemaVersion::from_str("2")?,
-            vec![InstalledPackage::from_str("bar-1:1.0.0-2-any")?],
-            vec![PackageOption::new("buildoption")?],
-            Packager::from_str("Foobar McFooface <foobar@mcfooface.org>")?,
-            Architecture::Any,
-            Name::new("foo")?,
-            Checksum::<Sha256>::calculate_from("foo"),
-            Name::new("foo")?,
-            Version::from_str("1:1.0.0-1")?,
-        )
-        .is_err());
+        assert!(
+            BuildInfoV1::new(
+                1,
+                BuildDirectory::from_str("/build")?,
+                vec![BuildEnvironmentOption::new("some")?],
+                SchemaVersion::from_str("2")?,
+                vec![InstalledPackage::from_str("bar-1:1.0.0-2-any")?],
+                vec![PackageOption::new("buildoption")?],
+                Packager::from_str("Foobar McFooface <foobar@mcfooface.org>")?,
+                Architecture::Any,
+                Name::new("foo")?,
+                Checksum::<Sha256>::calculate_from("foo"),
+                Name::new("foo")?,
+                Version::from_str("1:1.0.0-1")?,
+            )
+            .is_err()
+        );
         Ok(())
     }
 

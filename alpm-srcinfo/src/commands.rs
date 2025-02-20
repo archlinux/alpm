@@ -7,11 +7,11 @@ use std::{
 use alpm_types::Architecture;
 
 use crate::{
+    SourceInfoResult,
     cli::OutputFormat,
     error::Error,
     merged::MergedPackage,
     source_info::SourceInfo,
-    SourceInfoResult,
 };
 
 /// Validates a SRCINFO file from a path or stdin.

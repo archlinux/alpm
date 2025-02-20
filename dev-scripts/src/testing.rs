@@ -151,7 +151,7 @@ impl TestRunner {
 mod tests {
     use std::{
         collections::HashSet,
-        fs::{create_dir, OpenOptions},
+        fs::{OpenOptions, create_dir},
     };
 
     use rstest::rstest;

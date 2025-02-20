@@ -5,7 +5,6 @@
 use std::str::FromStr;
 
 use alpm_types::{
-    digests::{Blake2b512, Md5, Sha1, Sha224, Sha256, Sha384, Sha512},
     Architecture,
     Backup,
     Blake2b512Checksum,
@@ -33,9 +32,12 @@ use alpm_types::{
     SkippableChecksum,
     Source,
     Url,
+    digests::{Blake2b512, Md5, Sha1, Sha224, Sha256, Sha384, Sha512},
 };
 use strum::EnumString;
 use winnow::{
+    ModalResult,
+    Parser,
     ascii::{alpha1, alphanumeric1, line_ending, newline, space0, till_line_ending},
     combinator::{
         alt,
@@ -52,8 +54,6 @@ use winnow::{
     },
     error::{ErrMode, ParserError, StrContext, StrContextValue},
     token::{take_till, take_until},
-    ModalResult,
-    Parser,
 };
 
 /// Recognizes the ` = ` delimiter between keywords.
@@ -1118,7 +1118,7 @@ impl ClearableProperty {
         let property = match keyword {
             // The `Arch` property matches the keyword, but isn't clearable.
             SharedMetaKeyword::Arch => {
-                return Err(ErrMode::Backtrack(ParserError::from_input(input)))
+                return Err(ErrMode::Backtrack(ParserError::from_input(input)));
             }
             SharedMetaKeyword::PkgDesc => ClearableProperty::Description,
             SharedMetaKeyword::Url => ClearableProperty::Url,

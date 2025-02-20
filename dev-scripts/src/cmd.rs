@@ -1,6 +1,6 @@
 use std::process::Output;
 
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 
 /// Make sure a command finished successfully, otherwise throw an error.
 pub fn ensure_success(output: &Output) -> Result<()> {

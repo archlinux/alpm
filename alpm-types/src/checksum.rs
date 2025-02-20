@@ -8,8 +8,8 @@ pub use digest::Digest;
 use serde::{Serialize, Serializer};
 
 use crate::{
-    digests::{Blake2b512, Md5, Sha1, Sha224, Sha256, Sha384, Sha512},
     Error,
+    digests::{Blake2b512, Md5, Sha1, Sha224, Sha256, Sha384, Sha512},
 };
 
 // Convenience type aliases for the supported checksums
@@ -98,7 +98,7 @@ pub type Sha512Checksum = Checksum<Sha512>;
 ///
 /// [checksum]: https://en.wikipedia.org/wiki/Checksum
 /// ```
-/// use alpm_types::{digests::Digest, Checksum};
+/// use alpm_types::{Checksum, digests::Digest};
 /// use serde::Serialize;
 ///
 /// #[derive(Serialize)]
@@ -191,7 +191,7 @@ impl<D: Digest> FromStr for Checksum<D> {
                 Err(e) => {
                     return Err(Error::InvalidInteger {
                         kind: e.kind().clone(),
-                    })
+                    });
                 }
             }
         }
@@ -258,13 +258,15 @@ impl<D: Digest + Clone> FromStr for SkippableChecksum<D> {
     /// ```
     /// use std::str::FromStr;
     ///
-    /// use alpm_types::{digests::Sha256, SkippableChecksum};
+    /// use alpm_types::{SkippableChecksum, digests::Sha256};
     ///
     /// assert!(SkippableChecksum::<Sha256>::from_str("SKIP").is_ok());
-    /// assert!(SkippableChecksum::<Sha256>::from_str(
-    ///     "b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c"
-    /// )
-    /// .is_ok());
+    /// assert!(
+    ///     SkippableChecksum::<Sha256>::from_str(
+    ///         "b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c"
+    ///     )
+    ///     .is_ok()
+    /// );
     /// ```
     fn from_str(s: &str) -> Result<SkippableChecksum<D>, Self::Err> {
         // Check for the special SKIP Keyword.

@@ -4,7 +4,7 @@ use std::{
     path::PathBuf,
 };
 
-use crate::{cli::OutputFormat, mtree_v2::parse_raw_mtree_v2, Error};
+use crate::{Error, cli::OutputFormat, mtree_v2::parse_raw_mtree_v2};
 
 /// A small wrapper around the parsing of an MTREE file that simply ensures that there were no
 /// errors.

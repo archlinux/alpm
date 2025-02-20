@@ -45,7 +45,7 @@ pub fn correct_files(#[files("tests/correct/*.srcinfo")] case: PathBuf) -> TestR
         Err(err) => {
             return Err(
                 format!("The parser produce (lint) errors that weren't expected:\n {err}").into(),
-            )
+            );
         }
     };
 

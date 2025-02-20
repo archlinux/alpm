@@ -9,7 +9,7 @@
 //! from the raw to the structured data format.
 use alpm_types::Architecture;
 
-use crate::error::{lint, SourceInfoError};
+use crate::error::{SourceInfoError, lint};
 
 /// Creates a parse error for unsafe checksums.
 ///

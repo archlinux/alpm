@@ -2,13 +2,13 @@ use std::{io::Read, path::PathBuf};
 
 use alpm_types::{Checksum, Digest, Md5Checksum, Sha256Checksum};
 use flate2::read::GzDecoder;
-use serde::{ser::Error as SerdeError, Serialize, Serializer}; // codespell:ignore ser
+use serde::{Serialize, Serializer, ser::Error as SerdeError}; // codespell:ignore ser
 use winnow::Parser;
 
 pub use crate::parser::PathType;
 use crate::{
-    parser::{self, SetProperty, UnsetProperty},
     Error,
+    parser::{self, SetProperty, UnsetProperty},
 };
 
 /// Represents a `/set` line in an MTREE file.
@@ -243,7 +243,9 @@ fn paths_from_parsed_content(
 fn content_line(content: &str, line_nr: usize) -> String {
     let line = content.lines().nth(line_nr);
     let Some(line) = line else {
-        unreachable!("Failed to read {line_nr} while handling an error. This should not happen, please report it as an issue.");
+        unreachable!(
+            "Failed to read {line_nr} while handling an error. This should not happen, please report it as an issue."
+        );
     };
 
     line.to_string()

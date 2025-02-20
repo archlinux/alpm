@@ -1,5 +1,5 @@
 use std::{
-    fs::{create_dir_all, read_to_string, File},
+    fs::{File, create_dir_all, read_to_string},
     io::{self, IsTerminal, Read, Write},
     path::PathBuf,
     str::FromStr,
@@ -8,10 +8,10 @@ use std::{
 use erased_serde::Serialize;
 
 use crate::{
-    cli::{CreateCommand, OutputFormat},
     Error,
     PackageInfoV1,
     PackageInfoV2,
+    cli::{CreateCommand, OutputFormat},
 };
 
 /// Create a file according to a PKGINFO schema

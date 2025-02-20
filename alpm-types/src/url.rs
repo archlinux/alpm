@@ -5,12 +5,12 @@ use std::{
 
 use serde::Serialize;
 use winnow::{
+    ModalResult,
+    Parser,
     ascii::{alpha1, space0},
     combinator::{alt, cut_err, eof, fail, opt, peek, repeat_till, terminated},
     error::{StrContext, StrContextValue},
     token::{any, rest},
-    ModalResult,
-    Parser,
 };
 
 use crate::Error;

@@ -48,13 +48,13 @@ use std::{
 };
 
 use serde::{
-    de::{self, value::SeqDeserializer, DeserializeOwned, IntoDeserializer, Visitor},
-    forward_to_deserialize_any,
     Deserialize,
+    de::{self, DeserializeOwned, IntoDeserializer, Visitor, value::SeqDeserializer},
+    forward_to_deserialize_any,
 };
 use winnow::Parser;
 
-use super::parser::{ini_file, Item};
+use super::parser::{Item, ini_file};
 
 #[derive(Debug, Clone)]
 pub enum Error {

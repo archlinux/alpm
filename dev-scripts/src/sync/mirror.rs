@@ -1,15 +1,15 @@
 use std::{
     collections::HashSet,
-    fs::{create_dir_all, remove_dir_all, DirEntry},
+    fs::{DirEntry, create_dir_all, remove_dir_all},
     path::{Path, PathBuf},
     process::Command,
 };
 
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 use log::{debug, info};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
-use super::{filenames_in_dir, PackageRepositories};
+use super::{PackageRepositories, filenames_in_dir};
 use crate::{cmd::ensure_success, ui::get_progress_bar};
 
 /// The entry point for downloading any data from package mirrors.

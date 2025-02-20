@@ -2,6 +2,8 @@ use std::path::PathBuf;
 
 use alpm_types::{Md5Checksum, Sha256Checksum};
 use winnow::{
+    ModalResult,
+    Parser as WinnowParser,
     ascii::{digit1, line_ending, space0},
     combinator::{
         alt,
@@ -17,8 +19,6 @@ use winnow::{
     error::{StrContext, StrContextValue},
     stream::AsChar,
     token::{take_until, take_while},
-    ModalResult,
-    Parser as WinnowParser,
 };
 
 use crate::path_decoder::decode_utf8_chars;

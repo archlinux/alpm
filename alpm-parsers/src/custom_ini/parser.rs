@@ -2,6 +2,8 @@ use std::collections::BTreeMap;
 
 use serde::Deserialize;
 use winnow::{
+    ModalResult,
+    Parser,
     ascii::{newline, space0, till_line_ending},
     combinator::{
         alt,
@@ -16,8 +18,6 @@ use winnow::{
     },
     error::{StrContext, StrContextValue},
     token::none_of,
-    ModalResult,
-    Parser,
 };
 
 use super::de::Error;

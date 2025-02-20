@@ -1,12 +1,12 @@
 use std::char;
 
 use winnow::{
+    ModalResult,
+    Parser,
     combinator::{alt, cut_err, fail, preceded},
     error::{AddContext, ContextError, ErrMode, StrContext, StrContextValue},
     stream::{Checkpoint, Stream},
     token::take_while,
-    ModalResult,
-    Parser,
 };
 
 /// Decodes UTF-8 characters from a string using MTREE-specific escape sequences.

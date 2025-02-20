@@ -6,12 +6,12 @@ use std::{
     str::{CharIndices, Chars, FromStr},
 };
 
-use lazy_regex::{lazy_regex, Lazy};
+use lazy_regex::{Lazy, lazy_regex};
 use regex::Regex;
 use semver::Version as SemverVersion;
 use serde::Serialize;
 
-use crate::{error::Error, Architecture};
+use crate::{Architecture, error::Error};
 
 pub(crate) static PKGREL_REGEX: Lazy<Regex> = lazy_regex!(r"^[0-9]+(\.[0-9]+)?$");
 pub(crate) static PKGVER_REGEX: Lazy<Regex> = lazy_regex!(r"^([[:alnum:]][[:alnum:]_+.]*)$");
@@ -927,7 +927,7 @@ impl Ord for Version {
     fn cmp(&self, other: &Self) -> Ordering {
         match (self.epoch, other.epoch) {
             (Some(self_epoch), Some(other_epoch)) if self_epoch.cmp(&other_epoch).is_ne() => {
-                return self_epoch.cmp(&other_epoch)
+                return self_epoch.cmp(&other_epoch);
             }
             (Some(_), None) => return Ordering::Greater,
             (None, Some(_)) => return Ordering::Less,

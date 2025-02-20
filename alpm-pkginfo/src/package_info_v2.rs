@@ -20,9 +20,9 @@ use alpm_types::{
     Url,
     Version,
 };
-use serde_with::{serde_as, DisplayFromStr};
+use serde_with::{DisplayFromStr, serde_as};
 
-use crate::{package_info_v1::generate_pkginfo, Error};
+use crate::{Error, package_info_v1::generate_pkginfo};
 
 generate_pkginfo! {
     /// PKGINFO version 2
@@ -423,29 +423,31 @@ checkdepend = extra-test-tool
         assert!(PackageInfoV2::from_str(&pkg_info_str).is_err());
 
         let pkg_info = pkg_info()?;
-        assert!(PackageInfoV2::new(
-            pkg_info.pkgname,
-            pkg_info.pkgbase,
-            pkg_info.pkgver,
-            pkg_info.pkgdesc,
-            pkg_info.url,
-            pkg_info.builddate,
-            pkg_info.packager,
-            pkg_info.size,
-            pkg_info.arch,
-            pkg_info.license,
-            pkg_info.replaces,
-            pkg_info.group,
-            pkg_info.conflict,
-            pkg_info.provides,
-            pkg_info.backup,
-            pkg_info.depend,
-            pkg_info.optdepend,
-            pkg_info.makedepend,
-            pkg_info.checkdepend,
-            vec![]
-        )
-        .is_err());
+        assert!(
+            PackageInfoV2::new(
+                pkg_info.pkgname,
+                pkg_info.pkgbase,
+                pkg_info.pkgver,
+                pkg_info.pkgdesc,
+                pkg_info.url,
+                pkg_info.builddate,
+                pkg_info.packager,
+                pkg_info.size,
+                pkg_info.arch,
+                pkg_info.license,
+                pkg_info.replaces,
+                pkg_info.group,
+                pkg_info.conflict,
+                pkg_info.provides,
+                pkg_info.backup,
+                pkg_info.depend,
+                pkg_info.optdepend,
+                pkg_info.makedepend,
+                pkg_info.checkdepend,
+                vec![]
+            )
+            .is_err()
+        );
         Ok(())
     }
 

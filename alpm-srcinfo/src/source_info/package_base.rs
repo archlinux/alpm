@@ -2,7 +2,6 @@
 use std::collections::{HashMap, HashSet};
 
 use alpm_types::{
-    digests::{Blake2b512, Md5, Sha1, Sha224, Sha256, Sha384, Sha512},
     Architecture,
     Epoch,
     License,
@@ -19,6 +18,7 @@ use alpm_types::{
     Source,
     Url,
     Version,
+    digests::{Blake2b512, Md5, Sha1, Sha224, Sha256, Sha384, Sha512},
 };
 
 use super::{
@@ -31,7 +31,7 @@ use super::{
     package::PackageArchitecture,
 };
 use crate::{
-    error::{lint, unrecoverable, SourceInfoError},
+    error::{SourceInfoError, lint, unrecoverable},
     parser::{self, PackageBaseProperty, RawPackageBase, SharedMetaProperty},
 };
 #[cfg(doc)]

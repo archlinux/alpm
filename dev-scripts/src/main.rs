@@ -6,7 +6,7 @@ use cli::Cli;
 use log::LevelFilter;
 use simplelog::{Config, SimpleLogger};
 use strum::IntoEnumIterator;
-use sync::{mirror::MirrorDownloader, pkgsrc::PkgSrcDownloader, PackageRepositories};
+use sync::{PackageRepositories, mirror::MirrorDownloader, pkgsrc::PkgSrcDownloader};
 use testing::TestRunner;
 
 mod cli;

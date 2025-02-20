@@ -1,5 +1,5 @@
 use std::{
-    fs::{create_dir_all, read_to_string, File},
+    fs::{File, create_dir_all, read_to_string},
     io::{self, IsTerminal, Read, Write},
     path::PathBuf,
     str::FromStr,
@@ -9,11 +9,11 @@ use alpm_types::{SchemaVersion, Sha256Checksum};
 use erased_serde::Serialize;
 
 use crate::{
+    BuildInfoV1,
+    BuildInfoV2,
     cli::{CreateCommand, OutputFormat, ValidateArgs},
     error::Error,
     schema::Schema,
-    BuildInfoV1,
-    BuildInfoV2,
 };
 
 /// Create a file according to a BUILDINFO schema

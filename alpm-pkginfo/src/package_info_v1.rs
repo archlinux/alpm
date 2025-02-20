@@ -18,7 +18,7 @@ use alpm_types::{
     Url,
     Version,
 };
-use serde_with::{serde_as, DisplayFromStr};
+use serde_with::{DisplayFromStr, serde_as};
 
 use crate::Error;
 

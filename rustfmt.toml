@@ -4,4 +4,5 @@ group_imports = "StdExternalCrate"
 imports_granularity = "Crate"
 imports_layout = "HorizontalVertical"
 reorder_imports = true
+style_edition = "2024"
 wrap_comments = true

@@ -1,6 +1,5 @@
 //! Provides fully resolved package metadata derived from SRCINFO data.
 use alpm_types::{
-    digests::{Blake2b512, Md5, Sha1, Sha224, Sha256, Sha384, Sha512},
     Architecture,
     License,
     MakepkgOption,
@@ -14,13 +13,14 @@ use alpm_types::{
     Source,
     Url,
     Version,
+    digests::{Blake2b512, Md5, Sha1, Sha224, Sha256, Sha384, Sha512},
 };
 use serde::Serialize;
 
 use crate::source_info::{
+    SourceInfo,
     package::Package,
     package_base::{PackageBase, PackageBaseArchitecture},
-    SourceInfo,
 };
 
 /// Fully resolved metadata of a single package based on SRCINFO data.
