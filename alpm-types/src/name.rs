@@ -4,20 +4,16 @@ use std::{
     string::ToString,
 };
 
-use lazy_regex::{Lazy, lazy_regex};
-use regex::Regex;
 use serde::Serialize;
 use winnow::{
     ModalResult,
     Parser,
-    combinator::{alt, cut_err, eof, peek, repeat, repeat_till},
+    combinator::{Repeat, alt, cut_err, eof, peek, repeat, repeat_till},
     error::{StrContext, StrContextValue},
-    token::any,
+    token::{any, one_of},
 };
 
 use crate::Error;
-
-pub(crate) static NAME_REGEX: Lazy<Regex> = lazy_regex!(r"^[a-zA-Z\d_@+]+[a-zA-Z\d\-._@+]*$");
 
 /// A build tool name
 ///
@@ -107,8 +103,8 @@ impl Display for BuildTool {
 
 /// A package name
 ///
-/// Package names may contain the characters `[a-z\d\-._@+]`, but must not
-/// start with `[-.]`.
+/// Package names may contain the characters `[a-zA-Z0-9\-._@+]`, but must not
+/// start with `[-.]` (see [alpm-package-name]).
 ///
 /// ## Examples
 /// ```
@@ -129,6 +125,8 @@ impl Display for BuildTool {
 /// # Ok(())
 /// # }
 /// ```
+///
+/// [alpm-package-name]: https://alpm.archlinux.page/specifications/alpm-package-name.7.html
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Name(String);
 
@@ -142,21 +140,65 @@ impl Name {
     pub fn inner(&self) -> &str {
         &self.0
     }
+
+    /// Recognizes a [`Name`] in a string slice.
+    ///
+    /// Consumes all of its input.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if `input` contains an invalid _alpm-package-name_.
+    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+        let alphanum = |c: char| c.is_ascii_alphanumeric();
+        let first_char = one_of((alphanum, '_', '@', '+'))
+            .context(StrContext::Label("first character of package name"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "ASCII alphanumeric character",
+            )))
+            .context(StrContext::Expected(StrContextValue::CharLiteral('_')))
+            .context(StrContext::Expected(StrContextValue::CharLiteral('@')))
+            .context(StrContext::Expected(StrContextValue::CharLiteral('+')));
+
+        let non_first_char = one_of((alphanum, '_', '@', '+', '-', '.'));
+
+        // no .context() because this is infallible due to `0..`
+        // note the empty tuple collection to avoid allocation
+        let remaining_chars: Repeat<_, _, _, (), _> = repeat(0.., non_first_char);
+
+        let full_parser = (
+            first_char,
+            remaining_chars,
+            // bad characters fall through to eof so we insert that context here
+            eof.context(StrContext::Label("character in package name"))
+                .context(StrContext::Expected(StrContextValue::Description(
+                    "ASCII alphanumeric character",
+                )))
+                .context(StrContext::Expected(StrContextValue::CharLiteral('_')))
+                .context(StrContext::Expected(StrContextValue::CharLiteral('@')))
+                .context(StrContext::Expected(StrContextValue::CharLiteral('+')))
+                .context(StrContext::Expected(StrContextValue::CharLiteral('-')))
+                .context(StrContext::Expected(StrContextValue::CharLiteral('.'))),
+        );
+
+        full_parser
+            .take()
+            .map(|n: &str| Name(n.to_owned()))
+            .parse_next(input)
+    }
 }
 
 impl FromStr for Name {
     type Err = Error;
-    /// Create a Name from a string
+
+    /// Creates a [`Name`] from a string slice.
+    ///
+    /// Delegates to [`Name::parser`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if [`Name::parser`] fails.
     fn from_str(s: &str) -> Result<Name, Self::Err> {
-        if NAME_REGEX.is_match(s) {
-            Ok(Name(s.to_string()))
-        } else {
-            Err(Error::RegexDoesNotMatch {
-                value: s.to_string(),
-                regex_type: "pkgname".to_string(),
-                regex: NAME_REGEX.to_string(),
-            })
-        }
+        Ok(Self::parser.parse(s)?)
     }
 }
 
@@ -299,11 +341,24 @@ mod tests {
         assert_eq!(buildtool.matches_restriction(&restrictions), result);
     }
 
+    #[rstest]
+    #[case("package_name_'''", "invalid character in package name")]
+    #[case("-package_with_leading_hyphen", "invalid first character")]
+    fn name_parse_error(#[case] input: &str, #[case] err_snippet: &str) {
+        let Err(Error::ParseError(err_msg)) = Name::from_str(input) else {
+            panic!("'{input}' erroneously parsed as a Name")
+        };
+        assert!(
+            err_msg.contains(err_snippet),
+            "Error:\n=====\n{err_msg}\n=====\nshould contain snippet:\n\n{err_snippet}"
+        );
+    }
+
     proptest! {
         #![proptest_config(ProptestConfig::with_cases(1000))]
 
         #[test]
-        fn valid_name_from_string(name_str in r"[a-zA-Z\d_@+]+[a-zA-Z\d\-._@+]*") {
+        fn valid_name_from_string(name_str in r"[a-zA-Z0-9_@+]+[a-zA-Z0-9\-._@+]*") {
             let name = Name::from_str(&name_str).unwrap();
             prop_assert_eq!(name_str, format!("{}", name));
         }
@@ -311,21 +366,13 @@ mod tests {
         #[test]
         fn invalid_name_from_string_start(name_str in r"[-.][a-zA-Z0-9@._+-]*") {
             let error = Name::from_str(&name_str).unwrap_err();
-            assert_eq!(error, Error::RegexDoesNotMatch {
-                value: name_str.to_string(),
-                regex_type: "pkgname".to_string(),
-                regex: NAME_REGEX.to_string(),
-            });
+            assert!(matches!(error, Error::ParseError(_)));
         }
 
         #[test]
         fn invalid_name_with_invalid_characters(name_str in r"[^\w@._+-]+") {
             let error = Name::from_str(&name_str).unwrap_err();
-            assert_eq!(error, Error::RegexDoesNotMatch {
-                value: name_str.to_string(),
-                regex_type: "pkgname".to_string(),
-                regex: NAME_REGEX.to_string(),
-            });
+            assert!(matches!(error, Error::ParseError(_)));
         }
     }
 

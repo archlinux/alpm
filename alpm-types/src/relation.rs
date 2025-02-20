@@ -511,7 +511,7 @@ impl Soname {
             )
                 // Take both parts and map them onto a SharedObjectName
                 .take()
-                .try_map(Name::from_str)
+                .and_then(Name::parser)
                 .map(SharedObjectName),
         )
         .context(StrContext::Label("shared object name"))
@@ -1085,22 +1085,6 @@ mod tests {
             description: Some("description with !@#$%^&*".to_string()),
         }),
     )]
-    #[case(
-        "#invalid-name: this is an example dependency",
-        Err(Error::RegexDoesNotMatch {
-            value: "#invalid-name".to_string(),
-            regex_type: "pkgname".to_string(),
-            regex: crate::name::NAME_REGEX.to_string(),
-        }),
-    )]
-    #[case(
-        ": no_name_colon",
-        Err(Error::RegexDoesNotMatch {
-            value: "".to_string(),
-            regex_type: "pkgname".to_string(),
-            regex: crate::name::NAME_REGEX.to_string(),
-        }),
-    )]
     // versioned optional dependencies
     #[case(
         "elfutils=0.192: for translations",
@@ -1147,6 +1131,14 @@ mod tests {
     ) {
         let opt_depend_result = OptionalDependency::from_str(input);
         assert_eq!(expected_result, opt_depend_result);
+    }
+
+    #[rstest]
+    #[case("#invalid-name: this is an example dependency")]
+    #[case(": no_name_colon")]
+    fn opt_depend_invalid_string_parse_error(#[case] input: &str) {
+        let opt_depend_result = OptionalDependency::from_str(input);
+        assert!(matches!(opt_depend_result, Err(Error::ParseError(_))));
     }
 
     #[rstest]
