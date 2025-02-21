@@ -522,7 +522,7 @@ impl PackageBaseProperty {
             PackageBaseKeyword::MakeDepends | PackageBaseKeyword::CheckDepends => {
                 // Read and parse the generic architecture specific PackageRelation.
                 let value =
-                    cut_err(till_line_end.try_map(PackageRelation::from_str)).parse_next(input)?;
+                    cut_err(till_line_end.and_then(PackageRelation::parser)).parse_next(input)?;
                 let arch_property = ArchProperty {
                     architecture,
                     value,
@@ -809,7 +809,7 @@ impl RelationProperty {
             RelationKeyword::Conflicts | RelationKeyword::Replaces => {
                 // Read and parse the generic architecture specific PackageRelation.
                 let value =
-                    cut_err(till_line_end.try_map(PackageRelation::from_str)).parse_next(input)?;
+                    cut_err(till_line_end.and_then(PackageRelation::parser)).parse_next(input)?;
                 let arch_property = ArchProperty {
                     architecture,
                     value,
