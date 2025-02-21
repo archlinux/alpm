@@ -14,7 +14,7 @@ use winnow::{
     ascii::{dec_uint, digit1},
     combinator::{Repeat, alt, cut_err, eof, fail, opt, preceded, repeat, seq, terminated},
     error::{StrContext, StrContextValue},
-    token::{one_of, take_till},
+    token::{one_of, take_till, take_while},
 };
 
 use crate::{Architecture, error::Error};
@@ -1139,6 +1139,7 @@ impl FromStr for VersionComparison {
 ///
 /// It consists of a target version and a comparison function. A version requirement of `>=1.5` has
 /// a target version of `1.5` and a comparison function of [`VersionComparison::GreaterOrEqual`].
+/// See [alpm-comparison] for details on the format.
 ///
 /// ## Examples
 ///
@@ -1155,6 +1156,8 @@ impl FromStr for VersionComparison {
 /// # Ok(())
 /// # }
 /// ```
+///
+/// [alpm-comparison]: https://alpm.archlinux.page/specifications/alpm-comparison.7.html
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct VersionRequirement {
     /// Version comparison function
@@ -1195,6 +1198,26 @@ impl VersionRequirement {
     pub fn is_satisfied_by(&self, ver: &Version) -> bool {
         self.comparison.is_compatible_with(ver.cmp(&self.version))
     }
+
+    /// Recognizes a [`VersionRequirement`] in a string slice.
+    ///
+    /// Consumes all of its input.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if `input` is not a valid _alpm-comparison_.
+    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+        seq!(Self {
+            comparison: take_while(1.., ('<', '>', '='))
+                // add context here because otherwise take_while can fail and provide no information
+                .context(StrContext::Expected(StrContextValue::Description(
+                    "version comparison operator"
+                )))
+                .and_then(VersionComparison::parser),
+            version: Version::parser,
+        })
+        .parse_next(input)
+    }
 }
 
 impl Display for VersionRequirement {
@@ -1206,31 +1229,15 @@ impl Display for VersionRequirement {
 impl FromStr for VersionRequirement {
     type Err = Error;
 
-    /// Parses a version requirement from a string.
+    /// Creates a new [`VersionRequirement`] from a string slice.
+    ///
+    /// Delegates to [`VersionRequirement::parser`].
     ///
     /// # Errors
     ///
-    /// Returns an error if the comparison function or version are malformed.
+    /// Returns an error if [`VersionRequirement::parser`] fails.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        fn is_comparison_char(c: char) -> bool {
-            matches!(c, '<' | '=' | '>')
-        }
-
-        let comparison_end = s
-            .find(|c| !is_comparison_char(c))
-            .ok_or(Error::MissingComponent {
-                component: "operator",
-            })?;
-
-        let (comparison, version) = s.split_at(comparison_end);
-
-        let comparison = comparison.parse()?;
-        let version = version.parse()?;
-
-        Ok(VersionRequirement {
-            comparison,
-            version,
-        })
+        Ok(Self::parser.parse(s)?)
     }
 }
 
@@ -1667,28 +1674,18 @@ mod tests {
         );
     }
 
-    /// Test expected parsing errors for version requirement strings.
     #[rstest]
-    #[case("<=", Error::MissingComponent { component: "operator" })]
-    fn invalid_version_requirement(#[case] requirement: &str, #[case] expected: Error) {
-        assert_eq!(
-            requirement.parse::<VersionRequirement>(),
-            Err(expected),
-            "Expected error while parsing version requirement '{requirement}'"
-        );
-    }
-
-    #[rstest]
-    #[case("<>3.1")]
-    #[case("3.1")]
-    #[case("=>3.1")]
-    fn invalid_version_requirement_bad_operator(#[case] requirement: &str) {
+    #[case::bad_operator("<>3.1", "invalid comparison operator")]
+    #[case::no_operator("3.1", "expected version comparison operator")]
+    #[case::arrow_operator("=>3.1", "invalid comparison operator")]
+    #[case::no_version("<=", "expected pkgver string")]
+    fn invalid_version_requirement(#[case] requirement: &str, #[case] err_snippet: &str) {
+        let Err(Error::ParseError(err_msg)) = VersionRequirement::from_str(requirement) else {
+            panic!("'{requirement}' erroneously parsed as VersionRequirement")
+        };
         assert!(
-            matches!(
-                requirement.parse::<VersionRequirement>(),
-                Err(Error::ParseError(_))
-            ),
-            "Expected error while parsing version requirement '{requirement}'"
+            err_msg.contains(err_snippet),
+            "Error:\n=====\n{err_msg}\n=====\nshould contain snippet:\n\n{err_snippet}"
         );
     }
 
