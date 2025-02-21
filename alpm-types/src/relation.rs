@@ -62,7 +62,7 @@ impl VersionOrSoname {
         }
 
         input.reset(&checkpoint);
-        let version_result = rest.try_map(PackageVersion::from_str).parse_next(input);
+        let version_result = rest.and_then(PackageVersion::parser).parse_next(input);
         if version_result.is_ok() {
             let version = version_result?;
             return Ok(VersionOrSoname::Version(version));
@@ -529,7 +529,7 @@ impl Soname {
         // Otherwise, we hit the `eof` and there's no version.
         let version = match delimiter {
             "" => None,
-            "." => Some(rest.try_map(PackageVersion::from_str).parse_next(input)?),
+            "." => Some(rest.and_then(PackageVersion::parser).parse_next(input)?),
             _ => unreachable!(),
         };
 
@@ -1294,14 +1294,8 @@ mod tests {
     #[rstest]
     #[case("libexample.so.1", "invalid shared library prefix delimiter")]
     #[case("lib:libexample.so-abc", "invalid version delimiter")]
-    #[case(
-        "lib:libexample.so.10-10",
-        "Value '10-10' does not match the 'pkgver' regex"
-    )]
-    #[case(
-        "lib:libexample.so.1.0.0-64",
-        "Value '1.0.0-64' does not match the 'pkgver' regex"
-    )]
+    #[case("lib:libexample.so.10-10", "invalid pkgver character")]
+    #[case("lib:libexample.so.1.0.0-64", "invalid pkgver character")]
     fn invalid_sonamev2_parser(#[case] input: &str, #[case] error_snippet: &str) {
         let result = SonameV2::from_str(input);
         assert!(result.is_err(), "Expected SonameV2 parsing to fail");

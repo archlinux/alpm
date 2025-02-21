@@ -8,4 +8,5 @@ parse error at line 3, column 14
   |
 3 |     pkgver = $!@#%1.0.0
   |              ^
-Value '$!@#%1.0.0' does not match the 'pkgver' regex: ^([[:alnum:]][[:alnum:]_+.]*)$
+invalid first pkgver character
+expected ASCII alphanumeric character

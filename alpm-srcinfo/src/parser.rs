@@ -494,20 +494,20 @@ impl PackageBaseProperty {
         let property = match keyword {
             PackageBaseKeyword::PkgVer => cut_err(
                 till_line_end
-                    .try_map(PackageVersion::from_str)
+                    .and_then(PackageVersion::parser)
                     .map(PackageBaseProperty::PackageVersion),
             )
             .parse_next(input)?,
             PackageBaseKeyword::PkgRel => cut_err(
                 till_line_end
-                    .try_map(PackageRelease::from_str)
+                    .and_then(PackageRelease::parser)
                     .map(PackageBaseProperty::PackageRelease),
             )
             .parse_next(input)?,
 
             PackageBaseKeyword::Epoch => cut_err(
                 till_line_end
-                    .try_map(Epoch::from_str)
+                    .and_then(Epoch::parser)
                     .map(PackageBaseProperty::PackageEpoch),
             )
             .parse_next(input)?,

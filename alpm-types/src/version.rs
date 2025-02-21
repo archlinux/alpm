@@ -6,15 +6,18 @@ use std::{
     str::{CharIndices, Chars, FromStr},
 };
 
-use lazy_regex::{Lazy, lazy_regex};
-use regex::Regex;
 use semver::Version as SemverVersion;
 use serde::Serialize;
+use winnow::{
+    ModalResult,
+    Parser,
+    ascii::{dec_uint, digit1},
+    combinator::{Repeat, cut_err, eof, opt, repeat, terminated},
+    error::{StrContext, StrContextValue},
+    token::one_of,
+};
 
 use crate::{Architecture, error::Error};
-
-pub(crate) static PKGREL_REGEX: Lazy<Regex> = lazy_regex!(r"^[0-9]+(\.[0-9]+)?$");
-pub(crate) static PKGVER_REGEX: Lazy<Regex> = lazy_regex!(r"^([[:alnum:]][[:alnum:]_+.]*)$");
 
 /// The version and architecture of a build tool
 ///
@@ -95,6 +98,7 @@ impl Display for BuildToolVersion {
 /// Epoch is used to indicate the downgrade of a package and is prepended to a version, delimited by
 /// a `":"` (e.g. `1:` is added to `0.10.0-1` to form `1:0.10.0-1` which then orders newer than
 /// `1.0.0-1`).
+/// See [alpm-epoch] for details on the format.
 ///
 /// An Epoch wraps a usize that is guaranteed to be greater than `0`.
 ///
@@ -107,6 +111,8 @@ impl Display for BuildToolVersion {
 /// assert!(Epoch::from_str("1").is_ok());
 /// assert!(Epoch::from_str("0").is_err());
 /// ```
+///
+/// [alpm-epoch]: https://alpm.archlinux.page/specifications/alpm-epoch.7.html
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Epoch(pub NonZeroUsize);
 
@@ -115,18 +121,31 @@ impl Epoch {
     pub fn new(epoch: NonZeroUsize) -> Self {
         Epoch(epoch)
     }
+
+    /// Recognizes an [`Epoch`] in a string slice.
+    ///
+    /// Consumes all of its input.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if `input` is not a valid _alpm_epoch_.
+    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+        terminated(dec_uint, eof)
+            .verify_map(NonZeroUsize::new)
+            .context(StrContext::Label("package epoch"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "positive non-zero decimal integer",
+            )))
+            .map(Self)
+            .parse_next(input)
+    }
 }
 
 impl FromStr for Epoch {
     type Err = Error;
     /// Create an Epoch from a string and return it in a Result
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.parse() {
-            Ok(epoch) => Ok(Epoch(epoch)),
-            Err(source) => Err(Error::InvalidInteger {
-                kind: source.kind().clone(),
-            }),
-        }
+        Ok(Self::parser.parse(s)?)
     }
 }
 
@@ -170,21 +189,37 @@ impl PackageRelease {
     pub fn inner(&self) -> &str {
         &self.0
     }
+
+    /// Parses a [`PackageRelease`] from a string slice.
+    ///
+    /// Consumes all of its input.
+    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+        (
+            digit1
+                .context(StrContext::Label("package release"))
+                .context(StrContext::Expected(StrContextValue::Description(
+                    "positive decimal integer",
+                ))),
+            opt(('.', cut_err(digit1))
+                .context(StrContext::Label("package release"))
+                .context(StrContext::Expected(StrContextValue::Description(
+                    "single '.' followed by positive decimal integer",
+                )))),
+            eof.context(StrContext::Expected(StrContextValue::Description(
+                "end of package release value",
+            ))),
+        )
+            .take()
+            .map(|s: &str| Self(s.to_string()))
+            .parse_next(input)
+    }
 }
 
 impl FromStr for PackageRelease {
     type Err = Error;
     /// Create a PackageRelease from a string and return it in a Result
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if PKGREL_REGEX.is_match(s) {
-            Ok(PackageRelease(s.to_string()))
-        } else {
-            Err(Error::RegexDoesNotMatch {
-                value: s.to_string(),
-                regex_type: "pkgrel".to_string(),
-                regex: PKGREL_REGEX.to_string(),
-            })
-        }
+        Ok(Self::parser.parse(s)?)
     }
 }
 
@@ -238,21 +273,50 @@ impl PackageVersion {
     pub fn segments(&self) -> VersionSegments {
         VersionSegments::new(&self.0)
     }
+
+    /// Recognizes a [`PackageVersion`] in a string slice.
+    ///
+    /// Consumes all of its input.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if `input` is not a valid _alpm-pkgrel_.
+    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+        let alnum = |c: char| c.is_ascii_alphanumeric();
+
+        let first_character = one_of(alnum)
+            .context(StrContext::Label("first pkgver character"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "ASCII alphanumeric character",
+            )));
+        let tail_character = one_of((alnum, '_', '+', '.'));
+
+        // no error context because this is infallible due to `0..`
+        // note the empty tuple collection to avoid allocation
+        let tail: Repeat<_, _, _, (), _> = repeat(0.., tail_character);
+
+        (
+            first_character,
+            tail,
+            eof.context(StrContext::Label("pkgver character"))
+                .context(StrContext::Expected(StrContextValue::Description(
+                    "ASCII alphanumeric character",
+                )))
+                .context(StrContext::Expected(StrContextValue::CharLiteral('_')))
+                .context(StrContext::Expected(StrContextValue::CharLiteral('+')))
+                .context(StrContext::Expected(StrContextValue::CharLiteral('.'))),
+        )
+            .take()
+            .map(|s: &str| Self(s.to_string()))
+            .parse_next(input)
+    }
 }
 
 impl FromStr for PackageVersion {
     type Err = Error;
     /// Create a PackageVersion from a string and return it in a Result
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if PKGVER_REGEX.is_match(s) {
-            Ok(PackageVersion(s.to_string()))
-        } else {
-            Err(Error::RegexDoesNotMatch {
-                value: s.to_string(),
-                regex_type: "pkgver".to_string(),
-                regex: PKGVER_REGEX.to_string(),
-            })
-        }
+        Ok(Self::parser.parse(s)?)
     }
 }
 
@@ -792,6 +856,8 @@ impl Display for SchemaVersion {
 /// # Ok(())
 /// # }
 /// ```
+///
+/// [alpm-package-version]: https://alpm.archlinux.page/specifications/alpm-package-version.7.html
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct Version {
     /// The version of the package
@@ -1123,8 +1189,6 @@ impl FromStr for VersionRequirement {
 
 #[cfg(test)]
 mod tests {
-    use std::num::IntErrorKind;
-
     use rstest::rstest;
 
     use super::*;
@@ -1162,20 +1226,24 @@ mod tests {
     /// Ensure that invalid buildtool version strings produce the respective errors.
     #[rstest]
     #[case("1.0.0-any", Error::MissingComponent { component: "pkgrel" })]
-    #[case(
-        ".1.0.0-1-any",
-        Error::RegexDoesNotMatch {
-            value: ".1.0.0".to_string(),
-            regex_type: "pkgver".to_string(),
-            regex: PKGVER_REGEX.to_string()
-        }
-    )]
     #[case("1.0.0-1-foo", strum::ParseError::VariantNotFound.into())]
     fn invalid_buildtoolver_new(#[case] buildtoolver: &str, #[case] expected: Error) {
         assert_eq!(
             BuildToolVersion::from_str(buildtoolver),
             Err(expected),
             "Expected error during parse of buildtoolver '{buildtoolver}'"
+        );
+    }
+
+    #[rstest]
+    #[case(".1.0.0-1-any", "invalid first pkgver character")]
+    fn invalid_buildtoolver_badpkgver(#[case] buildtoolver: &str, #[case] err_snippet: &str) {
+        let Err(Error::ParseError(err_msg)) = BuildToolVersion::from_str(buildtoolver) else {
+            panic!("'{buildtoolver}' erroneously parsed as BuildToolVersion")
+        };
+        assert!(
+            err_msg.contains(err_snippet),
+            "Error:\n=====\n{err_msg}\n=====\nshould contain snippet:\n\n{err_snippet}"
         );
     }
 
@@ -1232,61 +1300,32 @@ mod tests {
 
     /// Ensure that invalid version strings produce the respective errors.
     #[rstest]
-    #[case(
-        "1:1:foo-1",
-        Error::RegexDoesNotMatch {
-            value: "1:foo".to_string(),
-            regex_type: "pkgver".to_string(),
-            regex: PKGVER_REGEX.to_string()
-        }
-    )]
-    #[case(
-        "1:foo-1-1",
-        Error::RegexDoesNotMatch {
-            value: "1-1".to_string(),
-            regex_type: "pkgrel".to_string(),
-            regex: PKGREL_REGEX.to_string()
-        }
-    )]
-    #[case(
-        "",
-        Error::RegexDoesNotMatch {
-            value: "".to_string(),
-            regex_type: "pkgver".to_string(),
-            regex: PKGVER_REGEX.to_string()
-        }
-    )]
-    #[case(
-        ":",
-        Error::RegexDoesNotMatch {
-            value: "".to_string(),
-            regex_type: "pkgver".to_string(),
-            regex: PKGVER_REGEX.to_string()
-        }
-    )]
-    #[case(
-        ".",
-        Error::RegexDoesNotMatch {
-            value: ".".to_string(),
-            regex_type: "pkgver".to_string(),
-            regex: PKGVER_REGEX.to_string()
-        }
-    )]
-    fn invalid_regex_in_version_from_string(#[case] version: &str, #[case] expected: Error) {
-        assert_eq!(
-            Version::from_str(version),
-            Err(expected),
+    #[case("1:foo-1-1")]
+    fn invalid_regex_in_version_from_string(#[case] version: &str) {
+        assert!(
+            matches!(Version::from_str(version), Err(Error::ParseError(_))),
             "Expected error while parsing {version}"
         )
     }
 
     #[rstest]
-    #[case("-1foo:1", Error::InvalidInteger { kind: IntErrorKind::InvalidDigit })]
-    #[case("1-foo:1", Error::InvalidInteger { kind: IntErrorKind::InvalidDigit })]
-    fn invalid_integer_in_version_from_string(#[case] version: &str, #[case] expected: Error) {
-        assert_eq!(
+    #[case("1:1:foo-1")]
+    #[case("")]
+    #[case(":")]
+    #[case(".")]
+    fn invalid_regex_in_version_from_string_parse_error(#[case] version: &str) {
+        assert!(matches!(
             Version::from_str(version),
-            Err(expected),
+            Err(Error::ParseError(_))
+        ));
+    }
+
+    #[rstest]
+    #[case("-1foo:1")]
+    #[case("1-foo:1")]
+    fn invalid_integer_in_version_from_string(#[case] version: &str) {
+        assert!(
+            matches!(Version::from_str(version), Err(Error::ParseError(_)),),
             "Expected error while parsing {version}"
         )
     }
@@ -1309,11 +1348,22 @@ mod tests {
 
     #[rstest]
     #[case("1", Ok(Epoch(NonZeroUsize::new(1).unwrap())))]
-    #[case("0", Err(Error::InvalidInteger { kind: IntErrorKind::Zero }))]
-    #[case("-0", Err(Error::InvalidInteger { kind: IntErrorKind::InvalidDigit }))]
-    #[case("z", Err(Error::InvalidInteger { kind: IntErrorKind::InvalidDigit }))]
     fn epoch(#[case] version: &str, #[case] result: Result<Epoch, Error>) {
         assert_eq!(result, Epoch::from_str(version));
+    }
+
+    #[rstest]
+    #[case("0", "expected positive non-zero decimal integer")]
+    #[case("-0", "expected positive non-zero decimal integer")]
+    #[case("z", "expected positive non-zero decimal integer")]
+    fn epoch_parse_failure(#[case] input: &str, #[case] err_snippet: &str) {
+        let Err(Error::ParseError(err_msg)) = Epoch::from_str(input) else {
+            panic!("'{input}' erroneously parsed as Epoch")
+        };
+        assert!(
+            err_msg.contains(err_snippet),
+            "Error:\n=====\n{err_msg}\n=====\nshould contain snippet:\n\n{err_snippet}"
+        );
     }
 
     /// Make sure that we can parse valid **pkgver** strings.
@@ -1334,23 +1384,21 @@ mod tests {
 
     /// Ensure that invalid **pkgver**s are throwing errors.
     #[rstest]
-    #[case("1:foo")]
-    #[case("foo-1")]
-    #[case("foo,1")]
-    #[case(".foo")]
-    #[case("_foo")]
+    #[case("1:foo", "invalid pkgver character")]
+    #[case("foo-1", "invalid pkgver character")]
+    #[case("foo,1", "invalid pkgver character")]
+    #[case(".foo", "invalid first pkgver character")]
+    #[case("_foo", "invalid first pkgver character")]
     // ß is not in [:alnum:]
-    #[case("ß")]
-    #[case("1.ß")]
-    fn invalid_pkgver(#[case] pkgver: &str) {
-        assert_eq!(
-            PackageVersion::new(pkgver.to_string()).as_ref(),
-            Err(&Error::RegexDoesNotMatch {
-                value: pkgver.to_string(),
-                regex_type: "pkgver".to_string(),
-                regex: PKGVER_REGEX.to_string()
-            }),
-            "Expected pkgrel {pkgver} to be invalid."
+    #[case("ß", "invalid first pkgver character")]
+    #[case("1.ß", "invalid pkgver character")]
+    fn invalid_pkgver(#[case] pkgver: &str, #[case] err_snippet: &str) {
+        let Err(Error::ParseError(err_msg)) = PackageVersion::new(pkgver.to_string()) else {
+            panic!("Expected pkgver {pkgver} to be invalid.")
+        };
+        assert!(
+            err_msg.contains(err_snippet),
+            "Error:\n=====\n{err_msg}\n=====\nshould contain snippet:\n\n{err_snippet}"
         );
     }
 
@@ -1376,23 +1424,21 @@ mod tests {
 
     /// Ensure that invalid **pkgrel**s are throwing errors.
     #[rstest]
-    #[case(".1")]
-    #[case("1.")]
-    #[case("1..1")]
-    #[case("-1")]
-    #[case("a")]
-    #[case("1.a")]
-    #[case("1.0.0")]
-    #[case("")]
-    fn invalid_pkgrel(#[case] pkgrel: &str) {
-        assert_eq!(
-            PackageRelease::new(pkgrel.to_string()),
-            Err(Error::RegexDoesNotMatch {
-                value: pkgrel.to_string(),
-                regex_type: "pkgrel".to_string(),
-                regex: PKGREL_REGEX.to_string()
-            }),
-            "Expected pkgrel {pkgrel} to be invalid."
+    #[case(".1", "expected positive decimal integer")]
+    #[case("1.", "expected single '.' followed by positive decimal integer")]
+    #[case("1..1", "expected single '.' followed by positive decimal integer")]
+    #[case("-1", "expected positive decimal integer")]
+    #[case("a", "expected positive decimal integer")]
+    #[case("1.a", "expected single '.' followed by positive decimal integer")]
+    #[case("1.0.0", "expected end of package release")]
+    #[case("", "expected positive decimal integer")]
+    fn invalid_pkgrel(#[case] pkgrel: &str, #[case] err_snippet: &str) {
+        let Err(Error::ParseError(err_msg)) = PackageRelease::new(pkgrel.to_string()) else {
+            panic!("'{pkgrel}' erroneously parsed as PackageRelease")
+        };
+        assert!(
+            err_msg.contains(err_snippet),
+            "Error:\n=====\n{err_msg}\n=====\nshould contain snippet:\n\n{err_snippet}"
         );
     }
 
@@ -1584,19 +1630,26 @@ mod tests {
     #[case("<>3.1", strum::ParseError::VariantNotFound.into())]
     #[case("3.1", strum::ParseError::VariantNotFound.into())]
     #[case("=>3.1", strum::ParseError::VariantNotFound.into())]
-    #[case(
-        "<3.1>3.2",
-        Error::RegexDoesNotMatch {
-            value: "3.1>3.2".to_string(),
-            regex_type: "pkgver".to_string(),
-            regex: PKGVER_REGEX.to_string()
-        }
-    )]
     fn invalid_version_requirement(#[case] requirement: &str, #[case] expected: Error) {
         assert_eq!(
             requirement.parse::<VersionRequirement>(),
             Err(expected),
             "Expected error while parsing version requirement '{requirement}'"
+        );
+    }
+
+    #[rstest]
+    #[case("<3.1>3.2", "invalid pkgver character")]
+    fn invalid_version_requirement_pkgver_parse(
+        #[case] requirement: &str,
+        #[case] err_snippet: &str,
+    ) {
+        let Err(Error::ParseError(err_msg)) = VersionRequirement::from_str(requirement) else {
+            panic!("'{requirement}' erroneously parsed as VersionRequirement")
+        };
+        assert!(
+            err_msg.contains(err_snippet),
+            "Error:\n=====\n{err_msg}\n=====\nshould contain snippet:\n\n{err_snippet}"
         );
     }
 
