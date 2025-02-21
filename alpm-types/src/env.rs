@@ -230,9 +230,17 @@ mod tests {
         }),
     )]
     #[case("foo-bar-1:1.0.0-1", Err(strum::ParseError::VariantNotFound.into()))]
-    #[case("foo-bar-1:1.0.0-any", Err(Error::InvalidInteger{ kind: std::num::IntErrorKind::InvalidDigit}))]
     #[case("1:1.0.0-1-any", Err(Error::MissingComponent { component: "name" }))]
     fn installed_new(#[case] s: &str, #[case] result: Result<InstalledPackage, Error>) {
         assert_eq!(InstalledPackage::from_str(s), result);
+    }
+
+    #[rstest]
+    #[case("foo-bar-1:1.0.0-any")]
+    fn installed_new_parse_error(#[case] s: &str) {
+        assert!(matches!(
+            InstalledPackage::from_str(s),
+            Err(Error::ParseError(_))
+        ));
     }
 }
