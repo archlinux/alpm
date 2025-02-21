@@ -8,10 +8,22 @@ use winnow::{
     ModalResult,
     Parser,
     ascii::digit1,
-    combinator::{alt, cut_err, eof, fail, opt, peek, repeat, repeat_till, seq},
+    combinator::{
+        alt,
+        cut_err,
+        eof,
+        fail,
+        opt,
+        peek,
+        repeat,
+        repeat_till,
+        separated_pair,
+        seq,
+        terminated,
+    },
     error::{StrContext, StrContextValue},
     stream::Stream,
-    token::{any, rest, take_till, take_while},
+    token::{any, rest, take_till, take_until, take_while},
 };
 
 use crate::{
@@ -901,6 +913,7 @@ impl FromStr for PackageRelation {
 /// - The package relation component must be a valid [`PackageRelation`].
 /// - If a description is provided it must be at least one character long.
 ///
+/// Refer to [alpm-package-relation] of type [optional dependency] for details on the format.
 /// ## Examples
 ///
 /// ```
@@ -929,6 +942,9 @@ impl FromStr for PackageRelation {
 /// # Ok(())
 /// # }
 /// ```
+///
+/// [alpm-package-relation]: https://alpm.archlinux.page/specifications/alpm-package-relation.7.html
+/// [optional dependency]: https://alpm.archlinux.page/specifications/alpm-package-relation.7.html#optional-dependency
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct OptionalDependency {
     package_relation: PackageRelation,
@@ -961,23 +977,68 @@ impl OptionalDependency {
     pub fn description(&self) -> &Option<String> {
         &self.description
     }
+
+    /// Recognizes an [`OptionalDependency`] in a string slice.
+    ///
+    /// Consumes all of its input.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if `input` is not a valid _alpm-package-relation_ of type _optional
+    /// dependency_.
+    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+        let description_parser = terminated(
+            // Descriptions may consist of any character except '\n' and '\r'.
+            // Descriptions are a also at the end of a `OptionalDependency`.
+            // We enforce forbidding `\n` and `\r` by only taking until either of them
+            // is hit and checking for `eof` afterwards.
+            // This will **always** succeed unless `\n` and `\r` are hit, in which case an
+            // error is thrown.
+            take_till(0.., ('\n', '\r')),
+            eof,
+        )
+        .context(StrContext::Label("optional dependency description"))
+        .context(StrContext::Expected(StrContextValue::Description(
+            r"no carriage returns or newlines",
+        )))
+        .map(|d: &str| match d.trim_ascii() {
+            "" => None,
+            t => Some(t.to_string()),
+        });
+
+        let (package_relation, description) = alt((
+            // look for ": ", then dispatch either side to the relevant parser
+            // without allowing backtracking
+            separated_pair(
+                take_until(1.., ": ").and_then(cut_err(PackageRelation::parser)),
+                ": ",
+                rest.and_then(cut_err(description_parser)),
+            ),
+            // if we can't find ": ", then assume it's all PackageRelation
+            // and assert we've reached the end of input
+            (rest.and_then(PackageRelation::parser), eof.value(None)),
+        ))
+        .parse_next(input)?;
+
+        Ok(Self {
+            package_relation,
+            description,
+        })
+    }
 }
 
 impl FromStr for OptionalDependency {
     type Err = Error;
 
-    /// Create an OptionalDependency from a string slice
-    fn from_str(s: &str) -> Result<OptionalDependency, Self::Err> {
-        if let Some((name, description)) = s.split_once(":") {
-            let description = description.trim_start();
-            let relation = PackageRelation::from_str(name)?;
-            Ok(Self::new(
-                relation,
-                (!description.is_empty()).then_some(description.to_string()),
-            ))
-        } else {
-            Ok(Self::new(PackageRelation::new(Name::new(s)?, None), None))
-        }
+    /// Creates a new [`OptionalDependency`] from a string slice.
+    ///
+    /// Delegates to [`OptionalDependency::parser`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if [`OptionalDependency::parser`] fails.
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self::parser.parse(s)?)
     }
 }
 
@@ -1026,7 +1087,7 @@ mod tests {
     const NAME_REGEX: &str = r"[a-z0-9_@+]+[a-z0-9\-._@+]*";
     const PKGREL_REGEX: &str = r"[1-9]+[0-9]*(|[.]{1}[1-9]{1}[0-9]*)";
     const PKGVER_REGEX: &str = r"([[:alnum:]][[:alnum:]_+.]*)";
-    const DESCRIPTION_REGEX: &str = r"[[:alnum:]][[:alnum:] _+.,-]*";
+    const DESCRIPTION_REGEX: &str = "[^\n\r]*";
 
     proptest! {
         #![proptest_config(ProptestConfig::with_cases(1000))]
@@ -1042,12 +1103,67 @@ mod tests {
 
     proptest! {
         #[test]
-        fn opt_depend_from_str(s in format!("{NAME_REGEX}(: {DESCRIPTION_REGEX})?").as_str()) {
-            println!("s: {s}");
-            let opt_depend = OptionalDependency::from_str(&s).unwrap();
-            let formatted = format!("{}", opt_depend);
-            prop_assert_eq!(s.trim_end(), formatted.trim_end(), "Formatted output doesn't match input");
+        fn opt_depend_from_str(
+            name in NAME_REGEX,
+            desc in DESCRIPTION_REGEX,
+            use_desc in proptest::bool::ANY
+        ) {
+            let desc_trimmed = desc.trim_ascii();
+            let desc_is_blank = desc_trimmed.is_empty();
+
+            let (raw_in, formatted_expected) = if use_desc {
+                // Raw input and expected formatted output.
+                // These are different because `desc` will be trimmed by the parser;
+                // if it is *only* ascii whitespace then it will be skipped altogether.
+                (
+                    format!("{name}: {desc}"),
+                    if !desc_is_blank {
+                        format!("{name}: {desc_trimmed}")
+                    } else {
+                        name.clone()
+                    }
+                )
+            } else {
+                (name.clone(), name.clone())
+            };
+
+            println!("input string: {raw_in}");
+            let opt_depend = OptionalDependency::from_str(&raw_in).unwrap();
+            let formatted_actual = format!("{}", opt_depend);
+            prop_assert_eq!(
+                formatted_expected,
+                formatted_actual,
+                "Formatted output doesn't match input"
+            );
         }
+    }
+
+    #[rstest]
+    #[case(
+        "python>=3",
+        Ok(PackageRelation {
+            name: Name::new("python").unwrap(),
+            version_requirement: Some(VersionRequirement {
+                comparison: VersionComparison::GreaterOrEqual,
+                version: "3".parse().unwrap(),
+            }),
+        }),
+    )]
+    #[case(
+        "java-environment>=17",
+        Ok(PackageRelation {
+            name: Name::new("java-environment").unwrap(),
+            version_requirement: Some(VersionRequirement {
+                comparison: VersionComparison::GreaterOrEqual,
+                version: "17".parse().unwrap(),
+            }),
+        }),
+    )]
+    fn valid_package_relation(
+        #[case] input: &str,
+        #[case] expected: Result<PackageRelation, Error>,
+    ) {
+        assert_eq!(PackageRelation::from_str(input), expected);
     }
 
     #[rstest]
@@ -1059,6 +1175,16 @@ mod tests {
                 version_requirement: None,
             },
             description: Some("this is an example dependency".to_string()),
+        }),
+    )]
+    #[case(
+        "example-two:     a description with lots of whitespace padding     ",
+        Ok(OptionalDependency {
+            package_relation: PackageRelation {
+                name: Name::new("example-two").unwrap(),
+                version_requirement: None,
+            },
+            description: Some("a description with lots of whitespace padding".to_string())
         }),
     )]
     #[case(
@@ -1140,11 +1266,27 @@ mod tests {
     }
 
     #[rstest]
-    #[case("#invalid-name: this is an example dependency")]
-    #[case(": no_name_colon")]
-    fn opt_depend_invalid_string_parse_error(#[case] input: &str) {
-        let opt_depend_result = OptionalDependency::from_str(input);
-        assert!(matches!(opt_depend_result, Err(Error::ParseError(_))));
+    #[case(
+        "#invalid-name: this is an example dependency",
+        "invalid first character of package name"
+    )]
+    #[case(": no_name_colon", "invalid first character of package name")]
+    #[case(
+        "name:description with no leading whitespace",
+        "invalid character in package name"
+    )]
+    #[case(
+        "dep-name>=10: \n\ndescription with\rnewlines",
+        "expected no carriage returns or newlines"
+    )]
+    fn opt_depend_invalid_string_parse_error(#[case] input: &str, #[case] err_snippet: &str) {
+        let Err(Error::ParseError(err_msg)) = OptionalDependency::from_str(input) else {
+            panic!("'{input}' did not fail to parse as expected")
+        };
+        assert!(
+            err_msg.contains(err_snippet),
+            "Error:\n=====\n{err_msg}\n=====\nshould contain snippet:\n\n{err_snippet}"
+        );
     }
 
     #[rstest]
