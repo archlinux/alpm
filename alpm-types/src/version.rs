@@ -12,9 +12,9 @@ use winnow::{
     ModalResult,
     Parser,
     ascii::{dec_uint, digit1},
-    combinator::{Repeat, cut_err, eof, opt, repeat, terminated},
+    combinator::{Repeat, cut_err, eof, opt, preceded, repeat, seq, terminated},
     error::{StrContext, StrContextValue},
-    token::one_of,
+    token::{one_of, take_till},
 };
 
 use crate::{Architecture, error::Error};
@@ -840,6 +840,7 @@ impl Display for SchemaVersion {
 /// A version of a package
 ///
 /// A `Version` tracks an optional `Epoch`, a `PackageVersion` and an optional `PackageRelease`.
+/// See [alpm-package-version] for details on the format.
 ///
 /// ## Examples
 /// ```
@@ -932,44 +933,47 @@ impl Version {
             Ordering::Greater => 1,
         }
     }
+
+    /// Recognizes a [`Version`] in a string slice.
+    ///
+    /// Consumes all of its input.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if `input` is not a valid _alpm-package-version_.
+    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+        let mut epoch = opt(terminated(take_till(1.., ':'), ':').and_then(
+            // cut_err now that we've found a pattern with ':'
+            cut_err(Epoch::parser),
+        ))
+        .context(StrContext::Expected(StrContextValue::Description(
+            "followed by a ':'",
+        )));
+
+        seq!(Self {
+            epoch: epoch,
+            pkgver: take_till(1.., '-')
+                // this context will trigger on empty pkgver due to 1.. above
+                .context(StrContext::Expected(StrContextValue::Description("pkgver string")))
+                .and_then(PackageVersion::parser),
+            pkgrel: opt(preceded('-', cut_err(PackageRelease::parser))),
+            _: eof.context(StrContext::Expected(StrContextValue::Description("end of version string"))),
+        })
+        .parse_next(input)
+    }
 }
 
 impl FromStr for Version {
     type Err = Error;
-    /// Create a new [`Version`] from a string slice.
+    /// Creates a new [`Version`] from a string slice.
     ///
-    /// Expects a composite version string such as `2:1.25.1-5`
-    /// The components of the above composite version string are:
+    /// Delegates to [`Version::parser`].
     ///
-    /// - `2`: The optional epoch, delimited with a `:`
-    /// - `1.25.1`: The version, which is an arbitrary ASCII string, excluding `[':', '/', '-']`
-    /// - `5`: The optional release, delimited with a `-`.
+    /// # Errors
+    ///
+    /// Returns an error if [`Version::parser`] fails.
     fn from_str(s: &str) -> Result<Version, Self::Err> {
-        // Try to split off epoch from `{}{pkgver}-{pkgrel}`
-        let (epoch, pkgver_pkgrel) = s.split_once(':').unzip();
-        // If there's no epoch, use the whole version as `pkgver` with an
-        // optional `pkgrel`.
-        let pkgver_pkgrel = pkgver_pkgrel.unwrap_or(s);
-
-        // Try to split the `{pkgver}-{pkgrel}`
-        let (pkgver, pkgrel) = pkgver_pkgrel.split_once('-').unzip();
-
-        // If there's no pkgrel, it's just a stand-alone `pkgver`.
-        let pkgver = pkgver.unwrap_or(pkgver_pkgrel);
-
-        Ok(Version {
-            pkgver: pkgver.parse()?,
-            epoch: if let Some(s) = epoch {
-                Some(s.parse()?)
-            } else {
-                None
-            },
-            pkgrel: if let Some(s) = pkgrel {
-                Some(s.parse()?)
-            } else {
-                None
-            },
-        })
+        Ok(Self::parser.parse(s)?)
     }
 }
 
@@ -1300,34 +1304,27 @@ mod tests {
 
     /// Ensure that invalid version strings produce the respective errors.
     #[rstest]
-    #[case("1:foo-1-1")]
-    fn invalid_regex_in_version_from_string(#[case] version: &str) {
+    #[case::two_pkgrel("1:foo-1-1", "expected end of package release value")]
+    #[case::two_epoch("1:1:foo-1", "invalid pkgver character")]
+    #[case::no_version("", "expected pkgver string")]
+    #[case::no_version(":", "invalid first pkgver character")]
+    #[case::no_version(".", "invalid first pkgver character")]
+    #[case::invalid_integer(
+        "-1foo:1",
+        "invalid package epoch\nexpected positive non-zero decimal integer, followed by a ':'"
+    )]
+    #[case::invalid_integer(
+        "1-foo:1",
+        "invalid package epoch\nexpected positive non-zero decimal integer, followed by a ':'"
+    )]
+    fn parse_error_in_version_from_string(#[case] version: &str, #[case] err_snippet: &str) {
+        let Err(Error::ParseError(err_msg)) = Version::from_str(version) else {
+            panic!("parsing '{version}' did not fail as expected")
+        };
         assert!(
-            matches!(Version::from_str(version), Err(Error::ParseError(_))),
-            "Expected error while parsing {version}"
-        )
-    }
-
-    #[rstest]
-    #[case("1:1:foo-1")]
-    #[case("")]
-    #[case(":")]
-    #[case(".")]
-    fn invalid_regex_in_version_from_string_parse_error(#[case] version: &str) {
-        assert!(matches!(
-            Version::from_str(version),
-            Err(Error::ParseError(_))
-        ));
-    }
-
-    #[rstest]
-    #[case("-1foo:1")]
-    #[case("1-foo:1")]
-    fn invalid_integer_in_version_from_string(#[case] version: &str) {
-        assert!(
-            matches!(Version::from_str(version), Err(Error::ParseError(_)),),
-            "Expected error while parsing {version}"
-        )
+            err_msg.contains(err_snippet),
+            "Error:\n=====\n{err_msg}\n=====\nshould contain snippet:\n\n{err_snippet}"
+        );
     }
 
     /// Test that version parsing works/fails for the special case where a pkgrel is expected.

@@ -236,11 +236,17 @@ mod tests {
     }
 
     #[rstest]
-    #[case("foo-bar-1:1.0.0-any")]
-    fn installed_new_parse_error(#[case] s: &str) {
-        assert!(matches!(
-            InstalledPackage::from_str(s),
-            Err(Error::ParseError(_))
-        ));
+    #[case("foo-1:1.0.0-bar-any", "invalid package release")]
+    #[case("packagename-30-0.1oops-any", "expected end of package release value")]
+    #[case("package$with$dollars-30-0.1-any", "invalid character in package name")]
+    fn installed_new_parse_error(#[case] input: &str, #[case] error_snippet: &str) {
+        let result = InstalledPackage::from_str(input);
+        assert!(result.is_err(), "Expected InstalledPackage parsing to fail");
+        let err = result.unwrap_err();
+        let pretty_error = err.to_string();
+        assert!(
+            pretty_error.contains(error_snippet),
+            "Error:\n=====\n{pretty_error}\n=====\nshould contain snippet:\n\n{error_snippet}"
+        );
     }
 }
