@@ -14,7 +14,7 @@ use winnow::{
     ascii::{dec_uint, digit1},
     combinator::{Repeat, alt, cut_err, eof, fail, opt, preceded, repeat, seq, terminated},
     error::{StrContext, StrContextValue},
-    token::{one_of, take_till},
+    token::{one_of, take_till, take_while},
 };
 
 use crate::{Architecture, error::Error};
@@ -1155,6 +1155,15 @@ impl VersionRequirement {
     pub fn is_satisfied_by(&self, ver: &Version) -> bool {
         self.comparison.is_compatible_with(ver.cmp(&self.version))
     }
+
+    /// Parses a [`VersionRequirement`] from a string slice.
+    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+        seq!(Self {
+            comparison: take_while(1.., ('<', '>', '=')).and_then(VersionComparison::parser),
+            version: Version::parser,
+        })
+        .parse_next(input)
+    }
 }
 
 impl Display for VersionRequirement {
@@ -1172,25 +1181,7 @@ impl FromStr for VersionRequirement {
     ///
     /// Returns an error if the comparison function or version are malformed.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        fn is_comparison_char(c: char) -> bool {
-            matches!(c, '<' | '=' | '>')
-        }
-
-        let comparison_end = s
-            .find(|c| !is_comparison_char(c))
-            .ok_or(Error::MissingComponent {
-                component: "operator",
-            })?;
-
-        let (comparison, version) = s.split_at(comparison_end);
-
-        let comparison = comparison.parse()?;
-        let version = version.parse()?;
-
-        Ok(VersionRequirement {
-            comparison,
-            version,
-        })
+        Ok(Self::parser.parse(s)?)
     }
 }
 
@@ -1626,19 +1617,10 @@ mod tests {
 
     /// Test expected parsing errors for version requirement strings.
     #[rstest]
-    #[case("<=", Error::MissingComponent { component: "operator" })]
-    fn invalid_version_requirement(#[case] requirement: &str, #[case] expected: Error) {
-        assert_eq!(
-            requirement.parse::<VersionRequirement>(),
-            Err(expected),
-            "Expected error while parsing version requirement '{requirement}'"
-        );
-    }
-
-    #[rstest]
     #[case("<>3.1")]
     #[case("3.1")]
     #[case("=>3.1")]
+    #[case("<=")]
     fn invalid_version_requirement_bad_operator(#[case] requirement: &str) {
         assert!(
             matches!(
