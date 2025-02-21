@@ -356,11 +356,13 @@ generate kind pkg:
 # Generates all manpages and specifications
 generate-manpages-and-specs:
     just generate manpages alpm-buildinfo
-    just generate specifications alpm-buildinfo
     just generate manpages alpm-mtree
-    just generate specifications alpm-mtree
     just generate manpages alpm-pkginfo
+    just generate manpages alpm-srcinfo
+    just generate specifications alpm-buildinfo
+    just generate specifications alpm-mtree
     just generate specifications alpm-pkginfo
+    just generate specifications alpm-srcinfo
     just generate specifications alpm-types
 
 # Generates all manpages and specifications
@@ -368,6 +370,7 @@ generate-completions:
     just generate shell_completions alpm-buildinfo
     just generate shell_completions alpm-mtree
     just generate shell_completions alpm-pkginfo
+    just generate shell_completions alpm-srcinfo
 
 # Continuously run integration tests for a given number of rounds
 flaky test='just test-readme alpm-buildinfo' rounds='999999999999':
