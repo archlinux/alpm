@@ -4,15 +4,14 @@ use std::{
 };
 
 use serde::Serialize;
-use strum::IntoEnumIterator;
 use winnow::{
     ModalResult,
     Parser,
     ascii::digit1,
-    combinator::{alt, cut_err, eof, fail, peek, repeat, repeat_till},
+    combinator::{alt, cut_err, eof, fail, opt, peek, repeat, repeat_till, seq},
     error::{StrContext, StrContextValue},
     stream::Stream,
-    token::{any, rest, take_while},
+    token::{any, rest, take_till, take_while},
 };
 
 use crate::{
@@ -21,7 +20,6 @@ use crate::{
     Name,
     PackageVersion,
     SharedObjectName,
-    VersionComparison,
     VersionRequirement,
 };
 
@@ -771,6 +769,18 @@ impl PackageRelation {
             version_requirement,
         }
     }
+
+    /// Parses a [`PackageRelation`] from a string slice.
+    ///
+    /// See [`Self::from_str`].
+    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+        seq!(Self {
+            name: take_till(1.., ('<', '>', '=')).and_then(Name::parser).context(StrContext::Label("package name")),
+            version_requirement: opt(VersionRequirement::parser),
+            _: eof.context(StrContext::Expected(StrContextValue::Description("end of relation version requirement"))),
+        })
+        .parse_next(input)
+    }
 }
 
 impl Display for PackageRelation {
@@ -864,24 +874,7 @@ impl FromStr for PackageRelation {
     /// # }
     /// ```
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        // NOTE: The string splitting relies on the specific ordering of the VersionComparison
-        // variants (which orders two-letter comparators over one-letter ones)!
-        for comparison in VersionComparison::iter() {
-            if let Some((name, version)) = s.split_once(comparison.as_ref()) {
-                return Ok(Self {
-                    name: Name::new(name)?,
-                    version_requirement: Some(VersionRequirement {
-                        comparison,
-                        version: version.parse()?,
-                    }),
-                });
-            }
-        }
-
-        Ok(Self {
-            name: Name::new(s)?,
-            version_requirement: None,
-        })
+        Ok(Self::parser.parse(s)?)
     }
 }
 
@@ -1011,6 +1004,7 @@ mod tests {
     use rstest::rstest;
 
     use super::*;
+    use crate::VersionComparison;
 
     const COMPARATOR_REGEX: &str = r"(<|<=|=|>=|>)";
     /// NOTE: [`Epoch`][alpm_types::Epoch] is implicitly constrained by [`std::usize::MAX`].

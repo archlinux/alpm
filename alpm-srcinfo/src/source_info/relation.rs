@@ -65,7 +65,7 @@ impl RelationOrSoname {
         }
 
         input.reset(&checkpoint);
-        let relation_result = rest.try_map(PackageRelation::from_str).parse_next(input);
+        let relation_result = rest.and_then(PackageRelation::parser).parse_next(input);
         if relation_result.is_ok() {
             let relation = relation_result?;
             return Ok(RelationOrSoname::Relation(relation));
