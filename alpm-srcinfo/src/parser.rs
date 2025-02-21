@@ -840,7 +840,7 @@ impl RelationProperty {
             }
             RelationKeyword::OptDepends => cut_err(
                 till_line_end
-                    .try_map(OptionalDependency::from_str)
+                    .and_then(OptionalDependency::parser)
                     .map(|value| {
                         RelationProperty::OptionalDependency(ArchProperty {
                             architecture,
