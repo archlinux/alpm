@@ -12,7 +12,7 @@ use winnow::{
     ModalResult,
     Parser,
     ascii::{dec_uint, digit1},
-    combinator::{Repeat, cut_err, eof, opt, preceded, repeat, seq, terminated},
+    combinator::{Repeat, alt, cut_err, eof, fail, opt, preceded, repeat, seq, terminated},
     error::{StrContext, StrContextValue},
     token::{one_of, take_till},
 };
@@ -1021,7 +1021,6 @@ impl PartialOrd for Version {
     Debug,
     strum::Display,
     strum::EnumIter,
-    strum::EnumString,
     PartialEq,
     Eq,
     strum::VariantNames,
@@ -1066,6 +1065,33 @@ impl VersionComparison {
             | (VersionComparison::GreaterOrEqual, Ordering::Less)
             | (VersionComparison::Greater, Ordering::Less | Ordering::Equal) => false,
         }
+    }
+
+    /// Parses a [`VersionComparison`] from a string slice.
+    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+        alt((
+            // insert eofs here (instead of after alt call) so correct error message is thrown
+            ("<=", eof).value(Self::LessOrEqual),
+            (">=", eof).value(Self::GreaterOrEqual),
+            ("=", eof).value(Self::Equal),
+            ("<", eof).value(Self::Less),
+            (">", eof).value(Self::Greater),
+            fail.context(StrContext::Label("comparison operator"))
+                .context(StrContext::Expected(StrContextValue::StringLiteral("<=")))
+                .context(StrContext::Expected(StrContextValue::StringLiteral(">=")))
+                .context(StrContext::Expected(StrContextValue::StringLiteral("=")))
+                .context(StrContext::Expected(StrContextValue::StringLiteral("<")))
+                .context(StrContext::Expected(StrContextValue::StringLiteral(">"))),
+        ))
+        .parse_next(input)
+    }
+}
+
+impl FromStr for VersionComparison {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self::parser.parse(s)?)
     }
 }
 
@@ -1559,17 +1585,20 @@ mod tests {
 
     /// Ensure that invalid version comparisons will throw an error.
     #[rstest]
-    #[case("")]
-    #[case("<<")]
-    #[case("==")]
-    #[case("!=")]
-    #[case(" =")]
-    #[case("= ")]
-    #[case("<1")]
-    fn invalid_version_comparison(#[case] comparison: &str) {
-        assert_eq!(
-            comparison.parse::<VersionComparison>(),
-            Err(strum::ParseError::VariantNotFound)
+    #[case("", "invalid comparison operator")]
+    #[case("<<", "invalid comparison operator")]
+    #[case("==", "invalid comparison operator")]
+    #[case("!=", "invalid comparison operator")]
+    #[case(" =", "invalid comparison operator")]
+    #[case("= ", "invalid comparison operator")]
+    #[case("<1", "invalid comparison operator")]
+    fn invalid_version_comparison(#[case] comparison: &str, #[case] err_snippet: &str) {
+        let Err(Error::ParseError(err_msg)) = VersionComparison::from_str(comparison) else {
+            panic!("'{comparison}' did not fail as expected")
+        };
+        assert!(
+            err_msg.contains(err_snippet),
+            "Error:\n=====\n{err_msg}\n=====\nshould contain snippet:\n\n{err_snippet}"
         );
     }
 
@@ -1598,13 +1627,24 @@ mod tests {
     /// Test expected parsing errors for version requirement strings.
     #[rstest]
     #[case("<=", Error::MissingComponent { component: "operator" })]
-    #[case("<>3.1", strum::ParseError::VariantNotFound.into())]
-    #[case("3.1", strum::ParseError::VariantNotFound.into())]
-    #[case("=>3.1", strum::ParseError::VariantNotFound.into())]
     fn invalid_version_requirement(#[case] requirement: &str, #[case] expected: Error) {
         assert_eq!(
             requirement.parse::<VersionRequirement>(),
             Err(expected),
+            "Expected error while parsing version requirement '{requirement}'"
+        );
+    }
+
+    #[rstest]
+    #[case("<>3.1")]
+    #[case("3.1")]
+    #[case("=>3.1")]
+    fn invalid_version_requirement_bad_operator(#[case] requirement: &str) {
+        assert!(
+            matches!(
+                requirement.parse::<VersionRequirement>(),
+                Err(Error::ParseError(_))
+            ),
             "Expected error while parsing version requirement '{requirement}'"
         );
     }
