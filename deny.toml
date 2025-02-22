@@ -3,6 +3,10 @@ ignore = [
     # Possible valid string to invalid string bug.
     # This dependency is only included when winnow is compiled with the debug flag.
     "RUSTSEC-2024-0404",
+    # The ring crate is unmaintained.
+    # We (currently) only use it via the "reqwest" crate in the "dev-scripts" crate.
+    # https://github.com/seanmonstar/reqwest/issues/2566
+    "RUSTSEC-2025-0007",
 ]
 version = 2
 yanked = "deny"
