@@ -179,10 +179,7 @@ impl FromStr for SourceUrl {
     /// # }
     /// ```
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match SourceUrl::parser.parse(s) {
-            Ok(source_url) => Ok(source_url),
-            Err(error) => Err(Error::ParseError(error.to_string())),
-        }
+        Ok(Self::parser.parse(s)?)
     }
 }
 
