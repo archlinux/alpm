@@ -194,7 +194,7 @@ checkdepend = other-extra-test-tool
 
 # SEE ALSO
 
-alpm-buildinfo(1), makepkg.conf(5), PKGBUILD(5), alpm-architecture(7), alpm-comparison(7), alpm-package-name(7), alpm-package-relation(7), alpm-package-version(7), alpm-pkgver(7), makepkg(8), pacman(8)
+**alpm-pkginfo**(1), **PKGBUILD**(5), **makepkg.conf**(5), **alpm-architecture**(7), **alpm-comparison**(7), **alpm-package-name**(7), **alpm-package-relation**(7), **alpm-package-version**(7), **alpm-pkgver**(7), **makepkg**(8), **pacman**(8)
 
 # NOTES
 

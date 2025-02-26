@@ -218,7 +218,7 @@ depend = libexample.so=1-64
 
 # SEE ALSO
 
-readelf(1), PKGBUILD(5), PKGINFO(5), SRCINFO(5), alpm-comparison(7), alpm-package-name(7), alpm-package-relation(7), makepkg(8)
+**readelf**(1), **PKGBUILD**(5), **PKGINFO**(5), **SRCINFO**(5), **makepkg.conf**(5), **alpm-comparison**(7), **alpm-package-name**(7), **alpm-package-relation**(7), **makepkg**(8)
 
 # NOTES
 

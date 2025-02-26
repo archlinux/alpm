@@ -49,4 +49,4 @@ package() {
 
 # SEE ALSO
 
-PKGBUILD(5), PKGINFO(5), alpm-meta-package(7), alpm-package-name(7), alpm-package-relation(7)
+**PKGBUILD**(5), **PKGINFO**(5), **alpm-meta-package**(7), **alpm-package-name**(7), **alpm-package-relation**(7)

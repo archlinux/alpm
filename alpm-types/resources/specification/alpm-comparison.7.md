@@ -85,4 +85,4 @@ A version greater than '1.0.0' (e.g. '1.1.0-1' or '1:1.0.0-1').
 
 # SEE ALSO
 
-BUILDINFO(5), PKGBUILD(5), PKGINFO(5), alpm-epoch(7), alpm-package-name(7), alpm-package-relation(7), alpm-package-version(7), alpm-pkgrel(7), alpm-pkgver(7), vercmp(8)
+**BUILDINFO**(5), **PKGBUILD**(5), **PKGINFO**(5), **alpm-epoch**(7), **alpm-package-name**(7), **alpm-package-relation**(7), **alpm-package-version**(7), **alpm-pkgrel**(7), **alpm-pkgver**(7), **vercmp**(8)

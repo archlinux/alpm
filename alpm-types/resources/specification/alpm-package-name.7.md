@@ -20,4 +20,4 @@ The value must be covered by the set of alphanumeric characters and '@', '.', '_
 
 # SEE ALSO
 
-BUILDINFO(5), PKGBUILD(5), PKGINFO(5), SRCINFO(5), alpm-package-relation(7), alpm-pkgrel(7), alpm-pkgver(7), vercmp(8)
+**BUILDINFO**(5), **PKGBUILD**(5), **PKGINFO**(5), **SRCINFO**(5), **alpm-package-relation**(7)

@@ -256,7 +256,7 @@ pkgname = example-git
 
 # SEE ALSO
 
-git(1), hg(1), svn(1), PKGBUILD(5), SRCINFO(5), alpm-architecture(7), makepkg(8)
+**git**(1), **hg**(1), **svn**(1), **PKGBUILD**(5), **SRCINFO**(5), **alpm-architecture**(7), **makepkg**(8)
 
 # NOTES
 

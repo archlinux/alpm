@@ -190,7 +190,7 @@ pkgname = example
 
 # SEE ALSO
 
-PKGBUILD(5), SRCINFO(5), alpm-architecture(7), alpm-package-source(7)
+**PKGBUILD**(5), **SRCINFO**(5), **alpm-architecture**(7), **alpm-package-source**(7), **makepkg**(8)
 
 # NOTES
 

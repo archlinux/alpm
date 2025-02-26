@@ -33,4 +33,4 @@ Composite version strings with the same **pkgver** component are also sorted acc
 
 # SEE ALSO
 
-BUILDINFO(5), PKGBUILD(5), alpm-pkgrel(7), alpm-pkgver(7), vercmp(8)
+**BUILDINFO**(5), **PKGBUILD**(5), **PKGINFO**(5), **SRCINFO**(5), **alpm-package-version**(7), **alpm-pkgrel**(7), **alpm-pkgver**(7), **vercmp**(8)

@@ -101,7 +101,7 @@ A package can only be used on hardware compatible with the 64-bit variant of the
 
 # SEE ALSO
 
-BUILDINFO(5), PKGBUILD(5), PKGINFO(5), alpm-epoch(7), alpm-pkgrel(7), alpm-pkgver(7), vercmp(8)
+**BUILDINFO**(5), **PKGBUILD**(5), **PKGINFO**(5), **alpm-epoch**(7), **alpm-pkgrel**(7), **alpm-pkgver**(7), **vercmp**(8)
 
 # NOTES
 

@@ -114,4 +114,4 @@ Take a look at `pacman`'s query check functionality for more detail.
 
 # SEE ALSO
 
-mtree(5), pacman(8)
+**mtree**(5), **makepkg**(8), **pacman**(8)

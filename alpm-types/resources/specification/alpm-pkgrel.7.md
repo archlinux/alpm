@@ -34,4 +34,4 @@ An explicit **epoch** component is always considered before the **pkgver** and *
 
 # SEE ALSO
 
-BUILDINFO(5), PKGBUILD(5), alpm-epoch(7), alpm-pkgver(7), vercmp(8)
+**BUILDINFO**(5), **PKGBUILD**(5), **PKGINFO**(5), **SRCINFO**(5), **alpm-epoch**(7), **alpm-package-version**(7), **alpm-pkgver**(7), **vercmp**(8)

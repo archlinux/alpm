@@ -145,7 +145,7 @@ installed = package2-2.1.0-6-x86_64
 
 # SEE ALSO
 
-alpm-buildinfo(1), makepkg.conf(5), PKGBUILD(5), alpm-architecture(7), alpm-package-name(7), alpm-package-version(7), alpm-pkgver(7), devtools(7), makepkg(8), pacman(8), repro(8)
+**alpm-buildinfo**(1), **PKGBUILD**(5), **makepkg.conf**(5), **alpm-architecture**(7), **alpm-package-name**(7), **alpm-package-version**(7), **alpm-pkgver**(7), **devtools**(7), **makepkg**(8), **pacman**(8), **repro**(8)
 
 # NOTES
 

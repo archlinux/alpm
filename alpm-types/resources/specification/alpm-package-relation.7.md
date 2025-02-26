@@ -161,7 +161,7 @@ Following the **alpm-soname** specification, `lib:libexample.so.1` can be added 
 **Note**: For legacy behavior of **alpm-soname** refer to **alpm-sonamev1**.
 # SEE ALSO
 
-BUILDINFO(5), PKGBUILD(5), PKGINFO(5), alpm-architecture(7), alpm-comparison(7), alpm-epoch(7), alpm-pkgrel(7), alpm-pkgver(7), alpm-soname(7), vercmp(8))
+**BUILDINFO**(5), **PKGBUILD**(5), **PKGINFO**(5), **SRCINFO**(5), **alpm-architecture**(7), **alpm-comparison**(7), **alpm-package-name**(7), **alpm-package-version**(7), **alpm-soname**(7)
 
 # NOTES
 

@@ -52,5 +52,5 @@ package_example-b(){
 
 # SEE ALSO
 
-PKGBUILD(5), PKGINFO(5), alpm-package-name(7), alpm-package-relation(7)
+**PKGBUILD**(5), **PKGINFO**(5), **SRCINFO**(5), **alpm-package-name**(7), **alpm-package-relation**(7)
 

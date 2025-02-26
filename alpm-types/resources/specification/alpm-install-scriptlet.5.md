@@ -106,4 +106,4 @@ post_remove() {
 
 # SEE ALSO
 
-bash(1), sh(1), PKGBUILD(5), alpm-package-version(7), pacman(8), makepkg(8)
+**bash**(1), **sh**(1), **PKGBUILD**(5), **alpm-package-version**(7), **pacman**(8), **makepkg**(8)
