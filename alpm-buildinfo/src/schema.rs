@@ -11,7 +11,6 @@ use crate::Error;
 
 /// An enum describing all valid BUILDINFO schemas
 #[derive(Clone, Debug)]
-#[non_exhaustive]
 pub enum Schema {
     V1(SchemaVersion),
     V2(SchemaVersion),

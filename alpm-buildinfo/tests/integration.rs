@@ -318,7 +318,6 @@ fn test_write_buildinfo(buildinfo_input: BuildInfoInput, use_env: bool) -> TestR
     let build_info = match buildinfo_input.format {
         Schema::V1(_) => BuildInfoV1::from_str(&contents)?.to_string(),
         Schema::V2(_) => BuildInfoV2::from_str(&contents)?.to_string(),
-        _ => unimplemented!("Unimplemented schema!"),
     };
     assert_snapshot!(test_name, build_info.to_string());
 
