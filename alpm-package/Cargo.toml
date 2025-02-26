@@ -12,3 +12,12 @@ rust-version.workspace = true
 version = "0.1.0"
 
 [dependencies]
+alpm-buildinfo = { version = "0.1.0", path = "../alpm-buildinfo", default-features = false }
+alpm-mtree = { version = "0.1.0", path = "../alpm-mtree", default-features = false }
+alpm-pkginfo = { version = "0.1.0", path = "../alpm-pkginfo", default-features = false }
+thiserror.workspace = true
+
+[dev-dependencies]
+rstest.workspace = true
+tempfile.workspace = true
+testresult.workspace = true
