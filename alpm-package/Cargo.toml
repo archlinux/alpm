@@ -12,3 +12,22 @@ rust-version.workspace = true
 version = "0.1.0"
 
 [dependencies]
+alpm-buildinfo.workspace = true
+alpm-common.workspace = true
+alpm-mtree.workspace = true
+alpm-pkginfo.workspace = true
+alpm-types.workspace = true
+log = "0.4.27"
+strum.workspace = true
+tar = "0.4.44"
+thiserror.workspace = true
+winnow.workspace = true
+
+[dev-dependencies]
+rstest.workspace = true
+tempfile.workspace = true
+testdir = "0.9.3"
+testresult.workspace = true
+
+[features]
+winnow-debug = ["winnow/debug"]
