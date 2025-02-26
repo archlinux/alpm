@@ -76,6 +76,16 @@ dependencies = [
 [[package]]
 name = "alpm-package"
 version = "0.1.0"
+dependencies = [
+ "alpm-buildinfo",
+ "alpm-common",
+ "alpm-mtree",
+ "alpm-pkginfo",
+ "rstest",
+ "tempfile",
+ "testresult",
+ "thiserror",
+]
 
 [[package]]
 name = "alpm-parsers"
