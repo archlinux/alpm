@@ -12,3 +12,17 @@ rust-version.workspace = true
 version = "0.1.0"
 
 [dependencies]
+alpm-buildinfo = { workspace = true, version = "0.1.0" }
+alpm-common = { workspace = true, version = "0.1.0" }
+alpm-mtree = { workspace = true, version = "0.1.0" }
+alpm-pkginfo = { workspace = true, version = "0.1.0" }
+alpm-types.workspace = true
+strum.workspace = true
+tar = "0.4.44"
+thiserror.workspace = true
+
+[dev-dependencies]
+rstest.workspace = true
+tempfile.workspace = true
+testdir = "0.9.3"
+testresult.workspace = true
