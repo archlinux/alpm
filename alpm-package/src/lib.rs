@@ -1,3 +1,22 @@
-//! A library for handling [alpm-package]s.
-//!
-//! [alpm-package]: https://alpm.archlinux.page/specifications/alpm-package.7.html
+#![doc = include_str!("../README.md")]
+
+pub mod compression;
+pub mod config;
+pub mod error;
+pub mod input;
+pub mod package;
+mod scriptlet;
+
+pub use compression::{
+    Bzip2CompressionLevel,
+    CompressionEncoder,
+    CompressionSettings,
+    GzipCompressionLevel,
+    XzCompressionLevel,
+    ZstdCompressionLevel,
+    ZstdThreads,
+};
+pub use config::{OutputDir, PackageCreationConfig};
+pub use error::Error;
+pub use input::{InputDir, PackageInput};
+pub use package::{ExistingAbsoluteDir, Package};
