@@ -2,7 +2,7 @@
 
 A library providing low-level functionality for **A**rch **L**inux **P**ackage **M**anagement (ALPM) based packages.
 
-This library offers integration for creating an [alpm-package] from a prepared input directory, which contains all necessary files (ie. metadata files, optional script and data files).
+This library offers integration for creating an [alpm-package] from a prepared input directory, which contains all necessary files (i.e. metadata files, optional install scriptlets and data files).
 
 ## Documentation
 
