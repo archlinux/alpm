@@ -17,6 +17,14 @@ const PKGBASE_MAINTAINER_URL: &str = "https://archlinux.org/packages/pkgbase-mai
 const SSH_HOST: &str = "git@gitlab.archlinux.org";
 const REPO_BASE_URL: &str = "archlinux/packaging/packages";
 
+/// Some package repositories' names differ from the name of the package.
+/// These are only few and need to be handled separately.
+const PACKAGE_REPO_RENAMES: [(&str, &str); 3] = [
+    ("gtk2+extra", "gtk2-extra"),
+    ("dvd+rw-tools", "dvd-rw-tools"),
+    ("tree", "unix-tree"),
+];
+
 /// This struct is the entry point for downloading package source repositories from ArchLinux's
 /// Gitlab.
 ///
@@ -106,7 +114,7 @@ impl PkgSrcDownloader {
                 let result = if target_dir.exists() {
                     update_repo(repo, &target_dir)
                 } else {
-                    clone_repo(repo, &target_dir)
+                    clone_repo(repo.to_string(), &target_dir)
                 };
 
                 // Increment the counter
@@ -199,10 +207,17 @@ fn update_repo(repo: &str, target_dir: &Path) -> Result<(), RepoUpdateError> {
 }
 
 /// Clone a git repository into a target directory.
-fn clone_repo(repo: &str, target_dir: &Path) -> Result<(), RepoUpdateError> {
+fn clone_repo(mut repo: String, target_dir: &Path) -> Result<(), RepoUpdateError> {
+    // Check if this is one of the few packages that needs to be replaced.
+    for (to_replace, replace_with) in PACKAGE_REPO_RENAMES {
+        if repo == to_replace {
+            repo = replace_with.to_string();
+        }
+    }
+
     // Arch linux replaces the literal `+` chars with spelled out `plus` equivalents in their
     // repository urls. This is to prevent any issues with external tooling and such.
-    let repo = repo.replace("+", "plus");
+    repo = repo.replace("+", "plus");
 
     let ssh_url = format!("{SSH_HOST}:{REPO_BASE_URL}/{repo}.git");
 
