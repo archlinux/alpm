@@ -121,7 +121,11 @@ fn format_buildinfo_and_serialize_as_json(#[case] data: &str) -> TestResult {
     let cmd = cmd.unwrap();
     let build_info = String::from_utf8_lossy(&cmd.stdout);
     assert_snapshot!(
-        thread::current().name().unwrap().to_string(),
+        thread::current()
+            .name()
+            .unwrap()
+            .to_string()
+            .replace("::", "__"),
         build_info.to_string()
     );
     Ok(())
@@ -292,7 +296,11 @@ fn write_buildinfo_via_cli(#[case] buildinfo_input: BuildInfoInput) -> TestResul
 /// Test writing a buildinfo file either via CLI or environment variables.
 fn test_write_buildinfo(buildinfo_input: BuildInfoInput, use_env: bool) -> TestResult {
     let dir = tempdir()?;
-    let test_name = thread::current().name().unwrap().to_string();
+    let test_name = thread::current()
+        .name()
+        .unwrap()
+        .to_string()
+        .replace("::", "__");
 
     let mut cmd = Command::cargo_bin("alpm-buildinfo")?;
     cmd.args(["create".to_string(), format!("v{}", buildinfo_input.format)])

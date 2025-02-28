@@ -17,7 +17,11 @@ fn write_ini(#[case] input: &str) -> TestResult {
     };
 
     assert_snapshot!(
-        thread::current().name().unwrap_or("?").to_string(),
+        thread::current()
+            .name()
+            .unwrap_or("?")
+            .to_string()
+            .replace("::", "__"),
         format!("{err}"),
     );
 

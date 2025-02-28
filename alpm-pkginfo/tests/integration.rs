@@ -149,7 +149,11 @@ fn format_pkginfo_and_serialize_as_json(#[case] data: &str) -> TestResult {
     let cmd = cmd.unwrap();
     let pkg_info = String::from_utf8_lossy(&cmd.stdout);
     assert_snapshot!(
-        thread::current().name().unwrap().to_string(),
+        thread::current()
+            .name()
+            .unwrap()
+            .to_string()
+            .replace("::", "__"),
         pkg_info.to_string()
     );
     Ok(())
@@ -256,7 +260,11 @@ fn write_pkginfo_via_env(#[case] pkginfo_input: PackageInfoInput) -> TestResult 
 
 /// Test writing a pkginfo file either via CLI or environment variables.
 fn test_write_pkginfo(pkginfo_input: PackageInfoInput, use_env: bool) -> TestResult {
-    let test_name = thread::current().name().unwrap().to_string();
+    let test_name = thread::current()
+        .name()
+        .unwrap()
+        .to_string()
+        .replace("::", "__");
 
     // Create a temporary directory for the test
     let dir = tempdir()?;
