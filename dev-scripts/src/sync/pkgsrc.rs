@@ -200,6 +200,10 @@ fn update_repo(repo: &str, target_dir: &Path) -> Result<(), RepoUpdateError> {
 
 /// Clone a git repository into a target directory.
 fn clone_repo(repo: &str, target_dir: &Path) -> Result<(), RepoUpdateError> {
+    // Arch linux replaces the literal `+` chars with spelled out `plus` equivalents in their
+    // repository urls. This is to prevent any issues with external tooling and such.
+    let repo = repo.replace("+", "plus");
+
     let ssh_url = format!("{SSH_HOST}:{REPO_BASE_URL}/{repo}.git");
 
     let output = &Command::new("git")
