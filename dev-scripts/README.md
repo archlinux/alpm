@@ -48,12 +48,12 @@ Currently the following file types are supported:
 
 - [ ] ALPM-DB-DESC
 - [ ] ALPM-DB-FILES
-- [ ] ALPM-MTREE
+- [x] ALPM-MTREE
 - [ ] ALPM-REPO-DESC
 - [ ] ALPM-REPO-FILES
 - [x] BUILDINFO
 - [x] PKGINFO
-- [ ] SRCINFO
+- [x] SRCINFO
 
 <!-- somewhere at the bottom of the file -->
 
