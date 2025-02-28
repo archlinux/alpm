@@ -23,7 +23,7 @@ use alpm_types::{
 use clap::{Args, Parser, Subcommand, ValueEnum};
 use strum::Display;
 
-use crate::Error;
+use crate::{Error, RelationOrSoname};
 
 /// A type wrapping a PathBuf with a default value
 ///
@@ -217,7 +217,7 @@ pub struct V1CreateArgs {
         long,
         value_name = "PROVIDES"
     )]
-    pub provides: Vec<PackageRelation>,
+    pub provides: Vec<RelationOrSoname>,
 
     /// Provide one or more backups
     #[arg(
@@ -235,7 +235,7 @@ pub struct V1CreateArgs {
         long,
         value_name = "DEPEND"
     )]
-    pub depend: Vec<PackageRelation>,
+    pub depend: Vec<RelationOrSoname>,
 
     /// Provide one or more optdepend
     #[arg(

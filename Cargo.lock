@@ -97,6 +97,7 @@ dependencies = [
  "tempfile",
  "testresult",
  "thiserror",
+ "winnow 0.7.0",
 ]
 
 [[package]]

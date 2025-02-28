@@ -22,7 +22,7 @@ use alpm_types::{
 };
 use serde_with::{DisplayFromStr, serde_as};
 
-use crate::{Error, package_info_v1::generate_pkginfo};
+use crate::{Error, RelationOrSoname, package_info_v1::generate_pkginfo};
 
 generate_pkginfo! {
     /// PKGINFO version 2
@@ -57,10 +57,16 @@ generate_pkginfo! {
     /// conflict = other-conflicting-package<1.0.0
     /// provides = some-component
     /// provides = some-other-component=1:1.0.0-1
+    /// provides = libexample.so=1-64
+    /// provides = libunversionedexample.so=libunversionedexample.so-64
+    /// provides = lib:libexample.so.1
     /// backup = etc/example/config.toml
     /// backup = etc/example/other-config.txt
     /// depend = glibc
     /// depend = gcc-libs
+    /// depend = libother.so=0-64
+    /// depend = libunversioned.so=libunversioned.so-64
+    /// depend = lib:libother.so.0
     /// optdepend = python: for special-python-script.py
     /// optdepend = ruby: for special-ruby-script.rb
     /// makedepend = cmake
@@ -95,9 +101,9 @@ impl PackageInfoV2 {
         replaces: Vec<PackageRelation>,
         group: Vec<Group>,
         conflict: Vec<PackageRelation>,
-        provides: Vec<PackageRelation>,
+        provides: Vec<RelationOrSoname>,
         backup: Vec<Backup>,
-        depend: Vec<PackageRelation>,
+        depend: Vec<RelationOrSoname>,
         optdepend: Vec<OptionalDependency>,
         makedepend: Vec<PackageRelation>,
         checkdepend: Vec<PackageRelation>,
@@ -289,10 +295,16 @@ conflict = conflicting-package<1.0.0
 conflict = other-conflicting-package<1.0.0
 provides = some-component
 provides = some-other-component=1:1.0.0-1
+provides = libexample.so=1-64
+provides = libunversionedexample.so=libunversionedexample.so-64
+provides = lib:libexample.so.1
 backup = etc/example/config.toml
 backup = etc/example/other-config.txt
 depend = glibc
 depend = gcc-libs
+depend = libother.so=0-64
+depend = libunversioned.so=libunversioned.so-64
+depend = lib:libother.so.0
 optdepend = python: for special-python-script.py
 optdepend = ruby: for special-ruby-script.rb
 makedepend = cmake
@@ -357,16 +369,22 @@ checkdepend = extra-test-tool
                 PackageRelation::from_str("other-conflicting-package<1.0.0")?,
             ],
             vec![
-                PackageRelation::from_str("some-component")?,
-                PackageRelation::from_str("some-other-component=1:1.0.0-1")?,
+                RelationOrSoname::from_str("some-component")?,
+                RelationOrSoname::from_str("some-other-component=1:1.0.0-1")?,
+                RelationOrSoname::from_str("libexample.so=1-64")?,
+                RelationOrSoname::from_str("libunversionedexample.so=libunversionedexample.so-64")?,
+                RelationOrSoname::from_str("lib:libexample.so.1")?,
             ],
             vec![
                 Backup::from_str("etc/example/config.toml")?,
                 Backup::from_str("etc/example/other-config.txt")?,
             ],
             vec![
-                PackageRelation::from_str("glibc")?,
-                PackageRelation::from_str("gcc-libs")?,
+                RelationOrSoname::from_str("glibc")?,
+                RelationOrSoname::from_str("gcc-libs")?,
+                RelationOrSoname::from_str("libother.so=0-64")?,
+                RelationOrSoname::from_str("libunversioned.so=libunversioned.so-64")?,
+                RelationOrSoname::from_str("lib:libother.so.0")?,
             ],
             vec![
                 OptionalDependency::from_str("python: for special-python-script.py")?,

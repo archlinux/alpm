@@ -20,7 +20,7 @@ use alpm_types::{
 };
 use serde_with::{DisplayFromStr, serde_as};
 
-use crate::Error;
+use crate::{Error, RelationOrSoname};
 
 /// Generates a struct based on the PKGINFO version 1 specification with additional fields.
 macro_rules! generate_pkginfo {
@@ -79,7 +79,7 @@ macro_rules! generate_pkginfo {
 
             #[serde_as(as = "Vec<DisplayFromStr>")]
             #[serde(default)]
-            provides: Vec<PackageRelation>,
+            provides: Vec<RelationOrSoname>,
 
             #[serde_as(as = "Vec<DisplayFromStr>")]
             #[serde(default)]
@@ -87,7 +87,7 @@ macro_rules! generate_pkginfo {
 
             #[serde_as(as = "Vec<DisplayFromStr>")]
             #[serde(default)]
-            depend: Vec<PackageRelation>,
+            depend: Vec<RelationOrSoname>,
 
             #[serde_as(as = "Vec<DisplayFromStr>")]
             #[serde(default)]
@@ -171,7 +171,7 @@ macro_rules! generate_pkginfo {
             }
 
             /// Returns the packages this package provides
-            pub fn provides(&self) -> &[PackageRelation] {
+            pub fn provides(&self) -> &[RelationOrSoname] {
                 &self.provides
             }
 
@@ -181,7 +181,7 @@ macro_rules! generate_pkginfo {
             }
 
             /// Returns the packages this package depends on
-            pub fn depend(&self) -> &[PackageRelation] {
+            pub fn depend(&self) -> &[RelationOrSoname] {
                 &self.depend
             }
 
@@ -237,10 +237,16 @@ generate_pkginfo! {
     /// conflict = other-conflicting-package<1.0.0
     /// provides = some-component
     /// provides = some-other-component=1:1.0.0-1
+    /// provides = libexample.so=1-64
+    /// provides = libunversionedexample.so=libunversionedexample.so-64
+    /// provides = lib:libexample.so.1
     /// backup = etc/example/config.toml
     /// backup = etc/example/other-config.txt
     /// depend = glibc
     /// depend = gcc-libs
+    /// depend = libother.so=0-64
+    /// depend = libunversioned.so=libunversioned.so-64
+    /// depend = lib:libother.so.0
     /// optdepend = python: for special-python-script.py
     /// optdepend = ruby: for special-ruby-script.rb
     /// makedepend = cmake
@@ -272,9 +278,9 @@ impl PackageInfoV1 {
         replaces: Vec<PackageRelation>,
         group: Vec<Group>,
         conflict: Vec<PackageRelation>,
-        provides: Vec<PackageRelation>,
+        provides: Vec<RelationOrSoname>,
         backup: Vec<Backup>,
-        depend: Vec<PackageRelation>,
+        depend: Vec<RelationOrSoname>,
         optdepend: Vec<OptionalDependency>,
         makedepend: Vec<PackageRelation>,
         checkdepend: Vec<PackageRelation>,
@@ -403,10 +409,16 @@ conflict = conflicting-package<1.0.0
 conflict = other-conflicting-package<1.0.0
 provides = some-component
 provides = some-other-component=1:1.0.0-1
+provides = libexample.so=1-64
+provides = libunversionedexample.so=libunversionedexample.so-64
+provides = lib:libexample.so.1
 backup = etc/example/config.toml
 backup = etc/example/other-config.txt
 depend = glibc
 depend = gcc-libs
+depend = libother.so=0-64
+depend = libunversioned.so=libunversioned.so-64
+depend = lib:libother.so.0
 optdepend = python: for special-python-script.py
 optdepend = ruby: for special-ruby-script.rb
 makedepend = cmake
@@ -448,16 +460,22 @@ checkdepend = other-extra-test-tool"#
                 PackageRelation::from_str("other-conflicting-package<1.0.0")?,
             ],
             vec![
-                PackageRelation::from_str("some-component")?,
-                PackageRelation::from_str("some-other-component=1:1.0.0-1")?,
+                RelationOrSoname::from_str("some-component")?,
+                RelationOrSoname::from_str("some-other-component=1:1.0.0-1")?,
+                RelationOrSoname::from_str("libexample.so=1-64")?,
+                RelationOrSoname::from_str("libunversionedexample.so=libunversionedexample.so-64")?,
+                RelationOrSoname::from_str("lib:libexample.so.1")?,
             ],
             vec![
                 Backup::from_str("etc/example/config.toml")?,
                 Backup::from_str("etc/example/other-config.txt")?,
             ],
             vec![
-                PackageRelation::from_str("glibc")?,
-                PackageRelation::from_str("gcc-libs")?,
+                RelationOrSoname::from_str("glibc")?,
+                RelationOrSoname::from_str("gcc-libs")?,
+                RelationOrSoname::from_str("libother.so=0-64")?,
+                RelationOrSoname::from_str("libunversioned.so=libunversioned.so-64")?,
+                RelationOrSoname::from_str("lib:libother.so.0")?,
             ],
             vec![
                 OptionalDependency::from_str("python: for special-python-script.py")?,
