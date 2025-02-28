@@ -21,6 +21,7 @@ use crate::source_info::{
     SourceInfo,
     package::Package,
     package_base::{PackageBase, PackageBaseArchitecture},
+    relation::RelationOrSoname,
 };
 
 /// Fully resolved metadata of a single package based on SRCINFO data.
@@ -46,9 +47,9 @@ pub struct MergedPackage {
     pub version: Version,
     pub pgp_fingerprints: Vec<OpenPGPIdentifier>,
 
-    pub dependencies: Vec<PackageRelation>,
+    pub dependencies: Vec<RelationOrSoname>,
     pub optional_dependencies: Vec<OptionalDependency>,
-    pub provides: Vec<PackageRelation>,
+    pub provides: Vec<RelationOrSoname>,
     pub conflicts: Vec<PackageRelation>,
     pub replaces: Vec<PackageRelation>,
     pub check_dependencies: Vec<PackageRelation>,

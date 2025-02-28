@@ -11,4 +11,4 @@ pub mod source_info;
 
 pub use error::Error;
 pub use merged::MergedPackage;
-pub use source_info::{SourceInfo, SourceInfoResult};
+pub use source_info::{SourceInfo, SourceInfoResult, relation::RelationOrSoname};

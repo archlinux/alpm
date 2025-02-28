@@ -14,7 +14,7 @@ use alpm_types::{
 };
 use lints::{duplicate_architecture, missing_architecture_for_property, non_spdx_license};
 
-use super::lints;
+use super::{lints, relation::RelationOrSoname};
 use crate::{
     error::SourceInfoError,
     parser::{
@@ -69,9 +69,9 @@ pub struct Package {
     pub architectures: Option<HashSet<Architecture>>,
     pub architecture_properties: HashMap<Architecture, PackageArchitecture>,
 
-    pub dependencies: Option<Vec<PackageRelation>>,
+    pub dependencies: Option<Vec<RelationOrSoname>>,
     pub optional_dependencies: Option<Vec<OptionalDependency>>,
-    pub provides: Option<Vec<PackageRelation>>,
+    pub provides: Option<Vec<RelationOrSoname>>,
     pub conflicts: Option<Vec<PackageRelation>>,
     pub replaces: Option<Vec<PackageRelation>>,
 }
@@ -82,9 +82,9 @@ pub struct Package {
 /// present in [`Package::architecture_properties`].
 #[derive(Default, Debug, Clone)]
 pub struct PackageArchitecture {
-    pub dependencies: Option<Vec<PackageRelation>>,
+    pub dependencies: Option<Vec<RelationOrSoname>>,
     pub optional_dependencies: Option<Vec<OptionalDependency>>,
-    pub provides: Option<Vec<PackageRelation>>,
+    pub provides: Option<Vec<RelationOrSoname>>,
     pub conflicts: Option<Vec<PackageRelation>>,
     pub replaces: Option<Vec<PackageRelation>>,
 }

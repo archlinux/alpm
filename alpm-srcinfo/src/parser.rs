@@ -56,6 +56,8 @@ use winnow::{
     token::{take_till, take_until},
 };
 
+use crate::source_info::relation::RelationOrSoname;
+
 /// Recognizes the ` = ` delimiter between keywords.
 ///
 /// This function expects the delimiter to exist.
@@ -772,13 +774,15 @@ pub enum RelationKeyword {
 /// This only handles the shared package relations that can be used in both `pkgbase` and `pkgname`
 /// sections.
 /// `pkgbase` specific relations are explicitly handled in the [`RawPackageBase`] enum.
-/// See [alpm-package-relation] for further details on package relations.
+/// See [alpm-package-relation] for further details on package relations and [alpm-sonamev1] for
+/// information on _soname_ handling.
 /// [alpm-package-relation]: <https://alpm.archlinux.page/specifications/alpm-package-relation.7.html>
+/// [alpm-sonamev1]: <https://alpm.archlinux.page/specifications/alpm-sonamev1.7.html>
 #[derive(Debug)]
 pub enum RelationProperty {
-    Dependency(ArchProperty<PackageRelation>),
+    Dependency(ArchProperty<RelationOrSoname>),
     OptionalDependency(ArchProperty<OptionalDependency>),
-    Provides(ArchProperty<PackageRelation>),
+    Provides(ArchProperty<RelationOrSoname>),
     Conflicts(ArchProperty<PackageRelation>),
     Replaces(ArchProperty<PackageRelation>),
 }
@@ -802,10 +806,7 @@ impl RelationProperty {
 
         let property = match keyword {
             // Handle these together in a single blob as they all deserialize to the same base type.
-            RelationKeyword::Depends
-            | RelationKeyword::Provides
-            | RelationKeyword::Conflicts
-            | RelationKeyword::Replaces => {
+            RelationKeyword::Conflicts | RelationKeyword::Replaces => {
                 // Read and parse the generic architecture specific PackageRelation.
                 let value =
                     cut_err(till_line_end.try_map(PackageRelation::from_str)).parse_next(input)?;
@@ -816,9 +817,23 @@ impl RelationProperty {
 
                 // Now map the generic relation to the specific relation type.
                 match keyword {
-                    RelationKeyword::Depends => RelationProperty::Dependency(arch_property),
                     RelationKeyword::Replaces => RelationProperty::Replaces(arch_property),
                     RelationKeyword::Conflicts => RelationProperty::Conflicts(arch_property),
+                    _ => unreachable!(),
+                }
+            }
+            RelationKeyword::Depends | RelationKeyword::Provides => {
+                // Read and parse the generic architecture specific RelationOrSoname.
+                let value =
+                    cut_err(till_line_end.try_map(RelationOrSoname::from_str)).parse_next(input)?;
+                let arch_property = ArchProperty {
+                    architecture,
+                    value,
+                };
+
+                // Now map the generic relation to the specific relation type.
+                match keyword {
+                    RelationKeyword::Depends => RelationProperty::Dependency(arch_property),
                     RelationKeyword::Provides => RelationProperty::Provides(arch_property),
                     _ => unreachable!(),
                 }

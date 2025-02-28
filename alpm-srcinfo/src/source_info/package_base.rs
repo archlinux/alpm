@@ -29,6 +29,7 @@ use super::{
         unsafe_checksum,
     },
     package::PackageArchitecture,
+    relation::RelationOrSoname,
 };
 use crate::{
     error::{SourceInfoError, lint, unrecoverable},
@@ -69,9 +70,9 @@ pub struct PackageBase {
     pub architectures: HashSet<Architecture>,
     pub architecture_properties: HashMap<Architecture, PackageBaseArchitecture>,
 
-    pub dependencies: Vec<PackageRelation>,
+    pub dependencies: Vec<RelationOrSoname>,
     pub optional_dependencies: Vec<OptionalDependency>,
-    pub provides: Vec<PackageRelation>,
+    pub provides: Vec<RelationOrSoname>,
     pub conflicts: Vec<PackageRelation>,
     pub replaces: Vec<PackageRelation>,
     // The following dependencies are build-time specific dependencies.
@@ -97,9 +98,9 @@ pub struct PackageBase {
 /// [`PackageBaseArchitecture`] is present in [`PackageBase::architecture_properties`].
 #[derive(Default, Debug, Clone)]
 pub struct PackageBaseArchitecture {
-    pub dependencies: Vec<PackageRelation>,
+    pub dependencies: Vec<RelationOrSoname>,
     pub optional_dependencies: Vec<OptionalDependency>,
-    pub provides: Vec<PackageRelation>,
+    pub provides: Vec<RelationOrSoname>,
     pub conflicts: Vec<PackageRelation>,
     pub replaces: Vec<PackageRelation>,
     // The following dependencies are build-time specific dependencies.

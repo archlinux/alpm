@@ -21,6 +21,7 @@ use crate::{
 mod lints;
 pub mod package;
 pub mod package_base;
+pub mod relation;
 
 #[cfg(doc)]
 use crate::merged::MergedPackage;
