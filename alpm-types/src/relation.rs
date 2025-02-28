@@ -140,7 +140,7 @@ impl Display for VersionOrSoname {
 /// [PKGBUILD]: https://man.archlinux.org/man/PKGBUILD.5
 /// [SRCINFO]: https://alpm.archlinux.page/specifications/SRCINFO.5.html
 /// [PKGINFO]: https://alpm.archlinux.page/specifications/PKGINFO.5.html
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub enum SonameV1 {
     /// Basic representation of a _shared object_ file.
     ///

@@ -176,7 +176,7 @@ impl AsRef<str> for Name {
 ///
 /// This type wraps a [`Name`] and is used to represent the name of a shared object file
 /// that ends with the `.so` suffix.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct SharedObjectName(pub(crate) Name);
 
 impl SharedObjectName {

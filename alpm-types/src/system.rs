@@ -102,7 +102,7 @@ pub enum Architecture {
 /// ```
 ///
 /// [_ELF Header_]: https://en.wikipedia.org/wiki/Executable_and_Linkable_Format#ELF_header
-#[derive(Clone, Copy, Debug, Display, EnumString, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Display, EnumString, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 #[non_exhaustive]
 #[strum(serialize_all = "lowercase")]
 pub enum ElfArchitectureFormat {
