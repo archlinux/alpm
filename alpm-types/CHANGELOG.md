@@ -1,3 +1,150 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+## [0.5.0] - 2025-02-28
+
+### Added
+- Derive `serde::Serialize` for types related to `SonameV1`
+- *(types)* Implement SonameV2 type
+- *(types)* Implement SonameV1 type
+- *(types)* Use SourceUrl in Source type
+- *(types)* SourceUrl type
+- *(types)* Add winnow dependency
+- *(types)* Add SkippableChecksum type
+- *(alpm-types)* Use internal tagging for structural enums
+- *(types)* Rename BuildEnv -> BuildEnvironmentOption
+- *(types)* Support versioned optional dependencies
+- *(types)* Make all alpm-types serializable
+- *(types)* Implement OpenPGPIdentifier type
+- *(types)* Implement OpenPGPKeyId type
+- *(types)* Add i386 architecture
+- *(types)* Re-export Md5 digest and Digest trait
+- *(types)* Implement Changelog type
+- *(mtree)* Format subcommand and json serialization
+- *(types)* Use Display impl for Checksum Debug
+- *(types)* Implement ExtraData type
+- *(types)* Implement Install type
+- *(types)* Implement Backup and RelativePath types
+- *(types)* Implement Group type
+- *(types)* Implement OpenPGPv4Fingerprint type
+- *(types)* Implement Url type
+- *(types)* Implement PkgBase type
+- *(types)* Implement License type
+- *(alpm)* implement OptDepend type
+- *(types)* Implement PkgDesc type
+- Add `PackageRelation` to track alpm-package-relations
+- Implement `Display` for `VersionRequirement`
+- Sort `VersionComparison` variants based on length
+- Simplify `VersionComparison` by relying on strum
+- *(types)* Add regex_type to RegexDoesNotMatch Error
+- *(types)* Add value to RegexDoesNotMatch Error
+- *(alpm-types)* UTF-8 capable version segment iterator
+- *(parsers)* implement the custom INI parser
+
+### Fixed
+- [**breaking**] Adjust version handling for `VersionOrSoname` and `SonameV1`
+- *(types)* Use untagged enum for serialization
+- *(types)* Allow uppercase characters for package name
+- *(types)* Allow `0` as value for `Pkgrel`
+- *(alpm-types)* Make BuildTool version architecture optional
+- *(test)* allow underscore in build option
+- Adapt documentation links to workspace locations
+- Use automatic instead of bare links to documentation
+- Properly export macro to ensure visibility
+- Insert empty line after list in documentation
+
+### Other
+- *(url)* Simplify the FromStr implementation of SourceUrl
+- Consolidate keywords in the the `SEE ALSO` section
+- *(package-relation)* Update specification to include soname dependencies
+- *(types)* Add alpm-sonamev2 specification
+- *(types)* Add alpm-sonamev1 specification
+- Switch to rustfmt style edition 2024
+- *(cargo)* Declare `rust-version` in the workspace not per crate
+- Streamline wording around keyword assignments
+- Add specification for ALPM package source checksum
+- Add specification for ALPM package source
+- Extend package relations with architecture specific examples
+- Add specification for split packages
+- *(format)* Merge imports
+- *(types)* Rename MakePkgOption -> MakepkgOption
+- *(types)* Rename Pkgver -> PackageVersion
+- *(types)* Rename Pkgrel -> PackageRelease
+- *(types)* Rename OptDepend -> OptionalDependency
+- *(types)* Rename PkgType -> PackageType
+- *(types)* Rename PkgDesc -> PackageDescription
+- *(types)* Rename PkgBase -> PackageBaseName
+- *(types)* Rename StartDir -> StartDirectory
+- *(types)* Rename BuildDir -> BuildDirectory
+- *(package-relation)* Update specification about versioned optional dependencies
+- *(install)* Add specification for .INSTALL files
+- *(types)* Change Name::new parameter from String to &str
+- *(types)* Use consistent 'Errors' section in doc comments
+- *(types)* Avoid unwrapping in code examples
+- *(types)* Link to makepkg.conf manpage for MakePkgOption
+- *(types)* Add missing documentation
+- *(types)* Update the Checksum documentation
+- *(types)* Remove incomplete type examples from README.md
+- *(types)* Allow easier conversion from ParseIntError to alpm_types::Error
+- *(types)* Use consistent doctests and comments for path module
+- Add/ Update links to latest project documentation
+- Make strum a workspace dependency
+- *(alpm-types)* Document Version::from_str()
+- *(types)* Move Packager type to openpgp module
+- *(deps)* Move testresult to workspace dependencies
+- *(name)* implement AsRef<str> for Name
+- Add specification for package groups
+- Add specification for meta packages
+- *(types)* Use lowercase serialization for Architecture
+- *(types)* Add type aliases for checksum digests
+- *(types)* Provide a better API for creating package sources
+- *(types)* Derive `Copy` and `Eq` where possible
+- *(types)* Use consistent FromStr parameter
+- *(types)* Use consistent constructors
+- *(types)* Rename BuildToolVer to BuildToolVersion
+- *(types)* Add type aliases for AbsolutePath
+- *(types)* Add type aliases for MakePkgOption
+- *(types)* Add type aliases for i64
+- *(version)* Split buildtoolver tests
+- *(version)* Split version tests
+- *(version)* Split pkgrel tests
+- *(version)* Split pkgver tests
+- *(version)* Split version requirement tests
+- *(version)* Split version comparison tests
+- *(error)* remove MD5 checksum type
+- *(error)* use more generalized error types
+- *(error)* document the error variants
+- *(error)* add newline between variants
+- *(specification)* Add specification for package versions
+- *(specification)* Add specification for package names
+- *(specification)* Add specification for package relations
+- *(specification)* Add specification for architecture definitions
+- *(specification)* Add specification for comparison operators
+- *(pkgversion)* Simplify tests
+- *(alpm-types)* Pkgver comparison
+- *(alpm-types)* Merge Imports
+- Use strum macros via feature
+- *(alpmy-types)* Document the version cmp
+- *(workspace)* update deployed documentation links
+- *(workspace)* use shared workspace metadata
+- Add specification for `epoch` as `alpm-epoch`
+- Add specification for `pkgrel` as `alpm-pkgrel`
+- Add specification for `pkgver` as `alpm-pkgver`
+- *(workspace)* move more dependencies to workspace
+- Bump MSRV to 1.70.0
+- Unify and bump workspace dependencies
+- Do not run doc test for private method
+- Add cargo-machete metadata for md-5 crate
+- Apply rustfmt configuration to codebase
+- Adapt alpm-types cargo configuration to workspace
+- *(license)* Relicense project as Apache-2.0 OR MIT
+- Parse version number with differing components
 - - -
 ## 0.4.0 - 2023-11-17
 #### Bug Fixes
