@@ -21,18 +21,17 @@ use crate::{
     Name,
     PackageVersion,
     SharedObjectName,
-    Version,
     VersionComparison,
     VersionRequirement,
 };
 
-/// Provides either a [`Version`] or a [`SharedObjectName`].
+/// Provides either a [`PackageVersion`] or a [`SharedObjectName`].
 ///
 /// This enum is used when creating [`SonameV1`].
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum VersionOrSoname {
     /// A version for a [`SonameV1`].
-    Version(Version),
+    Version(PackageVersion),
 
     /// A soname for a [`SonameV1`].
     Soname(SharedObjectName),
@@ -47,10 +46,10 @@ impl FromStr for VersionOrSoname {
 }
 
 impl VersionOrSoname {
-    /// Recognizes a [`Version`] or [`SharedObjectName`] in a string slice.
+    /// Recognizes a [`PackageVersion`] or [`SharedObjectName`] in a string slice.
     ///
     /// First attempts to recognize a [`SharedObjectName`] and if that fails, falls back to
-    /// recognizing a [`Version`].
+    /// recognizing a [`PackageVersion`].
     pub fn parser(input: &mut &str) -> ModalResult<Self> {
         // In the following, we're doing our own `alt` implementation.
         // The reason for this is that we build our type parsers so that they throw errors
@@ -63,7 +62,7 @@ impl VersionOrSoname {
         }
 
         input.reset(&checkpoint);
-        let version_result = rest.try_map(Version::from_str).parse_next(input);
+        let version_result = rest.try_map(PackageVersion::from_str).parse_next(input);
         if version_result.is_ok() {
             let version = version_result?;
             return Ok(VersionOrSoname::Version(version));
@@ -88,10 +87,8 @@ impl Display for VersionOrSoname {
 
 /// Representation of [soname] data of a shared object based on the [alpm-sonamev1] specification.
 ///
-/// Soname data may be used as package relation of type provision and runtime dependency.
-/// The data consists of the shared object file `name` (a [`Name`]), and the optional `version` (a
-/// [`Version`]) and `architecture` (an [`ElfArchitectureFormat`]).
-///
+/// Soname data may be used as [alpm-package-relation] of type _provision_ and _run-time
+/// dependency_.
 /// This type distinguishes between three forms: _basic_, _unversioned_ and _explicit_.
 ///
 /// - [`SonameV1::Basic`] is used when only the `name` of a _shared object_ file is used. This form
@@ -136,6 +133,7 @@ impl Display for VersionOrSoname {
 /// # }
 /// ```
 ///
+/// [alpm-package-relation]: https://alpm.archlinux.page/specifications/alpm-package-relation.7.html
 /// [alpm-sonamev1]: https://alpm.archlinux.page/specifications/alpm-sonamev1.7.html
 /// [ELF]: https://en.wikipedia.org/wiki/Executable_and_Linkable_Format
 /// [soname]: https://en.wikipedia.org/wiki/Soname
@@ -227,8 +225,8 @@ pub enum SonameV1 {
     Explicit {
         /// The least specific name of the shared object file.
         name: SharedObjectName,
-        /// Version.
-        version: Version,
+        /// The version of the shared object file (as exposed in its _soname_ data).
+        version: PackageVersion,
         /// The ELF architecture format of the shared object file.
         architecture: ElfArchitectureFormat,
     },
@@ -1226,9 +1224,9 @@ mod tests {
             SharedObjectName::new("otherlibexample.so").unwrap())
     )]
     #[case(
-        "5:1.0.0-2",
+        "1.0.0",
         VersionOrSoname::Version(
-            Version::from_str("5:1.0.0-2").unwrap())
+            PackageVersion::from_str("1.0.0").unwrap())
     )]
     fn version_or_soname_from_string(
         #[case] input: &str,
