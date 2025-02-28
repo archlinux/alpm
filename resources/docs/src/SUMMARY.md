@@ -32,6 +32,7 @@
   - [alpm-comparison](./specifications/alpm-comparison.7.md)
   - [alpm-epoch](./specifications/alpm-epoch.7.md)
   - [alpm-meta-package](./specifications/alpm-meta-package.7.md)
+  - [alpm-package](./specifications/alpm-package.7.md)
   - [alpm-package-group](./specifications/alpm-package-group.7.md)
   - [alpm-package-name](./specifications/alpm-package-name.7.md)
   - [alpm-package-relation](./specifications/alpm-package-relation.7.md)
