@@ -15,7 +15,7 @@ use crate::{cmd::ensure_success, ui::get_progress_bar};
 
 const PKGBASE_MAINTAINER_URL: &str = "https://archlinux.org/packages/pkgbase-maintainer";
 const SSH_HOST: &str = "git@gitlab.archlinux.org";
-const SSH_BASE_URL: &str = "git@gitlab.archlinux.org:archlinux/packaging/packages";
+const REPO_BASE_URL: &str = "archlinux/packaging/packages";
 
 /// This struct is the entry point for downloading package source repositories from ArchLinux's
 /// Gitlab.
@@ -36,6 +36,7 @@ impl PkgSrcDownloader {
             .context("Failed to query pkgbase url.")?
             .json::<HashMap<String, Vec<String>>>()
             .context("Failed to deserialize archweb pkglist.")?;
+
         let all_repo_names: Vec<String> = repos.keys().map(String::from).collect();
         info!("Found {} official packages.", all_repo_names.len());
 
@@ -199,7 +200,8 @@ fn update_repo(repo: &str, target_dir: &Path) -> Result<(), RepoUpdateError> {
 
 /// Clone a git repository into a target directory.
 fn clone_repo(repo: &str, target_dir: &Path) -> Result<(), RepoUpdateError> {
-    let ssh_url = format!("{SSH_HOST}{SSH_BASE_URL}/{repo}.git");
+    let ssh_url = format!("{SSH_HOST}:{REPO_BASE_URL}/{repo}.git");
+
     let output = &Command::new("git")
         .arg("clone")
         .arg(&ssh_url)
