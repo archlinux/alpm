@@ -8,15 +8,7 @@ version = 2
 yanked = "deny"
 
 [licenses]
-allow = [
-    "Apache-2.0",
-    "BSD-3-Clause",
-    "ISC",
-    "MIT",
-    "MPL-2.0",
-    "OpenSSL",
-    "Unicode-3.0",
-]
+allow = ["Apache-2.0", "BSD-3-Clause", "ISC", "MIT", "MPL-2.0", "Unicode-3.0"]
 version = 2
 
 [[licenses.clarify]]
