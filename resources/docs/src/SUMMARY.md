@@ -5,11 +5,16 @@
 # Components
 
 - [alpm-buildinfo](./alpm-buildinfo/README.md)
+  - [CHANGELOG](./alpm-buildinfo/CHANGELOG.md)
 - [alpm-mtree](./alpm-mtree/README.md)
+  - [CHANGELOG](./alpm-mtree/CHANGELOG.md)
 - [alpm-parsers](./alpm-parsers/README.md)
+  - [CHANGELOG](./alpm-parsers/CHANGELOG.md)
 - [alpm-pkginfo](./alpm-pkginfo/README.md)
+  - [CHANGELOG](./alpm-pkginfo/CHANGELOG.md)
 - [alpm-srcinfo](./alpm-srcinfo/README.md)
   - [ARCHITECTURE](./alpm-srcinfo/ARCHITECTURE.md)
+  - [CHANGELOG](./alpm-srcinfo/CHANGELOG.md)
 - [alpm-types](./alpm-types/README.md)
   - [CHANGELOG](./alpm-types/CHANGELOG.md)
 
