@@ -1,16 +1,17 @@
 [package]
-name = "dev-scripts"
-version = "0.0.0"
+authors.workspace = true
+description = "Development integration for testing and interacting with ALPM"
+edition.workspace = true
 homepage.workspace = true
-repository.workspace = true
 keywords.workspace = true
 license.workspace = true
-readme = "README.md"
-edition.workspace = true
-authors.workspace = true
-
+name = "dev-scripts"
 # This is a development crate. Never publish it.
 publish = false
+readme = "README.md"
+repository.workspace = true
+rust-version.workspace = true
+version = "0.0.0"
 
 [dependencies]
 alpm-buildinfo = { path = "../alpm-buildinfo" }
