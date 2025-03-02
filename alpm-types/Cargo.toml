@@ -1,16 +1,15 @@
 [package]
-name = "alpm-types"
-description = "Types for Arch Linux Package Management"
-version = "0.5.0"
-
 authors.workspace = true
+description = "Types for Arch Linux Package Management"
 edition.workspace = true
 homepage.workspace = true
 keywords.workspace = true
 license.workspace = true
+name = "alpm-types"
 readme = "README.md"
 repository.workspace = true
 rust-version.workspace = true
+version = "0.5.0"
 
 [features]
 winnow-debug = ["winnow/debug"]

@@ -1,16 +1,15 @@
 [package]
-name = "alpm-parsers"
-description = "Various parsers for parsing Arch Linux package formats"
-version = "0.1.0"
-
 authors.workspace = true
+description = "Various parsers for parsing Arch Linux package formats"
 edition.workspace = true
 homepage.workspace = true
 keywords.workspace = true
 license.workspace = true
+name = "alpm-parsers"
 readme = "README.md"
 repository.workspace = true
 rust-version.workspace = true
+version = "0.1.0"
 
 [features]
 winnow-debug = ["winnow/debug"]
