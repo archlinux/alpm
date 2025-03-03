@@ -19,6 +19,7 @@ members = [
     "alpm-package",
     "alpm-parsers",
     "alpm-pkginfo",
+    "alpm-soname-lookup",
     "alpm-srcinfo",
     "alpm-types",
     "dev-scripts",
