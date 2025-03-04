@@ -107,8 +107,8 @@ pub enum Error {
     InvalidSonameV1(&'static str),
 }
 
-/// Convert a `std::num::ParseIntError` into a `Error::InvalidInteger`
 impl From<std::num::ParseIntError> for crate::error::Error {
+    /// Converts a [`std::num::ParseIntError`] into an [`Error::InvalidInteger`].
     fn from(e: std::num::ParseIntError) -> Self {
         Self::InvalidInteger {
             kind: e.kind().clone(),
@@ -119,7 +119,7 @@ impl From<std::num::ParseIntError> for crate::error::Error {
 impl<'a> From<winnow::error::ParseError<&'a str, winnow::error::ContextError>>
     for crate::error::Error
 {
-    /// Converts a [`winnow::error::ContextError`] into an [`Error::ParseError`].
+    /// Converts a [`winnow::error::ParseError`] into an [`Error::ParseError`].
     fn from(value: winnow::error::ParseError<&'a str, winnow::error::ContextError>) -> Self {
         Self::ParseError(value.to_string())
     }
