@@ -76,7 +76,8 @@ This **package relation** specifies a requirement (another package with optional
 The value for an optional dependency can be one of the following:
 
 1. An **alpm-package-name** (e.g., `example`) or an **alpm-comparison** (e.g., `example>=1.2.3`)
-2. An **alpm-package-name** or **alpm-comparison** followed by a `:` sign, a whitespace, and a UTF-8-formatted description string that specifies the reason for the optional dependency (e.g., `example: for feature X` or `example>=1.2.3: for feature X`)
+2. An **alpm-package-name** or **alpm-comparison** followed by a `:` sign, a whitespace, and a UTF-8-formatted description string that specifies the reason for the optional dependency (e.g., `example: for feature X` or `example>=1.2.3: for feature X`).
+   Note that newline (`\n`) and carriage return (`\r`) control characters are not allowed in the description string.
 
 - In **PKGBUILD** files zero or more optional dependencies of a package are specified using the **optdepends** array.
   Architecture-specific optional dependencies may be specified using an array named 'optdepends', directly followed by an '_' sign, directly followed by an **alpm-architecture** (all **alpm-architectures** except `any` can be used), e.g. `optdepends_aarch64`.
