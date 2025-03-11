@@ -14,6 +14,13 @@ pub enum Error {
     #[error("I/O error at path {0:?} while {1}:\n{2}")]
     IoPathError(PathBuf, &'static str, std::io::Error),
 
+    /// I/O error while reading a buffer.
+    #[error("Read error while {context}:\n{source}")]
+    IoReadError {
+        context: &'static str,
+        source: std::io::Error,
+    },
+
     /// UTF-8 parse error
     #[error(transparent)]
     InvalidUTF8(#[from] FromUtf8Error),

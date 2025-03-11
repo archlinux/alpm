@@ -1,7 +1,7 @@
 #![doc = include_str!("../README.md")]
 
 mod build_info;
-pub use crate::build_info::{v1::BuildInfoV1, v2::BuildInfoV2};
+pub use crate::build_info::{BuildInfo, v1::BuildInfoV1, v2::BuildInfoV2};
 
 /// Commandline argument handling. This is most likely not interesting for you.
 #[cfg(feature = "cli")]
