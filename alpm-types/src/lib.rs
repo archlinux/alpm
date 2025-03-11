@@ -92,3 +92,8 @@ pub use version::{
     VersionComparison,
     VersionRequirement,
 };
+
+/// Public re-exports for use with [`SchemaVersion`].
+pub mod semver_version {
+    pub use semver::Version;
+}
