@@ -22,7 +22,7 @@ use alpm_types::{
 };
 use serde_with::{DisplayFromStr, serde_as};
 
-use crate::{Error, Schema, buildinfo_v1::generate_buildinfo};
+use crate::{Error, Schema, build_info::v1::generate_buildinfo};
 
 generate_buildinfo! {
     /// BUILDINFO version 2
