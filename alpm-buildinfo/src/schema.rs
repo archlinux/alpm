@@ -5,7 +5,7 @@ use std::{
 };
 
 use alpm_parsers::custom_ini::parser::Item;
-use alpm_types::SchemaVersion;
+use alpm_types::{SchemaVersion, semver_version::Version};
 
 use crate::Error;
 
@@ -43,17 +43,9 @@ impl Schema {
 }
 
 impl Default for Schema {
-    /// Returns the default schema version which is V1
-    ///
-    /// # Panics
-    ///
-    /// Panics if the default schema version cannot be created.
-    /// This should not happen normally.
+    /// Returns the default [`Schema`] variant ([`Schema::V2`])
     fn default() -> Self {
-        match SchemaVersion::from_str("1") {
-            Ok(v) => Schema::V1(v),
-            Err(e) => panic!("failed to create default schema: {e}"),
-        }
+        Self::V2(SchemaVersion::new(Version::new(2, 0, 0)))
     }
 }
 

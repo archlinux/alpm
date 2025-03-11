@@ -1,7 +1,7 @@
 use std::{str::FromStr, thread};
 
 use alpm_buildinfo::{BuildInfoV1, BuildInfoV2, Schema};
-use alpm_types::SchemaVersion;
+use alpm_types::{SchemaVersion, semver_version::Version};
 use assert_cmd::Command;
 use insta::assert_snapshot;
 use rstest::rstest;
@@ -134,7 +134,7 @@ fn format_buildinfo_and_serialize_as_json(#[case] data: &str) -> TestResult {
 #[rstest]
 #[case::buildinfov1_all_fields(
     BuildInfoInput {
-        format: Schema::default(),
+        format: Schema::V1(SchemaVersion::new(Version::new(1, 0, 0))),
         builddate: Some("1".to_string()),
         builddir: Some("/build".to_string()),
         buildenv: Some(vec!["foo".to_string(), "bar".to_string()]),
@@ -153,7 +153,7 @@ fn format_buildinfo_and_serialize_as_json(#[case] data: &str) -> TestResult {
 )]
 #[case::buildinfov1_optional_fields(
     BuildInfoInput {
-        format: Schema::default(),
+        format: Schema::V1(SchemaVersion::new(Version::new(1, 0, 0))),
         builddate: Some("1".to_string()),
         builddir: Some("/build".to_string()),
         buildenv: None,
@@ -172,7 +172,7 @@ fn format_buildinfo_and_serialize_as_json(#[case] data: &str) -> TestResult {
 )]
 #[case::buildinfov2_all_fields(
     BuildInfoInput {
-        format: Schema::V2(SchemaVersion::from_str("2").unwrap()),
+        format: Schema::V2(SchemaVersion::new(Version::new(2, 0, 0))),
         builddate: Some("1".to_string()),
         builddir: Some("/build".to_string()),
         buildenv: Some(vec!["foo".to_string(), "bar".to_string()]),
@@ -191,7 +191,7 @@ fn format_buildinfo_and_serialize_as_json(#[case] data: &str) -> TestResult {
 )]
 #[case::buildinfov2_optional_fields(
     BuildInfoInput {
-        format: Schema::V2(SchemaVersion::from_str("2").unwrap()),
+        format: Schema::V2(SchemaVersion::new(Version::new(2, 0, 0))),
         builddate: Some("1".to_string()),
         builddir: Some("/build".to_string()),
         buildenv: None,
@@ -215,7 +215,7 @@ fn write_buildinfo_via_env(#[case] buildinfo_input: BuildInfoInput) -> TestResul
 #[rstest]
 #[case::buildinfov1_all_fields(
     BuildInfoInput {
-        format: Schema::default(),
+        format: Schema::V1(SchemaVersion::new(Version::new(1, 0, 0))),
         builddate: Some("1".to_string()),
         builddir: Some("/build".to_string()),
         buildenv: Some(vec!["foo".to_string(), "bar".to_string()]),
@@ -234,7 +234,7 @@ fn write_buildinfo_via_env(#[case] buildinfo_input: BuildInfoInput) -> TestResul
 )]
 #[case::buildinfov1_optional_fields(
     BuildInfoInput {
-        format: Schema::default(),
+        format: Schema::V1(SchemaVersion::new(Version::new(1, 0, 0))),
         builddate: Some("1".to_string()),
         builddir: Some("/build".to_string()),
         buildenv: None,
@@ -253,7 +253,7 @@ fn write_buildinfo_via_env(#[case] buildinfo_input: BuildInfoInput) -> TestResul
 )]
 #[case::buildinfov2_all_fields(
     BuildInfoInput {
-        format: Schema::V2(SchemaVersion::from_str("2").unwrap()),
+        format: Schema::V2(SchemaVersion::new(Version::new(2, 0, 0))),
         builddate: Some("1".to_string()),
         builddir: Some("/build".to_string()),
         buildenv: Some(vec!["foo".to_string(), "bar".to_string()]),
@@ -272,7 +272,7 @@ fn write_buildinfo_via_env(#[case] buildinfo_input: BuildInfoInput) -> TestResul
 )]
 #[case::buildinfov2_optional_fields(
     BuildInfoInput {
-        format: Schema::V2(SchemaVersion::from_str("2").unwrap()),
+        format: Schema::V2(SchemaVersion::new(Version::new(2, 0, 0))),
         builddate: Some("1".to_string()),
         builddir: Some("/build".to_string()),
         buildenv: None,
