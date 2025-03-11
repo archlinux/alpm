@@ -34,7 +34,6 @@ dependencies = [
  "alpm-types",
  "assert_cmd",
  "clap",
- "erased-serde",
  "insta",
  "rstest",
  "serde",

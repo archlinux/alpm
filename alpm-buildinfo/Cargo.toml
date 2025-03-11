@@ -25,7 +25,6 @@ winnow-debug = ["alpm-parsers/winnow-debug"]
 alpm-parsers.workspace = true
 alpm-types.workspace = true
 clap = { workspace = true, optional = true }
-erased-serde.workspace = true
 serde.workspace = true
 serde_json = "1.0.133"
 serde_with = "3.11.0"

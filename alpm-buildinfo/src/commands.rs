@@ -6,9 +6,9 @@ use std::{
 };
 
 use alpm_types::{SchemaVersion, Sha256Checksum};
-use erased_serde::Serialize;
 
 use crate::{
+    BuildInfo,
     BuildInfoV1,
     BuildInfoV2,
     cli::{CreateCommand, OutputFormat, ValidateArgs},
@@ -90,7 +90,7 @@ pub fn create_file(command: CreateCommand) -> Result<(), Error> {
 /// See [`IsTerminal`] for more information about how terminal detection works.
 ///
 /// [`IsTerminal`]: https://doc.rust-lang.org/stable/std/io/trait.IsTerminal.html
-pub fn parse(args: ValidateArgs) -> Result<Box<dyn Serialize>, Error> {
+pub fn parse(args: ValidateArgs) -> Result<BuildInfo, Error> {
     let contents = if let Some(file) = &args.file {
         read_to_string(file)
             .map_err(|e| Error::IoPathError(file.clone(), "reading file contents", e))?
@@ -110,15 +110,12 @@ pub fn parse(args: ValidateArgs) -> Result<Box<dyn Serialize>, Error> {
     // If no explicit schema version is provided, the version will be deduced from the contents of
     // the file itself. If the file does not contain a version, an error will be returned.
     let schema = if let Some(schema) = args.schema {
-        schema.clone()
+        schema
     } else {
         Schema::from_contents(&contents)?
     };
 
-    match schema {
-        Schema::V1(_) => Ok(Box::new(BuildInfoV1::from_str(&contents)?)),
-        Schema::V2(_) => Ok(Box::new(BuildInfoV2::from_str(&contents)?)),
-    }
+    BuildInfo::from_str_with_schema(&contents, schema)
 }
 
 /// Validate a file according to a BUILDINFO schema.
