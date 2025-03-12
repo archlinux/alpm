@@ -13,6 +13,7 @@ pub struct Cli {
 #[derive(Clone, Debug, Default, ValueEnum, strum::Display)]
 pub enum OutputFormat {
     #[default]
+    #[strum(serialize = "json")]
     Json,
 }
 
