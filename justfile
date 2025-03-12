@@ -366,7 +366,7 @@ generate-manpages-and-specs:
     just generate specifications alpm-srcinfo
     just generate specifications alpm-types
 
-# Generates all manpages and specifications
+# Generates shell completions
 generate-completions:
     just generate shell_completions alpm-buildinfo
     just generate shell_completions alpm-mtree
