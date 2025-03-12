@@ -129,6 +129,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "alpm-state-repo"
+version = "0.1.0"
+
+[[package]]
 name = "alpm-types"
 version = "0.5.0"
 dependencies = [

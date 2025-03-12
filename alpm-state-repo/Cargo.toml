@@ -1,0 +1,14 @@
+[package]
+authors.workspace = true
+description = "Library for ALPM package repository state"
+edition.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+license.workspace = true
+name = "alpm-state-repo"
+readme.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+version = "0.1.0"
+
+[dependencies]
