@@ -35,6 +35,7 @@ This **alpm-package-version** form is used in various scenarios, such as:
 - **pkgver** in **PKGINFO** files
 - as part of **buildtoolver** in **BUILDINFOv2** files
 - as part of **installed** in **BUILDINFO** files
+- as part of the **alpm-state-repo** contents
 
 ## Minimal
 
