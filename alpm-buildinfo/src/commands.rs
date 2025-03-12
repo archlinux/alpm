@@ -5,6 +5,7 @@ use std::{
     str::FromStr,
 };
 
+use alpm_common::FileFormatSchema;
 use alpm_types::{SchemaVersion, Sha256Checksum};
 
 use crate::{
@@ -112,7 +113,7 @@ pub fn parse(args: ValidateArgs) -> Result<BuildInfo, Error> {
     let schema = if let Some(schema) = args.schema {
         schema
     } else {
-        BuildInfoSchema::from_contents(&contents)?
+        BuildInfoSchema::derive_from_str(&contents)?
     };
 
     BuildInfo::from_str_with_schema(&contents, schema)

@@ -3,6 +3,7 @@ use std::{
     str::FromStr,
 };
 
+use alpm_common::FileFormatSchema;
 use alpm_types::{
     Architecture,
     BuildDate,

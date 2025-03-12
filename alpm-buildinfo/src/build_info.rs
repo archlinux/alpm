@@ -10,6 +10,8 @@ use std::{
     str::FromStr,
 };
 
+use alpm_common::FileFormatSchema;
+
 use crate::{BuildInfoSchema, BuildInfoV1, BuildInfoV2, Error};
 
 /// A representation of the [BUILDINFO] file format.
@@ -247,7 +249,7 @@ impl FromStr for BuildInfo {
     /// - a [`BuildInfoSchema`] cannot be derived from `s`,
     /// - or the detected variant of [`BuildInfo`] cannot be constructed from `s`.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match BuildInfoSchema::from_contents(s)? {
+        match BuildInfoSchema::derive_from_str(s)? {
             BuildInfoSchema::V1(_) => Ok(BuildInfo::V1(BuildInfoV1::from_str(s)?)),
             BuildInfoSchema::V2(_) => Ok(BuildInfo::V2(BuildInfoV2::from_str(s)?)),
         }
