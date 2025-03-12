@@ -112,7 +112,7 @@ usr/share/example/data.txt
 
 # SEE ALSO
 
-**bzip2**(1), **compress**(1), **gzip**(1), **lrzip**(1), **lz4**(1), **lzip**(1), **lzop**(1), **pkgctl**(1), **tar**(1), **xz**(1), **zstd**(1), **ALPM-MTREE**(5), **BUILDINFO**(5), **PKGBUILD**(5), **PKGINFO**(5), **makepkg.conf**(5), **SRCINFO**(7), **alpm-architecture**(7), **alpm-install-scriptlet**(7), **alpm-meta-package**(7), **alpm-package-name**(7), **alpm-package-name**(7), **alpm-package-relation**(7), **alpm-package-version**(7), **alpm-split-package**(7), **devtools**(7), **makepkg**(8), **pacman**(8)
+**bzip2**(1), **compress**(1), **gzip**(1), **lrzip**(1), **lz4**(1), **lzip**(1), **lzop**(1), **pkgctl**(1), **tar**(1), **xz**(1), **zstd**(1), **ALPM-MTREE**(5), **BUILDINFO**(5), **PKGBUILD**(5), **PKGINFO**(5), **makepkg.conf**(5), **SRCINFO**(7), **alpm-architecture**(7), **alpm-install-scriptlet**(7), **alpm-meta-package**(7), **alpm-package-name**(7), **alpm-package-relation**(7), **alpm-package-version**(7), **alpm-split-package**(7), **devtools**(7), **makepkg**(8), **pacman**(8)
 
 # NOTES
 
