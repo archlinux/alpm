@@ -1,11 +1,10 @@
 use std::{
-    fs::{File, create_dir_all, read_to_string},
-    io::{self, IsTerminal, Read, Write},
-    path::PathBuf,
+    fs::{File, create_dir_all},
+    io::{self, IsTerminal, Write},
     str::FromStr,
 };
 
-use alpm_common::FileFormatSchema;
+use alpm_common::MetadataFile;
 use alpm_types::{SchemaVersion, Sha256Checksum};
 
 use crate::{
@@ -14,7 +13,6 @@ use crate::{
     BuildInfoV2,
     cli::{CreateCommand, OutputFormat, ValidateArgs},
     error::Error,
-    schema::BuildInfoSchema,
 };
 
 /// Create a file according to a BUILDINFO schema
@@ -92,31 +90,13 @@ pub fn create_file(command: CreateCommand) -> Result<(), Error> {
 ///
 /// [`IsTerminal`]: https://doc.rust-lang.org/stable/std/io/trait.IsTerminal.html
 pub fn parse(args: ValidateArgs) -> Result<BuildInfo, Error> {
-    let contents = if let Some(file) = &args.file {
-        read_to_string(file)
-            .map_err(|e| Error::IoPathError(file.clone(), "reading file contents", e))?
+    if let Some(file) = &args.file {
+        BuildInfo::from_file_with_schema(file, args.schema)
     } else if !io::stdin().is_terminal() {
-        let mut buffer = Vec::new();
-        let mut stdin = io::stdin();
-        stdin.read_to_end(&mut buffer).map_err(|e| {
-            Error::IoPathError(PathBuf::from("/dev/stdin"), "reading from stdin", e)
-        })?;
-
-        String::from_utf8(buffer)?.to_string()
+        BuildInfo::from_stdin_with_schema(args.schema)
     } else {
         return Err(Error::NoInputFile);
-    };
-
-    // Determine the schema that should be used to validate the file.
-    // If no explicit schema version is provided, the version will be deduced from the contents of
-    // the file itself. If the file does not contain a version, an error will be returned.
-    let schema = if let Some(schema) = args.schema {
-        schema
-    } else {
-        BuildInfoSchema::derive_from_str(&contents)?
-    };
-
-    BuildInfo::from_str_with_schema(&contents, schema)
+    }
 }
 
 /// Validate a file according to a BUILDINFO schema.

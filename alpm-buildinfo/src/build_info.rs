@@ -5,12 +5,11 @@ pub mod v2;
 use std::{
     fmt::Display,
     fs::File,
-    io::stdin,
     path::{Path, PathBuf},
     str::FromStr,
 };
 
-use alpm_common::FileFormatSchema;
+use alpm_common::{FileFormatSchema, MetadataFile};
 
 use crate::{BuildInfoSchema, BuildInfoV1, BuildInfoV2, Error};
 
@@ -26,22 +25,30 @@ pub enum BuildInfo {
     V2(BuildInfoV2),
 }
 
-impl BuildInfo {
-    /// Creates a [`BuildInfo`] from `file`.
+impl MetadataFile<BuildInfoSchema> for BuildInfo {
+    type Err = Error;
+
+    /// Creates a [`BuildInfo`] from `file`, optionally validated using a [`BuildInfoSchema`].
     ///
-    /// Optionally, `schema` is used to validate the created [`BuildInfo`] variant.
+    /// Opens the `file` and defers to [`BuildInfo::from_reader_with_schema`].
+    ///
+    /// # Note
+    ///
+    /// To automatically derive the [`BuildInfoSchema`], use [`BuildInfo::from_file`].
     ///
     /// # Examples
     ///
     /// ```
     /// use std::{fs::File, io::Write};
     ///
-    /// use alpm_buildinfo::BuildInfo;
-    /// use tempfile::NamedTempFile;
+    /// use alpm_buildinfo::{BuildInfo, BuildInfoSchema};
+    /// use alpm_common::{FileFormatSchema, MetadataFile};
+    /// use alpm_types::{SchemaVersion, semver_version::Version};
     ///
     /// # fn main() -> testresult::TestResult {
     /// // Prepare a file with BUILDINFO data
-    /// let buildinfo_data = r#"format = 1
+    /// let (file, buildinfo_data) = {
+    ///     let buildinfo_data = r#"format = 2
     /// pkgname = foo
     /// pkgbase = foo
     /// pkgver = 1:1.0.0-1
@@ -50,15 +57,25 @@ impl BuildInfo {
     /// packager = Foobar McFooface <foobar@mcfooface.org>
     /// builddate = 1
     /// builddir = /build
+    /// startdir = /startdir/
+    /// buildtool = devtools
+    /// buildtoolver = 1:1.2.1-1-any
     /// buildenv = envfoo
     /// options = some_option
     /// installed = bar-1.2.3-1-any
     /// "#;
-    /// let buildinfo_file = NamedTempFile::new()?;
-    /// let mut output = File::create(&buildinfo_file)?;
-    /// write!(output, "{}", buildinfo_data)?;
+    ///     let file = tempfile::NamedTempFile::new()?;
+    ///     let mut output = File::create(&file)?;
+    ///     write!(output, "{}", buildinfo_data)?;
+    ///     (file, buildinfo_data)
+    /// };
     ///
-    /// let buildinfo = BuildInfo::from_file(buildinfo_file.path(), None)?;
+    /// let buildinfo = BuildInfo::from_file_with_schema(
+    ///     file.path(),
+    ///     Some(BuildInfoSchema::V2(SchemaVersion::new(Version::new(
+    ///         2, 0, 0,
+    ///     )))),
+    /// )?;
     /// assert_eq!(buildinfo.to_string(), buildinfo_data);
     /// # Ok(())
     /// # }
@@ -68,13 +85,14 @@ impl BuildInfo {
     ///
     /// Returns an error if
     /// - the `file` cannot be opened for reading,
-    /// - or no variant of [`BuildInfo`] can be constructed from the contents of `file`.
-    pub fn from_file(
+    /// - no variant of [`BuildInfo`] can be constructed from the contents of `file`,
+    /// - or `schema` is [`Some`] and the [`BuildInfoSchema`] does not match the contents of `file`.
+    fn from_file_with_schema(
         file: impl AsRef<Path>,
         schema: Option<BuildInfoSchema>,
     ) -> Result<Self, Error> {
         let file = file.as_ref();
-        Self::from_reader(
+        Self::from_reader_with_schema(
             File::open(file).map_err(|source| {
                 Error::IoPathError(PathBuf::from(file), "opening the file for reading", source)
             })?,
@@ -82,33 +100,27 @@ impl BuildInfo {
         )
     }
 
-    /// Creates a [`BuildInfo`] from stdin.
+    /// Creates a [`BuildInfo`] from a `reader`, optionally validated using a [`BuildInfoSchema`].
     ///
-    /// Optionally, `schema` is used to validate the created [`BuildInfo`] variant.
+    /// Reads the `reader` to string and defers to [`BuildInfo::from_str_with_schema`].
     ///
-    /// # Errors
+    /// # Note
     ///
-    /// Returns an error if no variant of [`BuildInfo`] can be constructed from the contents of
-    /// stdin.
-    pub fn from_stdin(schema: Option<BuildInfoSchema>) -> Result<Self, Error> {
-        Self::from_reader(stdin(), schema)
-    }
-
-    /// Creates a [`BuildInfo`] from a `reader`.
-    ///
-    /// Optionally, `schema` is used to validate the created [`BuildInfo`] variant.
+    /// To automatically derive the [`BuildInfoSchema`], use [`BuildInfo::from_reader`].
     ///
     /// # Examples
     ///
     /// ```
     /// use std::{fs::File, io::Write};
     ///
-    /// use alpm_buildinfo::BuildInfo;
-    /// use tempfile::NamedTempFile;
+    /// use alpm_buildinfo::{BuildInfo, BuildInfoSchema};
+    /// use alpm_common::MetadataFile;
+    /// use alpm_types::{SchemaVersion, semver_version::Version};
     ///
     /// # fn main() -> testresult::TestResult {
-    /// // Prepare a file with BUILDINFO data
-    /// let buildinfo_data = r#"format = 1
+    /// // Prepare a reader with BUILDINFO data
+    /// let (reader, buildinfo_data) = {
+    ///     let buildinfo_data = r#"format = 2
     /// pkgname = foo
     /// pkgbase = foo
     /// pkgver = 1:1.0.0-1
@@ -117,17 +129,25 @@ impl BuildInfo {
     /// packager = Foobar McFooface <foobar@mcfooface.org>
     /// builddate = 1
     /// builddir = /build
+    /// startdir = /startdir/
+    /// buildtool = devtools
+    /// buildtoolver = 1:1.2.1-1-any
     /// buildenv = envfoo
     /// options = some_option
     /// installed = bar-1.2.3-1-any
     /// "#;
-    /// let buildinfo_file = NamedTempFile::new()?;
-    /// let mut output = File::create(&buildinfo_file)?;
-    /// write!(output, "{}", buildinfo_data)?;
+    ///     let buildinfo_file = tempfile::NamedTempFile::new()?;
+    ///     let mut output = File::create(&buildinfo_file)?;
+    ///     write!(output, "{}", buildinfo_data)?;
+    ///     (File::open(&buildinfo_file.path())?, buildinfo_data)
+    /// };
     ///
-    /// // Prepare a reader with the BUILDINFO data and read it
-    /// let file = File::open(&buildinfo_file.path())?;
-    /// let buildinfo = BuildInfo::from_reader(file, None)?;
+    /// let buildinfo = BuildInfo::from_reader_with_schema(
+    ///     reader,
+    ///     Some(BuildInfoSchema::V2(SchemaVersion::new(Version::new(
+    ///         2, 0, 0,
+    ///     )))),
+    /// )?;
     /// assert_eq!(buildinfo.to_string(), buildinfo_data);
     /// # Ok(())
     /// # }
@@ -137,8 +157,10 @@ impl BuildInfo {
     ///
     /// Returns an error if
     /// - the `reader` cannot be read to string,
-    /// - or no variant of [`BuildInfo`] can be constructed from the contents of the `reader`.
-    pub fn from_reader(
+    /// - no variant of [`BuildInfo`] can be constructed from the contents of the `reader`,
+    /// - or `schema` is [`Some`] and the [`BuildInfoSchema`] does not match the contents of the
+    ///   `reader`.
+    fn from_reader_with_schema(
         mut reader: impl std::io::Read,
         schema: Option<BuildInfoSchema>,
     ) -> Result<Self, Error> {
@@ -149,17 +171,17 @@ impl BuildInfo {
                 context: "reading BuildInfo data",
                 source,
             })?;
-
-        if let Some(schema) = schema {
-            Self::from_str_with_schema(&buf, schema)
-        } else {
-            Self::from_str(&buf)
-        }
+        Self::from_str_with_schema(&buf, schema)
     }
 
-    /// Creates a [`BuildInfo`] from string slice.
+    /// Creates a [`BuildInfo`] from string slice, optionally validated using a [`BuildInfoSchema`].
     ///
-    /// Uses `schema` to enforce the creation of a specific [`BuildInfo`] variant.
+    /// If `schema` is [`None`] attempts to detect the [`BuildInfoSchema`] from `s`.
+    /// Attempts to create a [`BuildInfo`] variant that corresponds to the [`BuildInfoSchema`].
+    ///
+    /// # Note
+    ///
+    /// To automatically derive the [`BuildInfoSchema`], use [`BuildInfo::from_str`].
     ///
     /// # Examples
     ///
@@ -167,7 +189,8 @@ impl BuildInfo {
     /// use std::{fs::File, io::Write};
     ///
     /// use alpm_buildinfo::{BuildInfo, BuildInfoSchema};
-    /// use tempfile::NamedTempFile;
+    /// use alpm_common::MetadataFile;
+    /// use alpm_types::{SchemaVersion, semver_version::Version};
     ///
     /// # fn main() -> testresult::TestResult {
     /// let buildinfo_v2_data = r#"format = 2
@@ -187,8 +210,12 @@ impl BuildInfo {
     /// installed = bar-1.2.3-1-any
     /// "#;
     ///
-    /// let buildinfo_v2 =
-    ///     BuildInfo::from_str_with_schema(buildinfo_v2_data, BuildInfoSchema::V2("2".parse()?))?;
+    /// let buildinfo_v2 = BuildInfo::from_str_with_schema(
+    ///     buildinfo_v2_data,
+    ///     Some(BuildInfoSchema::V2(SchemaVersion::new(Version::new(
+    ///         2, 0, 0,
+    ///     )))),
+    /// )?;
     /// assert_eq!(buildinfo_v2.to_string(), buildinfo_v2_data);
     ///
     /// let buildinfo_v1_data = r#"format = 1
@@ -205,8 +232,12 @@ impl BuildInfo {
     /// installed = bar-1.2.3-1-any
     /// "#;
     ///
-    /// let buildinfo_v1 =
-    ///     BuildInfo::from_str_with_schema(buildinfo_v1_data, BuildInfoSchema::V1("1".parse()?))?;
+    /// let buildinfo_v1 = BuildInfo::from_str_with_schema(
+    ///     buildinfo_v1_data,
+    ///     Some(BuildInfoSchema::V1(SchemaVersion::new(Version::new(
+    ///         1, 0, 0,
+    ///     )))),
+    /// )?;
     /// assert_eq!(buildinfo_v1.to_string(), buildinfo_v1_data);
     /// # Ok(())
     /// # }
@@ -214,8 +245,18 @@ impl BuildInfo {
     ///
     /// # Errors
     ///
-    /// Returns an error if the specific variant of [`BuildInfo`] cannot be constructed from `s`.
-    pub fn from_str_with_schema(s: &str, schema: BuildInfoSchema) -> Result<Self, Error> {
+    /// Returns an error if
+    /// - `schema` is [`Some`] and the specified variant of [`BuildInfo`] cannot be constructed from
+    ///   `s`,
+    /// - `schema` is [`None`] and
+    ///   - a [`BuildInfoSchema`] cannot be derived from `s`,
+    ///   - or the detected variant of [`BuildInfo`] cannot be constructed from `s`.
+    fn from_str_with_schema(s: &str, schema: Option<BuildInfoSchema>) -> Result<Self, Error> {
+        let schema = match schema {
+            Some(schema) => schema,
+            None => BuildInfoSchema::derive_from_str(s)?,
+        };
+
         match schema {
             BuildInfoSchema::V1(_) => Ok(BuildInfo::V1(BuildInfoV1::from_str(s)?)),
             BuildInfoSchema::V2(_) => Ok(BuildInfo::V2(BuildInfoV2::from_str(s)?)),
@@ -241,7 +282,7 @@ impl FromStr for BuildInfo {
 
     /// Creates a [`BuildInfo`] from string slice `s`.
     ///
-    /// Attempts to automatically detect the used [`BuildInfoSchema`] version from `s`.
+    /// Calls [`BuildInfo::from_str_with_schema`] with `schema` set to [`None`].
     ///
     /// # Errors
     ///
@@ -249,9 +290,6 @@ impl FromStr for BuildInfo {
     /// - a [`BuildInfoSchema`] cannot be derived from `s`,
     /// - or the detected variant of [`BuildInfo`] cannot be constructed from `s`.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match BuildInfoSchema::derive_from_str(s)? {
-            BuildInfoSchema::V1(_) => Ok(BuildInfo::V1(BuildInfoV1::from_str(s)?)),
-            BuildInfoSchema::V2(_) => Ok(BuildInfo::V2(BuildInfoV2::from_str(s)?)),
-        }
+        Self::from_str_with_schema(s, None)
     }
 }
