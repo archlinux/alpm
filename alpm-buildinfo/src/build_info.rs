@@ -10,7 +10,7 @@ use std::{
     str::FromStr,
 };
 
-use crate::{BuildInfoV1, BuildInfoV2, Error, Schema};
+use crate::{BuildInfoSchema, BuildInfoV1, BuildInfoV2, Error};
 
 /// A representation of the [BUILDINFO] file format.
 ///
@@ -67,7 +67,10 @@ impl BuildInfo {
     /// Returns an error if
     /// - the `file` cannot be opened for reading,
     /// - or no variant of [`BuildInfo`] can be constructed from the contents of `file`.
-    pub fn from_file(file: impl AsRef<Path>, schema: Option<Schema>) -> Result<Self, Error> {
+    pub fn from_file(
+        file: impl AsRef<Path>,
+        schema: Option<BuildInfoSchema>,
+    ) -> Result<Self, Error> {
         let file = file.as_ref();
         Self::from_reader(
             File::open(file).map_err(|source| {
@@ -85,7 +88,7 @@ impl BuildInfo {
     ///
     /// Returns an error if no variant of [`BuildInfo`] can be constructed from the contents of
     /// stdin.
-    pub fn from_stdin(schema: Option<Schema>) -> Result<Self, Error> {
+    pub fn from_stdin(schema: Option<BuildInfoSchema>) -> Result<Self, Error> {
         Self::from_reader(stdin(), schema)
     }
 
@@ -135,7 +138,7 @@ impl BuildInfo {
     /// - or no variant of [`BuildInfo`] can be constructed from the contents of the `reader`.
     pub fn from_reader(
         mut reader: impl std::io::Read,
-        schema: Option<Schema>,
+        schema: Option<BuildInfoSchema>,
     ) -> Result<Self, Error> {
         let mut buf = String::new();
         reader
@@ -161,7 +164,7 @@ impl BuildInfo {
     /// ```
     /// use std::{fs::File, io::Write};
     ///
-    /// use alpm_buildinfo::{BuildInfo, Schema};
+    /// use alpm_buildinfo::{BuildInfo, BuildInfoSchema};
     /// use tempfile::NamedTempFile;
     ///
     /// # fn main() -> testresult::TestResult {
@@ -183,7 +186,7 @@ impl BuildInfo {
     /// "#;
     ///
     /// let buildinfo_v2 =
-    ///     BuildInfo::from_str_with_schema(buildinfo_v2_data, Schema::V2("2".parse()?))?;
+    ///     BuildInfo::from_str_with_schema(buildinfo_v2_data, BuildInfoSchema::V2("2".parse()?))?;
     /// assert_eq!(buildinfo_v2.to_string(), buildinfo_v2_data);
     ///
     /// let buildinfo_v1_data = r#"format = 1
@@ -201,7 +204,7 @@ impl BuildInfo {
     /// "#;
     ///
     /// let buildinfo_v1 =
-    ///     BuildInfo::from_str_with_schema(buildinfo_v1_data, Schema::V1("1".parse()?))?;
+    ///     BuildInfo::from_str_with_schema(buildinfo_v1_data, BuildInfoSchema::V1("1".parse()?))?;
     /// assert_eq!(buildinfo_v1.to_string(), buildinfo_v1_data);
     /// # Ok(())
     /// # }
@@ -210,10 +213,10 @@ impl BuildInfo {
     /// # Errors
     ///
     /// Returns an error if the specific variant of [`BuildInfo`] cannot be constructed from `s`.
-    pub fn from_str_with_schema(s: &str, schema: Schema) -> Result<Self, Error> {
+    pub fn from_str_with_schema(s: &str, schema: BuildInfoSchema) -> Result<Self, Error> {
         match schema {
-            Schema::V1(_) => Ok(BuildInfo::V1(BuildInfoV1::from_str(s)?)),
-            Schema::V2(_) => Ok(BuildInfo::V2(BuildInfoV2::from_str(s)?)),
+            BuildInfoSchema::V1(_) => Ok(BuildInfo::V1(BuildInfoV1::from_str(s)?)),
+            BuildInfoSchema::V2(_) => Ok(BuildInfo::V2(BuildInfoV2::from_str(s)?)),
         }
     }
 }
@@ -236,17 +239,17 @@ impl FromStr for BuildInfo {
 
     /// Creates a [`BuildInfo`] from string slice `s`.
     ///
-    /// Attempts to automatically detect the used [`Schema`] version from `s`.
+    /// Attempts to automatically detect the used [`BuildInfoSchema`] version from `s`.
     ///
     /// # Errors
     ///
     /// Returns an error if
-    /// - a [`Schema`] cannot be derived from `s`,
+    /// - a [`BuildInfoSchema`] cannot be derived from `s`,
     /// - or the detected variant of [`BuildInfo`] cannot be constructed from `s`.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match Schema::from_contents(s)? {
-            Schema::V1(_) => Ok(BuildInfo::V1(BuildInfoV1::from_str(s)?)),
-            Schema::V2(_) => Ok(BuildInfo::V2(BuildInfoV2::from_str(s)?)),
+        match BuildInfoSchema::from_contents(s)? {
+            BuildInfoSchema::V1(_) => Ok(BuildInfo::V1(BuildInfoV1::from_str(s)?)),
+            BuildInfoSchema::V2(_) => Ok(BuildInfo::V2(BuildInfoV2::from_str(s)?)),
         }
     }
 }

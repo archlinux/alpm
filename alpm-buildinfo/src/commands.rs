@@ -13,7 +13,7 @@ use crate::{
     BuildInfoV2,
     cli::{CreateCommand, OutputFormat, ValidateArgs},
     error::Error,
-    schema::Schema,
+    schema::BuildInfoSchema,
 };
 
 /// Create a file according to a BUILDINFO schema
@@ -112,7 +112,7 @@ pub fn parse(args: ValidateArgs) -> Result<BuildInfo, Error> {
     let schema = if let Some(schema) = args.schema {
         schema
     } else {
-        Schema::from_contents(&contents)?
+        BuildInfoSchema::from_contents(&contents)?
     };
 
     BuildInfo::from_str_with_schema(&contents, schema)

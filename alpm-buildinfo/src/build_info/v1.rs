@@ -19,7 +19,7 @@ use alpm_types::{
 };
 use serde_with::{DisplayFromStr, serde_as};
 
-use crate::{Error, Schema};
+use crate::{BuildInfoSchema, Error};
 
 /// Generates a struct based on the BUILDINFO version 1 specification with additional fields.
 macro_rules! generate_buildinfo {
@@ -33,7 +33,7 @@ macro_rules! generate_buildinfo {
         #[serde(deny_unknown_fields)]
         pub struct $name {
             #[serde_as(as = "DisplayFromStr")]
-            format: Schema,
+            format: BuildInfoSchema,
 
             #[serde_as(as = "DisplayFromStr")]
             pkgname: Name,
@@ -203,7 +203,7 @@ impl BuildInfoV1 {
             builddate,
             builddir,
             buildenv,
-            format: Schema::try_from(format)?,
+            format: BuildInfoSchema::try_from(format)?,
             installed,
             options,
             packager,

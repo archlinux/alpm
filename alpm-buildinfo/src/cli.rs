@@ -21,7 +21,7 @@ use alpm_types::{
 use clap::{Args, Parser, Subcommand, ValueEnum};
 use strum::Display;
 
-use crate::{Error, schema::Schema};
+use crate::{Error, schema::BuildInfoSchema};
 
 /// A type wrapping a PathBuf with a default value
 ///
@@ -111,7 +111,7 @@ pub struct ValidateArgs {
     ///
     /// If no schema version is provided, it will be deduced from the file itself.
     #[arg(short, long, value_name = "VERSION")]
-    pub schema: Option<Schema>,
+    pub schema: Option<BuildInfoSchema>,
     /// Provide the file to read
     #[arg(value_name = "FILE")]
     pub file: Option<PathBuf>,

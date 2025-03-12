@@ -1,6 +1,6 @@
 use std::{str::FromStr, thread};
 
-use alpm_buildinfo::{BuildInfoV1, BuildInfoV2, Schema};
+use alpm_buildinfo::{BuildInfoSchema, BuildInfoV1, BuildInfoV2};
 use alpm_types::{SchemaVersion, semver_version::Version};
 use assert_cmd::Command;
 use insta::assert_snapshot;
@@ -49,7 +49,7 @@ pkgver = 1:1.0.0-1
 
 #[derive(Default)]
 pub struct BuildInfoInput {
-    pub format: Schema,
+    pub format: BuildInfoSchema,
     pub builddate: Option<String>,
     pub builddir: Option<String>,
     pub buildenv: Option<Vec<String>>,
@@ -134,7 +134,7 @@ fn format_buildinfo_and_serialize_as_json(#[case] data: &str) -> TestResult {
 #[rstest]
 #[case::buildinfov1_all_fields(
     BuildInfoInput {
-        format: Schema::V1(SchemaVersion::new(Version::new(1, 0, 0))),
+        format: BuildInfoSchema::V1(SchemaVersion::new(Version::new(1, 0, 0))),
         builddate: Some("1".to_string()),
         builddir: Some("/build".to_string()),
         buildenv: Some(vec!["foo".to_string(), "bar".to_string()]),
@@ -153,7 +153,7 @@ fn format_buildinfo_and_serialize_as_json(#[case] data: &str) -> TestResult {
 )]
 #[case::buildinfov1_optional_fields(
     BuildInfoInput {
-        format: Schema::V1(SchemaVersion::new(Version::new(1, 0, 0))),
+        format: BuildInfoSchema::V1(SchemaVersion::new(Version::new(1, 0, 0))),
         builddate: Some("1".to_string()),
         builddir: Some("/build".to_string()),
         buildenv: None,
@@ -172,7 +172,7 @@ fn format_buildinfo_and_serialize_as_json(#[case] data: &str) -> TestResult {
 )]
 #[case::buildinfov2_all_fields(
     BuildInfoInput {
-        format: Schema::V2(SchemaVersion::new(Version::new(2, 0, 0))),
+        format: BuildInfoSchema::V2(SchemaVersion::new(Version::new(2, 0, 0))),
         builddate: Some("1".to_string()),
         builddir: Some("/build".to_string()),
         buildenv: Some(vec!["foo".to_string(), "bar".to_string()]),
@@ -191,7 +191,7 @@ fn format_buildinfo_and_serialize_as_json(#[case] data: &str) -> TestResult {
 )]
 #[case::buildinfov2_optional_fields(
     BuildInfoInput {
-        format: Schema::V2(SchemaVersion::new(Version::new(2, 0, 0))),
+        format: BuildInfoSchema::V2(SchemaVersion::new(Version::new(2, 0, 0))),
         builddate: Some("1".to_string()),
         builddir: Some("/build".to_string()),
         buildenv: None,
@@ -215,7 +215,7 @@ fn write_buildinfo_via_env(#[case] buildinfo_input: BuildInfoInput) -> TestResul
 #[rstest]
 #[case::buildinfov1_all_fields(
     BuildInfoInput {
-        format: Schema::V1(SchemaVersion::new(Version::new(1, 0, 0))),
+        format: BuildInfoSchema::V1(SchemaVersion::new(Version::new(1, 0, 0))),
         builddate: Some("1".to_string()),
         builddir: Some("/build".to_string()),
         buildenv: Some(vec!["foo".to_string(), "bar".to_string()]),
@@ -234,7 +234,7 @@ fn write_buildinfo_via_env(#[case] buildinfo_input: BuildInfoInput) -> TestResul
 )]
 #[case::buildinfov1_optional_fields(
     BuildInfoInput {
-        format: Schema::V1(SchemaVersion::new(Version::new(1, 0, 0))),
+        format: BuildInfoSchema::V1(SchemaVersion::new(Version::new(1, 0, 0))),
         builddate: Some("1".to_string()),
         builddir: Some("/build".to_string()),
         buildenv: None,
@@ -253,7 +253,7 @@ fn write_buildinfo_via_env(#[case] buildinfo_input: BuildInfoInput) -> TestResul
 )]
 #[case::buildinfov2_all_fields(
     BuildInfoInput {
-        format: Schema::V2(SchemaVersion::new(Version::new(2, 0, 0))),
+        format: BuildInfoSchema::V2(SchemaVersion::new(Version::new(2, 0, 0))),
         builddate: Some("1".to_string()),
         builddir: Some("/build".to_string()),
         buildenv: Some(vec!["foo".to_string(), "bar".to_string()]),
@@ -272,7 +272,7 @@ fn write_buildinfo_via_env(#[case] buildinfo_input: BuildInfoInput) -> TestResul
 )]
 #[case::buildinfov2_optional_fields(
     BuildInfoInput {
-        format: Schema::V2(SchemaVersion::new(Version::new(2, 0, 0))),
+        format: BuildInfoSchema::V2(SchemaVersion::new(Version::new(2, 0, 0))),
         builddate: Some("1".to_string()),
         builddir: Some("/build".to_string()),
         buildenv: None,
@@ -316,8 +316,8 @@ fn test_write_buildinfo(buildinfo_input: BuildInfoInput, use_env: bool) -> TestR
 
     let contents = std::fs::read_to_string(&file)?;
     let build_info = match buildinfo_input.format {
-        Schema::V1(_) => BuildInfoV1::from_str(&contents)?.to_string(),
-        Schema::V2(_) => BuildInfoV2::from_str(&contents)?.to_string(),
+        BuildInfoSchema::V1(_) => BuildInfoV1::from_str(&contents)?.to_string(),
+        BuildInfoSchema::V2(_) => BuildInfoV2::from_str(&contents)?.to_string(),
     };
     assert_snapshot!(test_name, build_info.to_string());
 
@@ -374,7 +374,7 @@ fn set_buildinfo_args(cmd: &mut Command, input: &BuildInfoInput) {
         cmd.args(["--pkgver", pkgver]);
     }
 
-    if let Schema::V2(_) = input.format {
+    if let BuildInfoSchema::V2(_) = input.format {
         if let Some(ref startdir) = input.startdir {
             cmd.args(["--startdir", startdir]);
         }
@@ -422,7 +422,7 @@ fn set_buildinfo_env(cmd: &mut Command, input: &BuildInfoInput) {
         cmd.env("BUILDINFO_PKGVER", pkgver);
     }
 
-    if let Schema::V2(_) = input.format {
+    if let BuildInfoSchema::V2(_) = input.format {
         if let Some(ref startdir) = input.startdir {
             cmd.env("BUILDINFO_STARTDIR", startdir);
         }

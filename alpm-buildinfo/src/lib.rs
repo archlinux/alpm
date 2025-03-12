@@ -14,4 +14,4 @@ mod error;
 pub use error::Error;
 
 mod schema;
-pub use schema::Schema;
+pub use schema::BuildInfoSchema;
