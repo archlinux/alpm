@@ -1,2 +1,8 @@
 # The host uses hard rate-limiting
 https://www.gnu.org/software/libtool/manual/html_node/Versioning.html
+
+# Only available after merge to default branch and deployment of website.
+https://alpm.archlinux.page/rustdoc/alpm_common/
+
+# Only available after first release of the crate.
+https://docs.rs/alpm-buildinfo/latest/alpm_common/

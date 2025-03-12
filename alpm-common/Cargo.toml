@@ -1,0 +1,15 @@
+[package]
+authors.workspace = true
+description = "Library providing common traits and functionalities for other ALPM crates"
+edition.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+license.workspace = true
+name = "alpm-common"
+readme = "README.md"
+repository.workspace = true
+rust-version.workspace = true
+version = "0.1.0"
+
+[dependencies]
+alpm-types.workspace = true
