@@ -44,6 +44,7 @@ mindmap
       📚️ alpm-repo*
       📚️ alpm-repo-desc*
       📚️ alpm-repo-files*
+      📂 alpm-state-repo
     🗄️ Package Management
       📄 desc
       📄 files
