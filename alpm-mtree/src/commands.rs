@@ -60,23 +60,25 @@ pub fn format(file: Option<&PathBuf>, format: OutputFormat, pretty: bool) -> Res
 /// - [Error::ParseError] if a malformed MTREE file is encountered.
 /// - [Error::InterpreterError] if expected properties for a given type aren't set.
 pub fn parse(file: Option<&PathBuf>) -> Result<Vec<crate::mtree_v2::Path>, Error> {
-    // The buffer that'll contain the raw file.
-    let mut buffer = Vec::new();
-
     // Read the file into the buffer, either from a given file or stdin.
-    if let Some(path) = file {
+    let buffer = if let Some(path) = file {
+        let mut buffer = Vec::new();
         let file =
             File::open(path).map_err(|err| Error::IoPath(path.clone(), "opening file", err))?;
         let mut buf_reader = BufReader::new(file);
         buf_reader
             .read_to_end(&mut buffer)
             .map_err(|err| Error::IoPath(path.clone(), "reading file", err))?;
+
+        buffer
     } else if !io::stdin().is_terminal() {
         let mut buffer = Vec::new();
         let mut stdin = io::stdin();
         stdin
             .read_to_end(&mut buffer)
             .map_err(|err| Error::Io("reading from stdin", err))?;
+
+        buffer
     } else {
         return Err(Error::NoInputFile);
     };
