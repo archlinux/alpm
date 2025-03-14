@@ -89,6 +89,7 @@ dependencies = [
 name = "alpm-pkginfo"
 version = "0.1.0"
 dependencies = [
+ "alpm-common",
  "alpm-parsers",
  "alpm-types",
  "assert_cmd",

@@ -12,6 +12,13 @@ pub enum Error {
     #[error("I/O error at path {0:?} while {1}:\n{2}")]
     IoPathError(PathBuf, &'static str, std::io::Error),
 
+    /// I/O error while reading a buffer.
+    #[error("Read error while {context}:\n{source}")]
+    IoReadError {
+        context: &'static str,
+        source: std::io::Error,
+    },
+
     /// UTF-8 parse error
     #[error(transparent)]
     InvalidUTF8(#[from] FromUtf8Error),
@@ -19,6 +26,14 @@ pub enum Error {
     // Deserialize error
     #[error("Failed to deserialize PKGINFO file:\n{0}")]
     DeserializeError(#[from] alpm_parsers::custom_ini::Error),
+
+    /// An extra data field specified without any value.
+    #[error("Extra data field is specified without any value")]
+    ExtraDataEmpty,
+
+    /// The first extra data field does not specify "pkgtype".
+    #[error("The first extra data definition does not specify \"pkgtype\"")]
+    FirstExtraDataNotPkgType,
 
     /// No input file given
     #[error("No input file given.")]
@@ -35,4 +50,8 @@ pub enum Error {
     /// Extra data is missing
     #[error("Extra data is missing.")]
     MissingExtraData,
+
+    /// Unsupported schema version
+    #[error("Unsupported schema version: {0}")]
+    UnsupportedSchemaVersion(String),
 }
