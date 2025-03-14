@@ -1,14 +1,15 @@
 use std::{
-    fs::{File, create_dir_all, read_to_string},
-    io::{self, IsTerminal, Read, Write},
+    fs::{File, create_dir_all},
+    io::{self, IsTerminal, Write},
     path::PathBuf,
-    str::FromStr,
 };
 
-use erased_serde::Serialize;
+use alpm_common::MetadataFile;
 
 use crate::{
     Error,
+    PackageInfo,
+    PackageInfoSchema,
     PackageInfoV1,
     PackageInfoV2,
     cli::{CreateCommand, OutputFormat},
@@ -105,25 +106,16 @@ pub fn create_file(command: CreateCommand) -> Result<(), Error> {
 ///
 /// Returns an error if the file can not be read, if the file can not be parsed, or if the file is
 /// not valid according to the schema.
-pub fn parse(file: Option<PathBuf>) -> Result<Box<dyn Serialize>, Error> {
-    let contents = if let Some(file) = &file {
-        read_to_string(file)
-            .map_err(|e| Error::IoPathError(file.clone(), "reading file contents", e))?
+pub fn parse(
+    file: Option<PathBuf>,
+    schema: Option<PackageInfoSchema>,
+) -> Result<PackageInfo, Error> {
+    if let Some(file) = file {
+        PackageInfo::from_file_with_schema(file, schema)
     } else if !io::stdin().is_terminal() {
-        let mut buffer = Vec::new();
-        let mut stdin = io::stdin();
-        stdin.read_to_end(&mut buffer).map_err(|e| {
-            Error::IoPathError(PathBuf::from("/dev/stdin"), "reading from stdin", e)
-        })?;
-
-        String::from_utf8(buffer)?.to_string()
+        PackageInfo::from_stdin_with_schema(schema)
     } else {
         return Err(Error::NoInputFile);
-    };
-
-    match PackageInfoV2::from_str(&contents) {
-        Ok(pkg_info) => Ok(Box::new(pkg_info)),
-        Err(_) => Ok(Box::new(PackageInfoV1::from_str(&contents)?)),
     }
 }
 
@@ -134,8 +126,8 @@ pub fn parse(file: Option<PathBuf>) -> Result<Box<dyn Serialize>, Error> {
 /// ## Errors
 ///
 /// Returns an error if parsing `file` fails.
-pub fn validate(file: Option<PathBuf>) -> Result<(), Error> {
-    let _ = parse(file)?;
+pub fn validate(file: Option<PathBuf>, schema: Option<PackageInfoSchema>) -> Result<(), Error> {
+    let _ = parse(file, schema)?;
     Ok(())
 }
 
@@ -151,10 +143,11 @@ pub fn validate(file: Option<PathBuf>) -> Result<(), Error> {
 /// Returns an error if parsing of `file` fails or if the output format can not be created.
 pub fn format(
     file: Option<PathBuf>,
+    schema: Option<PackageInfoSchema>,
     output_format: OutputFormat,
     pretty: bool,
 ) -> Result<(), Error> {
-    let pkg_info = parse(file)?;
+    let pkg_info = parse(file, schema)?;
     match output_format {
         OutputFormat::Json => {
             println!(

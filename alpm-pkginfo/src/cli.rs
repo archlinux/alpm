@@ -23,7 +23,7 @@ use alpm_types::{
 use clap::{Args, Parser, Subcommand, ValueEnum};
 use strum::Display;
 
-use crate::{Error, RelationOrSoname};
+use crate::{Error, PackageInfoSchema, RelationOrSoname};
 
 /// A type wrapping a PathBuf with a default value
 ///
@@ -87,6 +87,12 @@ pub enum Command {
         /// validate.
         #[arg(value_name = "FILE")]
         file: Option<PathBuf>,
+
+        /// Provide the PKGINFO schema version to use.
+        ///
+        /// If no schema version is provided, it will be deduced from the file itself.
+        #[arg(short, long, value_name = "VERSION")]
+        schema: Option<PackageInfoSchema>,
     },
 
     /// Parse a PKGINFO file and output it in a different file format
@@ -104,6 +110,12 @@ pub enum Command {
         /// to format.
         #[arg(value_name = "FILE")]
         file: Option<PathBuf>,
+
+        /// Provide the PKGINFO schema version to use.
+        ///
+        /// If no schema version is provided, it will be deduced from the file itself.
+        #[arg(short, long, value_name = "VERSION")]
+        schema: Option<PackageInfoSchema>,
 
         /// The output format to use
         ///

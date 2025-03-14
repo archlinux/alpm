@@ -52,7 +52,7 @@ impl TestRunner {
                         alpm_mtree::commands::validate(Some(&file)).map_err(|err| err.into())
                     }
                     TestFileType::PackageInfo => {
-                        alpm_pkginfo::commands::validate(Some(file.clone()))
+                        alpm_pkginfo::commands::validate(Some(file.clone()), None)
                             .map_err(|err| err.into())
                     }
                     TestFileType::RemoteDesc => unimplemented!(),
