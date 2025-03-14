@@ -202,8 +202,8 @@ impl Display for BuildInfoSchema {
             fmt,
             "{}",
             match self {
-                BuildInfoSchema::V1(_) => "1",
-                BuildInfoSchema::V2(_) => "2",
+                BuildInfoSchema::V1(version) | BuildInfoSchema::V2(version) =>
+                    version.inner().major,
             }
         )
     }
