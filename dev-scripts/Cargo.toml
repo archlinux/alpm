@@ -14,9 +14,9 @@ rust-version.workspace = true
 version = "0.0.0"
 
 [dependencies]
-alpm-buildinfo = { path = "../alpm-buildinfo" }
-alpm-mtree = { path = "../alpm-mtree" }
-alpm-pkginfo = { path = "../alpm-pkginfo" }
+alpm-buildinfo.workspace = true
+alpm-mtree.workspace = true
+alpm-pkginfo.workspace = true
 alpm-srcinfo = { path = "../alpm-srcinfo" }
 anyhow = "1"
 clap.workspace = true
