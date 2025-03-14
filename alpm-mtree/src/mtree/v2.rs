@@ -1,3 +1,5 @@
+//! Interpreter for ALPM-MTREE v1 and v2.
+
 use std::path::PathBuf;
 
 use alpm_types::{Checksum, Digest, Md5Checksum, Sha256Checksum};
@@ -155,7 +157,7 @@ pub fn parse_raw_mtree_v2(buffer: Vec<u8>) -> Result<Vec<Path>, Error> {
 /// # Example
 ///
 /// ```
-/// use alpm_mtree::mtree_v2::parse_mtree_v2;
+/// use alpm_mtree::mtree::v2::parse_mtree_v2;
 ///
 /// # fn main() -> Result<(), alpm_mtree::Error> {
 /// let content = r#"
