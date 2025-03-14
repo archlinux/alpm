@@ -8,14 +8,15 @@ use crate::Error;
 
 /// Two magic bytes that occur at the beginning of gzip files and can be used to detect whether a
 /// file is gzip compressed.
+/// Spec: <https://datatracker.ietf.org/doc/html/rfc1952#page-6>
 pub const GZIP_MAGIC_NUMBER: [u8; 2] = [0x1f, 0x8b];
 
-/// Creates a [`String`] from a byte vector which may optionally contain gzip compressed data.
+/// Creates a [`String`] from a byte vector which may be gzip compressed.
 ///
-/// Turns the byte vector `buffer` into a [`String`].
-/// If `buffer` contains gzip compressed data, it is first decompressed.
+/// If `buffer` contains gzip compressed data, it decompressed before converting it into a
+/// `String`.
 /// Detects whether `buffer` contains gzip compressed data by checking if it is longer than two
-/// bytes and that the first two entries are [`GZIP_MAGIC_NUMBER`].
+/// bytes and whether the first two bytes are the [`GZIP_MAGIC_NUMBER`].
 ///
 /// # Errors
 ///

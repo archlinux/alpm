@@ -35,4 +35,8 @@ pub enum Error {
     /// JSON error
     #[error("JSON error: {0}")]
     Json(#[from] serde_json::Error),
+
+    /// Unsupported schema version
+    #[error("Unsupported schema version: {0}")]
+    UnsupportedSchemaVersion(String),
 }
