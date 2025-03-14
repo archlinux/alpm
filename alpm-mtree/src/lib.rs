@@ -15,3 +15,6 @@ pub use mtree_v2::parse_mtree_v2;
 pub mod parser;
 /// MTREE files use a special non-ascii encoding for their paths.
 mod path_decoder;
+
+mod file;
+pub(crate) use file::mtree_buffer_to_string;

@@ -1,13 +1,13 @@
-use std::{io::Read, path::PathBuf};
+use std::path::PathBuf;
 
 use alpm_types::{Checksum, Digest, Md5Checksum, Sha256Checksum};
-use flate2::read::GzDecoder;
 use serde::{Serialize, Serializer, ser::Error as SerdeError}; // codespell:ignore ser
 use winnow::Parser;
 
 pub use crate::parser::PathType;
 use crate::{
     Error,
+    mtree_buffer_to_string,
     parser::{self, SetProperty, UnsetProperty},
 };
 
@@ -139,30 +139,12 @@ pub enum Path {
     Link(Link),
 }
 
-/// Two magic bytes that occur at the beginning of gzip files and can be used to detect whether a
-/// file is gzip compressed.
-const GZIP_MAGIC_NUMBER: [u8; 2] = [0x1f, 0x8b];
-
 /// Parse the raw byte content of an MTREE v2 file.
 ///
 /// This is a thin wrapper around [`parse_mtree_v2`] that also takes care about potential GZIP
 /// compression if the file has been compressed.
 pub fn parse_raw_mtree_v2(buffer: Vec<u8>) -> Result<Vec<Path>, Error> {
-    // Check if the file starts with `0x1f8b`, which is the magic number that marks files
-    // as gzip compressed. If that's the case, decompress the content first.
-    let contents = if buffer.len() >= 2 && [buffer[0], buffer[1]] == GZIP_MAGIC_NUMBER {
-        let mut decoder = GzDecoder::new(buffer.as_slice());
-
-        let mut content = String::new();
-        decoder
-            .read_to_string(&mut content)
-            .map_err(Error::InvalidGzip)?;
-        content
-    } else {
-        String::from_utf8(buffer)?.to_string()
-    };
-
-    parse_mtree_v2(contents)
+    parse_mtree_v2(mtree_buffer_to_string(buffer)?)
 }
 
 /// Parse the content of an MTREE v2 file.
