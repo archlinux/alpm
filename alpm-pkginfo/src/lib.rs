@@ -1,10 +1,7 @@
 #![doc = include_str!("../README.md")]
 
-mod package_info_v1;
-pub use crate::package_info_v1::PackageInfoV1;
-
-mod package_info_v2;
-pub use crate::package_info_v2::PackageInfoV2;
+pub mod package_info;
+pub use package_info::{v1::PackageInfoV1, v2::PackageInfoV2};
 
 #[cfg(feature = "cli")]
 pub mod cli;
