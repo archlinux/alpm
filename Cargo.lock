@@ -57,6 +57,7 @@ dependencies = [
 name = "alpm-mtree"
 version = "0.1.0"
 dependencies = [
+ "alpm-common",
  "alpm-types",
  "clap",
  "flate2",

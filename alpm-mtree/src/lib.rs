@@ -18,3 +18,6 @@ mod path_decoder;
 
 mod file;
 pub(crate) use file::mtree_buffer_to_string;
+
+mod schema;
+pub use schema::MtreeSchema;
