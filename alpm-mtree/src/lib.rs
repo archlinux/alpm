@@ -10,7 +10,7 @@ mod error;
 pub use error::Error;
 
 pub mod mtree;
-pub use mtree::v2::parse_mtree_v2;
+pub use mtree::{Mtree, v2::parse_mtree_v2};
 
 /// Low-level parser for MTREE files. You'll likely want to use [`parse_mtree_v2`] instead.
 pub mod parser;
