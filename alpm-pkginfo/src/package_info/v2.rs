@@ -22,7 +22,7 @@ use alpm_types::{
 };
 use serde_with::{DisplayFromStr, serde_as};
 
-use crate::{Error, RelationOrSoname, package_info_v1::generate_pkginfo};
+use crate::{Error, RelationOrSoname, package_info::v1::generate_pkginfo};
 
 generate_pkginfo! {
     /// PKGINFO version 2
