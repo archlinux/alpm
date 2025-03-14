@@ -1,17 +1,18 @@
 use std::{
-    fs::File,
-    io::{self, BufReader, IsTerminal, Read},
+    io::{self, IsTerminal},
     path::PathBuf,
 };
 
-use crate::{Error, cli::OutputFormat, mtree::v2::parse_raw_mtree_v2};
+use alpm_common::MetadataFile;
+
+use crate::{Error, Mtree, MtreeSchema, cli::OutputFormat};
 
 /// A small wrapper around the parsing of an MTREE file that simply ensures that there were no
 /// errors.
 ///
 /// For all possible errors, check the [parse] function.
-pub fn validate(file: Option<&PathBuf>) -> Result<(), Error> {
-    parse(file)?;
+pub fn validate(file: Option<&PathBuf>, schema: Option<MtreeSchema>) -> Result<(), Error> {
+    parse(file, schema)?;
 
     Ok(())
 }
@@ -22,8 +23,13 @@ pub fn validate(file: Option<&PathBuf>) -> Result<(), Error> {
 ///
 /// Returns an error if the input can not be parsed and validated, or if the output can not be
 /// formatted in the selected output format.
-pub fn format(file: Option<&PathBuf>, format: OutputFormat, pretty: bool) -> Result<(), Error> {
-    let files = parse(file)?;
+pub fn format(
+    file: Option<&PathBuf>,
+    schema: Option<MtreeSchema>,
+    format: OutputFormat,
+    pretty: bool,
+) -> Result<(), Error> {
+    let files = parse(file, schema)?;
 
     match format {
         OutputFormat::Json => {
@@ -59,30 +65,12 @@ pub fn format(file: Option<&PathBuf>, format: OutputFormat, pretty: bool) -> Res
 /// - [Error::InvalidUTF8] if the given file contains invalid UTF-8.
 /// - [Error::ParseError] if a malformed MTREE file is encountered.
 /// - [Error::InterpreterError] if expected properties for a given type aren't set.
-pub fn parse(file: Option<&PathBuf>) -> Result<Vec<crate::mtree::v2::Path>, Error> {
-    // Read the file into the buffer, either from a given file or stdin.
-    let buffer = if let Some(path) = file {
-        let mut buffer = Vec::new();
-        let file =
-            File::open(path).map_err(|err| Error::IoPath(path.clone(), "opening file", err))?;
-        let mut buf_reader = BufReader::new(file);
-        buf_reader
-            .read_to_end(&mut buffer)
-            .map_err(|err| Error::IoPath(path.clone(), "reading file", err))?;
-
-        buffer
+pub fn parse(file: Option<&PathBuf>, schema: Option<MtreeSchema>) -> Result<Mtree, Error> {
+    if let Some(file) = file {
+        Mtree::from_file_with_schema(file, schema)
     } else if !io::stdin().is_terminal() {
-        let mut buffer = Vec::new();
-        let mut stdin = io::stdin();
-        stdin
-            .read_to_end(&mut buffer)
-            .map_err(|err| Error::Io("reading from stdin", err))?;
-
-        buffer
+        Mtree::from_stdin_with_schema(schema)
     } else {
         return Err(Error::NoInputFile);
-    };
-
-    // Parse the given mtree file.
-    parse_raw_mtree_v2(buffer)
+    }
 }

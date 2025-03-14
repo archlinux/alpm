@@ -9,7 +9,6 @@ use winnow::Parser;
 pub use crate::parser::PathType;
 use crate::{
     Error,
-    mtree_buffer_to_string,
     parser::{self, SetProperty, UnsetProperty},
 };
 
@@ -139,14 +138,6 @@ pub enum Path {
     File(File),
     #[serde(rename = "link")]
     Link(Link),
-}
-
-/// Parse the raw byte content of an MTREE v2 file.
-///
-/// This is a thin wrapper around [`parse_mtree_v2`] that also takes care about potential GZIP
-/// compression if the file has been compressed.
-pub fn parse_raw_mtree_v2(buffer: Vec<u8>) -> Result<Vec<Path>, Error> {
-    parse_mtree_v2(mtree_buffer_to_string(buffer)?)
 }
 
 /// Parse the content of an MTREE v2 file.

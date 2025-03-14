@@ -1,6 +1,7 @@
 use std::{fs::read_to_string, path::PathBuf};
 
 use alpm_mtree::commands::validate;
+use alpm_types::{SchemaVersion, semver_version::Version};
 use insta::assert_snapshot;
 use rstest::rstest;
 use testresult::TestResult;
@@ -20,7 +21,12 @@ use testresult::TestResult;
 pub fn ensure_errors_v1(#[files("tests/interpreter_error_inputs/*")] case: PathBuf) -> TestResult {
     // Read the input file and parse it.
     let input = read_to_string(&case)?;
-    let result = validate(Some(&case));
+    let result = validate(
+        Some(&case),
+        Some(alpm_mtree::MtreeSchema::V1(SchemaVersion::new(
+            Version::new(1, 0, 0),
+        ))),
+    );
 
     let Err(error) = result else {
         return Err(format!(
