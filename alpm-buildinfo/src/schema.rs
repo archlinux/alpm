@@ -160,7 +160,16 @@ impl Default for BuildInfoSchema {
 impl FromStr for BuildInfoSchema {
     type Err = Error;
 
-    /// Uses the `SchemaVersion` to determine the schema
+    /// Creates a [`BuildInfoSchema`] from string slice `s`.
+    ///
+    /// Relies on [`SchemaVersion::from_str`] to create a corresponding [`BuildInfoSchema`] from
+    /// `s`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if
+    /// - no [`SchemaVersion`] can be created from `s`,
+    /// - or the conversion from [`SchemaVersion`] to [`BuildInfoSchema`] fails.
     fn from_str(s: &str) -> Result<BuildInfoSchema, Self::Err> {
         match SchemaVersion::from_str(s) {
             Ok(version) => Self::try_from(version),
@@ -172,7 +181,12 @@ impl FromStr for BuildInfoSchema {
 impl TryFrom<SchemaVersion> for BuildInfoSchema {
     type Error = Error;
 
-    /// Converts the major version of the `SchemaVersion` to a `Schema`
+    /// Converts a [`SchemaVersion`] to a [`BuildInfoSchema`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the [`SchemaVersion`]'s inner [`Version`] does not provide a major
+    /// version that corresponds to a [`BuildInfoSchema`] variant.
     fn try_from(value: SchemaVersion) -> Result<Self, Self::Error> {
         match value.inner().major {
             1 => Ok(BuildInfoSchema::V1(value)),
@@ -183,7 +197,6 @@ impl TryFrom<SchemaVersion> for BuildInfoSchema {
 }
 
 impl Display for BuildInfoSchema {
-    /// Converts the `Schema` to a `String`
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
         write!(
             fmt,
