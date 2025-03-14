@@ -15,7 +15,7 @@ pub fn ensure_correct_syntax(
     // Read the input file and parse it.
 
     let input = read_to_string(&case)?;
-    let result = parse(Some(&case));
+    let result = parse(Some(&case), None);
 
     // Make sure the parsing succeeded.
     let files = match result {

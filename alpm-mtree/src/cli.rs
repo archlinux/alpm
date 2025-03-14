@@ -2,6 +2,8 @@ use std::path::PathBuf;
 
 use clap::{Parser, Subcommand, ValueEnum};
 
+use crate::MtreeSchema;
+
 #[derive(Clone, Debug, Parser)]
 #[command(about, author, name = "alpm-mtree", version)]
 pub struct Cli {
@@ -32,6 +34,14 @@ pub enum Command {
         #[arg(value_name = "FILE")]
         file: Option<PathBuf>,
 
+        /// Provide the MTREE schema version to use.
+        ///
+        /// If no schema version is provided, it will be deduced from the file itself.
+        ///
+        /// Valid values are ['1', '2'].
+        #[arg(short, long, value_name = "VERSION")]
+        schema: Option<MtreeSchema>,
+
         /// Provide the output format
         #[arg(
             short,
@@ -57,5 +67,13 @@ pub enum Command {
     Validate {
         #[arg(value_name = "FILE")]
         file: Option<PathBuf>,
+
+        /// Provide the MTREE schema version to use.
+        ///
+        /// If no schema version is provided, it will be deduced from the file itself.
+        ///
+        /// Valid values are ['1', '2'].
+        #[arg(short, long, value_name = "VERSION")]
+        schema: Option<MtreeSchema>,
     },
 }

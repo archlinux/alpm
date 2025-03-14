@@ -49,7 +49,7 @@ impl TestRunner {
                         alpm_srcinfo::commands::validate(Some(&file)).map_err(|err| err.into())
                     }
                     TestFileType::MTree => {
-                        alpm_mtree::commands::validate(Some(&file)).map_err(|err| err.into())
+                        alpm_mtree::commands::validate(Some(&file), None).map_err(|err| err.into())
                     }
                     TestFileType::PackageInfo => {
                         alpm_pkginfo::commands::validate(Some(file.clone()), None)
