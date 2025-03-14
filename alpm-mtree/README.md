@@ -10,7 +10,7 @@
 ### Library
 
 ```rust
-use alpm_mtree::mtree_v2::parse_mtree_v2;
+use alpm_mtree::mtree::v2::parse_mtree_v2;
 
 let data = r#"#mtree
 /set mode=644 uid=0 gid=0 type=file

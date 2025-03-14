@@ -4,7 +4,7 @@ use std::{
     path::PathBuf,
 };
 
-use crate::{Error, cli::OutputFormat, mtree_v2::parse_raw_mtree_v2};
+use crate::{Error, cli::OutputFormat, mtree::v2::parse_raw_mtree_v2};
 
 /// A small wrapper around the parsing of an MTREE file that simply ensures that there were no
 /// errors.
@@ -59,7 +59,7 @@ pub fn format(file: Option<&PathBuf>, format: OutputFormat, pretty: bool) -> Res
 /// - [Error::InvalidUTF8] if the given file contains invalid UTF-8.
 /// - [Error::ParseError] if a malformed MTREE file is encountered.
 /// - [Error::InterpreterError] if expected properties for a given type aren't set.
-pub fn parse(file: Option<&PathBuf>) -> Result<Vec<crate::mtree_v2::Path>, Error> {
+pub fn parse(file: Option<&PathBuf>) -> Result<Vec<crate::mtree::v2::Path>, Error> {
     // Read the file into the buffer, either from a given file or stdin.
     let buffer = if let Some(path) = file {
         let mut buffer = Vec::new();
