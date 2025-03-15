@@ -1,6 +1,6 @@
 use std::{fs::read_to_string, path::PathBuf};
 
-use alpm_srcinfo::{MergedPackage, SourceInfo};
+use alpm_srcinfo::{MergedPackage, SourceInfoV1};
 use alpm_types::Architecture;
 use insta::assert_snapshot;
 use rstest::rstest;
@@ -26,7 +26,7 @@ use testresult::TestResult;
 pub fn correct_files(#[files("tests/correct/*.srcinfo")] case: PathBuf) -> TestResult {
     // Read the input file and parse it.
     let input = read_to_string(&case)?;
-    let source_info_result = SourceInfo::from_string(input.as_str());
+    let source_info_result = SourceInfoV1::from_string(input.as_str());
 
     // Make sure there're no parse errors
     let source_info_result = match source_info_result {

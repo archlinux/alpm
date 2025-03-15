@@ -119,7 +119,7 @@ diff --ignore-trailing-space "$SRCINFO_OUTPUT" "$SRCINFO_OUTPUT.expected"
 ### Library
 
 ```rust
-use alpm_srcinfo::{SourceInfo, MergedPackage};
+use alpm_srcinfo::{SourceInfoV1, MergedPackage};
 use alpm_types::{Architecture, PackageRelation, Name};
 
 # fn main() -> Result<(), alpm_srcinfo::Error> {
@@ -142,7 +142,7 @@ pkgname = example
 "#;
 
 // Parse the file. This might already error if the file cannot be parsed.
-let source_info_result = SourceInfo::from_string(source_info_data)?;
+let source_info_result = SourceInfoV1::from_string(source_info_data)?;
 
 // Make sure there're aren't unrecoverable logic errors, such as missing values.
 // Recoverable errors would be lints and deprecation warnings.

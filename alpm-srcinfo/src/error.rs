@@ -5,7 +5,7 @@ use colored::Colorize;
 use thiserror::Error;
 
 #[cfg(doc)]
-use crate::{parser::SourceInfoContent, source_info::SourceInfo};
+use crate::{SourceInfoV1, parser::SourceInfoContent};
 
 /// The high-level error that can occur when using this crate.
 ///
@@ -224,7 +224,7 @@ impl SourceInfoErrors {
     }
 }
 
-/// Errors that may occur when converting [`SourceInfoContent`] into a [`SourceInfo`].
+/// Errors that may occur when converting [`SourceInfoContent`] into a [`SourceInfoV1`].
 ///
 /// The severity of an error is defined by its [`SourceInfoErrorType`], which may range from linting
 /// errors, deprecation warnings to hard unrecoverable errors.
@@ -247,7 +247,7 @@ pub enum SourceInfoErrorType {
     /// compatibility.
     DeprecationWarning,
     /// A hard unrecoverable logic error has been detected.
-    /// The returned [SourceInfo] representation is faulty and should not be used.
+    /// The returned [SourceInfoV1] representation is faulty and should not be used.
     Unrecoverable,
 }
 

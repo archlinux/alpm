@@ -19,18 +19,20 @@ use alpm_types::{
 };
 use serde::Serialize;
 
-use crate::source_info::{
-    SourceInfo,
-    package::Package,
-    package_base::{PackageBase, PackageBaseArchitecture},
-    relation::RelationOrSoname,
+use crate::{
+    SourceInfoV1,
+    source_info::{
+        package::Package,
+        package_base::{PackageBase, PackageBaseArchitecture},
+        relation::RelationOrSoname,
+    },
 };
 
 /// Fully resolved metadata of a single package based on SRCINFO data.
 ///
 /// This struct incorporates all [`PackageBase`] properties and the [`Package`] specific overrides
 /// in an architecture-specific representation of a package. It can be created using
-/// [`SourceInfo::packages_for_architecture`].
+/// [`SourceInfoV1::packages_for_architecture`].
 #[derive(Debug, Clone, Serialize)]
 pub struct MergedPackage {
     pub name: Name,
@@ -69,7 +71,7 @@ pub struct MergedPackage {
 /// An iterator over all packages of a specific architecture.
 pub struct MergedPackagesIterator<'a> {
     pub(crate) architecture: Architecture,
-    pub(crate) source_info: &'a SourceInfo,
+    pub(crate) source_info: &'a SourceInfoV1,
     pub(crate) package_iterator: std::slice::Iter<'a, Package>,
 }
 

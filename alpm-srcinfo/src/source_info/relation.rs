@@ -17,12 +17,12 @@ use winnow::{
 
 use crate::Error;
 #[cfg(doc)]
-use crate::SourceInfo;
+use crate::SourceInfoV1;
 
 /// Provides either a [`PackageRelation`] or a [`SonameV1::Basic`].
 ///
 /// This enum is used for [alpm-package-relations] of type _run-time dependency_ and _provision_ in
-/// [`SourceInfo`].
+/// [`SourceInfoV1`].
 ///
 /// [alpm-package-relations]: https://alpm.archlinux.page/specifications/alpm-package-relation.7.html
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]

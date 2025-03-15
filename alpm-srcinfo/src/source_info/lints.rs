@@ -4,9 +4,9 @@
 //! multiple places, please add a new function in this module.
 //!
 //! All of these linter functions are designed to be used in the context of
-//! [`SourceInfo::from_raw`](super::SourceInfo::from_raw) and the functions that're called inside
-//! it. They're passed the `errors` vector that aggregates all lints/errors during the conversion
-//! from the raw to the structured data format.
+//! [`SourceInfoV1::from_raw`](crate::SourceInfoV1::from_raw) and the functions that're called
+//! inside it. They're passed the `errors` vector that aggregates all lints/errors during the
+//! conversion from the raw to the structured data format.
 use alpm_types::Architecture;
 
 use crate::error::{SourceInfoError, lint};

@@ -30,14 +30,11 @@ use super::{
     package::PackageArchitecture,
     relation::RelationOrSoname,
 };
+#[cfg(doc)]
+use crate::{SourceInfoV1, merged::MergedPackage, source_info::package::Package};
 use crate::{
     error::{SourceInfoError, lint, unrecoverable},
     parser::{self, PackageBaseProperty, RawPackageBase, SharedMetaProperty},
-};
-#[cfg(doc)]
-use crate::{
-    merged::MergedPackage,
-    source_info::{Package, SourceInfo},
 };
 
 /// Package base metadata based on the `pkgbase` section in SRCINFO data.
@@ -46,7 +43,7 @@ use crate::{
 /// SRCINFO data.
 ///
 /// A [`MergedPackage`] (a full view on a package's metadata) can be created using
-/// [`SourceInfo::packages_for_architecture`].
+/// [`SourceInfoV1::packages_for_architecture`].
 #[derive(Debug, Clone)]
 pub struct PackageBase {
     pub name: Name,
