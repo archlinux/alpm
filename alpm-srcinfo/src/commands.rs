@@ -8,10 +8,10 @@ use alpm_types::Architecture;
 
 use crate::{
     SourceInfoResult,
+    SourceInfoV1,
     cli::OutputFormat,
     error::Error,
     merged::MergedPackage,
-    source_info::SourceInfo,
 };
 
 /// Validates a SRCINFO file from a path or stdin.
@@ -89,7 +89,7 @@ pub fn format_packages(
 pub fn parse(file: Option<&PathBuf>) -> Result<SourceInfoResult, Error> {
     if let Some(path) = file {
         // Read directly from file.
-        SourceInfo::from_file(path)
+        SourceInfoV1::from_file(path)
     } else if !io::stdin().is_terminal() {
         // Read from stdin into string.
         let mut buffer = Vec::new();
@@ -100,7 +100,7 @@ pub fn parse(file: Option<&PathBuf>) -> Result<SourceInfoResult, Error> {
         let content = String::from_utf8(buffer)?.to_string();
 
         // Convert into SourceInfo
-        SourceInfo::from_string(&content)
+        SourceInfoV1::from_string(&content)
     } else {
         Err(Error::NoInputFile)
     }

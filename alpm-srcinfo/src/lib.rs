@@ -11,7 +11,10 @@ pub mod source_info;
 
 pub use error::Error;
 pub use merged::MergedPackage;
-pub use source_info::{SourceInfo, SourceInfoResult, relation::RelationOrSoname};
+pub use source_info::{
+    relation::RelationOrSoname,
+    v1::{SourceInfoResult, SourceInfoV1},
+};
 
 mod schema;
 pub use schema::SourceInfoSchema;
