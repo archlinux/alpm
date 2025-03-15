@@ -113,6 +113,7 @@ dependencies = [
 name = "alpm-srcinfo"
 version = "0.1.0"
 dependencies = [
+ "alpm-common",
  "alpm-types",
  "clap",
  "colored",
