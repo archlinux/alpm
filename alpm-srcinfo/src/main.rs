@@ -12,14 +12,15 @@ use clap::Parser;
 fn main() -> ExitCode {
     let cli = Cli::parse();
     let result = match cli.command {
-        Command::Check { file } => check(file.as_ref()),
-        Command::Validate { file } => validate(file.as_ref()),
+        Command::Check { file, schema } => check(file.as_ref(), schema),
+        Command::Validate { file, schema } => validate(file.as_ref(), schema),
         Command::FormatPackages {
             file,
+            schema,
             architecture,
             output_format,
             pretty,
-        } => format_packages(file.as_ref(), output_format, architecture, pretty),
+        } => format_packages(file.as_ref(), schema, output_format, architecture, pretty),
     };
 
     if let Err(error) = result {
