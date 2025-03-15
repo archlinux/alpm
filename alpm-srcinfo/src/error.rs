@@ -33,6 +33,16 @@ pub enum Error {
     #[error(transparent)]
     InvalidUTF8(#[from] FromUtf8Error),
 
+    /// A section or keyword is missing for a SRCINFO schema version.
+    #[error(
+        "The SRCINFO data misses one or more required sections ({sections}) or keywords ({keywords}) for schema version {schema_version}"
+    )]
+    MissingSchemaSectionsOrKeywords {
+        sections: &'static str,
+        keywords: &'static str,
+        schema_version: &'static str,
+    },
+
     /// No input file given.
     ///
     /// This error only occurs when running the [`crate::commands`] functions.
@@ -54,6 +64,10 @@ pub enum Error {
     /// This error only occurs when running the [`crate::commands`] functions.
     #[error("JSON error: {0}")]
     Json(#[from] serde_json::Error),
+
+    /// Unsupported schema version
+    #[error("Unsupported schema version: {0}")]
+    UnsupportedSchemaVersion(String),
 }
 
 /// A helper struct to provide proper line based error/linting messages.
