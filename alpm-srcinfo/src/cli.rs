@@ -4,6 +4,8 @@ use std::path::PathBuf;
 use alpm_types::Architecture;
 use clap::{Parser, Subcommand};
 
+use crate::SourceInfoSchema;
+
 #[derive(Clone, Debug, Parser)]
 #[command(about, author, name = "alpm-srcinfo", version)]
 pub struct Cli {
@@ -30,6 +32,12 @@ pub enum Command {
     Validate {
         #[arg(value_name = "FILE")]
         file: Option<PathBuf>,
+
+        /// Provide the SRCINFO schema version to use.
+        ///
+        /// If no schema version is provided, it will be deduced from the file itself.
+        #[arg(short, long, value_name = "VERSION")]
+        schema: Option<SourceInfoSchema>,
     },
     /// Format a SRCINFO file from a path or `stdin`
     ///
@@ -40,6 +48,12 @@ pub enum Command {
     FormatPackages {
         #[arg(value_name = "FILE")]
         file: Option<PathBuf>,
+
+        /// Provide the SRCINFO schema version to use.
+        ///
+        /// If no schema version is provided, it will be deduced from the file itself.
+        #[arg(short, long, value_name = "VERSION")]
+        schema: Option<SourceInfoSchema>,
 
         /// The selected architecture that should be used to interpret the SRCINFO file.
         ///
@@ -72,5 +86,11 @@ pub enum Command {
     Check {
         #[arg(value_name = "FILE")]
         file: Option<PathBuf>,
+
+        /// Provide the SRCINFO schema version to use.
+        ///
+        /// If no schema version is provided, it will be deduced from the file itself.
+        #[arg(short, long, value_name = "VERSION")]
+        schema: Option<SourceInfoSchema>,
     },
 }

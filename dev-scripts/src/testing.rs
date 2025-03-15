@@ -45,9 +45,8 @@ impl TestRunner {
                         schema: None,
                     })
                     .map_err(|err| err.into()),
-                    TestFileType::SrcInfo => {
-                        alpm_srcinfo::commands::validate(Some(&file)).map_err(|err| err.into())
-                    }
+                    TestFileType::SrcInfo => alpm_srcinfo::commands::validate(Some(&file), None)
+                        .map_err(|err| err.into()),
                     TestFileType::MTree => {
                         alpm_mtree::commands::validate(Some(&file), None).map_err(|err| err.into())
                     }

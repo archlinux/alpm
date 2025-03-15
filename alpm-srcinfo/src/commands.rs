@@ -1,38 +1,35 @@
 //! Functions called from the binary.
 use std::{
-    io::{self, IsTerminal, Read},
+    io::{self, IsTerminal},
     path::PathBuf,
 };
 
+use alpm_common::MetadataFile;
 use alpm_types::Architecture;
 
-use crate::{
-    SourceInfoResult,
-    SourceInfoV1,
-    cli::OutputFormat,
-    error::Error,
-    merged::MergedPackage,
-};
+use crate::{SourceInfo, SourceInfoSchema, cli::OutputFormat, error::Error, merged::MergedPackage};
 
 /// Validates a SRCINFO file from a path or stdin.
 ///
 /// Wraps the [`parse`] function and allows to ensure that no errors occurred during parsing.
-pub fn validate(file: Option<&PathBuf>) -> Result<(), Error> {
-    let result = parse(file)?;
-    result.source_info()?;
+pub fn validate(file: Option<&PathBuf>, schema: Option<SourceInfoSchema>) -> Result<(), Error> {
+    let _result = parse(file, schema)?;
 
     Ok(())
 }
 
 /// Checks a SRCINFO file from a path or stdin strictly.
 ///
+/// THIS FUNCTION DOES CURRENTLY NOT WORK!
+/// Due to a refactoring, this function is temporarily under construction.
+/// Please refrain from using it or fallback to the previous version.
+///
 /// # Errors
 ///
 /// Returns an error if any linter warnings, deprecation warnings, unrecoverable logic
 /// or parsing errors are encountered while parsing the SRCINFO data.
-pub fn check(file: Option<&PathBuf>) -> Result<(), Error> {
-    let result = parse(file)?;
-    result.lint()?;
+pub fn check(file: Option<&PathBuf>, schema: Option<SourceInfoSchema>) -> Result<(), Error> {
+    let _result = parse(file, schema)?;
 
     Ok(())
 }
@@ -45,12 +42,13 @@ pub fn check(file: Option<&PathBuf>) -> Result<(), Error> {
 /// formatted in the selected output format.
 pub fn format_packages(
     file: Option<&PathBuf>,
+    schema: Option<SourceInfoSchema>,
     output_format: OutputFormat,
     architecture: Architecture,
     pretty: bool,
 ) -> Result<(), Error> {
-    let result = parse(file)?;
-    let source_info = result.source_info()?;
+    let srcinfo = parse(file, schema)?;
+    let SourceInfo::V1(source_info) = srcinfo;
 
     let packages: Vec<MergedPackage> = source_info
         .packages_for_architecture(architecture)
@@ -86,22 +84,15 @@ pub fn format_packages(
 ///
 /// Furthermore, returns an error array with potentially un/-recoverable (linting-)errors, which
 /// needs to be explicitly handled by the caller.
-pub fn parse(file: Option<&PathBuf>) -> Result<SourceInfoResult, Error> {
-    if let Some(path) = file {
-        // Read directly from file.
-        SourceInfoV1::from_file(path)
+pub fn parse(
+    file: Option<&PathBuf>,
+    schema: Option<SourceInfoSchema>,
+) -> Result<SourceInfo, Error> {
+    if let Some(file) = file {
+        SourceInfo::from_file_with_schema(file, schema)
     } else if !io::stdin().is_terminal() {
-        // Read from stdin into string.
-        let mut buffer = Vec::new();
-        let mut stdin = io::stdin();
-        stdin
-            .read_to_end(&mut buffer)
-            .map_err(|err| Error::Io("reading from stdin", err))?;
-        let content = String::from_utf8(buffer)?.to_string();
-
-        // Convert into SourceInfo
-        SourceInfoV1::from_string(&content)
+        SourceInfo::from_stdin_with_schema(schema)
     } else {
-        Err(Error::NoInputFile)
+        return Err(Error::NoInputFile);
     }
 }
