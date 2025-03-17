@@ -56,7 +56,7 @@ use winnow::{
     token::{take_till, take_until},
 };
 
-use crate::source_info::relation::RelationOrSoname;
+use crate::relation::RelationOrSoname;
 
 /// Recognizes the ` = ` delimiter between keywords.
 ///
@@ -104,7 +104,7 @@ fn till_line_end<'s>(input: &mut &'s str) -> ModalResult<&'s str> {
 /// ```
 /// use std::str::FromStr;
 ///
-/// use alpm_srcinfo::parser::ArchProperty;
+/// use alpm_srcinfo::source_info::parser::ArchProperty;
 /// use alpm_types::{Architecture, Sha256Checksum};
 ///
 /// # fn main() -> Result<(), alpm_srcinfo::Error> {
@@ -208,7 +208,7 @@ impl SourceInfoContent {
     /// Recognizes a complete SRCINFO file from a string slice.
     ///
     /// ```rust
-    /// use alpm_srcinfo::parser::SourceInfoContent;
+    /// use alpm_srcinfo::source_info::parser::SourceInfoContent;
     /// use winnow::Parser;
     ///
     /// # fn main() -> Result<(), alpm_srcinfo::Error> {

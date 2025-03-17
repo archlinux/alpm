@@ -7,7 +7,13 @@ use std::{
 use alpm_common::MetadataFile;
 use alpm_types::Architecture;
 
-use crate::{SourceInfo, SourceInfoSchema, cli::OutputFormat, error::Error, merged::MergedPackage};
+use crate::{
+    SourceInfo,
+    SourceInfoSchema,
+    cli::OutputFormat,
+    error::Error,
+    source_info::v1::merged::MergedPackage,
+};
 
 /// Validates a SRCINFO file from a path or stdin.
 ///
