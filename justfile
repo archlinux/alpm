@@ -12,7 +12,7 @@ ignored := "false"
 output_dir := "output"
 
 # Runs all checks and tests. Since this is the first recipe it is run by default.
-run-pre-commit-hook: check test
+run-pre-commit-hook: check test test-docs
 
 # Runs all check targets
 check: check-spelling check-formatting lint check-unused-deps check-dependencies check-licenses check-links
