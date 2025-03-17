@@ -12,21 +12,25 @@ use alpm_types::{
     RelativePath,
     Url,
 };
-use lints::{duplicate_architecture, missing_architecture_for_property, non_spdx_license};
 
-use super::{lints, relation::RelationOrSoname};
 #[cfg(doc)]
-use crate::{SourceInfoV1, merged::MergedPackage, source_info::package_base::PackageBase};
+use crate::{MergedPackage, SourceInfoV1, source_info::v1::package_base::PackageBase};
 use crate::{
     error::SourceInfoError,
-    parser::{
+    lints::{
+        duplicate_architecture,
+        missing_architecture_for_property,
+        non_spdx_license,
+        reassigned_cleared_property,
+    },
+    relation::RelationOrSoname,
+    source_info::parser::{
         ClearableProperty,
         PackageProperty,
         RawPackage,
         RelationProperty,
         SharedMetaProperty,
     },
-    source_info::lints::reassigned_cleared_property,
 };
 
 /// Package metadata based on a `pkgname` section in SRCINFO data.

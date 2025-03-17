@@ -21,10 +21,10 @@ use serde::Serialize;
 
 use crate::{
     SourceInfoV1,
-    source_info::{
+    relation::RelationOrSoname,
+    source_info::v1::{
         package::Package,
         package_base::{PackageBase, PackageBaseArchitecture},
-        relation::RelationOrSoname,
     },
 };
 

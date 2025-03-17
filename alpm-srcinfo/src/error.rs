@@ -5,7 +5,7 @@ use colored::Colorize;
 use thiserror::Error;
 
 #[cfg(doc)]
-use crate::{SourceInfoV1, parser::SourceInfoContent};
+use crate::{SourceInfoV1, source_info::parser::SourceInfoContent};
 
 /// The high-level error that can occur when using this crate.
 ///

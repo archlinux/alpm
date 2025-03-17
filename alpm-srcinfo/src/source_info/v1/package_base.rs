@@ -20,21 +20,19 @@ use alpm_types::{
     digests::{Blake2b512, Md5, Sha1, Sha224, Sha256, Sha384, Sha512},
 };
 
-use super::{
+use super::package::PackageArchitecture;
+#[cfg(doc)]
+use crate::{MergedPackage, SourceInfoV1, source_info::v1::package::Package};
+use crate::{
+    error::{SourceInfoError, lint, unrecoverable},
     lints::{
         duplicate_architecture,
         missing_architecture_for_property,
         non_spdx_license,
         unsafe_checksum,
     },
-    package::PackageArchitecture,
     relation::RelationOrSoname,
-};
-#[cfg(doc)]
-use crate::{SourceInfoV1, merged::MergedPackage, source_info::package::Package};
-use crate::{
-    error::{SourceInfoError, lint, unrecoverable},
-    parser::{self, PackageBaseProperty, RawPackageBase, SharedMetaProperty},
+    source_info::parser::{self, PackageBaseProperty, RawPackageBase, SharedMetaProperty},
 };
 
 /// Package base metadata based on the `pkgbase` section in SRCINFO data.

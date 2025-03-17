@@ -1,8 +1,8 @@
 //! Contains the second parsing and linting pass.
 //!
-//! The raw representation from the [`parser`](crate::parser) module is brought into a proper
-//! struct-based representation that fully represents the SRCINFO data (apart from comments and
-//! empty lines).
+//! The raw representation from the [`parser`](crate::source_info::parser) module is brought into a
+//! proper struct-based representation that fully represents the SRCINFO data (apart from comments
+//! and empty lines).
 use std::{
     fs::File,
     io::{BufReader, Read},
@@ -12,14 +12,20 @@ use std::{
 use alpm_types::Architecture;
 use winnow::Parser;
 
+pub mod merged;
+pub mod package;
+pub mod package_base;
+
 #[cfg(doc)]
-use crate::merged::MergedPackage;
+use crate::MergedPackage;
 use crate::{
     error::{Error, SourceInfoError, SourceInfoErrors},
-    merged::MergedPackagesIterator,
-    parser::SourceInfoContent,
-    source_info::{package::Package, package_base::PackageBase},
+    source_info::{
+        parser::SourceInfoContent,
+        v1::{merged::MergedPackagesIterator, package::Package, package_base::PackageBase},
+    },
 };
+
 /// The representation of SRCINFO data.
 ///
 /// Provides access to a [`PackageBase`] which tracks all data in a `pkgbase` section and a list of

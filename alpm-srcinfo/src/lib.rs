@@ -5,16 +5,15 @@ pub mod cli;
 #[cfg(feature = "cli")]
 pub mod commands;
 pub mod error;
-pub mod merged;
-pub mod parser;
+pub mod lints;
+pub mod relation;
 pub mod source_info;
 
 pub use error::Error;
-pub use merged::MergedPackage;
+pub use relation::RelationOrSoname;
 pub use source_info::{
     SourceInfo,
-    relation::RelationOrSoname,
-    v1::{SourceInfoResult, SourceInfoV1},
+    v1::{SourceInfoResult, SourceInfoV1, merged::MergedPackage},
 };
 
 mod schema;
