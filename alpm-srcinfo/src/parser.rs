@@ -163,7 +163,7 @@ fn architecture_suffix(input: &mut &str) -> ModalResult<Option<Architecture>> {
         cut_err(take_till(0.., |c| c == ' ' || c == '=').try_map(Architecture::from_str))
             .context(StrContext::Label("architecture"))
             .context(StrContext::Expected(StrContextValue::Description(
-                "an alpm-architecture compatible suffix (e.g. '_i386` or `_x86_64`)",
+                "an alpm-architecture compatible suffix (e.g. 'i386` or `x86_64`)",
             )))
             .parse_next(input)?;
 
@@ -279,13 +279,13 @@ impl RawPackageBase {
 
         // Get the name of the base package.
         // Don't use `till_line_ending`, as we want the name to have a length of at least one.
-        let name =
-            cut_err(terminated(take_till(1.., |c| c == '\n'), line_ending).and_then(Name::parser))
-                .context(StrContext::Label("package base name"))
-                .context(StrContext::Expected(StrContextValue::Description(
-                    "the name of the base package",
-                )))
-                .parse_next(input)?;
+        let name = till_line_end
+            .and_then(Name::parser)
+            .context(StrContext::Label("package base name"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "the name of the base package",
+            )))
+            .parse_next(input)?;
 
         // Go through the lines after the initial `pkgbase` statement.
         //
@@ -323,13 +323,13 @@ impl RawPackage {
             .parse_next(input)?;
 
         // Get the name of the base package.
-        let name =
-            cut_err(terminated(take_till(1.., |c| c == '\n'), line_ending).and_then(Name::parser))
-                .context(StrContext::Label("package name"))
-                .context(StrContext::Expected(StrContextValue::Description(
-                    "the name of a package",
-                )))
-                .parse_next(input)?;
+        let name = till_line_end
+            .and_then(Name::parser)
+            .context(StrContext::Label("package name"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "the name of a package",
+            )))
+            .parse_next(input)?;
 
         // Go through the lines after the initial `pkgname` statement.
         //
