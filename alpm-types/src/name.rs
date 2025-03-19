@@ -10,7 +10,8 @@ use winnow::{
     Parser,
     combinator::{Repeat, alt, cut_err, eof, peek, repeat, repeat_till},
     error::{StrContext, StrContextValue},
-    token::{any, one_of},
+    stream::Stream,
+    token::{any, one_of, rest},
 };
 
 use crate::Error;
@@ -249,8 +250,11 @@ impl SharedObjectName {
 
     /// Parses a [`SharedObjectName`] from a string slice.
     pub fn parser(input: &mut &str) -> ModalResult<Self> {
-        // Save the input for parsing the full name
-        let raw_input = input.to_string();
+        // Make a checkpoint for parsing the full name in one go later on.
+        // The full name will later on include the `.so` extension, but we have to make sure first
+        // that the name has the correct structure.
+        // (a filename followed by one or more `.so` suffixes)
+        let checkpoint = input.checkpoint();
 
         // Parse the name of the shared object until eof or the `.so` is hit.
         repeat_till::<_, _, String, _, _, _, _>(1.., any, peek(alt((".so", eof))))
@@ -275,10 +279,11 @@ impl SharedObjectName {
             )))
             .parse_next(input)?;
 
-        let name = repeat_till(1.., any, eof)
-            .try_map(|(name, _): (String, &str)| Name::from_str(&name))
+        input.reset(&checkpoint);
+        let name = rest
+            .and_then(Name::parser)
             .context(StrContext::Label("name"))
-            .parse_next(&mut raw_input.as_str())?;
+            .parse_next(input)?;
 
         Ok(SharedObjectName(name))
     }
