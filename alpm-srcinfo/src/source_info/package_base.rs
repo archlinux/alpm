@@ -17,7 +17,6 @@ use alpm_types::{
     SkippableChecksum,
     Source,
     Url,
-    Version,
     digests::{Blake2b512, Md5, Sha1, Sha224, Sha256, Sha384, Sha512},
 };
 
@@ -63,7 +62,13 @@ pub struct PackageBase {
     pub backups: Vec<RelativePath>,
 
     // These metadata fields are PackageBase specific
-    pub version: Version,
+    /// The version of the package
+    pub package_version: PackageVersion,
+    /// The release of the package
+    pub package_release: PackageRelease,
+    /// The epoch of the package
+    pub epoch: Option<Epoch>,
+
     pub pgp_fingerprints: Vec<OpenPGPIdentifier>,
 
     // Architectures and architecture specific properties
@@ -224,12 +229,9 @@ impl PackageBase {
         let mut backups = Vec::new();
 
         // These metadata fields are PackageBase specific
-        // This one is expected!
-        let mut package_release: Option<PackageRelease> = None;
-        // This one is optional.
-
-        let mut package_epoch: Option<Epoch> = None;
+        let mut epoch: Option<Epoch> = None;
         let mut package_version: Option<PackageVersion> = None;
+        let mut package_release: Option<PackageRelease> = None;
         let mut pgp_fingerprints = Vec::new();
 
         let mut dependencies = Vec::new();
@@ -301,7 +303,7 @@ impl PackageBase {
                 PackageBaseProperty::EmptyLine | PackageBaseProperty::Comment(_) => continue,
                 PackageBaseProperty::PackageVersion(inner) => package_version = Some(inner),
                 PackageBaseProperty::PackageRelease(inner) => package_release = Some(inner),
-                PackageBaseProperty::PackageEpoch(inner) => package_epoch = Some(inner),
+                PackageBaseProperty::PackageEpoch(inner) => epoch = Some(inner),
                 PackageBaseProperty::ValidPgpKeys(inner) => {
                     if let OpenPGPIdentifier::OpenPGPKeyId(_) = &inner {
                         errors.push(lint(
@@ -501,6 +503,16 @@ impl PackageBase {
             package_version = Some(PackageVersion::new("0".to_string()).unwrap());
         }
 
+        // Handle a missing package_version
+        if package_release.is_none() {
+            errors.push(unrecoverable(
+                None,
+                "pkgbase section doesn't contain a 'pkgrel' keyword assignment",
+            ));
+            // Set a package version nevertheless, so we continue parsing the rest of the file.
+            package_release = Some(PackageRelease::new("0".to_string()).unwrap());
+        }
+
         PackageBase {
             name: parsed.name,
             description,
@@ -513,7 +525,9 @@ impl PackageBase {
             groups,
             options,
             backups,
-            version: Version::new(package_version.unwrap(), package_epoch, package_release),
+            package_version: package_version.unwrap(),
+            package_release: package_release.unwrap(),
+            epoch,
             pgp_fingerprints,
             dependencies,
             optional_dependencies,
