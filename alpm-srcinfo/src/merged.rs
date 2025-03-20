@@ -1,6 +1,7 @@
 //! Provides fully resolved package metadata derived from SRCINFO data.
 use alpm_types::{
     Architecture,
+    Epoch,
     License,
     MakepkgOption,
     Name,
@@ -8,11 +9,12 @@ use alpm_types::{
     OptionalDependency,
     PackageDescription,
     PackageRelation,
+    PackageRelease,
+    PackageVersion,
     RelativePath,
     SkippableChecksum,
     Source,
     Url,
-    Version,
     digests::{Blake2b512, Md5, Sha1, Sha224, Sha256, Sha384, Sha512},
 };
 use serde::Serialize;
@@ -44,7 +46,12 @@ pub struct MergedPackage {
     pub options: Vec<MakepkgOption>,
     pub backups: Vec<RelativePath>,
 
-    pub version: Version,
+    /// The version of the package
+    pub package_version: PackageVersion,
+    /// The release of the package
+    pub package_release: PackageRelease,
+    /// The epoch of the package
+    pub epoch: Option<Epoch>,
     pub pgp_fingerprints: Vec<OpenPGPIdentifier>,
 
     pub dependencies: Vec<RelationOrSoname>,
@@ -226,7 +233,9 @@ impl MergedPackage {
             groups: base.groups.clone(),
             options: base.options.clone(),
             backups: base.backups.clone(),
-            version: base.version.clone(),
+            package_version: base.package_version.clone(),
+            package_release: base.package_release.clone(),
+            epoch: base.epoch,
             pgp_fingerprints: base.pgp_fingerprints.clone(),
             dependencies: base.dependencies.clone(),
             optional_dependencies: base.optional_dependencies.clone(),

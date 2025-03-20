@@ -31,11 +31,9 @@ expression: json
     "backups": [
       "etc/pacman.conf"
     ],
-    "version": {
-      "pkgver": "0.1.0",
-      "epoch": 1,
-      "pkgrel": "1"
-    },
+    "package_version": "0.1.0",
+    "package_release": "1",
+    "epoch": 1,
     "pgp_fingerprints": [
       {
         "openpgp_v4_fingerprint": "4A0C4DFFC02E1A7ED969ED231C2358A25A10D94D"
