@@ -110,7 +110,7 @@ pub type Sha512Checksum = Checksum<Sha512>;
 #[derive(Clone)]
 pub struct Checksum<D: Digest> {
     digest: Vec<u8>,
-    _marker: PhantomData<*const D>,
+    _marker: PhantomData<D>,
 }
 
 impl<D: Digest> Serialize for Checksum<D> {
