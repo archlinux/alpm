@@ -5,7 +5,6 @@
 imperative_subject = true
 line_length = 72
 style = "conventional"
-subject_capitalized = false
 subject_length = 0            # disable the check
 subject_not_punctuated = true
 
