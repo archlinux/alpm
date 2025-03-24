@@ -19,6 +19,8 @@ use alpm_types::{
 };
 use serde::{Deserialize, Serialize};
 
+#[cfg(doc)]
+use crate::source_info::v1::package::Override;
 use crate::{
     SourceInfoV1,
     relation::RelationOrSoname,
@@ -83,10 +85,9 @@ impl Iterator for MergedPackagesIterator<'_> {
         let package = self.package_iterator.find(|package| {
             // If the package provides target architecture overrides, use those, otherwise fallback
             // to package base architectures.
-            let architectures = if let Some(architectures) = &package.architectures {
-                architectures
-            } else {
-                &self.source_info.base.architectures
+            let architectures = match &package.architectures {
+                Some(value) => value,
+                None => &self.source_info.base.architectures,
             };
 
             architectures.contains(&self.architecture) || architectures.contains(&Architecture::Any)
@@ -175,12 +176,14 @@ impl MergedPackage {
         package: &Package,
     ) -> MergedPackage {
         let name = package.name.clone();
+        // Step 1
         let mut merged_package = Self::from_base(&architecture, name, base);
 
+        // Step 2
         merged_package.merge_package(package);
 
         // Get the architecture specific properties from the PackageBase.
-        // Use an empty default without any properties as default.
+        // Use an empty default without any properties as default if none are found.
         let mut architecture_properties =
             if let Some(properties) = base.architecture_properties.get(&architecture) {
                 properties.clone()
@@ -251,57 +254,36 @@ impl MergedPackage {
         }
     }
 
-    /// Merges in the fields of a [`Package`].
+    /// Merges the non-architecture specific fields of a [`Package`] into `self`.
     ///
-    /// Any field on `package` that is not [`None`] overrides the pendant on `self`.
+    /// Any field on `package` that is not [`Override::No`] overrides the pendant on `self`.
     pub fn merge_package(&mut self, package: &Package) {
-        if let Some(description) = &package.description {
-            self.description = description.clone();
-        }
-        if let Some(url) = &package.url {
-            self.url = url.clone();
-        }
-        if let Some(changelog) = &package.changelog {
-            self.changelog = changelog.clone();
-        }
-        if let Some(licenses) = &package.licenses {
-            self.licenses = licenses.clone();
-        }
-        if let Some(install) = &package.install {
-            self.install = install.clone();
-        }
-        if let Some(groups) = &package.groups {
-            self.groups = groups.clone();
-        }
-        if let Some(options) = &package.options {
-            self.options = options.clone();
-        }
-        if let Some(backups) = &package.backups {
-            self.backups = backups.clone();
-        }
-        if let Some(dependencies) = &package.dependencies {
-            self.dependencies = dependencies.clone();
-        }
-        if let Some(optional_dependencies) = &package.optional_dependencies {
-            self.optional_dependencies = optional_dependencies.clone();
-        }
-        if let Some(provides) = &package.provides {
-            self.provides = provides.clone();
-        }
-        if let Some(conflicts) = &package.conflicts {
-            self.conflicts = conflicts.clone();
-        }
-        if let Some(replaces) = &package.replaces {
-            self.replaces = replaces.clone();
-        }
+        let package = package.clone();
+        package.description.merge_option(&mut self.description);
+
+        package.url.merge_option(&mut self.url);
+        package.changelog.merge_option(&mut self.changelog);
+        package.licenses.merge_vec(&mut self.licenses);
+        package.install.merge_option(&mut self.install);
+        package.groups.merge_vec(&mut self.groups);
+        package.options.merge_vec(&mut self.options);
+        package.backups.merge_vec(&mut self.backups);
+        package.dependencies.merge_vec(&mut self.dependencies);
+        package
+            .optional_dependencies
+            .merge_vec(&mut self.optional_dependencies);
+        package.provides.merge_vec(&mut self.provides);
+        package.conflicts.merge_vec(&mut self.conflicts);
+        package.replaces.merge_vec(&mut self.replaces);
     }
 
     /// Merges in architecture-specific overrides for fields.
     ///
-    /// Takes a [`PackageBaseArchitecture`] and uses all of its fields as overrides for the pendants
-    /// on `self`.
+    /// Takes a [`PackageBaseArchitecture`] and extends the non-architecture specific values
+    /// with the architecture specific ones.
+    /// This is an accumulative and non-destructive operation.
     pub fn merge_architecture_properties(&mut self, base_architecture: &PackageBaseArchitecture) {
-        // Merge all source related info into a aggregated structs.
+        // Merge all source related info into aggregated structs.
         let merged_sources = MergedSourceIterator {
             sources: base_architecture.sources.iter(),
             b2_checksums: base_architecture.b2_checksums.iter(),

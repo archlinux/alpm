@@ -1,0 +1,212 @@
+---
+source: alpm-srcinfo/tests/correct.rs
+description: all_cleared SourceInfo representation.
+expression: source_info_json
+---
+{
+  "base": {
+    "name": "example",
+    "description": "A example with all pkgbase properties set.",
+    "url": "https://archlinux.org/",
+    "changelog": "changelog.stub",
+    "licenses": [
+      "MIT"
+    ],
+    "install": "install.sh.stub",
+    "groups": [
+      "group",
+      "group_2"
+    ],
+    "options": [
+      {
+        "name": "lto",
+        "on": false
+      }
+    ],
+    "backups": [
+      "etc/pacman.conf"
+    ],
+    "package_version": "0.1.0",
+    "package_release": "1",
+    "epoch": 1,
+    "pgp_fingerprints": [],
+    "architectures": [
+      "Aarch64",
+      "X86_64"
+    ],
+    "architecture_properties": {
+      "Aarch64": {
+        "dependencies": [],
+        "optional_dependencies": [],
+        "provides": [],
+        "conflicts": [],
+        "replaces": [],
+        "check_dependencies": [],
+        "make_dependencies": [],
+        "sources": [],
+        "no_extracts": [],
+        "b2_checksums": [],
+        "md5_checksums": [],
+        "sha1_checksums": [],
+        "sha224_checksums": [],
+        "sha256_checksums": [],
+        "sha384_checksums": [],
+        "sha512_checksums": []
+      },
+      "X86_64": {
+        "dependencies": [
+          {
+            "name": "arch_default_dep",
+            "version_requirement": null
+          }
+        ],
+        "optional_dependencies": [
+          {
+            "package_relation": {
+              "name": "arch_default_optdep",
+              "version_requirement": null
+            },
+            "description": null
+          }
+        ],
+        "provides": [
+          {
+            "name": "arch_default_provides",
+            "version_requirement": null
+          }
+        ],
+        "conflicts": [
+          {
+            "name": "arch_default_conflict",
+            "version_requirement": null
+          }
+        ],
+        "replaces": [
+          {
+            "name": "arch_default_replaces",
+            "version_requirement": null
+          }
+        ],
+        "check_dependencies": [],
+        "make_dependencies": [],
+        "sources": [],
+        "no_extracts": [],
+        "b2_checksums": [],
+        "md5_checksums": [],
+        "sha1_checksums": [],
+        "sha224_checksums": [],
+        "sha256_checksums": [],
+        "sha384_checksums": [],
+        "sha512_checksums": []
+      }
+    },
+    "dependencies": [
+      {
+        "name": "default_dep",
+        "version_requirement": null
+      }
+    ],
+    "optional_dependencies": [
+      {
+        "package_relation": {
+          "name": "default_optdep",
+          "version_requirement": null
+        },
+        "description": null
+      }
+    ],
+    "provides": [
+      {
+        "name": "default_provides",
+        "version_requirement": null
+      }
+    ],
+    "conflicts": [
+      {
+        "name": "default_conflict",
+        "version_requirement": null
+      }
+    ],
+    "replaces": [
+      {
+        "name": "default_replaces",
+        "version_requirement": null
+      }
+    ],
+    "check_dependencies": [],
+    "make_dependencies": [],
+    "sources": [],
+    "no_extracts": [],
+    "b2_checksums": [],
+    "md5_checksums": [],
+    "sha1_checksums": [],
+    "sha224_checksums": [],
+    "sha256_checksums": [],
+    "sha384_checksums": [],
+    "sha512_checksums": []
+  },
+  "packages": [
+    {
+      "name": "example",
+      "description": {
+        "override": "Clear"
+      },
+      "url": {
+        "override": "Clear"
+      },
+      "changelog": {
+        "override": "Clear"
+      },
+      "licenses": {
+        "override": "Clear"
+      },
+      "install": {
+        "override": "Clear"
+      },
+      "groups": {
+        "override": "Clear"
+      },
+      "options": {
+        "override": "Clear"
+      },
+      "backups": {
+        "override": "Clear"
+      },
+      "architectures": null,
+      "architecture_properties": {
+        "X86_64": {
+          "dependencies": {
+            "override": "Clear"
+          },
+          "optional_dependencies": {
+            "override": "Clear"
+          },
+          "provides": {
+            "override": "Clear"
+          },
+          "conflicts": {
+            "override": "Clear"
+          },
+          "replaces": {
+            "override": "Clear"
+          }
+        }
+      },
+      "dependencies": {
+        "override": "Clear"
+      },
+      "optional_dependencies": {
+        "override": "Clear"
+      },
+      "provides": {
+        "override": "Clear"
+      },
+      "conflicts": {
+        "override": "Clear"
+      },
+      "replaces": {
+        "override": "Clear"
+      }
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 //! Handling of metadata found in the `pkgbase` section of SRCINFO data.
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeMap, HashSet};
 
 use alpm_types::{
     Architecture,
@@ -33,7 +33,10 @@ use crate::{
         unsafe_checksum,
     },
     relation::RelationOrSoname,
-    source_info::parser::{self, PackageBaseProperty, RawPackageBase, SharedMetaProperty},
+    source_info::{
+        helper::ordered_hashset,
+        parser::{self, PackageBaseProperty, RawPackageBase, SharedMetaProperty},
+    },
 };
 
 /// Package base metadata based on the `pkgbase` section in SRCINFO data.
@@ -68,8 +71,9 @@ pub struct PackageBase {
     pub pgp_fingerprints: Vec<OpenPGPIdentifier>,
 
     // Architectures and architecture specific properties
+    #[serde(serialize_with = "ordered_hashset")]
     pub architectures: HashSet<Architecture>,
-    pub architecture_properties: HashMap<Architecture, PackageBaseArchitecture>,
+    pub architecture_properties: BTreeMap<Architecture, PackageBaseArchitecture>,
 
     pub dependencies: Vec<RelationOrSoname>,
     pub optional_dependencies: Vec<OptionalDependency>,
@@ -127,21 +131,13 @@ impl PackageBaseArchitecture {
     /// Each existing field of `properties` overrides the architecture-independent pendant on
     /// `self`.
     pub fn merge_package_properties(&mut self, properties: PackageArchitecture) {
-        if let Some(dependencies) = properties.dependencies {
-            self.dependencies = dependencies;
-        }
-        if let Some(optional_dependencies) = properties.optional_dependencies {
-            self.optional_dependencies = optional_dependencies;
-        }
-        if let Some(provides) = properties.provides {
-            self.provides = provides;
-        }
-        if let Some(conflicts) = properties.conflicts {
-            self.conflicts = conflicts;
-        }
-        if let Some(replaces) = properties.replaces {
-            self.replaces = replaces;
-        }
+        properties.dependencies.merge_vec(&mut self.dependencies);
+        properties
+            .optional_dependencies
+            .merge_vec(&mut self.optional_dependencies);
+        properties.provides.merge_vec(&mut self.provides);
+        properties.conflicts.merge_vec(&mut self.conflicts);
+        properties.replaces.merge_vec(&mut self.replaces);
     }
 }
 
@@ -216,7 +212,7 @@ impl PackageBase {
         let mut licenses = Vec::new();
         let mut changelog = None;
         let mut architectures = HashSet::new();
-        let mut architecture_properties = HashMap::new();
+        let mut architecture_properties = BTreeMap::new();
 
         // Build or package management related meta fields
         let mut install = None;

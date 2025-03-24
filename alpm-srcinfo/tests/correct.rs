@@ -49,37 +49,51 @@ pub fn correct_files(#[files("tests/correct/*.srcinfo")] case: PathBuf) -> TestR
         }
     };
 
+    let source_info_json = serde_json::to_string_pretty(&source_info)?;
+
+    let test_name = case.file_stem().unwrap().to_str().unwrap().to_string();
+    // Compare the generated source_info json with the expected snapshot.
+    // Remove the usual module prefix by explicitly setting the snapshot path.
+    // This is necessary, as we're manually sorting snapshots by test scenario.
+    insta::with_settings!({
+        description => format!("{test_name} SourceInfo representation."),
+        snapshot_path => "correct_snapshots",
+        prepend_module_to_snapshot => false,
+    }, {
+        assert_snapshot!(format!("{test_name}_source_info"), source_info_json );
+    });
+
     let packages = source_info
         .packages_for_architecture(Architecture::X86_64)
         .collect::<Vec<MergedPackage>>();
 
-    let json = serde_json::to_string_pretty(&packages)?;
-    let name = case.file_stem().unwrap().to_str().unwrap().to_string();
+    let package_json = serde_json::to_string_pretty(&packages)?;
 
-    if json.contains("unexpected") {
+    if package_json.contains("unexpected") {
         return Err(format!(
-            "Found 'unexpected' keyword in json output. {}:\n{json}",
+            "Found 'unexpected' keyword in json output. {}:\n{package_json}",
             "This indicates that data was included that shouldn't be in there"
         )
         .into());
     }
 
-    if json.contains("beefc0ffee") {
+    if package_json.contains("beefc0ffee") {
         return Err(format!(
-            "Found 'beefc0ffee' keyword in json output. {}:\n{json}",
+            "Found 'beefc0ffee' keyword in json output. {}:\n{package_json}",
             "This indicates that an checksum was included that shouldn't be in there"
         )
         .into());
     }
 
-    // Compare the generated json with the expected snapshot.
+    // Compare the generated merged json with the expected snapshot.
     // Remove the usual module prefix by explicitly setting the snapshot path.
     // This is necessary, as we're manually sorting snapshots by test scenario.
     insta::with_settings!({
+        description => format!("{test_name} merged representation."),
         snapshot_path => "correct_snapshots",
         prepend_module_to_snapshot => false,
     }, {
-        assert_snapshot!(name, json);
+        assert_snapshot!(format!("{test_name}_merged"), package_json);
     });
 
     Ok(())

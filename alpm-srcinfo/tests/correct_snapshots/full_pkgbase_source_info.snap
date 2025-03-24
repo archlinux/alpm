@@ -1,0 +1,609 @@
+---
+source: alpm-srcinfo/tests/correct.rs
+description: full_pkgbase SourceInfo representation.
+expression: source_info_json
+---
+{
+  "base": {
+    "name": "example",
+    "description": "A example with all pkgbase properties set.",
+    "url": "https://archlinux.org/",
+    "changelog": "changelog.stub",
+    "licenses": [
+      "MIT",
+      "Apache-2.0"
+    ],
+    "install": "install.sh.stub",
+    "groups": [
+      "group",
+      "group_2"
+    ],
+    "options": [
+      {
+        "name": "lto",
+        "on": false
+      },
+      {
+        "name": "emptydirs",
+        "on": true
+      }
+    ],
+    "backups": [
+      "etc/pacman.conf"
+    ],
+    "package_version": "0.1.0",
+    "package_release": "1",
+    "epoch": 1,
+    "pgp_fingerprints": [
+      {
+        "openpgp_v4_fingerprint": "4A0C4DFFC02E1A7ED969ED231C2358A25A10D94D"
+      },
+      {
+        "openpgp_v4_fingerprint": "4A0C4DFFC02E1A7ED969ED231C2358A25A10D94E"
+      }
+    ],
+    "architectures": [
+      "Aarch64",
+      "X86_64"
+    ],
+    "architecture_properties": {
+      "Aarch64": {
+        "dependencies": [
+          {
+            "name": "unexpected",
+            "version_requirement": null
+          }
+        ],
+        "optional_dependencies": [
+          {
+            "package_relation": {
+              "name": "unexpected",
+              "version_requirement": null
+            },
+            "description": null
+          }
+        ],
+        "provides": [
+          {
+            "name": "unexpected",
+            "version_requirement": null
+          }
+        ],
+        "conflicts": [
+          {
+            "name": "unexpected",
+            "version_requirement": null
+          }
+        ],
+        "replaces": [
+          {
+            "name": "unexpected",
+            "version_requirement": null
+          }
+        ],
+        "check_dependencies": [
+          {
+            "name": "unexpected",
+            "version_requirement": null
+          }
+        ],
+        "make_dependencies": [
+          {
+            "name": "unexpected",
+            "version_requirement": null
+          }
+        ],
+        "sources": [
+          {
+            "type": "File",
+            "filename": null,
+            "location": "unexpected"
+          }
+        ],
+        "no_extracts": [],
+        "b2_checksums": [
+          {
+            "type": "Checksum",
+            "digest": "beefc0ffee1882900bbcc29a84f8856a7bcd111979815435f9f7aa9c77fb77592fc56324ce3ba6c18df0609a5057e6e3589b9bcced9e7475f2984478b9028a97"
+          }
+        ],
+        "md5_checksums": [],
+        "sha1_checksums": [],
+        "sha224_checksums": [
+          {
+            "type": "Checksum",
+            "digest": "beefc0ffeec738367c4278c5028b5efcad1699b314535cbe2a0c34d5"
+          }
+        ],
+        "sha256_checksums": [
+          {
+            "type": "Checksum",
+            "digest": "beefc0ffee05bdc878082d735eb5306692a0db2410cd9463a8b4bb135b5b9562"
+          }
+        ],
+        "sha384_checksums": [
+          {
+            "type": "Checksum",
+            "digest": "beefc0ffee9363202624edbaf66538fd0749f735e7f28608cf8eebbf0ba196d76482021708b5831322b6846c44b73360"
+          }
+        ],
+        "sha512_checksums": [
+          {
+            "type": "Checksum",
+            "digest": "beefc0ffeebf31eb7c57a66bfb0f0ee5cef9398b5e4cc303468e08dae2702da55978402da94673e444f8c02754e94dedef4d12450319383c3a481d1c5cd90c82"
+          }
+        ]
+      },
+      "X86_64": {
+        "dependencies": [
+          {
+            "name": "arch_default_dep",
+            "version_requirement": null
+          },
+          {
+            "name": "arch_default_dep_2",
+            "version_requirement": {
+              "comparison": "Equal",
+              "version": {
+                "pkgver": "2.0.0",
+                "epoch": null,
+                "pkgrel": null
+              }
+            }
+          }
+        ],
+        "optional_dependencies": [
+          {
+            "package_relation": {
+              "name": "arch_default_optdep",
+              "version_requirement": null
+            },
+            "description": null
+          },
+          {
+            "package_relation": {
+              "name": "arch_default_optdep_2",
+              "version_requirement": {
+                "comparison": "Equal",
+                "version": {
+                  "pkgver": "2.0.0",
+                  "epoch": null,
+                  "pkgrel": null
+                }
+              }
+            },
+            "description": "With description"
+          }
+        ],
+        "provides": [
+          {
+            "name": "arch_default_provides",
+            "version_requirement": null
+          },
+          {
+            "name": "arch_default_provides_2",
+            "version_requirement": {
+              "comparison": "Equal",
+              "version": {
+                "pkgver": "2.0.0",
+                "epoch": null,
+                "pkgrel": null
+              }
+            }
+          }
+        ],
+        "conflicts": [
+          {
+            "name": "arch_default_conflict",
+            "version_requirement": null
+          },
+          {
+            "name": "arch_default_conflict_2",
+            "version_requirement": {
+              "comparison": "Equal",
+              "version": {
+                "pkgver": "2.0.0",
+                "epoch": null,
+                "pkgrel": null
+              }
+            }
+          }
+        ],
+        "replaces": [
+          {
+            "name": "arch_default_replaces",
+            "version_requirement": null
+          },
+          {
+            "name": "arch_default_replaces_2",
+            "version_requirement": {
+              "comparison": "Equal",
+              "version": {
+                "pkgver": "2.0.0",
+                "epoch": null,
+                "pkgrel": null
+              }
+            }
+          }
+        ],
+        "check_dependencies": [
+          {
+            "name": "arch_default_checkdep",
+            "version_requirement": null
+          },
+          {
+            "name": "arch_default_checkdep_2",
+            "version_requirement": {
+              "comparison": "Equal",
+              "version": {
+                "pkgver": "2.0.0",
+                "epoch": null,
+                "pkgrel": null
+              }
+            }
+          }
+        ],
+        "make_dependencies": [
+          {
+            "name": "arch_default_makedep",
+            "version_requirement": null
+          },
+          {
+            "name": "arch_default_makedep_2",
+            "version_requirement": {
+              "comparison": "Equal",
+              "version": {
+                "pkgver": "2.0.0",
+                "epoch": null,
+                "pkgrel": null
+              }
+            }
+          }
+        ],
+        "sources": [
+          {
+            "type": "File",
+            "filename": null,
+            "location": "arch_source_1.tar.gz"
+          },
+          {
+            "type": "File",
+            "filename": null,
+            "location": "arch_source_2.patch"
+          }
+        ],
+        "no_extracts": [],
+        "b2_checksums": [
+          {
+            "type": "Skip"
+          },
+          {
+            "type": "Checksum",
+            "digest": "87dd1c13611882900bbcc29a84f8856a7bcd111979815435f9f7aa9c77fb77592fc56324ce3ba6c18df0609a5057e6e3589b9bcced9e7475f2984478b9028a97"
+          },
+          {
+            "type": "Skip"
+          }
+        ],
+        "md5_checksums": [],
+        "sha1_checksums": [],
+        "sha224_checksums": [
+          {
+            "type": "Checksum",
+            "digest": "8670e639dbc738367c4278c5028b5efcad1699b314535cbe2a0c34d5"
+          },
+          {
+            "type": "Skip"
+          }
+        ],
+        "sha256_checksums": [
+          {
+            "type": "Checksum",
+            "digest": "53d397944805bdc878082d735eb5306692a0db2410cd9463a8b4bb135b5b9562"
+          },
+          {
+            "type": "Skip"
+          }
+        ],
+        "sha384_checksums": [
+          {
+            "type": "Checksum",
+            "digest": "5487a70ec49363202624edbaf66538fd0749f735e7f28608cf8eebbf0ba196d76482021708b5831322b6846c44b73360"
+          },
+          {
+            "type": "Skip"
+          }
+        ],
+        "sha512_checksums": [
+          {
+            "type": "Checksum",
+            "digest": "1816c57b4abf31eb7c57a66bfb0f0ee5cef9398b5e4cc303468e08dae2702da55978402da94673e444f8c02754e94dedef4d12450319383c3a481d1c5cd90c82"
+          }
+        ]
+      }
+    },
+    "dependencies": [
+      {
+        "name": "default_dep",
+        "version_requirement": null
+      },
+      {
+        "name": "default_dep_2",
+        "version_requirement": {
+          "comparison": "Equal",
+          "version": {
+            "pkgver": "2.0.0",
+            "epoch": null,
+            "pkgrel": null
+          }
+        }
+      }
+    ],
+    "optional_dependencies": [
+      {
+        "package_relation": {
+          "name": "default_optdep",
+          "version_requirement": null
+        },
+        "description": null
+      },
+      {
+        "package_relation": {
+          "name": "default_optdep_2",
+          "version_requirement": {
+            "comparison": "Equal",
+            "version": {
+              "pkgver": "2.0.0",
+              "epoch": null,
+              "pkgrel": null
+            }
+          }
+        },
+        "description": "With description"
+      }
+    ],
+    "provides": [
+      {
+        "name": "default_provides",
+        "version_requirement": null
+      },
+      {
+        "name": "default_provides_2",
+        "version_requirement": {
+          "comparison": "Equal",
+          "version": {
+            "pkgver": "2.0.0",
+            "epoch": null,
+            "pkgrel": null
+          }
+        }
+      }
+    ],
+    "conflicts": [
+      {
+        "name": "default_conflict",
+        "version_requirement": null
+      },
+      {
+        "name": "default_conflict_2",
+        "version_requirement": {
+          "comparison": "Equal",
+          "version": {
+            "pkgver": "2.0.0",
+            "epoch": null,
+            "pkgrel": null
+          }
+        }
+      }
+    ],
+    "replaces": [
+      {
+        "name": "default_replaces",
+        "version_requirement": null
+      },
+      {
+        "name": "default_replaces_2",
+        "version_requirement": {
+          "comparison": "Equal",
+          "version": {
+            "pkgver": "2.0.0",
+            "epoch": null,
+            "pkgrel": null
+          }
+        }
+      }
+    ],
+    "check_dependencies": [
+      {
+        "name": "default_checkdep",
+        "version_requirement": null
+      },
+      {
+        "name": "default_checkdep_2",
+        "version_requirement": {
+          "comparison": "Equal",
+          "version": {
+            "pkgver": "2.0.0",
+            "epoch": null,
+            "pkgrel": null
+          }
+        }
+      }
+    ],
+    "make_dependencies": [
+      {
+        "name": "default_makedep",
+        "version_requirement": null
+      },
+      {
+        "name": "default_makedep_2",
+        "version_requirement": {
+          "comparison": "Equal",
+          "version": {
+            "pkgver": "2.0.0",
+            "epoch": null,
+            "pkgrel": null
+          }
+        }
+      }
+    ],
+    "sources": [
+      {
+        "type": "File",
+        "filename": null,
+        "location": "source_1.tar.gz"
+      },
+      {
+        "type": "SourceUrl",
+        "filename": "source_2",
+        "source_url": {
+          "url": "https://upstream.com/example.git",
+          "vcs_info": {
+            "protocol": "git",
+            "fragment": {
+              "branch": "0.1.0"
+            },
+            "signed": true
+          }
+        }
+      },
+      {
+        "type": "File",
+        "filename": null,
+        "location": "source_3.zip"
+      },
+      {
+        "type": "File",
+        "filename": null,
+        "location": "source_4.tar.gz"
+      }
+    ],
+    "no_extracts": [
+      "source_3.zip",
+      "source_4.tar.gz"
+    ],
+    "b2_checksums": [
+      {
+        "type": "Skip"
+      },
+      {
+        "type": "Skip"
+      },
+      {
+        "type": "Skip"
+      },
+      {
+        "type": "Checksum",
+        "digest": "87dd1c13611882900bbcc29a84f8856a7bcd111979815435f9f7aa9c77fb77592fc56324ce3ba6c18df0609a5057e6e3589b9bcced9e7475f2984478b9028a97"
+      },
+      {
+        "type": "Skip"
+      },
+      {
+        "type": "Skip"
+      },
+      {
+        "type": "Skip"
+      }
+    ],
+    "md5_checksums": [],
+    "sha1_checksums": [],
+    "sha224_checksums": [
+      {
+        "type": "Checksum",
+        "digest": "8670e639dbc738367c4278c5028b5efcad1699b314535cbe2a0c34d5"
+      },
+      {
+        "type": "Skip"
+      },
+      {
+        "type": "Skip"
+      },
+      {
+        "type": "Skip"
+      }
+    ],
+    "sha256_checksums": [
+      {
+        "type": "Checksum",
+        "digest": "53d397944805bdc878082d735eb5306692a0db2410cd9463a8b4bb135b5b9562"
+      },
+      {
+        "type": "Skip"
+      },
+      {
+        "type": "Skip"
+      },
+      {
+        "type": "Skip"
+      }
+    ],
+    "sha384_checksums": [
+      {
+        "type": "Checksum",
+        "digest": "5487a70ec49363202624edbaf66538fd0749f735e7f28608cf8eebbf0ba196d76482021708b5831322b6846c44b73360"
+      },
+      {
+        "type": "Skip"
+      },
+      {
+        "type": "Skip"
+      },
+      {
+        "type": "Skip"
+      }
+    ],
+    "sha512_checksums": [
+      {
+        "type": "Checksum",
+        "digest": "1816c57b4abf31eb7c57a66bfb0f0ee5cef9398b5e4cc303468e08dae2702da55978402da94673e444f8c02754e94dedef4d12450319383c3a481d1c5cd90c82"
+      }
+    ]
+  },
+  "packages": [
+    {
+      "name": "example",
+      "description": {
+        "override": "No"
+      },
+      "url": {
+        "override": "No"
+      },
+      "changelog": {
+        "override": "No"
+      },
+      "licenses": {
+        "override": "No"
+      },
+      "install": {
+        "override": "No"
+      },
+      "groups": {
+        "override": "No"
+      },
+      "options": {
+        "override": "No"
+      },
+      "backups": {
+        "override": "No"
+      },
+      "architectures": null,
+      "architecture_properties": {},
+      "dependencies": {
+        "override": "No"
+      },
+      "optional_dependencies": {
+        "override": "No"
+      },
+      "provides": {
+        "override": "No"
+      },
+      "conflicts": {
+        "override": "No"
+      },
+      "replaces": {
+        "override": "No"
+      }
+    }
+  ]
+}

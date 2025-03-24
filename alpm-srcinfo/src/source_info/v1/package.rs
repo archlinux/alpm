@@ -1,5 +1,5 @@
 //! Handling of metadata found in a `pkgname` section of SRCINFO data.
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeMap, HashSet};
 
 use alpm_types::{
     Architecture,
@@ -25,14 +25,85 @@ use crate::{
         reassigned_cleared_property,
     },
     relation::RelationOrSoname,
-    source_info::parser::{
-        ClearableProperty,
-        PackageProperty,
-        RawPackage,
-        RelationProperty,
-        SharedMetaProperty,
+    source_info::{
+        helper::ordered_optional_hashset,
+        parser::{
+            ClearableProperty,
+            PackageProperty,
+            RawPackage,
+            RelationProperty,
+            SharedMetaProperty,
+        },
     },
 };
+
+/// A [`Package`] property that can override its respective defaults in [`PackageBase`].
+///
+/// This type is similar to [`Option`], which has special serialization behavior.
+/// However, in some file formats (e.g. JSON) it is not possible to represent data such as
+/// `Option<Option<T>>`, as serialization would flatten the structure. This type enables
+/// representation of this type of data.
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "override")]
+pub enum Override<T> {
+    #[default]
+    No,
+    Clear,
+    Yes {
+        value: T,
+    },
+}
+
+impl<T> Override<T> {
+    /// Applies `self` onto an `Option<T>`.
+    ///
+    /// - `Override::No` -> `other` stays untouched.
+    /// - `Override::Clear` -> `other` is set to `None`.
+    /// - `Override::Yes { value }` -> `other` is set to `Some(value)`.
+    #[inline]
+    pub fn merge_option(self, other: &mut Option<T>) {
+        match self {
+            Override::No => (),
+            Override::Clear => *other = None,
+            Override::Yes { value } => *other = Some(value),
+        }
+    }
+
+    /// If `Override::Yes`, its value will be returned.
+    /// If `self` is something else, `self` will be set to a `Override::Yes { value: default }`.
+    ///
+    /// Similar to as [Option::get_or_insert].
+    #[inline]
+    pub fn get_or_insert(&mut self, default: T) -> &mut T {
+        if let Override::Yes { value } = self {
+            return value;
+        }
+
+        *self = Override::Yes { value: default };
+
+        // This is infallible.
+        if let Override::Yes { value } = self {
+            return value;
+        }
+        unreachable!()
+    }
+}
+
+impl<T> Override<Vec<T>> {
+    /// Applies `self` onto an `Vec<T>`.
+    ///
+    /// - `Override::No` -> `other` stays untouched.
+    /// - `Override::Clear` -> `other` is set to `Vec::new()`.
+    /// - `Override::Yes { value }` -> `other` is set to `value`.
+    #[inline]
+    pub fn merge_vec(self, other: &mut Vec<T>) {
+        match self {
+            Override::No => (),
+            Override::Clear => *other = Vec::new(),
+            Override::Yes { value } => *other = value,
+        }
+    }
+}
 
 /// Package metadata based on a `pkgname` section in SRCINFO data.
 ///
@@ -40,13 +111,15 @@ use crate::{
 /// Only in combination with [`PackageBase`] data a full view on a package's metadata is possible.
 ///
 /// All values and nested structs inside this struct, except the `name` field, are either nested
-/// [`Option`]s (e.g. `Option<Option<String>>`) or optional collections (e.g. `Option<Vec>`).
+/// [`Option`]s (e.g. `Override<Option<String>>`) or optional collections (e.g. `Option<Vec>`).
 /// This is due to the fact that all fields are overrides for the defaults set by the
 /// [`PackageBase`] struct.
-/// - If a value is `None`, this indicates that the [`PackageBase`]'s value should be used.
-/// - If a value is `Some<None>`, this means that the value should be empty and the [`PackageBase`]
-///   should be ignored. The same goes for collections in the sense of `Some(Vec::new())`.
-/// - If a value is `Some(Some(value))` or `Some(vec![values])`, these values should then be used.
+/// - If a value is `Override::No`, this indicates that the [`PackageBase`]'s value should be used.
+/// - If a value is `Override::Yes<None>`, this means that the value should be empty and the
+///   [`PackageBase`] should be ignored. The same goes for collections in the sense of
+///   `Override::Yes(Vec::new())`.
+/// - If a value is `Override::Yes(Some(value))` or `Override::Yes(vec![values])`, these values
+///   should then be used.
 ///
 /// This struct merely contains the overrides that should be applied on top of the
 /// [PackageBase] to get the final definition of this package.
@@ -56,26 +129,29 @@ use crate::{
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Package {
     pub name: Name,
-    pub description: Option<Option<PackageDescription>>,
-    pub url: Option<Option<Url>>,
-    pub changelog: Option<Option<RelativePath>>,
-    pub licenses: Option<Vec<License>>,
+    pub description: Override<PackageDescription>,
+    pub url: Override<Url>,
+    pub changelog: Override<RelativePath>,
+    pub licenses: Override<Vec<License>>,
 
     // Build or package management related meta fields
-    pub install: Option<Option<RelativePath>>,
-    pub groups: Option<Vec<String>>,
-    pub options: Option<Vec<MakepkgOption>>,
-    pub backups: Option<Vec<RelativePath>>,
+    pub install: Override<RelativePath>,
+    pub groups: Override<Vec<String>>,
+    pub options: Override<Vec<MakepkgOption>>,
+    pub backups: Override<Vec<RelativePath>>,
 
     /// These are all override fields that may be architecture specific.
+    /// Despite being overridable, `architectures` field isn't of the `Override` type, as it
+    /// **cannot** be cleared.
+    #[serde(serialize_with = "ordered_optional_hashset")]
     pub architectures: Option<HashSet<Architecture>>,
-    pub architecture_properties: HashMap<Architecture, PackageArchitecture>,
+    pub architecture_properties: BTreeMap<Architecture, PackageArchitecture>,
 
-    pub dependencies: Option<Vec<RelationOrSoname>>,
-    pub optional_dependencies: Option<Vec<OptionalDependency>>,
-    pub provides: Option<Vec<RelationOrSoname>>,
-    pub conflicts: Option<Vec<PackageRelation>>,
-    pub replaces: Option<Vec<PackageRelation>>,
+    pub dependencies: Override<Vec<RelationOrSoname>>,
+    pub optional_dependencies: Override<Vec<OptionalDependency>>,
+    pub provides: Override<Vec<RelationOrSoname>>,
+    pub conflicts: Override<Vec<PackageRelation>>,
+    pub replaces: Override<Vec<PackageRelation>>,
 }
 
 /// Architecture specific package properties for use in [`Package`].
@@ -84,11 +160,11 @@ pub struct Package {
 /// present in [`Package::architecture_properties`].
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct PackageArchitecture {
-    pub dependencies: Option<Vec<RelationOrSoname>>,
-    pub optional_dependencies: Option<Vec<OptionalDependency>>,
-    pub provides: Option<Vec<RelationOrSoname>>,
-    pub conflicts: Option<Vec<PackageRelation>>,
-    pub replaces: Option<Vec<PackageRelation>>,
+    pub dependencies: Override<Vec<RelationOrSoname>>,
+    pub optional_dependencies: Override<Vec<OptionalDependency>>,
+    pub provides: Override<Vec<RelationOrSoname>>,
+    pub conflicts: Override<Vec<PackageRelation>>,
+    pub replaces: Override<Vec<PackageRelation>>,
 }
 
 /// Handles all potentially architecture specific, clearable entries in the [`Package::from_parsed`]
@@ -112,7 +188,7 @@ macro_rules! clearable_arch_vec {
         // If so, we have to perform some checks and preparations
         if let Some(architecture) = $architecture {
             let properties = $architecture_properties.entry(*architecture).or_default();
-            properties.$field_name = Some(Vec::new());
+            properties.$field_name = Override::Clear;
 
             // Throw an error for all architecture specific properties that don't have
             // an explicit `arch` statement. This is considered bad style.
@@ -123,7 +199,7 @@ macro_rules! clearable_arch_vec {
                 missing_architecture_for_property($errors, $line, *architecture);
             }
         } else {
-            $field_name = Some(Vec::new());
+            $field_name = Override::Clear;
         }
     };
 }
@@ -199,25 +275,25 @@ impl Package {
         parsed: RawPackage,
         errors: &mut Vec<SourceInfoError>,
     ) -> Self {
-        let mut description = None;
-        let mut url = None;
-        let mut licenses = None;
-        let mut changelog = None;
+        let mut description = Override::No;
+        let mut url = Override::No;
+        let mut licenses = Override::No;
+        let mut changelog = Override::No;
         let mut architectures = None;
-        let mut architecture_properties: HashMap<Architecture, PackageArchitecture> =
-            HashMap::new();
+        let mut architecture_properties: BTreeMap<Architecture, PackageArchitecture> =
+            BTreeMap::new();
 
         // Build or package management related meta fields
-        let mut install = None;
-        let mut groups = None;
-        let mut options = None;
-        let mut backups = None;
+        let mut install = Override::No;
+        let mut groups = Override::No;
+        let mut options = Override::No;
+        let mut backups = Override::No;
 
-        let mut dependencies = None;
-        let mut optional_dependencies = None;
-        let mut provides = None;
-        let mut conflicts = None;
-        let mut replaces = None;
+        let mut dependencies = Override::No;
+        let mut optional_dependencies = Override::No;
+        let mut provides = Override::No;
+        let mut conflicts = Override::No;
+        let mut replaces = Override::No;
 
         // First up, check all input for potential architecture overrides.
         // We need this to do proper linting when doing our actual pass through the file.
@@ -249,10 +325,9 @@ impl Package {
         // If there's an overrides for architectures of this package, we need to use those
         // architectures for linting. If there isn't, we have to fall back to the PackageBase
         // architectures, which are then used instead.
-        let architectures_for_lint = if let Some(architectures) = &architectures {
-            architectures
-        } else {
-            package_base_architectures
+        let architectures_for_lint = match &architectures {
+            Some(architectures) => architectures,
+            None => package_base_architectures,
         };
 
         // Save all ClearableProperties so that we may use them for linting lateron.
@@ -274,14 +349,14 @@ impl Package {
             cleared_properties.push(clearable_property.clone());
 
             match clearable_property {
-                ClearableProperty::Description => description = None,
-                ClearableProperty::Url => url = None,
-                ClearableProperty::Licenses => licenses = Some(Vec::new()),
-                ClearableProperty::Changelog => changelog = None,
-                ClearableProperty::Install => install = None,
-                ClearableProperty::Groups => groups = Some(Vec::new()),
-                ClearableProperty::Options => options = Some(Vec::new()),
-                ClearableProperty::Backups => backups = Some(Vec::new()),
+                ClearableProperty::Description => description = Override::Clear,
+                ClearableProperty::Url => url = Override::Clear,
+                ClearableProperty::Licenses => licenses = Override::Clear,
+                ClearableProperty::Changelog => changelog = Override::Clear,
+                ClearableProperty::Install => install = Override::Clear,
+                ClearableProperty::Groups => groups = Override::Clear,
+                ClearableProperty::Options => options = Override::Clear,
+                ClearableProperty::Backups => backups = Override::Clear,
                 ClearableProperty::Dependencies(architecture) => clearable_arch_vec!(
                     line,
                     errors,
@@ -438,8 +513,10 @@ impl Package {
                 PackageProperty::EmptyLine | PackageProperty::Comment(_) => continue,
                 PackageProperty::MetaProperty(shared_meta_property) => {
                     match shared_meta_property {
-                        SharedMetaProperty::Description(inner) => description = Some(Some(inner)),
-                        SharedMetaProperty::Url(inner) => url = Some(Some(inner)),
+                        SharedMetaProperty::Description(inner) => {
+                            description = Override::Yes { value: inner }
+                        }
+                        SharedMetaProperty::Url(inner) => url = Override::Yes { value: inner },
                         SharedMetaProperty::License(inner) => {
                             // Create lints for non-spdx licenses.
                             if let License::Unknown(_) = &inner {
@@ -447,8 +524,12 @@ impl Package {
                             }
                             licenses.get_or_insert(Vec::new()).push(inner)
                         }
-                        SharedMetaProperty::Changelog(inner) => changelog = Some(Some(inner)),
-                        SharedMetaProperty::Install(inner) => install = Some(Some(inner)),
+                        SharedMetaProperty::Changelog(inner) => {
+                            changelog = Override::Yes { value: inner }
+                        }
+                        SharedMetaProperty::Install(inner) => {
+                            install = Override::Yes { value: inner }
+                        }
                         SharedMetaProperty::Group(inner) => {
                             groups.get_or_insert(Vec::new()).push(inner)
                         }

@@ -1,16 +1,16 @@
 ---
 source: alpm-srcinfo/tests/correct.rs
-expression: json
+expression: package_json
 ---
 [
   {
     "name": "example",
-    "description": "A example with all pkgbase properties set.",
-    "url": "https://archlinux.org/",
+    "description": null,
+    "url": null,
     "licenses": [],
     "architecture": "X86_64",
-    "changelog": "changelog.stub",
-    "install": "install.sh.stub",
+    "changelog": null,
+    "install": null,
     "groups": [],
     "options": [],
     "backups": [],

@@ -1,4 +1,5 @@
 //! Data representations and integrations for reading of SRCINFO data.
+mod helper;
 pub mod parser;
 pub mod v1;
 
@@ -13,7 +14,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{Error, SourceInfoSchema, SourceInfoV1};
 
-/// A representation of the [SRCINFO] file format.
+/// The representation of SRCINFO data.
 ///
 /// Tracks all available versions of the file format.
 ///
