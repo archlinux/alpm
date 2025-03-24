@@ -4,7 +4,7 @@ use std::{
     string::ToString,
 };
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use winnow::{
     ModalResult,
     Parser,
@@ -128,7 +128,7 @@ impl Display for BuildTool {
 /// ```
 ///
 /// [alpm-package-name]: https://alpm.archlinux.page/specifications/alpm-package-name.7.html
-#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Name(String);
 
 impl Name {
@@ -219,7 +219,7 @@ impl AsRef<str> for Name {
 ///
 /// This type wraps a [`Name`] and is used to represent the name of a shared object file
 /// that ends with the `.so` suffix.
-#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct SharedObjectName(pub(crate) Name);
 
 impl SharedObjectName {

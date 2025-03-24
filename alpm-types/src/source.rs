@@ -4,14 +4,14 @@ use std::{
     str::FromStr,
 };
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::{Error, SourceUrl};
 
 /// Represents the location that a source file should be retrieved from
 ///
 /// It can be either a local file (next to the PKGBUILD) or a URL.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub enum Source {
     /// A local file source.

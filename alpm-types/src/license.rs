@@ -3,7 +3,7 @@ use std::{
     str::FromStr,
 };
 
-use serde::{Serialize, Serializer};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use spdx::Expression;
 
 use crate::Error;
@@ -47,6 +47,26 @@ impl Serialize for License {
         S: Serializer,
     {
         serializer.serialize_str(&self.to_string())
+    }
+}
+
+impl<'de> Deserialize<'de> for License {
+    /// Custom serde serialization as Spdx doesn't provide a serde [`Deserialize`] implementation.
+    /// This implements deserialization from a string type.
+    ///
+    /// Attempt to parse the given input as an [spdx::Expression] and to return a [License::Spdx].
+    /// If that fails, treat it as a [License::Unknown] that contains the original string.
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+
+        if let Ok(expr) = spdx::Expression::from_str(&s) {
+            return Ok(License::Spdx(Box::new(expr)));
+        }
+
+        Ok(License::Unknown(s))
     }
 }
 

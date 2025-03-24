@@ -5,7 +5,7 @@ use std::{
 };
 
 pub use digest::Digest;
-use serde::{Serialize, Serializer};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::{
     Error,
@@ -126,6 +126,16 @@ impl<D: Digest> Serialize for Checksum<D> {
     }
 }
 
+impl<'de, D: Digest> Deserialize<'de> for Checksum<D> {
+    fn deserialize<De>(deserializer: De) -> Result<Self, De::Error>
+    where
+        De: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        Checksum::from_str(&s).map_err(serde::de::Error::custom)
+    }
+}
+
 impl<D: Digest> Checksum<D> {
     /// Calculate a new Checksum for data that may be represented as a list of bytes
     ///
@@ -235,7 +245,7 @@ impl<D: Digest> PartialEq for Checksum<D> {
 ///
 /// Strings representing checksums are used to verify the integrity of files.
 /// If the `"SKIP"` keyword is found, the integrity check is skipped.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(tag = "type")]
 pub enum SkippableChecksum<D: Digest + Clone> {
     /// Sourcefile checksum validation may be skipped, which is expressed with this variant.

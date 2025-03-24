@@ -4,7 +4,7 @@ use std::{
     string::ToString,
 };
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::{Architecture, Name, Version, error::Error};
 
@@ -33,7 +33,7 @@ use crate::{Architecture, Name, Version, error::Error};
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct MakepkgOption {
     name: String,
     on: bool,

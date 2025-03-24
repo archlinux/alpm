@@ -3,7 +3,7 @@ use std::{
     str::FromStr,
 };
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use winnow::{
     ModalResult,
     Parser,
@@ -39,7 +39,7 @@ use crate::Error;
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Url(url::Url);
 
 impl Url {
@@ -148,7 +148,7 @@ impl Display for Url {
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct SourceUrl {
     /// The URL from where the sources are retrieved.
     pub url: Url,
@@ -319,7 +319,7 @@ impl SourceUrl {
 /// Several different VCS systems can be used in the context of a [`SourceUrl`].
 /// Each system supports addressing different types of objects and may optionally require signature
 /// verification for those objects.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(tag = "protocol", rename_all = "lowercase")]
 pub enum VcsInfo {
     Bzr {
@@ -454,7 +454,7 @@ fn fragment_value(input: &mut &str) -> ModalResult<String> {
 }
 
 /// The available URL fragments and their values when using the Breezy VCS in a [`SourceUrl`].
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum BzrFragment {
     Revision(String),
@@ -491,7 +491,7 @@ impl BzrFragment {
 }
 
 /// The available URL fragments and their values when using the Fossil VCS in a [`SourceUrl`].
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum FossilFragment {
     Branch(String),
@@ -538,7 +538,7 @@ impl FossilFragment {
 }
 
 /// The available URL fragments and their values when using the Git VCS in a [`SourceUrl`].
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum GitFragment {
     Branch(String),
@@ -593,7 +593,7 @@ fn git_query(input: &mut &str) -> ModalResult<bool> {
 }
 
 /// An optional version specification used in a [`SourceUrl`] for the Hg VCS.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum HgFragment {
     Branch(String),
@@ -640,7 +640,7 @@ impl HgFragment {
 }
 
 /// The available URL fragments and their values when using Apache Subversion in a [`SourceUrl`].
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum SvnFragment {
     Revision(String),

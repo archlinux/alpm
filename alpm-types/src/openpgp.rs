@@ -7,7 +7,7 @@ use std::{
 use email_address::EmailAddress;
 use lazy_regex::{Lazy, lazy_regex};
 use regex::Regex;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::Error;
 
@@ -51,7 +51,7 @@ use crate::Error;
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub enum OpenPGPIdentifier {
     /// An OpenPGP Key ID.
     #[serde(rename = "openpgp_key_id")]
@@ -131,7 +131,7 @@ impl Display for OpenPGPIdentifier {
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct OpenPGPKeyId(String);
 
 impl OpenPGPKeyId {
@@ -215,7 +215,7 @@ impl Display for OpenPGPKeyId {
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct OpenPGPv4Fingerprint(String);
 
 impl OpenPGPv4Fingerprint {

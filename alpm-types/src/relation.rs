@@ -3,7 +3,7 @@ use std::{
     str::FromStr,
 };
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use winnow::{
     ModalResult,
     Parser,
@@ -150,7 +150,7 @@ impl Display for VersionOrSoname {
 /// [PKGBUILD]: https://man.archlinux.org/man/PKGBUILD.5
 /// [SRCINFO]: https://alpm.archlinux.page/specifications/SRCINFO.5.html
 /// [PKGINFO]: https://alpm.archlinux.page/specifications/PKGINFO.5.html
-#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub enum SonameV1 {
     /// Basic representation of a _shared object_ file.
     ///
@@ -748,7 +748,7 @@ impl Display for SonameV2 {
 /// dependencies, as those behave differently.
 ///
 /// [alpm-package-relations]: https://alpm.archlinux.page/specifications/alpm-package-relation.7.html
-#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct PackageRelation {
     /// The name of the package
     pub name: Name,
@@ -945,7 +945,7 @@ impl FromStr for PackageRelation {
 ///
 /// [alpm-package-relation]: https://alpm.archlinux.page/specifications/alpm-package-relation.7.html
 /// [optional dependency]: https://alpm.archlinux.page/specifications/alpm-package-relation.7.html#optional-dependency
-#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct OptionalDependency {
     package_relation: PackageRelation,
     description: Option<String>,

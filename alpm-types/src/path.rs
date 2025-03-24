@@ -4,7 +4,7 @@ use std::{
     str::FromStr,
 };
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::Error;
 
@@ -145,7 +145,7 @@ pub type StartDirectory = AbsolutePath;
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct RelativePath(PathBuf);
 
 impl RelativePath {

@@ -1,4 +1,4 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 
 /// CPU architecture
@@ -32,7 +32,18 @@ use strum::{Display, EnumString};
 /// assert_eq!("x86_64_v4", format!("{}", Architecture::X86_64V4));
 /// ```
 #[derive(
-    Clone, Copy, Debug, Display, EnumString, Eq, Ord, Hash, PartialEq, PartialOrd, Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Deserialize,
+    Display,
+    EnumString,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+    Serialize,
 )]
 #[non_exhaustive]
 #[strum(serialize_all = "lowercase")]
@@ -102,7 +113,9 @@ pub enum Architecture {
 /// ```
 ///
 /// [_ELF Header_]: https://en.wikipedia.org/wiki/Executable_and_Linkable_Format#ELF_header
-#[derive(Clone, Copy, Debug, Display, EnumString, Eq, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(
+    Clone, Copy, Debug, Deserialize, Display, EnumString, Eq, Ord, PartialEq, PartialOrd, Serialize,
+)]
 #[non_exhaustive]
 #[strum(serialize_all = "lowercase")]
 pub enum ElfArchitectureFormat {

@@ -7,7 +7,7 @@ use std::{
 };
 
 use semver::Version as SemverVersion;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use winnow::{
     ModalResult,
     Parser,
@@ -113,7 +113,7 @@ impl Display for BuildToolVersion {
 /// ```
 ///
 /// [alpm-epoch]: https://alpm.archlinux.page/specifications/alpm-epoch.7.html
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Epoch(pub NonZeroUsize);
 
 impl Epoch {
@@ -176,7 +176,7 @@ impl Display for Epoch {
 /// assert!(PackageRelease::new("a".to_string()).is_err());
 /// assert!(PackageRelease::new("1.a".to_string()).is_err());
 /// ```
-#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct PackageRelease(String);
 
 impl PackageRelease {
@@ -255,7 +255,7 @@ impl Display for PackageRelease {
 /// assert!(PackageVersion::new("_1.0".to_string()).is_err());
 /// assert!(PackageVersion::new("+1.0".to_string()).is_err());
 /// ```
-#[derive(Clone, Debug, Eq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Serialize)]
 pub struct PackageVersion(pub(crate) String);
 
 impl PackageVersion {
@@ -859,7 +859,7 @@ impl Display for SchemaVersion {
 /// ```
 ///
 /// [alpm-package-version]: https://alpm.archlinux.page/specifications/alpm-package-version.7.html
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Version {
     /// The version of the package
     pub pkgver: PackageVersion,
@@ -1052,6 +1052,7 @@ impl PartialOrd for Version {
     Eq,
     strum::VariantNames,
     Serialize,
+    Deserialize,
 )]
 pub enum VersionComparison {
     /// Less than or equal to
@@ -1158,7 +1159,7 @@ impl FromStr for VersionComparison {
 /// ```
 ///
 /// [alpm-comparison]: https://alpm.archlinux.page/specifications/alpm-comparison.7.html
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct VersionRequirement {
     /// Version comparison function
     pub comparison: VersionComparison,
