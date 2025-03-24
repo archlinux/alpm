@@ -19,6 +19,7 @@ use alpm_types::{
     Url,
     digests::{Blake2b512, Md5, Sha1, Sha224, Sha256, Sha384, Sha512},
 };
+use serde::{Deserialize, Serialize};
 
 use super::package::PackageArchitecture;
 #[cfg(doc)]
@@ -42,7 +43,7 @@ use crate::{
 ///
 /// A [`MergedPackage`] (a full view on a package's metadata) can be created using
 /// [`SourceInfoV1::packages_for_architecture`].
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct PackageBase {
     pub name: Name,
     pub description: Option<PackageDescription>,
@@ -96,7 +97,7 @@ pub struct PackageBase {
 ///
 /// For each [`Architecture`] defined in [`PackageBase::architectures`] a
 /// [`PackageBaseArchitecture`] is present in [`PackageBase::architecture_properties`].
-#[derive(Default, Debug, Clone)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct PackageBaseArchitecture {
     pub dependencies: Vec<RelationOrSoname>,
     pub optional_dependencies: Vec<OptionalDependency>,

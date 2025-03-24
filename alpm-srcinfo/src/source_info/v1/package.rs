@@ -12,6 +12,7 @@ use alpm_types::{
     RelativePath,
     Url,
 };
+use serde::{Deserialize, Serialize};
 
 #[cfg(doc)]
 use crate::{MergedPackage, SourceInfoV1, source_info::v1::package_base::PackageBase};
@@ -52,7 +53,7 @@ use crate::{
 //
 /// Take a look at [SourceInfoV1::packages_for_architecture] on how to get the merged representation
 /// [MergedPackage] of a package.
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Package {
     pub name: Name,
     pub description: Option<Option<PackageDescription>>,
@@ -81,7 +82,7 @@ pub struct Package {
 ///
 /// For each [`Architecture`] defined in [`Package::architectures`] a [`PackageArchitecture`] is
 /// present in [`Package::architecture_properties`].
-#[derive(Default, Debug, Clone)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct PackageArchitecture {
     pub dependencies: Option<Vec<RelationOrSoname>>,
     pub optional_dependencies: Option<Vec<OptionalDependency>>,

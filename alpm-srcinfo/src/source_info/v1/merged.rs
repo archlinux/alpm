@@ -17,7 +17,7 @@ use alpm_types::{
     Url,
     digests::{Blake2b512, Md5, Sha1, Sha224, Sha256, Sha384, Sha512},
 };
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::{
     SourceInfoV1,
@@ -33,7 +33,7 @@ use crate::{
 /// This struct incorporates all [`PackageBase`] properties and the [`Package`] specific overrides
 /// in an architecture-specific representation of a package. It can be created using
 /// [`SourceInfoV1::packages_for_architecture`].
-#[derive(Debug, Clone, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct MergedPackage {
     pub name: Name,
     pub description: Option<PackageDescription>,
@@ -104,7 +104,7 @@ impl Iterator for MergedPackagesIterator<'_> {
 ///
 /// SRCINFO provides this info as separate lists. This struct resolves that list representation and
 /// provides a convenient aggregated representation for a single source.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct MergedSource {
     pub source: Source,
     pub b2_checksum: Option<SkippableChecksum<Blake2b512>>,

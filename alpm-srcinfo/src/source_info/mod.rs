@@ -9,6 +9,7 @@ use std::{
 };
 
 use alpm_common::{FileFormatSchema, MetadataFile};
+use serde::{Deserialize, Serialize};
 
 use crate::{Error, SourceInfoSchema, SourceInfoV1};
 
@@ -17,7 +18,7 @@ use crate::{Error, SourceInfoSchema, SourceInfoV1};
 /// Tracks all available versions of the file format.
 ///
 /// [SRCINFO]: https://alpm.archlinux.page/specifications/SRCINFO.5.html
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub enum SourceInfo {
     V1(SourceInfoV1),
 }

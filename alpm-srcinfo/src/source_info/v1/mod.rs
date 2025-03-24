@@ -10,6 +10,7 @@ use std::{
 };
 
 use alpm_types::Architecture;
+use serde::{Deserialize, Serialize};
 use winnow::Parser;
 
 pub mod merged;
@@ -33,7 +34,7 @@ use crate::{
 ///
 /// This is the entry point for parsing SRCINFO files. Once created,
 /// [`Self::packages_for_architecture`] can be used to create usable [`MergedPackage`]s.
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct SourceInfoV1 {
     pub base: PackageBase,
     pub packages: Vec<Package>,

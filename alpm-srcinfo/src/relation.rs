@@ -5,7 +5,7 @@ use std::{
 };
 
 use alpm_types::{PackageRelation, SharedObjectName, SonameV1};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use winnow::{
     ModalResult,
     Parser,
@@ -25,7 +25,7 @@ use crate::SourceInfoV1;
 /// [`SourceInfoV1`].
 ///
 /// [alpm-package-relations]: https://alpm.archlinux.page/specifications/alpm-package-relation.7.html
-#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum RelationOrSoname {
     /// A shared object name (as [`SonameV1::Basic`]).
