@@ -507,7 +507,7 @@ impl PackageBase {
                     "pkgbase section doesn't contain a 'pkgrel' keyword assignment",
                 ));
                 // Set a package version nevertheless, so we continue parsing the rest of the file.
-                PackageRelease::new("0".to_string()).unwrap()
+                PackageRelease::new(1, None)
             }
         };
 

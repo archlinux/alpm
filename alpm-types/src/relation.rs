@@ -1085,7 +1085,7 @@ mod tests {
     /// we don't test that fully
     const EPOCH_REGEX: &str = r"[1-9]{1}[0-9]{0,10}";
     const NAME_REGEX: &str = r"[a-z0-9_@+]+[a-z0-9\-._@+]*";
-    const PKGREL_REGEX: &str = r"[1-9]+[0-9]*(|[.]{1}[1-9]{1}[0-9]*)";
+    const PKGREL_REGEX: &str = r"[1-9][0-9]{0,8}(|[.][1-9][0-9]{0,8})";
     const PKGVER_REGEX: &str = r"([[:alnum:]][[:alnum:]_+.]*)";
     const DESCRIPTION_REGEX: &str = "[^\n\r]*";
 

@@ -155,14 +155,14 @@ impl Display for Epoch {
     }
 }
 
-/// A pkgrel of a package
+/// The release version of a package.
 ///
-/// PackageRelease is used to indicate the build version of a package and is appended to a version,
-/// delimited by a `"-"` (e.g. `-2` is added to `1.0.0` to form `1.0.0-2` which then orders newer
-/// than `1.0.0-1`).
+/// A [`PackageRelease`] wraps a [`usize`] for its `major` version and an optional [`usize`] for its
+/// `minor` version.
 ///
-/// A PackageRelease wraps a String which must consist of one or more numeric digits,
-/// optionally followed by a period (`.`) and one or more additional numeric digits.
+/// [`PackageRelease`] is used to indicate the build version of a package.
+/// It is mostly useful in conjunction with a [`PackageVersion`] (see [`Version`]).
+/// Refer to [alpm-pkgrel] for more details on the format.
 ///
 /// ## Examples
 /// ```
@@ -170,54 +170,74 @@ impl Display for Epoch {
 ///
 /// use alpm_types::PackageRelease;
 ///
-/// assert!(PackageRelease::new("1".to_string()).is_ok());
-/// assert!(PackageRelease::new("1.1".to_string()).is_ok());
-/// assert!(PackageRelease::new("0".to_string()).is_ok());
-/// assert!(PackageRelease::new("a".to_string()).is_err());
-/// assert!(PackageRelease::new("1.a".to_string()).is_err());
+/// assert!(PackageRelease::from_str("1").is_ok());
+/// assert!(PackageRelease::from_str("1.1").is_ok());
+/// assert!(PackageRelease::from_str("0").is_ok());
+/// assert!(PackageRelease::from_str("a").is_err());
+/// assert!(PackageRelease::from_str("1.a").is_err());
 /// ```
-#[derive(Clone, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
-pub struct PackageRelease(String);
+///
+/// [alpm-pkgrel]: https://alpm.archlinux.page/specifications/alpm-pkgrel.7.html
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+pub struct PackageRelease {
+    /// The major version of this package release.
+    pub major: usize,
+    /// The optional minor version of this package release.
+    pub minor: Option<usize>,
+}
 
 impl PackageRelease {
-    /// Create a new PackageRelease from a string and return it in a Result
-    pub fn new(pkgrel: String) -> Result<Self, Error> {
-        PackageRelease::from_str(pkgrel.as_str())
+    /// Creates a new [`PackageRelease`] from a `major` and optional `minor` integer version.
+    ///
+    /// ## Examples
+    /// ```
+    /// use alpm_types::PackageRelease;
+    ///
+    /// # fn main() {
+    /// let release = PackageRelease::new(1, Some(2));
+    /// assert_eq!(format!("{release}"), "1.2");
+    /// # }
+    /// ```
+    pub fn new(major: usize, minor: Option<usize>) -> Self {
+        PackageRelease { major, minor }
     }
 
-    /// Return a reference to the inner type
-    pub fn inner(&self) -> &str {
-        &self.0
-    }
-
-    /// Parses a [`PackageRelease`] from a string slice.
+    /// Recognizes a [`PackageRelease`] in a string slice.
     ///
     /// Consumes all of its input.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if `input` does not contain a valid [`PackageRelease`].
     pub fn parser(input: &mut &str) -> ModalResult<Self> {
-        (
-            digit1
+        seq!(Self {
+            major: digit1.try_map(FromStr::from_str)
                 .context(StrContext::Label("package release"))
                 .context(StrContext::Expected(StrContextValue::Description(
                     "positive decimal integer",
                 ))),
-            opt(('.', cut_err(digit1))
+            minor: opt(preceded('.', cut_err(digit1.try_map(FromStr::from_str))))
                 .context(StrContext::Label("package release"))
                 .context(StrContext::Expected(StrContextValue::Description(
                     "single '.' followed by positive decimal integer",
-                )))),
-            eof.context(StrContext::Expected(StrContextValue::Description(
+                ))),
+            _: eof.context(StrContext::Expected(StrContextValue::Description(
                 "end of package release value",
             ))),
-        )
-            .take()
-            .map(|s: &str| Self(s.to_string()))
-            .parse_next(input)
+        })
+        .parse_next(input)
     }
 }
 
 impl FromStr for PackageRelease {
     type Err = Error;
-    /// Create a PackageRelease from a string and return it in a Result
+    /// Creates a [`PackageRelease`] from a string slice.
+    ///
+    /// Delegates to [`PackageRelease::parser`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if [`PackageRelease::parser`] fails.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(Self::parser.parse(s)?)
     }
@@ -225,7 +245,33 @@ impl FromStr for PackageRelease {
 
 impl Display for PackageRelease {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
-        write!(fmt, "{}", self.inner())
+        write!(fmt, "{}", self.major)?;
+        if let Some(minor) = self.minor {
+            write!(fmt, ".{minor}")?;
+        }
+        Ok(())
+    }
+}
+
+impl PartialOrd for PackageRelease {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for PackageRelease {
+    fn cmp(&self, other: &Self) -> Ordering {
+        let major_order = self.major.cmp(&other.major);
+        if major_order != Ordering::Equal {
+            return major_order;
+        }
+
+        match (self.minor, other.minor) {
+            (None, None) => Ordering::Equal,
+            (None, Some(_)) => Ordering::Less,
+            (Some(_), None) => Ordering::Greater,
+            (Some(minor), Some(other_minor)) => minor.cmp(&other_minor),
+        }
     }
 }
 
@@ -853,7 +899,7 @@ impl Display for SchemaVersion {
 /// let version = Version::from_str("1:2-3")?;
 /// assert_eq!(version.epoch, Some(Epoch::from_str("1")?));
 /// assert_eq!(version.pkgver, PackageVersion::new("2".to_string())?);
-/// assert_eq!(version.pkgrel, Some(PackageRelease::new("3".to_string())?));
+/// assert_eq!(version.pkgrel, Some(PackageRelease::new(3, None)));
 /// # Ok(())
 /// # }
 /// ```
@@ -1325,15 +1371,15 @@ mod tests {
         "1:foo-1",
         Version {
             pkgver: PackageVersion::new("foo".to_string()).unwrap(),
-            epoch: Some(Epoch::from_str("1").unwrap()),
-            pkgrel: Some(PackageRelease::new("1".to_string()).unwrap()),
+            epoch: Some(Epoch::new(NonZeroUsize::new(1).unwrap())),
+            pkgrel: Some(PackageRelease::new(1, None))
         },
     )]
     #[case(
         "1:foo",
         Version {
             pkgver: PackageVersion::new("foo".to_string()).unwrap(),
-            epoch: Some(Epoch::from_str("1").unwrap()),
+            epoch: Some(Epoch::new(NonZeroUsize::new(1).unwrap())),
             pkgrel: None,
         },
     )]
@@ -1342,7 +1388,7 @@ mod tests {
         Version {
             pkgver: PackageVersion::new("foo".to_string()).unwrap(),
             epoch: None,
-            pkgrel: Some(PackageRelease::new("1".to_string()).unwrap())
+            pkgrel: Some(PackageRelease::new(1, None))
         }
     )]
     fn valid_version_from_string(#[case] version: &str, #[case] expected: Version) {
@@ -1385,7 +1431,7 @@ mod tests {
         "1.0.0-1",
         Ok(Version{
             pkgver: PackageVersion::new("1.0.0".to_string()).unwrap(),
-            pkgrel: Some(PackageRelease::new("1".to_string()).unwrap()),
+            pkgrel: Some(PackageRelease::new(1, None)),
             epoch: None,
         })
     )]
@@ -1459,7 +1505,7 @@ mod tests {
     #[case("10.5")]
     #[case("0.1")]
     fn valid_pkgrel(#[case] pkgrel: &str) {
-        let parsed = PackageRelease::new(pkgrel.to_string());
+        let parsed = PackageRelease::from_str(pkgrel);
         assert!(parsed.is_ok(), "Expected pkgrel {pkgrel} to be valid.");
         assert_eq!(
             parsed.as_ref().unwrap().to_string(),
@@ -1481,7 +1527,7 @@ mod tests {
     #[case("1.0.0", "expected end of package release")]
     #[case("", "expected positive decimal integer")]
     fn invalid_pkgrel(#[case] pkgrel: &str, #[case] err_snippet: &str) {
-        let Err(Error::ParseError(err_msg)) = PackageRelease::new(pkgrel.to_string()) else {
+        let Err(Error::ParseError(err_msg)) = PackageRelease::from_str(pkgrel) else {
             panic!("'{pkgrel}' erroneously parsed as PackageRelease")
         };
         assert!(
@@ -1492,13 +1538,28 @@ mod tests {
 
     /// Test that pkgrel ordering works as intended
     #[rstest]
-    #[case("1", "2")]
-    #[case("1", "1.1")]
-    #[case("1", "11")]
-    fn pkgrel_cmp(#[case] lesser: &str, #[case] bigger: &str) {
-        let lesser = PackageRelease::new(lesser.to_string()).unwrap();
-        let bigger = PackageRelease::new(bigger.to_string()).unwrap();
-        assert!(lesser.lt(&bigger));
+    #[case("1", "1.0", Ordering::Less)]
+    #[case("1.0", "2", Ordering::Less)]
+    #[case("1", "1.1", Ordering::Less)]
+    #[case("1.0", "1.1", Ordering::Less)]
+    #[case("0", "1.1", Ordering::Less)]
+    #[case("1", "11", Ordering::Less)]
+    #[case("1", "1", Ordering::Equal)]
+    #[case("1.2", "1.2", Ordering::Equal)]
+    #[case("2.0", "2.0", Ordering::Equal)]
+    #[case("2", "1.0", Ordering::Greater)]
+    #[case("1.1", "1", Ordering::Greater)]
+    #[case("1.1", "1.0", Ordering::Greater)]
+    #[case("1.1", "0", Ordering::Greater)]
+    #[case("11", "1", Ordering::Greater)]
+    fn pkgrel_cmp(#[case] first: &str, #[case] second: &str, #[case] order: Ordering) {
+        let first = PackageRelease::from_str(first).unwrap();
+        let second = PackageRelease::from_str(second).unwrap();
+        assert_eq!(
+            first.cmp(&second),
+            order,
+            "{first} should be {order:?} to {second}"
+        );
     }
 
     /// Ensure that versions are properly serialized back to their string representation.

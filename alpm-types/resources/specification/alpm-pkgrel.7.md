@@ -24,6 +24,8 @@ Compositive version strings with the same **pkgver** component are sorted accord
 
 ```
 "1.0.0-1" < "1.0.0-2"
+"1.0.0-1" < "1.0.0-1.0"
+"1.0.0-1.0" < "1.0.0-2.0"
 ```
 
 An explicit **epoch** component is always considered before the **pkgver** and **pkgrel** components in a composite version string.
