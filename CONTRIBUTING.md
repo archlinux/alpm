@@ -68,6 +68,9 @@ Follow these rules when writing commit messages:
 
 3. The commit body should be in the imperative mood.
 
+4. Avoid using the crate name as the commit scope. (e.g. `feat(alpm-types)`)
+   The changelog entries will be generated for the associated crate accordingly using [`release-plz`] and [`git-cliff`].
+
 Here is an example of a good commit message:
 
 ```
@@ -121,9 +124,11 @@ For a full list of individual contributors, refer to `git log --format="%an <%aE
 [`codespell`]: https://github.com/codespell-project/codespell
 [`cargo-deny`]: https://github.com/EmbarkStudios/cargo-deny
 [`cargo-insta`]: https://github.com/mitsuhiko/insta
+[`git-cliff`]: https://git-cliff.org
 [`shellcheck`]: https://www.shellcheck.net/
 [`cocogitto`]: https://docs.cocogitto.io/
 [`committed`]: https://github.com/crate-ci/committed
+[`release-plz`]: https://release-plz.ieni.dev
 [`reuse`]: https://git.fsfe.org/reuse/tool
 [`lychee`]: https://github.com/lycheeverse/lychee
 [`just`]: https://github.com/casey/just
