@@ -106,6 +106,22 @@ test-readmes:
     - just test-readmes
   stage: test
 
+test-coverage:
+  extends: .default-with-rust
+  script:
+    - just test-coverage
+  stage: test
+  artifacts:
+    paths:
+      - target/llvm-cov/html
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: target/llvm-cov/cobertura-coverage.xml
+      # Expose the code coverage as a GitLab metric.
+      # This allows us to easily spot changes in the overall coverage.
+      metrics: target/coverage-metrics.txt
+
 build-book:
   extends: .default-with-rust
   script:

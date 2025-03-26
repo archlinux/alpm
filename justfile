@@ -32,8 +32,11 @@ install-pacman-dev-packages:
 install-rust-dev-tools:
     rustup default stable
     rustup component add clippy
+    # Install nightly as we use it for formatting rules.
     rustup toolchain install nightly
     rustup component add --toolchain nightly rustfmt
+    # llvm-tools-preview for code coverage
+    rustup component add llvm-tools-preview
 
 # Checks commit messages for correctness
 check-commits:
@@ -112,11 +115,19 @@ run-pre-push-hook: check-commits
 check-spelling:
     codespell
 
+# Retrieves the configured target directory for cargo.
+[private]
+get-cargo-target-directory:
+    just ensure-command cargo jq
+    cargo metadata --format-version 1 | jq -r  .target_directory
+
 # Gets names of all workspace members
+[private]
 get-workspace-members:
     cargo metadata --format-version=1 |jq -r '.workspace_members[] | capture("/(?<name>[a-z-]+)#.*").name'
 
 # Checks if a string matches a workspace member exactly
+[private]
 is-workspace-member package:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -131,6 +142,7 @@ is-workspace-member package:
     exit 1
 
 # Gets metadata version of a workspace member
+[private]
 get-workspace-member-version package:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -227,6 +239,83 @@ test:
     else
         cargo nextest run --workspace
     fi
+
+# Creates code coverage for all projects.
+test-coverage mode="nodoc":
+    #!/usr/bin/env bash
+    set -euxo pipefail
+
+    target_dir="$(just get-cargo-target-directory)"
+
+    # Clean any previous code coverage run.
+    rm -rf "$target_dir/llvm-cov"
+    mkdir -p "$target_dir/llvm-cov"
+
+    just ensure-command cargo-llvm-cov cargo-nextest
+    # Run nextest coverage
+    cargo llvm-cov --no-report nextest
+
+    # The chosen reporting style (defaults to without doctest coverage)
+    reporting_style="without doctest coverage"
+
+    # Options for cargo
+    cargo_options=()
+
+    # The dev-scripts aren't included in the test coverage report yet.
+    # See <https://gitlab.archlinux.org/archlinux/alpm/alpm/-/issues/156>
+    _ignored=(--ignore-filename-regex dev-scripts)
+
+    # Options for creating cobertura coverage report with cargo-llvm-cov
+    cargo_llvm_cov_cobertura_options=(
+        --cobertura
+        "${_ignored[@]}"
+        --output-path "$target_dir/llvm-cov/cobertura-coverage.xml"
+    )
+
+    # Options for creating HTML coverage report with cargo-llvm-cov
+    cargo_llvm_cov_html_options=(
+        --html
+        "${_ignored[@]}"
+    )
+
+    # Options for creating coverage report summary with cargo-llvm-cov
+    cargo_llvm_cov_summary_options=(
+        "${_ignored[@]}"
+        --json
+        --summary-only
+    )
+
+    if [[ "{{ mode }}" == "doc" ]]; then
+        reporting_style="with doctest coverage"
+        # The support for doctest coverage is a nightly feature
+        cargo_options=(+nightly)
+        cargo_llvm_cov_cobertura_options+=(--doctests)
+        cargo_llvm_cov_html_options+=(--doctests)
+        cargo_llvm_cov_summary_options+=(--doctests)
+
+        # nextest coverage needs to be manually merged with doctest coverage:
+        # https://nexte.st/docs/integrations/test-coverage/?h=doc#collecting-coverage-data-from-doctests
+        cargo "${cargo_options[@]}" llvm-cov --no-report --doc
+    fi
+
+    printf "Creating report %s\n" "$reporting_style"
+
+    # Create cobertura coverage report
+    cargo "${cargo_options[@]}" llvm-cov report "${cargo_llvm_cov_cobertura_options[@]}"
+
+    # Create HTML coverage report 
+    cargo "${cargo_options[@]}" llvm-cov report "${cargo_llvm_cov_html_options[@]}"
+
+    # Get total coverage percentage from summary
+    percentage="$(cargo "${cargo_options[@]}" llvm-cov report "${cargo_llvm_cov_summary_options[@]}" | jq '.data[0].totals.lines.percent')"
+
+    # Trim percentage to 4 decimal places.
+    percentage=$(printf "%.4f\n" $percentage)
+
+    # Writes to target/coverage-metrics.txt for Gitlab CI metric consumption.
+    # https://docs.gitlab.com/ci/testing/metrics_reports/
+    printf "Test-coverage ${percentage}\n" > "$target_dir/coverage-metrics.txt"
+    printf "Test-coverage: ${percentage}%%\n"
 
 # Runs all doc tests
 test-docs:
@@ -506,8 +595,7 @@ build-book:
 
     just ensure-command cargo jq mdbook mdbook-mermaid
 
-    target_dir="$(cargo metadata --format-version 1 | jq -r  .target_directory)"
-    readonly target_dir="$target_dir"
+    target_dir="$(just get-cargo-target-directory)"
     readonly output_dir="{{ output_dir }}"
     readonly rustdoc_dir="$output_dir/docs/rustdoc/"
     mapfile -t workspace_members < <(just get-workspace-members 2>/dev/null)

@@ -37,6 +37,16 @@ This `just` command takes care of a few things:
 - Install the relevant [git pre-commit] and [git pre-push] hooks.
 - Install the [git prepare-commit-msg] hook to automatically add a signoff section to the commit message.
 
+## Testing
+
+We run [`nextest`] for fast execution of unit and integration tests.
+`just test` calls `cargo nextest` as well as `just test-docs`, which runs the doc tests as `nextest` isn't capable of doing that [yet](https://github.com/nextest-rs/nextest/issues/16).
+
+The `just test-coverage` command creates a cobertura code coverage report and an HTML report.
+Both are written to `target/llvm-cov/`, which utilizes the [`llvm-tools-preview`] component.
+The `just test-coverage doc` additionally includes doc tests into the coverage report.
+However, this is still an [unstable nightly-only feature](https://github.com/rust-lang/rust/issues/85658).
+
 ## Writing specifications
 
 Specifications for technology of this project are written in markdown documents in the context of a [component], that serves as its reference implementation.
@@ -131,10 +141,12 @@ For a full list of individual contributors, refer to `git log --format="%an <%aE
 [`release-plz`]: https://release-plz.ieni.dev
 [`reuse`]: https://git.fsfe.org/reuse/tool
 [`lychee`]: https://github.com/lycheeverse/lychee
+[`nextest`]: https://nexte.st/
 [`just`]: https://github.com/casey/just
 [`tangler`]: https://github.com/wiktor-k/tangler
 [`taplo`]: https://github.com/tamasfe/taplo
 [`cargo-machete`]: https://github.com/bnjbvr/cargo-machete
+[`llvm-tools-preview`]: https://github.com/rust-lang/rust/issues/85658
 [git pre-commit]: https://man.archlinux.org/man/githooks.5#pre-commit
 [git pre-push]: https://man.archlinux.org/man/githooks.5#pre-push
 [git prepare-commit-msg]: https://man.archlinux.org/man/githooks.5#prepare-commit-msg
