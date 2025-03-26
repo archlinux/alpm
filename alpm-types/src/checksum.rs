@@ -6,6 +6,13 @@ use std::{
 
 pub use digest::Digest;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use winnow::{
+    ModalResult,
+    Parser,
+    combinator::{eof, repeat, terminated},
+    error::{StrContext, StrContextValue},
+    token::one_of,
+};
 
 use crate::{
     Error,
@@ -162,16 +169,66 @@ impl<D: Digest> Checksum<D> {
     pub fn inner(&self) -> &[u8] {
         &self.digest
     }
+
+    /// Recognizes an ASCII hexadecimal [`Checksum`] from a string slice.
+    ///
+    /// Consumes all input.
+    /// See [`Checksum::from_str`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if `input` is not the output of a _hash function_
+    /// in hexadecimal form.
+    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+        /// Consume 1 hex digit and return its hex value.
+        ///
+        /// Accepts uppercase or lowercase.
+        #[inline]
+        fn hex_digit(input: &mut &str) -> ModalResult<u8> {
+            one_of(('0'..='9', 'a'..='f', 'A'..='F'))
+                .map(|d: char|
+                    // unwraps are unreachable: their invariants are always
+                    // upheld because the above character set can never
+                    // consume anything but a single valid hex digit
+                    d.to_digit(16).unwrap().try_into().unwrap())
+                .context(StrContext::Expected(StrContextValue::Description(
+                    "ASCII hex digit",
+                )))
+                .parse_next(input)
+        }
+
+        let hex_pair = (hex_digit, hex_digit).map(|(first, second)|
+            // shift is infallible because hex_digit cannot return >0b00001111
+            (first << 4) + second);
+
+        Ok(Self {
+            digest: terminated(
+                repeat(
+                    // consume exactly the number of hex pairs that our Digest type expects
+                    <D as Digest>::output_size(),
+                    hex_pair,
+                )
+                .context(StrContext::Label("hash digest")),
+                eof.context(StrContext::Expected(StrContextValue::Description(
+                    "end of checksum",
+                ))),
+            )
+            .parse_next(input)?,
+            _marker: PhantomData,
+        })
+    }
 }
 
 impl<D: Digest> FromStr for Checksum<D> {
     type Err = Error;
     /// Create a new Checksum from a hex string and return it in a Result
     ///
-    /// All whitespaces are removed from the input and it is processed as a lowercase string.
+    /// The input is processed as a lowercase string.
     /// An Error is returned, if the input length does not match the output size for the given
     /// supported algorithm, or if the provided hex string could not be converted to a list of
     /// bytes.
+    ///
+    /// Delegates to [`Checksum::parser`].
     ///
     /// ## Examples
     /// ```
@@ -179,37 +236,11 @@ impl<D: Digest> FromStr for Checksum<D> {
     /// use alpm_types::{digests::Blake2b512, Checksum};
     ///
     /// assert!(Checksum::<Blake2b512>::from_str("d202d7951df2c4b711ca44b4bcc9d7b363fa4252127e058c1a910ec05b6cd038d71cc21221c031c0359f993e746b07f5965cf8c5c3746a58337ad9ab65278e77").is_ok());
-    /// assert!(Checksum::<Blake2b512>::from_str("d2 02 d7 95 1d f2 c4 b7 11 ca 44 b4 bc c9 d7 b3 63 fa 42 52 12 7e 05 8c 1a 91 0e c0 5b 6c d0 38 d7 1c c2 12 21 c0 31 c0 35 9f 99 3e 74 6b 07 f5 96 5c f8 c5 c3 74 6a 58 33 7a d9 ab 65 27 8e 77").is_ok());
     /// assert!(Checksum::<Blake2b512>::from_str("d202d7951df2c4b711ca44b4bcc9d7b363fa4252127e058c1a910ec05b6cd038d71cc21221c031c0359f993e746b07f5965cf8c5c3746a58337ad9ab65278e7").is_err());
     /// assert!(Checksum::<Blake2b512>::from_str("d202d7951df2c4b711ca44b4bcc9d7b363fa4252127e058c1a910ec05b6cd038d71cc21221c031c0359f993e746b07f5965cf8c5c3746a58337ad9ab65278e7x").is_err());
     /// ```
     fn from_str(s: &str) -> Result<Checksum<D>, Self::Err> {
-        let input = s.replace(' ', "").to_lowercase();
-        // the input does not have the correct length
-        if input.len() != <D as Digest>::output_size() * 2 {
-            return Err(Error::IncorrectLength {
-                length: input.len(),
-                expected: <D as Digest>::output_size() * 2,
-            });
-        }
-
-        let mut digest = vec![];
-        for i in (0..input.len()).step_by(2) {
-            let src = &input[i..i + 2];
-            match u8::from_str_radix(src, 16) {
-                Ok(byte) => digest.push(byte),
-                Err(e) => {
-                    return Err(Error::InvalidInteger {
-                        kind: e.kind().clone(),
-                    });
-                }
-            }
-        }
-
-        Ok(Checksum {
-            digest,
-            _marker: PhantomData,
-        })
+        Ok(Checksum::parser.parse(s)?)
     }
 }
 
@@ -559,6 +590,27 @@ mod tests {
         let checksum = Sha512Checksum::from_str(hex_digest).unwrap();
         assert_eq!(digest, checksum.inner());
         assert_eq!(format!("{}", &checksum), hex_digest);
+    }
+
+    #[rstest]
+    #[case::non_hex_digits(
+        "0cf9180a764aba863a67b6d72f0918bc13gggggg642cb2dce5a34f0a702f9470ddc2bf125c12198b1995c233c34b4afd346c54a2334c350a948a51b6e8b4e6b6",
+        "expected ASCII hex digit"
+    )]
+    #[case::incomplete_pair(" b ", "expected ASCII hex digit")]
+    #[case::incomplete_digest("0cf9180a764aba863a67b6d72f0918bca", "expected ASCII hex digit")]
+    #[case::whitespace(
+        "d2 02 d7 95 1d f2 c4 b7 11 ca 44 b4 bc c9 d7 b3 63 fa 42 52 12 7e 05 8c 1a 91 0e c0 5b 6c d0 38 d7 1c c2 12 21 c0 31 c0 35 9f 99 3e 74 6b 07 f5 96 5c f8 c5 c3 74 6a 58 33 7a d9 ab 65 27 8e 77",
+        "expected ASCII hex digit"
+    )]
+    fn checksum_parse_error(#[case] input: &str, #[case] err_snippet: &str) {
+        let Err(Error::ParseError(err_msg)) = Sha512Checksum::from_str(input) else {
+            panic!("'{input}' did not fail to parse as expected")
+        };
+        assert!(
+            err_msg.contains(err_snippet),
+            "Error:\n=====\n{err_msg}\n=====\nshould contain snippet:\n\n{err_snippet}"
+        );
     }
 
     #[rstest]
