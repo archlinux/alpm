@@ -32,8 +32,11 @@ install-pacman-dev-packages:
 install-rust-dev-tools:
     rustup default stable
     rustup component add clippy
+    # Install nightly as we use it for formatting rules.
     rustup toolchain install nightly
     rustup component add --toolchain nightly rustfmt
+    # llvm-tools-preview for code coverage
+    rustup component add llvm-tools-preview
 
 # Checks commit messages for correctness
 check-commits:
@@ -227,6 +230,70 @@ test:
     else
         cargo nextest run --workspace
     fi
+
+# Create code coverage for all projects.
+test-coverage mode="nodoc":
+    #!/usr/bin/env bash
+    set -euxo pipefail
+
+    target_dir="$(cargo metadata --format-version 1 | jq -r  .target_directory)"
+    readonly target_dir="$target_dir"
+
+    # Clean any previous code coverage run.
+    rm -rf "$target_dir/llvm-cov"
+    mkdir -p "$target_dir/llvm-cov"
+
+    # Run nextest coverage
+    cargo llvm-cov --no-report nextest
+
+    # TODO: The dev-scripts aren't included in the test coverage report yet.
+    # See <https://gitlab.archlinux.org/archlinux/alpm/alpm/-/issues/156>
+
+    # Doc tests require the nightly toolchain and are marked unstable.
+    # However, they still work and we should be using them whenever possible.
+    if [[ "{{ mode }}" == "doc" ]]; then
+        echo "Create report with doctest coverage"
+        # nextest coverage needs to be manually merged with doctest coverage:
+        # https://nexte.st/docs/integrations/test-coverage/?h=doc#collecting-coverage-data-from-doctests
+        cargo +nightly llvm-cov --no-report --doc
+        cargo +nightly llvm-cov report \
+            --ignore-filename-regex dev-scripts \
+            --doctests \
+            --cobertura \
+            --output-path "$target_dir/llvm-cov/cobertura-coverage.xml"
+        cargo +nightly llvm-cov report \
+            --ignore-filename-regex dev-scripts \
+            --doctests \
+            --html
+
+        percentage=$(
+            cargo +nightly llvm-cov report \
+                --doctests \
+                --ignore-filename-regex dev-scripts \
+                --summary-only \
+                --json | jq .data[0].totals.lines.percent)
+    else
+        echo "Creating report without doctest coverage"
+        cargo llvm-cov report \
+            --ignore-filename-regex dev-scripts \
+            --cobertura \
+            --output-path "$target_dir/llvm-cov/cobertura-coverage.xml"
+        cargo llvm-cov report --ignore-filename-regex dev-scripts --html
+
+        percentage=$(
+            cargo llvm-cov report \
+                --ignore-filename-regex dev-scripts \
+                --summary-only \
+                --json | jq .data[0].totals.lines.percent)
+    fi
+
+    # Trim percentage to 4 decimal places.
+    percentage=$(printf "%.4f\n" $percentage)
+
+    # Writes to target/coverage-metrics.txt for Gitlab CI metric consumption.
+    # https://docs.gitlab.com/ci/testing/metrics_reports/
+    echo "Test-coverage ${percentage}" > "$target_dir/coverage-metrics.txt"
+    echo "Test-coverage: ${percentage}%"
 
 # Runs all doc tests
 test-docs:
