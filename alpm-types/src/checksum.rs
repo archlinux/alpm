@@ -9,7 +9,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use winnow::{
     ModalResult,
     Parser,
-    combinator::{eof, repeat, terminated},
+    combinator::{alt, eof, repeat, terminated},
     error::{StrContext, StrContextValue},
     token::one_of,
 };
@@ -289,11 +289,37 @@ pub enum SkippableChecksum<D: Digest + Clone> {
     },
 }
 
+impl<D: Digest + Clone> SkippableChecksum<D> {
+    /// Recognizes a [`SkippableChecksum`] from a string slice.
+    ///
+    /// Consumes all its input.
+    /// See [`SkippableChecksum::from_str`], [`Checksum::parser`] and [`Checksum::from_str`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if `input` is not the output of a _hash function_
+    /// in hexadecimal form.
+    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+        terminated(
+            alt((
+                "SKIP".value(Self::Skip),
+                Checksum::parser.map(|digest| Self::Checksum { digest }),
+            )),
+            eof.context(StrContext::Expected(StrContextValue::Description(
+                "end of checksum",
+            ))),
+        )
+        .parse_next(input)
+    }
+}
+
 impl<D: Digest + Clone> FromStr for SkippableChecksum<D> {
     type Err = Error;
     /// Create a new [`SkippableChecksum`] from a string slice and return it in a Result.
     ///
     /// First checks for the special `SKIP` keyword, before trying [`Checksum::from_str`].
+    ///
+    /// Delegates to [`SkippableChecksum::parser`].
     ///
     /// ## Examples
     /// ```
@@ -310,15 +336,7 @@ impl<D: Digest + Clone> FromStr for SkippableChecksum<D> {
     /// );
     /// ```
     fn from_str(s: &str) -> Result<SkippableChecksum<D>, Self::Err> {
-        // Check for the special SKIP Keyword.
-        if s.trim() == "SKIP" {
-            return Ok(SkippableChecksum::Skip);
-        }
-
-        // Try to get a checksum, as this isn't a skip.
-        let checksum = Checksum::from_str(s)?;
-
-        Ok(SkippableChecksum::Checksum { digest: checksum })
+        Ok(Self::parser.parse(s)?)
     }
 }
 

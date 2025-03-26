@@ -278,9 +278,6 @@ expression: source_info_json
         "no_extracts": [],
         "b2_checksums": [
           {
-            "type": "Skip"
-          },
-          {
             "type": "Checksum",
             "digest": "87dd1c13611882900bbcc29a84f8856a7bcd111979815435f9f7aa9c77fb77592fc56324ce3ba6c18df0609a5057e6e3589b9bcced9e7475f2984478b9028a97"
           },
@@ -321,6 +318,9 @@ expression: source_info_json
           {
             "type": "Checksum",
             "digest": "1816c57b4abf31eb7c57a66bfb0f0ee5cef9398b5e4cc303468e08dae2702da55978402da94673e444f8c02754e94dedef4d12450319383c3a481d1c5cd90c82"
+          },
+          {
+            "type": "Skip"
           }
         ]
       }
@@ -487,15 +487,6 @@ expression: source_info_json
     ],
     "b2_checksums": [
       {
-        "type": "Skip"
-      },
-      {
-        "type": "Skip"
-      },
-      {
-        "type": "Skip"
-      },
-      {
         "type": "Checksum",
         "digest": "87dd1c13611882900bbcc29a84f8856a7bcd111979815435f9f7aa9c77fb77592fc56324ce3ba6c18df0609a5057e6e3589b9bcced9e7475f2984478b9028a97"
       },
@@ -560,6 +551,15 @@ expression: source_info_json
       {
         "type": "Checksum",
         "digest": "1816c57b4abf31eb7c57a66bfb0f0ee5cef9398b5e4cc303468e08dae2702da55978402da94673e444f8c02754e94dedef4d12450319383c3a481d1c5cd90c82"
+      },
+      {
+        "type": "Skip"
+      },
+      {
+        "type": "Skip"
+      },
+      {
+        "type": "Skip"
       }
     ]
   },

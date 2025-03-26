@@ -7,14 +7,12 @@ use std::str::FromStr;
 use alpm_types::{
     Architecture,
     Backup,
-    Blake2b512Checksum,
     Changelog,
     Epoch,
     Group,
     Install,
     License,
     MakepkgOption,
-    Md5Checksum,
     Name,
     OpenPGPIdentifier,
     OptionalDependency,
@@ -24,11 +22,6 @@ use alpm_types::{
     PackageRelease,
     PackageVersion,
     RelativePath,
-    Sha1Checksum,
-    Sha224Checksum,
-    Sha256Checksum,
-    Sha384Checksum,
-    Sha512Checksum,
     SkippableChecksum,
     Source,
     Url,
@@ -948,110 +941,49 @@ impl SourceProperty {
                 })
             }))
             .parse_next(input)?,
-            // Handle all checksums in one block as there's a lot of common logic.
-            // Most notably, all checksums are `SKIP`pable, which means that we have to check at the
-            // very first step if said checksum is to be skipped before we try to parse the input
-            // as a checksum.
-            SourceKeyword::B2sums
-            | SourceKeyword::Md5sums
-            | SourceKeyword::Sha1sums
-            | SourceKeyword::Sha224sums
-            | SourceKeyword::Sha256sums
-            | SourceKeyword::Sha384sums
-            | SourceKeyword::Sha512sums => cut_err(till_line_end.try_map(|s| {
-                // Handle the case where we get a `SKIP` instruction for one of the checksums.
-                if s == "SKIP" {
-                    let property: SourceProperty = match keyword {
-                        SourceKeyword::B2sums => SourceProperty::B2Checksum(ArchProperty {
-                            architecture,
-                            value: SkippableChecksum::Skip,
-                        }),
-                        SourceKeyword::Md5sums => SourceProperty::Md5Checksum(ArchProperty {
-                            architecture,
-                            value: SkippableChecksum::Skip,
-                        }),
-                        SourceKeyword::Sha1sums => SourceProperty::Sha1Checksum(ArchProperty {
-                            architecture,
-                            value: SkippableChecksum::Skip,
-                        }),
-                        SourceKeyword::Sha224sums => SourceProperty::Sha224Checksum(ArchProperty {
-                            architecture,
-                            value: SkippableChecksum::Skip,
-                        }),
-                        SourceKeyword::Sha256sums => SourceProperty::Sha256Checksum(ArchProperty {
-                            architecture,
-                            value: SkippableChecksum::Skip,
-                        }),
-                        SourceKeyword::Sha384sums => SourceProperty::Sha384Checksum(ArchProperty {
-                            architecture,
-                            value: SkippableChecksum::Skip,
-                        }),
-                        SourceKeyword::Sha512sums => SourceProperty::B2Checksum(ArchProperty {
-                            architecture,
-                            value: SkippableChecksum::Skip,
-                        }),
-                        _ => unreachable!(),
-                    };
-                    return Ok::<SourceProperty, alpm_types::Error>(property);
-                }
-
-                // We seem to have gotten a real checksum
-                let property: SourceProperty = match keyword {
-                    SourceKeyword::B2sums => {
-                        let checksum = Blake2b512Checksum::from_str(s)?;
-                        SourceProperty::B2Checksum(ArchProperty {
-                            architecture,
-                            value: SkippableChecksum::Checksum { digest: checksum },
-                        })
-                    }
-                    SourceKeyword::Md5sums => {
-                        let checksum = Md5Checksum::from_str(s)?;
-                        SourceProperty::Md5Checksum(ArchProperty {
-                            architecture,
-                            value: SkippableChecksum::Checksum { digest: checksum },
-                        })
-                    }
-                    SourceKeyword::Sha1sums => {
-                        let checksum = Sha1Checksum::from_str(s)?;
-                        SourceProperty::Sha1Checksum(ArchProperty {
-                            architecture,
-                            value: SkippableChecksum::Checksum { digest: checksum },
-                        })
-                    }
-                    SourceKeyword::Sha224sums => {
-                        let checksum = Sha224Checksum::from_str(s)?;
-                        SourceProperty::Sha224Checksum(ArchProperty {
-                            architecture,
-                            value: SkippableChecksum::Checksum { digest: checksum },
-                        })
-                    }
-                    SourceKeyword::Sha256sums => {
-                        let checksum = Sha256Checksum::from_str(s)?;
-                        SourceProperty::Sha256Checksum(ArchProperty {
-                            architecture,
-                            value: SkippableChecksum::Checksum { digest: checksum },
-                        })
-                    }
-                    SourceKeyword::Sha384sums => {
-                        let checksum = Sha384Checksum::from_str(s)?;
-                        SourceProperty::Sha384Checksum(ArchProperty {
-                            architecture,
-                            value: SkippableChecksum::Checksum { digest: checksum },
-                        })
-                    }
-                    SourceKeyword::Sha512sums => {
-                        let checksum = Sha512Checksum::from_str(s)?;
-                        SourceProperty::Sha512Checksum(ArchProperty {
-                            architecture,
-                            value: SkippableChecksum::Checksum { digest: checksum },
-                        })
-                    }
-                    _ => unreachable!(),
-                };
-
-                Ok::<SourceProperty, alpm_types::Error>(property)
-            }))
-            .parse_next(input)?,
+            // all checksum properties are parsed the same way.
+            SourceKeyword::B2sums => SourceProperty::B2Checksum(ArchProperty {
+                architecture,
+                value: till_line_end
+                    .and_then(SkippableChecksum::parser)
+                    .parse_next(input)?,
+            }),
+            SourceKeyword::Md5sums => SourceProperty::Md5Checksum(ArchProperty {
+                architecture,
+                value: till_line_end
+                    .and_then(SkippableChecksum::parser)
+                    .parse_next(input)?,
+            }),
+            SourceKeyword::Sha1sums => SourceProperty::Sha1Checksum(ArchProperty {
+                architecture,
+                value: till_line_end
+                    .and_then(SkippableChecksum::parser)
+                    .parse_next(input)?,
+            }),
+            SourceKeyword::Sha224sums => SourceProperty::Sha224Checksum(ArchProperty {
+                architecture,
+                value: till_line_end
+                    .and_then(SkippableChecksum::parser)
+                    .parse_next(input)?,
+            }),
+            SourceKeyword::Sha256sums => SourceProperty::Sha256Checksum(ArchProperty {
+                architecture,
+                value: till_line_end
+                    .and_then(SkippableChecksum::parser)
+                    .parse_next(input)?,
+            }),
+            SourceKeyword::Sha384sums => SourceProperty::Sha384Checksum(ArchProperty {
+                architecture,
+                value: till_line_end
+                    .and_then(SkippableChecksum::parser)
+                    .parse_next(input)?,
+            }),
+            SourceKeyword::Sha512sums => SourceProperty::Sha512Checksum(ArchProperty {
+                architecture,
+                value: till_line_end
+                    .and_then(SkippableChecksum::parser)
+                    .parse_next(input)?,
+            }),
         };
 
         Ok(property)

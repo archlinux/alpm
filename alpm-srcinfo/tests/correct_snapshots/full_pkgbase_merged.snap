@@ -290,7 +290,8 @@ expression: package_json
           "location": "source_1.tar.gz"
         },
         "b2_checksum": {
-          "type": "Skip"
+          "type": "Checksum",
+          "digest": "87dd1c13611882900bbcc29a84f8856a7bcd111979815435f9f7aa9c77fb77592fc56324ce3ba6c18df0609a5057e6e3589b9bcced9e7475f2984478b9028a97"
         },
         "md5_checksum": null,
         "sha1_checksum": null,
@@ -340,7 +341,9 @@ expression: package_json
         "sha384_checksum": {
           "type": "Skip"
         },
-        "sha512_checksum": null
+        "sha512_checksum": {
+          "type": "Skip"
+        }
       },
       {
         "source": {
@@ -362,7 +365,9 @@ expression: package_json
         "sha384_checksum": {
           "type": "Skip"
         },
-        "sha512_checksum": null
+        "sha512_checksum": {
+          "type": "Skip"
+        }
       },
       {
         "source": {
@@ -371,8 +376,7 @@ expression: package_json
           "location": "source_4.tar.gz"
         },
         "b2_checksum": {
-          "type": "Checksum",
-          "digest": "87dd1c13611882900bbcc29a84f8856a7bcd111979815435f9f7aa9c77fb77592fc56324ce3ba6c18df0609a5057e6e3589b9bcced9e7475f2984478b9028a97"
+          "type": "Skip"
         },
         "md5_checksum": null,
         "sha1_checksum": null,
@@ -385,7 +389,9 @@ expression: package_json
         "sha384_checksum": {
           "type": "Skip"
         },
-        "sha512_checksum": null
+        "sha512_checksum": {
+          "type": "Skip"
+        }
       },
       {
         "source": {
@@ -394,7 +400,8 @@ expression: package_json
           "location": "arch_source_1.tar.gz"
         },
         "b2_checksum": {
-          "type": "Skip"
+          "type": "Checksum",
+          "digest": "87dd1c13611882900bbcc29a84f8856a7bcd111979815435f9f7aa9c77fb77592fc56324ce3ba6c18df0609a5057e6e3589b9bcced9e7475f2984478b9028a97"
         },
         "md5_checksum": null,
         "sha1_checksum": null,
@@ -422,8 +429,7 @@ expression: package_json
           "location": "arch_source_2.patch"
         },
         "b2_checksum": {
-          "type": "Checksum",
-          "digest": "87dd1c13611882900bbcc29a84f8856a7bcd111979815435f9f7aa9c77fb77592fc56324ce3ba6c18df0609a5057e6e3589b9bcced9e7475f2984478b9028a97"
+          "type": "Skip"
         },
         "md5_checksum": null,
         "sha1_checksum": null,
@@ -436,7 +442,9 @@ expression: package_json
         "sha384_checksum": {
           "type": "Skip"
         },
-        "sha512_checksum": null
+        "sha512_checksum": {
+          "type": "Skip"
+        }
       }
     ],
     "no_extracts": [
