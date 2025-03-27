@@ -17,7 +17,7 @@ use crate::{Error, MtreeSchema, parse_mtree_v2};
 /// Tracks all available versions of the file format.
 ///
 /// [ALPM-MTREE]: https://alpm.archlinux.page/specifications/ALPM-MTREE.5.html
-#[derive(Clone, Debug, serde::Serialize)]
+#[derive(Clone, Debug, PartialEq, serde::Serialize)]
 #[serde(untagged)]
 pub enum Mtree {
     V1(Vec<crate::mtree::v2::Path>),

@@ -51,7 +51,7 @@ impl PathDefaults {
 }
 
 /// A directory type path statement in an mtree file.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct Directory {
     pub path: PathBuf,
     pub uid: usize,
@@ -63,7 +63,7 @@ pub struct Directory {
 /// A file type path statement in an mtree file.
 ///
 /// The md5_digest is accepted for backwards compatibility reasons in v2 as well.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct File {
     pub path: PathBuf,
     pub uid: usize,
@@ -114,7 +114,7 @@ where
 }
 
 /// A link type path in an mtree file that points to a file somewhere on the system.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct Link {
     pub path: PathBuf,
     pub uid: usize,
@@ -129,7 +129,7 @@ pub struct Link {
 /// While serializing, the type is converted into a `type` field on the inner struct.
 /// This means that `Vec<Path>` will be serialized to a list of maps where each map has a `type`
 /// entry with the respective name.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub enum Path {
     #[serde(rename = "dir")]
