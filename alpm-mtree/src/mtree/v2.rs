@@ -53,11 +53,11 @@ impl PathDefaults {
 /// A directory type path statement in an mtree file.
 #[derive(Debug, Clone, Serialize)]
 pub struct Directory {
-    path: PathBuf,
-    uid: usize,
-    gid: usize,
-    mode: String,
-    time: usize,
+    pub path: PathBuf,
+    pub uid: usize,
+    pub gid: usize,
+    pub mode: String,
+    pub time: usize,
 }
 
 /// A file type path statement in an mtree file.
@@ -65,19 +65,19 @@ pub struct Directory {
 /// The md5_digest is accepted for backwards compatibility reasons in v2 as well.
 #[derive(Debug, Clone, Serialize)]
 pub struct File {
-    path: PathBuf,
-    uid: usize,
-    gid: usize,
-    mode: String,
-    size: usize,
-    time: usize,
+    pub path: PathBuf,
+    pub uid: usize,
+    pub gid: usize,
+    pub mode: String,
+    pub size: usize,
+    pub time: usize,
     #[serde(
         skip_serializing_if = "Option::is_none",
         serialize_with = "serialize_optional_checksum_as_hex"
     )]
-    md5_digest: Option<Md5Checksum>,
+    pub md5_digest: Option<Md5Checksum>,
     #[serde(serialize_with = "serialize_checksum_as_hex")]
-    sha256_digest: Sha256Checksum,
+    pub sha256_digest: Sha256Checksum,
 }
 
 /// Serialize an `Option<Checksum<D>>` as a HexString.
@@ -116,12 +116,12 @@ where
 /// A link type path in an mtree file that points to a file somewhere on the system.
 #[derive(Debug, Clone, Serialize)]
 pub struct Link {
-    path: PathBuf,
-    uid: usize,
-    gid: usize,
-    mode: String,
-    time: usize,
-    link_path: PathBuf,
+    pub path: PathBuf,
+    pub uid: usize,
+    pub gid: usize,
+    pub mode: String,
+    pub time: usize,
+    pub link_path: PathBuf,
 }
 
 /// Represents the three possible types inside a path type line of an MTREE file.
