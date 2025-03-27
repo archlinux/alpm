@@ -46,6 +46,13 @@ pub use license::License;
 mod name;
 pub use name::{BuildTool, Name, SharedObjectName};
 
+mod package;
+pub use package::{
+    contents::{INSTALL_SCRIPTLET_FILE_NAME, MetadataFileName},
+    error::Error as PackageError,
+    source::{PKGBUILD_FILE_NAME, SRCINFO_FILE_NAME},
+};
+
 mod path;
 pub use path::{
     AbsolutePath,

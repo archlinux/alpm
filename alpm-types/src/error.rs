@@ -113,6 +113,10 @@ pub enum Error {
     /// An invalid build environment option
     #[error("Invalid build environment option: {0}")]
     InvalidBuildEnvironmentOption(String),
+
+    /// A package data error.
+    #[error("Package error: {0}")]
+    Package(#[from] crate::PackageError),
 }
 
 impl From<std::num::ParseIntError> for crate::error::Error {
