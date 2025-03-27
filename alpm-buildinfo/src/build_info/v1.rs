@@ -30,7 +30,7 @@ macro_rules! generate_buildinfo {
     ($(#[$meta:meta])* $name:ident { $($extra_fields:tt)* }) => {
         $(#[$meta])*
         #[serde_as]
-        #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+        #[derive(Clone, Debug, serde::Deserialize, PartialEq, serde::Serialize)]
         #[serde(deny_unknown_fields)]
         pub struct $name {
             #[serde_as(as = "DisplayFromStr")]

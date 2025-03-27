@@ -18,7 +18,7 @@ use crate::{BuildInfoSchema, BuildInfoV1, BuildInfoV2, Error};
 /// Tracks all available variants of the file format.
 ///
 /// [BUILDINFO]: https://alpm.archlinux.page/specifications/BUILDINFO.5.html
-#[derive(Clone, Debug, serde::Serialize)]
+#[derive(Clone, Debug, PartialEq, serde::Serialize)]
 #[serde(untagged)]
 pub enum BuildInfo {
     V1(BuildInfoV1),
