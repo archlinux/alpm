@@ -98,7 +98,7 @@ check-commits:
             printf "Commit %s ❌️\n" "$commit" >&2
             printf "%s\n" \
                 "The commit message does not meet the required standards:" \
-                "$commit_message" \
+                "$commit_message"
             exit 1
         else
             printf "Commit %s ✅️\n\n" "$commit"
