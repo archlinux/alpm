@@ -18,7 +18,7 @@ use crate::{Error, PackageInfoSchema, PackageInfoV1, PackageInfoV2};
 /// Tracks all available versions of the file format.
 ///
 /// [PKGINFO]: https://alpm.archlinux.page/specifications/PKGINFO.5.html
-#[derive(Clone, Debug, serde::Serialize)]
+#[derive(Clone, Debug, PartialEq, serde::Serialize)]
 #[serde(untagged)]
 pub enum PackageInfo {
     V1(PackageInfoV1),
