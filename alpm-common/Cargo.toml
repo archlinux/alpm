@@ -13,3 +13,4 @@ version = "0.1.0"
 
 [dependencies]
 alpm-types.workspace = true
+strum.workspace = true
