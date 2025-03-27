@@ -54,14 +54,14 @@ The way the merging works is as follows:
 4. Apply the [`Package`] architecture-specific override values.
 5. Merge the final architecture-specific values into the non-architecture specific values.
 
-[`MergedPackage`]: https://alpm.archlinux.page/rustdoc/alpm_srcinfo/merged/struct.MergedPackage.html
-[`PackageBase`]: https://alpm.archlinux.page/rustdoc/alpm_srcinfo/source_info/package_base/struct.PackageBase.html
-[`Package`]: https://alpm.archlinux.page/rustdoc/alpm_srcinfo/source_info/package/struct.Package.html
-[`SourceInfo::from_raw`]: https://alpm.archlinux.page/rustdoc/alpm_srcinfo/source_info/struct.SourceInfo.html#method.from_raw
-[`SourceInfo::packages_for_architecture`]: https://alpm.archlinux.page/rustdoc/alpm_srcinfo/source_info/struct.SourceInfo.html#method.packages_for_architecture
-[`SourceInfoContent::parser`]: https://alpm.archlinux.page/rustdoc/alpm_srcinfo/parser/struct.SourceInfoContent.html#method.parser
-[`SourceInfoContent`]: https://alpm.archlinux.page/rustdoc/alpm_srcinfo/parser/struct.SourceInfoContent.html
-[`SourceInfo`]: https://alpm.archlinux.page/rustdoc/alpm_srcinfo/source_info/struct.SourceInfo.html
+[`MergedPackage`]: https://alpm.archlinux.page/rustdoc/alpm_srcinfo/source_info/v1/merged/struct.MergedPackage.html
+[`PackageBase`]: https://alpm.archlinux.page/rustdoc/alpm_srcinfo/source_info/v1/package_base/struct.PackageBase.html
+[`Package`]: https://alpm.archlinux.page/rustdoc/alpm_srcinfo/source_info/v1/package/struct.Package.html
+[`SourceInfo::from_raw`]: https://alpm.archlinux.page/rustdoc/alpm_srcinfo/source_info/v1/struct.SourceInfoV1.html#method.from_raw
+[`SourceInfo::packages_for_architecture`]: https://alpm.archlinux.page/rustdoc/alpm_srcinfo/source_info/v1/struct.SourceInfoV1.html#method.packages_for_architecture
+[`SourceInfoContent::parser`]: https://alpm.archlinux.page/rustdoc/alpm_srcinfo/source_info/parser/struct.SourceInfoContent.html#method.parser
+[`SourceInfoContent`]: https://alpm.archlinux.page/rustdoc/alpm_srcinfo/source_info/parser/struct.SourceInfoContent.html
+[`SourceInfo`]: https://alpm.archlinux.page/rustdoc/alpm_srcinfo/source_info/v1/struct.SourceInfoV1.html
 [SRCINFO]: https://alpm.archlinux.page/specifications/SRCINFO.5.html
 [`alpm-types`]: https://docs.rs/alpm-types/latest/alpm_types/index.html
-[`parser`]: https://alpm.archlinux.page/rustdoc/alpm_srcinfo/parser/index.html
+[`parser`]: https://alpm.archlinux.page/rustdoc/alpm_srcinfo/source_info/parser/index.html
