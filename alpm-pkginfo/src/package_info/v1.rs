@@ -31,7 +31,7 @@ macro_rules! generate_pkginfo {
 
         $(#[$meta])*
         #[serde_as]
-        #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+        #[derive(Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
         #[serde(deny_unknown_fields)]
         pub struct $name {
             #[serde_as(as = "DisplayFromStr")]
