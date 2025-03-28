@@ -7,7 +7,7 @@ use std::{
 
 use pgp::Signature;
 use rpgpie::certificate::{Certificate, Checked};
-use voa_core::{Context, OpaqueVerifier, Os, Purpose, Technology, VerifierDirectory};
+use voa_core::{Context, OpaqueVerifier, Os, Purpose, Technology, Voa};
 
 const FILE_ENDING: &str = ".openpgp";
 
@@ -86,7 +86,7 @@ impl Debug for OpenPGPCert {
             self.sources
                 .iter()
                 .map(OpaqueVerifier::full_filename)
-                .map(|s| format!("  - {}", s))
+                .map(|s| format!("  - {}", s.to_string_lossy()))
                 .collect::<Vec<_>>()
                 .join("\n")
         )?;
@@ -133,11 +133,11 @@ impl OpenPGPCert {
 /// An OpenPGP specific view onto a VerifierDirectory
 ///
 /// TODO: Should this struct include trust evaluations?
-pub struct CertificateDirectoryOpenPGP<'a>(VerifierDirectory<'a>);
+pub struct CertificateDirectoryOpenPGP<'a>(Voa<'a>);
 
 impl<'a> CertificateDirectoryOpenPGP<'a> {
     pub fn new(roots: &'a [&'a str]) -> CertificateDirectoryOpenPGP<'a> {
-        Self(VerifierDirectory::new(roots))
+        Self(Voa::new(roots))
     }
 
     pub fn load(&self, distribution: Os, purpose: Purpose, context: Context) -> Vec<OpenPGPCert> {
@@ -163,7 +163,7 @@ impl<'a> CertificateDirectoryOpenPGP<'a> {
                     log::error!(
                         "Unexpected technology {:?} in {}, skipping.",
                         opaque.source_path().technology(),
-                        opaque.full_filename()
+                        opaque.full_filename().to_string_lossy()
                     );
                     return None;
                 }
@@ -171,7 +171,7 @@ impl<'a> CertificateDirectoryOpenPGP<'a> {
                 let Ok(certificate) = Certificate::try_from(opaque.data()) else {
                     log::warn!(
                         "Failed to deserialize OpenPGP certificate {}, skipping",
-                        opaque.full_filename(),
+                        opaque.full_filename().to_string_lossy(),
                     );
                     return None;
                 };
