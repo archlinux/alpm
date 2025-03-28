@@ -1,34 +1,56 @@
 //! "File Hierarchy for the Verification of OS Artifacts (VOA)"
 //!
-//! A mechanism for technology-agnostic storage and retrieval or signature verifiers.
-//!
-//! (For draft specification see <https://github.com/uapi-group/specifications/pull/134>)
+//! A mechanism for technology-agnostic storage and retrieval of` signature verifiers.
+//! For specification draft see: <https://github.com/uapi-group/specifications/pull/134>
 
 use std::path::PathBuf;
 
-/// Earlier entries have precedence over later entries.
+/// Load paths for "system mode" operation of VOA.
 ///
-/// NOTE: Depending on the technology, we will want to either "shadow" one version with another,
-/// or merge the data from different versions into one coherent view.
-/// Shadowing is technology-specific and must be handled in the technology layer.
+/// Each load path can contain a VOA hierarchy of verifier files.
+/// Earlier load paths have precedence over later entries (in some technologies).
 ///
-/// We expect that the filename is a strong identifier that can also be used to check if two
-/// verifiers are the same, between roots, based on their filename.
+/// NOTE: Depending on the technology, multiple versions of the same verifier will either "shadow"
+/// one another, or get merged into one coherent view that represents the totality of available
+/// information about the verifier.
 ///
-/// E.g. OpenPGP certificates must have names based in fingerprints.
+/// Shadowing/merging is technology-specific and must be handled in the technology layer.
 ///
-/// The technology-specific layers are expected to warn or error when filenames and their content
-/// are inconsistent.
-const _ROOTS_DEFAULT: &[&str] = &[
-    "/etc/pki/",
-    "/run/pki/",
-    "/usr/local/share/pki/",
-    "/usr/share/pki/",
+/// VOA expects that filenames are a strong identifier, which signal if two verifier files deal
+/// with "the same" logical verifier. Verifiers in different load paths can be identified as
+/// related by their filenames.
+///
+/// (E.g. OpenPGP certificates must be stored using filenames based on their fingerprint.)
+///
+/// The technology-specific layers are expected to warn or error when a verifier filename is
+/// inconsistent with the contained verifier.
+pub const LOAD_PATHS_SYSTEM_MODE: &[&str] = &[
+    "/etc/voa/",
+    "/run/voa/",
+    "/usr/local/share/voa/",
+    "/usr/share/voa/",
 ];
 
-/// Top level directory of the "Verification of OS Artifacts (VOA)" hierarchy
-const VOA: &str = "voa";
+// TODO: const LOAD_PATHS_USER_MODE
+//
+// $XDG_CONFIG_HOME/voa/
+// the ./voa/ directory in each directory defined in $XDG_CONFIG_DIRS
+// $XDG_RUNTIME_DIR/voa/
+// $XDG_DATA_HOME/voa/
+// the ./voa/ directory in each directory defined in $XDG_DATA_DIRS
 
+/// The Os identifier is used to uniquely identify an Operating System (OS), it relies on data
+/// provided by `os-release`.
+///
+/// Anb Os identifier consists of (up to) five parts.
+///
+///  - id: name of OS (e.g. arch or debian)
+///  - version_id: the version of the OS (e.g. 1.0.0 or 24.12)
+///  - variant_id: the variant of the OS (e.g. server or workstation)
+///  - image_id: the image of an OS (e.g. cashier-system)
+///  - image_version: version of the image (e.g. 1.0.0 or 24.12)
+///
+///  Each part can consist of the characters "0–9", "a–z", ".", "_" and "-".
 #[derive(Clone, Debug, PartialEq)]
 #[non_exhaustive]
 pub struct Os {
@@ -48,6 +70,8 @@ impl Os {
         image_version: Option<String>,
     ) -> Self {
         assert!(!id.is_empty()); // FIXME: do we want to enforce this, and return a [Result]?
+
+        // TODO: enforce legal character sets for all parts ("0–9", "a–z", ".", "_" and "-")
 
         Self {
             id,
@@ -75,8 +99,10 @@ impl Os {
     }
 }
 
-/// A Purpose combines a [Role] and a [Mode], and reflects one directory layer in the VOA file
-/// hierarchy.
+/// A Purpose combines a [Role] and a [Mode]. The combination reflects one directory layer in the
+/// VOA file hierarchy.
+///
+/// Purpose paths have values such as: `packages`, `trust-anchor-packages`, `repository-metadata`.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Purpose {
     role: Role,
@@ -134,6 +160,8 @@ pub enum Mode {
 #[non_exhaustive]
 pub enum Context {
     Default,
+
+    // TODO: enforce limitation to legal characters
     Specified(String),
 }
 
@@ -145,6 +173,9 @@ impl Context {
         }
     }
 }
+
+/// Technology-specific backends implement the logic for each supported verification technology
+/// in VOA.
 #[derive(Clone, Copy, Debug, PartialEq)]
 #[non_exhaustive]
 pub enum Technology {
@@ -161,10 +192,11 @@ impl Technology {
     }
 }
 
-/// Specification of a path in a VOA structure, at the "leaf" level, where verifier files are stored
+/// Specification of a path in a VOA structure at the "leaf" level (where verifier files are
+/// stored).
 #[derive(Clone, Debug, PartialEq)]
 pub struct VerifierSourcePath {
-    root: String,
+    load_path: PathBuf,
     os: Os,
     purpose: Purpose,
     context: Context,
@@ -173,8 +205,7 @@ pub struct VerifierSourcePath {
 
 impl VerifierSourcePath {
     fn path(&self) -> PathBuf {
-        PathBuf::from(&self.root)
-            .join(VOA)
+        self.load_path
             .join(self.os.path())
             .join(self.purpose.path())
             .join(self.context.path())
@@ -189,6 +220,10 @@ impl VerifierSourcePath {
         self.purpose
     }
 
+    pub fn context(&self) -> &Context {
+        &self.context
+    }
+
     pub fn technology(&self) -> Technology {
         self.technology
     }
@@ -201,62 +236,68 @@ impl VerifierSourcePath {
 /// - a certificate complete with its trust chain
 /// - a set of individual verifiers in one shared data structure
 pub struct OpaqueVerifier {
-    data: Vec<u8>,
+    /// Opaque data representing the verifier
+    verifier_data: Vec<u8>,
+
+    /// Specification of the path from which the verifier was loaded
     path: VerifierSourcePath,
+
+    /// Filename of the verifier file, in `path`
     filename: String,
 }
 
 impl OpaqueVerifier {
-    /// The raw certificate data of this file
+    /// The raw data of this verifier
     pub fn data(&self) -> &[u8] {
-        &self.data
+        &self.verifier_data
     }
 
-    /// The source file path of this certificate data
+    /// The source path of this verifier
     pub fn source_path(&self) -> &VerifierSourcePath {
         &self.path
     }
 
-    /// The filename, without the full path
+    /// The filename (excluding the path)
     pub fn filename(&self) -> &str {
         &self.filename
     }
 
     /// The filename complete with the full path
-    pub fn full_filename(&self) -> String {
+    pub fn full_filename(&self) -> PathBuf {
         let mut file = self.source_path().path();
         file.push(&self.filename);
 
-        file.to_str().unwrap().to_string() // FIXME: unwrap
+        file
     }
 }
 
-/// A VerifierDirectory object, which is based on a set of root directories.
+/// A Voa object, which is based on a set of load paths.
 ///
-/// VerifierDirectory acts as an accessor to certificates stored in the filesystem.
-/// It is agnostic to the signing technology, and handles all certificates as opaque object.
-pub struct VerifierDirectory<'a> {
-    roots: &'a [&'a str],
+/// Voa acts as an accessor to certificates stored in the filesystem.
+/// It is agnostic to the signing technology, and handles all certificates as opaque objects.
+pub struct Voa<'a> {
+    load_paths: &'a [&'a str],
 }
 
-impl<'a> VerifierDirectory<'a> {
-    /// Initialize a VerifierDirectory object, based on a set of root directories
+impl<'a> Voa<'a> {
+    /// Initialize a Voa object, based on a set of load paths
     ///
-    /// TODO: Always passing the roots explicitly is definitely wrong here.
-    ///       Should the roots always be implicit, and use the hardcoded `ROOTS_DEFAULT`?
-    pub fn new(roots: &'a [&'a str]) -> Self {
-        Self { roots }
+    /// TODO: Always passing the load paths explicitly is definitely wrong here.
+    ///       Should the exact load paths always be implicit based on the hardcoded
+    ///       `LOAD_PATHS_SYSTEM_MODE` or `LOAD_PATHS_USER_MODE`?
+    pub fn new(load_paths: &'a [&'a str]) -> Self {
+        Self { load_paths }
     }
 
-    /// Load a set of (opaque) signature verifiers from the filesystem.
+    /// Load a set of (opaque) signature verifiers from the VOA hierarchy.
     ///
     /// Paths in a VerifierDirectory have the shape:
-    /// ROOT/VOA/$os/$purpose/$context/$technology
+    /// LOAD_PATH/$os/$purpose/$context/$technology
     ///
     /// os: e.g. "arch"
-    /// $purpose: e.g. "trust-anchor-packages", "packages"
-    /// $context: e.g. "default"
-    /// $technology: e.g. "openpgp"
+    /// purpose: e.g. "trust-anchor-packages", "packages"
+    /// context: e.g. "default"
+    /// technology: e.g. "openpgp"
     ///
     /// TODO: How should the `trust_anchor` parameter work in this API?
     ///  (At least for some callers it would probably be convenient not to pass it at all, and
@@ -273,11 +314,11 @@ impl<'a> VerifierDirectory<'a> {
     ) -> Vec<OpaqueVerifier> {
         let mut certs = vec![];
 
-        for root in self.roots {
-            log::trace!("Looking for signature verifiers in root dir '{root}'");
+        for load_path in self.load_paths {
+            log::trace!("Looking for signature verifiers in the load path '{load_path}'");
 
             let path = VerifierSourcePath {
-                root: root.to_string(),
+                load_path: load_path.into(),
                 os: os.clone(),
                 purpose,
                 context: context.clone(),
@@ -291,7 +332,7 @@ impl<'a> VerifierDirectory<'a> {
             let res = std::fs::read_dir(source_path);
             let Ok(dir) = res else {
                 log::trace!("  Can't read path as a directory {:?}", res);
-                continue; // try next root
+                continue; // try next load path
             };
 
             for entry in dir {
@@ -300,9 +341,9 @@ impl<'a> VerifierDirectory<'a> {
                         log::trace!("Loading verifier file {:?}", file);
 
                         match std::fs::read(file.path()) {
-                            Ok(data) => {
+                            Ok(verifier_data) => {
                                 certs.push(OpaqueVerifier {
-                                    data,
+                                    verifier_data,
                                     path: path.clone(),
                                     filename: file.file_name().to_str().unwrap().to_string(), // FIXME!
                                 });
