@@ -9,6 +9,14 @@ pub mod commands;
 mod error;
 pub use error::Error;
 
+#[cfg(feature = "creation")]
+pub mod file;
+#[cfg(feature = "creation")]
+pub use file::{
+    create::{mtree_v1_from_input_dir, mtree_v2_from_input_dir},
+    error::Error as CreationError,
+};
+
 pub mod mtree;
 pub use mtree::{Mtree, v2::parse_mtree_v2};
 

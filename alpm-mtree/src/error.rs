@@ -4,6 +4,11 @@ use std::{path::PathBuf, string::FromUtf8Error};
 #[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
 pub enum Error {
+    /// File creation error.
+    #[cfg(feature = "creation")]
+    #[error("File creation error:\n{0}")]
+    File(#[from] crate::CreationError),
+
     /// IO error
     #[error("I/O error while {0}:\n{1}")]
     Io(&'static str, std::io::Error),
