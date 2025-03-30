@@ -9,6 +9,9 @@ pub mod commands;
 mod error;
 pub use error::Error;
 
+pub mod file;
+pub use file::{v1::MtreeFileV1, v2::MtreeFileV2};
+
 pub mod mtree;
 pub use mtree::{Mtree, v2::parse_mtree_v2};
 
