@@ -51,6 +51,10 @@ name = "alpm-common"
 version = "0.1.0"
 dependencies = [
  "alpm-types",
+ "rstest",
+ "tempfile",
+ "testresult",
+ "thiserror",
 ]
 
 [[package]]

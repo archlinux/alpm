@@ -13,3 +13,9 @@ version = "0.1.0"
 
 [dependencies]
 alpm-types.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+rstest.workspace = true
+tempfile.workspace = true
+testresult.workspace = true
