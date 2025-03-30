@@ -1,3 +1,9 @@
+//! A VOA technology backend for OpenPGP based signature verification.
+//!
+//! DO NOT USE IN PRODUCTION: This backend is still in an early experimental development stage.
+//!
+//! For specification draft see: <https://github.com/uapi-group/specifications/pull/134>
+
 use std::{
     fmt::{Debug, Formatter},
     ops::Add,
@@ -136,14 +142,12 @@ impl OpenPGPCert {
 pub struct CertificateDirectoryOpenPGP<'a>(Voa<'a>);
 
 impl<'a> CertificateDirectoryOpenPGP<'a> {
-    pub fn new(roots: &'a [&'a str]) -> CertificateDirectoryOpenPGP<'a> {
-        Self(Voa::new(roots))
+    pub fn new(load_paths: &'a [&'a str]) -> CertificateDirectoryOpenPGP<'a> {
+        Self(Voa::new(load_paths))
     }
 
-    pub fn load(&self, distribution: Os, purpose: Purpose, context: Context) -> Vec<OpenPGPCert> {
-        let opaque = self
-            .0
-            .load(distribution, purpose, context, Technology::OpenPGP);
+    pub fn load(&self, os: Os, purpose: Purpose, context: Context) -> Vec<OpenPGPCert> {
+        let opaque = self.0.load(os, purpose, context, Technology::OpenPGP);
 
         // TODO: If we obtained different versions of the same certificate, merge them!
         //
