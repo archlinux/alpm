@@ -3,10 +3,8 @@
 
 use std::{fs::File, io::BufReader, path::Path};
 
-use voa_core::{Context, Mode, Os, Purpose, Role};
+use voa_core::{Context, LoadPaths, Mode, Os, Purpose, Role};
 use voa_openpgp::CertificateDirectoryOpenPGP;
-
-const ROOTS_TEST: &[&str] = &["/tmp/pki1/", "/tmp/pki2/"];
 
 /// Toy usage of CertificateDirectoryOpenPGP, e.g. based on data seeded with `testkey_loader.sh`
 fn main() {
@@ -15,7 +13,7 @@ fn main() {
     // NOTE: certs, packager+main signing: https://gitlab.archlinux.org/archlinux/archlinux-keyring/-/releases/20241015
 
     // Load OpenPGP certificate directory
-    let dir = CertificateDirectoryOpenPGP::new(ROOTS_TEST);
+    let dir = CertificateDirectoryOpenPGP::new(LoadPaths::System);
     let verifiers = dir.load(
         Os::new("arch".to_string(), None, None, None, None),
         Purpose::new(Role::Packages, Mode::ArtifactVerifier),

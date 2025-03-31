@@ -13,7 +13,7 @@ use std::{
 
 use pgp::Signature;
 use rpgpie::certificate::{Certificate, Checked};
-use voa_core::{Context, OpaqueVerifier, Os, Purpose, Technology, Voa};
+use voa_core::{Context, LoadPaths, OpaqueVerifier, Os, Purpose, Technology, Voa};
 
 const FILE_ENDING: &str = ".openpgp";
 
@@ -139,10 +139,10 @@ impl OpenPGPCert {
 /// An OpenPGP specific view onto a VerifierDirectory
 ///
 /// TODO: Should this struct include trust evaluations?
-pub struct CertificateDirectoryOpenPGP<'a>(Voa<'a>);
+pub struct CertificateDirectoryOpenPGP(Voa);
 
-impl<'a> CertificateDirectoryOpenPGP<'a> {
-    pub fn new(load_paths: &'a [&'a str]) -> CertificateDirectoryOpenPGP<'a> {
+impl CertificateDirectoryOpenPGP {
+    pub fn new(load_paths: LoadPaths) -> CertificateDirectoryOpenPGP {
         Self(Voa::new(load_paths))
     }
 
