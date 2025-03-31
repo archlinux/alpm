@@ -3,7 +3,10 @@
 //! A mechanism for technology-agnostic storage and retrieval of` signature verifiers.
 //! For specification draft see: <https://github.com/uapi-group/specifications/pull/134>
 
-use std::path::PathBuf;
+use std::{
+    fmt::{Debug, Formatter},
+    path::PathBuf,
+};
 
 /// Load paths for "system mode" operation of VOA.
 ///
@@ -52,7 +55,6 @@ pub const LOAD_PATHS_SYSTEM_MODE: &[&str] = &[
 ///
 ///  Each part can consist of the characters "0–9", "a–z", ".", "_" and "-".
 #[derive(Clone, Debug, PartialEq)]
-#[non_exhaustive]
 pub struct Os {
     id: String,
     version_id: Option<String>,
@@ -246,6 +248,16 @@ pub struct OpaqueVerifier {
     filename: String,
 }
 
+impl Debug for OpaqueVerifier {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "OpaqueVerifier [{} bytes]", self.verifier_data.len())?;
+        writeln!(f, "Path: {:#?}", self.path)?;
+        writeln!(f, "Filename: {:?}", self.filename)?;
+
+        Ok(())
+    }
+}
+
 impl OpaqueVerifier {
     /// The raw data of this verifier
     pub fn data(&self) -> &[u8] {
@@ -271,22 +283,47 @@ impl OpaqueVerifier {
     }
 }
 
+/// VOA defines a list of _load paths_ with descending priority for system mode and user mode.
+///
+/// The following load paths are considered, depending on the load path mode:
+///
+/// System Mode:
+/// - /etc/voa/
+/// - /run/voa/
+/// - /usr/local/share/voa/
+/// - /usr/share/voa/
+///
+/// User Mode:
+/// - `$XDG_CONFIG_HOME/voa/`
+/// - the `./voa/` directory in each directory defined in `$XDG_CONFIG_DIRS`
+/// - `$XDG_RUNTIME_DIR/voa/`
+/// - `$XDG_DATA_HOME/voa/`
+/// - the `./voa/` directory in each directory defined in `$XDG_DATA_DIRS`
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum LoadPaths {
+    System,
+    User,
+}
+
 /// A Voa object, which is based on a set of load paths.
 ///
 /// Voa acts as an accessor to certificates stored in the filesystem.
 /// It is agnostic to the signing technology, and handles all certificates as opaque objects.
-pub struct Voa<'a> {
-    load_paths: &'a [&'a str],
+pub struct Voa {
+    load_paths: LoadPaths,
 }
 
-impl<'a> Voa<'a> {
-    /// Initialize a Voa object, based on a set of load paths
-    ///
-    /// TODO: Always passing the load paths explicitly is definitely wrong here.
-    ///       Should the exact load paths always be implicit based on the hardcoded
-    ///       `LOAD_PATHS_SYSTEM_MODE` or `LOAD_PATHS_USER_MODE`?
-    pub fn new(load_paths: &'a [&'a str]) -> Self {
+impl Voa {
+    /// Initialize a Voa object, based on a set of load paths in either system mode or user mode.
+    pub fn new(load_paths: LoadPaths) -> Self {
         Self { load_paths }
+    }
+
+    fn load_paths(&self) -> Vec<PathBuf> {
+        match self.load_paths {
+            LoadPaths::System => LOAD_PATHS_SYSTEM_MODE.iter().map(Into::into).collect(),
+            LoadPaths::User => unimplemented!(),
+        }
     }
 
     /// Load a set of (opaque) signature verifiers from the VOA hierarchy.
@@ -314,11 +351,14 @@ impl<'a> Voa<'a> {
     ) -> Vec<OpaqueVerifier> {
         let mut certs = vec![];
 
-        for load_path in self.load_paths {
-            log::trace!("Looking for signature verifiers in the load path '{load_path}'");
+        for load_path in self.load_paths() {
+            log::trace!(
+                "Looking for signature verifiers in the load path '{:?}'",
+                load_path
+            );
 
             let path = VerifierSourcePath {
-                load_path: load_path.into(),
+                load_path,
                 os: os.clone(),
                 purpose,
                 context: context.clone(),
