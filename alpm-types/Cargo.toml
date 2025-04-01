@@ -37,6 +37,7 @@ winnow.workspace = true
 proptest = "1.4.0"
 rstest.workspace = true
 testresult.workspace = true
+which = "7"
 
 [package.metadata.cargo-machete]
 ignored = ["md-5"]

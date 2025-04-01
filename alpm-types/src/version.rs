@@ -372,13 +372,15 @@ impl Display for PackageVersion {
     }
 }
 
-/// This struct represents a single segment in a version string.
-/// `VersionSegment`s are returned by the [VersionSegments] iterator, which is responsible for
+/// This enum represents a single segment in a version string.
+/// [VersionSegment]s are returned by the [VersionSegments] iterator, which is responsible for
 /// splitting a version string into its segments.
 ///
 /// Version strings are split according to the following rules:
+///
 /// - Non-alphanumeric characters always count as delimiters (`.`, `-`, `$`, etc.).
-/// - Each segment also contains the info about the amount of leading delimiters for that segment.
+/// - There's no differentiation between different delimiters. `'$$$' == '...' == '.$-'`
+/// - Each segment contains the info about the amount of leading delimiters for that segment.
 ///   Leading delimiters that directly follow after one another are grouped together. The length of
 ///   the delimiters is important, as it plays a crucial role in the algorithm that determines which
 ///   version is newer.
@@ -391,20 +393,19 @@ impl Display for PackageVersion {
 ///     (segment: "a", delimiters: 3)
 ///   ]
 ///   ```
-/// - There's no differentiation between different delimiters. `'$$$' == '...' == '.$-'`
 /// - Alphanumeric strings are also split into individual sub-segments. This is done by walking over
 ///   the string and splitting it every time a switch from alphabetic to numeric is detected or vice
 ///   versa.
 ///
-///   `1.1asdf123.0` would be represented as:
+///   `1.1foo123.0` would be represented as:
 ///
 ///   ```text
 ///   [
 ///     (segment: "1", delimiters: 0),
-///     (segment: "1", delimiters: 1)
-///     (segment: "asdf", delimiters: 0)
-///     (segment: "123", delimiters: 0)
-///     (segment: "0", delimiters: 1)
+///     (segment: "1", delimiters: 1),
+///     (segment: "foo", delimiters: 0),
+///     (segment: "123", delimiters: 0),
+///     (segment: "0", delimiters: 1),
 ///   ]
 ///   ```
 /// - Trailing delimiters are encoded as an empty string.
@@ -418,41 +419,62 @@ impl Display for PackageVersion {
 ///   ]
 ///   ```
 #[derive(Debug, Clone, Eq, PartialEq)]
-pub struct VersionSegment<'a> {
-    /// The string representation of the next segment
-    pub segment: &'a str,
-    /// The amount of leading delimiters that were found for this segment
-    pub delimiters: usize,
+pub enum VersionSegment<'a> {
+    Segment {
+        /// The string representation of the next segment
+        text: &'a str,
+        /// The amount of leading delimiters that were found for this segment
+        delimiter_count: usize,
+    },
+    SubSegment {
+        /// The string representation of the next segment
+        text: &'a str,
+    },
 }
 
 impl<'a> VersionSegment<'a> {
-    /// Create a new instance of a VersionSegment consisting of the segment's string and the amount
-    /// of leading delimiters.
-    pub fn new(segment: &'a str, delimiters: usize) -> Self {
-        Self {
-            segment,
-            delimiters,
+    /// Returns the segment's string regardless of segment type.
+    pub fn text(&self) -> &str {
+        match self {
+            VersionSegment::Segment { text, .. } | VersionSegment::SubSegment { text } => text,
         }
     }
 
-    /// Passhrough to `self.segment.is_empty()` for convenience purposes.
+    /// Returns true if the version segment is empty regardless of segment type.
     pub fn is_empty(&self) -> bool {
-        self.segment.is_empty()
+        match self {
+            VersionSegment::Segment { text, .. } | VersionSegment::SubSegment { text } => {
+                text.is_empty()
+            }
+        }
     }
 
-    /// Passhrough to `self.segment.chars()` for convenience purposes.
+    /// Returns an iterator over the chars of the segment's string.
     pub fn chars(&self) -> Chars<'a> {
-        self.segment.chars()
+        match self {
+            VersionSegment::Segment { text, .. } | VersionSegment::SubSegment { text } => {
+                text.chars()
+            }
+        }
     }
 
-    /// Passhrough `self.segment.parse()` for convenience purposes.
+    /// Parses the segment's string into a type `T` using [`FromStr::from_str()`].
+    /// type.
     pub fn parse<T: FromStr>(&self) -> Result<T, T::Err> {
-        FromStr::from_str(self.segment)
+        match self {
+            VersionSegment::Segment { text, .. } | VersionSegment::SubSegment { text } => {
+                FromStr::from_str(text)
+            }
+        }
     }
 
-    /// Compare the `self`'s segment string with segment string of `other`.
+    /// Compare `Self`'s segment string with segment string of `other`.
     pub fn str_cmp(&self, other: &VersionSegment) -> Ordering {
-        self.segment.cmp(other.segment)
+        match self {
+            VersionSegment::Segment { text, .. } | VersionSegment::SubSegment { text } => {
+                text.cmp(&other.text())
+            }
+        }
     }
 }
 
@@ -470,6 +492,10 @@ pub struct VersionSegments<'a> {
     version: &'a str,
     /// An iterator over the version's chars and their respective start byte's index.
     version_chars: Peekable<CharIndices<'a>>,
+    /// Check if the cursor is currently in a segment.
+    /// This is necessary to detect whether the next segment should be a sub-segment or a new
+    /// segment.
+    in_segment: bool,
 }
 
 impl<'a> VersionSegments<'a> {
@@ -478,6 +504,7 @@ impl<'a> VersionSegments<'a> {
         VersionSegments {
             version,
             version_chars: version.char_indices().peekable(),
+            in_segment: false,
         }
     }
 }
@@ -500,6 +527,9 @@ impl<'a> Iterator for VersionSegments<'a> {
 
             self.version_chars.next();
             delimiter_count += 1;
+
+            // As soon as we hit a delimiter, we know that a new segment is about to start.
+            self.in_segment = false;
             continue;
         }
 
@@ -516,7 +546,10 @@ impl<'a> Iterator for VersionSegments<'a> {
             // 2. There's no further segment, but there were some trailing delimiters. The
             //    comparison algorithm considers this case which is why we have to somehow encode
             //    it. We do so by returning an empty segment.
-            return Some(VersionSegment::new("", delimiter_count));
+            return Some(VersionSegment::Segment {
+                text: "",
+                delimiter_count,
+            });
         };
 
         // Cache the last valid char + index that was checked. We need this to
@@ -554,7 +587,19 @@ impl<'a> Iterator for VersionSegments<'a> {
         // The last char might be multi-byte, which is why we add its length.
         let segment_slice = &self.version[first_index..(last_char_index + last_char.len_utf8())];
 
-        Some(VersionSegment::new(segment_slice, delimiter_count))
+        if !self.in_segment {
+            // Any further segments should be sub-segments, unless we hit a delimiter in which
+            // case this variable will reset to false.
+            self.in_segment = true;
+            Some(VersionSegment::Segment {
+                text: segment_slice,
+                delimiter_count,
+            })
+        } else {
+            Some(VersionSegment::SubSegment {
+                text: segment_slice,
+            })
+        }
     }
 }
 
@@ -588,43 +633,47 @@ impl Ord for PackageVersion {
                 // Both versions reached their end and are thereby equal.
                 (None, None) => return Ordering::Equal,
 
-                // One version is longer than the other.
-                // Sadly, this isn't trivial to handle.
+                // One version is longer than the other and both are equal until now.
                 //
-                // The rules are as follows:
-                // Versions with at least two additional segments are always newer.
-                // -> `1.a.0` > `1`
-                //        ⤷ Two more segment, include one delimiter
-                // -> `1.a0` > `1`
-                //        ⤷ Two more segment, thereby an alphanumerical string.
+                // ## Case 1
                 //
-                // If one version is exactly one segment and has a delimiter, it's also considered
-                // newer.
-                // -> `1.0` > `1`
-                // -> `1.a` > `1`
-                //      ⤷ Delimiter exists, thereby newer
+                // The longer version is one or more **segment**s longer.
+                // In this case, the longer version is always considered newer.
+                //   `1.0` > `1`
+                // `1.0.0` > `1.0`
+                // `1.0.a` > `1.0`
+                //     ⤷ New segment exists, thereby newer
                 //
-                // If one version is exactly one segment longer and that segment is
-                // purely alphabetic **without** a leading delimiter, that segment is considered
-                // older. The reason for this is to handle pre-releases (e.g. alpha/beta).
-                // -> `1.0alpha` > `1.0`
-                //          ⤷ Purely alphabetic last segment, without delimiter and thereby older.
+                // ## Case 2
+                //
+                // The current **segment** has one or more sub-segments and the next sub-segment is
+                // purely alphabetic.
+                // In this case, the shorter version is always newer.
+                // The reason for this is to handle pre-releases (e.g. alpha/beta).
+                // `1.0alpha` < `1.0`
+                // `1.0alpha.0` < `1.0`
+                // `1.0alpha12.0` < `1.0`
+                //     ⤷ Purely alphabetic last sub-segment.
+                //
+                // ## Case 3
+                //
+                // The current **segment** has one or more sub-segments and the next sub-segment is
+                // numeric. In this case, the longer version is always newer.
+                // `1.alpha0` > `1.alpha`
+                // `1.alpha0.1` > `1.alpha`
+                //         ⤷ Next sub-segment is numeric.
                 (Some(seg), None) => {
-                    // There's at least one more segment, making `Self` effectively newer.
-                    // It's either an alphanumeric string or another segment separated with a
-                    // delimiter.
-                    if self_segments.next().is_some() {
-                        return Ordering::Greater;
-                    }
-
                     // We now know that this is also the last segment of `self`.
-                    // If the current segment has a leading delimiter, it's also considered newer.
-                    if seg.delimiters > 0 {
-                        return Ordering::Greater;
-                    }
+                    // If the current segment is the start of a real segment, it's always considered
+                    // newer.
+                    let text = match seg {
+                        VersionSegment::Segment { .. } => return Ordering::Greater,
+                        VersionSegment::SubSegment { text } => text,
+                    };
 
+                    // If it's a sub-segment, we have to check for the edge-case explained above
                     // If all chars are alphabetic, `self` is consider older.
-                    if !seg.is_empty() && seg.chars().all(char::is_alphabetic) {
+                    if !text.is_empty() && text.chars().all(char::is_alphabetic) {
                         return Ordering::Less;
                     }
 
@@ -633,49 +682,44 @@ impl Ord for PackageVersion {
 
                 // This is the same logic as above, but inverted.
                 (None, Some(seg)) => {
-                    if other_segments.next().is_some() {
-                        return Ordering::Less;
-                    }
-                    if seg.delimiters > 0 {
-                        return Ordering::Less;
-                    }
-                    if !seg.is_empty() && seg.chars().all(char::is_alphabetic) {
+                    let text = match seg {
+                        VersionSegment::Segment { .. } => return Ordering::Less,
+                        VersionSegment::SubSegment { text } => text,
+                    };
+                    if !text.is_empty() && text.chars().all(char::is_alphabetic) {
                         return Ordering::Greater;
                     }
+                    if !text.is_empty() && text.chars().all(char::is_alphabetic) {
+                        return Ordering::Greater;
+                    }
+
                     return Ordering::Less;
                 }
             };
 
-            // Special case:
-            // One or both of the segments is empty. That means that the end of the version string
-            // has been reached, but there were some trailing delimiters.
-            // Possible examples of how this might look:
-            // `1.0.` < `1.0.0`
-            // `1.0.` == `1.0.`
-            // `1.0.alpha` < `1.0.`
+            // At this point, we have two segments.
+            //
+            // We start with the special case where one or both of the segments are empty.
+            // That means that the end of the version string has been reached, but there were one
+            // or more trailing delimiters.
+            //
+            // Examples of how this might look like:
+            // `1.0.`
+            // `1.0...`
             if other_segment.is_empty() && self_segment.is_empty() {
                 // Both reached the end of their version with a trailing delimiter.
                 // Counterintuitively, the trailing delimiter count is not considered and both
                 // versions are considered equal
                 // `1.0....` == `1.0.`
+                //       ⤷ Length of delimiters is ignored.
                 return Ordering::Equal;
             } else if self_segment.is_empty() {
-                // Check if there's at least one other segment on the `other` version.
-                // If so, that one is always considered newer.
-                // `1.0.1.1` > `1.0.`
-                // `1.0.alpha1` > `1.0.`
-                // `1.0.alpha.1` > `1.0.`
-                //           ⤷ More segments and thereby always newer
-                if other_segments.peek().is_some() {
-                    return Ordering::Less;
-                }
-
-                // In case there's no further segment, both versions reached the last segment.
-                // We now have to consider the special case where `other` is purely alphabetic.
+                // Now we have to consider the special case where `other` is alphabetic.
                 // If that's the case, `self` will be considered newer, as the alphabetic string
                 // indicates a pre-release,
-                // `1.0.` > `1.0.alpha`.
-                //                   ⤷ Purely alphabetic last segment and thereby older.
+                // `1.0.` > `1.0alpha0`
+                // `1.0.` > `1.0.alpha.0`
+                //                ⤷ Alphabetic segment and thereby always older.
                 //
                 // Also, we know that `other_segment` isn't empty at this point.
                 if other_segment.chars().all(char::is_alphabetic) {
@@ -683,13 +727,11 @@ impl Ord for PackageVersion {
                 }
 
                 // In all other cases, `other` is newer.
+                // `1.0.` < `1.0.0`
+                // `1.0.` < `1.0.2.0`
                 return Ordering::Less;
             } else if other_segment.is_empty() {
                 // Check docs above, as it's the same logic as above, just inverted.
-                if self_segments.peek().is_some() {
-                    return Ordering::Greater;
-                }
-
                 if self_segment.chars().all(char::is_alphabetic) {
                     return Ordering::Less;
                 }
@@ -699,100 +741,99 @@ impl Ord for PackageVersion {
 
             // We finally reached the end handling special cases when the version string ended.
             // From now on, we know that we have two actual segments that might be prefixed by
-            // some delimiters.
+            // some delimiters. It's however possible to have both segments and sub-segments.
+            // This is what's handled next.
+            //
+            // We purposefully give up ownership of both segments.
+            // This is to ensure that following this match block, we finally only have to
+            // consider the actual text of the segments.
+            let (self_text, other_text) = match (self_segment, other_segment) {
+                (
+                    VersionSegment::Segment {
+                        delimiter_count: self_count,
+                        text: self_text,
+                    },
+                    VersionSegment::Segment {
+                        delimiter_count: other_count,
+                        text: other_text,
+                    },
+                ) => {
+                    // Special case:
+                    // If one of the segments has more leading delimiters as the other, it's
+                    // always considered newer, no matter what follows after the delimiters.
+                    // `1..0.0` > `1.2.0`
+                    //    ⤷ Two delimiters, thereby always newer.
+                    // `1..0.0` < `1..2.0`
+                    //               ⤷ Same amount of delimiters, now `2 > 0`
+                    if self_count != other_count {
+                        return self_count.cmp(&other_count);
+                    }
+                    (self_text, other_text)
+                }
+                // If one is the start of a new segment, while the other is still a a sub-segment,
+                // we can return early as a new segment always overrules a sub-segment.
+                // `1.alpha0.0` < `1.alpha.0`
+                //         ⤷ Sub-segment  ⤷ New segment
+                //         The third iteration is a sub-segment on the left side while a new segment
+                //         on the right side.
+                (VersionSegment::Segment { .. }, VersionSegment::SubSegment { .. }) => {
+                    return Ordering::Greater;
+                }
+                (VersionSegment::SubSegment { .. }, VersionSegment::Segment { .. }) => {
+                    return Ordering::Less;
+                }
+                (
+                    VersionSegment::SubSegment {
+                        text: self_text, ..
+                    },
+                    VersionSegment::SubSegment {
+                        text: other_text, ..
+                    },
+                ) => (self_text, other_text),
+            };
 
-            // Special case:
-            // If one of the segments has more leading delimiters as the other, it's considered
-            // newer.
-            // `1..0.0` > `1.2.0`
-            //         ⤷ Two delimiters, thereby always newer.
-            // `1..0.0` < `1..2.0`
-            //                ⤷ Same amount of delimiters, now `2 > 0`
-            if self_segment.delimiters != other_segment.delimiters {
-                return self_segment.delimiters.cmp(&other_segment.delimiters);
-            }
+            // At this point, we now know that we're dealing with two identical types of segments.
+            // We now only have to compare the text of the segments.
 
             // Check whether any of the segments are numeric.
             // Numeric segments are always considered newer than non-numeric segments.
-            // E.g. `1.0.0` > `1.lol.0`
-            //         ⤷ `0` vs `lol`. `0` is purely numeric and bigger than a alphanumeric one.
-            let self_is_numeric =
-                !self_segment.is_empty() && self_segment.chars().all(char::is_numeric);
+            // E.g. `1.0.0` > `1.foo.0`
+            //         ⤷ `0` vs `foo`.
+            //           `0` is numeric and therebynewer than a alphanumeric one.
+            let self_is_numeric = !self_text.is_empty() && self_text.chars().all(char::is_numeric);
             let other_is_numeric =
-                !other_segment.is_empty() && other_segment.chars().all(char::is_numeric);
+                !other_text.is_empty() && other_text.chars().all(char::is_numeric);
 
             if self_is_numeric && !other_is_numeric {
                 return Ordering::Greater;
             } else if !self_is_numeric && other_is_numeric {
                 return Ordering::Less;
-            }
-
-            // In case both are numeric, we do a number comparison.
-            // We can parse the string as we know that they only consist of digits, hence the
-            // unwrap.
-            //
-            // Trailing zeroes are to be ignored, which is automatically done by Rust's number
-            // parser. E.g. `1.0001.1` == `1.1.1`
-            //                  ⤷ `000` is ignored in comparison.
-            if self_is_numeric && other_is_numeric {
-                let ordering = self_segment
+            } else if self_is_numeric && other_is_numeric {
+                // In case both are numeric, we do a number comparison.
+                // We can parse the string as we know that they only consist of digits, hence the
+                // unwrap.
+                //
+                // Trailing zeroes are to be ignored, which is automatically done by Rust's number
+                // parser.
+                // E.g. `1.0001.1` == `1.1.1`
+                //          ⤷ `000` is ignored in the comparison.
+                let ordering = self_text
                     .parse::<usize>()
                     .unwrap()
-                    .cmp(&other_segment.parse::<usize>().unwrap());
+                    .cmp(&other_text.parse::<usize>().unwrap());
+
                 match ordering {
                     Ordering::Less => return Ordering::Less,
-                    Ordering::Equal => (),
+                    // If both numbers are equal we check the next segment.
+                    Ordering::Equal => continue,
                     Ordering::Greater => return Ordering::Greater,
                 }
-
-                // However, there is a special case that needs to be handled when both numbers are
-                // considered equal.
-                //
-                // To have a name for the following edge-case, let's call these "higher-level
-                // segments". Higher-level segments are string segments that aren't separated with
-                // a delimiter. E.g. on `1.10test11` the string `10test11` would be a
-                // higher-level segment that's returned as segments of:
-                //
-                // `['10', 'test', '11']`
-                //
-                // The rule is:
-                // Pure numeric higher-level segments are superior to mixed alphanumeric segments.
-                // -> `1.10` > `1.11a1`
-                // -> `1.10` > `1.11a1.2`
-                //                  ⤷ `11a1` is alphanumeric and smaller than pure numerics.
-                //
-                // The current higher-level segment is considered purely numeric if the current
-                // segment is numeric and the next segment is split via delimiter,
-                // which indicates that a new higher-level segment has started. A
-                // follow-up alphabetic segment in the same higher-level
-                // segment wouldn't have a delimiter.
-                //
-                // If there's no further segment, we reached the end of the version string, also
-                // indicating a purely numeric string.
-                let other_is_pure_numeric = other_segments
-                    .peek()
-                    .map(|seg| seg.delimiters > 0)
-                    .unwrap_or(true);
-                let self_is_pure_numeric = self_segments
-                    .peek()
-                    .map(|seg| seg.delimiters > 0)
-                    .unwrap_or(true);
-
-                // One is purely numeric, the other isn't. We can return early.
-                if self_is_pure_numeric && !other_is_pure_numeric {
-                    return Ordering::Greater;
-                } else if !self_is_pure_numeric && other_is_pure_numeric {
-                    return Ordering::Less;
-                }
-
-                // Now we know that both are either numeric or alphanumeric and can take a look at
-                // the next segment.
-                continue;
             }
-            // At this point, we know that the segments are alphabetic.
+
+            // At this point, we know that both segments are alphabetic.
             // We do a simple string comparison to determine the newer version.
             // If the strings are equal, we check the next segments.
-            match self_segment.str_cmp(&other_segment) {
+            match self_text.cmp(other_text) {
                 Ordering::Less => return Ordering::Less,
                 Ordering::Equal => continue,
                 Ordering::Greater => return Ordering::Greater,
@@ -1291,6 +1332,7 @@ impl FromStr for VersionRequirement {
 #[cfg(test)]
 mod tests {
     use rstest::rstest;
+    use which::which;
 
     use super::*;
 
@@ -1616,6 +1658,7 @@ mod tests {
     // Major.Minor vs Major.Minor.Patch
     #[case(Version::from_str("1.0"), Version::from_str("1.0."), Ordering::Less)]
     // Major.Minor.Patch
+    #[case(Version::from_str("1.0."), Version::from_str("1.0.0"), Ordering::Less)]
     #[case(Version::from_str("1.0.."), Version::from_str("1.0."), Ordering::Equal)]
     #[case(
         Version::from_str("1.0.alpha.0"),
@@ -1650,6 +1693,17 @@ mod tests {
         );
 
         assert_eq!(Version::vercmp(&version_a, &version_b), vercmp_result);
+
+        // If we find the `vercmp` binary, also run the test against the actual binary.
+        if which("vercmp").is_ok() {
+            let output = std::process::Command::new("vercmp")
+                .arg(version_a.to_string())
+                .arg(version_b.to_string())
+                .output()
+                .unwrap();
+            let result = String::from_utf8_lossy(&output.stdout);
+            assert_eq!(result.trim(), vercmp_result.to_string());
+        }
 
         // Now check that the opposite holds true as well.
         let reverse_vercmp_result = match &expected {
@@ -1787,28 +1841,59 @@ mod tests {
     }
 
     #[rstest]
-    #[case("1.0.0", vec![("1", 0), ("0", 1), ("0", 1)])]
-    #[case("1..0", vec![("1", 0), ("0", 2)])]
-    #[case("1.0.", vec![("1", 0), ("0", 1), ("", 1)])]
-    #[case("1..", vec![("1", 0), ("", 2)])]
-    #[case("1.🗻lol.0", vec![("1", 0), ("lol", 2), ("0", 1)])]
-    #[case("1.🗻lol.", vec![("1", 0), ("lol", 2), ("", 1)])]
-    #[case("20220202", vec![("20220202", 0)])]
-    #[case("some_string", vec![("some", 0), ("string", 1)])]
-    #[case("alpha7654numeric321", vec![("alpha", 0), ("7654", 0), ("numeric", 0), ("321", 0)])]
+    #[case("1.0.0", vec![
+        VersionSegment::Segment{ text:"1", delimiter_count: 0},
+        VersionSegment::Segment{ text:"0", delimiter_count: 1},
+        VersionSegment::Segment{ text:"0", delimiter_count: 1},
+    ])]
+    #[case("1..0", vec![
+        VersionSegment::Segment{ text:"1", delimiter_count: 0},
+        VersionSegment::Segment{ text:"0", delimiter_count: 2},
+    ])]
+    #[case("1.0.", vec![
+        VersionSegment::Segment{ text:"1", delimiter_count: 0},
+        VersionSegment::Segment{ text:"0", delimiter_count: 1},
+        VersionSegment::Segment{ text:"", delimiter_count: 1},
+    ])]
+    #[case("1..", vec![
+        VersionSegment::Segment{ text:"1", delimiter_count: 0},
+        VersionSegment::Segment{ text:"", delimiter_count: 2},
+    ])]
+    #[case("1...", vec![
+        VersionSegment::Segment{ text:"1", delimiter_count: 0},
+        VersionSegment::Segment{ text:"", delimiter_count: 3},
+    ])]
+    #[case("1.🗻lol.0", vec![
+        VersionSegment::Segment{ text:"1", delimiter_count: 0},
+        VersionSegment::Segment{ text:"lol", delimiter_count: 2},
+        VersionSegment::Segment{ text:"0", delimiter_count: 1},
+    ])]
+    #[case("1.🗻lol.", vec![
+        VersionSegment::Segment{ text:"1", delimiter_count: 0},
+        VersionSegment::Segment{ text:"lol", delimiter_count: 2},
+        VersionSegment::Segment{ text:"", delimiter_count: 1},
+    ])]
+    #[case("20220202", vec![
+        VersionSegment::Segment{ text:"20220202", delimiter_count: 0},
+    ])]
+    #[case("some_string", vec![
+        VersionSegment::Segment{ text:"some", delimiter_count: 0},
+        VersionSegment::Segment{ text:"string", delimiter_count: 1}
+    ])]
+    #[case("alpha7654numeric321", vec![
+        VersionSegment::Segment{ text:"alpha", delimiter_count: 0},
+        VersionSegment::SubSegment{ text:"7654"},
+        VersionSegment::SubSegment{ text:"numeric"},
+        VersionSegment::SubSegment{ text:"321"},
+    ])]
     fn version_segment_iterator(
         #[case] version: &str,
-        #[case] expected_segments: Vec<(&'static str, usize)>,
+        #[case] expected_segments: Vec<VersionSegment>,
     ) {
         let version = PackageVersion(version.to_string());
         // Convert the simplified definition above into actual VersionSegment instances.
-        let expected = expected_segments
-            .into_iter()
-            .map(|(segment, delimiters)| VersionSegment::new(segment, delimiters))
-            .collect::<Vec<VersionSegment>>();
-
         let mut segments_iter = version.segments();
-        let mut expected_iter = expected.clone().into_iter();
+        let mut expected_iter = expected_segments.clone().into_iter();
 
         // Iterate over both iterators.
         // We do it manually to ensure that they both end at the same time.
@@ -1819,7 +1904,7 @@ mod tests {
                 expected_iter.next(),
                 "Failed for segment {next_segment:?} in version string {version}:\nsegments: {:?}\n expected: {:?}",
                 version.segments().collect::<Vec<VersionSegment>>(),
-                expected,
+                expected_segments,
             );
             if next_segment.is_none() {
                 break;
