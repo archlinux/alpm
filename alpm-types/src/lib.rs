@@ -91,6 +91,8 @@ pub use version::{
     Version,
     VersionComparison,
     VersionRequirement,
+    VersionSegment,
+    VersionSegments,
 };
 
 /// Public re-exports for use with [`SchemaVersion`].

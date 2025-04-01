@@ -13,6 +13,9 @@ version = "0.5.0"
 
 [features]
 winnow-debug = ["winnow/debug"]
+# Enable tests that ensure that alpm is compatible to existing Arch Linux tooling.
+# This requires certain Arch Linux related binaries to be installed on the system.
+compatibility_tests = []
 
 [dependencies]
 blake2 = "0.10.6"
