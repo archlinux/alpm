@@ -1,6 +1,7 @@
 ---
 source: alpm-srcinfo/tests/correct.rs
-expression: json
+description: all_overrides merged representation.
+expression: package_json
 ---
 [
   {
@@ -10,7 +11,7 @@ expression: json
     "licenses": [
       "Apache-2.0"
     ],
-    "architecture": "X86_64",
+    "architecture": "x86_64",
     "changelog": "overridden.stub",
     "install": "overridden.stub",
     "groups": [

@@ -34,11 +34,11 @@ expression: source_info_json
     "epoch": 1,
     "pgp_fingerprints": [],
     "architectures": [
-      "Aarch64",
-      "X86_64"
+      "aarch64",
+      "x86_64"
     ],
     "architecture_properties": {
-      "Aarch64": {
+      "aarch64": {
         "dependencies": [],
         "optional_dependencies": [],
         "provides": [],
@@ -56,7 +56,7 @@ expression: source_info_json
         "sha384_checksums": [],
         "sha512_checksums": []
       },
-      "X86_64": {
+      "x86_64": {
         "dependencies": [
           {
             "name": "arch_default_dep",
@@ -196,7 +196,7 @@ expression: source_info_json
       },
       "architectures": null,
       "architecture_properties": {
-        "X86_64": {
+        "x86_64": {
           "dependencies": {
             "override": "Yes",
             "value": [

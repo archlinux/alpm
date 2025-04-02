@@ -62,7 +62,7 @@ cat > "$SRCINFO_OUTPUT.expected" <<EOF
     "description": "A project that does something",
     "url": "https://example.org/",
     "licenses": [],
-    "architecture": "X86_64",
+    "architecture": "x86_64",
     "changelog": null,
     "install": null,
     "groups": [],

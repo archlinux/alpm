@@ -1,5 +1,6 @@
 ---
 source: alpm-srcinfo/tests/correct.rs
+description: all_cleared merged representation.
 expression: package_json
 ---
 [
@@ -8,7 +9,7 @@ expression: package_json
     "description": null,
     "url": null,
     "licenses": [],
-    "architecture": "X86_64",
+    "architecture": "x86_64",
     "changelog": null,
     "install": null,
     "groups": [],

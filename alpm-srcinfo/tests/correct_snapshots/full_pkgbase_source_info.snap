@@ -46,11 +46,11 @@ expression: source_info_json
       }
     ],
     "architectures": [
-      "Aarch64",
-      "X86_64"
+      "aarch64",
+      "x86_64"
     ],
     "architecture_properties": {
-      "Aarch64": {
+      "aarch64": {
         "dependencies": [
           {
             "name": "unexpected",
@@ -137,7 +137,7 @@ expression: source_info_json
           }
         ]
       },
-      "X86_64": {
+      "x86_64": {
         "dependencies": [
           {
             "name": "arch_default_dep",

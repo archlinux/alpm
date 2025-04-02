@@ -1,6 +1,7 @@
 ---
 source: alpm-srcinfo/tests/correct.rs
-expression: json
+description: full_pkgbase merged representation.
+expression: package_json
 ---
 [
   {
@@ -11,7 +12,7 @@ expression: json
       "MIT",
       "Apache-2.0"
     ],
-    "architecture": "X86_64",
+    "architecture": "x86_64",
     "changelog": "changelog.stub",
     "install": "install.sh.stub",
     "groups": [

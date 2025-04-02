@@ -47,6 +47,7 @@ use strum::{Display, EnumString};
 )]
 #[non_exhaustive]
 #[strum(serialize_all = "lowercase")]
+#[serde(rename_all = "lowercase")]
 pub enum Architecture {
     /// ARMv8 64-bit
     Aarch64,
