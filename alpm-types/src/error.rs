@@ -105,6 +105,10 @@ pub enum Error {
     /// An invalid shared object name (v1)
     #[error("Invalid shared object name (v1): {0}")]
     InvalidSonameV1(&'static str),
+
+    /// An invalid makepkg option
+    #[error("Invalid makepkg option: {0}")]
+    InvalidMakepkgOption(String),
 }
 
 impl From<std::num::ParseIntError> for crate::error::Error {

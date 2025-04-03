@@ -8,10 +8,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{Architecture, Name, Version, error::Error};
 
-/// An option string
-///
-/// The option string is identified by its name and whether it is on (not prefixed with "!") or off
-/// (prefixed with "!").
+/// A makepkg option
 ///
 /// This type is used in the context of `makepkg` options, build environment options
 /// ([`BuildEnvironmentOption`]), and package options ([`PackageOption`]).
@@ -23,20 +20,54 @@ use crate::{Architecture, Name, Version, error::Error};
 /// # fn main() -> Result<(), alpm_types::Error> {
 /// use alpm_types::MakepkgOption;
 ///
-/// let option = MakepkgOption::new("foo")?;
+/// let option = MakepkgOption::new("strip")?;
 /// assert_eq!(option.on(), true);
-/// assert_eq!(option.name(), "foo");
+/// assert_eq!(option.name(), "strip");
 ///
-/// let not_option = MakepkgOption::new("!foo")?;
+/// let not_option = MakepkgOption::new("!zipman")?;
 /// assert_eq!(not_option.on(), false);
-/// assert_eq!(not_option.name(), "foo");
+/// assert_eq!(not_option.name(), "zipman");
+///
+/// let invalid_option = MakepkgOption::new("!foo");
+/// assert!(invalid_option.is_err());
 /// # Ok(())
 /// # }
 /// ```
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-pub struct MakepkgOption {
-    name: String,
-    on: bool,
+#[serde(rename_all = "lowercase")]
+pub enum MakepkgOption {
+    // BUILD ENVIRONMENT
+    /// Use the Distributed C/C++/ObjC compiler
+    Distcc(bool),
+    /// Colorize output messages
+    Color(bool),
+    /// Use ccache to cache compilation
+    Ccache(bool),
+    /// Run the check() function if present in the PKGBUILD
+    Check(bool),
+    /// Generate PGP signature file
+    Sign(bool),
+    // OPTIONS
+    /// Strip symbols from binaries/libraries
+    Strip(bool),
+    /// Save doc directories specified by DOC_DIRS
+    Docs(bool),
+    /// Leave libtool (.la) files in packages
+    Libtool(bool),
+    /// Leave static library (.a) files in packages
+    StaticLibs(bool),
+    /// Leave empty directories in packages
+    EmptyDirs(bool),
+    /// Compress manual (man and info) pages in MAN_DIRS with gzip
+    Zipman(bool),
+    /// Remove files specified by PURGE_TARGETS
+    Purge(bool),
+    /// Add debugging flags as specified in DEBUG_* variables
+    Debug(bool),
+    /// Add compile flags for building with link time optimization
+    Lto(bool),
+    /// Automatically add depends/provides
+    AutoDeps(bool),
 }
 
 impl MakepkgOption {
@@ -47,12 +78,44 @@ impl MakepkgOption {
 
     /// Get the name of the MakepkgOption
     pub fn name(&self) -> &str {
-        &self.name
+        match self {
+            MakepkgOption::Distcc(_) => "distcc",
+            MakepkgOption::Color(_) => "color",
+            MakepkgOption::Ccache(_) => "ccache",
+            MakepkgOption::Check(_) => "check",
+            MakepkgOption::Sign(_) => "sign",
+            MakepkgOption::Strip(_) => "strip",
+            MakepkgOption::Docs(_) => "docs",
+            MakepkgOption::Libtool(_) => "libtool",
+            MakepkgOption::StaticLibs(_) => "staticlibs",
+            MakepkgOption::EmptyDirs(_) => "emptydirs",
+            MakepkgOption::Zipman(_) => "zipman",
+            MakepkgOption::Purge(_) => "purge",
+            MakepkgOption::Debug(_) => "debug",
+            MakepkgOption::Lto(_) => "lto",
+            MakepkgOption::AutoDeps(_) => "autodeps",
+        }
     }
 
     /// Get whether the MakepkgOption is on
     pub fn on(&self) -> bool {
-        self.on
+        match self {
+            MakepkgOption::Distcc(on)
+            | MakepkgOption::Color(on)
+            | MakepkgOption::Ccache(on)
+            | MakepkgOption::Check(on)
+            | MakepkgOption::Sign(on)
+            | MakepkgOption::Strip(on)
+            | MakepkgOption::Docs(on)
+            | MakepkgOption::Libtool(on)
+            | MakepkgOption::StaticLibs(on)
+            | MakepkgOption::EmptyDirs(on)
+            | MakepkgOption::Zipman(on)
+            | MakepkgOption::Purge(on)
+            | MakepkgOption::Debug(on)
+            | MakepkgOption::Lto(on)
+            | MakepkgOption::AutoDeps(on) => *on,
+        }
     }
 }
 
@@ -71,13 +134,30 @@ impl FromStr for MakepkgOption {
         {
             return Err(Error::ValueContainsInvalidChars { invalid_char: c });
         }
-        Ok(MakepkgOption { name, on })
+        match name.as_str() {
+            "distcc" => Ok(MakepkgOption::Distcc(on)),
+            "color" => Ok(MakepkgOption::Color(on)),
+            "ccache" => Ok(MakepkgOption::Ccache(on)),
+            "check" => Ok(MakepkgOption::Check(on)),
+            "sign" => Ok(MakepkgOption::Sign(on)),
+            "strip" => Ok(MakepkgOption::Strip(on)),
+            "docs" => Ok(MakepkgOption::Docs(on)),
+            "libtool" => Ok(MakepkgOption::Libtool(on)),
+            "staticlibs" => Ok(MakepkgOption::StaticLibs(on)),
+            "emptydirs" => Ok(MakepkgOption::EmptyDirs(on)),
+            "zipman" => Ok(MakepkgOption::Zipman(on)),
+            "purge" => Ok(MakepkgOption::Purge(on)),
+            "debug" => Ok(MakepkgOption::Debug(on)),
+            "lto" => Ok(MakepkgOption::Lto(on)),
+            "autodeps" => Ok(MakepkgOption::AutoDeps(on)),
+            _ => Err(Error::InvalidMakepkgOption(name)),
+        }
     }
 }
 
 impl Display for MakepkgOption {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
-        write!(fmt, "{}{}", if self.on { "" } else { "!" }, self.name)
+        write!(fmt, "{}{}", if self.on() { "" } else { "!" }, self.name())
     }
 }
 
@@ -91,13 +171,13 @@ impl Display for MakepkgOption {
 /// # fn main() -> Result<(), alpm_types::Error> {
 /// use alpm_types::BuildEnvironmentOption;
 ///
-/// let option = BuildEnvironmentOption::new("foo")?;
+/// let option = BuildEnvironmentOption::new("distcc")?;
 /// assert_eq!(option.on(), true);
-/// assert_eq!(option.name(), "foo");
+/// assert_eq!(option.name(), "distcc");
 ///
-/// let not_option = BuildEnvironmentOption::new("!foo")?;
+/// let not_option = BuildEnvironmentOption::new("!ccache")?;
 /// assert_eq!(not_option.on(), false);
-/// assert_eq!(not_option.name(), "foo");
+/// assert_eq!(not_option.name(), "ccache");
 /// # Ok(())
 /// # }
 /// ```
@@ -113,13 +193,13 @@ pub type BuildEnvironmentOption = MakepkgOption;
 /// # fn main() -> Result<(), alpm_types::Error> {
 /// use alpm_types::PackageOption;
 ///
-/// let option = PackageOption::new("foo")?;
+/// let option = PackageOption::new("debug")?;
 /// assert_eq!(option.on(), true);
-/// assert_eq!(option.name(), "foo");
+/// assert_eq!(option.name(), "debug");
 ///
-/// let not_option = PackageOption::new("!foo")?;
+/// let not_option = PackageOption::new("!lto")?;
 /// assert_eq!(not_option.on(), false);
-/// assert_eq!(not_option.name(), "foo");
+/// assert_eq!(not_option.name(), "lto");
 /// # Ok(())
 /// # }
 /// ```
@@ -209,13 +289,12 @@ mod tests {
     use super::*;
 
     #[rstest]
-    #[case("something", Ok(MakepkgOption{name: "something".to_string(), on: true}))]
-    #[case("1cool.build-option", Ok(MakepkgOption{name: "1cool.build-option".to_string(), on: true}))]
-    #[case("üñıçøĐë", Ok(MakepkgOption{name: "üñıçøĐë".to_string(), on: true}))]
-    #[case("!üñıçøĐë", Ok(MakepkgOption{name: "üñıçøĐë".to_string(), on: false}))]
-    #[case("!something", Ok(MakepkgOption{name: "something".to_string(), on: false}))]
-    #[case("!!something", Err(Error::ValueContainsInvalidChars { invalid_char: '!'}))]
-    #[case("foo\\", Err(Error::ValueContainsInvalidChars { invalid_char: '\\'}))]
+    #[case("strip", Ok(MakepkgOption::Strip(true)))]
+    #[case("docs", Ok(MakepkgOption::Docs(true)))]
+    #[case("!libtool", Ok(MakepkgOption::Libtool(false)))]
+    #[case("staticlibs", Ok(MakepkgOption::StaticLibs(true)))]
+    #[case("distcc", Ok(MakepkgOption::Distcc(true)))]
+    #[case("!invalid", Err(Error::InvalidMakepkgOption("invalid".to_string())))]
     fn makepkgoption(#[case] s: &str, #[case] result: Result<MakepkgOption, Error>) {
         assert_eq!(MakepkgOption::from_str(s), result);
     }
