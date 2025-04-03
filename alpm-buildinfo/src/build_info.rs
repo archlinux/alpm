@@ -60,8 +60,8 @@ impl MetadataFile<BuildInfoSchema> for BuildInfo {
     /// startdir = /startdir/
     /// buildtool = devtools
     /// buildtoolver = 1:1.2.1-1-any
-    /// buildenv = envfoo
-    /// options = some_option
+    /// buildenv = ccache
+    /// options = lto
     /// installed = bar-1.2.3-1-any
     /// "#;
     ///     let file = tempfile::NamedTempFile::new()?;
@@ -132,8 +132,8 @@ impl MetadataFile<BuildInfoSchema> for BuildInfo {
     /// startdir = /startdir/
     /// buildtool = devtools
     /// buildtoolver = 1:1.2.1-1-any
-    /// buildenv = envfoo
-    /// options = some_option
+    /// buildenv = ccache
+    /// options = lto
     /// installed = bar-1.2.3-1-any
     /// "#;
     ///     let buildinfo_file = tempfile::NamedTempFile::new()?;
@@ -205,8 +205,8 @@ impl MetadataFile<BuildInfoSchema> for BuildInfo {
     /// startdir = /startdir/
     /// buildtool = devtools
     /// buildtoolver = 1:1.2.1-1-any
-    /// buildenv = envfoo
-    /// options = some_option
+    /// buildenv = ccache
+    /// options = lto
     /// installed = bar-1.2.3-1-any
     /// "#;
     ///
@@ -227,8 +227,8 @@ impl MetadataFile<BuildInfoSchema> for BuildInfo {
     /// packager = Foobar McFooface <foobar@mcfooface.org>
     /// builddate = 1
     /// builddir = /build
-    /// buildenv = envfoo
-    /// options = some_option
+    /// buildenv = ccache
+    /// options = lto
     /// installed = bar-1.2.3-1-any
     /// "#;
     ///

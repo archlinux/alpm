@@ -25,10 +25,10 @@ pkgbuild_sha256sum = b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae
 packager = Foobar McFooface <foobar@mcfooface.org>
 builddate = 1
 builddir = /build
-buildenv = envfoo
-buildenv = envbar
-options = some_option
-options = !other_option
+buildenv = ccache
+buildenv = color
+options = lto
+options = !strip
 installed = bar-1.2.3-1-any
 installed = beh-2.2.3-4-any
 startdir = /startdir/
@@ -57,12 +57,12 @@ Create a BUILDINFO version 1 file using `alpm-buildinfo`:
 alpm-buildinfo create v2 \
     --builddate 1 \
     --builddir /build \
-    --buildenv env \
-    --buildenv '!otherenv' \
+    --buildenv ccache \
+    --buildenv '!color' \
     --installed 'bar-1:1.0.1-15-any' \
     --installed 'beh-2.3-1-any' \
-    --options something \
-    --options '!else' \
+    --options lto \
+    --options '!strip' \
     --packager 'Foobar McFooface <foobar@mcfooface.org>' \
     --pkgarch any \
     --pkgbase foo \
@@ -95,10 +95,10 @@ builddir = /build
 startdir = /startdir/
 buildtool = devtools
 buildtoolver = 1:1.2.1-1-any
-buildenv = env
-buildenv = !otherenv
-options = something
-options = !else
+buildenv = ccache
+buildenv = !color
+options = lto
+options = !strip
 installed = bar-1:1.0.1-15-any
 installed = beh-2.3-1-any
 EOF
@@ -113,9 +113,9 @@ All options for `alpm-buildinfo` can also be provided as environment variables. 
 ```bash
 BUILDINFO_BUILDDATE="1" \
 BUILDINFO_BUILDDIR="/build" \
-BUILDINFO_BUILDENV='env !otherenv' \
+BUILDINFO_BUILDENV='ccache !color' \
 BUILDINFO_INSTALLED="bar-1:1.0.1-15-any beh-2.3-1-any" \
-BUILDINFO_OPTIONS='something !else' \
+BUILDINFO_OPTIONS='lto !strip' \
 BUILDINFO_PACKAGER="Foobar McFooface <foobar@mcfooface.org>" \
 BUILDINFO_PKGARCH="any" \
 BUILDINFO_PKGBASE="foo" \
@@ -146,10 +146,10 @@ builddir = /build
 startdir = /startdir/
 buildtool = devtools
 buildtoolver = 1:1.2.1-1-any
-buildenv = env
-buildenv = !otherenv
-options = something
-options = !else
+buildenv = ccache
+buildenv = !color
+options = lto
+options = !strip
 installed = bar-1:1.0.1-15-any
 installed = beh-2.3-1-any
 EOF

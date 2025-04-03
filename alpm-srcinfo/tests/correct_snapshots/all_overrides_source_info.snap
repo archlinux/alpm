@@ -19,8 +19,7 @@ expression: source_info_json
     ],
     "options": [
       {
-        "name": "lto",
-        "on": false
+        "lto": false
       }
     ],
     "backups": [
@@ -183,8 +182,7 @@ expression: source_info_json
         "override": "Yes",
         "value": [
           {
-            "name": "emptydirs",
-            "on": true
+            "emptydirs": true
           }
         ]
       },

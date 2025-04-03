@@ -51,10 +51,10 @@ generate_buildinfo! {
     /// startdir = /startdir/
     /// buildtool = devtools
     /// buildtoolver = 1:1.2.1-1-any
-    /// buildenv = envfoo
-    /// buildenv = envbar
-    /// options = some_option
-    /// options = !other_option
+    /// buildenv = ccache
+    /// buildenv = color
+    /// options = lto
+    /// options = !strip
     /// installed = bar-1.2.3-1-any
     /// installed = beh-2.2.3-4-any
     /// "#;
@@ -216,13 +216,13 @@ builddir = /build
 startdir = /startdir/
 buildtool = devtools
 buildtoolver = 1:1.2.1-1-any
-buildenv = envfoo
-buildenv = envbar
+buildenv = ccache
+buildenv = color
 format = 2
 installed = bar-1.2.3-1-any
 installed = beh-2.2.3-4-any
-options = some_option
-options = !other_option
+options = lto
+options = !strip
 packager = Foobar McFooface <foobar@mcfooface.org>
 pkgarch = any
 pkgbase = foo
@@ -238,10 +238,10 @@ builddir = /build
 startdir = /startdir/
 buildtool = devtools
 buildtoolver = 1:1.2.1-1-any
-buildenv = envfoo
+buildenv = ccache
 format = 2
 installed = bar-1.2.3-1-any
-options = some_option
+options = lto
 packager = Foobar McFooface <foobar@mcfooface.org>
 pkgarch = any
 pkgbase = foo
@@ -266,10 +266,10 @@ pkgver = 1:1.0.0-1
             StartDirectory::from_str("/startdir/")?,
             BuildTool::from_str("devtools")?,
             BuildToolVersion::from_str("1:1.2.1-1-any")?,
-            vec![BuildEnvironmentOption::new("some")?],
+            vec![BuildEnvironmentOption::new("check")?],
             SchemaVersion::from_str("2")?,
             vec![InstalledPackage::from_str("bar-1:1.0.0-2-any")?],
-            vec![PackageOption::new("buildoption")?],
+            vec![PackageOption::new("lto")?],
             Packager::from_str("Foobar McFooface <foobar@mcfooface.org>")?,
             Architecture::Any,
             Name::new("foo")?,
@@ -289,10 +289,10 @@ pkgver = 1:1.0.0-1
                 StartDirectory::from_str("/startdir/")?,
                 BuildTool::from_str("devtools")?,
                 BuildToolVersion::from_str("1:1.2.1-1-any")?,
-                vec![BuildEnvironmentOption::new("some")?],
+                vec![BuildEnvironmentOption::new("check")?],
                 SchemaVersion::from_str("1")?,
                 vec![InstalledPackage::from_str("bar-1:1.0.0-2-any")?],
-                vec![PackageOption::new("buildoption")?],
+                vec![PackageOption::new("lto")?],
                 Packager::from_str("Foobar McFooface <foobar@mcfooface.org>")?,
                 Architecture::Any,
                 Name::new("foo")?,

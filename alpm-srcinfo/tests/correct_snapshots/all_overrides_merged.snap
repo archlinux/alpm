@@ -19,8 +19,7 @@ expression: package_json
     ],
     "options": [
       {
-        "name": "emptydirs",
-        "on": true
+        "emptydirs": true
       }
     ],
     "backups": [

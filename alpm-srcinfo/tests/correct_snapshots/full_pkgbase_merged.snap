@@ -21,12 +21,10 @@ expression: package_json
     ],
     "options": [
       {
-        "name": "lto",
-        "on": false
+        "lto": false
       },
       {
-        "name": "emptydirs",
-        "on": true
+        "emptydirs": true
       }
     ],
     "backups": [

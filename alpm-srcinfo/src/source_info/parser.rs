@@ -12,7 +12,6 @@ use alpm_types::{
     Group,
     Install,
     License,
-    MakepkgOption,
     Name,
     OpenPGPIdentifier,
     OptionalDependency,
@@ -663,7 +662,7 @@ pub enum SharedMetaProperty {
     Changelog(RelativePath),
     Install(RelativePath),
     Group(String),
-    Option(MakepkgOption),
+    Option(PackageOption),
     Backup(RelativePath),
 }
 

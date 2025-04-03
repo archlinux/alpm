@@ -95,10 +95,10 @@ impl FileFormatSchema for BuildInfoSchema {
     /// startdir = /startdir
     /// buildtool = devtools
     /// buildtoolver = 1:1.2.1-1-any
-    /// buildenv = envfoo
+    /// buildenv = ccache
     /// format = 2
     /// installed = bar-1.2.3-1-any
-    /// options = some_option
+    /// options = lto
     /// packager = Foobar McFooface <foobar@mcfooface.org>
     /// pkgarch = any
     /// pkgbase = foo
@@ -114,10 +114,10 @@ impl FileFormatSchema for BuildInfoSchema {
     /// let buildinfo_v1 = r#"builddate = 1
     /// builddir = /build
     /// startdir = /startdir
-    /// buildenv = envfoo
+    /// buildenv = ccache
     /// format = 1
     /// installed = bar-1.2.3-1-any
-    /// options = some_option
+    /// options = lto
     /// packager = Foobar McFooface <foobar@mcfooface.org>
     /// pkgarch = any
     /// pkgbase = foo

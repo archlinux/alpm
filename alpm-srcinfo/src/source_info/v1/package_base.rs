@@ -5,11 +5,11 @@ use alpm_types::{
     Architecture,
     Epoch,
     License,
-    MakepkgOption,
     Name,
     OpenPGPIdentifier,
     OptionalDependency,
     PackageDescription,
+    PackageOption,
     PackageRelation,
     PackageRelease,
     PackageVersion,
@@ -57,7 +57,7 @@ pub struct PackageBase {
     // Build or package management related meta fields
     pub install: Option<RelativePath>,
     pub groups: Vec<String>,
-    pub options: Vec<MakepkgOption>,
+    pub options: Vec<PackageOption>,
     pub backups: Vec<RelativePath>,
 
     // These metadata fields are PackageBase specific

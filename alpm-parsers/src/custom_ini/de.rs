@@ -353,14 +353,13 @@ mod tests {
     const TEST_INPUT: &str = "
         builddate = 1
         builddir = /build
-        buildenv = envfoo
-        buildenv = envbar
+        buildenv = ccache
+        buildenv = color
         format = 1
         installed = bar-1.2.3-1-any
         installed = beh-2.2.3-4-any
-        options = some_option
-        options = !other_option
-        options = !other_optionaaaaa
+        options = lto
+        options = !strip
         packager = Foobar McFooface <foobar@mcfooface.org>
         pkgarch = any
         pkgbase = foo
@@ -372,14 +371,10 @@ mod tests {
         TestModel {
             builddate: 1,
             builddir: "/build".into(),
-            buildenv: vec!["envfoo".into(), "envbar".into()],
+            buildenv: vec!["ccache".into(), "color".into()],
             format: "1".into(),
             installed: vec!["bar-1.2.3-1-any".into(), "beh-2.2.3-4-any".into()],
-            options: vec![
-                "some_option".into(),
-                "!other_option".into(),
-                "!other_optionaaaaa".into(),
-            ],
+            options: vec!["lto".into(), "!strip".into()],
             packager: "Foobar McFooface <foobar@mcfooface.org>".into(),
             pkgarch: "any".into(),
             pkgbase: "foo".into(),

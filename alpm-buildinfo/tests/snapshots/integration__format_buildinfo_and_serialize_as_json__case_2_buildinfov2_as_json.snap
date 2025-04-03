@@ -1,7 +1,6 @@
 ---
 source: alpm-buildinfo/tests/integration.rs
 expression: build_info.to_string()
-snapshot_kind: text
 ---
 {
   "format": "2",
@@ -14,12 +13,12 @@ snapshot_kind: text
   "builddate": "1",
   "builddir": "/build",
   "buildenv": [
-    "envfoo",
-    "envbar"
+    "ccache",
+    "color"
   ],
   "options": [
-    "some_option",
-    "!other_option"
+    "lto",
+    "!strip"
   ],
   "installed": [
     "bar-1.2.3-1-any",
