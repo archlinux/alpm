@@ -4,7 +4,7 @@ pub mod cli;
 
 /// Package lookup.
 pub mod lookup;
-pub use lookup::find_provision;
+pub use lookup::{find_dependency, find_provision};
 
 /// Directory handling.
 pub mod dir;

@@ -16,6 +16,10 @@ rust-version.workspace = true
 name = "alpm-soname-find-provision"
 path = "src/bin/alpm-soname-find-provision.rs"
 
+[[bin]]
+name = "alpm-soname-find-dependency"
+path = "src/bin/alpm-soname-find-dependency.rs"
+
 [features]
 cli = ["dep:clap"]
 default = ["cli"]
