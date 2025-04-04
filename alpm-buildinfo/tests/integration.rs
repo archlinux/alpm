@@ -11,13 +11,13 @@ use testresult::TestResult;
 pub const VALID_BUILDINFO_V1_DATA: &str = r#"
 builddate = 1
 builddir = /build
-buildenv = envfoo
-buildenv = envbar
+buildenv = ccache
+buildenv = color
 format = 1
 installed = bar-1.2.3-1-any
 installed = beh-2.2.3-4-any
-options = some_option
-options = !other_option
+options = lto
+options = !strip
 packager = Foobar McFooface <foobar@mcfooface.org>
 pkgarch = any
 pkgbase = foo
@@ -32,13 +32,13 @@ builddir = /build
 startdir = /startdir/
 buildtool = devtools
 buildtoolver = 1:1.2.1-1-any
-buildenv = envfoo
-buildenv = envbar
+buildenv = ccache
+buildenv = color
 format = 2
 installed = bar-1.2.3-1-any
 installed = beh-2.2.3-4-any
-options = some_option
-options = !other_option
+options = lto
+options = !strip
 packager = Foobar McFooface <foobar@mcfooface.org>
 pkgarch = any
 pkgbase = foo
@@ -137,9 +137,9 @@ fn format_buildinfo_and_serialize_as_json(#[case] data: &str) -> TestResult {
         format: BuildInfoSchema::V1(SchemaVersion::new(Version::new(1, 0, 0))),
         builddate: Some("1".to_string()),
         builddir: Some("/build".to_string()),
-        buildenv: Some(vec!["foo".to_string(), "bar".to_string()]),
+        buildenv: Some(vec!["distcc".to_string(), "color".to_string()]),
         installed: Some(vec!["bar-1.2.3-1-any".to_string(), "beh-2.2.3-4-any".to_string()]),
-        options: Some(vec!["some_option".to_string(), "!other_option".to_string()]),
+        options: Some(vec!["lto".to_string(), "!strip".to_string()]),
         packager: Some("Foobar McFooface <foobar@mcfooface.org>".to_string()),
         pkgarch: Some("any".to_string()),
         pkgbase: Some("foo".to_string()),
@@ -175,9 +175,9 @@ fn format_buildinfo_and_serialize_as_json(#[case] data: &str) -> TestResult {
         format: BuildInfoSchema::V2(SchemaVersion::new(Version::new(2, 0, 0))),
         builddate: Some("1".to_string()),
         builddir: Some("/build".to_string()),
-        buildenv: Some(vec!["foo".to_string(), "bar".to_string()]),
+        buildenv: Some(vec!["distcc".to_string(), "color".to_string()]),
         installed: Some(vec!["bar-1.2.3-1-any".to_string(), "beh-2.2.3-4-any".to_string()]),
-        options: Some(vec!["some_option".to_string(), "!other_option".to_string()]),
+        options: Some(vec!["lto".to_string(), "!strip".to_string()]),
         packager: Some("Foobar McFooface <foobar@mcfooface.org>".to_string()),
         pkgarch: Some("any".to_string()),
         pkgbase: Some("foo".to_string()),
@@ -218,9 +218,9 @@ fn write_buildinfo_via_env(#[case] buildinfo_input: BuildInfoInput) -> TestResul
         format: BuildInfoSchema::V1(SchemaVersion::new(Version::new(1, 0, 0))),
         builddate: Some("1".to_string()),
         builddir: Some("/build".to_string()),
-        buildenv: Some(vec!["foo".to_string(), "bar".to_string()]),
+        buildenv: Some(vec!["distcc".to_string(), "color".to_string()]),
         installed: Some(vec!["bar-1.2.3-1-any".to_string(), "beh-2.2.3-4-any".to_string()]),
-        options: Some(vec!["some_option".to_string(), "!other_option".to_string()]),
+        options: Some(vec!["lto".to_string(), "!strip".to_string()]),
         packager: Some("Foobar McFooface <foobar@mcfooface.org>".to_string()),
         pkgarch: Some("any".to_string()),
         pkgbase: Some("foo".to_string()),
@@ -256,9 +256,9 @@ fn write_buildinfo_via_env(#[case] buildinfo_input: BuildInfoInput) -> TestResul
         format: BuildInfoSchema::V2(SchemaVersion::new(Version::new(2, 0, 0))),
         builddate: Some("1".to_string()),
         builddir: Some("/build".to_string()),
-        buildenv: Some(vec!["foo".to_string(), "bar".to_string()]),
+        buildenv: Some(vec!["distcc".to_string(), "color".to_string()]),
         installed: Some(vec!["bar-1.2.3-1-any".to_string(), "beh-2.2.3-4-any".to_string()]),
-        options: Some(vec!["some_option".to_string(), "!other_option".to_string()]),
+        options: Some(vec!["lto".to_string(), "!strip".to_string()]),
         packager: Some("Foobar McFooface <foobar@mcfooface.org>".to_string()),
         pkgarch: Some("any".to_string()),
         pkgbase: Some("foo".to_string()),

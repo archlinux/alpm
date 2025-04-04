@@ -19,8 +19,7 @@ expression: source_info_json
     ],
     "options": [
       {
-        "name": "lto",
-        "on": false
+        "lto": false
       }
     ],
     "backups": [
