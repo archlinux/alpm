@@ -22,7 +22,7 @@ default = ["cli"]
 winnow-debug = ["alpm-parsers/winnow-debug"]
 
 [dependencies]
-alpm-common = { workspace = true, version = "0.1.0" }
+alpm-common.workspace = true
 alpm-parsers.workspace = true
 alpm-types.workspace = true
 clap = { workspace = true, optional = true }
