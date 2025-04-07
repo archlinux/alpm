@@ -37,6 +37,7 @@
   - [alpm-comparison](./specifications/alpm-comparison.7.md)
   - [alpm-epoch](./specifications/alpm-epoch.7.md)
   - [alpm-files](./specifications/alpm-files.5.md)
+  - [alpm-local-desc](./specifications/alpm-local-desc.5.md)
   - [alpm-meta-package](./specifications/alpm-meta-package.7.md)
   - [alpm-package](./specifications/alpm-package.7.md)
   - [alpm-package-group](./specifications/alpm-package-group.7.md)
