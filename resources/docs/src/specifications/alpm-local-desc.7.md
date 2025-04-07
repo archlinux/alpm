@@ -1,0 +1,1 @@
+../../../../alpm-package/resources/specification/alpm-local-desc.7.md
