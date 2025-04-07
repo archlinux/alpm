@@ -25,6 +25,7 @@
   - [alpm-files](./specifications/alpm-files.5.md)
     - [alpm-repo-files](./specifications/alpm-repo-files.5.md)
     - [alpm-db-files](./specifications/alpm-db-files.5.md)
+  - [alpm-local-desc](./specifications/alpm-local-desc.5.md)
   - [ALPM-MTREE](./specifications/ALPM-MTREE.5.md)
     - [ALPM-MTREEv1](./specifications/ALPM-MTREEv1.5.md)
     - [ALPM-MTREEv2](./specifications/ALPM-MTREEv2.5.md)
