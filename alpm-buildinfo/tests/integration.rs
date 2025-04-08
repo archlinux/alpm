@@ -5,6 +5,7 @@ use alpm_types::{SchemaVersion, semver_version::Version};
 use assert_cmd::Command;
 use insta::assert_snapshot;
 use rstest::rstest;
+use strum::Display;
 use tempfile::tempdir;
 use testresult::TestResult;
 
@@ -47,7 +48,7 @@ pkgname = foo
 pkgver = 1:1.0.0-1
 "#;
 
-#[derive(Default)]
+#[derive(Clone, Debug, Default)]
 pub struct BuildInfoInput {
     pub format: BuildInfoSchema,
     pub builddate: Option<String>,
@@ -208,108 +209,41 @@ fn format_buildinfo_and_serialize_as_json(#[case] data: &str) -> TestResult {
         buildtoolver: Some("1:1.2.1-1-any".to_string()),
     },
 )]
-fn write_buildinfo_via_env(#[case] buildinfo_input: BuildInfoInput) -> TestResult {
-    test_write_buildinfo(buildinfo_input, true)
+fn write_buildinfo(#[case] buildinfo_input: BuildInfoInput) -> TestResult {
+    // Test the buildinfo write process via environment variables.
+    test_write_buildinfo(buildinfo_input.clone(), WriteMode::Environment)?;
+    // Test the buildinfo write process via argument flags.
+    test_write_buildinfo(buildinfo_input, WriteMode::Cli)
 }
 
-#[rstest]
-#[case::buildinfov1_all_fields(
-    BuildInfoInput {
-        format: BuildInfoSchema::V1(SchemaVersion::new(Version::new(1, 0, 0))),
-        builddate: Some("1".to_string()),
-        builddir: Some("/build".to_string()),
-        buildenv: Some(vec!["foo".to_string(), "bar".to_string()]),
-        installed: Some(vec!["bar-1.2.3-1-any".to_string(), "beh-2.2.3-4-any".to_string()]),
-        options: Some(vec!["some_option".to_string(), "!other_option".to_string()]),
-        packager: Some("Foobar McFooface <foobar@mcfooface.org>".to_string()),
-        pkgarch: Some("any".to_string()),
-        pkgbase: Some("foo".to_string()),
-        pkgbuild_sha256sum: Some("b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c".to_string()),
-        pkgname: Some("foo".to_string()),
-        pkgver: Some("1:1.0.0-1".to_string()),
-        startdir: None,
-        buildtool: None,
-        buildtoolver: None,
-    },
-)]
-#[case::buildinfov1_optional_fields(
-    BuildInfoInput {
-        format: BuildInfoSchema::V1(SchemaVersion::new(Version::new(1, 0, 0))),
-        builddate: Some("1".to_string()),
-        builddir: Some("/build".to_string()),
-        buildenv: None,
-        installed: None,
-        options: None,
-        packager: Some("Foobar McFooface <foobar@mcfooface.org>".to_string()),
-        pkgarch: Some("any".to_string()),
-        pkgbase: Some("foo".to_string()),
-        pkgbuild_sha256sum: Some("b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c".to_string()),
-        pkgname: Some("foo".to_string()),
-        pkgver: Some("1:1.0.0-1".to_string()),
-        startdir: None,
-        buildtool: None,
-        buildtoolver: None,
-    },
-)]
-#[case::buildinfov2_all_fields(
-    BuildInfoInput {
-        format: BuildInfoSchema::V2(SchemaVersion::new(Version::new(2, 0, 0))),
-        builddate: Some("1".to_string()),
-        builddir: Some("/build".to_string()),
-        buildenv: Some(vec!["foo".to_string(), "bar".to_string()]),
-        installed: Some(vec!["bar-1.2.3-1-any".to_string(), "beh-2.2.3-4-any".to_string()]),
-        options: Some(vec!["some_option".to_string(), "!other_option".to_string()]),
-        packager: Some("Foobar McFooface <foobar@mcfooface.org>".to_string()),
-        pkgarch: Some("any".to_string()),
-        pkgbase: Some("foo".to_string()),
-        pkgbuild_sha256sum: Some("b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c".to_string()),
-        pkgname: Some("foo".to_string()),
-        pkgver: Some("1:1.0.0-1".to_string()),
-        startdir: Some("/startdir/".to_string()),
-        buildtool: Some("devtools".to_string()),
-        buildtoolver: Some("1:1.2.1-1-any".to_string()),
-    },
-)]
-#[case::buildinfov2_optional_fields(
-    BuildInfoInput {
-        format: BuildInfoSchema::V2(SchemaVersion::new(Version::new(2, 0, 0))),
-        builddate: Some("1".to_string()),
-        builddir: Some("/build".to_string()),
-        buildenv: None,
-        installed: None,
-        options: None,
-        packager: Some("Foobar McFooface <foobar@mcfooface.org>".to_string()),
-        pkgarch: Some("any".to_string()),
-        pkgbase: Some("foo".to_string()),
-        pkgbuild_sha256sum: Some("b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c".to_string()),
-        pkgname: Some("foo".to_string()),
-        pkgver: Some("1:1.0.0-1".to_string()),
-        startdir: Some("/startdir/".to_string()),
-        buildtool: Some("devtools".to_string()),
-        buildtoolver: Some("1:1.2.1-1-any".to_string()),
-    },
-)]
-fn write_buildinfo_via_cli(#[case] buildinfo_input: BuildInfoInput) -> TestResult {
-    test_write_buildinfo(buildinfo_input, true)
+/// The mode to use when writing BuildInfo data to output.
+#[derive(Display)]
+enum WriteMode {
+    #[strum(serialize = "env")]
+    Environment,
+    #[strum(serialize = "cli")]
+    Cli,
 }
 
 /// Test writing a buildinfo file either via CLI or environment variables.
-fn test_write_buildinfo(buildinfo_input: BuildInfoInput, use_env: bool) -> TestResult {
+fn test_write_buildinfo(buildinfo_input: BuildInfoInput, write_mode: WriteMode) -> TestResult {
     let dir = tempdir()?;
-    let test_name = thread::current()
+    let mut test_name = thread::current()
         .name()
         .unwrap()
         .to_string()
         .replace("::", "__");
+    test_name.push_str(&format!("_via_{write_mode}"));
 
     let mut cmd = Command::cargo_bin("alpm-buildinfo")?;
     cmd.args(["create".to_string(), format!("v{}", buildinfo_input.format)])
         .current_dir(dir.path());
-    if use_env {
-        set_buildinfo_env(&mut cmd, &buildinfo_input);
-    } else {
-        set_buildinfo_args(&mut cmd, &buildinfo_input);
-    }
+
+    match write_mode {
+        WriteMode::Environment => set_buildinfo_env(&mut cmd, &buildinfo_input),
+        WriteMode::Cli => set_buildinfo_args(&mut cmd, &buildinfo_input),
+    };
+
     cmd.assert().success();
     let file = dir.path().join(".BUILDINFO");
     assert!(file.exists());
