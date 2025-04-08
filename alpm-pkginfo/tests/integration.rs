@@ -242,7 +242,7 @@ fn pkginfo_optional_fields(xdata: Option<Vec<String>>) -> PackageInfoInput {
     pkginfo_optional_fields(Some( vec!["pkgtype=pkg".to_string()]))
 )]
 fn write_pkginfo_via_cli(#[case] pkginfo_input: PackageInfoInput) -> TestResult {
-    test_write_pkginfo(pkginfo_input, false)
+    test_write_pkginfo(pkginfo_input, WriteMode::Cli)
 }
 
 #[rstest]
@@ -255,11 +255,17 @@ fn write_pkginfo_via_cli(#[case] pkginfo_input: PackageInfoInput) -> TestResult 
     pkginfo_optional_fields(Some( vec!["pkgtype=pkg".to_string()]))
 )]
 fn write_pkginfo_via_env(#[case] pkginfo_input: PackageInfoInput) -> TestResult {
-    test_write_pkginfo(pkginfo_input, true)
+    test_write_pkginfo(pkginfo_input, WriteMode::Environment)
+}
+
+/// The mode to use when writing PackageInfo data to output.
+enum WriteMode {
+    Environment,
+    Cli,
 }
 
 /// Test writing a pkginfo file either via CLI or environment variables.
-fn test_write_pkginfo(pkginfo_input: PackageInfoInput, use_env: bool) -> TestResult {
+fn test_write_pkginfo(pkginfo_input: PackageInfoInput, write_mode: WriteMode) -> TestResult {
     let test_name = thread::current()
         .name()
         .unwrap()
@@ -276,11 +282,12 @@ fn test_write_pkginfo(pkginfo_input: PackageInfoInput, use_env: bool) -> TestRes
         format!("v{}", if pkginfo_input.xdata.is_some() { 2 } else { 1 }),
     ])
     .current_dir(dir.path());
-    if use_env {
-        set_pkginfo_env(&mut cmd, &pkginfo_input);
-    } else {
-        set_pkginfo_args(&mut cmd, &pkginfo_input);
-    }
+
+    match write_mode {
+        WriteMode::Environment => set_pkginfo_env(&mut cmd, &pkginfo_input),
+        WriteMode::Cli => set_pkginfo_args(&mut cmd, &pkginfo_input),
+    };
+
     cmd.assert().success();
     let file = dir.path().join(".PKGINFO");
     assert!(file.exists());
