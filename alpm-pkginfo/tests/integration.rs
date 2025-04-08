@@ -118,23 +118,25 @@ fn validate_valid_pkginfov2() -> TestResult {
     Ok(())
 }
 
-/// Force a v2 validation on a v1 pkginfo
+/// Force a v2 validation on a v1 pkginfo.
+/// This is expected to fail due to missing xdata information.
 #[test]
-fn validate_pkginfov1_as_v2() -> TestResult {
+fn wrong_schema_pkginfov1_as_v2() -> TestResult {
     let mut cmd = Command::cargo_bin("alpm-pkginfo")?;
-    cmd.args(["validate"]);
+    cmd.args(["validate", "--schema", "2"]);
     cmd.write_stdin(VALID_PKGINFO_V1_DATA);
-    cmd.assert().success();
+    cmd.assert().failure();
     Ok(())
 }
 
 /// Force a v1 validation on a v2 pkginfo
+/// This is expected to fail due to unexpected xdata information.
 #[test]
 fn wrong_schema_pkginfov2_as_v1() -> TestResult {
     let mut cmd = Command::cargo_bin("alpm-pkginfo")?;
-    cmd.args(["validate"]);
+    cmd.args(["validate", "--schema", "1"]);
     cmd.write_stdin(VALID_PKGINFO_V2_DATA);
-    cmd.assert().success();
+    cmd.assert().failure();
     Ok(())
 }
 
