@@ -152,7 +152,6 @@ For a full list of individual contributors, refer to `git log --format="%an <%aE
 [git prepare-commit-msg]: https://man.archlinux.org/man/githooks.5#prepare-commit-msg
 [semantic versioning]: https://semver.org/
 [conventional commits]: https://www.conventionalcommits.org/en/v1.0.0/
-[`release-plz`]: https://github.com/MarcoIeni/release-plz
 [Apache-2.0]: ./LICENSES/Apache-2.0.txt
 [MIT]: ./LICENSES/MIT.txt
 [CC0-1.0]: ./LICENSES/CC0-1.0.txt
