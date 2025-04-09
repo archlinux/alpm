@@ -116,6 +116,7 @@ version = "0.1.0"
 dependencies = [
  "alpm-common",
  "alpm-types",
+ "assert_cmd",
  "clap",
  "colored",
  "insta",
