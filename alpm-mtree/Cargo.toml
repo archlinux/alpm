@@ -37,6 +37,7 @@ which = { optional = true, version = "7.0.3" }
 winnow.workspace = true
 
 [dev-dependencies]
+assert_cmd.workspace = true
 insta.workspace = true
 rstest.workspace = true
 simplelog = "0.12.2"

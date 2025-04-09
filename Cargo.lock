@@ -64,6 +64,7 @@ dependencies = [
  "alpm-common",
  "alpm-parsers",
  "alpm-types",
+ "assert_cmd",
  "clap",
  "flate2",
  "insta",
