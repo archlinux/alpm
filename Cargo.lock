@@ -125,6 +125,7 @@ dependencies = [
  "alpm-common",
  "alpm-parsers",
  "alpm-types",
+ "assert_cmd",
  "clap",
  "colored",
  "insta",
