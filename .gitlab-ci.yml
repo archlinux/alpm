@@ -111,6 +111,9 @@ test-coverage:
   script:
     - just test-coverage
   stage: test
+  # This is a regex that looks at the output from the `just test-coverage` command
+  # and extracts the coverage percent from it.
+  coverage: '/Test-coverage: ([0-9.]*)%/'
   artifacts:
     paths:
       - target/llvm-cov/html
