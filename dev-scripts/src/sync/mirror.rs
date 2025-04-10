@@ -57,33 +57,41 @@ impl MirrorDownloader {
                     "--recursive",
                     "--perms",
                     "--times",
+                    // Report changes status
+                    "--itemize-changes",
                     // Copy files instead of symlinks
                     // Symlinks may point to files up the tree of where we're looking at,
                     // which is why normal symlinks would be invalid.
                     "--copy-links",
-                    // Show total progress
-                    "--info=progress2",
                 ])
                 .arg(file_source)
                 .arg(&download_dest);
 
             trace!("Running command: {db_sync_command:?}");
-            let status = db_sync_command
-                .spawn()
-                .context(format!("Failed to run rsync for pacman db {name}"))?
-                .wait()
-                .context(format!("Failed to start rsync for pacman db {name}"))?;
+            let output = db_sync_command
+                .output()
+                .context(format!("Failed to run rsync for pacman db {name}"))?;
 
-            if !status.success() {
+            if !output.status.success() {
                 bail!("rsync failed for pacman db {name}");
             }
 
-            // Remove any old files.
+            let changes = std::str::from_utf8(&output.stdout)
+                .context(format!("couldn't format rsync output: {:?}", output.stdout))?;
+            trace!("Rsync reports: {changes}");
+
             let repo_target_dir = target_dir.join(&name);
             if repo_target_dir.exists() {
-                remove_dir_all(&repo_target_dir).context(format!(
-                    "Failed to remove old repository: {repo_target_dir:?}"
-                ))?;
+                // rsync doesn't output when there are no changes.
+                if changes.is_empty() || changes.starts_with(".") {
+                    debug!("Database {name} is unchanged upstream, skipping extraction");
+                    continue;
+                } else {
+                    // There are old versions of the files, remove them.
+                    remove_dir_all(&repo_target_dir).context(format!(
+                        "Failed to remove old repository: {repo_target_dir:?}"
+                    ))?;
+                }
             }
             create_dir_all(&repo_target_dir)?;
 
