@@ -1,11 +1,13 @@
+mod rsync_changes;
+
 use std::{
     collections::HashSet,
-    fs::{DirEntry, create_dir_all, remove_dir_all},
+    fs::{create_dir_all, remove_dir_all},
     path::{Path, PathBuf},
     process::Command,
 };
 
-use anyhow::{Context, Result, bail};
+use anyhow::{Context, Result, anyhow, bail};
 use log::{debug, info, trace};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
@@ -76,14 +78,18 @@ impl MirrorDownloader {
                 bail!("rsync failed for pacman db {name}");
             }
 
-            let changes = std::str::from_utf8(&output.stdout)
-                .context(format!("couldn't format rsync output: {:?}", output.stdout))?;
-            trace!("Rsync reports: {changes}");
+            trace!(
+                "Rsync reports: {}",
+                String::from_utf8_lossy(&output.stdout).trim()
+            );
 
             let repo_target_dir = target_dir.join(&name);
             if repo_target_dir.exists() {
-                // rsync doesn't output when there are no changes.
-                if changes.is_empty() || changes.starts_with(".") {
+                if rsync_changes::Report::parser(&output.stdout)
+                    .map_err(|e| anyhow!("{e}"))?
+                    .file_content_updated()?
+                    .is_none()
+                {
                     debug!("Database {name} is unchanged upstream, skipping extraction");
                     continue;
                 } else {
@@ -142,18 +148,14 @@ impl MirrorDownloader {
 
             let file_source = format!("rsync://{}/{repo_name}/os/x86_64/", self.mirror);
             let download_dest = download_dir.join(&repo_name);
-            self.download_packages(&repo_name, file_source, &download_dest)?;
+            let changed = self.download_packages(&repo_name, file_source, &download_dest)?;
 
-            // Go through all packages of this repo and extract the respective relevant files.
-            let packages = std::fs::read_dir(&download_dest)?
-                .collect::<Result<Vec<DirEntry>, std::io::Error>>()?;
-
-            // Filter out any dotfiles.
-            // Those might be temporary download artifacts from previous rsync runs.
-            let packages: Vec<DirEntry> = packages
+            let packages: Vec<PathBuf> = changed
                 .into_iter()
+                // Filter out any dotfiles.
+                // Those might be temporary download artifacts from previous rsync runs.
                 .filter(|entry| {
-                    if let Some(path) = entry.file_name().to_str() {
+                    if let Some(path) = entry.to_str() {
                         !path.starts_with('.')
                     } else {
                         false
@@ -161,12 +163,6 @@ impl MirrorDownloader {
                 })
                 .collect();
 
-            // TODO:
-            // The extraction work can be cut down on successive runs by using rsync's `--itemize`
-            // flag, which gives a list of changed packages.
-            // That way, we only extract packages that actually changed and don't do any duplicate
-            // work on old packages.
-            // See https://gitlab.archlinux.org/archlinux/alpm/alpm/-/issues/68
             info!("Extracting packages for repository {repo_name}");
             let progress_bar = get_progress_bar(packages.len() as u64);
             packages
@@ -218,7 +214,7 @@ impl MirrorDownloader {
         repo_name: &str,
         file_source: String,
         download_dest: &PathBuf,
-    ) -> Result<()> {
+    ) -> Result<Vec<PathBuf>> {
         let mut cmd = Command::new("rsync");
         cmd.args([
             "--recursive",
@@ -235,8 +231,8 @@ impl MirrorDownloader {
             // Only overwrite updated files in the very end.
             // This allows for a somewhat "atomic" update process.
             "--delay-updates",
-            // Show total progress
-            "--info=progress2",
+            // Print structured change information to be parsed
+            "--itemize-changes",
             // Exclude package signatures
             "--exclude=*.sig",
         ]);
@@ -256,23 +252,31 @@ impl MirrorDownloader {
         }
 
         trace!("Running command: {cmd:?}");
-        let status = cmd
+        let output = cmd
             .arg(file_source)
             .arg(download_dest)
-            .spawn()
-            .context(format!(
-                "Failed to start package rsync for pacman db {repo_name}"
-            ))?
-            .wait()
+            .output()
             .context(format!(
                 "Failed to start package rsync for pacman db {repo_name}"
             ))?;
 
-        if !status.success() {
+        if !output.status.success() {
             bail!("Package rsync failed for pacman db {repo_name}");
         }
 
-        Ok(())
+        let mut changed_files = Vec::new();
+
+        for line in output.stdout.split(|&b| b == b'\n') {
+            if let Some(path) = rsync_changes::Report::parser(line)
+                .map_err(|e| anyhow!("{e}"))?
+                .file_content_updated()?
+            {
+                trace!("File at {path:?} changed, marking for extraction");
+                changed_files.push(path.to_owned());
+            }
+        }
+
+        Ok(changed_files)
     }
 }
 
@@ -280,13 +284,13 @@ impl MirrorDownloader {
 ///
 /// This function provides data which is necessary to determine which subset of files should be
 /// extracted.
-fn get_tar_file_list(pkg: &DirEntry) -> Result<HashSet<String>> {
+fn get_tar_file_list(pkg: &Path) -> Result<HashSet<String>> {
     let mut tar_command = Command::new("tar");
-    tar_command.arg("-tf").arg(pkg.path());
+    tar_command.arg("-tf").arg(pkg);
     trace!("Running command: {tar_command:?}");
     let peek_output = tar_command
         .output()
-        .context(format!("Failed to peek into pkg {:?}", pkg.path()))?;
+        .context(format!("Failed to peek into pkg {pkg:?}"))?;
     ensure_success(&peek_output).context("Error while peeking into package")?;
 
     Ok(String::from_utf8_lossy(&peek_output.stdout)
@@ -305,8 +309,16 @@ fn get_tar_file_list(pkg: &DirEntry) -> Result<HashSet<String>> {
 ///
 /// Since some files are optional, we have to take a look at the files in that tarball to determine
 /// which of the files need to be actually extracted.
-fn extract_pkg_files(pkg: &DirEntry, target_dir: &Path, repo_name: &str) -> Result<()> {
-    let pkg_file_name = pkg.file_name().to_string_lossy().to_string();
+///
+/// # Panics
+///
+/// Panics if `pkg` points to a directory.
+fn extract_pkg_files(pkg: &Path, target_dir: &Path, repo_name: &str) -> Result<()> {
+    let pkg_file_name = pkg
+        .file_name()
+        .expect("got directory when expecting file")
+        .to_string_lossy()
+        .to_string();
     let pkg_name = remove_tarball_suffix(pkg_file_name)?;
 
     // Peek into the pkg tar to see what kind of files we need to extract.
@@ -320,7 +332,7 @@ fn extract_pkg_files(pkg: &DirEntry, target_dir: &Path, repo_name: &str) -> Resu
         "-C".to_string(),
         pkg_target_dir.to_string_lossy().to_string(),
         "-xf".to_string(),
-        pkg.path().to_string_lossy().to_string(),
+        pkg.to_string_lossy().to_string(),
     ];
 
     // Check for each of the known filetypes, whether it exists in the package.
@@ -338,7 +350,7 @@ fn extract_pkg_files(pkg: &DirEntry, target_dir: &Path, repo_name: &str) -> Resu
     trace!("Running command: {tar_command:?}");
     let output = tar_command
         .output()
-        .context(format!("Failed to extract files from pkg {:?}", pkg.path()))?;
+        .context(format!("Failed to extract files from pkg {pkg:?}"))?;
     ensure_success(&output).context("Error while downloading packages via rsync")?;
 
     Ok(())

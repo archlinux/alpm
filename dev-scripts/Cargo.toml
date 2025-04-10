@@ -34,7 +34,10 @@ reqwest = { version = "0.12", default-features = false, features = [
 ] }
 simplelog = { version = "0.12", default-features = false }
 strum.workspace = true
+winnow.workspace = true
 
 [dev-dependencies]
+proptest.workspace = true
 rstest.workspace = true
 tempfile.workspace = true
+testresult.workspace = true

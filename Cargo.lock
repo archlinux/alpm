@@ -599,12 +599,15 @@ dependencies = [
  "dirs",
  "indicatif",
  "log",
+ "proptest",
  "rayon",
  "reqwest",
  "rstest",
  "simplelog",
  "strum",
  "tempfile",
+ "testresult",
+ "winnow",
 ]
 
 [[package]]
