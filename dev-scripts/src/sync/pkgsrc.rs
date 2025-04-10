@@ -6,7 +6,7 @@ use std::{
 };
 
 use anyhow::{Context, Result};
-use log::{error, info};
+use log::{error, info, trace};
 use rayon::prelude::*;
 use strum::Display;
 
@@ -149,8 +149,10 @@ impl PkgSrcDownloader {
 /// This is especially necessary for users that have their SSH key on a physical device, such as a
 /// NitroKey, as authentications with such devices are sequential and take quite some time.
 pub fn warmup_ssh_session() -> Result<()> {
-    let output = &Command::new("ssh")
-        .args(vec!["-T", SSH_HOST])
+    let mut ssh_command = Command::new("ssh");
+    ssh_command.args(vec!["-T", SSH_HOST]);
+    trace!("running command: {ssh_command:?}");
+    let output = &ssh_command
         .output()
         .context("Failed to start ssh warmup command")?;
 
@@ -173,7 +175,7 @@ struct RepoUpdateError {
 /// Resets any local changes in case in each repository beforehand to prevent any conflicts.
 fn update_repo(repo: &str, target_dir: &Path) -> Result<(), RepoUpdateError> {
     // Reset any possible local changes.
-    let output = &Command::new("git")
+    let output = Command::new("git")
         .current_dir(target_dir)
         .args(vec!["reset", "--hard"])
         .output()
@@ -183,13 +185,13 @@ fn update_repo(repo: &str, target_dir: &Path) -> Result<(), RepoUpdateError> {
             inner: err.into(),
         })?;
 
-    ensure_success(output).map_err(|err| RepoUpdateError {
+    ensure_success(&output).map_err(|err| RepoUpdateError {
         repo: repo.to_string(),
         operation: RepoUpdateOperation::Update,
         inner: err,
     })?;
 
-    let output = Command::new("git")
+    let output = &Command::new("git")
         .current_dir(target_dir)
         .args(["pull", "--force"])
         .output()
@@ -199,7 +201,7 @@ fn update_repo(repo: &str, target_dir: &Path) -> Result<(), RepoUpdateError> {
             inner: err.into(),
         })?;
 
-    ensure_success(&output).map_err(|err| RepoUpdateError {
+    ensure_success(output).map_err(|err| RepoUpdateError {
         repo: repo.to_string(),
         operation: RepoUpdateOperation::Update,
         inner: err,

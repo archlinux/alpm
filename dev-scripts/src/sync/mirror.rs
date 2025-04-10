@@ -6,7 +6,7 @@ use std::{
 };
 
 use anyhow::{Context, Result, bail};
-use log::{debug, info};
+use log::{debug, info, trace};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 use super::{PackageRepositories, filenames_in_dir};
@@ -51,7 +51,8 @@ impl MirrorDownloader {
             let download_dest = download_dir.join(filename);
 
             // Download the db from the mirror
-            let status = Command::new("rsync")
+            let mut db_sync_command = Command::new("rsync");
+            db_sync_command
                 .args([
                     "--recursive",
                     "--perms",
@@ -64,7 +65,10 @@ impl MirrorDownloader {
                     "--info=progress2",
                 ])
                 .arg(file_source)
-                .arg(&download_dest)
+                .arg(&download_dest);
+
+            trace!("Running command: {db_sync_command:?}");
+            let status = db_sync_command
                 .spawn()
                 .context(format!("Failed to run rsync for pacman db {name}"))?
                 .wait()
@@ -86,12 +90,16 @@ impl MirrorDownloader {
             debug!("Extracting db to {repo_target_dir:?}");
 
             // Extract the db into the target folder.
-            let output = Command::new("tar")
+            let mut tar_command = Command::new("tar");
+            tar_command
                 .arg("-x")
                 .arg("-f")
                 .arg(&download_dest)
                 .arg("-C")
-                .arg(&repo_target_dir)
+                .arg(&repo_target_dir);
+
+            trace!("Running command: {tar_command:?}");
+            let output = tar_command
                 .output()
                 .context(format!("Failed to start tar to extract pacman dbs {name}"))?;
             ensure_success(&output)?;
@@ -239,6 +247,7 @@ impl MirrorDownloader {
             cmd.arg(format!("--exclude={repo_name}{variation}"));
         }
 
+        trace!("Running command: {cmd:?}");
         let status = cmd
             .arg(file_source)
             .arg(download_dest)
@@ -264,9 +273,10 @@ impl MirrorDownloader {
 /// This function provides data which is necessary to determine which subset of files should be
 /// extracted.
 fn get_tar_file_list(pkg: &DirEntry) -> Result<HashSet<String>> {
-    let peek_output = Command::new("tar")
-        .arg("-tf")
-        .arg(pkg.path())
+    let mut tar_command = Command::new("tar");
+    tar_command.arg("-tf").arg(pkg.path());
+    trace!("Running command: {tar_command:?}");
+    let peek_output = tar_command
         .output()
         .context(format!("Failed to peek into pkg {:?}", pkg.path()))?;
     ensure_success(&peek_output).context("Error while peeking into package")?;
@@ -314,8 +324,11 @@ fn extract_pkg_files(pkg: &DirEntry, target_dir: &Path, repo_name: &str) -> Resu
     }
 
     // Run the extraction command
-    let output = Command::new("tar")
-        .args(cmd_args)
+    let mut tar_command = Command::new("tar");
+    tar_command.args(cmd_args);
+
+    trace!("Running command: {tar_command:?}");
+    let output = tar_command
         .output()
         .context(format!("Failed to extract files from pkg {:?}", pkg.path()))?;
     ensure_success(&output).context("Error while downloading packages via rsync")?;
