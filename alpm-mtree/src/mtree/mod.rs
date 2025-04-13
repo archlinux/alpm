@@ -4,13 +4,14 @@ pub mod v2;
 use std::{
     fmt::{Display, Write},
     fs::File,
+    io::{BufReader, Read},
     path::{Path, PathBuf},
     str::FromStr,
 };
 
 use alpm_common::{FileFormatSchema, MetadataFile};
 
-use crate::{Error, MtreeSchema, parse_mtree_v2};
+use crate::{Error, MtreeSchema, mtree_buffer_to_string, parse_mtree_v2};
 
 /// A representation of the [ALPM-MTREE] file format.
 ///
@@ -94,7 +95,8 @@ impl MetadataFile<MtreeSchema> for Mtree {
     /// Creates a [`Mtree`] from a `reader`, optionally validated using a
     /// [`MtreeSchema`].
     ///
-    /// Reads the `reader` to string and defers to [`Mtree::from_str_with_schema`].
+    /// Reads the `reader` to string (and decompresses potentially gzip compressed data on-the-fly).
+    /// Then defers to [`Mtree::from_str_with_schema`].
     ///
     /// # Note
     ///
@@ -145,14 +147,15 @@ impl MetadataFile<MtreeSchema> for Mtree {
     /// - or `schema` is [`Some`] and the [`MtreeSchema`] does not match the contents of the
     ///   `reader`.
     fn from_reader_with_schema(
-        mut reader: impl std::io::Read,
+        reader: impl std::io::Read,
         schema: Option<MtreeSchema>,
     ) -> Result<Self, Error> {
-        let mut buf = String::new();
-        reader
-            .read_to_string(&mut buf)
+        let mut buffer = Vec::new();
+        let mut buf_reader = BufReader::new(reader);
+        buf_reader
+            .read_to_end(&mut buffer)
             .map_err(|source| Error::Io("reading ALPM-MTREE data", source))?;
-        Self::from_str_with_schema(&buf, schema)
+        Self::from_str_with_schema(&mtree_buffer_to_string(buffer)?, schema)
     }
 
     /// Creates a [`Mtree`] from string slice, optionally validated using a
