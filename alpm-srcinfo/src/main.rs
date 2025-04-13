@@ -2,7 +2,7 @@ use std::process::ExitCode;
 
 use alpm_srcinfo::{
     cli::{Cli, Command},
-    commands::{format_packages, validate},
+    commands::{create, format_packages, validate},
 };
 use clap::Parser;
 
@@ -20,6 +20,10 @@ fn main() -> ExitCode {
             output_format,
             pretty,
         } => format_packages(file.as_ref(), schema, output_format, architecture, pretty),
+        Command::Create {
+            pkgbuild_path,
+            output,
+        } => create(&pkgbuild_path, &output),
     };
 
     if let Err(error) = result {

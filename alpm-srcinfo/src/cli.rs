@@ -76,4 +76,16 @@ pub enum Command {
         #[arg(short, long)]
         pretty: bool,
     },
+    /// Create a SRCINFO file from a path containing a `PKGBUILD` file.
+    ///
+    /// Returns with a non-zero exit status as soon as any linting issue is encountered.
+    #[command()]
+    Create {
+        #[arg(value_name = "FILE", default_value = "PKGBUILD")]
+        pkgbuild_path: PathBuf,
+
+        /// Write the output to FILE instead of stdout
+        #[arg(short, long, value_name = "FILE")]
+        output: Option<PathBuf>,
+    },
 }

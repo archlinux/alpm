@@ -4,6 +4,7 @@ use std::{fmt::Display, path::PathBuf, string::FromUtf8Error};
 use colored::Colorize;
 use thiserror::Error;
 
+use crate::create::{pkgbuild::PkgbuildError, srcinfo::SrcinfoError};
 #[cfg(doc)]
 use crate::{SourceInfoV1, source_info::parser::SourceInfoContent};
 
@@ -68,6 +69,12 @@ pub enum Error {
     /// Unsupported schema version
     #[error("Unsupported schema version: {0}")]
     UnsupportedSchemaVersion(String),
+
+    #[error("{0:#}")]
+    PkgbuildError(#[from] PkgbuildError),
+
+    #[error("srcinfo error: {0:#}")]
+    SrcinfoError(#[from] SrcinfoError),
 }
 
 /// A helper struct to provide proper line based error/linting messages.
