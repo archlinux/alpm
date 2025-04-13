@@ -8,10 +8,7 @@ use alpm_common::MetadataFile;
 use alpm_types::Architecture;
 
 use crate::{
-    SourceInfo,
-    SourceInfoSchema,
-    cli::OutputFormat,
-    error::Error,
+    SourceInfo, SourceInfoSchema, cli::OutputFormat, create::pkgbuild::Pkgbuild, error::Error,
     source_info::v1::merged::MergedPackage,
 };
 
@@ -101,4 +98,33 @@ pub fn parse(
     } else {
         return Err(Error::NoInputFile);
     }
+}
+
+/// Create a SRCINFO file from a path or stdin containing a `PKGBUILD`.
+///
+/// # Errors
+///
+/// Returns an error if any linter warnings, deprecation warnings, unrecoverable logic
+/// or parsing errors are encountered while parsing the SRCINFO data.
+pub fn create(pkgbuild_path: &PathBuf, output: &Option<PathBuf>) -> Result<(), Error> {
+    // write the .SRCINFO file based on the current PKGBUILD
+    let pkgbuild = Pkgbuild::new(pkgbuild_path)?;
+
+    match output {
+        None => {
+            let mut stdout = io::stdout();
+            pkgbuild.write_srcinfo(&mut stdout)?;
+        }
+        Some(output) => {
+            let mut file = std::fs::OpenOptions::new()
+                .write(true)
+                .create(true)
+                .truncate(true)
+                .open(output)
+                .map_err(|source| Error::Io("writing SRCINFO data", source))?;
+            pkgbuild.write_srcinfo(&mut file)?;
+        }
+    }
+
+    Ok(())
 }

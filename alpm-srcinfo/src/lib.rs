@@ -4,6 +4,7 @@
 pub mod cli;
 #[cfg(feature = "cli")]
 pub mod commands;
+pub mod create;
 pub mod error;
 pub mod lints;
 pub mod relation;
