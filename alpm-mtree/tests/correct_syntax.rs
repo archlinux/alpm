@@ -1,3 +1,5 @@
+#![cfg(feature = "cli")]
+
 use std::{fs::read_to_string, path::PathBuf};
 
 use alpm_mtree::commands::parse;
