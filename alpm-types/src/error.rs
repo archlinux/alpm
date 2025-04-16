@@ -106,14 +106,6 @@ pub enum Error {
     #[error("Invalid shared object name (v1): {0}")]
     InvalidSonameV1(&'static str),
 
-    /// An invalid package option
-    #[error("Invalid package option: {0}")]
-    InvalidPackageOption(String),
-
-    /// An invalid build environment option
-    #[error("Invalid build environment option: {0}")]
-    InvalidBuildEnvironmentOption(String),
-
     /// A package data error.
     #[error("Package error: {0}")]
     Package(#[from] crate::PackageError),

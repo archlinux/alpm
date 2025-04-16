@@ -4,49 +4,76 @@ use std::{
     string::ToString,
 };
 
-use alpm_parsers::iter_char_context;
+use alpm_parsers::{iter_char_context, iter_str_context};
 use serde::{Deserialize, Serialize};
 use winnow::{
     ModalResult,
     Parser,
-    combinator::{Repeat, eof, opt, repeat},
-    error::{StrContext, StrContextValue},
+    combinator::{alt, cut_err, eof, opt, peek, repeat},
+    error::{StrContext, StrContextValue::*},
     token::one_of,
 };
 
 use crate::{Architecture, Name, Version, error::Error};
 
-/// Parser function for makepkg options.
+/// Recognizes the `!` boolean operator in option names.
 ///
-/// The parser will return a tuple containing the option name and a boolean indicating whether the
-/// option is "on" (`true`) or "off" (`false`).
+/// This parser **does not** fully consume its input.
+/// It also expects the package name to be there, if the `!` does not exist.
 ///
 /// # Format
 ///
-/// The parser expects a string that starts with an optional "!" character, followed by a sequence
-/// of ASCII alphanumeric characters, hyphens, dots, or underscores.
+/// The parser expects a `!` or either one of ASCII alphanumeric character, hyphen, dot, or
+/// underscore.
 ///
 /// # Errors
 ///
 /// If the input string does not match the expected format, an error will be returned.
-fn makepkg_option_parser(input: &mut &str) -> ModalResult<(String, bool)> {
-    let on = opt('!').parse_next(input)?.is_none();
+fn option_bool_parser(input: &mut &str) -> ModalResult<bool> {
     let alphanum = |c: char| c.is_ascii_alphanumeric();
+    let special_first_chars = ['-', '.', '_', '!'];
+    let valid_chars = one_of((alphanum, special_first_chars));
+
+    // Make sure that we have either a `!` at the start or the first char of a name.
+    cut_err(peek(valid_chars))
+        .context(StrContext::Expected(CharLiteral('!')))
+        .context(StrContext::Expected(Description(
+            "ASCII alphanumeric character",
+        )))
+        .context_with(iter_char_context!(special_first_chars))
+        .parse_next(input)?;
+
+    Ok(opt('!').parse_next(input)?.is_none())
+}
+
+/// Recognizes option names.
+///
+/// This parser fully consumes its input.
+///
+/// # Format
+///
+/// The parser expects a sequence of ASCII alphanumeric characters, hyphens, dots, or underscores.
+///
+/// # Errors
+///
+/// If the input string does not match the expected format, an error will be returned.
+fn option_name_parser<'s>(input: &mut &'s str) -> ModalResult<&'s str> {
+    let alphanum = |c: char| c.is_ascii_alphanumeric();
+
     let special_chars = ['-', '.', '_'];
     let valid_chars = one_of((alphanum, special_chars));
-    let option_name: Repeat<_, _, _, (), _> = repeat(0.., valid_chars);
-    let full_parser = (
-        option_name,
-        eof.context(StrContext::Label("character in makepkg option"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "ASCII alphanumeric character",
-            )))
-            .context_with(iter_char_context!(special_chars)),
-    );
-    full_parser
+    let name = repeat::<_, _, (), _, _>(0.., valid_chars)
         .take()
-        .map(|n: &str| (n.to_owned(), on))
-        .parse_next(input)
+        .parse_next(input)?;
+
+    eof.context(StrContext::Label("character in makepkg option"))
+        .context(StrContext::Expected(Description(
+            "ASCII alphanumeric character",
+        )))
+        .context_with(iter_char_context!(special_chars))
+        .parse_next(input)?;
+
+    Ok(name)
 }
 
 /// An option string used in a build environment
@@ -117,21 +144,47 @@ impl BuildEnvironmentOption {
             | Self::Sign(on) => *on,
         }
     }
-}
 
-impl FromStr for BuildEnvironmentOption {
-    type Err = Error;
-    /// Create an Option from a string
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let (name, on) = makepkg_option_parser.parse(s)?;
-        match name.as_str() {
+    /// Recognizes a [`BuildEnvironmentOption`] in a string slice.
+    ///
+    /// Consumes all of its input.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if `input` is not a valid build environment option.
+    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+        let on = option_bool_parser.parse_next(input)?;
+        let mut name = option_name_parser.parse_next(input)?;
+
+        let variants = ["ccache", "check", "color", "distcc", "sign"];
+        let name = alt(variants)
+            .context(StrContext::Label("makepkg build environment option"))
+            .context_with(iter_str_context!([variants]))
+            .parse_next(&mut name)?;
+
+        match name {
             "ccache" => Ok(Self::Ccache(on)),
             "check" => Ok(Self::Check(on)),
             "color" => Ok(Self::Color(on)),
             "distcc" => Ok(Self::Distcc(on)),
             "sign" => Ok(Self::Sign(on)),
-            _ => Err(Error::InvalidBuildEnvironmentOption(name)),
+            // Unreachable because the winnow parser returns an error above.
+            _ => unreachable!(),
         }
+    }
+}
+
+impl FromStr for BuildEnvironmentOption {
+    type Err = Error;
+    /// Creates a [`BuildEnvironmentOption`] from a string slice.
+    ///
+    /// Delegates to [`BuildEnvironmentOption::parser`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if [`BuildEnvironmentOption::parser`] fails.
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self::parser.parse(s)?)
     }
 }
 
@@ -240,14 +293,35 @@ impl PackageOption {
             | Self::Zipman(on) => *on,
         }
     }
-}
 
-impl FromStr for PackageOption {
-    type Err = Error;
-    /// Creates a [`PackageOption`] from string slice.
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let (name, on) = makepkg_option_parser.parse(s)?;
-        match name.as_str() {
+    /// Recognizes a [`PackageOption`] in a string slice.
+    ///
+    /// Consumes all of its input.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if `input` is not the valid string representation of a [`PackageOption`].
+    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+        let on = option_bool_parser.parse_next(input)?;
+        let mut name = option_name_parser.parse_next(input)?;
+        let variants = [
+            "autodeps",
+            "debug",
+            "docs",
+            "emptydirs",
+            "libtool",
+            "lto",
+            "purge",
+            "staticlibs",
+            "strip",
+            "zipman",
+        ];
+        let value = alt(variants)
+            .context(StrContext::Label("makepkg option"))
+            .context_with(iter_str_context!([variants]))
+            .parse_next(&mut name)?;
+
+        match value {
             "autodeps" => Ok(Self::AutoDeps(on)),
             "debug" => Ok(Self::Debug(on)),
             "docs" => Ok(Self::Docs(on)),
@@ -258,8 +332,23 @@ impl FromStr for PackageOption {
             "staticlibs" => Ok(Self::StaticLibs(on)),
             "strip" => Ok(Self::Strip(on)),
             "zipman" => Ok(Self::Zipman(on)),
-            _ => Err(Error::InvalidPackageOption(name)),
+            // Unreachable because the winnow parser returns an error above.
+            _ => unreachable!(),
         }
+    }
+}
+
+impl FromStr for PackageOption {
+    type Err = Error;
+    /// Creates a [`PackageOption`] from a string slice.
+    ///
+    /// Delegates to [`PackageOption::parser`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if [`PackageOption::parser`] fails.
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self::parser.parse(s)?)
     }
 }
 
@@ -353,41 +442,76 @@ mod tests {
     use super::*;
 
     #[rstest]
-    #[case("autodeps", Ok(PackageOption::AutoDeps(true)))]
-    #[case("debug", Ok(PackageOption::Debug(true)))]
-    #[case("docs", Ok(PackageOption::Docs(true)))]
-    #[case("emptydirs", Ok(PackageOption::EmptyDirs(true)))]
-    #[case("!libtool", Ok(PackageOption::Libtool(false)))]
-    #[case("lto", Ok(PackageOption::Lto(true)))]
-    #[case("purge", Ok(PackageOption::Purge(true)))]
-    #[case("staticlibs", Ok(PackageOption::StaticLibs(true)))]
-    #[case("strip", Ok(PackageOption::Strip(true)))]
-    #[case("zipman", Ok(PackageOption::Zipman(true)))]
-    #[case("!invalid", Err(Error::InvalidPackageOption("invalid".to_string())))]
-    fn package_option(#[case] s: &str, #[case] result: Result<PackageOption, Error>) {
-        assert_eq!(PackageOption::from_str(s), result);
+    #[case("autodeps", PackageOption::AutoDeps(true))]
+    #[case("debug", PackageOption::Debug(true))]
+    #[case("docs", PackageOption::Docs(true))]
+    #[case("emptydirs", PackageOption::EmptyDirs(true))]
+    #[case("!libtool", PackageOption::Libtool(false))]
+    #[case("lto", PackageOption::Lto(true))]
+    #[case("purge", PackageOption::Purge(true))]
+    #[case("staticlibs", PackageOption::StaticLibs(true))]
+    #[case("strip", PackageOption::Strip(true))]
+    #[case("zipman", PackageOption::Zipman(true))]
+    fn package_option(#[case] s: &str, #[case] expected: PackageOption) {
+        let result = PackageOption::from_str(s).expect("Parser should be successful");
+        assert_eq!(result, expected);
     }
 
     #[rstest]
-    #[case("ccache", Ok(BuildEnvironmentOption::Ccache(true)))]
-    #[case("check", Ok(BuildEnvironmentOption::Check(true)))]
-    #[case("color", Ok(BuildEnvironmentOption::Color(true)))]
-    #[case("distcc", Ok(BuildEnvironmentOption::Distcc(true)))]
-    #[case("sign", Ok(BuildEnvironmentOption::Sign(true)))]
-    #[case("!sign", Ok(BuildEnvironmentOption::Sign(false)))]
-    #[case("!invalid", Err(Error::InvalidBuildEnvironmentOption("invalid".to_string())))]
-    fn build_environment_option(
-        #[case] s: &str,
-        #[case] result: Result<BuildEnvironmentOption, Error>,
-    ) {
-        assert_eq!(BuildEnvironmentOption::from_str(s), result);
+    #[case(
+        "!somethingelse",
+        "expected `autodeps`, `debug`, `docs`, `emptydirs`, `libtool`, `lto`, `purge`, `staticlibs`, `strip`, `zipman`"
+    )]
+    #[case(
+        "#somethingelse",
+        "expected `!`, ASCII alphanumeric character, `-`, `.`, `_`"
+    )]
+    fn invalid_package_option(#[case] input: &str, #[case] err_snippet: &str) {
+        let Err(Error::ParseError(err_msg)) = PackageOption::from_str(input) else {
+            panic!("'{input}' erroneously parsed as VersionRequirement")
+        };
+        assert!(
+            err_msg.contains(err_snippet),
+            "Error:\n=====\n{err_msg}\n=====\nshould contain snippet:\n\n{err_snippet}"
+        );
+    }
+
+    #[rstest]
+    #[case("ccache", BuildEnvironmentOption::Ccache(true))]
+    #[case("check", BuildEnvironmentOption::Check(true))]
+    #[case("color", BuildEnvironmentOption::Color(true))]
+    #[case("distcc", BuildEnvironmentOption::Distcc(true))]
+    #[case("sign", BuildEnvironmentOption::Sign(true))]
+    #[case("!sign", BuildEnvironmentOption::Sign(false))]
+    fn build_environment_option(#[case] input: &str, #[case] expected: BuildEnvironmentOption) {
+        let result = BuildEnvironmentOption::from_str(input).expect("Parser should be successful");
+        assert_eq!(result, expected);
+    }
+
+    #[rstest]
+    #[case(
+        "!somethingelse",
+        "expected `ccache`, `check`, `color`, `distcc`, `sign`"
+    )]
+    #[case(
+        "#somethingelse",
+        "expected `!`, ASCII alphanumeric character, `-`, `.`, `_`"
+    )]
+    fn invalid_build_environment_option(#[case] input: &str, #[case] err_snippet: &str) {
+        let Err(Error::ParseError(err_msg)) = BuildEnvironmentOption::from_str(input) else {
+            panic!("'{input}' erroneously parsed as VersionRequirement")
+        };
+        assert!(
+            err_msg.contains(err_snippet),
+            "Error:\n=====\n{err_msg}\n=====\nshould contain snippet:\n\n{err_snippet}"
+        );
     }
 
     #[rstest]
     #[case("#test", "invalid character in makepkg option")]
     #[case("test!", "invalid character in makepkg option")]
     fn invalid_makepkg_option(#[case] input: &str, #[case] error_snippet: &str) {
-        let result = makepkg_option_parser.parse(input);
+        let result = option_name_parser.parse(input);
         assert!(result.is_err(), "Expected makepkg option parsing to fail");
         let err = result.unwrap_err();
         let pretty_error = err.to_string();
