@@ -19,6 +19,7 @@ expression: source_info_json
     ],
     "options": [
       {
+        "type": "package",
         "lto": false
       }
     ],
@@ -182,6 +183,7 @@ expression: source_info_json
         "override": "Yes",
         "value": [
           {
+            "type": "package",
             "emptydirs": true
           }
         ]
