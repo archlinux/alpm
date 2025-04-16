@@ -4,10 +4,10 @@ use std::collections::{BTreeMap, HashSet};
 use alpm_types::{
     Architecture,
     License,
+    MakepkgOption,
     Name,
     OptionalDependency,
     PackageDescription,
-    PackageOption,
     PackageRelation,
     RelationOrSoname,
     RelativePath,
@@ -137,7 +137,7 @@ pub struct Package {
     // Build or package management related meta fields
     pub install: Override<RelativePath>,
     pub groups: Override<Vec<String>>,
-    pub options: Override<Vec<PackageOption>>,
+    pub options: Override<Vec<MakepkgOption>>,
     pub backups: Override<Vec<RelativePath>>,
 
     /// These are all override fields that may be architecture specific.

@@ -13,11 +13,11 @@ use alpm_types::{
     Group,
     Install,
     License,
+    MakepkgOption,
     Name,
     OpenPGPIdentifier,
     OptionalDependency,
     PackageDescription,
-    PackageOption,
     PackageRelation,
     PackageRelease,
     PackageVersion,
@@ -676,7 +676,7 @@ pub enum SharedMetaProperty {
     Changelog(RelativePath),
     Install(RelativePath),
     Group(String),
-    Option(PackageOption),
+    Option(MakepkgOption),
     Backup(RelativePath),
 }
 
@@ -735,7 +735,7 @@ impl SharedMetaProperty {
             }
             SharedMetaKeyword::Options => cut_err(
                 till_line_end
-                    .try_map(PackageOption::from_str)
+                    .try_map(MakepkgOption::from_str)
                     .map(SharedMetaProperty::Option),
             )
             .parse_next(input)?,
