@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use winnow::{
     ModalResult,
     Parser,
-    combinator::{alt, cut_err, eof, opt, peek, repeat},
+    combinator::{alt, cut_err, eof, fail, opt, peek, repeat},
     error::{StrContext, StrContextValue::*},
     token::one_of,
 };
@@ -74,6 +74,62 @@ fn option_name_parser<'s>(input: &mut &'s str) -> ModalResult<&'s str> {
         .parse_next(input)?;
 
     Ok(name)
+}
+
+/// Wraps the [`PackageOption`] and [`BuildEnvironmentOption`] enums.
+///
+/// This is necessary for metadata files such as [SRCINFO] or [PKGBUILD] package scripts that don't
+/// differentiate between the different types and scopes of options.
+///
+/// [SRCINFO]: https://alpm.archlinux.page/specifications/SRCINFO.5.html
+/// [PKGBUILD]: https://man.archlinux.org/man/PKGBUILD.5
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum MakepkgOption {
+    /// A [`BuildEnvironmentOption`]
+    BuildEnvironment(BuildEnvironmentOption),
+    /// A [`PackageOption`]
+    Package(PackageOption),
+}
+
+impl MakepkgOption {
+    /// Recognizes any [`PackageOption`] and [`BuildEnvironmentOption`] in a
+    /// string slice.
+    ///
+    /// Consumes all of its input.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if `input` is neither of the listed options.
+    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+        alt((
+            BuildEnvironmentOption::parser.map(MakepkgOption::BuildEnvironment),
+            PackageOption::parser.map(MakepkgOption::Package),
+            fail.context(StrContext::Label("packaging or build environment option"))
+                .context_with(iter_str_context!([
+                    BuildEnvironmentOption::VARIANTS.to_vec(),
+                    PackageOption::VARIANTS.to_vec()
+                ])),
+        ))
+        .parse_next(input)
+    }
+}
+
+impl FromStr for MakepkgOption {
+    type Err = Error;
+    /// Creates a [`MakepkgOption`] from string slice.
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self::parser.parse(s)?)
+    }
+}
+
+impl Display for MakepkgOption {
+    fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
+        match self {
+            MakepkgOption::BuildEnvironment(option) => write!(fmt, "{option}"),
+            MakepkgOption::Package(option) => write!(fmt, "{option}"),
+        }
+    }
 }
 
 /// An option string used in a build environment
@@ -345,7 +401,7 @@ impl PackageOption {
         let mut name = option_name_parser.parse_next(input)?;
 
         let value = alt(PackageOption::VARIANTS)
-            .context(StrContext::Label("makepkg option"))
+            .context(StrContext::Label("makepkg packaging option"))
             .context_with(iter_str_context!([PackageOption::VARIANTS]))
             .parse_next(&mut name)?;
 
@@ -470,6 +526,44 @@ mod tests {
     use super::*;
 
     #[rstest]
+    #[case(
+        "!makeflags",
+        MakepkgOption::BuildEnvironment(BuildEnvironmentOption::MakeFlags(false))
+    )]
+    #[case("autodeps", MakepkgOption::Package(PackageOption::AutoDeps(true)))]
+    #[case(
+        "ccache",
+        MakepkgOption::BuildEnvironment(BuildEnvironmentOption::Ccache(true))
+    )]
+    fn makepkg_option(#[case] input: &str, #[case] expected: MakepkgOption) {
+        let result = MakepkgOption::from_str(input).expect("Parser should be successful");
+        assert_eq!(result, expected);
+    }
+
+    #[rstest]
+    #[case(
+        "!somethingelse",
+        concat!(
+            "expected `buildflags`, `ccache`, `check`, `color`, `distcc`, `makeflags`, `sign`, ",
+            "`autodeps`, `debug`, `docs`, `emptydirs`, `libtool`, `lto`, `debug`, `purge`, ",
+            "`staticlibs`, `strip`, `zipman`",
+        )
+    )]
+    #[case(
+        "#somethingelse",
+        "expected `!`, ASCII alphanumeric character, `-`, `.`, `_`"
+    )]
+    fn invalid_makepkg_option(#[case] input: &str, #[case] err_snippet: &str) {
+        let Err(Error::ParseError(err_msg)) = MakepkgOption::from_str(input) else {
+            panic!("'{input}' erroneously parsed as VersionRequirement")
+        };
+        assert!(
+            err_msg.contains(err_snippet),
+            "Error:\n=====\n{err_msg}\n=====\nshould contain snippet:\n\n{err_snippet}"
+        );
+    }
+
+    #[rstest]
     #[case("autodeps", PackageOption::AutoDeps(true))]
     #[case("debug", PackageOption::Debug(true))]
     #[case("docs", PackageOption::Docs(true))]
@@ -540,7 +634,7 @@ mod tests {
     #[rstest]
     #[case("#test", "invalid character in makepkg option")]
     #[case("test!", "invalid character in makepkg option")]
-    fn invalid_makepkg_option(#[case] input: &str, #[case] error_snippet: &str) {
+    fn invalid_option(#[case] input: &str, #[case] error_snippet: &str) {
         let result = option_name_parser.parse(input);
         assert!(result.is_err(), "Expected makepkg option parsing to fail");
         let err = result.unwrap_err();
