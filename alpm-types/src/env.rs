@@ -99,10 +99,10 @@ impl BuildEnvironmentOption {
     /// Get the name of the MakepkgOption
     pub fn name(&self) -> &str {
         match self {
-            Self::Distcc(_) => "distcc",
-            Self::Color(_) => "color",
             Self::Ccache(_) => "ccache",
             Self::Check(_) => "check",
+            Self::Color(_) => "color",
+            Self::Distcc(_) => "distcc",
             Self::Sign(_) => "sign",
         }
     }
@@ -110,10 +110,10 @@ impl BuildEnvironmentOption {
     /// Get whether the BuildEnvironmentOption is on
     pub fn on(&self) -> bool {
         match self {
-            Self::Distcc(on)
-            | Self::Color(on)
-            | Self::Ccache(on)
+            Self::Ccache(on)
             | Self::Check(on)
+            | Self::Color(on)
+            | Self::Distcc(on)
             | Self::Sign(on) => *on,
         }
     }
@@ -125,10 +125,10 @@ impl FromStr for BuildEnvironmentOption {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let (name, on) = makepkg_option_parser.parse(s)?;
         match name.as_str() {
-            "distcc" => Ok(Self::Distcc(on)),
-            "color" => Ok(Self::Color(on)),
             "ccache" => Ok(Self::Ccache(on)),
             "check" => Ok(Self::Check(on)),
+            "color" => Ok(Self::Color(on)),
+            "distcc" => Ok(Self::Distcc(on)),
             "sign" => Ok(Self::Sign(on)),
             _ => Err(Error::InvalidBuildEnvironmentOption(name)),
         }
@@ -212,32 +212,32 @@ impl PackageOption {
     /// Returns the name of the [`PackageOption`] as string slice.
     pub fn name(&self) -> &str {
         match self {
-            Self::Strip(_) => "strip",
-            Self::Docs(_) => "docs",
-            Self::Libtool(_) => "libtool",
-            Self::StaticLibs(_) => "staticlibs",
-            Self::EmptyDirs(_) => "emptydirs",
-            Self::Zipman(_) => "zipman",
-            Self::Purge(_) => "purge",
-            Self::Debug(_) => "debug",
-            Self::Lto(_) => "lto",
             Self::AutoDeps(_) => "autodeps",
+            Self::Debug(_) => "debug",
+            Self::Docs(_) => "docs",
+            Self::EmptyDirs(_) => "emptydirs",
+            Self::Libtool(_) => "libtool",
+            Self::Lto(_) => "lto",
+            Self::Purge(_) => "purge",
+            Self::StaticLibs(_) => "staticlibs",
+            Self::Strip(_) => "strip",
+            Self::Zipman(_) => "zipman",
         }
     }
 
     /// Returns whether the [`PackageOption`] is on or off.
     pub fn on(&self) -> bool {
         match self {
-            Self::Strip(on)
-            | Self::Docs(on)
-            | Self::Libtool(on)
-            | Self::StaticLibs(on)
-            | Self::EmptyDirs(on)
-            | Self::Zipman(on)
-            | Self::Purge(on)
+            Self::AutoDeps(on)
             | Self::Debug(on)
+            | Self::Docs(on)
+            | Self::EmptyDirs(on)
+            | Self::Libtool(on)
             | Self::Lto(on)
-            | Self::AutoDeps(on) => *on,
+            | Self::Purge(on)
+            | Self::StaticLibs(on)
+            | Self::Strip(on)
+            | Self::Zipman(on) => *on,
         }
     }
 }
@@ -248,16 +248,16 @@ impl FromStr for PackageOption {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let (name, on) = makepkg_option_parser.parse(s)?;
         match name.as_str() {
-            "strip" => Ok(Self::Strip(on)),
-            "docs" => Ok(Self::Docs(on)),
-            "libtool" => Ok(Self::Libtool(on)),
-            "staticlibs" => Ok(Self::StaticLibs(on)),
-            "emptydirs" => Ok(Self::EmptyDirs(on)),
-            "zipman" => Ok(Self::Zipman(on)),
-            "purge" => Ok(Self::Purge(on)),
-            "debug" => Ok(Self::Debug(on)),
-            "lto" => Ok(Self::Lto(on)),
             "autodeps" => Ok(Self::AutoDeps(on)),
+            "debug" => Ok(Self::Debug(on)),
+            "docs" => Ok(Self::Docs(on)),
+            "emptydirs" => Ok(Self::EmptyDirs(on)),
+            "libtool" => Ok(Self::Libtool(on)),
+            "lto" => Ok(Self::Lto(on)),
+            "purge" => Ok(Self::Purge(on)),
+            "staticlibs" => Ok(Self::StaticLibs(on)),
+            "strip" => Ok(Self::Strip(on)),
+            "zipman" => Ok(Self::Zipman(on)),
             _ => Err(Error::InvalidPackageOption(name)),
         }
     }
