@@ -76,6 +76,58 @@ fn option_name_parser<'s>(input: &mut &'s str) -> ModalResult<&'s str> {
     Ok(name)
 }
 
+/// This type wraps the [`PackageBuildOption`], [`PackageOption`] and [`BuildEnvironmentOption`]
+/// enums. This is necessary for metadata files such as SRCINFO or PKGBUILD that don't
+/// differentiate between the different types and scopes of options.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum AnyOption {
+    /// A [`BuildEnvironmentOption`]
+    BuildEnvironment(BuildEnvironmentOption),
+    /// A [`PackageBuildOption`]
+    PackageBuild(PackageBuildOption),
+    /// A [`PackageOption`]
+    Package(PackageOption),
+}
+
+impl AnyOption {
+    /// Recognizes any [`PackageBuildOption`], [`PackageOption`] and [`BuildEnvironmentOption`] in a
+    /// string slice.
+    ///
+    /// Consumes all of its input.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if `input` is neither of the listed options.
+    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+        alt((
+            BuildEnvironmentOption::parser.map(AnyOption::BuildEnvironment),
+            PackageBuildOption::parser.map(AnyOption::PackageBuild),
+            PackageOption::parser.map(AnyOption::Package),
+            fail.context(StrContext::Label("makepkg or package build option")),
+        ))
+        .parse_next(input)
+    }
+}
+
+impl FromStr for AnyOption {
+    type Err = Error;
+    /// Creates a [`PackageBuildOption`] from string slice.
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self::parser.parse(s)?)
+    }
+}
+
+impl Display for AnyOption {
+    fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
+        match self {
+            AnyOption::BuildEnvironment(option) => write!(fmt, "{option}"),
+            AnyOption::PackageBuild(option) => write!(fmt, "{option}"),
+            AnyOption::Package(option) => write!(fmt, "{option}"),
+        }
+    }
+}
+
 /// An option string used in packaging.
 ///
 /// See [the PKGBUILD manpage](https://man.archlinux.org/man/PKGBUILD.5.en) for more info on these options.
@@ -529,6 +581,37 @@ mod tests {
     use rstest::rstest;
 
     use super::*;
+
+    #[rstest]
+    #[case(
+        "!makeflags",
+        AnyOption::PackageBuild(PackageBuildOption::MakeFlags(false))
+    )]
+    #[case("autodeps", AnyOption::Package(PackageOption::AutoDeps(true)))]
+    #[case(
+        "ccache",
+        AnyOption::BuildEnvironment(BuildEnvironmentOption::Ccache(true))
+    )]
+    fn any_option(#[case] input: &str, #[case] expected: AnyOption) {
+        let result = AnyOption::from_str(input).expect("Parser should be successful");
+        assert_eq!(result, expected);
+    }
+
+    #[rstest]
+    #[case("!somethingelse", "invalid makepkg or package build option")]
+    #[case(
+        "#somethingelse",
+        "expected `!`, ASCII alphanumeric character, `-`, `.`, `_`"
+    )]
+    fn invalid_any_option(#[case] input: &str, #[case] err_snippet: &str) {
+        let Err(Error::ParseError(err_msg)) = AnyOption::from_str(input) else {
+            panic!("'{input}' erroneously parsed as VersionRequirement")
+        };
+        assert!(
+            err_msg.contains(err_snippet),
+            "Error:\n=====\n{err_msg}\n=====\nshould contain snippet:\n\n{err_snippet}"
+        );
+    }
 
     #[rstest]
     #[case("buildflags", PackageBuildOption::BuildFlags(true))]
