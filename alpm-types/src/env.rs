@@ -76,6 +76,97 @@ fn option_name_parser<'s>(input: &mut &'s str) -> ModalResult<&'s str> {
     Ok(name)
 }
 
+/// An option string used in packaging.
+///
+/// See [the PKGBUILD manpage](https://man.archlinux.org/man/PKGBUILD.5.en) for more info on these options.
+///
+/// ## Examples
+/// ```
+/// # fn main() -> Result<(), alpm_types::Error> {
+/// use alpm_types::PackageBuildOption;
+///
+/// let option = PackageBuildOption::new("!makeflags")?;
+/// assert_eq!(option.on(), false);
+/// assert_eq!(option.name(), "makeflags");
+/// # Ok(())
+/// # }
+/// ```
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum PackageBuildOption {
+    /// Allow or forbid the use some buildflags (CPPFLAGS, CFLAGS, CXXFLAGS, LDFLAGS) from
+    /// user-specific configs as specified in `makepkg.conf`.
+    BuildFlags(bool),
+
+    /// Completely allow or forbid the use of user-specific make configs as specified in
+    /// `makepkg.conf`.
+    MakeFlags(bool),
+}
+
+impl PackageBuildOption {
+    /// Creates a new [`PackageBuildOption`] from a string slice.
+    ///
+    /// # Errors
+    ///
+    /// An error is returned if the string slice does not match a valid package option.
+    pub fn new(option: &str) -> Result<Self, Error> {
+        Self::from_str(option)
+    }
+
+    /// Returns the name of the [`PackageBuildOption`] as string slice.
+    pub fn name(&self) -> &str {
+        match self {
+            Self::BuildFlags(_) => "buildflags",
+            Self::MakeFlags(_) => "makeflags",
+        }
+    }
+
+    /// Returns whether the [`PackageBuildOption`] is on or off.
+    pub fn on(&self) -> bool {
+        match self {
+            Self::BuildFlags(on) | Self::MakeFlags(on) => *on,
+        }
+    }
+
+    /// Recognizes a [`PackageBuildOption`] in a string slice.
+    ///
+    /// Consumes all of its input.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if `input` is not a valid package build option.
+    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+        let on = option_bool_parser.parse_next(input)?;
+        let mut name = option_name_parser.parse_next(input)?;
+        let variants = ("buildflags", "makeflags");
+        let value = alt(variants)
+            .context(StrContext::Label("package build option"))
+            .context(StrContext::Expected(StringLiteral(variants.0)))
+            .context(StrContext::Expected(StringLiteral(variants.1)))
+            .parse_next(&mut name)?;
+
+        match value {
+            "buildflags" => Ok(Self::BuildFlags(on)),
+            "makeflags" => Ok(Self::MakeFlags(on)),
+            _ => unreachable!(),
+        }
+    }
+}
+
+impl FromStr for PackageBuildOption {
+    type Err = Error;
+    /// Creates a [`PackageBuildOption`] from string slice.
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self::parser.parse(s)?)
+    }
+}
+
+impl Display for PackageBuildOption {
+    fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
+        write!(fmt, "{}{}", if self.on() { "" } else { "!" }, self.name())
+    }
+}
+
 /// An option string used in a build environment
 ///
 /// The option string is identified by its name and whether it is on (not prefixed with "!") or off
@@ -438,6 +529,30 @@ mod tests {
     use rstest::rstest;
 
     use super::*;
+
+    #[rstest]
+    #[case("buildflags", PackageBuildOption::BuildFlags(true))]
+    #[case("!makeflags", PackageBuildOption::MakeFlags(false))]
+    fn package_build_option(#[case] input: &str, #[case] expected: PackageBuildOption) {
+        let result = PackageBuildOption::from_str(input).expect("Parser should be successful");
+        assert_eq!(result, expected);
+    }
+
+    #[rstest]
+    #[case("!somethingelse", "expected `buildflags`, `makeflags`")]
+    #[case(
+        "#somethingelse",
+        "expected `!`, ASCII alphanumeric character, `-`, `.`, `_`"
+    )]
+    fn invalid_package_build_option(#[case] input: &str, #[case] err_snippet: &str) {
+        let Err(Error::ParseError(err_msg)) = PackageBuildOption::from_str(input) else {
+            panic!("'{input}' erroneously parsed as VersionRequirement")
+        };
+        assert!(
+            err_msg.contains(err_snippet),
+            "Error:\n=====\n{err_msg}\n=====\nshould contain snippet:\n\n{err_snippet}"
+        );
+    }
 
     #[rstest]
     #[case("autodeps", PackageOption::AutoDeps(true))]
