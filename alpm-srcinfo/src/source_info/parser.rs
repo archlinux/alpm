@@ -5,6 +5,7 @@
 use std::str::FromStr;
 
 use alpm_types::{
+    AnyOption,
     Architecture,
     Backup,
     Changelog,
@@ -16,7 +17,6 @@ use alpm_types::{
     OpenPGPIdentifier,
     OptionalDependency,
     PackageDescription,
-    PackageOption,
     PackageRelation,
     PackageRelease,
     PackageVersion,
@@ -662,7 +662,7 @@ pub enum SharedMetaProperty {
     Changelog(RelativePath),
     Install(RelativePath),
     Group(String),
-    Option(PackageOption),
+    Option(AnyOption),
     Backup(RelativePath),
 }
 
@@ -721,7 +721,7 @@ impl SharedMetaProperty {
             }
             SharedMetaKeyword::Options => cut_err(
                 till_line_end
-                    .try_map(PackageOption::from_str)
+                    .try_map(AnyOption::from_str)
                     .map(SharedMetaProperty::Option),
             )
             .parse_next(input)?,

@@ -2,6 +2,7 @@
 use std::collections::{BTreeMap, HashSet};
 
 use alpm_types::{
+    AnyOption,
     Architecture,
     Epoch,
     License,
@@ -9,7 +10,6 @@ use alpm_types::{
     OpenPGPIdentifier,
     OptionalDependency,
     PackageDescription,
-    PackageOption,
     PackageRelation,
     PackageRelease,
     PackageVersion,
@@ -57,7 +57,7 @@ pub struct PackageBase {
     // Build or package management related meta fields
     pub install: Option<RelativePath>,
     pub groups: Vec<String>,
-    pub options: Vec<PackageOption>,
+    pub options: Vec<AnyOption>,
     pub backups: Vec<RelativePath>,
 
     // These metadata fields are PackageBase specific

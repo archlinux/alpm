@@ -20,9 +20,11 @@ expression: source_info_json
     ],
     "options": [
       {
+        "type": "package",
         "lto": false
       },
       {
+        "type": "package",
         "emptydirs": true
       }
     ],

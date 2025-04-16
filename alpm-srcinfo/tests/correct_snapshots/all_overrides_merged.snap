@@ -19,6 +19,7 @@ expression: package_json
     ],
     "options": [
       {
+        "type": "package",
         "emptydirs": true
       }
     ],
