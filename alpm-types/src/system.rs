@@ -45,7 +45,6 @@ use strum::{Display, EnumString};
     PartialOrd,
     Serialize,
 )]
-#[non_exhaustive]
 #[strum(serialize_all = "lowercase")]
 #[serde(rename_all = "lowercase")]
 pub enum Architecture {
@@ -117,7 +116,6 @@ pub enum Architecture {
 #[derive(
     Clone, Copy, Debug, Deserialize, Display, EnumString, Eq, Ord, PartialEq, PartialOrd, Serialize,
 )]
-#[non_exhaustive]
 #[strum(serialize_all = "lowercase")]
 pub enum ElfArchitectureFormat {
     /// 32-bit

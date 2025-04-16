@@ -23,7 +23,6 @@ use crate::{Error, Name};
 /// assert_eq!("split", format!("{}", PackageType::Split));
 /// ```
 #[derive(Copy, Clone, Debug, Display, EnumString, Eq, PartialEq, Serialize)]
-#[non_exhaustive]
 pub enum PackageType {
     /// a debug package
     #[strum(to_string = "debug")]
