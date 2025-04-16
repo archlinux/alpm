@@ -24,22 +24,6 @@ pub fn validate(file: Option<&PathBuf>, schema: Option<SourceInfoSchema>) -> Res
     Ok(())
 }
 
-/// Checks a SRCINFO file from a path or stdin strictly.
-///
-/// THIS FUNCTION DOES CURRENTLY NOT WORK!
-/// Due to a refactoring, this function is temporarily under construction.
-/// Please refrain from using it or fallback to the previous version.
-///
-/// # Errors
-///
-/// Returns an error if any linter warnings, deprecation warnings, unrecoverable logic
-/// or parsing errors are encountered while parsing the SRCINFO data.
-pub fn check(file: Option<&PathBuf>, schema: Option<SourceInfoSchema>) -> Result<(), Error> {
-    let _result = parse(file, schema)?;
-
-    Ok(())
-}
-
 /// Parses a SRCINFO file from a path or stdin and outputs it in the specified format on stdout.
 ///
 /// # Errors

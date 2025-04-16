@@ -76,21 +76,4 @@ pub enum Command {
         #[arg(short, long)]
         pretty: bool,
     },
-    /// Read a SRCINFO file from a path or `stdin` and perform linter checks on it.
-    ///
-    /// This ensures that the SRCINFO file is both **valid** and adheres to currently known best
-    /// practices.
-    ///
-    /// Returns with a non-zero exit status as soon as any linting issue is encountered.
-    #[command()]
-    Check {
-        #[arg(value_name = "FILE")]
-        file: Option<PathBuf>,
-
-        /// Provide the SRCINFO schema version to use.
-        ///
-        /// If no schema version is provided, it will be deduced from the file itself.
-        #[arg(short, long, value_name = "VERSION")]
-        schema: Option<SourceInfoSchema>,
-    },
 }
