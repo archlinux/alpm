@@ -1,0 +1,6 @@
+---
+source: alpm-types/tests/integration.rs
+description: "PackageFileName from example-package, 1.0.0, x86_64 and Some(Zstd)"
+expression: "format!(\"{error}\")"
+---
+Package error: The version "1.0.0" is not valid for an alpm-package file name

@@ -1,0 +1,10 @@
+---
+source: alpm-types/tests/integration.rs
+description: examplepkg1.0.01x86_64.pkg.tar.zst
+expression: "format!(\"{error}\")"
+---
+examplepkg1.0.01x86_64.pkg.tar.zst
+^
+invalid alpm-package file name
+expected a package name, followed by an alpm-package-version (full or full with epoch) and an architecture.
+All components must be delimited with a dash ('-').

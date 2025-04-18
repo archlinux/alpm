@@ -1,0 +1,6 @@
+---
+source: alpm-types/tests/integration.rs
+description: "\"./\""
+expression: "format!(\"{error}\")"
+---
+Package error: The path "./" is not a valid alpm-package file name

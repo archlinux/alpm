@@ -1,0 +1,9 @@
+---
+source: alpm-types/tests/integration.rs
+description: example-1.0.0-1-x86_64.zst
+expression: "format!(\"{error}\")"
+---
+example-1.0.0-1-x86_64.zst
+                       ^
+invalid alpm-package file type identifier
+expected `pkg`

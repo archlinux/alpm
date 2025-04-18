@@ -1,0 +1,8 @@
+---
+source: alpm-types/tests/integration.rs
+description: example-1.0.0-1-x86_64.pkg.tar.foo
+expression: "format!(\"{error}\")"
+---
+example-1.0.0-1-x86_64.pkg.tar.foo
+                              ^
+expected end of package filename

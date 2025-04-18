@@ -1,0 +1,8 @@
+---
+source: alpm-types/tests/integration.rs
+description: example-pkg---x86_64.pkg.tar.zst
+expression: "format!(\"{error}\")"
+---
+example-pkg---x86_64.pkg.tar.zst
+            ^
+expected pkgver string
