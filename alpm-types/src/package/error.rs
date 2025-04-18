@@ -1,7 +1,9 @@
 //! Errors related to package sources, contents and files.
 
+use std::path::PathBuf;
+
 #[cfg(doc)]
-use crate::MetadataFileName;
+use crate::{MetadataFileName, PackageFileName};
 
 /// The error that can occur when handling types related to package data.
 #[derive(Debug, thiserror::Error, PartialEq)]
@@ -18,5 +20,12 @@ pub enum Error {
     InvalidMetadataFilename {
         /// The invalid file name.
         name: String,
+    },
+
+    /// A path is not a valid [`PackageFileName`].
+    #[error("The path {path} is not a valid alpm-package filename")]
+    InvalidPackageFileNamePath {
+        /// The file path that is not valid.
+        path: PathBuf,
     },
 }

@@ -1,0 +1,6 @@
+---
+source: alpm-types/tests/integration.rs
+description: "example-1:1.0.0-1-x86_64.pkg.tar.zst"
+expression: "format!(\"{value}\")"
+---
+example-1:1.0.0-1-x86_64.pkg.tar.zst
