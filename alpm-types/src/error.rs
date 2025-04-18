@@ -109,6 +109,13 @@ pub enum Error {
     /// A package data error.
     #[error("Package error: {0}")]
     Package(#[from] crate::PackageError),
+
+    /// A string represents an unknown compression algorithm file extension.
+    #[error("Unknown compression algorithm file extension: {value:?}")]
+    UnknownCompressionAlgorithmFileExtension {
+        /// A String representing an unknown compression algorithm file extension.
+        value: String,
+    },
 }
 
 impl From<std::num::ParseIntError> for crate::error::Error {

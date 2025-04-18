@@ -31,6 +31,9 @@ pub mod digests {
     pub use sha2::{Sha224, Sha256, Sha384, Sha512};
 }
 
+mod compression;
+pub use compression::CompressionAlgorithmFileExtension;
+
 mod date;
 pub use date::{BuildDate, FromOffsetDateTime};
 
