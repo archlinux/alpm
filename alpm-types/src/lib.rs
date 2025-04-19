@@ -61,6 +61,7 @@ pub use path::{
     Changelog,
     Install,
     RelativePath,
+    SonameLookupDirectory,
     StartDirectory,
 };
 
