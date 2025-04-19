@@ -5,8 +5,15 @@ use std::{
 };
 
 use serde::{Deserialize, Serialize};
+use winnow::{
+    ModalResult,
+    Parser,
+    combinator::{alt, cut_err, eof, peek, repeat_till},
+    error::{StrContext, StrContextValue},
+    token::{any, rest},
+};
 
-use crate::Error;
+use crate::{Error, SharedLibraryPrefix};
 
 /// A representation of an absolute path
 ///
@@ -246,6 +253,100 @@ pub type Install = RelativePath;
 /// # }
 pub type Changelog = RelativePath;
 
+/// A lookup directory for shared object files.
+///
+/// Follows the [alpm-sonamev2] format, which encodes a `prefix` and a `directory`.
+/// The same `prefix` is later used to identify the location of a **soname**, see
+/// [`alpm_types::SonameV2`].
+//
+/// [alpm-sonamev2]: <https://alpm.archlinux.page/specifications/alpm-sonamev2.7.html>
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SonameLookupDirectory {
+    /// The lookup prefix for shared objects.
+    pub prefix: SharedLibraryPrefix,
+    /// The directory to look for shared objects in.
+    pub directory: AbsolutePath,
+}
+
+impl SonameLookupDirectory {
+    /// Creates a new lookup directory with a prefix and a directory.
+    pub fn new(prefix: SharedLibraryPrefix, directory: AbsolutePath) -> Self {
+        Self { prefix, directory }
+    }
+
+    /// Parses a [`SonameLookupDirectory`] from a string slice.
+    ///
+    /// Consumes all of its input.
+    ///
+    /// See [`SonameLookupDirectory::from_str`] for more details.
+    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+        // Parse until the first `:`, which separates the prefix from the directory.
+        let prefix = cut_err(
+            repeat_till(1.., any, peek(alt((":", eof))))
+                .try_map(|(name, _): (String, &str)| SharedLibraryPrefix::from_str(&name)),
+        )
+        .context(StrContext::Label("prefix for a shared object lookup path"))
+        .parse_next(input)?;
+
+        // Take the delimiter.
+        cut_err(":")
+            .context(StrContext::Label("shared library prefix delimiter"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "shared library prefix `:`",
+            )))
+            .parse_next(input)?;
+
+        // Parse the rest as a directory.
+        let directory = rest
+            .verify(|s: &str| !s.is_empty())
+            .try_map(AbsolutePath::from_str)
+            .context(StrContext::Label("directory"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "directory for a shared object lookup path",
+            )))
+            .parse_next(input)?;
+
+        Ok(Self { prefix, directory })
+    }
+}
+
+impl Display for SonameLookupDirectory {
+    /// Converts the [`SonameLookupDirectory`] to a string.
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}:{}", self.prefix, self.directory)
+    }
+}
+
+impl FromStr for SonameLookupDirectory {
+    type Err = Error;
+
+    /// Creates a [`SonameLookupDirectory`] from a string slice.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if `input` can not be converted into a [`SonameLookupDirectory`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::str::FromStr;
+    ///
+    /// use alpm_soname::SonameLookupDirectory;
+    ///
+    /// # fn main() -> Result<(), alpm_soname::Error> {
+    /// let dir = SonameLookupDirectory::from_str("lib:/usr/lib")?;
+    /// assert_eq!(dir.to_string(), "lib:/usr/lib");
+    /// assert!(SonameLookupDirectory::from_str(":/usr/lib").is_err());
+    /// assert!(SonameLookupDirectory::from_str(":/usr/lib").is_err());
+    /// assert!(SonameLookupDirectory::from_str("lib:").is_err());
+    /// Ok(())
+    /// # }
+    /// ```
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self::parser.parse(s)?)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use rstest::rstest;
@@ -284,5 +385,35 @@ mod tests {
     )]
     fn relative_path_from_str(#[case] s: &str, #[case] result: Result<RelativePath, Error>) {
         assert_eq!(RelativePath::from_str(s), result);
+    }
+
+    #[rstest]
+    #[case("lib:/usr/lib", SonameLookupDirectory {
+        prefix: "lib".parse().unwrap(),
+        directory: AbsolutePath::from_str("/usr/lib").unwrap(),
+    })]
+    fn soname_lookup_directory_from_string(
+        #[case] input: &str,
+        #[case] expected_result: SonameLookupDirectory,
+    ) -> Result<(), Error> {
+        let lookup_directory = SonameLookupDirectory::from_str(input)?;
+        assert_eq!(expected_result, lookup_directory);
+        assert_eq!(input, lookup_directory.to_string());
+        Ok(())
+    }
+
+    #[rstest]
+    #[case("lib", "invalid shared library prefix delimiter")]
+    #[case("lib:", "invalid directory")]
+    #[case(":/usr/lib", "invalid first character of package name")]
+    fn invalid_soname_lookup_directory_parser(#[case] input: &str, #[case] error_snippet: &str) {
+        let result = SonameLookupDirectory::from_str(input);
+        assert!(result.is_err(), "Expected LookupDirectory parsing to fail");
+        let err = result.unwrap_err();
+        let pretty_error = err.to_string();
+        assert!(
+            pretty_error.contains(error_snippet),
+            "Error:\n=====\n{pretty_error}\n=====\nshould contain snippet:\n\n{error_snippet}"
+        );
     }
 }
