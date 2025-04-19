@@ -35,7 +35,7 @@ reqwest = { version = "0.12", default-features = false, features = [
     "json",
     "rustls-tls",
 ] }
-simplelog = { version = "0.12", default-features = false }
+simplelog.workspace = true
 strum.workspace = true
 winnow.workspace = true
 

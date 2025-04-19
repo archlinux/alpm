@@ -40,6 +40,6 @@ winnow.workspace = true
 assert_cmd.workspace = true
 insta.workspace = true
 rstest.workspace = true
-simplelog = "0.12.2"
+simplelog.workspace = true
 tempfile.workspace = true
 testresult.workspace = true
