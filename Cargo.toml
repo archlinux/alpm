@@ -2,6 +2,7 @@
 authors = [
     "Arne Beer <contact@arne.beer>",
     "David Runge <dvzrv@archlinux.org>",
+    "Heiko Schaefer <heiko@schaefer.name>",
     "Orhun Parmaksız <orhun@archlinux.org>",
 ]
 edition = "2024"
@@ -23,6 +24,7 @@ members = [
     "alpm-state-repo",
     "alpm-types",
     "dev-scripts",
+    "voa-core",
 ]
 resolver = "3"
 
