@@ -32,6 +32,7 @@ path = [
     ".lycheeignore",
     "alpm-srcinfo/tests/files/*.srcinfo",
     "justfile",
+    "voa-core/tests/README",
 ]
 precedence = "aggregate"
 

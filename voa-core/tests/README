@@ -1,0 +1,11 @@
+see https://gitlab.archlinux.org/archlinux/signstar/-/blob/56a22bf9823cf381b9ea92abf04bd3d35f977907/justfile#L641-671
+
+for containerized nextest running
+
+package tests:
+cargo nextest archive --archive-file "/tmp/zz/tests.tar.zst"
+
+run tests:
+podman run --rm --interactive --tty --volume "/tmp/zz:/mnt" --volume "$PWD:/test" rust cargo install cargo-nextest && cargo nextest run --archive-file "/mnt/tests.tar.zst" --workspace-remap "/test" "${test/ */}" "${test/* /}"
+
+(mounts not right?!)
