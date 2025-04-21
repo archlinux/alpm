@@ -51,7 +51,7 @@ impl PathDefaults {
 }
 
 /// A directory type path statement in an mtree file.
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Directory {
     pub path: PathBuf,
     pub uid: usize,
@@ -63,7 +63,7 @@ pub struct Directory {
 /// A file type path statement in an mtree file.
 ///
 /// The md5_digest is accepted for backwards compatibility reasons in v2 as well.
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct File {
     pub path: PathBuf,
     pub uid: usize,
@@ -114,7 +114,7 @@ where
 }
 
 /// A link type path in an mtree file that points to a file somewhere on the system.
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Link {
     pub path: PathBuf,
     pub uid: usize,
@@ -129,7 +129,7 @@ pub struct Link {
 /// While serializing, the type is converted into a `type` field on the inner struct.
 /// This means that `Vec<Path>` will be serialized to a list of maps where each map has a `type`
 /// entry with the respective name.
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub enum Path {
     #[serde(rename = "dir")]
@@ -138,6 +138,28 @@ pub enum Path {
     File(File),
     #[serde(rename = "link")]
     Link(Link),
+}
+
+impl Ord for Path {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        let path = match self {
+            Path::Directory(dir) => dir.path.as_path(),
+            Path::File(file) => file.path.as_path(),
+            Path::Link(link) => link.path.as_path(),
+        };
+        let other_path = match other {
+            Path::Directory(dir) => dir.path.as_path(),
+            Path::File(file) => file.path.as_path(),
+            Path::Link(link) => link.path.as_path(),
+        };
+        path.cmp(other_path)
+    }
+}
+
+impl PartialOrd for Path {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
 }
 
 /// Parse the content of an MTREE v2 file.
