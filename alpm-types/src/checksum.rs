@@ -272,6 +272,20 @@ impl<D: Digest> PartialEq for Checksum<D> {
     }
 }
 
+impl<D: Digest> Eq for Checksum<D> {}
+
+impl<D: Digest> Ord for Checksum<D> {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.digest.cmp(&other.digest)
+    }
+}
+
+impl<D: Digest> PartialOrd for Checksum<D> {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
 /// A [`Checksum`] that may be skipped.
 ///
 /// Strings representing checksums are used to verify the integrity of files.
