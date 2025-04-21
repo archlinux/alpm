@@ -195,7 +195,7 @@ pub fn parse_mtree_v2(content: String) -> Result<Vec<Path>, Error> {
     paths_from_parsed_content(&content, parsed_contents)
 }
 
-/// Take unsanitized parsed content and convert it to a list of paths with properties.
+/// Take unsanitized parsed content and convert it to a list of sorted paths with properties.
 ///
 /// This is effectively the interpreter step for mtree's declaration language.
 fn paths_from_parsed_content(
@@ -226,6 +226,12 @@ fn paths_from_parsed_content(
             }
         }
     }
+
+    // Sort paths to ensure that ALPM-MTREE paths can be compared to file system paths.
+    // Paths in a package file, as well as the input to `bsdtar` when creating an ALPM-MTREE file
+    // are also sorted.
+    // Without this the reproducibility of the data can not be guaranteed.
+    paths.sort_unstable();
 
     Ok(paths)
 }

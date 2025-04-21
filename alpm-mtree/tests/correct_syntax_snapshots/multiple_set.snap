@@ -1,10 +1,17 @@
 ---
-source: alpm-mtree/tests/happy_path.rs
+source: alpm-mtree/tests/correct_syntax.rs
 description: "#mtree\n/set mode=644 uid=0 gid=0 type=file\n./some_file time=1706086640.0 size=1337 sha256digest=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\n/set mode=755 uid=1000 gid=1000 type=dir\n./some_dir time=1706086640.0\n/unset mode uid gid type\n./some_link mode=400 uid=0 gid=0 type=link time=1706086640.0 link=some_file\n"
 expression: pretty_json
-snapshot_kind: text
 ---
 [
+  {
+    "type": "dir",
+    "path": "./some_dir",
+    "uid": 1000,
+    "gid": 1000,
+    "mode": "755",
+    "time": 1706086640
+  },
   {
     "type": "file",
     "path": "./some_file",
@@ -14,14 +21,6 @@ snapshot_kind: text
     "size": 1337,
     "time": 1706086640,
     "sha256_digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
-  },
-  {
-    "type": "dir",
-    "path": "./some_dir",
-    "uid": 1000,
-    "gid": 1000,
-    "mode": "755",
-    "time": 1706086640
   },
   {
     "type": "link",
