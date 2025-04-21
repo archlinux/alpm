@@ -1,0 +1,43 @@
+[package]
+name = "alpm-soname"
+description = "Library and commandline toolkit for looking up soname data in an ALPM context"
+version = "0.1.0"
+
+authors.workspace = true
+edition.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+license.workspace = true
+readme.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+default-run = "alpm-soname"
+
+[[bin]]
+name = "alpm-soname"
+path = "src/main.rs"
+required-features = ["cli"]
+
+[features]
+cli = ["dep:clap", "dep:log"]
+default = ["cli"]
+
+[dependencies]
+alpm-package.workspace = true
+alpm-pkginfo.workspace = true
+alpm-types.workspace = true
+clap = { workspace = true, optional = true }
+clap-verbosity = "2.1.0"
+goblin = "0.9.3"
+log = { version = "0.4.27", optional = true }
+serde.workspace = true
+serde_json.workspace = true
+simplelog = "0.12.2"
+strum.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+rstest.workspace = true
+
+[lints]
+workspace = true
