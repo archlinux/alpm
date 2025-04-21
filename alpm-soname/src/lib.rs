@@ -1,4 +1,4 @@
-//! `alpm-soname`
+#![doc = include_str!("../README.md")]
 
 #[cfg(feature = "cli")]
 pub mod cli;
