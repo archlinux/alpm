@@ -257,7 +257,7 @@ pub type Changelog = RelativePath;
 ///
 /// Follows the [alpm-sonamev2] format, which encodes a `prefix` and a `directory`.
 /// The same `prefix` is later used to identify the location of a **soname**, see
-/// [`alpm_types::SonameV2`].
+/// [`crate::SonameV2`].
 //
 /// [alpm-sonamev2]: <https://alpm.archlinux.page/specifications/alpm-sonamev2.7.html>
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -331,9 +331,9 @@ impl FromStr for SonameLookupDirectory {
     /// ```
     /// use std::str::FromStr;
     ///
-    /// use alpm_soname::SonameLookupDirectory;
+    /// use alpm_types::SonameLookupDirectory;
     ///
-    /// # fn main() -> Result<(), alpm_soname::Error> {
+    /// # fn main() -> Result<(), alpm_types::Error> {
     /// let dir = SonameLookupDirectory::from_str("lib:/usr/lib")?;
     /// assert_eq!(dir.to_string(), "lib:/usr/lib");
     /// assert!(SonameLookupDirectory::from_str(":/usr/lib").is_err());
