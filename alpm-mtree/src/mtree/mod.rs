@@ -3,6 +3,7 @@
 pub mod path_validation_error;
 pub mod v2;
 use std::{
+    collections::HashSet,
     fmt::{Display, Write},
     fs::File,
     io::{BufReader, Read},
@@ -11,6 +12,9 @@ use std::{
 };
 
 use alpm_common::{FileFormatSchema, MetadataFile};
+use path_validation_error::{PathValidationError, PathValidationErrors};
+#[cfg(doc)]
+use v2::MTREE_PATH_PREFIX;
 
 use crate::{Error, MtreeSchema, mtree_buffer_to_string, parse_mtree_v2};
 
@@ -24,6 +28,115 @@ use crate::{Error, MtreeSchema, mtree_buffer_to_string, parse_mtree_v2};
 pub enum Mtree {
     V1(Vec<crate::mtree::v2::Path>),
     V2(Vec<crate::mtree::v2::Path>),
+}
+
+impl Mtree {
+    /// Validates a set of relative paths using a common base directory.
+    ///
+    /// Strips the `"./"` prefix from each [`Path`][`crate::mtree::v2::Path`] tracked by `self` and
+    /// extracts all relevant metadata about a path recorded in the [ALPM-MTREE] data.
+    /// Compares each member of `paths` with the data available in `self` by retrieving metadata
+    /// from the on-disk files below `base_dir`.
+    /// This includes checking if
+    ///
+    /// - each relative path in `paths` matches a record in the [ALPM-MTREE] data,
+    /// - each relative path in `paths` relates to an existing file, directory or symlink in
+    ///   `base_dir`,
+    /// - the target of each symlink in the [ALPM-MTREE] data matches that of the corresponding
+    ///   on-disk file,
+    /// - size and SHA-256 hash digest of each file in the [ALPM-MTREE] data matches that of the
+    ///   corresponding on-disk file,
+    /// - the [ALPM-MTREE] data file itself is included in the [ALPM-MTREE] data,
+    /// - and the creation time, UID, GID and file mode of each file in the [ALPM-MTREE] data
+    ///   matches that of the corresponding on-disk file.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if
+    ///
+    /// - `paths` contains duplicates,
+    /// - or one of the [ALPM-MTREE] data entries
+    ///   - does not have a matching on-disk file, directory or symlink (depending on type),
+    ///   - has a mismatching symlink target from that of a corresponding on-disk file,
+    ///   - has a mismatching size or SHA-256 hash digest from that of a corresponding on-disk file,
+    ///   - is the [ALPM-MTREE] file,
+    ///   - or has a mismatching creation time, UID, GID or file mode from that of a corresponding
+    ///     on-disk file,
+    /// - or one of the file system paths in `paths` has no matching [ALPM-MTREE] entry.
+    ///
+    /// [ALPM-MTREE]: https://alpm.archlinux.page/specifications/ALPM-MTREE.5.html
+    pub fn validate_paths(
+        &self,
+        base_dir: impl AsRef<Path>,
+        paths: &[PathBuf],
+    ) -> Result<(), Error> {
+        let base_dir = base_dir.as_ref();
+        // Use paths in a HashSet for easier handling later.
+        let mut hashed_paths: HashSet<&Path> = paths.iter().map(|path| path.as_path()).collect();
+
+        // If there are duplicate paths, return early.
+        if paths.len() != hashed_paths.len() {
+            let mut duplicates = HashSet::new();
+            for path in paths {
+                if !hashed_paths.remove(path.as_path()) {
+                    duplicates.insert(path.to_path_buf());
+                }
+            }
+            return Err(Error::DuplicatePaths { paths: duplicates });
+        }
+
+        let mtree_paths = match self {
+            Mtree::V1(mtree) | Mtree::V2(mtree) => mtree,
+        };
+        let mut errors = PathValidationErrors::new(base_dir.to_path_buf());
+        let mut unmatched_paths = Vec::new();
+
+        for mtree_path in mtree_paths.iter() {
+            // Normalize the ALPM-MTREE path.
+            let normalized_path = match mtree_path.as_normalized_path() {
+                Ok(mtree_path) => mtree_path,
+                Err(source) => {
+                    let mut normalize_errors: Vec<PathValidationError> = vec![source.into()];
+                    errors.append(&mut normalize_errors);
+                    // Continue, as the ALPM-MTREE data is not as it should be.
+                    continue;
+                }
+            };
+
+            // If the normalized path exists in the hashed input paths, compare.
+            if hashed_paths.remove(normalized_path) {
+                if let Err(mut comparison_errors) =
+                    mtree_path.equals_path(base_dir, normalized_path)
+                {
+                    errors.append(&mut comparison_errors);
+                }
+            } else {
+                unmatched_paths.push(mtree_path);
+            }
+        }
+
+        // Add dedicated error, if some file system paths are not covered by ALPM-MTREE data.
+        if !hashed_paths.is_empty() {
+            errors.append(&mut vec![PathValidationError::UnmatchedFileSystemPaths {
+                paths: hashed_paths.iter().map(|path| path.to_path_buf()).collect(),
+            }])
+        }
+
+        // Add dedicated error, if some ALPM-MTREE paths have no matching file system paths.
+        if !unmatched_paths.is_empty() {
+            errors.append(&mut vec![PathValidationError::UnmatchedMtreePaths {
+                paths: unmatched_paths
+                    .iter()
+                    .map(|path| path.to_path_buf())
+                    .collect(),
+            }])
+        }
+
+        // Emit all error messages on stderr and fail if there are any errors.
+        errors.fail()?;
+
+        Ok(())
+    }
 }
 
 impl MetadataFile<MtreeSchema> for Mtree {

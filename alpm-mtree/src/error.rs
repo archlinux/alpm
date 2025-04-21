@@ -1,4 +1,4 @@
-use std::{path::PathBuf, string::FromUtf8Error};
+use std::{collections::HashSet, path::PathBuf, string::FromUtf8Error};
 
 #[cfg(doc)]
 use crate::Mtree;
@@ -7,6 +7,18 @@ use crate::Mtree;
 #[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
 pub enum Error {
+    /// There are duplicate paths.
+    #[error("The following file system paths are duplicates:\n{}",
+        paths.iter().fold(String::new(), |mut output, path| {
+            output.push_str(&format!("{path:?}\n"));
+            output
+        })
+    )]
+    DuplicatePaths {
+        /// The set of file system paths that are duplicates.
+        paths: HashSet<PathBuf>,
+    },
+
     /// File creation error.
     #[cfg(feature = "creation")]
     #[error("File creation error:\n{0}")]

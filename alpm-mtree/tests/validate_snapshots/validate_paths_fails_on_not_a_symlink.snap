@@ -1,0 +1,7 @@
+---
+source: alpm-mtree/tests/validate.rs
+description: A file is not a symlink
+expression: "format!(\"{error}\")"
+---
+Errors occurred while comparing ALPM-MTREE data to paths in "[TEMP_FILE]"
+The path "[TEMP_FILE]/foo/bar/baz/buh.txt" is not a symlink, but the ALPM-MTREE data for "foo/bar/baz/buh.txt" requires it to be.
