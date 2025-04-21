@@ -1,0 +1,8 @@
+---
+source: alpm-mtree/tests/validate.rs
+description: A file is not of the correct size
+expression: "format!(\"{error}\")"
+---
+Errors occurred while comparing ALPM-MTREE data to paths in "[TEMP_FILE]":
+The size of "./foo/beh.txt" in the ALPM-MTREE data is 4, but that of path "[TEMP_FILE]/foo/beh.txt" is 6
+The hash digest of "foo/beh.txt" in the ALPM-MTREE data is 9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08, but that of "[TEMP_FILE]/foo/beh.txt" is 4e758d4760a6cffc347cdb45f0966d20f481bad806731c4c0e44f21cf9d90bb5

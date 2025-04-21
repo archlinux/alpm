@@ -38,7 +38,8 @@ winnow.workspace = true
 
 [dev-dependencies]
 assert_cmd.workspace = true
-insta.workspace = true
+filetime = "0.2.25"
+insta = { features = ["filters"], workspace = true }
 rstest.workspace = true
 simplelog.workspace = true
 tempfile.workspace = true

@@ -1,0 +1,7 @@
+---
+source: alpm-mtree/tests/validate.rs
+description: A file mode does not match
+expression: "format!(\"{error}\")"
+---
+Errors occurred while comparing ALPM-MTREE data to paths in "[TEMP_FILE]":
+The mode of "foo/beh.txt" in the ALPM-MTREE data is 644, but that of path "[TEMP_FILE]/foo/beh.txt" is 100640

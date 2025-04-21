@@ -1,0 +1,7 @@
+---
+source: alpm-mtree/tests/validate.rs
+description: A symlink does not point at the correct file
+expression: "format!(\"{error}\")"
+---
+Errors occurred while comparing ALPM-MTREE data to paths in "[TEMP_FILE]":
+The symlink "foo/bar/baz/buh.txt" in the ALPM-MTREE data points at "/tmp/something/very/unlikely/to/ever/exist/hopefully.txt", while "[TEMP_FILE]/foo/bar/baz/buh.txt" points at "/tmp/something/other/very/unlikely/to/ever/exist/hopefully.txt"

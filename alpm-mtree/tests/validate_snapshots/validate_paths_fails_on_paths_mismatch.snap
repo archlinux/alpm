@@ -1,0 +1,12 @@
+---
+source: alpm-mtree/tests/validate.rs
+description: paths mismatch
+expression: "format!(\"{error}\")"
+---
+Errors occurred while comparing ALPM-MTREE data to paths in "[TEMP_FILE]":
+The path "[TEMP_FILE]/foo/bar/baz/beh.txt" does not exist or is not a symlink, but the path "foo/bar/baz/beh.txt" in the ALPM-MTREE data requires it to be:
+No such file or directory (os error 2).
+The path "[TEMP_FILE]/foo/bar/buh" does not exist, but the path "./foo/bar/buh" in the ALPM-MTREE data requires it to.
+The path "[TEMP_FILE]/foo/beh.txt" does not exist, but the path "./foo/beh.txt" in the ALPM-MTREE data requires it to.
+There are no matching ALPM-MTREE paths for the following file system paths:
+".MTREE"

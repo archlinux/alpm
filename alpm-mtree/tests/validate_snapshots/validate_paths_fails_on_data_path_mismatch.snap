@@ -1,0 +1,11 @@
+---
+source: alpm-mtree/tests/validate.rs
+description: Path names mismatch
+expression: "format!(\"{error}\")"
+---
+Errors occurred while comparing ALPM-MTREE data to paths in "[TEMP_FILE]":
+There are no matching ALPM-MTREE paths for the following file system paths:
+"foo/bar.txt"
+
+There are no matching file system paths for the following ALPM-MTREE paths:
+"./foo/beh.txt"

@@ -1,0 +1,7 @@
+---
+source: alpm-mtree/tests/validate.rs
+description: A file digest does not match
+expression: "format!(\"{error}\")"
+---
+Errors occurred while comparing ALPM-MTREE data to paths in "[TEMP_FILE]":
+The hash digest of "foo/beh.txt" in the ALPM-MTREE data is 9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08, but that of "[TEMP_FILE]/foo/beh.txt" is 94ee059335e587e501cc4bf90613e0814f00a7b08bc7c648fd865a2af6a22cc2

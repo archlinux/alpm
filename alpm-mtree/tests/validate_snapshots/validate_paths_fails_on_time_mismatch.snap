@@ -1,0 +1,9 @@
+---
+source: alpm-mtree/tests/validate.rs
+description: A file creation time does not match
+expression: "format!(\"{error}\")"
+---
+Errors occurred while comparing ALPM-MTREE data to paths in "[TEMP_FILE]":
+The time of "foo" in the ALPM-MTREE data is 0, but that of path "[TEMP_FILE]/foo" is 1
+The time of "foo/bar/baz/beh.txt" in the ALPM-MTREE data is 0, but that of path "[TEMP_FILE]/foo/bar/baz/beh.txt" is 1
+The time of "foo/beh.txt" in the ALPM-MTREE data is 0, but that of path "[TEMP_FILE]/foo/beh.txt" is 1

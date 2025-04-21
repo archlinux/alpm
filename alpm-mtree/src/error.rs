@@ -1,4 +1,4 @@
-use std::{path::PathBuf, string::FromUtf8Error};
+use std::{collections::HashSet, path::PathBuf, string::FromUtf8Error};
 
 #[cfg(doc)]
 use crate::Mtree;
@@ -8,6 +8,22 @@ use crate::mtree::path_validation_error::PathValidationErrors;
 #[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
 pub enum Error {
+    /// An alpm-common error.
+    #[error(transparent)]
+    AlpmCommon(#[from] alpm_common::Error),
+
+    /// There are duplicate paths.
+    #[error("The following file system paths are duplicates:\n{}",
+        paths.iter().fold(String::new(), |mut output, path| {
+            output.push_str(&format!("{path:?}\n"));
+            output
+        })
+    )]
+    DuplicatePaths {
+        /// The set of file system paths that are duplicates.
+        paths: HashSet<PathBuf>,
+    },
+
     /// File creation error.
     #[cfg(feature = "creation")]
     #[error("File creation error:\n{0}")]

@@ -1,0 +1,7 @@
+---
+source: alpm-mtree/tests/validate.rs
+description: A file is not a directory
+expression: "format!(\"{error}\")"
+---
+Errors occurred while comparing ALPM-MTREE data to paths in "[TEMP_FILE]":
+The path "[TEMP_FILE]/foo/bar/buh" is not a directory, but the ALPM-MTREE data for "foo/bar/buh" requires it to be.

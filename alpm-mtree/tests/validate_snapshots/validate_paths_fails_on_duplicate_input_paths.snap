@@ -1,0 +1,7 @@
+---
+source: alpm-mtree/tests/validate.rs
+description: duplicate path
+expression: "format!(\"{error}\")"
+---
+The following file system paths are duplicates:
+"duplicate"
