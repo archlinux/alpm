@@ -1,0 +1,27 @@
+[package]
+description = "Verification of OS Artifacts: OpenPGP technology backend"
+name = "voa-openpgp"
+version = "0.1.0"
+
+authors.workspace = true
+edition.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+license.workspace = true
+readme.workspace = true
+repository.workspace = true
+
+[lib]
+name = "voa_openpgp"
+
+[[bin]]
+name = "voa-openpgp-test"
+path = "src/main.rs"
+
+[dependencies]
+env_logger = "0.11"
+hex = "0.4"
+log = "0.4"
+pgp = "0.14"
+rpgpie = "0.4"
+voa-core = { path = "../voa-core" }

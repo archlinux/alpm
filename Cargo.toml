@@ -25,6 +25,7 @@ members = [
     "alpm-types",
     "dev-scripts",
     "voa-core",
+    "voa-openpgp",
 ]
 resolver = "3"
 

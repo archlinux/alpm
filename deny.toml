@@ -3,6 +3,9 @@ ignore = [
     # Possible valid string to invalid string bug.
     # This dependency is only included when winnow is compiled with the debug flag.
     "RUSTSEC-2024-0404",
+    # "Marvin Attack: potential key recovery through timing sidechannels"
+    # We're not handling private key material, so this doesn't apply to our use.
+    "RUSTSEC-2023-0071",
 ]
 version = 2
 yanked = "deny"
