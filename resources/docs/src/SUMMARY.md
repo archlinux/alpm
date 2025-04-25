@@ -22,6 +22,9 @@
 
 - [File formats](./specifications/file-formats.md)
   - [alpm-install-scriptlet](./specifications/alpm-install-scriptlet.5.md)
+  - [alpm-files](./specifications/alpm-files.5.md)
+    - [alpm-repo-files](./specifications/alpm-repo-files.5.md)
+    - [alpm-db-files](./specifications/alpm-db-files.5.md)
   - [ALPM-MTREE](./specifications/ALPM-MTREE.5.md)
     - [ALPM-MTREEv1](./specifications/ALPM-MTREEv1.5.md)
     - [ALPM-MTREEv2](./specifications/ALPM-MTREEv2.5.md)
@@ -36,7 +39,6 @@
   - [alpm-architecture](./specifications/alpm-architecture.7.md)
   - [alpm-comparison](./specifications/alpm-comparison.7.md)
   - [alpm-epoch](./specifications/alpm-epoch.7.md)
-  - [alpm-files](./specifications/alpm-files.5.md)
   - [alpm-meta-package](./specifications/alpm-meta-package.7.md)
   - [alpm-package](./specifications/alpm-package.7.md)
   - [alpm-package-group](./specifications/alpm-package-group.7.md)

@@ -43,7 +43,7 @@ mindmap
       📄 files
       📚️ alpm-repo*
       📚️ alpm-repo-desc*
-      📚️ alpm-repo-files*
+      📚️ alpm-repo-files
       📂 alpm-state-repo
     🗄️ Package Management
       📄 desc
@@ -51,7 +51,7 @@ mindmap
       📚️ alpm-db*
       📚️ alpm-db-desc*
       📚️ alpm-db-download*
-      📚️ alpm-db-files*
+      📚️ alpm-db-files
       📚️ alpm-db-verify*
       📚️ alpm-db-verify-vda*
 ```
