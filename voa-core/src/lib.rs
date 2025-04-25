@@ -1,6 +1,6 @@
-//! "File Hierarchy for the Verification of OS Artifacts (VOA)"
+//! File Hierarchy for the Verification of OS Artifacts (VOA)
 //!
-//! A mechanism for technology-agnostic storage and retrieval of` signature verifiers.
+//! A mechanism for technology-agnostic storage and retrieval of signature verifiers.
 //! For specification draft see: <https://github.com/uapi-group/specifications/pull/134>
 
 use std::{
@@ -19,11 +19,11 @@ use std::{
 ///
 /// Shadowing/merging is technology-specific and must be handled in the technology layer.
 ///
-/// VOA expects that filenames are a strong identifier, which signal if two verifier files deal
-/// with "the same" logical verifier. Verifiers in different load paths can be identified as
-/// related by their filenames.
+/// VOA expects that filenames are a strong identifier that signals whether two verifier files
+/// contain variants of "the same" logical verifier.
+/// Verifiers from different load paths can be identified as related via their filenames.
 ///
-/// (E.g. OpenPGP certificates must be stored using filenames based on their fingerprint.)
+/// For example, OpenPGP certificates must be stored using filenames based on their fingerprint.
 ///
 /// The technology-specific layers are expected to warn or error when a verifier filename is
 /// inconsistent with the contained verifier.
@@ -43,24 +43,32 @@ pub const LOAD_PATHS_SYSTEM_MODE: &[&str] = &[
 // the ./voa/ directory in each directory defined in $XDG_DATA_DIRS
 
 /// The Os identifier is used to uniquely identify an Operating System (OS), it relies on data
-/// provided by `os-release`.
+/// provided by [`os-release`].
 ///
-/// Anb Os identifier consists of (up to) five parts.
+/// [`os-release`]: https://man.archlinux.org/man/os-release.5.en
 ///
-///  - id: name of OS (e.g. arch or debian)
-///  - version_id: the version of the OS (e.g. 1.0.0 or 24.12)
-///  - variant_id: the variant of the OS (e.g. server or workstation)
-///  - image_id: the image of an OS (e.g. cashier-system)
-///  - image_version: version of the image (e.g. 1.0.0 or 24.12)
+/// # Format
 ///
-///  Each part can consist of the characters "0–9", "a–z", ".", "_" and "-".
+/// An Os identifier consists of up to five parts.
+/// Each part of the identifier can consist of the characters "0–9", "a–z", ".", "_" and "-".
+///
+/// In the filesystem, the parts are concatenated into one path using `:` (colon) symbols
+/// (e.g. `debian:12:server:company-x:25.01`).
+///
+/// Trailing colons must be omitted for all parts that are unset
+/// (e.g. `arch` instead of `arch::::`).
 #[derive(Clone, Debug, PartialEq)]
 pub struct Os {
-    id: String,
-    version_id: Option<String>,
-    variant_id: Option<String>,
-    image_id: Option<String>,
-    image_version: Option<String>,
+    /// Name of the OS (e.g. arch or debian)
+    pub id: String,
+    /// The version of the OS (e.g. 1.0.0 or 24.12)
+    pub version_id: Option<String>,
+    /// The variant of the OS (e.g. server or workstation)
+    pub variant_id: Option<String>,
+    /// The image of an OS (e.g. cashier-system)
+    pub image_id: Option<String>,
+    /// Version of the image (e.g. 1.0.0 or 24.12)
+    pub image_version: Option<String>,
 }
 
 impl Os {
@@ -87,6 +95,7 @@ impl Os {
     /// A string representation of this Os specifier.
     ///
     /// All parts are joined with `:`, trailing colons are omitted.
+    /// Parts that are unset are represented as empty strings.
     fn path(&self) -> String {
         let distro = format!(
             "{}:{}:{}:{}:{}",
@@ -101,8 +110,9 @@ impl Os {
     }
 }
 
-/// A Purpose combines a [Role] and a [Mode]. The combination reflects one directory layer in the
-/// VOA file hierarchy.
+/// A `Purpose` combines a [Role] and a [Mode].
+///
+/// The combination reflects one directory layer in the VOA file hierarchy.
 ///
 /// Purpose paths have values such as: `packages`, `trust-anchor-packages`, `repository-metadata`.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -124,13 +134,17 @@ impl Purpose {
         };
 
         match self.mode {
-            Mode::TrustAnchor => format! { "trust-anchor-{base}" },
+            Mode::TrustAnchor => format!("trust-anchor-{base}"),
             Mode::ArtifactVerifier => base.to_string(),
         }
     }
 }
 
 /// A Role acts as a trust domain that is associated with one set of verifiers.
+///
+/// A [Role] is always combined with a [Mode]. The combination of both forms a [Purpose].
+/// E.g. [Role::Packages] combined with [Mode::TrustAnchor] specify the purpose path
+/// `trust-anchor-packages`.
 #[derive(Clone, Copy, Debug, PartialEq)]
 #[non_exhaustive]
 pub enum Role {
@@ -144,7 +158,11 @@ pub enum Role {
     Image,
 }
 
-/// The Mode (of a [Purpose]) distinguishes between direct artifact verifiers and trust anchors.
+/// The Mode of a [Purpose] distinguishes between direct artifact verifiers and trust anchors.
+///
+/// A [Mode] is always combined with a [Role]. The combination of both forms a [Purpose].
+/// E.g. [Role::Packages] combined with [Mode::TrustAnchor] specify the purpose path
+/// `trust-anchor-packages`.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Mode {
     ArtifactVerifier,
@@ -244,7 +262,7 @@ pub struct OpaqueVerifier {
     /// Specification of the path from which the verifier was loaded
     path: VerifierSourcePath,
 
-    /// Filename of the verifier file, in `path`
+    /// Filename of the verifier file, in [`OpaqueVerifier::path`]
     filename: String,
 }
 
@@ -252,7 +270,7 @@ impl Debug for OpaqueVerifier {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "OpaqueVerifier [{} bytes]", self.verifier_data.len())?;
         writeln!(f, "Path: {:#?}", self.path)?;
-        writeln!(f, "Filename: {:?}", self.filename)?;
+        writeln!(f, "Filename: {}", self.filename)?;
 
         Ok(())
     }
@@ -352,10 +370,7 @@ impl Voa {
         let mut certs = vec![];
 
         for load_path in self.load_paths() {
-            log::trace!(
-                "Looking for signature verifiers in the load path '{:?}'",
-                load_path
-            );
+            log::trace!("Looking for signature verifiers in the load path {load_path:?}");
 
             let path = VerifierSourcePath {
                 load_path,
