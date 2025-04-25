@@ -3,7 +3,7 @@ use std::fs::remove_dir_all;
 use anyhow::{Context, Result};
 use clap::Parser;
 use cli::Cli;
-use log::LevelFilter;
+use log::{LevelFilter, warn};
 use simplelog::{Config, SimpleLogger};
 use strum::IntoEnumIterator;
 use sync::{PackageRepositories, mirror::MirrorDownloader, pkgsrc::PkgSrcDownloader};
@@ -72,20 +72,34 @@ fn main() -> Result<()> {
                         let downloader = PkgSrcDownloader { dest };
                         downloader.download_package_source_repositories()?;
                     }
-                    cli::DownloadCmd::Databases { mirror } => {
+                    cli::DownloadCmd::Databases {
+                        mirror,
+                        force_extract,
+                    } => {
                         let downloader = MirrorDownloader {
                             dest,
                             mirror,
                             repositories,
+                            extract_all: force_extract,
                         };
+                        warn!(
+                            "Beginning database retrieval\nIf the process is unexpectedly halted, rerun with `--force-extract` flag"
+                        );
                         downloader.sync_remote_databases()?;
                     }
-                    cli::DownloadCmd::Packages { mirror } => {
+                    cli::DownloadCmd::Packages {
+                        mirror,
+                        force_extract,
+                    } => {
                         let downloader = MirrorDownloader {
                             dest,
                             mirror,
                             repositories,
+                            extract_all: force_extract,
                         };
+                        warn!(
+                            "Beginning package retrieval\nIf the process is unexpectedly halted, rerun with `--force-extract` flag"
+                        );
                         downloader.sync_remote_packages()?;
                     }
                 };

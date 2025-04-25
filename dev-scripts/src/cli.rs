@@ -125,6 +125,13 @@ pub enum DownloadCmd {
         /// The mirror must support the `rsync` protocol
         #[arg(short, long, env, default_value = "mirror.pseudoform.org/packages")]
         mirror: String,
+
+        /// Force re-extraction of the files regardless of reported changes.
+        ///
+        /// This is useful for if the download is cancelled halfway, in which case
+        /// `rsync` will not report changes for files that it downloaded last time.
+        #[arg(short, long, default_value_t = false)]
+        force_extract: bool,
     },
     /// The packages contain the following file types for each package.
     /// - `.INSTALL`
@@ -137,6 +144,13 @@ pub enum DownloadCmd {
         /// The mirror must support the `rsync` protocol
         #[arg(short, long, env, default_value = "mirror.pseudoform.org/packages")]
         mirror: String,
+
+        /// Force re-extraction of the files regardless of reported changes.
+        ///
+        /// This is useful for if the download is cancelled halfway, in which case
+        /// `rsync` will not report changes for files that it downloaded last time.
+        #[arg(short, long, default_value_t = false)]
+        force_extract: bool,
     },
 }
 

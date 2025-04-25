@@ -151,7 +151,7 @@ impl PkgSrcDownloader {
 pub fn warmup_ssh_session() -> Result<()> {
     let mut ssh_command = Command::new("ssh");
     ssh_command.args(vec!["-T", SSH_HOST]);
-    trace!("running command: {ssh_command:?}");
+    trace!("Running command: {ssh_command:?}");
     let output = &ssh_command
         .output()
         .context("Failed to start ssh warmup command")?;

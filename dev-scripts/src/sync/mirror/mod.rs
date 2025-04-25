@@ -22,6 +22,8 @@ pub struct MirrorDownloader {
     pub mirror: String,
     /// The repositories that should be downloaded.
     pub repositories: Vec<PackageRepositories>,
+    /// Whether to extract all packages (regardless of changes).
+    pub extract_all: bool,
 }
 
 impl MirrorDownloader {
@@ -85,10 +87,11 @@ impl MirrorDownloader {
 
             let repo_target_dir = target_dir.join(&name);
             if repo_target_dir.exists() {
-                if rsync_changes::Report::parser(&output.stdout)
-                    .map_err(|e| anyhow!("{e}"))?
-                    .file_content_updated()?
-                    .is_none()
+                if !self.extract_all
+                    && rsync_changes::Report::parser(&output.stdout)
+                        .map_err(|e| anyhow!("{e}"))?
+                        .file_content_updated()?
+                        .is_none()
                 {
                     debug!("Database {name} is unchanged upstream, skipping extraction");
                     continue;
@@ -150,18 +153,30 @@ impl MirrorDownloader {
             let download_dest = download_dir.join(&repo_name);
             let changed = self.download_packages(&repo_name, file_source, &download_dest)?;
 
-            let packages: Vec<PathBuf> = changed
-                .into_iter()
-                // Filter out any dotfiles.
-                // Those might be temporary download artifacts from previous rsync runs.
-                .filter(|entry| {
-                    if let Some(path) = entry.to_str() {
-                        !path.starts_with('.')
-                    } else {
-                        false
-                    }
-                })
-                .collect();
+            let packages: Vec<PathBuf> = if self.extract_all {
+                let files: Vec<_> =
+                    std::fs::read_dir(&download_dest)?.collect::<Result<_, std::io::Error>>()?;
+                files
+                    .into_iter()
+                    .map(|entry| entry.path().to_owned())
+                    .collect::<Vec<_>>()
+            } else {
+                changed
+                    .into_iter()
+                    .map(|pkg| download_dest.join(pkg))
+                    .collect()
+            }
+            .into_iter()
+            // Filter out any dotfiles.
+            // Those might be temporary download artifacts from previous rsync runs.
+            .filter(|entry| {
+                if let Some(path) = entry.to_str() {
+                    !path.starts_with('.')
+                } else {
+                    false
+                }
+            })
+            .collect();
 
             info!("Extracting packages for repository {repo_name}");
             let progress_bar = get_progress_bar(packages.len() as u64);
