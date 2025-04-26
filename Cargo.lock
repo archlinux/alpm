@@ -58,6 +58,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "alpm-desc"
+version = "0.1.0"
+dependencies = [
+ "alpm-parsers",
+ "alpm-types",
+ "serde",
+ "serde_with",
+ "strum",
+ "winnow",
+]
+
+[[package]]
 name = "alpm-mtree"
 version = "0.1.0"
 dependencies = [
