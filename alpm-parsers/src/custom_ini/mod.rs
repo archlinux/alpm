@@ -1,4 +1,4 @@
 mod de;
 pub mod parser;
 
-pub use de::{Error, ItemDeserializer, Result, from_str};
+pub use de::{Deserializer, Error, ItemDeserializer, Result, from_str};

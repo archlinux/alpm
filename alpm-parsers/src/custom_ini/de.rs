@@ -131,8 +131,8 @@ impl IntoDeserializer<'_, Error> for Item {
 }
 
 /// A deserializer for parsing a list of `Item` objects.
-struct Deserializer {
-    input: BTreeMap<String, Item>,
+pub struct Deserializer {
+    pub input: BTreeMap<String, Item>,
 }
 
 // Create a new deserializer from a string.
