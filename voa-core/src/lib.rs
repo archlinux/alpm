@@ -1,32 +1,45 @@
 //! File Hierarchy for the Verification of OS Artifacts (VOA)
 //!
-//! A mechanism for technology-agnostic storage and retrieval of signature verifiers.
+//! A mechanism for signing technology-agnostic storage and retrieval of signature verifiers.
 //! For specification draft see: <https://github.com/uapi-group/specifications/pull/134>
+//!
+//! The VOA hierarchy acts as structured storage for files that contain "signature verifiers"
+//! (such as OpenPGP certificates, aka "public keys").
+//!
+//! At the top level of the hierarchy, a set of "load paths" can exist and contain different sets
+//! of verifier files. A VOA access library provides an abstract unified view of this set of the
+//! signature verifiers in that set of load paths.
+//!
+//! Each load path contains a VOA hierarchy of verifier files.
+//! Earlier load paths have precedence over later entries (in some technologies).
+//!
+//! NOTE: Depending on the technology, multiple versions of the same verifier will either "shadow"
+//! one another, or get merged into one coherent view that represents the totality of available
+//! information about the verifier.
+//!
+//! Shadowing/merging is specific to each signing technology and must be handled in the
+//! technology-specific library.
+//! For more details see e.g. the `voa-openpgp` implementation and the VOA specification.
+//!
+//! VOA expects that filenames are a strong identifier that signals whether two verifier files
+//! contain variants of "the same" logical verifier.
+//! Verifiers from different load paths can be identified as related via their filenames.
+//!
+//! For example, OpenPGP certificates must be stored using filenames based on their fingerprint.
+//!
+//! Signing technology-specific libraries will warn or error when a verifier filename is
+//! inconsistent with the contained verifier.
+
+#![warn(missing_docs)]
 
 use std::{
     fmt::{Debug, Formatter},
     path::PathBuf,
 };
 
+use log::{debug, trace};
+
 /// Load paths for "system mode" operation of VOA.
-///
-/// Each load path can contain a VOA hierarchy of verifier files.
-/// Earlier load paths have precedence over later entries (in some technologies).
-///
-/// NOTE: Depending on the technology, multiple versions of the same verifier will either "shadow"
-/// one another, or get merged into one coherent view that represents the totality of available
-/// information about the verifier.
-///
-/// Shadowing/merging is technology-specific and must be handled in the technology layer.
-///
-/// VOA expects that filenames are a strong identifier that signals whether two verifier files
-/// contain variants of "the same" logical verifier.
-/// Verifiers from different load paths can be identified as related via their filenames.
-///
-/// For example, OpenPGP certificates must be stored using filenames based on their fingerprint.
-///
-/// The technology-specific layers are expected to warn or error when a verifier filename is
-/// inconsistent with the contained verifier.
 pub const LOAD_PATHS_SYSTEM_MODE: &[&str] = &[
     "/etc/voa/",
     "/run/voa/",
@@ -111,9 +124,9 @@ impl Os {
 }
 
 /// A `Purpose` combines a [Role] and a [Mode].
+/// It describes in what context the signature verifiers in that directory tree are used.
 ///
-/// The combination reflects one directory layer in the VOA file hierarchy.
-///
+/// The combination of [Role] and [Mode] reflects one directory layer in the VOA file hierarchy.
 /// Purpose paths have values such as: `packages`, `trust-anchor-packages`, `repository-metadata`.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Purpose {
@@ -146,7 +159,6 @@ impl Purpose {
 /// E.g. [Role::Packages] combined with [Mode::TrustAnchor] specify the purpose path
 /// `trust-anchor-packages`.
 #[derive(Clone, Copy, Debug, PartialEq)]
-#[non_exhaustive]
 pub enum Role {
     /// For verifying signatures for packages
     Packages,
@@ -177,7 +189,6 @@ pub enum Mode {
 ///
 /// If no specific context is required, the context `Default` must be used.
 #[derive(Clone, Debug, PartialEq)]
-#[non_exhaustive]
 pub enum Context {
     Default,
 
@@ -197,7 +208,6 @@ impl Context {
 /// Technology-specific backends implement the logic for each supported verification technology
 /// in VOA.
 #[derive(Clone, Copy, Debug, PartialEq)]
-#[non_exhaustive]
 pub enum Technology {
     OpenPGP,
     SSH,
@@ -370,7 +380,7 @@ impl Voa {
         let mut certs = vec![];
 
         for load_path in self.load_paths() {
-            log::trace!("Looking for signature verifiers in the load path {load_path:?}");
+            trace!("Looking for signature verifiers in the load path {load_path:?}");
 
             let path = VerifierSourcePath {
                 load_path,
@@ -382,31 +392,69 @@ impl Voa {
 
             let source_path = path.path();
 
-            log::trace!("Opening VOA path {:?}", source_path);
+            trace!("Opening VOA path {:?}", source_path);
 
             let res = std::fs::read_dir(source_path);
             let Ok(dir) = res else {
-                log::trace!("  Can't read path as a directory {:?}", res);
+                trace!("  Can't read path as a directory {:?}", res);
                 continue; // try next load path
             };
 
-            for entry in dir {
-                match entry {
-                    Ok(file) => {
-                        log::trace!("Loading verifier file {:?}", file);
+            for res in dir {
+                match res {
+                    Ok(entry) => {
+                        if let Ok(file_type) = entry.file_type() {
+                            if file_type.is_file() {
+                                trace!("Loading verifier file {:?}", entry);
 
-                        match std::fs::read(file.path()) {
-                            Ok(verifier_data) => {
-                                certs.push(OpaqueVerifier {
-                                    verifier_data,
-                                    path: path.clone(),
-                                    filename: file.file_name().to_str().unwrap().to_string(), // FIXME!
-                                });
+                                match std::fs::read(entry.path()) {
+                                    Ok(verifier_data) => {
+                                        certs.push(OpaqueVerifier {
+                                            verifier_data,
+                                            path: path.clone(),
+                                            filename: entry
+                                                .file_name()
+                                                .to_str()
+                                                .unwrap()
+                                                .to_string(), // FIXME!
+                                        });
+                                    }
+                                    Err(err) => debug!("  Error while loading file {err}"),
+                                }
+                            } else if file_type.is_symlink() {
+                                unimplemented!("TODO")
+
+                                // Load paths are constrained to self-contained locations on a host
+                                // as they provide vital data for the integrity and verification of
+                                // all components on a system.
+                                //     However, symlinks can be used in the VOA hierarchy to point
+                                // to files or directories below one of the [load paths] in
+                                // descending priority.     Symlinks
+                                // to files or directories below ephemeral load paths (i.e.
+                                // `/run/voa/` and `$XDG_RUNTIME_DIR/voa/`) are prohibited, as they
+                                // would lead to dangling references.
+                                //
+                                //     As an example, symlinks to files below the same load path or
+                                // to another load path with lower priority may be used to
+                                // deduplicate the use of a single _signature verifier_ for multiple
+                                // use-cases.     Additionally,
+                                // using symlinks allows to automatically keep _signature verifiers_
+                                // in sync with canonical upstream data.
+                                //
+                                //     Symlinking to files or directories external to the load paths
+                                // is prohibited.
+                                //     VOA implementations must not consider symlinks to files
+                                // outside of the specified load paths and should raise a warning if
+                                // such symlinks are encountered.
+
+                                // ### Masking
+                                //
+                                // Individual _signature verifiers_ may be masked using a symlink to
+                                // `/dev/null`, independent of [technology].
                             }
-                            Err(err) => log::debug!("  Error while loading file {err}"),
                         }
                     }
-                    Err(err) => log::debug!("  DirEntry error {err}"),
+                    Err(err) => debug!("  DirEntry error {err}"),
                 }
             }
         }
