@@ -42,10 +42,14 @@ clap = { version = "4.5.19", features = [
 ] }
 colored = { version = "3", features = ["no-color"] }
 insta = "1.40.0"
+log = "0.4"
 proptest = "1.4.0"
 rstest = "0.25.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+simplelog = { version = "0.12", default-features = false, features = [
+    "termcolor",
+] }
 strum = { version = "0.27.0", features = ["derive"] }
 tempfile = "3"
 testresult = "0.4.1"
