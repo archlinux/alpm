@@ -72,19 +72,21 @@ pub const LOAD_PATHS_SYSTEM_MODE: &[&str] = &[
 /// (e.g. `arch` instead of `arch::::`).
 #[derive(Clone, Debug, PartialEq)]
 pub struct Os {
-    /// Name of the OS (e.g. arch or debian)
-    pub id: String,
-    /// The version of the OS (e.g. 1.0.0 or 24.12)
-    pub version_id: Option<String>,
-    /// The variant of the OS (e.g. server or workstation)
-    pub variant_id: Option<String>,
-    /// The image of an OS (e.g. cashier-system)
-    pub image_id: Option<String>,
-    /// Version of the image (e.g. 1.0.0 or 24.12)
-    pub image_version: Option<String>,
+    id: String,
+    version_id: Option<String>,
+    variant_id: Option<String>,
+    image_id: Option<String>,
+    image_version: Option<String>,
 }
 
 impl Os {
+    /// Create a new operating system specifier
+    ///
+    /// `id`: Name of the OS (e.g. arch or debian)
+    /// `version_id`: The version of the OS (e.g. 1.0.0 or 24.12)
+    /// `variant_id`: The variant of the OS (e.g. server or workstation)
+    /// `image_id`: The image of an OS (e.g. cashier-system)
+    /// `image_version`: Version of the image (e.g. 1.0.0 or 24.12)
     pub fn new(
         id: String,
         version_id: Option<String>,
@@ -135,6 +137,8 @@ pub struct Purpose {
 }
 
 impl Purpose {
+    /// Create a new `Purpose` object, which combines a [Role] and a [Mode].
+    /// A `Purpose` describes in what context the signature verifiers are used.
     pub fn new(role: Role, mode: Mode) -> Self {
         Self { role, mode }
     }
@@ -177,7 +181,10 @@ pub enum Role {
 /// `trust-anchor-packages`.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Mode {
+    /// `ArtifactVerifier`s are used directly for the validation of signatures on artifacts
     ArtifactVerifier,
+
+    /// `TrustAnchor`s are used to ascertain the authenticity of [Mode::ArtifactVerifier]s.
     TrustAnchor,
 }
 
@@ -190,9 +197,12 @@ pub enum Mode {
 /// If no specific context is required, the context `Default` must be used.
 #[derive(Clone, Debug, PartialEq)]
 pub enum Context {
+    /// The default context
     Default,
 
-    // TODO: enforce limitation to legal characters
+    /// Defines a specific [Context] for verifiers within an [Os] and [Purpose]
+    ///
+    /// TODO: enforce limitation to legal characters
     Specified(String),
 }
 
@@ -209,7 +219,10 @@ impl Context {
 /// in VOA.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Technology {
+    /// The OpenPGP signature verification technology
     OpenPGP,
+
+    /// The SSH signature verification technology
     SSH,
 }
 
@@ -242,18 +255,23 @@ impl VerifierSourcePath {
             .join(self.technology.path())
     }
 
+    /// The [Os] uniquely identifies the Operating System of this [VerifierSourcePath].
     pub fn os(&self) -> &Os {
         &self.os
     }
 
+    /// The [Purpose] specifies both the [Role] and the [Mode] of the verifiers in this
+    /// [VerifierSourcePath].
     pub fn purpose(&self) -> Purpose {
         self.purpose
     }
 
+    /// The [Context] may define a specific namespace for verifiers within an [Os] and [Purpose].
     pub fn context(&self) -> &Context {
         &self.context
     }
 
+    /// The signature verification technology of this [VerifierSourcePath].
     pub fn technology(&self) -> Technology {
         self.technology
     }
@@ -329,7 +347,10 @@ impl OpaqueVerifier {
 /// - the `./voa/` directory in each directory defined in `$XDG_DATA_DIRS`
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum LoadPaths {
+    /// Load paths for "system mode"
     System,
+
+    /// Load paths for "user mode"
     User,
 }
 
