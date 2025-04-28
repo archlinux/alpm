@@ -98,6 +98,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "alpm-pkgbuild"
+version = "0.1.0"
+dependencies = [
+ "alpm-srcinfo",
+ "alpm-types",
+ "assert_cmd",
+ "clap",
+ "log",
+ "simplelog",
+ "strum",
+ "tempfile",
+ "testresult",
+ "thiserror",
+]
+
+[[package]]
 name = "alpm-pkginfo"
 version = "0.1.0"
 dependencies = [
