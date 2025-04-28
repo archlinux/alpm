@@ -24,7 +24,7 @@ stages:
   before_script:
     - pacman-key --init
     - pacman -Sy --needed --noconfirm archlinux-keyring
-    - source .env && pacman -Syu --needed --noconfirm $RUST_DEV_TOOLS_PACKAGES
+    - source .env && pacman -Syu --needed --noconfirm $RUST_DEV_TOOLS_PACKAGES $PKGBUILD_DEPENDENCIES
     - just install-rust-dev-tools
 
 commits:
