@@ -413,11 +413,11 @@ impl Voa {
 
             let source_path = path.path();
 
-            trace!("Opening VOA path {:?}", source_path);
+            trace!("Opening VOA path {source_path:?}");
 
             let res = std::fs::read_dir(source_path);
             let Ok(dir) = res else {
-                trace!("  Can't read path as a directory {:?}", res);
+                trace!("⤷ Can't read path as a directory {res:?}");
                 continue; // try next load path
             };
 
@@ -426,7 +426,7 @@ impl Voa {
                     Ok(entry) => {
                         if let Ok(file_type) = entry.file_type() {
                             if file_type.is_file() {
-                                trace!("Loading verifier file {:?}", entry);
+                                trace!("Loading verifier file {entry:?}");
 
                                 match std::fs::read(entry.path()) {
                                     Ok(verifier_data) => {
@@ -475,7 +475,7 @@ impl Voa {
                             }
                         }
                     }
-                    Err(err) => debug!("  DirEntry error {err}"),
+                    Err(err) => debug!("⤷ DirEntry error {err}"),
                 }
             }
         }
