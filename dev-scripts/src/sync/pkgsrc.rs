@@ -59,10 +59,12 @@ impl PkgSrcDownloader {
         // Copy .SRCINFO and PKGBUILD files to the target directory
         for repo in all_repo_names {
             let download_path = download_dir.join(&repo);
-            if download_path.join(".SRCINFO").exists() {
-                let target_dir = self.dest.join("pkgsrc").join(&repo);
-                std::fs::create_dir_all(&target_dir)?;
-                std::fs::copy(download_path.join(".SRCINFO"), target_dir.join(".SRCINFO"))?;
+            for file in [".SRCINFO", "PKGBUILD"] {
+                if download_path.join(file).exists() {
+                    let target_dir = self.dest.join("pkgsrc").join(&repo);
+                    std::fs::create_dir_all(&target_dir)?;
+                    std::fs::copy(download_path.join(file), target_dir.join(file))?;
+                }
             }
         }
 
