@@ -38,7 +38,7 @@ pub enum SourceInfoCommand {
     #[command()]
     RunBridge {
         /// Path to the PKGBUILD file the bridge should be run on.
-        #[arg(value_name = "PKGBUILD_PATH")]
+        #[arg(value_name = "PKGBUILD_PATH", default_value = "./PKGBUILD")]
         pkgbuild_path: PathBuf,
     },
 }
