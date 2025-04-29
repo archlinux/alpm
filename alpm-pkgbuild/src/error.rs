@@ -40,4 +40,10 @@ pub enum Error {
         stdout: String,
         stderr: String,
     },
+
+    /// A parsing error that occurred during winnow file parsing.
+    #[error(
+        "A error happened in the internal bridge output parser. Please report this upstream!:\n{0}"
+    )]
+    BridgeParseError(String),
 }

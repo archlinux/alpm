@@ -1,3 +1,5 @@
+pub mod parser;
+
 use std::{
     io::ErrorKind,
     path::Path,
