@@ -19,8 +19,10 @@ required-features = ["cli"]
 [features]
 cli = ["dep:clap"]
 default = ["cli"]
+winnow-debug = ["winnow/debug"]
 
 [dependencies]
+alpm-parsers.workspace = true
 alpm-srcinfo.workspace = true
 alpm-types.workspace = true
 clap = { workspace = true, optional = true }
@@ -29,6 +31,7 @@ simplelog.workspace = true
 strum.workspace = true
 thiserror.workspace = true
 which.workspace = true
+winnow.workspace = true
 
 [dev-dependencies]
 assert_cmd.workspace = true

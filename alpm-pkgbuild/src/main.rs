@@ -4,7 +4,7 @@ use std::process::ExitCode;
 
 use alpm_pkgbuild::cli::{Cli, Command, SourceInfoCommand};
 use clap::Parser;
-use commands::run_bridge;
+use commands::{print_source_info, run_bridge};
 use log::LevelFilter;
 use simplelog::{ColorChoice, Config, TermLogger, TerminalMode};
 
@@ -18,6 +18,7 @@ fn main() -> ExitCode {
     init_logger(cli.verbosity);
     let result = match cli.command {
         Command::Srcinfo { subcommand } => match subcommand {
+            SourceInfoCommand::Format { pkgbuild_path } => print_source_info(pkgbuild_path),
             SourceInfoCommand::RunBridge { pkgbuild_path } => run_bridge(pkgbuild_path),
         },
     };
