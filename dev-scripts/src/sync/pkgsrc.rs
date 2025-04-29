@@ -49,11 +49,14 @@ impl PkgSrcDownloader {
         info!("Found {} official packages.", all_repo_names.len());
 
         let download_dir = self.dest.join("download/pkgsrc");
-        self.parallel_update_or_clone(&all_repo_names, &download_dir)?;
 
+        // Remove all old repos before trying to update them.
         self.remove_old_repos(&all_repo_names, &download_dir)?;
 
         // Copy all .SRCINFO files to the target directory
+        self.parallel_update_or_clone(&all_repo_names, &download_dir)?;
+
+        // Copy .SRCINFO and PKGBUILD files to the target directory
         for repo in all_repo_names {
             let download_path = download_dir.join(&repo);
             if download_path.join(".SRCINFO").exists() {
