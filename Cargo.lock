@@ -100,12 +100,14 @@ dependencies = [
 name = "alpm-pkgbuild"
 version = "0.1.0"
 dependencies = [
+ "alpm-parsers",
  "alpm-types",
  "clap",
  "log",
  "simplelog",
  "strum",
  "thiserror",
+ "winnow",
 ]
 
 [[package]]

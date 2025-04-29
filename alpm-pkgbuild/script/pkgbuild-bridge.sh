@@ -40,11 +40,6 @@ readonly -a base_pkgbuild_vars=(
 )
 
 readonly -a pkgbuild_functions=(
-    pkgver
-    verify
-    prepare
-    build
-    check
     package
 )
 
