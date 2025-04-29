@@ -86,4 +86,10 @@ pub enum Error {
         /// The stderr of the failed command.
         stderr: String,
     },
+
+    /// A parsing error that occurred during winnow file parsing.
+    #[error(
+        "An unexpected error happened in the internal bridge output parser. Please report this bug!:\n{0}"
+    )]
+    BridgeParseError(String),
 }
