@@ -32,4 +32,10 @@ pub enum Error {
     /// IO error with additional path info for more context.
     #[error("Failed to {0} process to extract PKGBUILD:\nCommand: bash [{1:?}]\nstdout:\n{2}")]
     ScriptError(&'static str, Vec<String>, std::io::Error),
+
+    /// A parsing error that occurred during winnow file parsing.
+    #[error(
+        "A error happened in the internal bridge output parser. Please report this upstream!:\n{0}"
+    )]
+    BridgeParseError(String),
 }

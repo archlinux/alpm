@@ -1,3 +1,5 @@
+pub mod parser;
+
 use std::{
     io::{ErrorKind, Write},
     path::Path,
@@ -8,7 +10,7 @@ use log::debug;
 
 use crate::error::Error;
 
-pub const PKGBUILD_SCRIPT: &str = include_str!("../script/pkgbuild-bridge.sh");
+pub const PKGBUILD_SCRIPT: &str = include_str!("../../script/pkgbuild-bridge.sh");
 
 pub fn run_bridge_script(pkgbuild_path: &Path) -> Result<String, Error> {
     if !pkgbuild_path.exists() {
