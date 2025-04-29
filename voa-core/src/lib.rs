@@ -34,10 +34,10 @@
 
 use std::{
     fmt::{Debug, Formatter},
-    path::PathBuf,
+    path::{Path, PathBuf},
 };
 
-use log::{debug, trace};
+use log::{debug, trace, warn};
 
 /// Load paths for "system mode" operation of VOA.
 pub const LOAD_PATHS_SYSTEM_MODE: &[&str] = &[
@@ -247,6 +247,8 @@ pub struct VerifierSourcePath {
 }
 
 impl VerifierSourcePath {
+    /// The filesystem path that this [VerifierSourcePath] represents.
+    /// This representation of the path doesn't canonicalize symlinks, if any.
     fn path(&self) -> PathBuf {
         self.load_path
             .join(self.os.path())
@@ -274,6 +276,86 @@ impl VerifierSourcePath {
     /// The signature verification technology of this [VerifierSourcePath].
     pub fn technology(&self) -> Technology {
         self.technology
+    }
+}
+
+/// This structure represents a [VerifierSourcePath] that has been checked for "legality":
+///
+/// Constructing it checks the legality of symlinks (if any) in the VOA path structure, and persists
+/// the canonicalized path to the target directory.
+struct CheckedVerifierSourcePath {
+    verifier_source_path: VerifierSourcePath,
+
+    // The canonicalized target path of this VerifierSourcePath (i.e. with resolved symlinks)
+    canonicalized_target: PathBuf,
+}
+
+impl CheckedVerifierSourcePath {
+    // Check that VerifierSourcePath forms a legal path on the local filesystem, and all involved
+    // symlinks (if any) conform to VOA's symlink restrictions
+    fn new(verifier_source_path: VerifierSourcePath) -> std::io::Result<Self> {
+        // Canonicalized base load path
+        // (any potential internal symlinks of this top level "load_path" are not checked)
+        let base_path = verifier_source_path.load_path.canonicalize()?;
+
+        // Append a segment to a path, and check that the resulting path conforms to the symlinking
+        // constraints laid out in the VOA spec
+        //
+        // FIXME: This closure needs a list of (canonicalized) load paths that this one may link to
+        let append = |p: &Path, segment: &str| -> std::io::Result<PathBuf> {
+            let mut buf = p.join(segment);
+            if buf.is_symlink() {
+                // Check that the symlink-canonicalized path is acceptable, including this segment
+                let canon = buf.canonicalize()?;
+
+                // TODO: This check should actually allow links into some of the other current load
+                //       paths (but not all of them!)
+                //        -> we should actually check "starts_with" against canonicalized forms of
+                //           all currently legal-to-link-into load paths
+                //
+                // [..] However, symlinks can be used in the VOA hierarchy to point
+                // to files or directories below one of the [load paths] in
+                // descending priority.
+                // Symlinks to files or directories below ephemeral load paths
+                // (i.e. `/run/voa/` and `$XDG_RUNTIME_DIR/voa/`) are prohibited, as they
+                // could lead to dangling references. [..]
+                if !canon.starts_with(&base_path) {
+                    trace!(
+                        "CheckedVerifierSourcePath::new illegal path segment {segment:?} following {buf:?}"
+                    );
+
+                    return Err(std::io::Error::new(
+                        std::io::ErrorKind::Other,
+                        "{segment:?} is not valid following {buf:?}",
+                    ));
+                }
+
+                buf = canon;
+            }
+
+            if !buf.is_dir() {
+                trace!("CheckedVerifierSourcePath::new {buf:?} is not a directory");
+
+                return Err(std::io::Error::new(
+                    std::io::ErrorKind::NotADirectory,
+                    "{buf:?} is not a directory",
+                ));
+            }
+
+            Ok(buf)
+        };
+
+        let mut path = append(&base_path, &verifier_source_path.os.path())?;
+        path = append(&path, &verifier_source_path.purpose.path())?;
+        path = append(&path, verifier_source_path.context.path())?;
+        path = append(&path, verifier_source_path.technology.path())?;
+
+        trace!("CheckedVerifierSourcePath::new canonicalized path: {path:?}");
+
+        Ok(Self {
+            verifier_source_path,
+            canonicalized_target: path,
+        })
     }
 }
 
@@ -401,19 +483,29 @@ impl Voa {
         let mut certs = vec![];
 
         for load_path in self.load_paths() {
-            trace!("Looking for signature verifiers in the load path {load_path:?}");
+            debug!("Looking for signature verifiers in the load path {load_path:?}");
 
-            let path = VerifierSourcePath {
-                load_path,
+            let res = CheckedVerifierSourcePath::new(VerifierSourcePath {
+                load_path: load_path.clone(),
                 os: os.clone(),
                 purpose,
                 context: context.clone(),
                 technology,
+            });
+
+            let Ok(checked_path) = res else {
+                warn!(
+                    "Error while checking load path {load_path:?}: {:?}",
+                    res.err().expect("error case")
+                );
+
+                continue;
             };
 
-            let source_path = path.path();
+            // This has been checked to be legal according to VOA symlinking rules, and a directory
+            let source_path = &checked_path.canonicalized_target;
 
-            trace!("Opening VOA path {source_path:?}");
+            trace!("Loading from VOA path {source_path:?}");
 
             let res = std::fs::read_dir(source_path);
             let Ok(dir) = res else {
@@ -425,57 +517,55 @@ impl Voa {
                 match res {
                     Ok(entry) => {
                         if let Ok(file_type) = entry.file_type() {
-                            if file_type.is_file() {
-                                trace!("Loading verifier file {entry:?}");
+                            let mut try_load = |path: &Path| {
+                                trace!("Loading verifier file {path:?}");
 
-                                match std::fs::read(entry.path()) {
+                                match std::fs::read(path) {
                                     Ok(verifier_data) => {
                                         certs.push(OpaqueVerifier {
                                             verifier_data,
-                                            path: path.clone(),
+                                            path: checked_path.verifier_source_path.clone(),
                                             filename: entry
                                                 .file_name()
                                                 .to_str()
-                                                .unwrap()
+                                                .expect("utf8 problem")
                                                 .to_string(), // FIXME!
                                         });
                                     }
-                                    Err(err) => debug!("  Error while loading file {err}"),
+                                    Err(err) => trace!("⤷ Error while loading file {err}"),
                                 }
+                            };
+
+                            if file_type.is_file() {
+                                try_load(&entry.path());
                             } else if file_type.is_symlink() {
-                                unimplemented!("TODO")
+                                match std::fs::read_link(entry.path()) {
+                                    Ok(path) => {
+                                        if path.as_path().to_str() == Some("/dev/null") {
+                                            // Individual _signature verifiers_ may be masked using
+                                            // a symlink to `/dev/null`, independent of
+                                            // [technology].
 
-                                // Load paths are constrained to self-contained locations on a host
-                                // as they provide vital data for the integrity and verification of
-                                // all components on a system.
-                                //     However, symlinks can be used in the VOA hierarchy to point
-                                // to files or directories below one of the [load paths] in
-                                // descending priority.     Symlinks
-                                // to files or directories below ephemeral load paths (i.e.
-                                // `/run/voa/` and `$XDG_RUNTIME_DIR/voa/`) are prohibited, as they
-                                // would lead to dangling references.
-                                //
-                                //     As an example, symlinks to files below the same load path or
-                                // to another load path with lower priority may be used to
-                                // deduplicate the use of a single _signature verifier_ for multiple
-                                // use-cases.     Additionally,
-                                // using symlinks allows to automatically keep _signature verifiers_
-                                // in sync with canonical upstream data.
-                                //
-                                //     Symlinking to files or directories external to the load paths
-                                // is prohibited.
-                                //     VOA implementations must not consider symlinks to files
-                                // outside of the specified load paths and should raise a warning if
-                                // such symlinks are encountered.
+                                            unimplemented!("FIXME: handle masking")
+                                        } else {
+                                            // FIXME: check that `path` is legal:
+                                            // [..] However, symlinks can be used in the VOA
+                                            // hierarchy to point to files or directories below one
+                                            // of the [load paths] in descending priority.
+                                            // Symlinks to files or directories below ephemeral load
+                                            // paths (i.e. `/run/voa/` and `$XDG_RUNTIME_DIR/voa/`)
+                                            // are prohibited, as they could lead to dangling
+                                            // references. [..]
 
-                                // ### Masking
-                                //
-                                // Individual _signature verifiers_ may be masked using a symlink to
-                                // `/dev/null`, independent of [technology].
+                                            try_load(&entry.path());
+                                        }
+                                    }
+                                    Err(e) => trace!("⤷ Error for symlink {entry:?}: {e:?}"),
+                                }
                             }
                         }
                     }
-                    Err(err) => debug!("⤷ DirEntry error {err}"),
+                    Err(err) => trace!("⤷ DirEntry error {err}"),
                 }
             }
         }
