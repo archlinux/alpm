@@ -124,6 +124,7 @@ dependencies = [
 name = "alpm-pkgbuild"
 version = "0.1.0"
 dependencies = [
+ "alpm-parsers",
  "alpm-srcinfo",
  "alpm-types",
  "assert_cmd",
@@ -135,6 +136,7 @@ dependencies = [
  "testresult",
  "thiserror",
  "which",
+ "winnow",
 ]
 
 [[package]]

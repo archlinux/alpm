@@ -88,4 +88,10 @@ pub enum Error {
         /// The stderr of the failed command.
         stderr: String,
     },
+
+    /// A parsing error that occurred during winnow file parsing.
+    #[error(
+        "An unexpected error occurred in the output parser for the 'alpm-pkgbuild-bridge' script:\n{0}\n\nPlease report this as a bug at https://gitlab.archlinux.org/archlinux/alpm/alpm/-/issues"
+    )]
+    BridgeParseError(String),
 }

@@ -41,6 +41,14 @@ pub enum Command {
 /// The nested `srcinfo` subcommand for the `alpm-pkgbuild` binary.
 #[derive(Clone, Debug, Subcommand)]
 pub enum SourceInfoCommand {
+    /// Take a PKGBUILD file and create a SRCINFO file from it.
+    #[command()]
+    Format {
+        /// Path to the PKGBUILD file.
+        #[arg(value_name = "PKGBUILD_PATH", default_value = "./PKGBUILD")]
+        pkgbuild_path: PathBuf,
+    },
+
     /// Run the bridge script on a PKGBUILD file and print the raw and unfiltered output.
     ///
     /// This is mostly for debugging the bridge script and can be ignored in day-to-day usage.
