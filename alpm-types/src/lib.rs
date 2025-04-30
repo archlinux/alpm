@@ -40,6 +40,9 @@ pub use date::{BuildDate, FromOffsetDateTime};
 mod env;
 pub use env::{BuildEnvironmentOption, InstalledPackage, MakepkgOption, PackageOption};
 
+mod file_type;
+pub use file_type::FileTypeIdentifier;
+
 mod error;
 pub use error::Error;
 

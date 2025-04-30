@@ -116,6 +116,13 @@ pub enum Error {
         /// A String representing an unknown compression algorithm file extension.
         value: String,
     },
+
+    /// A string represents an unknown file type identifier.
+    #[error("Unknown file type identifier: {value:?}")]
+    UnknownFileTypeIdentifier {
+        /// A String representing an unknown file type identifier.
+        value: String,
+    },
 }
 
 impl From<std::num::ParseIntError> for crate::error::Error {
