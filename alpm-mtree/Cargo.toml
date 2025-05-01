@@ -25,15 +25,15 @@ winnow-debug = ["winnow/debug"]
 [dependencies]
 alpm-common.workspace = true
 alpm-types.workspace = true
-clap = { workspace = true, optional = true }
-flate2 = "1"
-log = { optional = true, version = "0.4.27" }
 serde.workspace = true
 serde_json.workspace = true
 strum.workspace = true
 thiserror.workspace = true
-which = { optional = true, version = "7.0.3" }
 winnow.workspace = true
+clap = { workspace = true, optional = true }
+flate2 = "1"
+log = { optional = true, version = "0.4.27" }
+which = { optional = true, version = "7.0.3" }
 
 [dev-dependencies]
 insta.workspace = true

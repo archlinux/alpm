@@ -519,11 +519,14 @@ impl FossilFragment {
         let _ = "#".parse_next(input)?;
 
         // Error if we don't find one of the expected fossil revision types.
-        let version_type = cut_err(alt(("branch", "commit", "tag")))
+        let version_keywords = ["branch", "commit", "tag"];
+        let version_type = cut_err(alt(version_keywords))
             .context(StrContext::Label("fossil revision type"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "branch, commit or tag keyword",
-            )))
+            .context_with(|| {
+                version_keywords
+                    .iter()
+                    .map(|s| StrContext::Expected(StrContextValue::StringLiteral(s)))
+            })
             .parse_next(input)?;
 
         let value = fragment_value.parse_next(input)?;
@@ -566,11 +569,14 @@ impl GitFragment {
         let _ = "#".parse_next(input)?;
 
         // Error if we don't find one of the expected git revision types.
-        let version_type = cut_err(alt(("branch", "commit", "tag")))
+        let version_keywords = ["branch", "commit", "tag"];
+        let version_type = cut_err(alt(version_keywords))
             .context(StrContext::Label("git revision type"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "branch, commit or tag keyword",
-            )))
+            .context_with(|| {
+                version_keywords
+                    .iter()
+                    .map(|s| StrContext::Expected(StrContextValue::StringLiteral(s)))
+            })
             .parse_next(input)?;
 
         let value = fragment_value.parse_next(input)?;
@@ -621,11 +627,14 @@ impl HgFragment {
         let _ = "#".parse_next(input)?;
 
         // Error if we don't find one of the expected git revision types.
-        let version_type = cut_err(alt(("branch", "revision", "tag")))
+        let version_keywords = ["branch", "revision", "tag"];
+        let version_type = cut_err(alt(version_keywords))
             .context(StrContext::Label("hg revision type"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "branch, revision or tag keyword",
-            )))
+            .context_with(|| {
+                version_keywords
+                    .iter()
+                    .map(|s| StrContext::Expected(StrContextValue::StringLiteral(s)))
+            })
             .parse_next(input)?;
 
         let value = fragment_value.parse_next(input)?;
@@ -813,7 +822,7 @@ mod tests {
     #[rstest]
     #[case(
         "git+https://example/project#revision=v1.0.0?signed",
-        "invalid git revision type\nexpected branch, commit or tag keyword"
+        "invalid git revision type\nexpected `branch`, `commit`, `tag`"
     )]
     #[case(
         "git+https://example/project#branch=feature#branch=feature",
@@ -833,7 +842,7 @@ mod tests {
     )]
     #[case(
         "hg+https://example/project#commit=154021a",
-        "invalid hg revision type\nexpected branch, revision or tag keyword"
+        "invalid hg revision type\nexpected `branch`, `revision`, `tag`"
     )]
     #[case(
         "hg+https://example/project#branch=feature?signed",

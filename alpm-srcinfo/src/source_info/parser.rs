@@ -26,7 +26,7 @@ use alpm_types::{
     Url,
     digests::{Blake2b512, Md5, Sha1, Sha224, Sha256, Sha384, Sha512},
 };
-use strum::EnumString;
+use strum::{EnumString, VariantNames};
 use winnow::{
     ModalResult,
     Parser,
@@ -155,8 +155,13 @@ fn architecture_suffix(input: &mut &str) -> ModalResult<Option<Architecture>> {
         cut_err(take_till(0.., |c| c == ' ' || c == '=').try_map(Architecture::from_str))
             .context(StrContext::Label("architecture"))
             .context(StrContext::Expected(StrContextValue::Description(
-                "an alpm-architecture compatible suffix (e.g. 'i386` or `x86_64`)",
+                "an alpm-architecture:",
             )))
+            .context_with(|| {
+                Architecture::VARIANTS
+                    .iter()
+                    .map(|arch| StrContext::Expected(StrContextValue::StringLiteral(arch)))
+            })
             .parse_next(input)?;
 
     Ok(Some(architecture))
@@ -341,7 +346,7 @@ impl RawPackage {
 }
 
 /// Keywords that are exclusive to the `pkgbase` section in SRCINFO data.
-#[derive(Debug, EnumString)]
+#[derive(Debug, EnumString, VariantNames)]
 #[strum(serialize_all = "lowercase")]
 pub enum PackageBaseKeyword {
     CheckDepends,
@@ -407,11 +412,6 @@ impl PackageBaseProperty {
                 preceded(space0, line_ending).map(|_| PackageBaseProperty::EmptyLine),
                 // In case we got text, start parsing properties
                 Self::property_parser,
-                cut_err(fail)
-                    .context(StrContext::Label("package base property"))
-                    .context(StrContext::Expected(StrContextValue::Description(
-                        "one of the allowed pkgbase properties",
-                    ))),
             )),
         )
         .parse_next(input)
@@ -440,10 +440,24 @@ impl PackageBaseProperty {
                 SharedMetaProperty::parser.map(PackageBaseProperty::MetaProperty),
                 RelationProperty::parser.map(PackageBaseProperty::RelationProperty),
                 PackageBaseProperty::exclusive_property_parser,
-                fail.context(StrContext::Label("file property type"))
+                cut_err(fail)
+                    .context(StrContext::Label("package base property type"))
                     .context(StrContext::Expected(StrContextValue::Description(
-                        "one of the allowed pkgbase properties.",
-                    ))),
+                        "one of the allowed pkgbase section properties:",
+                    )))
+                    .context_with(|| {
+                        [
+                            PackageBaseKeyword::VARIANTS,
+                            RelationKeyword::VARIANTS,
+                            SharedMetaKeyword::VARIANTS,
+                            SourceKeyword::VARIANTS,
+                        ]
+                        .into_iter()
+                        .flatten()
+                        .map(|keyword| {
+                            StrContext::Expected(StrContextValue::StringLiteral(keyword))
+                        })
+                    }),
             )),
         )
         .parse_next(input)
@@ -465,12 +479,8 @@ impl PackageBaseProperty {
     /// This function backtracks in case no keyword in this group matches.
     fn exclusive_property_parser(input: &mut &str) -> ModalResult<PackageBaseProperty> {
         // First off, get the type of the property.
-        let keyword = trace("exclusive_pkgbase_property", Self::keyword_parser)
-            .context(StrContext::Label("file property type"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "'checkdepends', 'makedepends', 'pkgver', 'pkgrel', 'epoch', 'validpgpkeys'",
-            )))
-            .parse_next(input)?;
+        let keyword =
+            trace("exclusive_pkgbase_property", Self::keyword_parser).parse_next(input)?;
 
         // Parse a possible architecture suffix for architecture specific fields.
         let architecture = match keyword {
@@ -585,11 +595,6 @@ impl PackageProperty {
                 preceded(space0, alt((line_ending, eof))).map(|_| PackageProperty::EmptyLine),
                 // In case we got text, start parsing properties
                 Self::property_parser,
-                cut_err(fail)
-                    .context(StrContext::Label("package property"))
-                    .context(StrContext::Expected(StrContextValue::Description(
-                        "one of the allowed pkgname properties.",
-                    ))),
             )),
         )
         .parse_next(input)
@@ -627,10 +632,19 @@ impl PackageProperty {
                 ClearableProperty::shared_meta_parser.map(PackageProperty::Clear),
                 SharedMetaProperty::parser.map(PackageProperty::MetaProperty),
                 RelationProperty::parser.map(PackageProperty::RelationProperty),
-                fail.context(StrContext::Label("file property type"))
+                cut_err(fail)
+                    .context(StrContext::Label("package property type"))
                     .context(StrContext::Expected(StrContextValue::Description(
-                        "one of the allowed pkgname properties.",
-                    ))),
+                        "one of the allowed package section properties:",
+                    )))
+                    .context_with(|| {
+                        [RelationKeyword::VARIANTS, SharedMetaKeyword::VARIANTS]
+                            .into_iter()
+                            .flatten()
+                            .map(|keyword| {
+                                StrContext::Expected(StrContextValue::StringLiteral(keyword))
+                            })
+                    }),
             )),
         )
         .parse_next(input)
@@ -638,7 +652,7 @@ impl PackageProperty {
 }
 
 /// Keywords that may exist both in `pkgbase` and `pkgname` sections in SRCINFO data.
-#[derive(Debug, EnumString)]
+#[derive(Debug, EnumString, VariantNames)]
 #[strum(serialize_all = "lowercase")]
 pub enum SharedMetaKeyword {
     PkgDesc,
@@ -751,7 +765,7 @@ impl SharedMetaProperty {
 /// Keywords that describe [alpm-package-relations].
 ///
 /// [alpm-package-relations]: https://alpm.archlinux.page/specifications/alpm-package-relation.7.html
-#[derive(Debug, EnumString)]
+#[derive(Debug, EnumString, VariantNames)]
 #[strum(serialize_all = "lowercase")]
 pub enum RelationKeyword {
     Depends,
@@ -872,7 +886,7 @@ impl RelationProperty {
 }
 
 /// Package source keywords that are exclusive to the `pkgbase` section in SRCINFO data.
-#[derive(Debug, EnumString)]
+#[derive(Debug, EnumString, VariantNames)]
 #[strum(serialize_all = "lowercase")]
 pub enum SourceKeyword {
     Source,

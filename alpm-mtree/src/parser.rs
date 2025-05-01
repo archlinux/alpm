@@ -86,11 +86,14 @@ pub enum PathType {
 /// Parse a single `/set` property.
 fn set_property<'s>(input: &mut &'s str) -> ModalResult<SetProperty<'s>> {
     // First off, get the type of the property.
-    let property_type = cut_err(alt(("uid", "gid", "type", "mode")))
+    let keywords = ["uid", "gid", "type", "mode"];
+    let property_type = cut_err(alt(keywords))
         .context(StrContext::Label("property"))
-        .context(StrContext::Expected(StrContextValue::Description(
-            "'uid', 'gid' or 'type', 'mode'",
-        )))
+        .context_with(|| {
+            keywords
+                .iter()
+                .map(|s| StrContext::Expected(StrContextValue::StringLiteral(s)))
+        })
         .parse_next(input)?;
 
     // Expect the `=` separator between the key-value pair
@@ -98,18 +101,23 @@ fn set_property<'s>(input: &mut &'s str) -> ModalResult<SetProperty<'s>> {
 
     // Now we continue parsing based on the type of the property.
     let property = match property_type {
-        "type" => alt(("dir", "file", "link"))
-            .map(|value| match value {
-                "dir" => SetProperty::Type(PathType::Dir),
-                "file" => SetProperty::Type(PathType::File),
-                "link" => SetProperty::Type(PathType::Link),
-                _ => unreachable!(),
-            })
-            .context(StrContext::Label("property file type"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "'dir', 'file' or 'link'",
-            )))
-            .parse_next(input)?,
+        "type" => {
+            let path_types = ["dir", "file", "link"];
+            alt(path_types)
+                .map(|value| match value {
+                    "dir" => SetProperty::Type(PathType::Dir),
+                    "file" => SetProperty::Type(PathType::File),
+                    "link" => SetProperty::Type(PathType::Link),
+                    _ => unreachable!(),
+                })
+                .context(StrContext::Label("property file type"))
+                .context_with(|| {
+                    path_types
+                        .iter()
+                        .map(|s| StrContext::Expected(StrContextValue::StringLiteral(s)))
+                })
+                .parse_next(input)?
+        }
         "uid" => SetProperty::Uid(system_id("user id", input)?),
         "gid" => SetProperty::Gid(system_id("group id", input)?),
         "mode" => SetProperty::Mode(mode(input)?),
@@ -122,11 +130,14 @@ fn set_property<'s>(input: &mut &'s str) -> ModalResult<SetProperty<'s>> {
 /// Parse a single `/unset` property.
 fn unset_property(input: &mut &str) -> ModalResult<UnsetProperty> {
     // First off, get the type of the property.
-    let property_type = cut_err(alt(("uid", "gid", "type", "mode")))
+    let keywords = ["uid", "gid", "type", "mode"];
+    let property_type = cut_err(alt(keywords))
         .context(StrContext::Label("property"))
-        .context(StrContext::Expected(StrContextValue::Description(
-            "'uid', 'gid' or 'type', 'mode'",
-        )))
+        .context_with(|| {
+            keywords
+                .iter()
+                .map(|s| StrContext::Expected(StrContextValue::StringLiteral(s)))
+        })
         .parse_next(input)?;
 
     // Map the parsed property type to the correct enum variant.
@@ -219,7 +230,7 @@ fn size(input: &mut &str) -> ModalResult<usize> {
 /// Parse a single property.
 fn property<'s>(input: &mut &'s str) -> ModalResult<PathProperty<'s>> {
     // First off, get the type of the property.
-    let property_type = cut_err(alt((
+    let keywords = [
         "type",
         "uid",
         "gid",
@@ -229,12 +240,15 @@ fn property<'s>(input: &mut &'s str) -> ModalResult<PathProperty<'s>> {
         "md5digest",
         "sha256digest",
         "time",
-    )))
-    .context(StrContext::Label("file property type"))
-    .context(StrContext::Expected(StrContextValue::Description(
-        "'type', 'uid', 'gid', 'mode', 'size', 'link', 'md5digest', 'sha256digest' or 'time'",
-    )))
-    .parse_next(input)?;
+    ];
+    let property_type = cut_err(alt(keywords))
+        .context(StrContext::Label("file property type"))
+        .context_with(|| {
+            keywords
+                .iter()
+                .map(|s| StrContext::Expected(StrContextValue::StringLiteral(s)))
+        })
+        .parse_next(input)?;
 
     // Expect the `=` separator between the key-value pair
     let _ = "=".parse_next(input)?;

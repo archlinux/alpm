@@ -8,6 +8,7 @@ use std::{
 
 use semver::Version as SemverVersion;
 use serde::{Deserialize, Serialize};
+use strum::VariantNames;
 use winnow::{
     ModalResult,
     Parser,
@@ -335,7 +336,8 @@ impl PackageVersion {
             .context(StrContext::Expected(StrContextValue::Description(
                 "ASCII alphanumeric character",
             )));
-        let tail_character = one_of((alnum, '_', '+', '.'));
+        let special_tail_character = ['_', '+', '.'];
+        let tail_character = one_of((alnum, special_tail_character));
 
         // no error context because this is infallible due to `0..`
         // note the empty tuple collection to avoid allocation
@@ -348,9 +350,11 @@ impl PackageVersion {
                 .context(StrContext::Expected(StrContextValue::Description(
                     "ASCII alphanumeric character",
                 )))
-                .context(StrContext::Expected(StrContextValue::CharLiteral('_')))
-                .context(StrContext::Expected(StrContextValue::CharLiteral('+')))
-                .context(StrContext::Expected(StrContextValue::CharLiteral('.'))),
+                .context_with(|| {
+                    special_tail_character
+                        .iter()
+                        .map(|char| StrContext::Expected(StrContextValue::CharLiteral(*char)))
+                }),
         )
             .take()
             .map(|s: &str| Self(s.to_string()))
@@ -1213,11 +1217,11 @@ impl VersionComparison {
             ("<", eof).value(Self::Less),
             (">", eof).value(Self::Greater),
             fail.context(StrContext::Label("comparison operator"))
-                .context(StrContext::Expected(StrContextValue::StringLiteral("<=")))
-                .context(StrContext::Expected(StrContextValue::StringLiteral(">=")))
-                .context(StrContext::Expected(StrContextValue::StringLiteral("=")))
-                .context(StrContext::Expected(StrContextValue::StringLiteral("<")))
-                .context(StrContext::Expected(StrContextValue::StringLiteral(">"))),
+                .context_with(|| {
+                    VersionComparison::VARIANTS
+                        .iter()
+                        .map(|cmp| StrContext::Expected(StrContextValue::StringLiteral(cmp)))
+                }),
         ))
         .parse_next(input)
     }

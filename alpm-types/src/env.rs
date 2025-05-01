@@ -31,7 +31,8 @@ use crate::{Architecture, Name, Version, error::Error};
 fn makepkg_option_parser(input: &mut &str) -> ModalResult<(String, bool)> {
     let on = opt('!').parse_next(input)?.is_none();
     let alphanum = |c: char| c.is_ascii_alphanumeric();
-    let valid_chars = one_of((alphanum, '-', '.', '_'));
+    let special_chars = ['-', '.', '_'];
+    let valid_chars = one_of((alphanum, special_chars));
     let option_name: Repeat<_, _, _, (), _> = repeat(0.., valid_chars);
     let full_parser = (
         option_name,
@@ -39,9 +40,11 @@ fn makepkg_option_parser(input: &mut &str) -> ModalResult<(String, bool)> {
             .context(StrContext::Expected(StrContextValue::Description(
                 "ASCII alphanumeric character",
             )))
-            .context(StrContext::Expected(StrContextValue::CharLiteral('-')))
-            .context(StrContext::Expected(StrContextValue::CharLiteral('.')))
-            .context(StrContext::Expected(StrContextValue::CharLiteral('_'))),
+            .context_with(|| {
+                special_chars
+                    .iter()
+                    .map(|char| StrContext::Expected(StrContextValue::CharLiteral(*char)))
+            }),
     );
     full_parser
         .take()

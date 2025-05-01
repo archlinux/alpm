@@ -151,20 +151,24 @@ impl Name {
     /// Returns an error if `input` contains an invalid _alpm-package-name_.
     pub fn parser(input: &mut &str) -> ModalResult<Self> {
         let alphanum = |c: char| c.is_ascii_alphanumeric();
-        let first_char = one_of((alphanum, '_', '@', '+'))
+        let special_first_chars = ['_', '@', '+'];
+        let first_char = one_of((alphanum, special_first_chars))
             .context(StrContext::Label("first character of package name"))
             .context(StrContext::Expected(StrContextValue::Description(
                 "ASCII alphanumeric character",
             )))
-            .context(StrContext::Expected(StrContextValue::CharLiteral('_')))
-            .context(StrContext::Expected(StrContextValue::CharLiteral('@')))
-            .context(StrContext::Expected(StrContextValue::CharLiteral('+')));
+            .context_with(|| {
+                special_first_chars
+                    .iter()
+                    .map(|char| StrContext::Expected(StrContextValue::CharLiteral(*char)))
+            });
 
-        let non_first_char = one_of((alphanum, '_', '@', '+', '-', '.'));
+        let never_first_special_chars = ['_', '@', '+', '-', '.'];
+        let never_first_char = one_of((alphanum, never_first_special_chars));
 
         // no .context() because this is infallible due to `0..`
         // note the empty tuple collection to avoid allocation
-        let remaining_chars: Repeat<_, _, _, (), _> = repeat(0.., non_first_char);
+        let remaining_chars: Repeat<_, _, _, (), _> = repeat(0.., never_first_char);
 
         let full_parser = (
             first_char,
@@ -174,11 +178,11 @@ impl Name {
                 .context(StrContext::Expected(StrContextValue::Description(
                     "ASCII alphanumeric character",
                 )))
-                .context(StrContext::Expected(StrContextValue::CharLiteral('_')))
-                .context(StrContext::Expected(StrContextValue::CharLiteral('@')))
-                .context(StrContext::Expected(StrContextValue::CharLiteral('+')))
-                .context(StrContext::Expected(StrContextValue::CharLiteral('-')))
-                .context(StrContext::Expected(StrContextValue::CharLiteral('.'))),
+                .context_with(|| {
+                    non_first_special_chars
+                        .iter()
+                        .map(|char| StrContext::Expected(StrContextValue::CharLiteral(*char)))
+                }),
         );
 
         full_parser

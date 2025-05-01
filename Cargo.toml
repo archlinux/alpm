@@ -50,7 +50,7 @@ strum = { version = "0.27.0", features = ["derive"] }
 tempfile = "3"
 testresult = "0.4.1"
 thiserror = "2.0.0"
-winnow = "0.7"
+winnow = "0.7.9"
 
 [profile.release]
 codegen-units = 1

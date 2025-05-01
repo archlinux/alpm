@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use strum::{Display, EnumString};
+use strum::{Display, EnumString, VariantNames};
 
 /// CPU architecture
 ///
@@ -44,6 +44,7 @@ use strum::{Display, EnumString};
     PartialEq,
     PartialOrd,
     Serialize,
+    VariantNames,
 )]
 #[strum(serialize_all = "lowercase")]
 #[serde(rename_all = "lowercase")]

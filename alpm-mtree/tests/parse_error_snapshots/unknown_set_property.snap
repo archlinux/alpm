@@ -2,11 +2,10 @@
 source: alpm-mtree/tests/parse_errors.rs
 description: "#mtree\n/set mode=755 id=0\n"
 expression: error
-snapshot_kind: text
 ---
 parse error at line 2, column 15
   |
 2 | /set mode=755 id=0
   |               ^
 invalid property
-expected 'uid', 'gid' or 'type', 'mode'
+expected `uid`, `gid`, `type`, `mode`
