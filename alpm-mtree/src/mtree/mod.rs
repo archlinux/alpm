@@ -1,5 +1,6 @@
 //! Handling for the ALPM-MTREE file format.
 
+pub mod path_validation_error;
 pub mod v2;
 use std::{
     fmt::{Display, Write},

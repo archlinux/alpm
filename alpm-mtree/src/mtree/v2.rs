@@ -1,16 +1,24 @@
 //! Interpreter for ALPM-MTREE v1 and v2.
 
-use std::path::PathBuf;
+use std::{fs::Metadata, io::Read, os::linux::fs::MetadataExt, path::PathBuf};
 
+use alpm_common::InputPath;
 use alpm_types::{Checksum, Digest, Md5Checksum, Sha256Checksum};
-use serde::{Serialize, Serializer, ser::Error as SerdeError};
+use log::trace;
+use serde::{Serialize, Serializer, ser::Error as SerdeError}; // codespell:ignore ser
 use winnow::Parser;
 
+#[cfg(doc)]
+use crate::Mtree;
 pub use crate::parser::PathType;
 use crate::{
     Error,
+    mtree::path_validation_error::PathValidationError,
     parser::{self, SetProperty, UnsetProperty},
 };
+
+/// The prefix that is used in all ALPM-MTREE paths.
+pub const MTREE_PATH_PREFIX: &str = "./";
 
 /// Represents a `/set` line in an MTREE file.
 ///
@@ -50,6 +58,120 @@ impl PathDefaults {
     }
 }
 
+/// Validates common path features against relevant [`Mtree`] data.
+///
+/// Returns a list of zero or more [`PathValidationError`]s.
+/// Checks that
+///
+/// - `mtree_time` matches the modification time available in `metadata`,
+/// - `mtree_uid` matches the UID available in the `metadata`,
+/// - `mtree_gid` matches the GID available in the `metadata`,
+/// - and the mode available in `metadata` ends in `mtree_mode`.
+fn validate_path_common(
+    mtree_path: impl AsRef<std::path::Path>,
+    mtree_time: i64,
+    mtree_uid: u32,
+    mtree_gid: u32,
+    mtree_mode: &str,
+    path: impl AsRef<std::path::Path>,
+    metadata: &Metadata,
+) -> Vec<PathValidationError> {
+    let mtree_path = mtree_path.as_ref();
+    let path = path.as_ref();
+    let mut errors = Vec::new();
+
+    // Ensure that the path modification time recorded in the ALPM-MTREE data matches the
+    // on-disk file.
+    if mtree_time != metadata.st_mtime() {
+        errors.push(PathValidationError::PathTimeMismatch {
+            mtree_path: mtree_path.to_path_buf(),
+            mtree_time,
+            path: path.to_path_buf(),
+            path_time: metadata.st_mtime(),
+        });
+    }
+
+    // Ensure that the path UID recorded in the ALPM-MTREE data matches the
+    // on-disk file.
+    if mtree_uid != metadata.st_uid() {
+        errors.push(PathValidationError::PathUidMismatch {
+            mtree_path: mtree_path.to_path_buf(),
+            mtree_uid,
+            path: path.to_path_buf(),
+            path_uid: metadata.st_uid(),
+        });
+    }
+
+    // Ensure that the path GID recorded in the ALPM-MTREE data matches the
+    // on-disk file.
+    if mtree_gid != metadata.st_gid() {
+        errors.push(PathValidationError::PathGidMismatch {
+            mtree_path: mtree_path.to_path_buf(),
+            mtree_gid,
+            path: path.to_path_buf(),
+            path_gid: metadata.st_gid(),
+        });
+    }
+
+    // Ensure that the path mode recorded in the ALPM-MTREE data matches the
+    // on-disk file.
+    let path_mode = format!("{:o}", metadata.st_mode());
+    if !path_mode.ends_with(mtree_mode) {
+        errors.push(PathValidationError::PathModeMismatch {
+            mtree_path: mtree_path.to_path_buf(),
+            mtree_mode: mtree_mode.to_string(),
+            path: path.to_path_buf(),
+            path_mode: path_mode.to_string(),
+        });
+    }
+
+    errors
+}
+
+/// Normalizes a [`std::path::Path`] by stripping the prefix [`MTREE_PATH_PREFIX`].
+///
+/// # Errors
+///
+/// Returns an [`alpm_common::Error`] if the prefix can not be stripped.
+fn normalize_mtree_path(path: &std::path::Path) -> Result<&std::path::Path, alpm_common::Error> {
+    path.strip_prefix(MTREE_PATH_PREFIX)
+        .map_err(|source| alpm_common::Error::PathStripPrefix {
+            prefix: PathBuf::from(MTREE_PATH_PREFIX),
+            path: path.to_path_buf(),
+            source,
+        })
+}
+
+/// Returns the [`Metadata`] of a [`std::path::Path`].
+///
+/// Uses [`Path::symlink_metadata`][`std::path::Path::symlink_metadata`] if `is_symlink` is `true`,
+/// else uses [`Path::metadata`][`std::path::Path::metadata`] to retrieve the [`Metadata`] of
+/// `path`.
+///
+/// # Errors
+///
+/// Returns a [`PathValidationError`] if the metadata of `path` cannot be retrieved.
+fn path_metadata(
+    path: impl AsRef<std::path::Path>,
+    is_symlink: bool,
+) -> Result<Metadata, PathValidationError> {
+    let path = path.as_ref();
+
+    if is_symlink {
+        path.symlink_metadata()
+            .map_err(|source| PathValidationError::PathMetadata {
+                path: path.to_path_buf(),
+                source,
+            })
+    } else {
+        path.metadata()
+            .map_err(|source| PathValidationError::PathMetadata {
+                path: path.to_path_buf(),
+                source,
+            })
+    }
+}
+
 /// A directory type path statement in an mtree file.
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Directory {
@@ -58,6 +180,106 @@ pub struct Directory {
     pub gid: u32,
     pub mode: String,
     pub time: i64,
+}
+
+impl Directory {
+    /// Checks whether [`InputPath`] equals `self`.
+    ///
+    /// More specifically, checks that
+    ///
+    /// - [`MTREE_PATH_PREFIX`] can be stripped from `self.path`,
+    /// - [`InputPath::path`] and the stripped `self.path` match,
+    /// - [`InputPath::to_path_buf`] exists,
+    /// - metadata can be retrieved for [`InputPath::to_path_buf`],
+    /// - [`InputPath::to_path_buf`] is a directory,
+    /// - the modification time of [`InputPath::to_path_buf`] matches that of `self.time`,
+    /// - the UID of [`InputPath::to_path_buf`] matches that of `self.uid`,
+    /// - the GID of [`InputPath::to_path_buf`] matches that of `self.gid`,
+    /// - the mode of [`InputPath::to_path_buf`] matches that of `self.mode`.
+    ///
+    /// # Errors
+    ///
+    /// Returns a list of [`PathValidationError`]s if issues have been found during validation of
+    /// `input_path`.
+    pub fn equals_path(&self, input_path: &InputPath) -> Result<(), Vec<PathValidationError>> {
+        let base_dir = input_path.base_dir();
+        let path = input_path.path();
+        let mut errors = Vec::new();
+
+        trace!(
+            "Comparing ALPM-MTREE directory path {self:?} with path {path:?} below {base_dir:?}"
+        );
+
+        // Normalize the ALPM-MTREE path.
+        let mtree_path = match normalize_mtree_path(self.path.as_path()) {
+            Ok(mtree_path) => mtree_path,
+            Err(error) => {
+                errors.push(error.into());
+                // Return early, as the ALPM-MTREE data is not as it should be.
+                return Err(errors);
+            }
+        };
+
+        // Ensure `self.path` and `path` match.
+        if mtree_path != path {
+            errors.push(PathValidationError::PathMismatch {
+                mtree_path: self.path.clone(),
+                path: path.to_path_buf(),
+            });
+            // Return early as the paths mismatch.
+            return Err(errors);
+        }
+
+        let path = input_path.to_path_buf();
+
+        // Ensure path exists.
+        if !path.exists() {
+            errors.push(PathValidationError::PathMissing {
+                mtree_path: self.path.clone(),
+                path: path.clone(),
+            });
+            // Return early, as there is no reason to continue doing file checks.
+            return Err(errors);
+        }
+
+        // Retrieve metadata of directory.
+        let metadata = match path_metadata(path.as_path(), false) {
+            Ok(metadata) => metadata,
+            Err(error) => {
+                errors.push(error);
+                // Return early, as the following checks are based on metadata.
+                return Err(errors);
+            }
+        };
+
+        // Ensure that the on-disk path is a directory.
+        if !metadata.is_dir() {
+            errors.push(PathValidationError::PathNotADir {
+                mtree_path: mtree_path.to_path_buf(),
+                path: path.to_path_buf(),
+            });
+            // Return early, because further checks are (mostly) based on whether this is a
+            // directory.
+            return Err(errors);
+        }
+
+        let mut common_errors = validate_path_common(
+            mtree_path,
+            self.time,
+            self.uid,
+            self.gid,
+            &self.mode,
+            path.as_path(),
+            &metadata,
+        );
+        errors.append(&mut common_errors);
+
+        if errors.is_empty() {
+            Ok(())
+        } else {
+            Err(errors)
+        }
+    }
 }
 
 /// A file type path statement in an mtree file.
@@ -78,6 +300,158 @@ pub struct File {
     pub md5_digest: Option<Md5Checksum>,
     #[serde(serialize_with = "serialize_checksum_as_hex")]
     pub sha256_digest: Sha256Checksum,
+}
+
+impl File {
+    /// Checks whether [`InputPath`] equals `self`.
+    ///
+    /// More specifically, checks that
+    ///
+    /// - [`MTREE_PATH_PREFIX`] can be stripped from `self.path`,
+    /// - [`InputPath::path`] and the stripped `self.path` match,
+    /// - [`InputPath::to_path_buf`] exists,
+    /// - metadata can be retrieved for [`InputPath::to_path_buf`],
+    /// - [`InputPath::to_path_buf`] is a file,
+    /// - the size of [`InputPath::to_path_buf`] matches that of `self.size`,
+    /// - the SHA-256 hash digest of [`InputPath::to_path_buf`] matches that of
+    ///   `self.sha256_digest`,
+    /// - the modification time of [`InputPath::to_path_buf`] matches that of `self.time`,
+    /// - the UID of [`InputPath::to_path_buf`] matches that of `self.uid`,
+    /// - the GID of [`InputPath::to_path_buf`] matches that of `self.gid`,
+    /// - the mode of [`InputPath::to_path_buf`] matches that of `self.mode`.
+    ///
+    /// # Errors
+    ///
+    /// Returns a list of [`PathValidationError`]s if issues have been found during validation of
+    /// `input_path`.
+    pub fn equals_path(&self, input_path: &InputPath) -> Result<(), Vec<PathValidationError>> {
+        let base_dir = input_path.base_dir();
+        let path = input_path.path();
+        let mut errors = Vec::new();
+
+        trace!("Comparing ALPM-MTREE file path {self:?} with path {path:?} below {base_dir:?}");
+
+        // Normalize the ALPM-MTREE path.
+        let mtree_path = match normalize_mtree_path(self.path.as_path()) {
+            Ok(mtree_path) => mtree_path,
+            Err(error) => {
+                errors.push(error.into());
+                // Return early, as the ALPM-MTREE data is not as it should be.
+                return Err(errors);
+            }
+        };
+
+        // Ensure `self.path` and `path` match.
+        if mtree_path != path {
+            errors.push(PathValidationError::PathMismatch {
+                mtree_path: self.path.clone(),
+                path: path.to_path_buf(),
+            });
+            // Return early as the paths mismatch.
+            return Err(errors);
+        }
+
+        let path = input_path.to_path_buf();
+
+        // Ensure path exists.
+        if !path.exists() {
+            errors.push(PathValidationError::PathMissing {
+                mtree_path: self.path.clone(),
+                path: path.clone(),
+            });
+            // Return early, as there is no reason to continue doing file checks.
+            return Err(errors);
+        }
+
+        // Retrieve metadata of file.
+        let metadata = match path_metadata(path.as_path(), false) {
+            Ok(metadata) => metadata,
+            Err(error) => {
+                errors.push(error);
+                // Return early, as the following checks are based on metadata.
+                return Err(errors);
+            }
+        };
+
+        // Ensure that the on-disk path is a file.
+        if !metadata.is_file() {
+            errors.push(PathValidationError::PathNotAFile {
+                mtree_path: mtree_path.to_path_buf(),
+                path: path.to_path_buf(),
+            });
+            // Return early, because further checks are (mostly) based on whether this is a file.
+            return Err(errors);
+        }
+
+        // Create the hash digest.
+        let path_digest = {
+            let mut file = match std::fs::File::open(path.as_path()) {
+                Ok(file) => file,
+                Err(source) => {
+                    errors.push(PathValidationError::CreateHashDigest {
+                        path: path.to_path_buf(),
+                        source,
+                    });
+                    // Return early, because not being able to open the file points at file system
+                    // issues.
+                    return Err(errors);
+                }
+            };
+
+            let mut buf = Vec::new();
+            match file.read_to_end(&mut buf) {
+                Ok(_) => {}
+                Err(source) => {
+                    errors.push(PathValidationError::CreateHashDigest {
+                        path: path.to_path_buf(),
+                        source,
+                    });
+                    // Return early, because not being able to read the file points at file system
+                    // issues.
+                    return Err(errors);
+                }
+            }
+
+            Sha256Checksum::calculate_from(buf)
+        };
+
+        // Compare the file size.
+        if metadata.st_size() != self.size {
+            errors.push(PathValidationError::PathSizeMismatch {
+                mtree_path: self.path.clone(),
+                mtree_size: self.size,
+                path: path.to_path_buf(),
+                path_size: metadata.st_size(),
+            });
+        }
+
+        // Compare the hash digests.
+        if self.sha256_digest != path_digest {
+            errors.push(PathValidationError::PathDigestMismatch {
+                mtree_path: mtree_path.to_path_buf(),
+                mtree_digest: self.sha256_digest.clone(),
+                path: path.to_path_buf(),
+                path_digest,
+            });
+        }
+
+        let mut common_errors = validate_path_common(
+            mtree_path,
+            self.time,
+            self.uid,
+            self.gid,
+            &self.mode,
+            path.as_path(),
+            &metadata,
+        );
+        errors.append(&mut common_errors);
+
+        if errors.is_empty() {
+            Ok(())
+        } else {
+            Err(errors)
+        }
+    }
 }
 
 /// Serialize an `Option<Checksum<D>>` as a HexString.
@@ -124,6 +498,107 @@ pub struct Link {
     pub link_path: PathBuf,
 }
 
+impl Link {
+    /// Checks whether [`InputPath`] equals `self`.
+    ///
+    /// More specifically, checks that
+    ///
+    /// - [`MTREE_PATH_PREFIX`] can be stripped from `self.path`,
+    /// - [`InputPath::path`] and the stripped `self.path` match,
+    /// - [`InputPath::to_path_buf`] exists and is a symlink,
+    /// - metadata can be retrieved for [`InputPath::to_path_buf`],
+    /// - the link path of [`InputPath::to_path_buf`] matches that of `self.link_path`,
+    /// - the modification time of [`InputPath::to_path_buf`] matches that of `self.time`,
+    /// - the UID of [`InputPath::to_path_buf`] matches that of `self.uid`,
+    /// - the GID of [`InputPath::to_path_buf`] matches that of `self.gid`,
+    /// - the mode of [`InputPath::to_path_buf`] matches that of `self.mode`.
+    ///
+    /// # Errors
+    ///
+    /// Returns a list of [`PathValidationError`]s if issues have been found during validation of
+    /// `input_path`.
+    pub fn equals_path(&self, input_path: &InputPath) -> Result<(), Vec<PathValidationError>> {
+        let base_dir = input_path.base_dir();
+        let path = input_path.path();
+        let mut errors = Vec::new();
+
+        trace!("Comparing ALPM-MTREE symlink path {self:?} with path {path:?} below {base_dir:?}");
+
+        // Normalize the ALPM-MTREE path.
+        let mtree_path = match normalize_mtree_path(self.path.as_path()) {
+            Ok(mtree_path) => mtree_path,
+            Err(error) => {
+                errors.push(error.into());
+                // Return early, as the ALPM-MTREE data is not as it should be.
+                return Err(errors);
+            }
+        };
+
+        // Ensure `self.path` and `path` match.
+        if mtree_path != path {
+            errors.push(PathValidationError::PathMismatch {
+                mtree_path: self.path.clone(),
+                path: path.to_path_buf(),
+            });
+            // Return early as the paths mismatch.
+            return Err(errors);
+        }
+
+        let path = input_path.to_path_buf();
+
+        // Get the target path of the symlink and ensure it matches.
+        match path.read_link() {
+            Ok(link_path) => {
+                if self.link_path != link_path.as_path() {
+                    errors.push(PathValidationError::PathSymlinkMismatch {
+                        mtree_path: mtree_path.to_path_buf(),
+                        mtree_link_path: self.link_path.clone(),
+                        path: path.clone(),
+                        link_path,
+                    });
+                }
+            }
+            Err(source) => {
+                // Here we know the path is either not a symlink or does not exist.
+                errors.push(PathValidationError::ReadLink {
+                    path: path.clone(),
+                    mtree_path: mtree_path.to_path_buf(),
+                    source,
+                });
+                // Return early, as there is no reason to continue doing file checks.
+                return Err(errors);
+            }
+        }
+
+        // Retrieve metadata of symlink.
+        let metadata = match path_metadata(path.as_path(), true) {
+            Ok(metadata) => metadata,
+            Err(error) => {
+                errors.push(error);
+                // Return early, as the following checks are based on metadata.
+                return Err(errors);
+            }
+        };
+
+        let mut common_errors = validate_path_common(
+            mtree_path,
+            self.time,
+            self.uid,
+            self.gid,
+            &self.mode,
+            path.as_path(),
+            &metadata,
+        );
+        errors.append(&mut common_errors);
+
+        if errors.is_empty() {
+            Ok(())
+        } else {
+            Err(errors)
+        }
+    }
+}
+
 /// Represents the three possible types inside a path type line of an MTREE file.
 ///
 /// While serializing, the type is converted into a `type` field on the inner struct.
@@ -138,6 +613,54 @@ pub enum Path {
     File(File),
     #[serde(rename = "link")]
     Link(Link),
+}
+
+impl Path {
+    /// Checks whether an [`InputPath`] equals `self`.
+    ///
+    /// Depending on type of [`Path`], delegates to [`Directory::equals_path`],
+    /// [`File::equals_path`] or [`Link::equals_path`].
+    ///
+    /// # Errors
+    ///
+    /// Returns a list of [`PathValidationError`]s if issues have been found during validation of
+    /// `input_path`.
+    pub fn equals_path(&self, input_path: &InputPath) -> Result<(), Vec<PathValidationError>> {
+        match self {
+            Self::Directory(directory) => directory.equals_path(input_path),
+            Self::File(file) => file.equals_path(input_path),
+            Self::Link(link) => link.equals_path(input_path),
+        }
+    }
+
+    /// Returns the [`PathBuf`] of the [`Path`].
+    pub fn to_path_buf(&self) -> PathBuf {
+        match self {
+            Self::Directory(directory) => directory.path.clone(),
+            Self::File(file) => file.path.clone(),
+            Self::Link(link) => link.path.clone(),
+        }
+    }
+
+    /// Returns the [`std::path::Path`] of the [`Path`].
+    pub fn as_path(&self) -> &std::path::Path {
+        match self {
+            Self::Directory(directory) => directory.path.as_path(),
+            Self::File(file) => file.path.as_path(),
+            Self::Link(link) => link.path.as_path(),
+        }
+    }
+
+    /// Returns the normalized [`std::path::Path`] of the [`Path`].
+    ///
+    /// Normalization strips the prefix [`MTREE_PATH_PREFIX`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`alpm_common::Error`] if the prefix can not be stripped.
+    pub fn as_normalized_path(&self) -> Result<&std::path::Path, alpm_common::Error> {
+        normalize_mtree_path(self.as_path())
+    }
 }
 
 impl Ord for Path {
@@ -369,4 +892,128 @@ fn path_from_parsed(
     };
 
     Ok(path)
+}
+
+#[cfg(test)]
+mod tests {
+    use std::{fs::create_dir, os::unix::fs::symlink};
+
+    use rstest::rstest;
+    use tempfile::tempdir;
+    use testresult::TestResult;
+
+    use super::*;
+
+    /// Succeeds to normalize a [`std::path::Path`].
+    #[rstest]
+    #[case("./test", "test")]
+    #[case("./test/foo/bar", "test/foo/bar")]
+    fn test_normalize_mtree_path_success(#[case] path: &str, #[case] expected: &str) -> TestResult {
+        let path = PathBuf::from(path);
+        let expected = PathBuf::from(expected);
+
+        assert_eq!(&expected, &normalize_mtree_path(&path)?);
+        Ok(())
+    }
+
+    /// Fails to normalize a [`std::path::Path`].
+    #[rstest]
+    #[case("test")]
+    #[case("test/foo/bar")]
+    fn test_normalize_mtree_path_failure(#[case] path: &str) -> TestResult {
+        let path = PathBuf::from(path);
+
+        match normalize_mtree_path(&path) {
+            Ok(output) => return Err(format!(
+                "Succeeded to normalize path {path:?} as {output:?}, but this should have failed!"
+            )
+            .into()),
+            Err(error) => {
+                if !matches!(
+                    error,
+                    alpm_common::Error::PathStripPrefix {
+                        prefix: _,
+                        path: _,
+                        source: _
+                    }
+                ) {
+                    return Err("Did not raise the correct error".into());
+                }
+            }
+        }
+
+        Ok(())
+    }
+
+    /// Succeeds to retrieve [`Metadata`] of a file.
+    #[test]
+    fn test_path_metadata_success() -> TestResult {
+        let tmp_dir = tempdir()?;
+        let tmp_path = tmp_dir.path();
+
+        let test_dir = tmp_path.join("dir");
+        let test_file = tmp_path.join("file.txt");
+        let test_symlink = tmp_path.join("link_file.txt");
+
+        create_dir(&test_dir)?;
+        std::fs::File::create(&test_file)?;
+        symlink(&test_file, &test_symlink)?;
+
+        if let Err(error) = path_metadata(&test_dir, false) {
+            return Err(format!(
+                "Retrieving metadata of {test_dir:?} should have succeeded, but failed:\n{error}"
+            )
+            .into());
+        }
+
+        if let Err(error) = path_metadata(&test_file, false) {
+            return Err(format!(
+                "Retrieving metadata of {test_file:?} should have succeeded, but failed:\n{error}"
+            )
+            .into());
+        }
+
+        if let Err(error) = path_metadata(&test_symlink, false) {
+            return Err(format!(
+                "Retrieving metadata of {test_symlink:?} should have succeeded, but failed:\n{error}"
+            )
+            .into());
+        }
+
+        Ok(())
+    }
+
+    /// Fails to retrieve [`Metadata`] of a file.
+    #[test]
+    fn test_path_metadata_failure() -> TestResult {
+        let tmp_dir = tempdir()?;
+        let tmp_path = tmp_dir.path();
+
+        let test_dir = tmp_path.join("dir");
+        let test_file = tmp_path.join("file.txt");
+        let test_symlink = tmp_path.join("link_file.txt");
+
+        if let Ok(metadata) = path_metadata(&test_dir, false) {
+            return Err(format!(
+                "Retrieving metadata of {test_dir:?} should have failed, but succeeded:\n{metadata:?}"
+            )
+            .into());
+        }
+
+        if let Ok(metadata) = path_metadata(&test_file, false) {
+            return Err(format!(
+                "Retrieving metadata of {test_file:?} should have failed, but succeeded:\n{metadata:?}"
+            )
+            .into());
+        }
+
+        if let Ok(metadata) = path_metadata(&test_symlink, true) {
+            return Err(format!(
+                "Retrieving metadata of {test_symlink:?} should have failed, but succeeded:\n{metadata:?}"
+            )
+            .into());
+        }
+
+        Ok(())
+    }
 }
