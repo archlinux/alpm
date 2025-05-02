@@ -47,8 +47,8 @@ pub enum Statement<'a> {
 /// Represents the properties that may be set in `/set` lines.
 #[derive(Debug, Clone)]
 pub enum SetProperty<'a> {
-    Uid(usize),
-    Gid(usize),
+    Uid(u32),
+    Gid(u32),
     Mode(&'a str),
     Type(PathType),
 }
@@ -65,15 +65,15 @@ pub enum UnsetProperty {
 /// This type is used in a path line to define properties for that path.
 #[derive(Debug, Clone)]
 pub enum PathProperty<'a> {
-    Uid(usize),
-    Gid(usize),
+    Uid(u32),
+    Gid(u32),
     Mode(&'a str),
     Type(PathType),
-    Size(usize),
+    Size(u64),
     Link(PathBuf),
     Md5Digest(Md5Checksum),
     Sha256Digest(Sha256Checksum),
-    Time(usize),
+    Time(i64),
 }
 
 /// All allowed kinds of path types.
@@ -142,7 +142,7 @@ fn unset_property(input: &mut &str) -> ModalResult<UnsetProperty> {
 }
 
 /// Parse a simple system id as usize.
-fn system_id(id_type: &'static str, input: &mut &str) -> ModalResult<usize> {
+fn system_id(id_type: &'static str, input: &mut &str) -> ModalResult<u32> {
     cut_err(digit1.parse_to())
         .context(StrContext::Label(id_type))
         .context(StrContext::Expected(StrContextValue::Description(
@@ -154,7 +154,7 @@ fn system_id(id_type: &'static str, input: &mut &str) -> ModalResult<usize> {
 /// Parse a Unix timestamp.
 ///
 /// In mtree, this is a float for some reason, even though the decimal place is always a `0`.
-fn timestamp(input: &mut &str) -> ModalResult<usize> {
+fn timestamp(input: &mut &str) -> ModalResult<i64> {
     let (timestamp, _) = cut_err(separated_pair(digit1.parse_to(), '.', digit1))
         .context(StrContext::Label("unix epoch"))
         .context(StrContext::Expected(StrContextValue::Description(
@@ -207,7 +207,7 @@ fn link(input: &mut &str) -> ModalResult<String> {
 }
 
 /// Get a string representing a size by consuming all integers.
-fn size(input: &mut &str) -> ModalResult<usize> {
+fn size(input: &mut &str) -> ModalResult<u64> {
     cut_err(take_while(0.., |c| c != ' ' && c != '\n').parse_to())
         .context(StrContext::Label("file size"))
         .context(StrContext::Expected(StrContextValue::Description(

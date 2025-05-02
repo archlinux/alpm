@@ -18,8 +18,8 @@ use crate::{
 /// that're passed to all following path type lines.
 #[derive(Debug, Clone, Default)]
 pub struct PathDefaults {
-    uid: Option<usize>,
-    gid: Option<usize>,
+    uid: Option<u32>,
+    gid: Option<u32>,
     mode: Option<String>,
     path_type: Option<PathType>,
 }
@@ -54,10 +54,10 @@ impl PathDefaults {
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Directory {
     pub path: PathBuf,
-    pub uid: usize,
-    pub gid: usize,
+    pub uid: u32,
+    pub gid: u32,
     pub mode: String,
-    pub time: usize,
+    pub time: i64,
 }
 
 /// A file type path statement in an mtree file.
@@ -66,11 +66,11 @@ pub struct Directory {
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct File {
     pub path: PathBuf,
-    pub uid: usize,
-    pub gid: usize,
+    pub uid: u32,
+    pub gid: u32,
     pub mode: String,
-    pub size: usize,
-    pub time: usize,
+    pub size: u64,
+    pub time: i64,
     #[serde(
         skip_serializing_if = "Option::is_none",
         serialize_with = "serialize_optional_checksum_as_hex"
@@ -117,10 +117,10 @@ where
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Link {
     pub path: PathBuf,
-    pub uid: usize,
-    pub gid: usize,
+    pub uid: u32,
+    pub gid: u32,
     pub mode: String,
-    pub time: usize,
+    pub time: i64,
     pub link_path: PathBuf,
 }
 
@@ -303,16 +303,16 @@ fn path_from_parsed(
     properties: Vec<parser::PathProperty>,
 ) -> Result<Path, Error> {
     // Copy any possible default values over.
-    let mut uid: Option<usize> = defaults.uid;
-    let mut gid: Option<usize> = defaults.gid;
+    let mut uid: Option<u32> = defaults.uid;
+    let mut gid: Option<u32> = defaults.gid;
     let mut mode: Option<String> = defaults.mode.clone();
     let mut path_type: Option<PathType> = defaults.path_type;
 
     let mut link: Option<PathBuf> = None;
-    let mut size: Option<usize> = None;
+    let mut size: Option<u64> = None;
     let mut md5_digest: Option<Md5Checksum> = None;
     let mut sha256_digest: Option<Sha256Checksum> = None;
-    let mut time: Option<usize> = None;
+    let mut time: Option<i64> = None;
 
     // Read all properties and set them accordingly.
     for property in properties {
