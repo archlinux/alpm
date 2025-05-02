@@ -1,5 +1,8 @@
 use std::{path::PathBuf, string::FromUtf8Error};
 
+#[cfg(doc)]
+use crate::Mtree;
+
 /// The Error that can occur when working with ALPM-MTREE
 #[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
@@ -28,6 +31,15 @@ pub enum Error {
     /// An error occurred while unpacking a gzip file.
     #[error("Error while unpacking gzip file:\n{0}")]
     InvalidGzip(std::io::Error),
+
+    /// Validating paths in a base directory using [`Mtree`] data led to one or more errors.
+    #[error("Errors occurred while comparing ALPM-MTREE data to paths in {path:?}\n{errors}")]
+    PathValidation {
+        /// The directory below which paths are compared to [`Mtree`] data.
+        path: PathBuf,
+        /// An accumulated string of error messages.
+        errors: String,
+    },
 
     /// A Parsing error that occurred during the winnow file parsing.
     #[error("File parsing error:\n{0}")]
