@@ -1,8 +1,10 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "commitMessageLowerCase": "never",
   "extends": [
     "config:base",
-    ":gitSignOff"
+    ":gitSignOff",
+    ":semanticCommits"
   ],
   "separateMinorPatch": true,
   "patch": {
