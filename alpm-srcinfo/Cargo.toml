@@ -23,6 +23,7 @@ winnow-debug = ["winnow/debug"]
 
 [dependencies]
 alpm-common.workspace = true
+alpm-parsers.workspace = true
 alpm-types.workspace = true
 clap = { workspace = true, optional = true }
 colored.workspace = true

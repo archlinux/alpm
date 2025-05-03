@@ -4,6 +4,7 @@ use std::{
     string::ToString,
 };
 
+use alpm_parsers::iter_char_context;
 use serde::{Deserialize, Serialize};
 use winnow::{
     ModalResult,
@@ -157,11 +158,7 @@ impl Name {
             .context(StrContext::Expected(StrContextValue::Description(
                 "ASCII alphanumeric character",
             )))
-            .context_with(|| {
-                special_first_chars
-                    .iter()
-                    .map(|char| StrContext::Expected(StrContextValue::CharLiteral(*char)))
-            });
+            .context_with(iter_char_context!(special_first_chars));
 
         let never_first_special_chars = ['_', '@', '+', '-', '.'];
         let never_first_char = one_of((alphanum, never_first_special_chars));
@@ -178,11 +175,7 @@ impl Name {
                 .context(StrContext::Expected(StrContextValue::Description(
                     "ASCII alphanumeric character",
                 )))
-                .context_with(|| {
-                    non_first_special_chars
-                        .iter()
-                        .map(|char| StrContext::Expected(StrContextValue::CharLiteral(*char)))
-                }),
+                .context_with(iter_char_context!(never_first_special_chars)),
         );
 
         full_parser

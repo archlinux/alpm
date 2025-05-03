@@ -4,6 +4,7 @@
 //! The representation is not useful for end-users as it provides data that is not yet validated.
 use std::str::FromStr;
 
+use alpm_parsers::iter_str_context;
 use alpm_types::{
     Architecture,
     Backup,
@@ -157,11 +158,7 @@ fn architecture_suffix(input: &mut &str) -> ModalResult<Option<Architecture>> {
             .context(StrContext::Expected(StrContextValue::Description(
                 "an alpm-architecture:",
             )))
-            .context_with(|| {
-                Architecture::VARIANTS
-                    .iter()
-                    .map(|arch| StrContext::Expected(StrContextValue::StringLiteral(arch)))
-            })
+            .context_with(iter_str_context!([Architecture::VARIANTS]))
             .parse_next(input)?;
 
     Ok(Some(architecture))
@@ -445,19 +442,12 @@ impl PackageBaseProperty {
                     .context(StrContext::Expected(StrContextValue::Description(
                         "one of the allowed pkgbase section properties:",
                     )))
-                    .context_with(|| {
-                        [
-                            PackageBaseKeyword::VARIANTS,
-                            RelationKeyword::VARIANTS,
-                            SharedMetaKeyword::VARIANTS,
-                            SourceKeyword::VARIANTS,
-                        ]
-                        .into_iter()
-                        .flatten()
-                        .map(|keyword| {
-                            StrContext::Expected(StrContextValue::StringLiteral(keyword))
-                        })
-                    }),
+                    .context_with(iter_str_context!([
+                        PackageBaseKeyword::VARIANTS,
+                        RelationKeyword::VARIANTS,
+                        SharedMetaKeyword::VARIANTS,
+                        SourceKeyword::VARIANTS,
+                    ])),
             )),
         )
         .parse_next(input)
@@ -637,14 +627,10 @@ impl PackageProperty {
                     .context(StrContext::Expected(StrContextValue::Description(
                         "one of the allowed package section properties:",
                     )))
-                    .context_with(|| {
-                        [RelationKeyword::VARIANTS, SharedMetaKeyword::VARIANTS]
-                            .into_iter()
-                            .flatten()
-                            .map(|keyword| {
-                                StrContext::Expected(StrContextValue::StringLiteral(keyword))
-                            })
-                    }),
+                    .context_with(iter_str_context!([
+                        RelationKeyword::VARIANTS,
+                        SharedMetaKeyword::VARIANTS
+                    ])),
             )),
         )
         .parse_next(input)

@@ -6,6 +6,7 @@ use std::{
     str::{CharIndices, Chars, FromStr},
 };
 
+use alpm_parsers::{iter_char_context, iter_str_context};
 use semver::Version as SemverVersion;
 use serde::{Deserialize, Serialize};
 use strum::VariantNames;
@@ -350,11 +351,7 @@ impl PackageVersion {
                 .context(StrContext::Expected(StrContextValue::Description(
                     "ASCII alphanumeric character",
                 )))
-                .context_with(|| {
-                    special_tail_character
-                        .iter()
-                        .map(|char| StrContext::Expected(StrContextValue::CharLiteral(*char)))
-                }),
+                .context_with(iter_char_context!(special_tail_character)),
         )
             .take()
             .map(|s: &str| Self(s.to_string()))
@@ -1217,11 +1214,7 @@ impl VersionComparison {
             ("<", eof).value(Self::Less),
             (">", eof).value(Self::Greater),
             fail.context(StrContext::Label("comparison operator"))
-                .context_with(|| {
-                    VersionComparison::VARIANTS
-                        .iter()
-                        .map(|cmp| StrContext::Expected(StrContextValue::StringLiteral(cmp)))
-                }),
+                .context_with(iter_str_context!([VersionComparison::VARIANTS])),
         ))
         .parse_next(input)
     }

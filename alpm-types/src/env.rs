@@ -4,6 +4,7 @@ use std::{
     string::ToString,
 };
 
+use alpm_parsers::iter_char_context;
 use serde::{Deserialize, Serialize};
 use winnow::{
     ModalResult,
@@ -40,11 +41,7 @@ fn makepkg_option_parser(input: &mut &str) -> ModalResult<(String, bool)> {
             .context(StrContext::Expected(StrContextValue::Description(
                 "ASCII alphanumeric character",
             )))
-            .context_with(|| {
-                special_chars
-                    .iter()
-                    .map(|char| StrContext::Expected(StrContextValue::CharLiteral(*char)))
-            }),
+            .context_with(iter_char_context!(special_chars)),
     );
     full_parser
         .take()

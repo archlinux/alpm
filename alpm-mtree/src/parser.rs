@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
+use alpm_parsers::iter_str_context;
 use alpm_types::{Md5Checksum, Sha256Checksum};
 use winnow::{
     ModalResult,
@@ -89,11 +90,7 @@ fn set_property<'s>(input: &mut &'s str) -> ModalResult<SetProperty<'s>> {
     let keywords = ["uid", "gid", "type", "mode"];
     let property_type = cut_err(alt(keywords))
         .context(StrContext::Label("property"))
-        .context_with(|| {
-            keywords
-                .iter()
-                .map(|s| StrContext::Expected(StrContextValue::StringLiteral(s)))
-        })
+        .context_with(iter_str_context!([keywords]))
         .parse_next(input)?;
 
     // Expect the `=` separator between the key-value pair
@@ -111,11 +108,7 @@ fn set_property<'s>(input: &mut &'s str) -> ModalResult<SetProperty<'s>> {
                     _ => unreachable!(),
                 })
                 .context(StrContext::Label("property file type"))
-                .context_with(|| {
-                    path_types
-                        .iter()
-                        .map(|s| StrContext::Expected(StrContextValue::StringLiteral(s)))
-                })
+                .context_with(iter_str_context!([path_types]))
                 .parse_next(input)?
         }
         "uid" => SetProperty::Uid(system_id("user id", input)?),
@@ -133,11 +126,7 @@ fn unset_property(input: &mut &str) -> ModalResult<UnsetProperty> {
     let keywords = ["uid", "gid", "type", "mode"];
     let property_type = cut_err(alt(keywords))
         .context(StrContext::Label("property"))
-        .context_with(|| {
-            keywords
-                .iter()
-                .map(|s| StrContext::Expected(StrContextValue::StringLiteral(s)))
-        })
+        .context_with(iter_str_context!([keywords]))
         .parse_next(input)?;
 
     // Map the parsed property type to the correct enum variant.
@@ -243,11 +232,7 @@ fn property<'s>(input: &mut &'s str) -> ModalResult<PathProperty<'s>> {
     ];
     let property_type = cut_err(alt(keywords))
         .context(StrContext::Label("file property type"))
-        .context_with(|| {
-            keywords
-                .iter()
-                .map(|s| StrContext::Expected(StrContextValue::StringLiteral(s)))
-        })
+        .context_with(iter_str_context!([keywords]))
         .parse_next(input)?;
 
     // Expect the `=` separator between the key-value pair

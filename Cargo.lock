@@ -62,6 +62,7 @@ name = "alpm-mtree"
 version = "0.1.0"
 dependencies = [
  "alpm-common",
+ "alpm-parsers",
  "alpm-types",
  "clap",
  "flate2",
@@ -121,6 +122,7 @@ name = "alpm-srcinfo"
 version = "0.1.0"
 dependencies = [
  "alpm-common",
+ "alpm-parsers",
  "alpm-types",
  "clap",
  "colored",
@@ -143,6 +145,7 @@ version = "0.1.0"
 name = "alpm-types"
 version = "0.5.0"
 dependencies = [
+ "alpm-parsers",
  "blake2",
  "digest",
  "email_address",
@@ -161,7 +164,6 @@ dependencies = [
  "testresult",
  "thiserror",
  "time",
- "tuples",
  "url",
  "winnow",
 ]
@@ -2379,12 +2381,6 @@ name = "try-lock"
 version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e421abadd41a4225275504ea4d6566923418b7f05506fbc9c0fe86ba7396114b"
-
-[[package]]
-name = "tuples"
-version = "1.16.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2dd6c24c6d32b904abc35343bf05fde6e4a88980b3a7331a85c2a0d5447d53e2"
 
 [[package]]
 name = "typenum"

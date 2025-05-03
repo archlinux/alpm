@@ -3,6 +3,7 @@ use std::{
     str::FromStr,
 };
 
+use alpm_parsers::iter_str_context;
 use serde::{Deserialize, Serialize};
 use winnow::{
     ModalResult,
@@ -522,11 +523,7 @@ impl FossilFragment {
         let version_keywords = ["branch", "commit", "tag"];
         let version_type = cut_err(alt(version_keywords))
             .context(StrContext::Label("fossil revision type"))
-            .context_with(|| {
-                version_keywords
-                    .iter()
-                    .map(|s| StrContext::Expected(StrContextValue::StringLiteral(s)))
-            })
+            .context_with(iter_str_context!([version_keywords]))
             .parse_next(input)?;
 
         let value = fragment_value.parse_next(input)?;
@@ -572,11 +569,7 @@ impl GitFragment {
         let version_keywords = ["branch", "commit", "tag"];
         let version_type = cut_err(alt(version_keywords))
             .context(StrContext::Label("git revision type"))
-            .context_with(|| {
-                version_keywords
-                    .iter()
-                    .map(|s| StrContext::Expected(StrContextValue::StringLiteral(s)))
-            })
+            .context_with(iter_str_context!([version_keywords]))
             .parse_next(input)?;
 
         let value = fragment_value.parse_next(input)?;
@@ -630,11 +623,7 @@ impl HgFragment {
         let version_keywords = ["branch", "revision", "tag"];
         let version_type = cut_err(alt(version_keywords))
             .context(StrContext::Label("hg revision type"))
-            .context_with(|| {
-                version_keywords
-                    .iter()
-                    .map(|s| StrContext::Expected(StrContextValue::StringLiteral(s)))
-            })
+            .context_with(iter_str_context!([version_keywords]))
             .parse_next(input)?;
 
         let value = fragment_value.parse_next(input)?;
