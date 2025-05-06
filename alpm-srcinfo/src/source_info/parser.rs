@@ -354,6 +354,19 @@ pub enum PackageBaseKeyword {
     ValidPGPKeys,
 }
 
+impl PackageBaseKeyword {
+    /// Recognizes a [`PackageBaseKeyword`] in an input string slice.
+    pub fn parser(input: &mut &str) -> ModalResult<PackageBaseKeyword> {
+        trace(
+            "package_base_keyword",
+            // Read until we hit something non alphabetical.
+            // This could be either a space or a `_` in case there's an architecture specifier.
+            alpha1.try_map(PackageBaseKeyword::from_str),
+        )
+        .parse_next(input)
+    }
+}
+
 /// All possible properties of a `pkgbase` section in SRCINFO data.
 ///
 /// The ordering of the variants represents the order in which keywords would appear in a SRCINFO
@@ -453,24 +466,13 @@ impl PackageBaseProperty {
         .parse_next(input)
     }
 
-    /// Recognizes a [`PackageBaseKeyword`] in an input string slice.
-    fn keyword_parser(input: &mut &str) -> ModalResult<PackageBaseKeyword> {
-        trace(
-            "package_base_keyword",
-            // Read until we hit something non alphabetical.
-            // This could be either a space or a `_` in case there's an architecture specifier.
-            alpha1.try_map(PackageBaseKeyword::from_str),
-        )
-        .parse_next(input)
-    }
-
     /// Recognizes keyword assignments exclusive to the `pkgbase` section in SRCINFO data.
     ///
     /// This function backtracks in case no keyword in this group matches.
     fn exclusive_property_parser(input: &mut &str) -> ModalResult<PackageBaseProperty> {
         // First off, get the type of the property.
         let keyword =
-            trace("exclusive_pkgbase_property", Self::keyword_parser).parse_next(input)?;
+            trace("exclusive_pkgbase_property", PackageBaseKeyword::parser).parse_next(input)?;
 
         // Parse a possible architecture suffix for architecture specific fields.
         let architecture = match keyword {
@@ -652,6 +654,19 @@ pub enum SharedMetaKeyword {
     Backup,
 }
 
+impl SharedMetaKeyword {
+    /// Recognizes a [`SharedMetaKeyword`] in a string slice.
+    pub fn parser(input: &mut &str) -> ModalResult<SharedMetaKeyword> {
+        // Read until we hit something non alphabetical.
+        // This could be either a space or a `_` in case there's an architecture specifier.
+        trace(
+            "shared_meta_keyword",
+            alpha1.try_map(SharedMetaKeyword::from_str),
+        )
+        .parse_next(input)
+    }
+}
+
 /// Metadata properties that may be shared between `pkgbase` and `pkgname` sections in SRCINFO data.
 #[derive(Debug)]
 pub enum SharedMetaProperty {
@@ -670,12 +685,12 @@ impl SharedMetaProperty {
     /// Recognizes keyword assignments that may be present in both `pkgbase` and `pkgname` sections
     /// of SRCINFO data.
     ///
-    /// This function relies on [`Self::keyword_parser`] to recognize the relevant keywords.
+    /// This function relies on [`SharedMetaKeyword::parser`] to recognize the relevant keywords.
     ///
     /// This function backtracks in case no keyword in this group matches.
     fn parser(input: &mut &str) -> ModalResult<SharedMetaProperty> {
         // Now get the type of the property.
-        let keyword = Self::keyword_parser.parse_next(input)?;
+        let keyword = SharedMetaKeyword::parser.parse_next(input)?;
 
         // Expect the ` = ` separator between the key-value pair
         let _ = delimiter.parse_next(input)?;
@@ -735,17 +750,6 @@ impl SharedMetaProperty {
 
         Ok(property)
     }
-
-    /// Recognizes a [`SharedMetaKeyword`] in a string slice.
-    fn keyword_parser(input: &mut &str) -> ModalResult<SharedMetaKeyword> {
-        // Read until we hit something non alphabetical.
-        // This could be either a space or a `_` in case there's an architecture specifier.
-        trace(
-            "shared_meta_keyword",
-            alpha1.try_map(SharedMetaKeyword::from_str),
-        )
-        .parse_next(input)
-    }
 }
 
 /// Keywords that describe [alpm-package-relations].
@@ -759,6 +763,19 @@ pub enum RelationKeyword {
     Provides,
     Conflicts,
     Replaces,
+}
+
+impl RelationKeyword {
+    /// Recognizes a [`RelationKeyword`] in a string slice.
+    pub fn parser(input: &mut &str) -> ModalResult<RelationKeyword> {
+        // Read until we hit something non alphabetical.
+        // This could be either a space or a `_` in case there's an architecture specifier.
+        trace(
+            "relation_keyword",
+            alpha1.try_map(RelationKeyword::from_str),
+        )
+        .parse_next(input)
+    }
 }
 
 /// Properties related to package relations.
@@ -783,11 +800,11 @@ impl RelationProperty {
     /// Recognizes package relation keyword assignments that may be present in both `pkgbase` and
     /// `pkgname` sections in SRCINFO data.
     ///
-    /// This function relies on [`Self::keyword_parser`] to recognize the relevant keywords.
+    /// This function relies on [`RelationKeyword::parser`] to recognize the relevant keywords.
     /// This function backtracks in case no keyword in this group matches.
     fn parser(input: &mut &str) -> ModalResult<RelationProperty> {
         // First off, get the type of the property.
-        let keyword = Self::keyword_parser.parse_next(input)?;
+        let keyword = RelationKeyword::parser.parse_next(input)?;
 
         // All of these properties can be architecture specific and may have an architecture suffix.
         // Get it if there's one.
@@ -846,17 +863,6 @@ impl RelationProperty {
         Ok(property)
     }
 
-    /// Recognizes a [`RelationKeyword`] in a string slice.
-    fn keyword_parser(input: &mut &str) -> ModalResult<RelationKeyword> {
-        // Read until we hit something non alphabetical.
-        // This could be either a space or a `_` in case there's an architecture specifier.
-        trace(
-            "relation_keyword",
-            alpha1.try_map(RelationKeyword::from_str),
-        )
-        .parse_next(input)
-    }
-
     // Returns the [`Architecture`] of the current variant.
     //
     // Can be used to extract the architecture without knowing which variant this is.
@@ -886,6 +892,19 @@ pub enum SourceKeyword {
     Sha512sums,
 }
 
+impl SourceKeyword {
+    /// Parse a [`SourceKeyword`].
+    pub fn parser(input: &mut &str) -> ModalResult<SourceKeyword> {
+        // Read until we hit something non alphabetical.
+        // This could be either a space or a `_` in case there's an architecture specifier.
+        trace(
+            "source_keyword",
+            alphanumeric1.try_map(SourceKeyword::from_str),
+        )
+        .parse_next(input)
+    }
+}
+
 /// Properties related to package sources.
 ///
 /// Sources and related properties can be architecture specific.
@@ -910,12 +929,12 @@ pub enum SourceProperty {
 impl SourceProperty {
     /// Recognizes package source related keyword assignments in SRCINFO data.
     ///
-    /// This function relies on [`Self::keyword_parser`] to recognize the relevant keywords.
+    /// This function relies on [`SourceKeyword::parser`] to recognize the relevant keywords.
     ///
     /// This function backtracks in case no keyword in this group matches.
     fn parser(input: &mut &str) -> ModalResult<SourceProperty> {
         // First off, get the type of the property.
-        let keyword = Self::keyword_parser.parse_next(input)?;
+        let keyword = SourceKeyword::parser.parse_next(input)?;
 
         // All properties may be architecture specific and thereby have an architecture suffix.
         let architecture = architecture_suffix.parse_next(input)?;
@@ -987,17 +1006,6 @@ impl SourceProperty {
 
         Ok(property)
     }
-
-    /// Parse a [`SourceKeyword`].
-    fn keyword_parser(input: &mut &str) -> ModalResult<SourceKeyword> {
-        // Read until we hit something non alphabetical.
-        // This could be either a space or a `_` in case there's an architecture specifier.
-        trace(
-            "source_keyword",
-            alphanumeric1.try_map(SourceKeyword::from_str),
-        )
-        .parse_next(input)
-    }
 }
 
 /// Properties used in `pkgname` sections that can be cleared.
@@ -1049,11 +1057,8 @@ impl ClearableProperty {
     /// not cleared.
     fn shared_meta_parser(input: &mut &str) -> ModalResult<ClearableProperty> {
         // First off, check if this is any of the clearable properties.
-        let keyword = trace(
-            "clearable_shared_meta_property",
-            SharedMetaProperty::keyword_parser,
-        )
-        .parse_next(input)?;
+        let keyword =
+            trace("clearable_shared_meta_property", SharedMetaKeyword::parser).parse_next(input)?;
 
         // Now check if it's actually a clear.
         // This parser fails and backtracks in case there's anything but spaces and a newline after
@@ -1082,8 +1087,7 @@ impl ClearableProperty {
     /// Same as [`Self::shared_meta_parser`], but for clearable [RelationProperty].
     fn relation_parser(input: &mut &str) -> ModalResult<ClearableProperty> {
         // First off, check if this is any of the clearable properties.
-        let keyword =
-            trace("clearable_property", RelationProperty::keyword_parser).parse_next(input)?;
+        let keyword = trace("clearable_property", RelationKeyword::parser).parse_next(input)?;
 
         // All relations may be architecture specific.
         let architecture = architecture_suffix.parse_next(input)?;
