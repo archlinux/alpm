@@ -101,6 +101,11 @@ fn option_name_parser<'s>(input: &mut &'s str) -> ModalResult<&'s str> {
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum BuildEnvironmentOption {
+    /// Use or unset the values of build flags (e.g. `CPPFLAGS`, `CFLAGS`, `CXXFLAGS`, `LDFLAGS`)
+    /// specified in user-specific configs (e.g. [makepkg.conf]).
+    ///
+    /// [makepkg.conf]: https://man.archlinux.org/man/makepkg.conf.5
+    BuildFlags(bool),
     /// Use ccache to cache compilation
     Ccache(bool),
     /// Run the check() function if present in the PKGBUILD
@@ -111,6 +116,11 @@ pub enum BuildEnvironmentOption {
     Distcc(bool),
     /// Generate PGP signature file
     Sign(bool),
+    /// Use or unset the value of the `MAKEFLAGS` environment variable specified in
+    /// user-specific configs (e.g. [makepkg.conf]).
+    ///
+    /// [makepkg.conf]: https://man.archlinux.org/man/makepkg.conf.5
+    MakeFlags(bool),
 }
 
 impl BuildEnvironmentOption {
@@ -123,13 +133,15 @@ impl BuildEnvironmentOption {
         Self::from_str(option)
     }
 
-    /// Get the name of the MakepkgOption
+    /// Get the name of the BuildEnvironmentOption
     pub fn name(&self) -> &str {
         match self {
+            Self::BuildFlags(_) => "buildflags",
             Self::Ccache(_) => "ccache",
             Self::Check(_) => "check",
             Self::Color(_) => "color",
             Self::Distcc(_) => "distcc",
+            Self::MakeFlags(_) => "makeflags",
             Self::Sign(_) => "sign",
         }
     }
@@ -137,13 +149,25 @@ impl BuildEnvironmentOption {
     /// Get whether the BuildEnvironmentOption is on
     pub fn on(&self) -> bool {
         match self {
-            Self::Ccache(on)
+            Self::BuildFlags(on)
+            | Self::Ccache(on)
             | Self::Check(on)
             | Self::Color(on)
             | Self::Distcc(on)
+            | Self::MakeFlags(on)
             | Self::Sign(on) => *on,
         }
     }
+
+    const VARIANTS: [&str; 7] = [
+        "buildflags",
+        "ccache",
+        "check",
+        "color",
+        "distcc",
+        "makeflags",
+        "sign",
+    ];
 
     /// Recognizes a [`BuildEnvironmentOption`] in a string slice.
     ///
@@ -156,17 +180,18 @@ impl BuildEnvironmentOption {
         let on = option_bool_parser.parse_next(input)?;
         let mut name = option_name_parser.parse_next(input)?;
 
-        let variants = ["ccache", "check", "color", "distcc", "sign"];
-        let name = alt(variants)
+        let name = alt(BuildEnvironmentOption::VARIANTS)
             .context(StrContext::Label("makepkg build environment option"))
-            .context_with(iter_str_context!([variants]))
+            .context_with(iter_str_context!([BuildEnvironmentOption::VARIANTS]))
             .parse_next(&mut name)?;
 
         match name {
+            "buildflags" => Ok(Self::BuildFlags(on)),
             "ccache" => Ok(Self::Ccache(on)),
             "check" => Ok(Self::Check(on)),
             "color" => Ok(Self::Color(on)),
             "distcc" => Ok(Self::Distcc(on)),
+            "makeflags" => Ok(Self::MakeFlags(on)),
             "sign" => Ok(Self::Sign(on)),
             // Unreachable because the winnow parser returns an error above.
             _ => unreachable!(),
@@ -294,6 +319,20 @@ impl PackageOption {
         }
     }
 
+    const VARIANTS: [&str; 11] = [
+        "autodeps",
+        "debug",
+        "docs",
+        "emptydirs",
+        "libtool",
+        "lto",
+        "debug",
+        "purge",
+        "staticlibs",
+        "strip",
+        "zipman",
+    ];
+
     /// Recognizes a [`PackageOption`] in a string slice.
     ///
     /// Consumes all of its input.
@@ -304,21 +343,10 @@ impl PackageOption {
     pub fn parser(input: &mut &str) -> ModalResult<Self> {
         let on = option_bool_parser.parse_next(input)?;
         let mut name = option_name_parser.parse_next(input)?;
-        let variants = [
-            "autodeps",
-            "debug",
-            "docs",
-            "emptydirs",
-            "libtool",
-            "lto",
-            "purge",
-            "staticlibs",
-            "strip",
-            "zipman",
-        ];
-        let value = alt(variants)
+
+        let value = alt(PackageOption::VARIANTS)
             .context(StrContext::Label("makepkg option"))
-            .context_with(iter_str_context!([variants]))
+            .context_with(iter_str_context!([PackageOption::VARIANTS]))
             .parse_next(&mut name)?;
 
         match value {
@@ -460,7 +488,7 @@ mod tests {
     #[rstest]
     #[case(
         "!somethingelse",
-        "expected `autodeps`, `debug`, `docs`, `emptydirs`, `libtool`, `lto`, `purge`, `staticlibs`, `strip`, `zipman`"
+        "expected `autodeps`, `debug`, `docs`, `emptydirs`, `libtool`, `lto`, `debug`, `purge`, `staticlibs`, `strip`, `zipman`"
     )]
     #[case(
         "#somethingelse",
@@ -477,10 +505,12 @@ mod tests {
     }
 
     #[rstest]
+    #[case("buildflags", BuildEnvironmentOption::BuildFlags(true))]
     #[case("ccache", BuildEnvironmentOption::Ccache(true))]
     #[case("check", BuildEnvironmentOption::Check(true))]
     #[case("color", BuildEnvironmentOption::Color(true))]
     #[case("distcc", BuildEnvironmentOption::Distcc(true))]
+    #[case("!makeflags", BuildEnvironmentOption::MakeFlags(false))]
     #[case("sign", BuildEnvironmentOption::Sign(true))]
     #[case("!sign", BuildEnvironmentOption::Sign(false))]
     fn build_environment_option(#[case] input: &str, #[case] expected: BuildEnvironmentOption) {
@@ -491,7 +521,7 @@ mod tests {
     #[rstest]
     #[case(
         "!somethingelse",
-        "expected `ccache`, `check`, `color`, `distcc`, `sign`"
+        "expected `buildflags`, `ccache`, `check`, `color`, `distcc`, `makeflags`, `sign`"
     )]
     #[case(
         "#somethingelse",
