@@ -21,6 +21,7 @@ use alpm_types::{
     PackageRelation,
     PackageRelease,
     PackageVersion,
+    RelationOrSoname,
     RelativePath,
     SkippableChecksum,
     Source,
@@ -48,8 +49,6 @@ use winnow::{
     error::{ErrMode, ParserError, StrContext, StrContextValue},
     token::{take_till, take_until},
 };
-
-use crate::relation::RelationOrSoname;
 
 /// Recognizes the ` = ` delimiter between keywords.
 ///

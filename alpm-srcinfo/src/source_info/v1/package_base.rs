@@ -13,6 +13,7 @@ use alpm_types::{
     PackageRelation,
     PackageRelease,
     PackageVersion,
+    RelationOrSoname,
     RelativePath,
     SkippableChecksum,
     Source,
@@ -32,7 +33,6 @@ use crate::{
         non_spdx_license,
         unsafe_checksum,
     },
-    relation::RelationOrSoname,
     source_info::{
         helper::ordered_hashset,
         parser::{self, PackageBaseProperty, RawPackageBase, SharedMetaProperty},

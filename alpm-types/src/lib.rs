@@ -75,6 +75,7 @@ pub use relation::{
     Group,
     OptionalDependency,
     PackageRelation,
+    RelationOrSoname,
     SharedLibraryPrefix,
     Soname,
     SonameV1,

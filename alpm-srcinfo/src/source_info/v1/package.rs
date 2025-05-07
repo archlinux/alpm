@@ -9,6 +9,7 @@ use alpm_types::{
     PackageDescription,
     PackageOption,
     PackageRelation,
+    RelationOrSoname,
     RelativePath,
     Url,
 };
@@ -24,7 +25,6 @@ use crate::{
         non_spdx_license,
         reassigned_cleared_property,
     },
-    relation::RelationOrSoname,
     source_info::{
         helper::ordered_optional_hashset,
         parser::{

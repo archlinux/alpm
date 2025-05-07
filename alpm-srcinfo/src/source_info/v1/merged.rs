@@ -11,6 +11,7 @@ use alpm_types::{
     PackageRelation,
     PackageRelease,
     PackageVersion,
+    RelationOrSoname,
     RelativePath,
     SkippableChecksum,
     Source,
@@ -23,7 +24,6 @@ use serde::{Deserialize, Serialize};
 use crate::source_info::v1::package::Override;
 use crate::{
     SourceInfoV1,
-    relation::RelationOrSoname,
     source_info::v1::{
         package::Package,
         package_base::{PackageBase, PackageBaseArchitecture},
