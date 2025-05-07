@@ -111,7 +111,7 @@ impl Os {
     ///
     /// All parts are joined with `:`, trailing colons are omitted.
     /// Parts that are unset are represented as empty strings.
-    fn path(&self) -> String {
+    fn path_segment(&self) -> String {
         let distro = format!(
             "{}:{}:{}:{}:{}",
             &self.id,
@@ -143,7 +143,7 @@ impl Purpose {
         Self { role, mode }
     }
 
-    fn path(&self) -> String {
+    fn path_segment(&self) -> String {
         let base = match self.role {
             Role::Packages => "packages",
             Role::RepositoryMetadata => "repository-metadata",
@@ -207,7 +207,7 @@ pub enum Context {
 }
 
 impl Context {
-    fn path(&self) -> &str {
+    fn path_segment(&self) -> &str {
         match self {
             Self::Default => "default",
             Self::Specified(context) => context,
@@ -227,7 +227,7 @@ pub enum Technology {
 }
 
 impl Technology {
-    fn path(&self) -> &str {
+    fn path_segment(&self) -> &str {
         match self {
             Self::OpenPGP => "openpgp",
             Self::SSH => "ssh",
@@ -251,10 +251,10 @@ impl VerifierSourcePath {
     /// This representation of the path doesn't canonicalize symlinks, if any.
     fn path(&self) -> PathBuf {
         self.load_path
-            .join(self.os.path())
-            .join(self.purpose.path())
-            .join(self.context.path())
-            .join(self.technology.path())
+            .join(self.os.path_segment())
+            .join(self.purpose.path_segment())
+            .join(self.context.path_segment())
+            .join(self.technology.path_segment())
     }
 
     /// The [Os] uniquely identifies the Operating System of this [VerifierSourcePath].
@@ -345,10 +345,10 @@ impl CheckedVerifierSourcePath {
             Ok(buf)
         };
 
-        let mut path = append(&base_path, &verifier_source_path.os.path())?;
-        path = append(&path, &verifier_source_path.purpose.path())?;
-        path = append(&path, verifier_source_path.context.path())?;
-        path = append(&path, verifier_source_path.technology.path())?;
+        let mut path = append(&base_path, &verifier_source_path.os.path_segment())?;
+        path = append(&path, &verifier_source_path.purpose.path_segment())?;
+        path = append(&path, verifier_source_path.context.path_segment())?;
+        path = append(&path, verifier_source_path.technology.path_segment())?;
 
         trace!("CheckedVerifierSourcePath::new canonicalized path: {path:?}");
 
