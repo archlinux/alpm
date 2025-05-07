@@ -514,58 +514,66 @@ impl Voa {
             };
 
             for res in dir {
-                match res {
-                    Ok(entry) => {
-                        if let Ok(file_type) = entry.file_type() {
-                            let mut try_load = |path: &Path| {
-                                trace!("Loading verifier file {path:?}");
+                let entry = match res {
+                    Ok(entry) => entry,
+                    Err(err) => {
+                        trace!("⤷ DirEntry error {err}");
+                        continue;
+                    }
+                };
 
-                                match std::fs::read(path) {
-                                    Ok(verifier_data) => {
-                                        certs.push(OpaqueVerifier {
-                                            verifier_data,
-                                            path: checked_path.verifier_source_path.clone(),
-                                            filename: entry
-                                                .file_name()
-                                                .to_str()
-                                                .expect("utf8 problem")
-                                                .to_string(), // FIXME!
-                                        });
-                                    }
-                                    Err(err) => trace!("⤷ Error while loading file {err}"),
-                                }
-                            };
+                let Ok(file_type) = entry.file_type() else {
+                    continue;
+                };
 
-                            if file_type.is_file() {
-                                try_load(&entry.path());
-                            } else if file_type.is_symlink() {
-                                match std::fs::read_link(entry.path()) {
-                                    Ok(path) => {
-                                        if path.as_path().to_str() == Some("/dev/null") {
-                                            // Individual _signature verifiers_ may be masked using
-                                            // a symlink to `/dev/null`, independent of
-                                            // [technology].
+                let path = if file_type.is_file() {
+                    &entry.path()
+                } else if file_type.is_symlink() {
+                    match std::fs::read_link(entry.path()) {
+                        Ok(path) => {
+                            if path.as_path().to_str() == Some("/dev/null") {
+                                // Individual _signature verifiers_ may be masked using
+                                // a symlink to `/dev/null`, independent of
+                                // [technology].
 
-                                            unimplemented!("FIXME: handle masking")
-                                        } else {
-                                            // FIXME: check that `path` is legal:
-                                            // [..] However, symlinks can be used in the VOA
-                                            // hierarchy to point to files or directories below one
-                                            // of the [load paths] in descending priority.
-                                            // Symlinks to files or directories below ephemeral load
-                                            // paths (i.e. `/run/voa/` and `$XDG_RUNTIME_DIR/voa/`)
-                                            // are prohibited, as they could lead to dangling
-                                            // references. [..]
+                                unimplemented!("FIXME: handle masking")
+                            } else {
+                                // FIXME: check that `path` is legal:
+                                // [..] However, symlinks can be used in the VOA
+                                // hierarchy to point to files or directories below one
+                                // of the [load paths] in descending priority.
+                                // Symlinks to files or directories below ephemeral load
+                                // paths (i.e. `/run/voa/` and `$XDG_RUNTIME_DIR/voa/`)
+                                // are prohibited, as they could lead to dangling
+                                // references. [..]
 
-                                            try_load(&entry.path());
-                                        }
-                                    }
-                                    Err(e) => trace!("⤷ Error for symlink {entry:?}: {e:?}"),
-                                }
+                                &entry.path()
                             }
                         }
+                        Err(e) => {
+                            trace!("⤷ Error for symlink {entry:?}: {e:?}");
+                            continue;
+                        }
                     }
-                    Err(err) => trace!("⤷ DirEntry error {err}"),
+                } else {
+                    unimplemented!("FIXME")
+                };
+
+                trace!("Loading verifier file {path:?}");
+
+                match std::fs::read(path) {
+                    Ok(verifier_data) => {
+                        certs.push(OpaqueVerifier {
+                            verifier_data,
+                            path: checked_path.verifier_source_path.clone(),
+                            filename: entry
+                                .file_name()
+                                .to_str()
+                                .expect("utf8 problem")
+                                .to_string(), // FIXME!
+                        });
+                    }
+                    Err(err) => trace!("⤷ Error while loading file {err}"),
                 }
             }
         }
