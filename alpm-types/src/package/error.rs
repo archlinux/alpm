@@ -26,7 +26,7 @@ pub enum Error {
     /// A path is not a valid [`PackageFileName`].
     #[error("The version \"{version}\" is not valid for an alpm-package file name")]
     InvalidPackageFileNameVersion {
-        /// The file path that is not valid.
+        /// The version that is not valid.
         version: Version,
     },
 }
