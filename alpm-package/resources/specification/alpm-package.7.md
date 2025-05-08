@@ -27,14 +27,14 @@ An **alpm-package-name** directly followed by a '-' sign, directly followed by a
 ALPM based packages may optionally be compressed using a single supported compression technology.
 If a package is compressed, a technology-specific suffix is appended to the file name:
 
+- `.Z` for compression based on adaptive Lempel-Ziv coding (e.g. `example-1.0.0-1-x86_64.pkg.tar.Z`), see the **compress** command
 - `.bz2` for **bzip2** compression (e.g. `example-1.0.0-1-x86_64.pkg.tar.bz2`)
 - `.gz` for **gzip** compression (e.g. `example-1.0.0-1-x86_64.pkg.tar.gz`)
-- `.lz` for **lzip** compression (e.g. `example-1.0.0-1-x86_64.pkg.tar.lz`)
-- `.lz4` for **lz4** compression (e.g. `example-1.0.0-1-x86_64.pkg.tar.lz4`)
 - `.lrz` for **lrzip** compression (e.g. `example-1.0.0-1-x86_64.pkg.tar.lrz`)
+- `.lz4` for **lz4** compression (e.g. `example-1.0.0-1-x86_64.pkg.tar.lz4`)
+- `.lz` for **lzip** compression (e.g. `example-1.0.0-1-x86_64.pkg.tar.lz`)
 - `.lzo` for **lzop** compression (e.g. `example-1.0.0-1-x86_64.pkg.tar.lzo`)
 - `.xz` for **xz** compression (e.g. `example-1.0.0-1-x86_64.pkg.tar.xz`)
-- `.Z` for compression based on adaptive Lempel-Ziv coding (e.g. `example-1.0.0-1-x86_64.pkg.tar.Z`), see the **compress** command
 - `.zst` for **zstd** compression (e.g. `example-1.0.0-1-x86_64.pkg.tar.zst`)
 
 Handling of compression technologies is specific to the package build tool.
