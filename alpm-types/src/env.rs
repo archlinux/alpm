@@ -76,9 +76,13 @@ fn option_name_parser<'s>(input: &mut &'s str) -> ModalResult<&'s str> {
     Ok(name)
 }
 
-/// This type wraps the [`PackageOption`] and [`BuildEnvironmentOption`] enums. This is necessary
-/// for metadata files such as SRCINFO or PKGBUILD that don't differentiate between the different
+/// Wraps the [`PackageOption`] and [`BuildEnvironmentOption`] enums.
+///
+/// This is necessary for metadata files such as [SRCINFO] or [PKGBUILD] package scripts that don't differentiate between the different
 /// types and scopes of options.
+///
+/// [SRCINFO]: https://alpm.archlinux.page/specifications/SRCINFO.5.html
+/// [PKGBUILD]: https://man.archlinux.org/man/PKGBUILD.5
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum MakepkgOption {
@@ -153,8 +157,10 @@ impl Display for MakepkgOption {
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum BuildEnvironmentOption {
-    /// Allow or forbid the use some buildflags (CPPFLAGS, CFLAGS, CXXFLAGS, LDFLAGS) from
-    /// user-specific configs as specified in `makepkg.conf`.
+    /// Use or unset the values of build flags (e.g. `CPPFLAGS`, `CFLAGS`, `CXXFLAGS`, `LDFLAGS`) specified in
+    /// user-specific configs (e.g. [makepkg.conf]).
+    ///
+    /// [makepkg.conf]: https://man.archlinux.org/man/makepkg.conf.5
     BuildFlags(bool),
     /// Use ccache to cache compilation
     Ccache(bool),
@@ -166,8 +172,10 @@ pub enum BuildEnvironmentOption {
     Distcc(bool),
     /// Generate PGP signature file
     Sign(bool),
-    /// Completely allow or forbid the use of any user-specified `MAKEFLAG` configs as specified in
-    /// `makepkg.conf`.
+    /// Use or unset the value of the `MAKEFLAGS` environment variable specified in
+    /// user-specific configs (e.g. [makepkg.conf]).
+    ///
+    /// [makepkg.conf]: https://man.archlinux.org/man/makepkg.conf.5
     MakeFlags(bool),
 }
 
