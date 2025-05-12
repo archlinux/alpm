@@ -168,9 +168,21 @@ integration-test:
     - just ignored=true test
   stage: test
 
+containerized-integration-test:
+  extends: .default-with-rust
+  script:
+    - source .env && pacman -Syu --needed --noconfirm $CONTAINERIZED_TEST_PACKAGES
+    - useradd -m testuser
+    - loginctl enable-linger testuser
+    - chown -R testuser:testuser .
+    - WORKDIR="$(pwd)" runuser -w WORKDIR -l testuser -c 'env && cd "$WORKDIR" && just install-rust-dev-tools && just containerized-integration-tests'
+  stage: test
+  tags:
+    - vm
+
 crates_publish:
   extends: .default-with-rust
-  dependencies: []
+  dependencies: [ ]
   rules:
     - if: '$CARGO_REGISTRY_TOKEN && $CI_COMMIT_TAG && $CI_PROJECT_PATH == "archlinux/alpm/alpm"'
   script:
