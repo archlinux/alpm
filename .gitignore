@@ -3,3 +3,4 @@ resources/docs/mermaid*.js
 target/
 *.5
 .lycheecache
+.idea/
