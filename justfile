@@ -622,3 +622,56 @@ serve-book: build-book
 watch-book:
     just ensure-command watchexec
     watchexec --exts md,toml,js --delay-run 5s -- just build-book
+
+# Returns the target directory for cargo.
+get-cargo-target-dir:
+    just ensure-command cargo jq
+    cargo metadata --format-version 1 | jq -r '.target_directory'
+
+# Returns all names of tests by project and features (the names are cargo-nextest compatible)
+get-tests-by-features project features:
+    just ensure-command cargo cargo-nextest jq
+
+    cargo nextest list --package {{ project }} --no-default-features --features {{ features }} --message-format json | jq -r '."rust-suites"[] | ."binary-id" as $x | ."testcases" | to_entries[] | if (.value."filter-match"."status") == "matches" then (.key) else null end | select(. != null) as $y | "\($x) \($y)"'
+
+# Builds a container image that enables running dedicated integration tests of the project in containers
+build-container-integration-test-image:
+    just ensure-command podman
+
+    podman build --volume "$PWD:/test" --tag arch-alpm-integration-test --file .containers/Containerfile.integration-test .
+
+# Runs each test of a project that is made available with the "_containerized-integration-test" feature in a separate container
+containerized-integration-test project:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    just ensure-command cargo-nextest podman
+
+    readonly features=_containerized-integration-test
+    project={{ project }}
+    raw_tests="$(just get-tests-by-features "$project" "$features")"
+    target_dir="$(just get-cargo-target-dir)"
+    readarray -t tests <<< "$raw_tests"
+
+    tmpdir="$(mktemp --dry-run --directory)"
+    readonly test_tmpdir="$tmpdir"
+    mkdir -p "$test_tmpdir"
+
+    # remove temporary dir on exit
+    cleanup() (
+      if [[ -n "${test_tmpdir:-}" ]]; then
+        rm -rf "${test_tmpdir}"
+      fi
+    )
+
+    # create an archive with the special containerized tests
+    cargo nextest archive --archive-file "$test_tmpdir/tests.tar.zst" --features _containerized-integration-test --package "$project"
+
+    for test in "${tests[@]}"; do
+        printf "Running test %s\n" "$test"
+        podman run --rm --interactive --tty --volume "$test_tmpdir:/mnt" --volume "$PWD:/test" --volume "$target_dir/debug/examples:/usr/local/bin" arch-alpm-integration-test cargo nextest run --nocapture --archive-file "/mnt/tests.tar.zst" --workspace-remap "/test" "${test/ */}" "${test/* /}"
+    done
+
+# Runs the tests that are made available with the "_containerized-integration-test" feature of all configured projects in a separate container
+containerized-integration-tests:
+    just containerized-integration-test voa-core

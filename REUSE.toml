@@ -26,6 +26,7 @@ path = [
     "*.lock",
     "*.yml",
     ".codespellrc",
+    ".containers/Containerfile*",
     ".env",
     ".gitignore",
     ".gitlab/CODEOWNERS",
