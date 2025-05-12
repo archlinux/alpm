@@ -168,6 +168,17 @@ integration-test:
     - just ignored=true test
   stage: test
 
+containerized-integration-test:
+  extends: .default
+  script:
+    - useradd -m testuser
+    - loginctl enable-linger testuser
+    - chown -R testuser:testuser .
+    - WORKDIR="$(pwd)" runuser -w WORKDIR -l testuser -c 'env && cd "$WORKDIR" && just install-rust-dev-tools && just containerized-integration-tests'
+  stage: test
+  tags:
+    - vm
+
 crates_publish:
   extends: .default-with-rust
   dependencies: []
