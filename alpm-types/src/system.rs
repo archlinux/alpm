@@ -1,5 +1,15 @@
+use std::str::FromStr;
+
+use alpm_parsers::iter_str_context;
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString, VariantNames};
+use winnow::{
+    ModalResult,
+    Parser,
+    combinator::cut_err,
+    error::{StrContext, StrContextValue},
+    token::rest,
+};
 
 /// CPU architecture
 ///
@@ -82,6 +92,21 @@ pub enum Architecture {
     /// Intel x86_64 version 4
     #[strum(to_string = "x86_64_v4")]
     X86_64V4,
+}
+
+impl Architecture {
+    /// Recognizes an [`Architecture`] in an input string.
+    ///
+    /// Consumes all input and returns an error if the string doesn't match any architecture.
+    pub fn parser(input: &mut &str) -> ModalResult<Architecture> {
+        cut_err(rest.try_map(Architecture::from_str))
+            .context(StrContext::Label("architecture"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "an alpm-architecture:",
+            )))
+            .context_with(iter_str_context!([Architecture::VARIANTS]))
+            .parse_next(input)
+    }
 }
 
 /// ELF architecture format.
