@@ -189,8 +189,6 @@ lint:
     tangler bash < alpm-pkginfo/README.md | shellcheck --shell bash -
     tangler bash < alpm-srcinfo/README.md | shellcheck --shell bash -
 
-    shellcheck --shell bash alpm-srcinfo/tests/generate_srcinfo.bash
-
     just lint-recipe 'test-readme alpm-buildinfo'
     just lint-recipe 'test-readme alpm-pkginfo'
     just lint-recipe 'test-readme alpm-srcinfo'
@@ -206,9 +204,14 @@ lint:
     just lint-recipe test
     just lint-recipe 'ensure-command test'
 
+    just check-shell-script alpm-srcinfo/tests/generate_srcinfo.bash
+
     cargo clippy --tests --all -- -D warnings
 
-    just docs
+# Checks a shell script using shellcheck.
+check-shell-script file:
+    just ensure-command shellcheck
+    shellcheck --shell bash {{ file }}
 
 # Check justfile recipe for shell issues
 lint-recipe recipe:
