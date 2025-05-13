@@ -47,7 +47,7 @@ use winnow::{
         trace,
     },
     error::{ErrMode, ParserError, StrContext, StrContextValue},
-    token::{take_till, take_until},
+    token::{rest, take_till, take_until},
 };
 
 /// Recognizes the ` = ` delimiter between keywords.
@@ -129,6 +129,19 @@ pub struct ArchProperty<T> {
     pub value: T,
 }
 
+/// Recognizes an [`Architecture`] in an input string.
+///
+/// Consumes all input and returns an error if the string doesn't match any architecture.
+pub fn architecture(input: &mut &str) -> ModalResult<Architecture> {
+    cut_err(rest.try_map(Architecture::from_str))
+        .context(StrContext::Label("architecture"))
+        .context(StrContext::Expected(StrContextValue::Description(
+            "an alpm-architecture:",
+        )))
+        .context_with(iter_str_context!([Architecture::VARIANTS]))
+        .parse_next(input)
+}
+
 /// Recognizes and returns the architecture suffix of a keyword, if it exists.
 ///
 /// Returns [`None`] if no architecture suffix is found.
@@ -151,14 +164,8 @@ fn architecture_suffix(input: &mut &str) -> ModalResult<Option<Architecture>> {
     // to fail hard if that doesn't work.
     // We now grab all content until the expected space of the delimiter and map it to an
     // alpm_types::Architecture.
-    let architecture =
-        cut_err(take_till(0.., |c| c == ' ' || c == '=').try_map(Architecture::from_str))
-            .context(StrContext::Label("architecture"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "an alpm-architecture:",
-            )))
-            .context_with(iter_str_context!([Architecture::VARIANTS]))
-            .parse_next(input)?;
+    let architecture = cut_err(take_till(0.., |c| c == ' ' || c == '=').and_then(architecture))
+        .parse_next(input)?;
 
     Ok(Some(architecture))
 }
@@ -713,7 +720,7 @@ impl SharedMetaProperty {
             .parse_next(input)?,
             SharedMetaKeyword::Arch => cut_err(
                 till_line_end
-                    .try_map(Architecture::from_str)
+                    .and_then(architecture)
                     .map(SharedMetaProperty::Architecture),
             )
             .parse_next(input)?,
