@@ -205,6 +205,7 @@ lint:
     just lint-recipe 'ensure-command test'
 
     just check-shell-script alpm-srcinfo/tests/generate_srcinfo.bash
+    just check-shell-script .cargo/runner.sh
 
     cargo clippy --tests --all -- -D warnings
 

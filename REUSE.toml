@@ -25,6 +25,7 @@ path = [
     "*.json",
     "*.lock",
     "*.yml",
+    ".cargo/runner.sh",
     ".codespellrc",
     ".env",
     ".gitignore",
