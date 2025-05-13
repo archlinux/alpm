@@ -1,5 +1,15 @@
+use std::str::FromStr;
+
+use alpm_parsers::iter_str_context;
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString, VariantNames};
+use winnow::{
+    ModalResult,
+    Parser,
+    combinator::cut_err,
+    error::{StrContext, StrContextValue},
+    token::rest,
+};
 
 /// CPU architecture
 ///
@@ -84,6 +94,21 @@ pub enum Architecture {
     X86_64V4,
 }
 
+impl Architecture {
+    /// Recognizes an [`Architecture`] in an input string.
+    ///
+    /// Consumes all input and returns an error if the string doesn't match any architecture.
+    pub fn parser(input: &mut &str) -> ModalResult<Architecture> {
+        cut_err(rest.try_map(Architecture::from_str))
+            .context(StrContext::Label("architecture"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "an alpm-architecture:",
+            )))
+            .context_with(iter_str_context!([Architecture::VARIANTS]))
+            .parse_next(input)
+    }
+}
+
 /// ELF architecture format.
 ///
 /// This enum represents the _Class_ field in the [_ELF Header_].
@@ -133,6 +158,7 @@ mod tests {
 
     use rstest::rstest;
     use strum::ParseError;
+    use winnow::error::ContextError;
 
     use super::*;
 
@@ -155,6 +181,29 @@ mod tests {
     #[case("foo", Err(ParseError::VariantNotFound))]
     fn architecture_from_string(#[case] s: &str, #[case] arch: Result<Architecture, ParseError>) {
         assert_eq!(Architecture::from_str(s), arch);
+    }
+
+    #[rstest]
+    #[case("aarch64", Ok(Architecture::Aarch64))]
+    #[case("any", Ok(Architecture::Any))]
+    #[case("arm", Ok(Architecture::Arm))]
+    #[case("armv6h", Ok(Architecture::Armv6h))]
+    #[case("armv7h", Ok(Architecture::Armv7h))]
+    #[case("i386", Ok(Architecture::I386))]
+    #[case("i486", Ok(Architecture::I486))]
+    #[case("i686", Ok(Architecture::I686))]
+    #[case("pentium4", Ok(Architecture::Pentium4))]
+    #[case("riscv32", Ok(Architecture::Riscv32))]
+    #[case("riscv64", Ok(Architecture::Riscv64))]
+    #[case("x86_64", Ok(Architecture::X86_64))]
+    #[case("x86_64_v2", Ok(Architecture::X86_64V2))]
+    #[case("x86_64_v3", Ok(Architecture::X86_64V3))]
+    #[case("x86_64_v4", Ok(Architecture::X86_64V4))]
+    fn architecture_parser(
+        #[case] s: &str,
+        #[case] arch: Result<Architecture, winnow::error::ParseError<&str, ContextError>>,
+    ) {
+        assert_eq!(Architecture::parser.parse(s), arch);
     }
 
     #[rstest]
