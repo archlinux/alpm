@@ -153,12 +153,7 @@ fn architecture_suffix(input: &mut &str) -> ModalResult<Option<Architecture>> {
     // We now grab all content until the expected space of the delimiter and map it to an
     // alpm_types::Architecture.
     let architecture =
-        cut_err(take_till(0.., |c| c == ' ' || c == '=').try_map(Architecture::from_str))
-            .context(StrContext::Label("architecture"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "an alpm-architecture:",
-            )))
-            .context_with(iter_str_context!([Architecture::VARIANTS]))
+        cut_err(take_till(0.., |c| c == ' ' || c == '=').and_then(Architecture::parser))
             .parse_next(input)?;
 
     Ok(Some(architecture))
@@ -759,7 +754,7 @@ impl SharedMetaProperty {
             .parse_next(input)?,
             SharedMetaKeyword::Arch => cut_err(
                 till_line_end
-                    .try_map(Architecture::from_str)
+                    .and_then(Architecture::parser)
                     .map(SharedMetaProperty::Architecture),
             )
             .parse_next(input)?,
