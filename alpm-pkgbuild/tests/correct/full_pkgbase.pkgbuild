@@ -1,0 +1,193 @@
+#!/bin/bash
+# This PKGBUILD file is used to ensure that all possible pkgbase fields are properly detected
+# by the parser. It also checks that architecture specific fields are detected and only those
+# that're selected (always x86_64 in our tests) show up in the output.
+# Disable unused variable warnings:
+# shellcheck disable=2034
+
+pkgname=(example)
+pkgver=0.1.0
+pkgrel=1
+epoch=1
+arch=(x86_64 aarch64)
+validpgpkeys=(
+    4A0C4DFFC02E1A7ED969ED231C2358A25A10D94D
+    4A0C4DFFC02E1A7ED969ED231C2358A25A10D94E
+)
+
+pkgdesc="A example with all pkgbase properties set."
+url="https://archlinux.org/"
+license=(
+    MIT
+    "Apache-2.0"
+)
+changelog=changelog.stub
+install=install.sh.stub
+groups=(
+    group
+    group_2
+)
+backup=(
+    etc/pacman.conf
+)
+options=(
+    "!lto"
+    emptydirs
+)
+
+makedepends=(
+    default_makedep
+    "default_makedep_2=2.0.0"
+)
+checkdepends=(
+    default_checkdep
+    "default_checkdep_2=2.0.0"
+)
+depends=(
+    default_dep
+    "default_dep_2=2.0.0"
+)
+optdepends=(
+    default_optdep
+    "default_optdep_2=2.0.0: With description"
+)
+provides=(
+    default_provides
+    "default_provides_2=2.0.0"
+)
+conflicts=(
+    default_conflict
+    "default_conflict_2=2.0.0"
+)
+replaces=(
+    default_replaces
+    "default_replaces_2=2.0.0"
+)
+
+source=(
+    source_1.tar.gz
+    "source_2::git+https://upstream.com/example.git?signed#branch=${pkgver}"
+    source_3.zip
+    source_4.tar.gz
+)
+noextract=(
+    source_3.zip
+    source_4.tar.gz
+)
+b2sums=(
+    87dd1c13611882900bbcc29a84f8856a7bcd111979815435f9f7aa9c77fb77592fc56324ce3ba6c18df0609a5057e6e3589b9bcced9e7475f2984478b9028a97
+    SKIP
+    SKIP
+    SKIP
+)
+sha224sums=(
+    8670e639dbc738367c4278c5028b5efcad1699b314535cbe2a0c34d5
+    SKIP
+    SKIP
+    SKIP
+)
+sha256sums=(
+    53d397944805bdc878082d735eb5306692a0db2410cd9463a8b4bb135b5b9562
+    SKIP
+    SKIP
+    SKIP
+)
+sha384sums=(
+    5487a70ec49363202624edbaf66538fd0749f735e7f28608cf8eebbf0ba196d76482021708b5831322b6846c44b73360
+    SKIP
+    SKIP
+    SKIP
+)
+sha512sums=(
+    1816c57b4abf31eb7c57a66bfb0f0ee5cef9398b5e4cc303468e08dae2702da55978402da94673e444f8c02754e94dedef4d12450319383c3a481d1c5cd90c82
+    SKIP
+    SKIP
+    SKIP
+)
+
+# x86_64 specific stuff
+# This should show up in the test
+makedepends_x86_64=(
+    arch_default_makedep
+    "arch_default_makedep_2=2.0.0"
+)
+checkdepends_x86_64=(
+    arch_default_checkdep
+    "arch_default_checkdep_2=2.0.0"
+)
+depends_x86_64=(
+    arch_default_dep
+    "arch_default_dep_2=2.0.0"
+)
+optdepends_x86_64=(
+    arch_default_optdep
+    "arch_default_optdep_2=2.0.0: With description"
+)
+provides_x86_64=(
+    arch_default_provides
+    "arch_default_provides_2=2.0.0"
+)
+conflicts_x86_64=(
+    arch_default_conflict
+    "arch_default_conflict_2=2.0.0"
+)
+replaces_x86_64=(
+    arch_default_replaces
+    "arch_default_replaces_2=2.0.0"
+)
+source_x86_64=(
+    arch_source_1.tar.gz
+    "arch_source_2.patch"
+)
+b2sums_x86_64=(
+    87dd1c13611882900bbcc29a84f8856a7bcd111979815435f9f7aa9c77fb77592fc56324ce3ba6c18df0609a5057e6e3589b9bcced9e7475f2984478b9028a97
+    SKIP
+)
+sha224sums_x86_64=(
+    8670e639dbc738367c4278c5028b5efcad1699b314535cbe2a0c34d5
+    SKIP
+)
+sha256sums_x86_64=(
+    53d397944805bdc878082d735eb5306692a0db2410cd9463a8b4bb135b5b9562
+    SKIP
+)
+sha384sums_x86_64=(
+    5487a70ec49363202624edbaf66538fd0749f735e7f28608cf8eebbf0ba196d76482021708b5831322b6846c44b73360
+    SKIP
+)
+sha512sums_x86_64=(
+    1816c57b4abf31eb7c57a66bfb0f0ee5cef9398b5e4cc303468e08dae2702da55978402da94673e444f8c02754e94dedef4d12450319383c3a481d1c5cd90c82
+    SKIP
+)
+
+# aarch64 specific stuff
+# This should **not** show up in the JSON output as we only select x86_64.
+# The tests search for `unexpected` keywords and `beefc0ffee` inside of hashes.
+# If any of these are detected, the test will fail.
+checkdepends_aarch64=(unexpected)
+source_aarch64=(unexpected)
+depends_aarch64=(unexpected)
+optdepends_aarch64=(unexpected)
+provides_aarch64=(unexpected)
+conflicts_aarch64=(unexpected)
+replaces_aarch64=(unexpected)
+makedepends_aarch64=(unexpected)
+b2sums_aarch64=(
+    beefc0ffee1882900bbcc29a84f8856a7bcd111979815435f9f7aa9c77fb77592fc56324ce3ba6c18df0609a5057e6e3589b9bcced9e7475f2984478b9028a97
+)
+sha224sums_aarch64=(
+    beefc0ffeec738367c4278c5028b5efcad1699b314535cbe2a0c34d5
+)
+sha256sums_aarch64=(
+    beefc0ffee05bdc878082d735eb5306692a0db2410cd9463a8b4bb135b5b9562
+)
+sha384sums_aarch64=(
+    beefc0ffee9363202624edbaf66538fd0749f735e7f28608cf8eebbf0ba196d76482021708b5831322b6846c44b73360
+)
+sha512sums_aarch64=(
+    beefc0ffeebf31eb7c57a66bfb0f0ee5cef9398b5e4cc303468e08dae2702da55978402da94673e444f8c02754e94dedef4d12450319383c3a481d1c5cd90c82
+)
+
+package_example() {
+    return
+}

@@ -1,5 +1,8 @@
 //! The `PKGBUILD` to `.SRCINFO` bridge logic.
-pub mod parser;
+
+pub mod error;
+pub(crate) mod parser;
+pub mod source_info;
 
 use std::{
     io::ErrorKind,
