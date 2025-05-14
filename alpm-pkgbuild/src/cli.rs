@@ -16,9 +16,12 @@ pub struct Cli {
 /// Output format for the parse command
 #[derive(Clone, Debug, Default, ValueEnum, strum::Display)]
 pub enum OutputFormat {
-    #[default]
     #[strum(serialize = "json")]
     Json,
+
+    #[default]
+    #[strum(serialize = "srcinfo")]
+    Srcinfo,
 }
 
 #[allow(clippy::large_enum_variant)]
@@ -40,6 +43,21 @@ pub enum SourceInfoCommand {
         /// Path to the PKGBUILD file.
         #[arg(value_name = "PKGBUILD_PATH", default_value = "./PKGBUILD")]
         pkgbuild_path: PathBuf,
+
+        /// Provide the output format
+        #[arg(
+            short,
+            long,
+            value_name = "OUTPUT_FORMAT",
+            default_value_t = OutputFormat::Srcinfo
+        )]
+        output_format: OutputFormat,
+
+        /// Pretty-print the output.
+        ///
+        /// Only applies to formats that support pretty output and is otherwise ignored.
+        #[arg(short, long)]
+        pretty: bool,
     },
 
     /// Run the bridge script on a PKGBUILD file and print the raw and unfiltered output.
