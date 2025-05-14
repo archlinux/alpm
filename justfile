@@ -11,24 +11,33 @@ ignored := "false"
 
 output_dir := "output"
 
-# Runs all checks and tests. Since this is the first recipe it is run by default.
+# Lists all available recipes.
+default:
+    just --list
+
+# Runs checks and tests before creating a commit.
+[private]
 run-pre-commit-hook: check docs test test-docs
 
 # Runs all check targets
+[group('check')]
 check: check-spelling check-formatting lint check-unused-deps check-dependencies check-licenses check-links
 
 # Faster checks need to be executed first for better UX.  For example
 # codespell is very fast. cargo fmt does not need to download crates etc.
 
 # Installs all tools required for development
+[group('dev')]
 dev-install: install-pacman-dev-packages install-rust-dev-tools
 
 # Installs development packages using pacman
+[group('dev')]
 install-pacman-dev-packages:
     # All packages are set in the `.env` file
     run0 pacman -S --needed --noconfirm $PACMAN_PACKAGES
 
 # Installs all Rust tools required for development
+[group('dev')]
 install-rust-dev-tools:
     rustup default stable
     rustup component add clippy
@@ -39,6 +48,7 @@ install-rust-dev-tools:
     rustup component add llvm-tools-preview
 
 # Checks commit messages for correctness
+[group('check')]
 check-commits:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -109,9 +119,11 @@ check-commits:
     done
 
 # Runs checks before pushing commits to remote repository.
+[private]
 run-pre-push-hook: check-commits
 
 # Checks common spelling mistakes
+[group('check')]
 check-spelling:
     codespell
 
@@ -157,6 +169,7 @@ get-workspace-member-version package:
     printf "$version\n"
 
 # Checks for unused dependencies
+[group('check')]
 check-unused-deps:
     #!/usr/bin/env bash
     set -euxo pipefail
@@ -167,6 +180,7 @@ check-unused-deps:
     done
 
 # Checks source code formatting
+[group('check')]
 check-formatting:
     just ensure-command taplo
 
@@ -177,10 +191,12 @@ check-formatting:
     taplo format --check
 
 # Updates the local cargo index and displays which crates would be updated
+[private]
 dry-update:
     cargo update --dry-run --verbose
 
 # Lints the source code
+[group('check')]
 lint:
     just ensure-command shellcheck tangler
 
@@ -210,28 +226,34 @@ lint:
     cargo clippy --tests --all -- -D warnings
 
 # Checks a shell script using shellcheck.
+[group('check')]
 check-shell-script file:
     just ensure-command shellcheck
     shellcheck --shell bash {{ file }}
 
 # Check justfile recipe for shell issues
+[group('check')]
 lint-recipe recipe:
     just -vv -n {{ recipe }} 2>&1 | rg -v '===> Running recipe' | shellcheck -
 
 # Build local documentation
+[group('build')]
 docs:
     RUSTDOCFLAGS='-D warnings' cargo doc --document-private-items --no-deps
 
 # Checks for issues with dependencies
+[group('check')]
 check-dependencies: dry-update
     cargo deny --all-features check
 
 # Checks licensing status
+[group('check')]
 check-licenses:
     just ensure-command reuse
     reuse lint
 
 # Runs all unit tests. By default ignored tests are not run. Run with `ignored=true` to run only ignored tests
+[group('test')]
 test:
     #!/usr/bin/env bash
     set -euxo pipefail
@@ -245,6 +267,7 @@ test:
     fi
 
 # Creates code coverage for all projects.
+[group('test')]
 test-coverage mode="nodoc":
     #!/usr/bin/env bash
     set -euxo pipefail
@@ -322,17 +345,20 @@ test-coverage mode="nodoc":
     printf "Test-coverage: ${percentage}%%\n"
 
 # Runs all doc tests
+[group('test')]
 test-docs:
     just ensure-command cargo
     cargo test --doc
 
 # Run end-to-end tests for README files of projects
+[group('test')]
 test-readmes:
     just test-readme alpm-buildinfo
     just test-readme alpm-pkginfo
     just test-readme alpm-srcinfo
 
 # Runs per project end-to-end tests found in a project README.md
+[group('test')]
 test-readme project:
     #!/usr/bin/env bash
     set -euxo pipefail
@@ -352,6 +378,7 @@ test-readme project:
     cd {{ project }} && PATH="$PATH" tangler bash < README.md | bash -euxo pipefail -
 
 # Adds needed git configuration for the local repository
+[group('dev')]
 configure-git:
     # Enforce gpg signed keys for this repository
     git config commit.gpgsign true
@@ -359,6 +386,7 @@ configure-git:
     just add-hooks
 
 # Adds pre-commit and pre-push git hooks
+[private]
 add-hooks:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -384,11 +412,13 @@ add-hooks:
     chmod +x .git/hooks/prepare-commit-msg
 
 # Check for stale links in documentation
+[group('check')]
 check-links:
     just ensure-command lychee
     lychee .
 
 # Fixes common issues. Files need to be git add'ed
+[group('dev')]
 fix:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -406,6 +436,7 @@ fix:
     cargo +nightly fmt
 
 # Render `manpages`, `shell_completions` or `specifications` (`kind`) of a given package (`pkg`).
+[group('build')]
 generate kind pkg:
     #!/usr/bin/bash
 
@@ -446,6 +477,7 @@ generate kind pkg:
     "$script" "$output_dir/$kind"
 
 # Generates all manpages and specifications
+[group('build')]
 generate-manpages-and-specs:
     just generate manpages alpm-buildinfo
     just generate manpages alpm-mtree
@@ -460,6 +492,7 @@ generate-manpages-and-specs:
     just generate specifications alpm-types
 
 # Generates shell completions
+[group('build')]
 generate-completions:
     just generate shell_completions alpm-buildinfo
     just generate shell_completions alpm-mtree
@@ -467,6 +500,7 @@ generate-completions:
     just generate shell_completions alpm-srcinfo
 
 # Continuously run integration tests for a given number of rounds
+[group('test')]
 flaky test='just test-readme alpm-buildinfo' rounds='999999999999':
     #!/usr/bin/bash
     set -euo pipefail
@@ -479,6 +513,7 @@ flaky test='just test-readme alpm-buildinfo' rounds='999999999999':
     done
 
 # Prepares the release of a crate by updating dependencies, incrementing the crate version and creating a changelog entry (optionally, the version can be set explicitly)
+[group('release')]
 prepare-release package version="":
     #!/usr/bin/env bash
     set -euo pipefail
@@ -519,6 +554,7 @@ prepare-release package version="":
     git push --set-upstream origin "$branch_name"
 
 # Creates a release of a crate in the workspace by creating a tag and pushing it
+[group('release')]
 release package:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -543,6 +579,7 @@ release package:
     git push origin refs/tags/"$current_version"
 
 # Publishes a crate in the workspace from GitLab CI in a pipeline for tags
+[group('release')]
 ci-publish:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -580,6 +617,7 @@ ci-publish:
     cargo publish -p "$crate"
 
 # Ensures that one or more required commands are installed
+[private]
 ensure-command +command:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -594,6 +632,7 @@ ensure-command +command:
     done
 
 # Builds the documentation book using mdbook and stages all necessary rustdocs alongside
+[group('build')]
 build-book:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -618,11 +657,13 @@ build-book:
     cp -r "$target_dir/doc/"*.{js,html} "$rustdoc_dir"
 
 # Serves the documentation book using miniserve
+[group('dev')]
 serve-book: build-book
     just ensure-command miniserve
     miniserve --index=index.html {{ output_dir }}/docs
 
 # Watches the documentation book contents and rebuilds on change using mdbook (useful for development)
+[group('dev')]
 watch-book:
     just ensure-command watchexec
     watchexec --exts md,toml,js --delay-run 5s -- just build-book
