@@ -217,7 +217,7 @@ check-formatting:
 
 # Runs all check targets
 [group('check')]
-check: check-spelling check-formatting lint check-unused-deps check-dependencies check-licenses check-links
+check: check-spelling check-formatting lint check-rust-code check-unused-deps check-dependencies check-licenses check-links
 
 # Checks commit messages for correctness
 [group('check')]
@@ -307,6 +307,12 @@ check-links:
     just ensure-command lychee
     lychee .
 
+# Checks the Rust source code using cargo-clippy.
+[group('check')]
+check-rust-code:
+    just ensure-command cargo cargo-clippy mold
+    cargo clippy --all-features --all-targets --workspace -- -D warnings
+
 # Checks the script examples of a project's README using shellcheck.
 [group('check')]
 check-shell-readme project:
@@ -366,8 +372,6 @@ lint:
 
     just check-shell-script alpm-srcinfo/tests/generate_srcinfo.bash
     just check-shell-script .cargo/runner.sh
-
-    cargo clippy --tests --all -- -D warnings
 
 # Adds needed git configuration for the local repository
 [group('dev')]
