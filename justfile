@@ -445,6 +445,12 @@ watch-book:
     just ensure-command watchexec
     watchexec --exts md,toml,js --delay-run 5s -- just build-book
 
+# Runs integration tests guarded by the `_containerized-integration-test` feature, located in modules named `containerized` (accepts `cargo nextest run` options via `options`).
+[group('test')]
+containerized-integration-tests *options:
+    just ensure-command bash cargo cargo-nextest podman
+    cargo nextest run --features _containerized-integration-test --filterset 'kind(test) and binary_id(/::containerized$/)' {{ options }}
+
 # Runs all unit tests. By default ignored tests are not run. Run with `ignored=true` to run only ignored tests
 [group('test')]
 test:
