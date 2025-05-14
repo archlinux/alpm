@@ -4,6 +4,8 @@ use std::{path::PathBuf, string::FromUtf8Error};
 
 use thiserror::Error;
 
+use crate::bridge::error::BridgeError;
+
 /// The high-level error that can occur when using this crate.
 #[derive(Debug, Error)]
 pub enum Error {
@@ -92,4 +94,17 @@ pub enum Error {
         "An unexpected error occurred in the output parser for the 'alpm-pkgbuild-bridge' script:\n{0}\n\nPlease report this as a bug at https://gitlab.archlinux.org/archlinux/alpm/alpm/-/issues"
     )]
     BridgeParseError(String),
+
+    /// A logical error occurred when transforming `alpm-pkgbuild-bridge` script output to a
+    /// [`SourceInfo`] struct.
+    ///
+    /// See [`BridgeError`] for further details.
+    #[error(transparent)]
+    BridgeConversionError(#[from] BridgeError),
+
+    /// JSON error while creating JSON formatted output.
+    ///
+    /// This error only occurs when running the `commands` functions.
+    #[error("JSON error: {0}")]
+    Json(#[from] serde_json::Error),
 }

@@ -22,9 +22,16 @@ pub struct Cli {
 /// Output format for the parse command
 #[derive(Clone, Debug, Default, strum::Display, ValueEnum)]
 pub enum OutputFormat {
-    #[default]
+    /// JSON
     #[strum(serialize = "json")]
     Json,
+
+    /// The ALPM [SRCINFO] output format.
+    ///
+    /// [SRCINFO]: https://alpm.archlinux.page/specifications/SRCINFO.5.html
+    #[default]
+    #[strum(serialize = "srcinfo")]
+    Srcinfo,
 }
 
 /// The top-level subcommand for the `alpm-pkgbuild` binary.
@@ -47,6 +54,21 @@ pub enum SourceInfoCommand {
         /// Path to the PKGBUILD file.
         #[arg(value_name = "PKGBUILD_PATH", default_value = "./PKGBUILD")]
         pkgbuild_path: PathBuf,
+
+        /// Provide the output format
+        #[arg(
+            short,
+            long,
+            value_name = "OUTPUT_FORMAT",
+            default_value_t = OutputFormat::Srcinfo
+        )]
+        output_format: OutputFormat,
+
+        /// Pretty-print the output.
+        ///
+        /// Only applies to formats that support pretty output and is otherwise ignored.
+        #[arg(short, long)]
+        pretty: bool,
     },
 
     /// Run the bridge script on a PKGBUILD file and print the raw and unfiltered output.

@@ -18,7 +18,11 @@ fn main() -> ExitCode {
     init_logger(cli.verbosity);
     let result = match cli.command {
         Command::Srcinfo { subcommand } => match subcommand {
-            SourceInfoCommand::Format { pkgbuild_path } => print_source_info(pkgbuild_path),
+            SourceInfoCommand::Format {
+                pkgbuild_path,
+                output_format,
+                pretty,
+            } => print_source_info(pkgbuild_path, output_format, pretty),
             SourceInfoCommand::RunBridge { pkgbuild_path } => run_bridge(pkgbuild_path),
         },
     };
