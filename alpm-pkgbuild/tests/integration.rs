@@ -42,3 +42,38 @@ mod srcinfo_run_bridge {
         Ok(())
     }
 }
+
+mod srcinfo_format {
+    use alpm_srcinfo::SourceInfoV1;
+    use tempfile::tempdir;
+
+    use super::*;
+
+    /// Run the `srcinfo format` subcommand to convert a PKGBUILD into a .SRCINFO file.
+    #[test]
+    fn format() -> TestResult {
+        // Write the PKGBUILD to a temporary directory
+        let tempdir = tempdir()?;
+        let path = tempdir.path().join("PKGBUILD");
+        let mut file = File::create_new(&path)?;
+        file.write_all(TEST_PKGBUILD.as_bytes())?;
+
+        // Generate the .SRCINFO file from the that PKGBUILD file.
+        let mut cmd = Command::cargo_bin("alpm-pkgbuild")?;
+        cmd.args(vec![
+            "srcinfo".into(),
+            "format".into(),
+            path.to_string_lossy().to_string(),
+        ]);
+
+        // Make sure the command was successful and get the output.
+        let output = cmd.assert().success();
+        let output = String::from_utf8_lossy(&output.get_output().stdout);
+
+        let srcinfo = SourceInfoV1::from_string(&output)?.source_info()?;
+
+        assert_eq!(srcinfo.base.name.inner(), "example");
+
+        Ok(())
+    }
+}

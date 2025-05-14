@@ -1,0 +1,61 @@
+#!/bin/bash
+# This PKGBUILD file is used to ensure that all clearable properties can be cleared, on both
+# architecture and non-architecture specific assignments.
+# Disable unused variable warnings:
+# shellcheck disable=2034
+
+pkgname=(example)
+pkgver=0.1.0
+pkgrel=1
+epoch=1
+arch=(x86_64 aarch64)
+
+pkgdesc="A example with all pkgbase properties set."
+url="https://archlinux.org/"
+license=(MIT)
+changelog=changelog.stub
+install=install.sh.stub
+groups=(
+    group
+    group_2
+)
+backup=(etc/pacman.conf)
+options=("!lto")
+
+depends=(default_dep)
+optdepends=(default_optdep)
+provides=(default_provides)
+conflicts=(default_conflict)
+replaces=(default_replaces)
+
+# x86_64 specific stuff
+# This should show up in the test
+depends_x86_64=(arch_default_dep)
+optdepends_x86_64=(arch_default_optdep)
+provides_x86_64=(arch_default_provides)
+conflicts_x86_64=(arch_default_conflict)
+replaces_x86_64=(arch_default_replaces)
+
+# Now clear all variables that're clearable
+package_example() {
+    pkgdesc=
+    url=
+    license=()
+    changelog=
+    install=
+    groups=()
+    backup=()
+    options=()
+
+    depends=()
+    optdepends=()
+    provides=()
+    conflicts=()
+    replaces=()
+
+    depends_x86_64=()
+    optdepends_x86_64=()
+    provides_x86_64=()
+    conflicts_x86_64=()
+    replaces_x86_64=()
+}

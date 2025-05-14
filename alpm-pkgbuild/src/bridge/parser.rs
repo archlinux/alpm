@@ -66,7 +66,7 @@
 //! [`PKGBUILD`]: https://man.archlinux.org/man/PKGBUILD.5
 //! [`alpm-pkgbuild-bridge`]: https://gitlab.archlinux.org/archlinux/alpm/alpm-pkgbuild-bridge
 
-use std::{collections::HashMap, fmt::Display, str::FromStr};
+use std::{collections::HashMap, fmt::Display, path::Path, str::FromStr};
 
 use alpm_parsers::iter_str_context;
 #[cfg(doc)]
@@ -81,7 +81,9 @@ use winnow::{
     token::{none_of, one_of, take_till, take_until},
 };
 
-/// A single value or a list of values declared in the pkgbuild bridge script output.
+use crate::{bridge::run_bridge_script, error::Error};
+
+/// A single value or a list of values declared in the output of the `alpm-pkgbuild-bridge` script.
 ///
 /// Both parser functions ensure that at least one value exists.
 #[derive(Clone, Debug)]
@@ -93,7 +95,7 @@ pub enum Value {
 }
 
 impl Value {
-    /// Return `self` in vector representation.
+    /// Returns the values of `&self` in vector representation.
     ///
     /// This is useful for values that may be available as both single values and arrays.
     pub fn as_vec(&self) -> Vec<&String> {
@@ -103,7 +105,17 @@ impl Value {
         }
     }
 
-    /// Check whether a value is set.
+    /// Returns the values of `self` in vector representation.
+    ///
+    /// This is useful for values that may be available as both single values and arrays.
+    pub fn as_owned_vec(self) -> Vec<String> {
+        match self {
+            Value::Single(item) => vec![item],
+            Value::Array(items) => items,
+        }
+    }
+
+    /// Checks whether this holds a value.
     ///
     /// Returns `true` if `self` is [`Value::Single`] (they always have a value set by definition),
     /// or if `self` is [`Value::Array`] and contains at least one element.
@@ -396,11 +408,15 @@ impl VariableType {
 /// If a [`PKGBUILD`] only defines a single package, the package's `package` function will be named
 /// `package`. This is represented by `RawPackageName(None)`.
 ///
-/// If a [PKGBUILD] defines one or more [alpm-split-packages], there are as many custom `package` functions as there are split packages.
-/// Here, each function is named `package_<name>`, where `<name>` denotes an [alpm-package-name].
-/// This is represented by `RawPackageName(Some(name))`.
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
-pub struct RawPackageName(Option<String>);
+/// If a [`PKGBUILD`] defines one or more [alpm-split-package]s, there are as many custom `package`
+/// functions as there are split packages. Here, each function is named `package_<name>`, where
+/// `<name>` denotes an [alpm-package-name]. This is represented by `RawPackageName(Some(name))`.
+///
+/// [`PKGBUILD`]: https://man.archlinux.org/man/PKGBUILD.5
+/// [alpm-package-name]: https://alpm.archlinux.page/specifications/alpm-package-name.7.html
+/// [alpm-split-package]: https://alpm.archlinux.page/specifications/alpm-split-package.7.html
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub struct RawPackageName(pub Option<String>);
 
 impl RawPackageName {
     /// Recognizes a [`RawPackageName`] in the output of the `alpm-pkgbuild-bride` script.
@@ -443,7 +459,36 @@ pub struct BridgeOutput {
 }
 
 impl BridgeOutput {
-    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+    /// Creates a [`BridgeOutput`] from a [`PKGBUILD`] at a given path, by calling the
+    /// [`alpm-pkgbuild-bridge`] script.
+    ///
+    /// [`PKGBUILD`]: https://man.archlinux.org/man/PKGBUILD.5
+    /// [`alpm-pkgbuild-bridge`]: https://gitlab.archlinux.org/archlinux/alpm/alpm-pkgbuild-bridge
+    pub fn from_file(pkgbuild_path: &Path) -> Result<Self, Error> {
+        let input = run_bridge_script(pkgbuild_path)?;
+        Self::from_script_output(&input)
+    }
+
+    /// Creates a [`BridgeOutput`] from some [`alpm-pkgbuild-bridge`] script output.
+    ///
+    /// This function is mostly exposed for testing, consider using [`Self::from_file`].
+    ///
+    /// [`alpm-pkgbuild-bridge`]: https://gitlab.archlinux.org/archlinux/alpm/alpm-pkgbuild-bridge
+    pub fn from_script_output(input: &str) -> Result<Self, Error> {
+        Self::parser
+            .parse(input)
+            .map_err(|err| Error::BridgeParseError(format!("{err}")))
+    }
+
+    /// Parse some given [`alpm-pkgbuild-bridge`] script output into `Self`.
+    ///
+    /// Use [`Self::from_script_output`] for convenient error handling.
+    /// Recognizes a [`BridgeOutput`] in the output of the `alpm-pkgbuild-bridge` script.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if no [`BridgeOutput`] can be found in `input`.
+    fn parser(input: &mut &str) -> ModalResult<Self> {
         let package_base = Self::package_base(input)?;
         let packages = Self::packages(input)?;
         let functions = Self::functions(input)?;
@@ -521,7 +566,7 @@ impl BridgeOutput {
         input: &mut &str,
     ) -> ModalResult<HashMap<RawPackageName, HashMap<Keyword, ClearableValue>>> {
         let lines: Vec<(RawPackageName, Keyword, ClearableValue)> =
-            repeat(1.., Self::package_line).parse_next(input)?;
+            repeat(0.., Self::package_line).parse_next(input)?;
 
         let mut packages = HashMap::new();
         for (package_name, keyword, value) in lines {
