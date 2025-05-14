@@ -1,4 +1,8 @@
+//! The `PKGBUILD` to `.SRCINFO` bridge logic.
+
+pub mod error;
 pub mod parser;
+pub mod source_info;
 
 use std::{
     io::ErrorKind,
