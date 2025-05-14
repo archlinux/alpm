@@ -72,13 +72,23 @@ pub enum Value {
 }
 
 impl Value {
-    /// Return `self` in vector representation.
+    /// Return the values of `&self` in vector representation.
     ///
     /// This is useful for values that may be available as both single values and arrays.
     pub fn as_vec(&self) -> Vec<&String> {
         match self {
             Value::Single(item) => vec![&item],
             Value::Array(items) => Vec::from_iter(items.iter()),
+        }
+    }
+
+    /// Return the values of `self` in vector representation.
+    ///
+    /// This is useful for values that may be available as both single values and arrays.
+    pub fn as_owned_vec(self) -> Vec<String> {
+        match self {
+            Value::Single(item) => vec![item],
+            Value::Array(items) => items,
         }
     }
 
