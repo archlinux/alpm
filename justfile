@@ -307,6 +307,12 @@ check-links:
     just ensure-command lychee
     lychee .
 
+# Checks the script examples of a project's README using shellcheck.
+[group('check')]
+check-shell-readme project:
+    just ensure-command shellcheck tangler
+    tangler bash < {{ project }}/README.md | shellcheck --shell bash -
+
 # Checks a shell script using shellcheck.
 [group('check')]
 check-shell-script file:
@@ -332,13 +338,6 @@ check-unused-deps:
 # Lints the source code
 [group('check')]
 lint:
-    just ensure-command shellcheck tangler
-
-    tangler bash < alpm-buildinfo/README.md | shellcheck --shell bash -
-    tangler bash < alpm-mtree/README.md | shellcheck --shell bash -
-    tangler bash < alpm-pkginfo/README.md | shellcheck --shell bash -
-    tangler bash < alpm-srcinfo/README.md | shellcheck --shell bash -
-
     just lint-recipe 'test-readme alpm-buildinfo'
     just lint-recipe 'test-readme alpm-pkginfo'
     just lint-recipe 'test-readme alpm-srcinfo'
@@ -353,6 +352,11 @@ lint:
     just lint-recipe flaky
     just lint-recipe test
     just lint-recipe 'ensure-command test'
+
+    just check-shell-readme alpm-buildinfo
+    just check-shell-readme alpm-mtree
+    just check-shell-readme alpm-pkginfo
+    just check-shell-readme alpm-srcinfo
 
     just check-shell-script alpm-srcinfo/tests/generate_srcinfo.bash
     just check-shell-script .cargo/runner.sh
