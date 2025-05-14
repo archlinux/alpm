@@ -217,7 +217,7 @@ check-formatting:
 
 # Runs all check targets
 [group('check')]
-check: check-spelling check-formatting lint check-rust-code check-unused-deps check-dependencies check-licenses check-links
+check: check-spelling check-formatting check-shell-code check-rust-code check-unused-deps check-dependencies check-licenses check-links
 
 # Checks commit messages for correctness
 [group('check')]
@@ -313,6 +313,32 @@ check-rust-code:
     just ensure-command cargo cargo-clippy mold
     cargo clippy --all-features --all-targets --workspace -- -D warnings
 
+# Checks shell code using shellcheck.
+[group('check')]
+check-shell-code:
+    just check-shell-readme alpm-buildinfo
+    just check-shell-readme alpm-mtree
+    just check-shell-readme alpm-pkginfo
+    just check-shell-readme alpm-srcinfo
+
+    just check-shell-recipe 'test-readme alpm-buildinfo'
+    just check-shell-recipe 'test-readme alpm-pkginfo'
+    just check-shell-recipe 'test-readme alpm-srcinfo'
+    just check-shell-recipe build-book
+    just check-shell-recipe check-commits
+    just check-shell-recipe check-unused-deps
+    just check-shell-recipe ci-publish
+    just check-shell-recipe 'generate shell_completions alpm-buildinfo'
+    just check-shell-recipe 'is-workspace-member alpm-buildinfo'
+    just check-shell-recipe 'prepare-release alpm-buildinfo'
+    just check-shell-recipe 'release alpm-buildinfo'
+    just check-shell-recipe flaky
+    just check-shell-recipe test
+    just check-shell-recipe 'ensure-command test'
+
+    just check-shell-script alpm-srcinfo/tests/generate_srcinfo.bash
+    just check-shell-script .cargo/runner.sh
+
 # Checks the script examples of a project's README using shellcheck.
 [group('check')]
 check-shell-readme project:
@@ -346,32 +372,6 @@ check-unused-deps:
     for name in $(just get-workspace-members); do
         cargo machete "$name"
     done
-
-# Lints the source code
-[group('check')]
-lint:
-    just check-shell-readme alpm-buildinfo
-    just check-shell-readme alpm-mtree
-    just check-shell-readme alpm-pkginfo
-    just check-shell-readme alpm-srcinfo
-
-    just check-shell-recipe 'test-readme alpm-buildinfo'
-    just check-shell-recipe 'test-readme alpm-pkginfo'
-    just check-shell-recipe 'test-readme alpm-srcinfo'
-    just check-shell-recipe build-book
-    just check-shell-recipe check-commits
-    just check-shell-recipe check-unused-deps
-    just check-shell-recipe ci-publish
-    just check-shell-recipe 'generate shell_completions alpm-buildinfo'
-    just check-shell-recipe 'is-workspace-member alpm-buildinfo'
-    just check-shell-recipe 'prepare-release alpm-buildinfo'
-    just check-shell-recipe 'release alpm-buildinfo'
-    just check-shell-recipe flaky
-    just check-shell-recipe test
-    just check-shell-recipe 'ensure-command test'
-
-    just check-shell-script alpm-srcinfo/tests/generate_srcinfo.bash
-    just check-shell-script .cargo/runner.sh
 
 # Adds needed git configuration for the local repository
 [group('dev')]
