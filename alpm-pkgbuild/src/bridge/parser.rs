@@ -72,13 +72,23 @@ pub enum Value {
 }
 
 impl Value {
-    /// Return `self` in vector representation.
+    /// Return the values of `&self` in vector representation.
     ///
     /// This is useful for values that may be available as both single values and arrays.
     pub fn as_vec(&self) -> Vec<&String> {
         match self {
             Value::Single(item) => vec![&item],
             Value::Array(items) => Vec::from_iter(items.iter()),
+        }
+    }
+
+    /// Return the values of `self` in vector representation.
+    ///
+    /// This is useful for values that may be available as both single values and arrays.
+    pub fn as_owned_vec(self) -> Vec<String> {
+        match self {
+            Value::Single(item) => vec![item],
+            Value::Array(items) => items,
         }
     }
 
@@ -320,7 +330,7 @@ impl VariableType {
 /// `package_` is the prefix and the rest afterwards is the actual package name.
 /// This is represented by `RawPackageName(Some(name))`.
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
-pub struct RawPackageName(Option<String>);
+pub struct RawPackageName(pub Option<String>);
 
 impl RawPackageName {
     /// Recognizes a [`RawPackageName`] in bride script output.
@@ -409,7 +419,7 @@ impl BridgeOutput {
         input: &mut &str,
     ) -> ModalResult<HashMap<RawPackageName, HashMap<Keyword, ClearableValue>>> {
         let lines: Vec<(RawPackageName, Keyword, ClearableValue)> =
-            repeat(1.., Self::package_line).parse_next(input)?;
+            repeat(0.., Self::package_line).parse_next(input)?;
 
         let mut packages = HashMap::new();
         for (package_name, keyword, value) in lines {

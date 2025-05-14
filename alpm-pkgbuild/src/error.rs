@@ -3,6 +3,8 @@ use std::{path::PathBuf, string::FromUtf8Error};
 
 use thiserror::Error;
 
+use crate::bridge::error::BridgeError;
+
 /// The high-level error that can occur when using this crate.
 ///
 /// Notably, it contains two important enums in the context of parsing:
@@ -38,4 +40,14 @@ pub enum Error {
         "A error happened in the internal bridge output parser. Please report this upstream!:\n{0}"
     )]
     BridgeParseError(String),
+
+    /// A parsing error that occurred during winnow file parsing.
+    #[error("{0}")]
+    BridgeConversionError(#[from] BridgeError),
+
+    /// JSON error while creating JSON formatted output.
+    ///
+    /// This error only occurs when running the `commands` functions.
+    #[error("JSON error: {0}")]
+    Json(#[from] serde_json::Error),
 }

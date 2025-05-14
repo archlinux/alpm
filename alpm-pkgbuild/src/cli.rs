@@ -40,6 +40,21 @@ pub enum SourceInfoCommand {
         /// Path to the PKGBUILD file the bridge should be run on.
         #[arg(value_name = "PKGBUILD_PATH", default_value = "./PKGBUILD")]
         pkgbuild_path: PathBuf,
+
+        /// Provide the output format
+        #[arg(
+            short,
+            long,
+            value_name = "OUTPUT_FORMAT",
+            default_value_t = OutputFormat::Json
+        )]
+        output_format: OutputFormat,
+
+        /// Pretty-print the output.
+        ///
+        /// Only applies to formats that support pretty output and is otherwise ignored.
+        #[arg(short, long)]
+        pretty: bool,
     },
 
     /// Run the bridge script on a PKGBUILD file and print the raw and unfiltered output.
