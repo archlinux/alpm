@@ -53,7 +53,7 @@
 //!
 //! [`alpm-pkgbuild-bridge`]: https://gitlab.archlinux.org/archlinux/alpm/alpm-pkgbuild-bridge
 
-use std::{collections::HashMap, fmt::Display, str::FromStr};
+use std::{collections::HashMap, fmt::Display, path::Path, str::FromStr};
 
 use alpm_parsers::iter_str_context;
 use strum::{EnumString, VariantNames};
@@ -66,6 +66,9 @@ use winnow::{
     token::{none_of, one_of, take_till, take_until},
 };
 
+use super::run_bridge_script;
+use crate::error::Error;
+
 /// A single value or a list of values declared in the pkgbuild bridge script output.
 ///
 /// Both parser functions ensure that at least one value exists.
@@ -76,13 +79,23 @@ pub enum Value {
 }
 
 impl Value {
-    /// Return `self` in vector representation.
+    /// Return the values of `&self` in vector representation.
     ///
     /// This is useful for values that may be available as both single values and arrays.
     pub fn as_vec(&self) -> Vec<&String> {
         match self {
             Value::Single(item) => vec![&item],
             Value::Array(items) => Vec::from_iter(items.iter()),
+        }
+    }
+
+    /// Return the values of `self` in vector representation.
+    ///
+    /// This is useful for values that may be available as both single values and arrays.
+    pub fn as_owned_vec(self) -> Vec<String> {
+        match self {
+            Value::Single(item) => vec![item],
+            Value::Array(items) => items,
         }
     }
 
@@ -336,8 +349,8 @@ impl VariableType {
 /// For **split**-packages however, there'll be multiple `package_*` functions where
 /// `package_` is the prefix and the rest afterwards is the actual package name.
 /// This is represented by `RawPackageName(Some(name))`.
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
-pub struct RawPackageName(Option<String>);
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub struct RawPackageName(pub Option<String>);
 
 impl RawPackageName {
     /// Recognizes a [`RawPackageName`] in bride script output.
@@ -374,6 +387,29 @@ pub struct BridgeOutput {
 }
 
 impl BridgeOutput {
+    /// Create a `BridgeOutput` from a [`PKGBUILD`] at a given path.
+    ///
+    /// This is a convenience wrapper around [`run_bridge_script`], which calls the
+    /// [`alpm-pkgbuild-bridge`].
+    ///
+    /// [`PKGBUILD`]: https://man.archlinux.org/man/PKGBUILD.5
+    /// [`alpm-pkgbuild-bridge`]: https://gitlab.archlinux.org/archlinux/alpm/alpm-pkgbuild-bridge
+    pub fn from_file(pkgbuild_path: &Path) -> Result<Self, Error> {
+        let input = run_bridge_script(pkgbuild_path)?;
+        Self::from_script_output(&input)
+    }
+
+    /// Create a `BridgeOutput` from some [`alpm-pkgbuild-bridge`] script output.
+    ///
+    /// This function is mostly exposed for testing, consider using [`Self::from_file`].
+    ///
+    /// [`alpm-pkgbuild-bridge`]: https://gitlab.archlinux.org/archlinux/alpm/alpm-pkgbuild-bridge
+    pub fn from_script_output(input: &str) -> Result<Self, Error> {
+        Self::parser
+            .parse(input)
+            .map_err(|err| Error::BridgeParseError(format!("{err}")))
+    }
+
     pub fn parser(input: &mut &str) -> ModalResult<Self> {
         let package_base = Self::package_base(input)?;
         let packages = Self::packages(input)?;
@@ -428,7 +464,7 @@ impl BridgeOutput {
         input: &mut &str,
     ) -> ModalResult<HashMap<RawPackageName, HashMap<Keyword, ClearableValue>>> {
         let lines: Vec<(RawPackageName, Keyword, ClearableValue)> =
-            repeat(1.., Self::package_line).parse_next(input)?;
+            repeat(0.., Self::package_line).parse_next(input)?;
 
         let mut packages = HashMap::new();
         for (package_name, keyword, value) in lines {

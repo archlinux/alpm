@@ -1,0 +1,61 @@
+#!/bin/bash
+# This PKGBUILD file is used to ensure that all overridable properties can be overridden
+# with both architecture and non-architecture specific assignments.
+# Disable unused variable warnings:
+# shellcheck disable=2034
+
+pkgname=(example)
+pkgver=0.1.0
+pkgrel=1
+epoch=1
+arch=(x86_64 aarch64)
+
+pkgdesc="A example with all pkgbase properties set."
+url="https://archlinux.org/"
+license=(MIT)
+changelog=changelog.stub
+install=install.sh.stub
+groups=(
+    group
+    group_2
+)
+backup=(etc/pacman.conf)
+options=("!lto")
+
+depends=(default_dep)
+optdepends=(default_optdep)
+provides=(default_provides)
+conflicts=(default_conflict)
+replaces=(default_replaces)
+
+# x86_64 specific stuff
+# This should show up in the test
+depends_x86_64=(arch_default_dep)
+optdepends_x86_64=(arch_default_optdep)
+provides_x86_64=(arch_default_provides)
+conflicts_x86_64=(arch_default_conflict)
+replaces_x86_64=(arch_default_replaces)
+
+# Now override all variables that can be overridden
+package_example() {
+    pkgdesc="overridden"
+    url="https://overridden.com/"
+    license=("Apache-2.0")
+    changelog=overridden.stub
+    install=overridden.stub
+    groups=(overridden)
+    backup=(overridden)
+    options=(emptydirs)
+
+    depends=(overridden)
+    optdepends=(overridden)
+    provides=(overridden)
+    conflicts=(overridden)
+    replaces=(overridden)
+
+    depends_x86_64=(arch_overridden)
+    optdepends_x86_64=(arch_overridden)
+    provides_x86_64=(arch_overridden)
+    conflicts_x86_64=(arch_overridden)
+    replaces_x86_64=(arch_overridden)
+}

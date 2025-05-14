@@ -4,6 +4,8 @@ use std::{path::PathBuf, string::FromUtf8Error};
 
 use thiserror::Error;
 
+use crate::bridge::error::BridgeError;
+
 /// The high-level error that can occur when using this crate.
 #[derive(Debug, Error)]
 #[non_exhaustive]
@@ -92,4 +94,15 @@ pub enum Error {
         "An unexpected error happened in the internal bridge output parser. Please report this bug!:\n{0}"
     )]
     BridgeParseError(String),
+
+    /// A logical error happened when transforming bridge output to a SourceInfo struct.
+    /// Look at [`BridgeError`] for more details.
+    #[error(transparent)]
+    BridgeConversionError(#[from] BridgeError),
+
+    /// JSON error while creating JSON formatted output.
+    ///
+    /// This error only occurs when running the `commands` functions.
+    #[error("JSON error: {0}")]
+    Json(#[from] serde_json::Error),
 }
