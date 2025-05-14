@@ -313,6 +313,12 @@ check-shell-readme project:
     just ensure-command shellcheck tangler
     tangler bash < {{ project }}/README.md | shellcheck --shell bash -
 
+# Checks justfile recipe relying on shell semantics using shellcheck.
+[group('check')]
+check-shell-recipe recipe:
+    just ensure-command rg shellcheck
+    just -vv -n {{ recipe }} 2>&1 | rg -v '===> Running recipe' | shellcheck -
+
 # Checks a shell script using shellcheck.
 [group('check')]
 check-shell-script file:
@@ -338,35 +344,30 @@ check-unused-deps:
 # Lints the source code
 [group('check')]
 lint:
-    just lint-recipe 'test-readme alpm-buildinfo'
-    just lint-recipe 'test-readme alpm-pkginfo'
-    just lint-recipe 'test-readme alpm-srcinfo'
-    just lint-recipe build-book
-    just lint-recipe check-commits
-    just lint-recipe check-unused-deps
-    just lint-recipe ci-publish
-    just lint-recipe 'generate shell_completions alpm-buildinfo'
-    just lint-recipe 'is-workspace-member alpm-buildinfo'
-    just lint-recipe 'prepare-release alpm-buildinfo'
-    just lint-recipe 'release alpm-buildinfo'
-    just lint-recipe flaky
-    just lint-recipe test
-    just lint-recipe 'ensure-command test'
-
     just check-shell-readme alpm-buildinfo
     just check-shell-readme alpm-mtree
     just check-shell-readme alpm-pkginfo
     just check-shell-readme alpm-srcinfo
 
+    just check-shell-recipe 'test-readme alpm-buildinfo'
+    just check-shell-recipe 'test-readme alpm-pkginfo'
+    just check-shell-recipe 'test-readme alpm-srcinfo'
+    just check-shell-recipe build-book
+    just check-shell-recipe check-commits
+    just check-shell-recipe check-unused-deps
+    just check-shell-recipe ci-publish
+    just check-shell-recipe 'generate shell_completions alpm-buildinfo'
+    just check-shell-recipe 'is-workspace-member alpm-buildinfo'
+    just check-shell-recipe 'prepare-release alpm-buildinfo'
+    just check-shell-recipe 'release alpm-buildinfo'
+    just check-shell-recipe flaky
+    just check-shell-recipe test
+    just check-shell-recipe 'ensure-command test'
+
     just check-shell-script alpm-srcinfo/tests/generate_srcinfo.bash
     just check-shell-script .cargo/runner.sh
 
     cargo clippy --tests --all -- -D warnings
-
-# Check justfile recipe for shell issues
-[group('check')]
-lint-recipe recipe:
-    just -vv -n {{ recipe }} 2>&1 | rg -v '===> Running recipe' | shellcheck -
 
 # Adds needed git configuration for the local repository
 [group('dev')]
