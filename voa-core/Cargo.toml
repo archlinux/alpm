@@ -13,3 +13,12 @@ version = "0.1.0"
 [dependencies]
 log = "0.4"
 strum.workspace = true
+
+[features]
+_containerized-integration-test = []
+
+[dev-dependencies]
+insta.workspace = true
+rstest.workspace = true
+simplelog = "0.12.2"
+testresult.workspace = true
