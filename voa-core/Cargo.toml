@@ -13,3 +13,12 @@ repository.workspace = true
 
 [dependencies]
 log = "0.4"
+
+[features]
+_containerized-integration-test = []
+
+[dev-dependencies]
+insta.workspace = true
+rstest.workspace = true
+simplelog = "0.12.2"
+testresult.workspace = true
