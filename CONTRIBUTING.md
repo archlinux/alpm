@@ -47,6 +47,9 @@ Both are written to `target/llvm-cov/`, which utilizes the [`llvm-tools-preview`
 The `just test-coverage doc` additionally includes doc tests into the coverage report.
 However, this is still an [unstable nightly-only feature](https://github.com/rust-lang/rust/issues/85658).
 
+The `just containerized-integration-tests` recipe executes all tests that are made available by a `_containerized-integration-test` feature and are located in an integration test module named `containerized`.
+With the help of a [custom target runner], these tests are executed in a containerized environment using [`podman`].
+
 ## Writing specifications
 
 Specifications for technology of this project are written in markdown documents in the context of a [component], that serves as its reference implementation.
@@ -143,10 +146,12 @@ For a full list of individual contributors, refer to `git log --format="%an <%aE
 [`lychee`]: https://github.com/lycheeverse/lychee
 [`nextest`]: https://nexte.st/
 [`just`]: https://github.com/casey/just
+[`podman`]: https://podman.io/
 [`tangler`]: https://github.com/wiktor-k/tangler
 [`taplo`]: https://github.com/tamasfe/taplo
 [`cargo-machete`]: https://github.com/bnjbvr/cargo-machete
 [`llvm-tools-preview`]: https://github.com/rust-lang/rust/issues/85658
+[custom target runner]: ./.cargo/runner.sh
 [git pre-commit]: https://man.archlinux.org/man/githooks.5#pre-commit
 [git pre-push]: https://man.archlinux.org/man/githooks.5#pre-push
 [git prepare-commit-msg]: https://man.archlinux.org/man/githooks.5#prepare-commit-msg
