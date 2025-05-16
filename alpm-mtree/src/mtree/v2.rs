@@ -3,7 +3,7 @@
 use std::path::PathBuf;
 
 use alpm_types::{Checksum, Digest, Md5Checksum, Sha256Checksum};
-use serde::{Serialize, Serializer, ser::Error as SerdeError}; // codespell:ignore ser
+use serde::{Serialize, Serializer, ser::Error as SerdeError};
 use winnow::Parser;
 
 pub use crate::parser::PathType;
