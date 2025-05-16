@@ -16,6 +16,43 @@ pub enum Error {
         source: std::io::Error,
     },
 
+    /// A path is not a directory.
+    #[error("The path is not a directory: {path:?}")]
+    NotADirectory {
+        /// The path that is not a directory.
+        path: PathBuf,
+    },
+
+    /// One or more paths are not absolute.
+    #[error(
+        "The following paths are not absolute:\n{}",
+        paths.iter().fold(
+            String::new(),
+            |mut output, path| {
+                output.push_str(&format!("{path:?}\n"));
+                output
+            })
+    )]
+    NonAbsolutePaths {
+        /// The list of non-absolute paths.
+        paths: Vec<PathBuf>,
+    },
+
+    /// One or more paths are not relative.
+    #[error(
+        "The following paths are not relative:\n{}",
+        paths.iter().fold(
+            String::new(),
+            |mut output, path| {
+                output.push_str(&format!("{path:?}\n"));
+                output
+            })
+    )]
+    NonRelativePaths {
+        /// The list of non-relative paths.
+        paths: Vec<PathBuf>,
+    },
+
     /// A path's prefix cannot be stripped.
     #[error("Cannot strip prefix {prefix} from path {path}:\n{source}")]
     PathStripPrefix {

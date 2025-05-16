@@ -15,6 +15,115 @@ use std::{
 
 use alpm_types::{INSTALL_SCRIPTLET_FILE_NAME, MetadataFileName};
 
+/// An input path.
+///
+/// Tracks an absolute base directory and a relative path.
+pub struct InputPath<'a, 'b> {
+    base_dir: &'a Path,
+    path: &'b Path,
+}
+
+impl<'a, 'b> InputPath<'a, 'b> {
+    /// Creates a new [`InputPath`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if
+    /// - `base_dir` is not absolute,
+    /// - `base_dir` is not a directory,
+    /// - or `path` is not relative.
+    pub fn new(base_dir: &'a Path, path: &'b Path) -> Result<Self, crate::Error> {
+        if !base_dir.is_absolute() {
+            return Err(crate::Error::NonAbsolutePaths {
+                paths: vec![base_dir.to_path_buf()],
+            });
+        }
+        if !base_dir.is_dir() {
+            return Err(crate::Error::NotADirectory {
+                path: base_dir.to_path_buf(),
+            });
+        }
+
+        if !path.is_relative() {
+            return Err(crate::Error::NonRelativePaths {
+                paths: vec![path.to_path_buf()],
+            });
+        }
+
+        Ok(Self { base_dir, path })
+    }
+
+    /// Returns a reference to the base dir.
+    pub fn base_dir(&self) -> &Path {
+        self.base_dir
+    }
+
+    /// Returns a reference to the relative path in base dir.
+    pub fn path(&self) -> &Path {
+        self.path
+    }
+
+    /// Returns an absolute path as combination of base directory and relative path.
+    pub fn to_path_buf(&self) -> PathBuf {
+        self.base_dir.join(self.path)
+    }
+}
+
+/// A set of input paths.
+///
+/// Tracks a base directory and a set of relative paths.
+pub struct InputPaths<'a, 'b> {
+    base_dir: &'a Path,
+    paths: &'b [PathBuf],
+}
+
+impl<'a, 'b> InputPaths<'a, 'b> {
+    /// Creates a new [`InputPaths`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if
+    /// - `base_dir` is not absolute,
+    /// - `base_dir` is not a directory,
+    /// - or one or more paths in `paths` are not relative.
+    pub fn new(base_dir: &'a Path, paths: &'b [PathBuf]) -> Result<Self, crate::Error> {
+        if !base_dir.is_absolute() {
+            return Err(crate::Error::NonAbsolutePaths {
+                paths: vec![base_dir.to_path_buf()],
+            });
+        }
+        if !base_dir.is_dir() {
+            return Err(crate::Error::NotADirectory {
+                path: base_dir.to_path_buf(),
+            });
+        }
+
+        let mut non_relative = Vec::new();
+        for path in paths {
+            if !path.is_relative() {
+                non_relative.push(path.clone())
+            }
+        }
+        if !non_relative.is_empty() {
+            return Err(crate::Error::NonRelativePaths {
+                paths: non_relative,
+            });
+        }
+
+        Ok(Self { base_dir, paths })
+    }
+
+    /// Returns a reference to the base dir.
+    pub fn base_dir(&self) -> &Path {
+        self.base_dir
+    }
+
+    /// Returns a reference to the list of relative paths in base dir.
+    pub fn paths(&self) -> &[PathBuf] {
+        self.paths
+    }
+}
+
 /// Collects all data files in a directory, relative to it.
 ///
 /// Convenience wrapper around [`relative_files`] that passes in all variants of
@@ -144,7 +253,7 @@ mod test {
     };
 
     use rstest::rstest;
-    use tempfile::tempdir;
+    use tempfile::{NamedTempFile, TempDir, tempdir};
     use testresult::TestResult;
 
     use super::*;
@@ -297,6 +406,70 @@ post_remove() {
 
         let collected_files = relative_files(tempdir, &[])?;
         assert_eq!(expected_paths.as_slice(), collected_files.as_slice());
+
+        Ok(())
+    }
+
+    /// Tests all success and failure scenarios when creating [`InputPath`].
+    #[test]
+    fn input_path_new() -> TestResult {
+        let temp_dir = TempDir::new()?;
+        let temp_dir_path = temp_dir.path();
+        let temp_file = NamedTempFile::new()?;
+        let temp_file_path = temp_file.path();
+
+        let relative_path = PathBuf::from("some_file.txt");
+        let absolute_path = PathBuf::from("/some_file.txt");
+
+        assert!(InputPath::new(temp_dir_path, &relative_path).is_ok());
+        assert!(matches!(
+            InputPath::new(temp_dir_path, &absolute_path),
+            Err(crate::Error::NonRelativePaths { .. })
+        ));
+        assert!(matches!(
+            InputPath::new(temp_file_path, &relative_path),
+            Err(crate::Error::NotADirectory { .. })
+        ));
+        assert!(matches!(
+            InputPath::new(&relative_path, &relative_path),
+            Err(crate::Error::NonAbsolutePaths { .. })
+        ));
+
+        Ok(())
+    }
+
+    /// Tests all success and failure scenarios when creating [`InputPaths`].
+    #[test]
+    fn input_paths_new() -> TestResult {
+        let temp_dir = TempDir::new()?;
+        let temp_dir_path = temp_dir.path();
+        let temp_file = NamedTempFile::new()?;
+        let temp_file_path = temp_file.path();
+
+        let relative_path_a = PathBuf::from("some_file.txt");
+        let relative_path_b = PathBuf::from("some_other_file.txt");
+        let absolute_path_a = PathBuf::from("/some_file.txt");
+        let absolute_path_b = PathBuf::from("/some_other_file.txt");
+
+        assert!(
+            InputPaths::new(
+                temp_dir_path,
+                &[relative_path_a.clone(), relative_path_b.clone()]
+            )
+            .is_ok()
+        );
+        assert!(matches!(
+            InputPaths::new(temp_dir_path, &[absolute_path_a, absolute_path_b]),
+            Err(crate::Error::NonRelativePaths { .. })
+        ));
+        assert!(matches!(
+            InputPaths::new(temp_file_path, &[relative_path_a.clone()]),
+            Err(crate::Error::NotADirectory { .. })
+        ));
+        assert!(matches!(
+            InputPaths::new(&relative_path_a, &[relative_path_a.clone()]),
+            Err(crate::Error::NonAbsolutePaths { .. })
+        ));
 
         Ok(())
     }
