@@ -1,14 +1,17 @@
 //! File Hierarchy for the Verification of OS Artifacts (VOA)
 //!
-//! A mechanism for signing technology-agnostic storage and retrieval of signature verifiers.
-//! For specification draft see: <https://github.com/uapi-group/specifications/pull/134>
+//! A mechanism for the storage and retrieval of cryptography technology-agnostic signature
+//! verifiers. For specification draft see: <https://github.com/uapi-group/specifications/pull/134>
 //!
 //! The VOA hierarchy acts as structured storage for files that contain "signature verifiers"
-//! (such as OpenPGP certificates, aka "public keys").
+//! (such as [OpenPGP certificates], aka "public keys").
 //!
-//! At the top level of the hierarchy, a set of "load paths" can exist and contain different sets
-//! of verifier files. A VOA access library provides an abstract unified view of this set of the
-//! signature verifiers in that set of load paths.
+//! A set of "load paths" may exist on a system, each containing different sets of verifier files.
+//! This library provides an abstract, unified view of this set of signature verifiers in that set
+//! of load paths.
+//!
+//! Libraries dealing with a specific cryptographic technology can rely on this library to collect
+//! the paths of all verifier files relevant to them.
 //!
 //! Each load path contains a VOA hierarchy of verifier files.
 //! Earlier load paths have precedence over later entries (in some technologies).
@@ -25,15 +28,16 @@
 //! contain variants of "the same" logical verifier.
 //! Verifiers from different load paths can be identified as related via their filenames.
 //!
-//! For example, OpenPGP certificates must be stored using filenames based on their fingerprint.
+//! For example, [OpenPGP certificates] must be stored using filenames based on their fingerprint.
 //!
-//! Signing technology-specific libraries will warn or error when a verifier filename is
-//! inconsistent with the contained verifier.
+//!
+//! [OpenPGP certificates]: https://openpgp.dev/book/certificates.html
 
 #![warn(missing_docs)]
 
 use std::{
     fmt::{Debug, Formatter},
+    fs::{read_dir, read_link},
     path::{Path, PathBuf},
 };
 
@@ -80,7 +84,7 @@ pub struct Os {
 }
 
 impl Os {
-    /// Create a new operating system specifier
+    /// Creates a new operating system identifier.
     ///
     /// `id`: Name of the OS (e.g. arch or debian)
     /// `version_id`: The version of the OS (e.g. 1.0.0 or 24.12)
@@ -125,11 +129,13 @@ impl Os {
     }
 }
 
-/// A `Purpose` combines a [Role] and a [Mode].
-/// It describes in what context the signature verifiers in that directory tree are used.
+/// Combines a [`Role`] and a [`Mode`] to describe in what context a verifier is used.
 ///
-/// The combination of [Role] and [Mode] reflects one directory layer in the VOA file hierarchy.
-/// Purpose paths have values such as: `packages`, `trust-anchor-packages`, `repository-metadata`.
+/// Describes in what context signature verifiers in a directory structure are used.
+///
+/// The combination of [`Role`] and [`Mode`] reflects one directory layer in the VOA directory
+/// hierarchy. Purpose paths have values such as: `packages`, `trust-anchor-packages`,
+/// `repository-metadata`.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Purpose {
     role: Role,
@@ -157,50 +163,51 @@ impl Purpose {
     }
 }
 
-/// A Role acts as a trust domain that is associated with one set of verifiers.
+/// Acts as a trust domain that is associated with a set of verifiers.
 ///
-/// A [Role] is always combined with a [Mode]. The combination of both forms a [Purpose].
-/// E.g. [Role::Packages] combined with [Mode::TrustAnchor] specify the purpose path
+/// A [`Role`] is always combined with a [`Mode`] and in combination forms a [`Purpose`].
+/// E.g. [`Role::Packages`] combined with [`Mode::TrustAnchor`] specify the purpose path
 /// `trust-anchor-packages`.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Role {
-    /// For verifying signatures for packages
+    /// Identifies verifiers used for verifying package signatures.
     Packages,
 
-    /// For verifying signatures for repository metadata
+    /// Identifies verifiers used for verifying package repository metadata signatures.
     RepositoryMetadata,
 
-    /// For verifying signatures for OS images
+    /// Identifies verifiers used for verifying OS image signatures.
     Image,
 }
 
-/// The Mode of a [Purpose] distinguishes between direct artifact verifiers and trust anchors.
+/// Component of a [`Purpose`] to distinguish between direct artifact verifiers and trust anchors.
 ///
-/// A [Mode] is always combined with a [Role]. The combination of both forms a [Purpose].
-/// E.g. [Role::Packages] combined with [Mode::TrustAnchor] specify the purpose path
+/// A [`Mode`] is always combined with a [`Role`] and in combination forms a [`Purpose`].
+/// E.g. [`Role::Packages`] combined with [`Mode::TrustAnchor`] specify the purpose path
 /// `trust-anchor-packages`.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Mode {
-    /// `ArtifactVerifier`s are used directly for the validation of signatures on artifacts
+    /// Identifies verifiers that are used to directly validate signatures on artifacts.
     ArtifactVerifier,
 
-    /// `TrustAnchor`s are used to ascertain the authenticity of [Mode::ArtifactVerifier]s.
+    /// Identifies verifiers that are used to ascertain the authenticity of verifiers used to
+    /// directly validate signatures on artifacts.
     TrustAnchor,
 }
 
-/// The context layer allows defining specific verifiers for a particular context within a
-/// [Purpose].
+/// A context within a [`Purpose`] for more fine-grained verifier assignments.
 ///
 /// An example for context is the name of a specific software repository when certificates are
 /// used in the context of the packages purpose (e.g. "core").
 ///
 /// If no specific context is required, the context `Default` must be used.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub enum Context {
-    /// The default context
+    /// The default context.
+    #[default]
     Default,
 
-    /// Defines a specific [Context] for verifiers within an [Os] and [Purpose]
+    /// Defines a custom [`Context`] for verifiers within an [`Os`] and [`Purpose`].
     ///
     /// TODO: enforce limitation to legal characters
     Specified(String),
@@ -215,14 +222,18 @@ impl Context {
     }
 }
 
-/// Technology-specific backends implement the logic for each supported verification technology
-/// in VOA.
+/// The name of a cryptography technology for handling specific verifiers and the verification of
+/// signatures.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Technology {
-    /// The OpenPGP signature verification technology
+    /// The [OpenPGP] technology.
+    ///
+    /// [OpenPGP]: https://www.openpgp.org/
     OpenPGP,
 
-    /// The SSH signature verification technology
+    /// The [SSH] technology.
+    ///
+    /// [SSH]: https://www.openssh.com/
     SSH,
 }
 
@@ -235,8 +246,7 @@ impl Technology {
     }
 }
 
-/// Specification of a path in a VOA structure at the "leaf" level (where verifier files are
-/// stored).
+/// A path in a VOA structure in which verifier files are stored.
 #[derive(Clone, Debug, PartialEq)]
 pub struct VerifierSourcePath {
     load_path: PathBuf,
@@ -249,7 +259,7 @@ pub struct VerifierSourcePath {
 impl VerifierSourcePath {
     /// The filesystem path that this [VerifierSourcePath] represents.
     /// This representation of the path doesn't canonicalize symlinks, if any.
-    fn path(&self) -> PathBuf {
+    fn to_path_buf(&self) -> PathBuf {
         self.load_path
             .join(self.os.path_segment())
             .join(self.purpose.path_segment())
@@ -257,23 +267,22 @@ impl VerifierSourcePath {
             .join(self.technology.path_segment())
     }
 
-    /// The [Os] uniquely identifies the Operating System of this [VerifierSourcePath].
+    /// The [`Os`] of the [`VerifierSourcePath`].
     pub fn os(&self) -> &Os {
         &self.os
     }
 
-    /// The [Purpose] specifies both the [Role] and the [Mode] of the verifiers in this
-    /// [VerifierSourcePath].
+    /// The [`Purpose`] of the [`VerifierSourcePath`].
     pub fn purpose(&self) -> Purpose {
         self.purpose
     }
 
-    /// The [Context] may define a specific namespace for verifiers within an [Os] and [Purpose].
+    /// The [`Context`] of the [`VerifierSourcePath`].
     pub fn context(&self) -> &Context {
         &self.context
     }
 
-    /// The signature verification technology of this [VerifierSourcePath].
+    /// The [`Technology`] of the [`VerifierSourcePath`].
     pub fn technology(&self) -> Technology {
         self.technology
     }
@@ -291,8 +300,10 @@ struct CheckedVerifierSourcePath {
 }
 
 impl CheckedVerifierSourcePath {
-    // Check that VerifierSourcePath forms a legal path on the local filesystem, and all involved
-    // symlinks (if any) conform to VOA's symlink restrictions
+    /// Creates a new `CheckedVerifierSourcePath` from a `VerifierSourcePath`.
+    ///
+    /// Ensures, that the provided [`VerifierSourcePath`] represents a legal path on the local
+    /// filesystem, and any involved symlinks conform to the VOA symlink restrictions.
     fn new(verifier_source_path: VerifierSourcePath) -> std::io::Result<Self> {
         // Canonicalized base load path
         // (any potential internal symlinks of this top level "load_path" are not checked)
@@ -401,12 +412,9 @@ impl OpaqueVerifier {
         &self.filename
     }
 
-    /// The filename complete with the full path
-    pub fn full_filename(&self) -> PathBuf {
-        let mut file = self.source_path().path();
-        file.push(&self.filename);
-
-        file
+    /// Returns the [`PathBuf`] representation of the [`OpaqueVerifier`] (not canonicalized).
+    pub fn to_path_buf(&self) -> PathBuf {
+        self.source_path().to_path_buf().join(&self.filename)
     }
 }
 
@@ -435,10 +443,11 @@ pub enum LoadPaths {
     User,
 }
 
-/// A Voa object, which is based on a set of load paths.
+/// Access to the "File Hierarchy for the Verification of OS Artifacts (VOA)".
 ///
-/// Voa acts as an accessor to certificates stored in the filesystem.
-/// It is agnostic to the signing technology, and handles all certificates as opaque objects.
+/// [`Voa`] provides file access to the verifiers stored in one or more VOA hierarchies.
+/// Depending on the calling system user, a set of system-wide or user + system-wide load paths is
+/// used. This access is agnostic to the cryptographic technology later using the verifiers.
 pub struct Voa {
     load_paths: LoadPaths,
 }
@@ -484,21 +493,18 @@ impl Voa {
         for load_path in self.load_paths() {
             debug!("Looking for signature verifiers in the load path {load_path:?}");
 
-            let res = CheckedVerifierSourcePath::new(VerifierSourcePath {
+            let checked_path = match CheckedVerifierSourcePath::new(VerifierSourcePath {
                 load_path: load_path.clone(),
                 os: os.clone(),
                 purpose,
                 context: context.clone(),
                 technology,
-            });
-
-            let Ok(checked_path) = res else {
-                warn!(
-                    "Error while checking load path {load_path:?}: {:?}",
-                    res.err().expect("error case")
-                );
-
-                continue;
+            }) {
+                Ok(checked_path) => checked_path,
+                Err(err) => {
+                    warn!("Error while checking load path {load_path:?}: {err:?}",);
+                    continue;
+                }
             };
 
             // This has been checked to be legal according to VOA symlinking rules, and a directory
@@ -506,29 +512,32 @@ impl Voa {
 
             trace!("Loading from VOA path {source_path:?}");
 
-            let res = std::fs::read_dir(source_path);
-            let Ok(dir) = res else {
-                trace!("⤷ Can't read path as a directory {res:?}");
-                continue; // try next load path
+            let dir = match read_dir(source_path) {
+                Ok(dir) => dir,
+                Err(err) => {
+                    trace!("⤷ Can't read path as a directory {err:?}");
+                    continue; // try next load path
+                }
             };
 
             for res in dir {
                 let entry = match res {
                     Ok(entry) => entry,
                     Err(err) => {
-                        trace!("⤷ DirEntry error {err}");
+                        warn!("⤷ Cannot get directory entry:\n{err}");
                         continue;
                     }
                 };
 
                 let Ok(file_type) = entry.file_type() else {
+                    warn!("⤷ Cannot get file type of directory entry {entry:?}");
                     continue;
                 };
 
                 let path = if file_type.is_file() {
                     &entry.path()
                 } else if file_type.is_symlink() {
-                    match std::fs::read_link(entry.path()) {
+                    match read_link(entry.path()) {
                         Ok(path) => {
                             if path.as_path().to_str() == Some("/dev/null") {
                                 // Individual _signature verifiers_ may be masked using
@@ -550,7 +559,7 @@ impl Voa {
                             }
                         }
                         Err(e) => {
-                            trace!("⤷ Error for symlink {entry:?}: {e:?}");
+                            warn!("⤷ Cannot get information on target of symlink {entry:?}: {e:?}");
                             continue;
                         }
                     }
