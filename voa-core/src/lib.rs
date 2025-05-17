@@ -319,8 +319,11 @@ impl CheckedVerifierSourcePath {
         let append = |p: &Path, segment: &Path| -> std::io::Result<PathBuf> {
             let mut buf = p.join(segment);
             if buf.is_symlink() {
-                // Check that the symlink-canonicalized path is acceptable, including this segment
+                // Check that the symlink-canonicalized path is acceptable, including this segment.
                 let canon = buf.canonicalize()?;
+
+                // FIXME: how does this interact with chains of symlinks? Does it process them at
+                // once? If so, we still need to check legality of each intermediate hop!
 
                 // TODO: This check should actually allow links into some of the other current load
                 //       paths (but not all of them!)
@@ -372,26 +375,22 @@ impl CheckedVerifierSourcePath {
     }
 }
 
-/// A signature verifier, loaded as an opaque blob of data.
+/// Points to a signature verifier in the file system.
 ///
 /// Depending on the technology, this may represent, e.g.:
 /// - an individual, loose verifier
 /// - a certificate complete with its trust chain
 /// - a set of individual verifiers in one shared data structure
-pub struct OpaqueVerifier {
-    /// Opaque data representing the verifier
-    verifier_data: Vec<u8>,
-
+pub struct Verifier {
     /// Specification of the path from which the verifier was loaded
     path: VerifierSourcePath,
 
-    /// Filename of the verifier file, in [`OpaqueVerifier::path`]
+    /// Filename of the verifier file, in [`Verifier::path`]
     filename: String,
 }
 
-impl Debug for OpaqueVerifier {
+impl Debug for Verifier {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "OpaqueVerifier [{} bytes]", self.verifier_data.len())?;
         writeln!(f, "Path: {:#?}", self.path)?;
         writeln!(f, "Filename: {}", self.filename)?;
 
@@ -399,12 +398,7 @@ impl Debug for OpaqueVerifier {
     }
 }
 
-impl OpaqueVerifier {
-    /// The raw data of this verifier
-    pub fn data(&self) -> &[u8] {
-        &self.verifier_data
-    }
-
+impl Verifier {
     /// The source path of this verifier
     pub fn source_path(&self) -> &VerifierSourcePath {
         &self.path
@@ -415,7 +409,7 @@ impl OpaqueVerifier {
         &self.filename
     }
 
-    /// Returns the [`PathBuf`] representation of the [`OpaqueVerifier`] (not canonicalized).
+    /// Returns the [`PathBuf`] representation of the [`Verifier`] (not canonicalized).
     pub fn to_path_buf(&self) -> PathBuf {
         self.source_path().to_path_buf().join(&self.filename)
     }
@@ -468,7 +462,7 @@ impl Voa {
         }
     }
 
-    /// Load a set of (opaque) signature verifiers from the VOA hierarchy.
+    /// Find a set of signature verifiers in the VOA hierarchy.
     ///
     /// Paths in a VerifierDirectory have the shape:
     /// LOAD_PATH/$os/$purpose/$context/$technology
@@ -490,7 +484,7 @@ impl Voa {
         purpose: Purpose,
         context: Context,
         technology: Technology,
-    ) -> Vec<OpaqueVerifier> {
+    ) -> Vec<Verifier> {
         let mut certs = vec![];
 
         for load_path in self.load_paths() {
@@ -570,21 +564,21 @@ impl Voa {
                     unimplemented!("FIXME")
                 };
 
-                trace!("Loading verifier file {path:?}");
+                trace!("Checking verifier file {path:?}");
 
-                match std::fs::read(path) {
-                    Ok(verifier_data) => {
-                        certs.push(OpaqueVerifier {
-                            verifier_data,
-                            path: checked_path.verifier_source_path.clone(),
-                            filename: entry
-                                .file_name()
-                                .to_str()
-                                .expect("utf8 problem")
-                                .to_string(), // FIXME!
-                        });
-                    }
-                    Err(err) => trace!("⤷ Error while loading file {err}"),
+                // FIXME: resolve further symlinks here?
+
+                if path.is_file() {
+                    certs.push(Verifier {
+                        path: checked_path.verifier_source_path.clone(),
+                        filename: entry
+                            .file_name()
+                            .to_str()
+                            .expect("utf8 problem")
+                            .to_string(), // FIXME!
+                    });
+                } else {
+                    trace!("⤷ Verifier path is not a file {path:?}");
                 }
             }
         }
