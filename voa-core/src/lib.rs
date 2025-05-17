@@ -116,7 +116,7 @@ impl Os {
     ///
     /// All parts are joined with `:`, trailing colons are omitted.
     /// Parts that are unset are represented as empty strings.
-    fn path_segment(&self) -> String {
+    fn path_segment(&self) -> PathBuf {
         let distro = format!(
             "{}:{}:{}:{}:{}",
             &self.id,
@@ -126,7 +126,7 @@ impl Os {
             self.image_version.as_deref().unwrap_or(""),
         );
 
-        distro.trim_end_matches(':').to_string()
+        distro.trim_end_matches(':').into()
     }
 }
 
@@ -150,12 +150,12 @@ impl Purpose {
         Self { role, mode }
     }
 
-    fn path_segment(&self) -> String {
+    fn path_segment(&self) -> PathBuf {
         let role: &str = self.role.into();
         let mode: &str = self.mode.into();
 
         match self.mode {
-            Mode::TrustAnchor => format!("{}-{}", mode, role),
+            Mode::TrustAnchor => format!("{}-{}", mode, role).into(),
             Mode::ArtifactVerifier => role.into(),
         }
     }
@@ -217,10 +217,10 @@ pub enum Context {
 }
 
 impl Context {
-    fn path_segment(&self) -> &str {
+    fn path_segment(&self) -> PathBuf {
         match self {
-            Self::Default => "default",
-            Self::Specified(context) => context,
+            Self::Default => "default".into(),
+            Self::Specified(context) => context.into(),
         }
     }
 }
@@ -243,8 +243,9 @@ pub enum Technology {
 }
 
 impl Technology {
-    fn path_segment(&self) -> &str {
-        self.into()
+    fn path_segment(&self) -> PathBuf {
+        let segment: &str = self.into();
+        segment.into()
     }
 }
 
@@ -315,7 +316,7 @@ impl CheckedVerifierSourcePath {
         // constraints laid out in the VOA spec
         //
         // FIXME: This closure needs a list of (canonicalized) load paths that this one may link to
-        let append = |p: &Path, segment: &str| -> std::io::Result<PathBuf> {
+        let append = |p: &Path, segment: &Path| -> std::io::Result<PathBuf> {
             let mut buf = p.join(segment);
             if buf.is_symlink() {
                 // Check that the symlink-canonicalized path is acceptable, including this segment
@@ -359,8 +360,8 @@ impl CheckedVerifierSourcePath {
 
         let mut path = append(&base_path, &verifier_source_path.os.path_segment())?;
         path = append(&path, &verifier_source_path.purpose.path_segment())?;
-        path = append(&path, verifier_source_path.context.path_segment())?;
-        path = append(&path, verifier_source_path.technology.path_segment())?;
+        path = append(&path, &verifier_source_path.context.path_segment())?;
+        path = append(&path, &verifier_source_path.technology.path_segment())?;
 
         trace!("CheckedVerifierSourcePath::new canonicalized path: {path:?}");
 
