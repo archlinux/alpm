@@ -42,6 +42,7 @@ use std::{
 };
 
 use log::{debug, trace, warn};
+use strum::IntoStaticStr;
 
 /// Load paths for "system mode" operation of VOA.
 pub const LOAD_PATHS_SYSTEM_MODE: &[&str] = &[
@@ -150,15 +151,12 @@ impl Purpose {
     }
 
     fn path_segment(&self) -> String {
-        let base = match self.role {
-            Role::Packages => "packages",
-            Role::RepositoryMetadata => "repository-metadata",
-            Role::Image => "image",
-        };
+        let role: &str = self.role.into();
+        let mode: &str = self.mode.into();
 
         match self.mode {
-            Mode::TrustAnchor => format!("trust-anchor-{base}"),
-            Mode::ArtifactVerifier => base.to_string(),
+            Mode::TrustAnchor => format!("{}-{}", mode, role),
+            Mode::ArtifactVerifier => role.into(),
         }
     }
 }
@@ -168,15 +166,18 @@ impl Purpose {
 /// A [`Role`] is always combined with a [`Mode`] and in combination forms a [`Purpose`].
 /// E.g. [`Role::Packages`] combined with [`Mode::TrustAnchor`] specify the purpose path
 /// `trust-anchor-packages`.
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, IntoStaticStr)]
 pub enum Role {
     /// Identifies verifiers used for verifying package signatures.
+    #[strum(serialize = "packages")]
     Packages,
 
     /// Identifies verifiers used for verifying package repository metadata signatures.
+    #[strum(serialize = "repository-metadata")]
     RepositoryMetadata,
 
     /// Identifies verifiers used for verifying OS image signatures.
+    #[strum(serialize = "image")]
     Image,
 }
 
@@ -185,13 +186,15 @@ pub enum Role {
 /// A [`Mode`] is always combined with a [`Role`] and in combination forms a [`Purpose`].
 /// E.g. [`Role::Packages`] combined with [`Mode::TrustAnchor`] specify the purpose path
 /// `trust-anchor-packages`.
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, IntoStaticStr)]
 pub enum Mode {
     /// Identifies verifiers that are used to directly validate signatures on artifacts.
+    #[strum(serialize = "")]
     ArtifactVerifier,
 
     /// Identifies verifiers that are used to ascertain the authenticity of verifiers used to
     /// directly validate signatures on artifacts.
+    #[strum(serialize = "trust-anchor")]
     TrustAnchor,
 }
 
@@ -224,25 +227,24 @@ impl Context {
 
 /// The name of a cryptography technology for handling specific verifiers and the verification of
 /// signatures.
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, IntoStaticStr)]
 pub enum Technology {
     /// The [OpenPGP] technology.
     ///
     /// [OpenPGP]: https://www.openpgp.org/
+    #[strum(to_string = "openpgp")]
     OpenPGP,
 
     /// The [SSH] technology.
     ///
     /// [SSH]: https://www.openssh.com/
+    #[strum(to_string = "ssh")]
     SSH,
 }
 
 impl Technology {
     fn path_segment(&self) -> &str {
-        match self {
-            Self::OpenPGP => "openpgp",
-            Self::SSH => "ssh",
-        }
+        self.into()
     }
 }
 

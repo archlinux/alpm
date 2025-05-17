@@ -2305,6 +2305,7 @@ dependencies = [
  "log",
  "rstest",
  "simplelog",
+ "strum",
  "testresult",
 ]
 
