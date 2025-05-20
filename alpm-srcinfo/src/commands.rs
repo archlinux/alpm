@@ -30,6 +30,36 @@ pub fn validate(file: Option<&PathBuf>, schema: Option<SourceInfoSchema>) -> Res
 ///
 /// Returns an error if the input can not be parsed and validated, or if the output can not be
 /// formatted in the selected output format.
+pub fn format_source_info(
+    file: Option<&PathBuf>,
+    schema: Option<SourceInfoSchema>,
+    output_format: OutputFormat,
+    pretty: bool,
+) -> Result<(), Error> {
+    let srcinfo = parse(file, schema)?;
+    let SourceInfo::V1(source_info) = srcinfo;
+
+    match output_format {
+        OutputFormat::Json => {
+            let json = if pretty {
+                serde_json::to_string_pretty(&source_info)?
+            } else {
+                serde_json::to_string(&source_info)?
+            };
+            println!("{json}");
+        }
+    }
+
+    Ok(())
+}
+
+/// Parses a SRCINFO file from a path or stdin and outputs all info grouped by packages for a given
+/// architecture in the specified format on stdout.
+///
+/// # Errors
+///
+/// Returns an error if the input can not be parsed and validated, or if the output can not be
+/// formatted in the selected output format.
 pub fn format_packages(
     file: Option<&PathBuf>,
     schema: Option<SourceInfoSchema>,
