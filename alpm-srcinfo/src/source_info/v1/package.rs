@@ -3,6 +3,9 @@ use std::collections::{BTreeMap, HashSet};
 
 use alpm_types::{
     Architecture,
+    Backup,
+    Changelog,
+    Install,
     License,
     MakepkgOption,
     Name,
@@ -10,7 +13,6 @@ use alpm_types::{
     PackageDescription,
     PackageRelation,
     RelationOrSoname,
-    RelativePath,
     Url,
 };
 use serde::{Deserialize, Serialize};
@@ -131,14 +133,14 @@ pub struct Package {
     pub name: Name,
     pub description: Override<PackageDescription>,
     pub url: Override<Url>,
-    pub changelog: Override<RelativePath>,
+    pub changelog: Override<Changelog>,
     pub licenses: Override<Vec<License>>,
 
     // Build or package management related meta fields
-    pub install: Override<RelativePath>,
+    pub install: Override<Install>,
     pub groups: Override<Vec<String>>,
     pub options: Override<Vec<MakepkgOption>>,
-    pub backups: Override<Vec<RelativePath>>,
+    pub backups: Override<Vec<Backup>>,
 
     /// These are all override fields that may be architecture specific.
     /// Despite being overridable, `architectures` field isn't of the `Override` type, as it
@@ -152,6 +154,29 @@ pub struct Package {
     pub provides: Override<Vec<RelationOrSoname>>,
     pub conflicts: Override<Vec<PackageRelation>>,
     pub replaces: Override<Vec<PackageRelation>>,
+}
+
+impl Package {
+    pub fn new(name: Name) -> Self {
+        Package {
+            name,
+            description: Default::default(),
+            url: Default::default(),
+            changelog: Default::default(),
+            licenses: Default::default(),
+            install: Default::default(),
+            groups: Default::default(),
+            options: Default::default(),
+            backups: Default::default(),
+            architectures: Default::default(),
+            architecture_properties: Default::default(),
+            dependencies: Default::default(),
+            optional_dependencies: Default::default(),
+            provides: Default::default(),
+            conflicts: Default::default(),
+            replaces: Default::default(),
+        }
+    }
 }
 
 /// Architecture specific package properties for use in [`Package`].
