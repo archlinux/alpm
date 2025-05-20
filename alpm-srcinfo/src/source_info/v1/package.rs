@@ -3,6 +3,9 @@ use std::collections::BTreeMap;
 
 use alpm_types::{
     Architecture,
+    Backup,
+    Changelog,
+    Install,
     License,
     MakepkgOption,
     Name,
@@ -10,7 +13,6 @@ use alpm_types::{
     PackageDescription,
     PackageRelation,
     RelationOrSoname,
-    RelativePath,
     Url,
 };
 use serde::{Deserialize, Serialize};
@@ -136,20 +138,20 @@ pub struct Package {
     /// The (potentially overridden) upstream URL of the package.
     pub url: Override<Url>,
     /// The (potentially overridden) relative path to a changelog file of the package.
-    pub changelog: Override<RelativePath>,
+    pub changelog: Override<Changelog>,
     /// The (potentially overridden) list of licenses that apply to the package.
     pub licenses: Override<Vec<License>>,
 
     // Build or package management related meta fields
     /// The (potentially overridden) relative path to an alpm-install-scriptlet of the package.
-    pub install: Override<RelativePath>,
+    pub install: Override<Install>,
     /// The (potentially overridden) list of alpm-package-groups the package is part of.
     pub groups: Override<Vec<String>>,
     /// The (potentially overridden) list of build tool options used when building the package.
     pub options: Override<Vec<MakepkgOption>>,
     /// The (potentially overridden) list of relative paths to files in the package that should be
     /// backed up.
-    pub backups: Override<Vec<RelativePath>>,
+    pub backups: Override<Vec<Backup>>,
 
     /// These are all override fields that may be architecture specific.
     /// Despite being overridable, `architectures` field isn't of the `Override` type, as it
@@ -168,6 +170,32 @@ pub struct Package {
     pub conflicts: Override<Vec<PackageRelation>>,
     /// The (potentially overridden) list of replacements of the package.
     pub replaces: Override<Vec<PackageRelation>>,
+}
+
+impl From<Name> for Package {
+    /// Creates a new [`Package`] from a [`Name`].
+    ///
+    /// Uses `name` and initializes all remaining fields of [`Package`] with default values.
+    fn from(value: Name) -> Self {
+        Package {
+            name: value,
+            description: Default::default(),
+            url: Default::default(),
+            changelog: Default::default(),
+            licenses: Default::default(),
+            install: Default::default(),
+            groups: Default::default(),
+            options: Default::default(),
+            backups: Default::default(),
+            architectures: Default::default(),
+            architecture_properties: Default::default(),
+            dependencies: Default::default(),
+            optional_dependencies: Default::default(),
+            provides: Default::default(),
+            conflicts: Default::default(),
+            replaces: Default::default(),
+        }
+    }
 }
 
 /// Architecture specific package properties for use in [`Package`].
