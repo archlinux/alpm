@@ -391,6 +391,41 @@ configure-git:
 [group('dev')]
 dev-install: install-pacman-dev-packages install-rust-dev-tools
 
+# Installs all binaries of the workspace
+[group('dev')]
+install-workspace-binaries:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    mapfile -t workspace_members < <(just get-workspace-members 2>/dev/null)
+
+    # Workspace members without a binary
+    ignored_members=(
+        alpm-common
+        alpm-package
+        alpm-parsers
+        alpm-state-repo
+        alpm-types
+    )
+
+    for name in "${workspace_members[@]}"; do
+        # Make sure we don't try to install any of the ignored binaries.
+        skip=false
+        for ignored in "${ignored_members[@]}"; do
+            if [[ "$name" == "$ignored" ]]; then
+                skip=true
+                break
+            fi
+        done
+
+        if [ "$skip" = true ]; then
+            continue
+        fi
+
+        echo "Installing $name"
+        cargo install --locked --path "$name"
+    done
+
 # Fixes common issues. Files need to be git add'ed
 [group('dev')]
 fix:
