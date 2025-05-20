@@ -39,7 +39,42 @@ pub enum Command {
         #[arg(short, long, value_name = "VERSION")]
         schema: Option<SourceInfoSchema>,
     },
-    /// Format a SRCINFO file from a path or `stdin`
+
+    /// Format a SRCINFO file from a path or `stdin`.
+    ///
+    /// If the file is valid, the program prints the data in the
+    /// requested file format to stdout and returns with an exit status of 0.
+    #[command()]
+    Format {
+        /// The file to read from.
+        ///
+        /// If no file is provided, stdin is used instead.
+        #[arg(value_name = "FILE")]
+        file: Option<PathBuf>,
+
+        /// Provide the SRCINFO schema version to use.
+        ///
+        /// If no schema version is provided, it will be deduced from the file itself.
+        #[arg(short, long, value_name = "VERSION")]
+        schema: Option<SourceInfoSchema>,
+
+        /// Provide the output format
+        #[arg(
+            short,
+            long,
+            value_name = "OUTPUT_FORMAT",
+            default_value_t = OutputFormat::Json
+        )]
+        output_format: OutputFormat,
+
+        /// Pretty-print the output.
+        ///
+        /// Only applies to formats that support pretty output and is otherwise ignored.
+        #[arg(short, long)]
+        pretty: bool,
+    },
+
+    /// Format a SRCINFO file's packages from a path or `stdin`
     ///
     /// Read, validate and print all of the SRCINFO's packages in their final representation for a
     /// specific architecture. If the file is valid, the program prints the data in the

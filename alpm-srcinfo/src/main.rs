@@ -2,7 +2,7 @@ use std::process::ExitCode;
 
 use alpm_srcinfo::{
     cli::{Cli, Command},
-    commands::{format_packages, validate},
+    commands::{format_packages, format_source_info, validate},
 };
 use clap::Parser;
 
@@ -13,6 +13,12 @@ fn main() -> ExitCode {
     let cli = Cli::parse();
     let result = match cli.command {
         Command::Validate { file, schema } => validate(file.as_ref(), schema),
+        Command::Format {
+            file,
+            schema,
+            output_format,
+            pretty,
+        } => format_source_info(file.as_ref(), schema, output_format, pretty),
         Command::FormatPackages {
             file,
             schema,

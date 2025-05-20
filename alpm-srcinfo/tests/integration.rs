@@ -134,3 +134,32 @@ mod format_packages {
         Ok(())
     }
 }
+
+mod format {
+    use alpm_srcinfo::SourceInfoV1;
+    use rstest::rstest;
+
+    use super::*;
+
+    /// Run a basic format-package test for the x86_64 architecture.
+    #[rstest]
+    #[case::pretty(true)]
+    #[case::not_pretty(false)]
+    fn format(#[case] pretty: bool) -> TestResult {
+        let mut cmd = Command::cargo_bin("alpm-srcinfo")?;
+        cmd.args(vec!["format", "--output-format", "json"]);
+        if pretty {
+            cmd.arg("--pretty");
+        }
+        cmd.write_stdin(VALID_SRCINFO);
+
+        // Make sure the command was successful and get the output.
+        let output = cmd.assert().success().get_output().clone();
+
+        let source_info: SourceInfoV1 = serde_json::from_slice(&output.stdout)?;
+        assert_eq!(source_info.base.name.to_string(), "example");
+        assert_eq!(source_info.packages[1].name.to_string(), "example_2");
+
+        Ok(())
+    }
+}
