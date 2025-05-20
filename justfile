@@ -385,6 +385,16 @@ configure-git:
 [group('dev')]
 dev-install: install-pacman-dev-packages install-rust-dev-tools
 
+# Install all alpm-* binaries in this workspace
+[group('dev')]
+install-alpm-binaries:
+    cargo install --locked --path alpm-buildinfo
+    cargo install --locked --path alpm-mtree
+    cargo install --locked --path alpm-pkgbuild
+    cargo install --locked --path alpm-pkginfo
+    cargo install --locked --path alpm-srcinfo
+    cargo install --locked --path dev-scripts
+
 # Fixes common issues. Files need to be git add'ed
 [group('dev')]
 fix:
