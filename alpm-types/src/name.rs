@@ -129,7 +129,7 @@ impl Display for BuildTool {
 /// ```
 ///
 /// [alpm-package-name]: https://alpm.archlinux.page/specifications/alpm-package-name.7.html
-#[derive(Clone, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Name(String);
 
 impl Name {
