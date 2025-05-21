@@ -34,7 +34,7 @@ use crate::{
 ///
 /// This is the entry point for parsing SRCINFO files. Once created,
 /// [`Self::packages_for_architecture`] can be used to create usable [`MergedPackage`]s.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct SourceInfoV1 {
     /// The information of the `pkgbase` section.
     pub base: PackageBase,
