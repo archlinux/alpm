@@ -43,7 +43,7 @@ use crate::{
 ///
 /// A [`MergedPackage`] (a full view on a package's metadata) can be created using
 /// [`SourceInfoV1::packages_for_architecture`].
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct PackageBase {
     pub name: Name,
     pub description: Option<PackageDescription>,
@@ -97,7 +97,7 @@ pub struct PackageBase {
 ///
 /// For each [`Architecture`] defined in [`PackageBase::architectures`] a
 /// [`PackageBaseArchitecture`] is present in [`PackageBase::architecture_properties`].
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
 pub struct PackageBaseArchitecture {
     pub dependencies: Vec<RelationOrSoname>,
     pub optional_dependencies: Vec<OptionalDependency>,
