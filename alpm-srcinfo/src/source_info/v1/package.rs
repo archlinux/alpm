@@ -340,7 +340,6 @@ impl Package {
 
             // Add the architecture in case it hasn't already.
             architectures.push(*architecture);
-            architecture_properties.entry(*architecture).or_default();
         }
 
         // If there's an overrides for architectures of this package, we need to use those

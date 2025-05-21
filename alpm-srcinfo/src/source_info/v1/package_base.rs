@@ -308,9 +308,6 @@ impl PackageBase {
 
             // Add the architecture in case it hasn't already.
             architectures.push(*architecture);
-            architecture_properties
-                .entry(*architecture)
-                .or_insert(PackageBaseArchitecture::default());
         }
 
         // If no architecture is set, `makepkg` simply uses the host system as the default value.
@@ -322,9 +319,6 @@ impl PackageBase {
                 "No architecture has been specified. Assuming `any`.",
             ));
             architectures.push(Architecture::Any);
-            architecture_properties
-                .entry(Architecture::Any)
-                .or_insert(PackageBaseArchitecture::default());
         }
 
         for (index, prop) in parsed.properties.into_iter().enumerate() {
