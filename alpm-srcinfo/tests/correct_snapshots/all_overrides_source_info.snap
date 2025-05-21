@@ -38,24 +38,6 @@ expression: source_info_json
       "aarch64"
     ],
     "architecture_properties": {
-      "aarch64": {
-        "dependencies": [],
-        "optional_dependencies": [],
-        "provides": [],
-        "conflicts": [],
-        "replaces": [],
-        "check_dependencies": [],
-        "make_dependencies": [],
-        "sources": [],
-        "no_extracts": [],
-        "b2_checksums": [],
-        "md5_checksums": [],
-        "sha1_checksums": [],
-        "sha224_checksums": [],
-        "sha256_checksums": [],
-        "sha384_checksums": [],
-        "sha512_checksums": []
-      },
       "x86_64": {
         "dependencies": [
           {
