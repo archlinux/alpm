@@ -10,8 +10,8 @@ arch=(x86_64 aarch64)
 pkgdesc="A example with all pkgbase properties set."
 url="https://archlinux.org/"
 license=(MIT)
-changelog=changelog.stub
-install=install.sh.stub
+changelog=changelog
+install=install.sh
 groups=(
     group
     group_2
