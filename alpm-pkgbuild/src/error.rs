@@ -53,6 +53,10 @@ pub enum Error {
     #[error("{0}")]
     BridgeConversionError(#[from] BridgeError),
 
+    /// A SourceInfo file could not be read.
+    #[error("JSON error: {0}")]
+    SourceInfoRead(#[from] alpm_srcinfo::error::Error),
+
     /// JSON error while creating JSON formatted output.
     ///
     /// This error only occurs when running the `commands` functions.
