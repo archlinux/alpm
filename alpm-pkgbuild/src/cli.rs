@@ -80,4 +80,26 @@ pub enum SourceInfoCommand {
         #[arg(value_name = "PKGBUILD_PATH", default_value = "./PKGBUILD")]
         pkgbuild_path: PathBuf,
     },
+
+    /// Compare the generated SRCINFO from a PKGBUILD with an existing .SRCINFO file
+    #[command()]
+    Compare {
+        /// Path to the PKGBUILD file.
+        #[arg(
+            short,
+            long = "pkgbuild",
+            value_name = "PKGBUILD_PATH",
+            default_value = "./PKGBUILD"
+        )]
+        pkgbuild_path: PathBuf,
+
+        /// Path to the .SRCINFO file.
+        #[arg(
+            short,
+            long = "srcinfo",
+            value_name = "SRCINFO_PATH",
+            default_value = "./.SRCINFO"
+        )]
+        srcinfo_path: PathBuf,
+    },
 }

@@ -124,6 +124,7 @@ dependencies = [
 name = "alpm-pkgbuild"
 version = "0.1.0"
 dependencies = [
+ "alpm-common",
  "alpm-parsers",
  "alpm-srcinfo",
  "alpm-types",
