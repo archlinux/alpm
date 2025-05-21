@@ -40,7 +40,7 @@ use crate::{
 /// However, in some file formats (e.g. JSON) it is not possible to represent data such as
 /// `Option<Option<T>>`, as serialization would flatten the structure. This type enables
 /// representation of this type of data.
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
 #[serde(tag = "override")]
 pub enum Override<T> {
     #[default]
@@ -123,7 +123,7 @@ impl<T> Override<Vec<T>> {
 //
 /// Take a look at [SourceInfoV1::packages_for_architecture] on how to get the merged representation
 /// [MergedPackage] of a package.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct Package {
     pub name: Name,
     pub description: Override<PackageDescription>,
@@ -154,7 +154,7 @@ pub struct Package {
 ///
 /// For each [`Architecture`] defined in [`Package::architectures`] a [`PackageArchitecture`] is
 /// present in [`Package::architecture_properties`].
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
 pub struct PackageArchitecture {
     pub dependencies: Override<Vec<RelationOrSoname>>,
     pub optional_dependencies: Override<Vec<OptionalDependency>>,
