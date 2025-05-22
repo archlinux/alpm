@@ -10,9 +10,9 @@ use alpm_types::Architecture;
 use crate::{
     SourceInfo,
     SourceInfoSchema,
-    cli::OutputFormat,
+    cli::{PackagesOutputFormat, SourceInfoOutputFormat},
     error::Error,
-    source_info::v1::merged::MergedPackage,
+    source_info::v1::{merged::MergedPackage, writer::source_info_as_srcinfo},
 };
 
 /// Validates a SRCINFO file from a path or stdin.
@@ -33,20 +33,24 @@ pub fn validate(file: Option<&PathBuf>, schema: Option<SourceInfoSchema>) -> Res
 pub fn format_source_info(
     file: Option<&PathBuf>,
     schema: Option<SourceInfoSchema>,
-    output_format: OutputFormat,
+    output_format: SourceInfoOutputFormat,
     pretty: bool,
 ) -> Result<(), Error> {
     let srcinfo = parse(file, schema)?;
     let SourceInfo::V1(source_info) = srcinfo;
 
     match output_format {
-        OutputFormat::Json => {
+        SourceInfoOutputFormat::Json => {
             let json = if pretty {
                 serde_json::to_string_pretty(&source_info)?
             } else {
                 serde_json::to_string(&source_info)?
             };
             println!("{json}");
+        }
+        SourceInfoOutputFormat::Srcinfo => {
+            let output = source_info_as_srcinfo(&source_info);
+            println!("{output}")
         }
     }
 
@@ -63,7 +67,7 @@ pub fn format_source_info(
 pub fn format_packages(
     file: Option<&PathBuf>,
     schema: Option<SourceInfoSchema>,
-    output_format: OutputFormat,
+    output_format: PackagesOutputFormat,
     architecture: Architecture,
     pretty: bool,
 ) -> Result<(), Error> {
@@ -75,7 +79,7 @@ pub fn format_packages(
         .collect();
 
     match output_format {
-        OutputFormat::Json => {
+        PackagesOutputFormat::Json => {
             let json = if pretty {
                 serde_json::to_string_pretty(&packages)?
             } else {

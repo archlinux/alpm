@@ -16,6 +16,7 @@ use winnow::Parser;
 pub mod merged;
 pub mod package;
 pub mod package_base;
+pub mod writer;
 
 #[cfg(doc)]
 use crate::MergedPackage;
