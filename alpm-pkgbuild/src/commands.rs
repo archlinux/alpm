@@ -9,7 +9,7 @@ use alpm_pkgbuild::{
     },
     error::Error,
 };
-use alpm_srcinfo::SourceInfo;
+use alpm_srcinfo::{SourceInfo, source_info::v1::writer::source_info_as_srcinfo};
 use winnow::Parser;
 
 use crate::cli::OutputFormat;
@@ -44,6 +44,10 @@ pub fn print_source_info(
                 serde_json::to_string(&source_info)?
             };
             println!("{json}");
+        }
+        OutputFormat::Srcinfo => {
+            let output = source_info_as_srcinfo(source_info);
+            println!("{output}")
         }
     }
 
@@ -81,6 +85,11 @@ pub fn compare_source_info(pkgbuild_path: PathBuf, srcinfo_path: PathBuf) -> Res
         std::fs::write("srcinfo.json", source_info).map_err(|source| {
             Error::IoPath(srcinfo_json_path, "writing srcinfo.json file", source)
         })?;
+
+        eprintln!("Generated .SRCINFO content differs to .SRCINFO read from disk.");
+        eprintln!("Compare the two generated files srcinfo.json and pkgbuild.json for details");
+    } else {
+        println!("The generated content matches that read from the disk.");
     }
 
     Ok(())

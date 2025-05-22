@@ -170,7 +170,8 @@ dump_function_vars() {
     declare -A new_vars
     printf -v attr_regex '^[[:space:]]* [a-z1-9_]*\+?='
 
-    if ! function_exists "$funcname"; then
+    # Make sure the function exists by checking if it's declared.
+    if ! declare -f "$funcname" >/dev/null; then
         return
     fi
 
