@@ -12,10 +12,12 @@ use std::{
 use alpm_types::Architecture;
 use serde::{Deserialize, Serialize};
 use winnow::Parser;
+use writer::{pkgbase_section, pkgname_section};
 
 pub mod merged;
 pub mod package;
 pub mod package_base;
+pub mod writer;
 
 #[cfg(doc)]
 use crate::MergedPackage;
@@ -43,6 +45,37 @@ pub struct SourceInfoV1 {
 }
 
 impl SourceInfoV1 {
+    /// Returns the [SRCINFO] representation.
+    ///
+    /// ```
+    /// use std::{env::var, path::PathBuf};
+    ///
+    /// use alpm_srcinfo::SourceInfoV1;
+    ///
+    /// const TEST_FILE: &str = include_str!("../../../tests/unit_test_files/normal.srcinfo");
+    ///
+    /// # fn main() -> testresult::TestResult {
+    /// // Read a .SRCINFO file and bring it into the `SourceInfoV1` representation.
+    /// let source_info = SourceInfoV1::from_string(TEST_FILE)?.source_info()?;
+    /// // Convert the `SourceInfoV1` back into it's alpm `.SRCINFO` format.
+    /// println!("{}", source_info.as_srcinfo());
+    /// # Ok(())
+    /// # }
+    /// ```
+    ///
+    /// [SRCINFO]: https://alpm.archlinux.page/specifications/SRCINFO.5.html
+    pub fn as_srcinfo(&self) -> String {
+        let mut srcinfo = String::new();
+
+        pkgbase_section(&self.base, &mut srcinfo);
+        for package in &self.packages {
+            srcinfo.push('\n');
+            pkgname_section(package, &self.base.architectures, &mut srcinfo);
+        }
+
+        srcinfo
+    }
+
     /// Reads the file at the specified path and converts it into a [`SourceInfoV1`] struct.
     ///
     /// # Errors

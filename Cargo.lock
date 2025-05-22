@@ -153,6 +153,7 @@ dependencies = [
  "clap",
  "colored",
  "insta",
+ "pretty_assertions",
  "rstest",
  "serde",
  "serde_json",
