@@ -13,12 +13,25 @@ pub struct Cli {
     pub command: Command,
 }
 
-/// Output format for the parse command
+/// Output format for the `format-packages` command.
 #[derive(Clone, Debug, Default, strum::Display, clap::ValueEnum)]
-pub enum OutputFormat {
+pub enum PackagesOutputFormat {
     #[default]
     #[strum(serialize = "json")]
     Json,
+}
+
+/// Output format for the `format` command.
+#[derive(Clone, Debug, Default, strum::Display, clap::ValueEnum)]
+pub enum SourceInfoOutputFormat {
+    /// The JSON output format.
+    #[strum(serialize = "json")]
+    Json,
+
+    /// The SRCINFO output format
+    #[default]
+    #[strum(serialize = "srcinfo")]
+    Srcinfo,
 }
 
 #[derive(Clone, Debug, Subcommand)]
@@ -63,9 +76,9 @@ pub enum Command {
             short,
             long,
             value_name = "OUTPUT_FORMAT",
-            default_value_t = OutputFormat::Json
+            default_value_t = SourceInfoOutputFormat::Srcinfo,
         )]
-        output_format: OutputFormat,
+        output_format: SourceInfoOutputFormat,
 
         /// Pretty-print the output.
         ///
@@ -101,9 +114,9 @@ pub enum Command {
             short,
             long,
             value_name = "OUTPUT_FORMAT",
-            default_value_t = OutputFormat::Json
+            default_value_t = PackagesOutputFormat::Json
         )]
-        output_format: OutputFormat,
+        output_format: PackagesOutputFormat,
 
         /// Pretty-print the output.
         ///
