@@ -1045,8 +1045,8 @@ impl FromStr for OptionalDependency {
 impl Display for OptionalDependency {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
         match self.description {
-            Some(ref description) => write!(fmt, "{}: {}", self.name(), description),
-            None => write!(fmt, "{}", self.name()),
+            Some(ref description) => write!(fmt, "{}: {}", self.package_relation, description),
+            None => write!(fmt, "{}", self.package_relation),
         }
     }
 }
@@ -1281,58 +1281,58 @@ mod tests {
     #[rstest]
     #[case(
         "example: this is an example dependency",
-        Ok(OptionalDependency {
+        OptionalDependency {
             package_relation: PackageRelation {
                 name: Name::new("example").unwrap(),
                 version_requirement: None,
             },
             description: Some("this is an example dependency".to_string()),
-        }),
+        },
     )]
     #[case(
         "example-two:     a description with lots of whitespace padding     ",
-        Ok(OptionalDependency {
+        OptionalDependency {
             package_relation: PackageRelation {
                 name: Name::new("example-two").unwrap(),
                 version_requirement: None,
             },
             description: Some("a description with lots of whitespace padding".to_string())
-        }),
+        },
     )]
     #[case(
         "dep_name",
-        Ok(OptionalDependency {
+        OptionalDependency {
             package_relation: PackageRelation {
                 name: Name::new("dep_name").unwrap(),
                 version_requirement: None,
             },
             description: None,
-        }),
+        },
     )]
     #[case(
         "dep_name: ",
-        Ok(OptionalDependency {
+        OptionalDependency {
             package_relation: PackageRelation {
                 name: Name::new("dep_name").unwrap(),
                 version_requirement: None,
             },
             description: None,
-        }),
+        },
     )]
     #[case(
         "dep_name_with_special_chars-123: description with !@#$%^&*",
-        Ok(OptionalDependency {
+        OptionalDependency {
             package_relation: PackageRelation {
                 name: Name::new("dep_name_with_special_chars-123").unwrap(),
                 version_requirement: None,
             },
             description: Some("description with !@#$%^&*".to_string()),
-        }),
+        },
     )]
     // versioned optional dependencies
     #[case(
         "elfutils=0.192: for translations",
-        Ok(OptionalDependency {
+        OptionalDependency {
             package_relation: PackageRelation {
                 name: Name::new("elfutils").unwrap(),
                 version_requirement: Some(VersionRequirement {
@@ -1341,11 +1341,11 @@ mod tests {
                 }),
             },
             description: Some("for translations".to_string()),
-        }),
+        },
     )]
     #[case(
         "python>=3: For Python bindings",
-        Ok(OptionalDependency {
+        OptionalDependency {
             package_relation: PackageRelation {
                 name: Name::new("python").unwrap(),
                 version_requirement: Some(VersionRequirement {
@@ -1354,11 +1354,11 @@ mod tests {
                 }),
             },
             description: Some("For Python bindings".to_string()),
-        }),
+        },
     )]
     #[case(
         "java-environment>=17: required by extension-wiki-publisher and extension-nlpsolver",
-        Ok(OptionalDependency {
+        OptionalDependency {
             package_relation: PackageRelation {
                 name: Name::new("java-environment").unwrap(),
                 version_requirement: Some(VersionRequirement {
@@ -1367,14 +1367,56 @@ mod tests {
                 }),
             },
             description: Some("required by extension-wiki-publisher and extension-nlpsolver".to_string()),
-        }),
+        },
     )]
-    fn opt_depend_from_string(
-        #[case] input: &str,
-        #[case] expected_result: Result<OptionalDependency, Error>,
-    ) {
+    fn opt_depend_from_string(#[case] input: &str, #[case] expected: OptionalDependency) {
         let opt_depend_result = OptionalDependency::from_str(input);
-        assert_eq!(expected_result, opt_depend_result);
+        let Ok(optional_dependency) = opt_depend_result else {
+            panic!(
+                "Encountered unexpected error when parsing optional dependency: {opt_depend_result:?}"
+            )
+        };
+
+        assert_eq!(
+            expected, optional_dependency,
+            "Optional dependency has not been correctly parsed."
+        );
+    }
+
+    #[rstest]
+    #[case(
+        "example: this is an example dependency",
+        "example: this is an example dependency"
+    )]
+    #[case(
+        "example-two:     a description with lots of whitespace padding     ",
+        "example-two: a description with lots of whitespace padding"
+    )]
+    #[case("dep_name", "dep_name")]
+    #[case("dep_name: ", "dep_name")]
+    #[case(
+        "dep_name_with_special_chars-123: description with !@#$%^&*",
+        "dep_name_with_special_chars-123: description with !@#$%^&*"
+    )]
+    // versioned optional dependencies
+    #[case("elfutils=0.192: for translations", "elfutils=0.192: for translations")]
+    #[case("python>=3: For Python bindings", "python>=3: For Python bindings")]
+    #[case(
+        "java-environment>=17: required by extension-wiki-publisher and extension-nlpsolver",
+        "java-environment>=17: required by extension-wiki-publisher and extension-nlpsolver"
+    )]
+    fn opt_depend_to_string(#[case] input: &str, #[case] expected: &str) {
+        let opt_depend_result = OptionalDependency::from_str(input);
+        let Ok(optional_dependency) = opt_depend_result else {
+            panic!(
+                "Encountered unexpected error when parsing optional dependency: {opt_depend_result:?}"
+            )
+        };
+        assert_eq!(
+            expected,
+            optional_dependency.to_string(),
+            "OptionalDependency to_string is erroneous."
+        );
     }
 
     #[rstest]
