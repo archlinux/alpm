@@ -26,11 +26,11 @@ if [[ "$test_executable_path" == *containerized* ]] && [[ "$first_test_argument"
     --env RUST_BACKTRACE=1
     --rm
     # Mounts the current working directory into the container.
-    --volume "$PWD:/test"
+    --volume "$PWD:/test:ro,z"
     # Mounts the user's cargo target directory into the container.
-    --volume "$target_dir/debug:/usr/local/bin"
+    --volume "$target_dir/debug:/usr/local/bin:ro,z"
     # Mount the test executable into the container at the same location as on the host
-    --volume "$test_executable_path:$test_executable_path"
+    --volume "$test_executable_path:$test_executable_path:ro,z"
     archlinux:latest
   )
 
