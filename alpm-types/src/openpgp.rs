@@ -504,7 +504,7 @@ mod tests {
         "Foobar McFooface <foobar@mcfooface.org>"
     )]
     fn packager_format_string(#[case] packager: Packager, #[case] packager_str: &str) {
-        assert_eq!(packager_str, format!("{}", packager));
+        assert_eq!(packager_str, format!("{packager}"));
     }
 
     #[rstest]

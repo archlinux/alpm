@@ -175,7 +175,7 @@ mod tests {
     #[case(PackageType::Source, "src")]
     #[case(PackageType::Split, "split")]
     fn pkgtype_format_string(#[case] pkgtype: PackageType, #[case] pkgtype_str: &str) {
-        assert_eq!(pkgtype_str, format!("{}", pkgtype));
+        assert_eq!(pkgtype_str, format!("{pkgtype}"));
     }
 
     #[rstest]

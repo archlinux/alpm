@@ -251,7 +251,7 @@ impl<D: Digest> Display for Checksum<D> {
             "{}",
             self.digest
                 .iter()
-                .map(|x| format!("{:02x?}", x))
+                .map(|x| format!("{x:02x?}"))
                 .collect::<Vec<String>>()
                 .join("")
         )

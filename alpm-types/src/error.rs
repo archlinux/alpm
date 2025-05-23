@@ -197,6 +197,6 @@ mod tests {
         }
     )]
     fn error_format_string(#[case] error_str: &str, #[case] error: Error) {
-        assert_eq!(error_str, format!("{}", error));
+        assert_eq!(error_str, format!("{error}"));
     }
 }

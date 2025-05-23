@@ -174,7 +174,7 @@ mod tests {
     #[case(Architecture::X86_64V3, "x86_64_v3")]
     #[case(Architecture::X86_64V4, "x86_64_v4")]
     fn architecture_format_string(#[case] arch: Architecture, #[case] arch_str: &str) {
-        assert_eq!(arch_str, format!("{}", arch));
+        assert_eq!(arch_str, format!("{arch}"));
     }
 
     #[rstest]
@@ -195,6 +195,6 @@ mod tests {
         #[case] arch: ElfArchitectureFormat,
         #[case] arch_str: &str,
     ) {
-        assert_eq!(arch_str, format!("{}", arch));
+        assert_eq!(arch_str, format!("{arch}"));
     }
 }

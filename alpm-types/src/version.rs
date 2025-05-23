@@ -1083,13 +1083,13 @@ impl FromStr for Version {
 impl Display for Version {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
         if let Some(epoch) = self.epoch {
-            write!(fmt, "{}:", epoch)?;
+            write!(fmt, "{epoch}:")?;
         }
 
         write!(fmt, "{}", self.pkgver)?;
 
         if let Some(pkgrel) = &self.pkgrel {
-            write!(fmt, "-{}", pkgrel)?;
+            write!(fmt, "-{pkgrel}")?;
         }
 
         Ok(())
@@ -1622,7 +1622,7 @@ mod tests {
     #[case(Version::from_str("1").unwrap(), "1")]
     #[case(Version::from_str("1:1").unwrap(), "1:1")]
     fn version_to_string(#[case] version: Version, #[case] to_str: &str) {
-        assert_eq!(format!("{}", version), to_str);
+        assert_eq!(format!("{version}"), to_str);
     }
 
     #[rstest]

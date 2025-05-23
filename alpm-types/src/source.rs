@@ -157,7 +157,7 @@ impl Display for Source {
                 if let Some(filename) = filename {
                     write!(f, "{}::{}", filename.display(), source_url)
                 } else {
-                    write!(f, "{}", source_url)
+                    write!(f, "{source_url}")
                 }
             }
         }

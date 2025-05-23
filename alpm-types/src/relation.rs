@@ -1241,7 +1241,7 @@ mod tests {
 
             println!("input string: {raw_in}");
             let opt_depend = OptionalDependency::from_str(&raw_in).unwrap();
-            let formatted_actual = format!("{}", opt_depend);
+            let formatted_actual = format!("{opt_depend}");
             prop_assert_eq!(
                 formatted_expected,
                 formatted_actual,
