@@ -35,6 +35,7 @@
 
 #![warn(missing_docs)]
 
+mod loadpath;
 pub mod types;
 
 use std::{
@@ -45,23 +46,10 @@ use std::{
 
 use log::{debug, trace, warn};
 
-use crate::types::{Context, Os, Purpose, Technology, Verifier};
-
-/// Load paths for "system mode" operation of VOA.
-pub const LOAD_PATHS_SYSTEM_MODE: &[&str] = &[
-    "/etc/voa/",
-    "/run/voa/",
-    "/usr/local/share/voa/",
-    "/usr/share/voa/",
-];
-
-// TODO: const LOAD_PATHS_USER_MODE
-//
-// $XDG_CONFIG_HOME/voa/
-// the ./voa/ directory in each directory defined in $XDG_CONFIG_DIRS
-// $XDG_RUNTIME_DIR/voa/
-// $XDG_DATA_HOME/voa/
-// the ./voa/ directory in each directory defined in $XDG_DATA_DIRS
+use crate::{
+    loadpath::LoadPathList,
+    types::{Context, Os, Purpose, Technology, Verifier},
+};
 
 /// A path in a VOA structure in which verifier files are stored.
 #[derive(Clone, Debug, PartialEq)]
@@ -205,20 +193,24 @@ pub enum LoadPaths {
 /// Depending on the calling system user, a set of system-wide or user + system-wide load paths is
 /// used. This access is agnostic to the cryptographic technology later using the verifiers.
 pub struct Voa {
-    load_paths: LoadPaths,
+    load_paths: LoadPathList,
 }
 
 impl Voa {
     /// Initialize a Voa object, based on a set of load paths in either system mode or user mode.
     pub fn new(load_paths: LoadPaths) -> Self {
-        Self { load_paths }
+        match load_paths {
+            LoadPaths::System => Self {
+                load_paths: loadpath::load_paths_sys(),
+            },
+            LoadPaths::User => Self {
+                load_paths: loadpath::load_paths_user(),
+            },
+        }
     }
 
-    fn load_paths(&self) -> Vec<PathBuf> {
-        match self.load_paths {
-            LoadPaths::System => LOAD_PATHS_SYSTEM_MODE.iter().map(Into::into).collect(),
-            LoadPaths::User => unimplemented!(),
-        }
+    fn load_paths(&self) -> &LoadPathList {
+        &self.load_paths
     }
 
     /// Find verifiers in all available VOA hierarchies.
@@ -265,11 +257,11 @@ impl Voa {
     ) -> Vec<Verifier> {
         let mut certs = vec![];
 
-        for load_path in self.load_paths() {
+        for load_path in &self.load_paths().paths {
             debug!("Looking for signature verifiers in the load path {load_path:?}");
 
             let checked_path = match CheckedVerifierSourcePath::new(VerifierSourcePath {
-                load_path: load_path.clone(),
+                load_path: load_path.path.clone(),
                 os: os.clone(),
                 purpose,
                 context: context.clone(),
@@ -340,7 +332,12 @@ impl Voa {
                                 // paths (i.e. `/run/voa/` and `$XDG_RUNTIME_DIR/voa/`)
                                 // are prohibited, as they could lead to dangling
                                 // references. [..]
-                                if self.load_paths().iter().any(|p| canon.starts_with(p)) {
+                                if self
+                                    .load_paths()
+                                    .paths
+                                    .iter()
+                                    .any(|p| canon.starts_with(&p.path))
+                                {
                                     &entry.path()
                                 } else {
                                     trace!("Illegal symlink target in {entry:?}");
