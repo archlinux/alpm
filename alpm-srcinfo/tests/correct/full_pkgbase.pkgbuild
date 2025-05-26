@@ -13,7 +13,7 @@ validpgpkeys=(
 )
 
 pkgdesc="A example with all pkgbase properties set."
-url="https://archlinux.org"
+url="https://archlinux.org/"
 license=(
     MIT
     "Apache-2.0"

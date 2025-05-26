@@ -8,7 +8,7 @@ epoch=1
 arch=(x86_64 aarch64)
 
 pkgdesc="A example with all pkgbase properties set."
-url="https://archlinux.org"
+url="https://archlinux.org/"
 license=(MIT)
 changelog=changelog.stub
 install=install.sh.stub

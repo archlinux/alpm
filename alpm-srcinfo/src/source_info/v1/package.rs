@@ -1,5 +1,5 @@
 //! Handling of metadata found in a `pkgname` section of SRCINFO data.
-use std::collections::{BTreeMap, HashSet};
+use std::collections::BTreeMap;
 
 use alpm_types::{
     Architecture,
@@ -27,15 +27,12 @@ use crate::{
         non_spdx_license,
         reassigned_cleared_property,
     },
-    source_info::{
-        helper::ordered_optional_hashset,
-        parser::{
-            ClearableProperty,
-            PackageProperty,
-            RawPackage,
-            RelationProperty,
-            SharedMetaProperty,
-        },
+    source_info::parser::{
+        ClearableProperty,
+        PackageProperty,
+        RawPackage,
+        RelationProperty,
+        SharedMetaProperty,
     },
 };
 
@@ -145,8 +142,7 @@ pub struct Package {
     /// These are all override fields that may be architecture specific.
     /// Despite being overridable, `architectures` field isn't of the `Override` type, as it
     /// **cannot** be cleared.
-    #[serde(serialize_with = "ordered_optional_hashset")]
-    pub architectures: Option<HashSet<Architecture>>,
+    pub architectures: Option<Vec<Architecture>>,
     pub architecture_properties: BTreeMap<Architecture, PackageArchitecture>,
 
     pub dependencies: Override<Vec<RelationOrSoname>>,
@@ -296,7 +292,7 @@ impl Package {
     /// be returned all at once.
     pub fn from_parsed(
         line_start: usize,
-        package_base_architectures: &HashSet<Architecture>,
+        package_base_architectures: &Vec<Architecture>,
         parsed: RawPackage,
         errors: &mut Vec<SourceInfoError>,
     ) -> Self {
@@ -335,7 +331,7 @@ impl Package {
             let line = index + line_start;
 
             // Make sure to set the value of the HashSet to
-            let architectures = architectures.get_or_insert(HashSet::new());
+            let architectures = architectures.get_or_insert(Vec::new());
 
             // Lint to make sure there aren't duplicate architectures declarations.
             if architectures.contains(architecture) {
@@ -343,7 +339,7 @@ impl Package {
             }
 
             // Add the architecture in case it hasn't already.
-            architectures.insert(*architecture);
+            architectures.push(*architecture);
         }
 
         // If there's an overrides for architectures of this package, we need to use those
