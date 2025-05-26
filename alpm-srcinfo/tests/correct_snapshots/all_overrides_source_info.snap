@@ -34,8 +34,8 @@ expression: source_info_json
     "epoch": 1,
     "pgp_fingerprints": [],
     "architectures": [
-      "aarch64",
-      "x86_64"
+      "x86_64",
+      "aarch64"
     ],
     "architecture_properties": {
       "aarch64": {

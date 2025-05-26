@@ -1,5 +1,4 @@
 //! Data representations and integrations for reading of SRCINFO data.
-mod helper;
 pub mod parser;
 pub mod v1;
 

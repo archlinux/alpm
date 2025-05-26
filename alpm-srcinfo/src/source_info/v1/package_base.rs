@@ -1,5 +1,5 @@
 //! Handling of metadata found in the `pkgbase` section of SRCINFO data.
-use std::collections::{BTreeMap, HashSet};
+use std::collections::BTreeMap;
 
 use alpm_types::{
     Architecture,
@@ -33,10 +33,7 @@ use crate::{
         non_spdx_license,
         unsafe_checksum,
     },
-    source_info::{
-        helper::ordered_hashset,
-        parser::{self, PackageBaseProperty, RawPackageBase, SharedMetaProperty},
-    },
+    source_info::parser::{self, PackageBaseProperty, RawPackageBase, SharedMetaProperty},
 };
 
 /// Package base metadata based on the `pkgbase` section in SRCINFO data.
@@ -71,8 +68,7 @@ pub struct PackageBase {
     pub pgp_fingerprints: Vec<OpenPGPIdentifier>,
 
     // Architectures and architecture specific properties
-    #[serde(serialize_with = "ordered_hashset")]
-    pub architectures: HashSet<Architecture>,
+    pub architectures: Vec<Architecture>,
     pub architecture_properties: BTreeMap<Architecture, PackageBaseArchitecture>,
 
     pub dependencies: Vec<RelationOrSoname>,
@@ -211,7 +207,7 @@ impl PackageBase {
         let mut url = None;
         let mut licenses = Vec::new();
         let mut changelog = None;
-        let mut architectures = HashSet::new();
+        let mut architectures = Vec::new();
         let mut architecture_properties = BTreeMap::new();
 
         // Build or package management related meta fields
@@ -267,7 +263,7 @@ impl PackageBase {
             }
 
             // Add the architecture in case it hasn't already.
-            architectures.insert(*architecture);
+            architectures.push(*architecture);
             architecture_properties
                 .entry(*architecture)
                 .or_insert(PackageBaseArchitecture::default());
@@ -281,7 +277,7 @@ impl PackageBase {
                 None,
                 "No architecture has been specified. Assuming `any`.",
             ));
-            architectures.insert(Architecture::Any);
+            architectures.push(Architecture::Any);
             architecture_properties
                 .entry(Architecture::Any)
                 .or_insert(PackageBaseArchitecture::default());
