@@ -46,8 +46,8 @@ expression: source_info_json
       }
     ],
     "architectures": [
-      "aarch64",
-      "x86_64"
+      "x86_64",
+      "aarch64"
     ],
     "architecture_properties": {
       "aarch64": {
