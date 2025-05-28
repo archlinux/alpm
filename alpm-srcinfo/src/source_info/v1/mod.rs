@@ -170,7 +170,7 @@ impl SourceInfoV1 {
     ///
     /// ```
     /// use alpm_srcinfo::{MergedPackage, SourceInfoV1};
-    /// use alpm_types::{Architecture, Name, PackageRelation};
+    /// use alpm_types::{Architecture, Name, PackageDescription, PackageRelation};
     ///
     /// # fn main() -> Result<(), alpm_srcinfo::Error> {
     /// let source_info_data = r#"
@@ -197,13 +197,13 @@ impl SourceInfoV1 {
     /// let example = packages.next().unwrap();
     /// assert_eq!(
     ///     example.description,
-    ///     Some("Example split package".to_string())
+    ///     Some(PackageDescription::new("Example split package"))
     /// );
     ///
     /// let example_other = packages.next().unwrap();
     /// assert_eq!(
     ///     example_other.description,
-    ///     Some("The other example split package".to_string())
+    ///     Some(PackageDescription::new("The other example split package"))
     /// );
     ///
     /// # Ok(())

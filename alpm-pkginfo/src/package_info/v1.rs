@@ -440,7 +440,7 @@ checkdepend = other-extra-test-tool"#
             Name::new("example")?,
             Name::new("example")?,
             Version::from_str("1:1.0.0-1")?,
-            "A project that does something".to_string(),
+            PackageDescription::from("A project that does something"),
             Url::from_str("https://example.org")?,
             BuildDate::from_str("1729181726")?,
             Packager::from_str("John Doe <john@example.org>")?,
