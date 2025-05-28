@@ -52,7 +52,8 @@ The value is an **alpm-package-version**, either in *full* or in *full with epoc
 
 The description of the package.
 The value is a UTF-8 string, zero or more characters long (e.g. `A project used for something`).
-No specific rules about the value exist, but it is suggested to be "short" and to not contain the package name (see **pkgname**).
+Package descriptions must have no leading or trailing whitespaces, must contain no whitespace characters except space " " and no successive spaces.
+It is also suggested to be "short" and to not contain the package name (see **pkgname**).
 
 ### url
 

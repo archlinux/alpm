@@ -68,6 +68,8 @@ These architecture-specific keyword assignments only apply to the architecture t
 The description of the package.
 This keyword assignment may be provided zero or one times in the **pkgbase** and/or in each **pkgname** section.
 The value is a UTF-8 string, zero or more characters long (e.g. `A project used for something`).
+Package descriptions must have no leading or trailing whitespaces, must contain no whitespace characters except space " " and no successive spaces.
+
 No specific rules about the value exist, but it is suggested to be "short" and to not contain the package name (see **alpm-package-name**).
 
 ### pkgver
