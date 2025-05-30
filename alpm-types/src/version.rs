@@ -423,7 +423,7 @@ impl Display for PackageVersion {
 ///     Segment { text: "", delimiter_count: 3},
 ///   ];
 ///   ```
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum VersionSegment<'a> {
     /// The start of a new segment.
     /// If the current segment can be split into multiple sub-segments, this variant only contains

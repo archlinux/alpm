@@ -24,7 +24,7 @@ pub const MTREE_PATH_PREFIX: &str = "./";
 ///
 /// This struct also internally serves as the representation of default values
 /// that're passed to all following path type lines.
-#[derive(Debug, Clone, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct PathDefaults {
     uid: Option<u32>,
     gid: Option<u32>,

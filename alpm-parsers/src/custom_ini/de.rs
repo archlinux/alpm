@@ -56,7 +56,7 @@ use winnow::Parser;
 
 use super::parser::{Item, ini_file};
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub enum Error {
     /// Parsing error
     ///
@@ -334,7 +334,7 @@ mod tests {
 
     use super::*;
 
-    #[derive(Deserialize, Clone, PartialEq, Default, Debug)]
+    #[derive(Clone, Debug, Default, Deserialize, PartialEq)]
     struct TestModel {
         builddate: i64,
         builddir: String,
@@ -391,7 +391,7 @@ mod tests {
         assert_eq!(expected(), v);
     }
 
-    #[derive(Deserialize, Clone, PartialEq, Default, Debug)]
+    #[derive(Clone, Debug, Default, Deserialize, PartialEq)]
     struct TypeTestModel {
         i64: i64,
         i32: i32,
@@ -431,13 +431,13 @@ mod tests {
         );
     }
 
-    #[derive(Deserialize, Clone, PartialEq, Default, Debug)]
+    #[derive(Clone, Debug, Default, Deserialize, PartialEq)]
     struct FlattenTestModelInner {
         u64_list: Vec<u64>,
         u64: u64,
     }
 
-    #[derive(Deserialize, Clone, PartialEq, Default, Debug)]
+    #[derive(Clone, Debug, Default, Deserialize, PartialEq)]
     struct FlattenTestModel {
         #[serde(flatten)]
         flattened: FlattenTestModelInner,

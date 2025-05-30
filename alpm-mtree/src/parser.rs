@@ -25,7 +25,7 @@ use winnow::{
 use crate::path_decoder::decode_utf8_chars;
 
 /// Each line represents a line in a .MTREE file.
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub enum Statement<'a> {
     /// All lines that're irrelevant and don't contribute anything to the actual mtree file.
     ///
@@ -45,7 +45,7 @@ pub enum Statement<'a> {
 }
 
 /// Represents the properties that may be set in `/set` lines.
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub enum SetProperty<'a> {
     Uid(u32),
     Gid(u32),
@@ -54,7 +54,7 @@ pub enum SetProperty<'a> {
 }
 
 /// Represents the properties that can be unset by `/unset` lines.
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub enum UnsetProperty {
     Uid,
     Gid,
@@ -63,7 +63,7 @@ pub enum UnsetProperty {
 }
 
 /// This type is used in a path line to define properties for that path.
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub enum PathProperty<'a> {
     Uid(u32),
     Gid(u32),
@@ -77,7 +77,7 @@ pub enum PathProperty<'a> {
 }
 
 /// All allowed kinds of path types.
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum PathType {
     Dir,
     File,

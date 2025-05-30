@@ -217,7 +217,7 @@ check-formatting:
 
 # Runs all check targets
 [group('check')]
-check: check-spelling check-formatting check-shell-code check-rust-code check-unused-deps check-dependencies check-licenses check-links
+check: check-spelling check-formatting check-shell-code check-rust-code check-rust-derives check-unused-deps check-dependencies check-licenses check-links
 
 # Checks commit messages for correctness
 [group('check')]
@@ -372,6 +372,11 @@ check-unused-deps:
     for name in $(just get-workspace-members); do
         cargo machete "$name"
     done
+
+# Checks for consistent sorting of rust derives
+[group('check')]
+check-rust-derives:
+    cargo sort-derives --check
 
 # Adds needed git configuration for the local repository
 [group('dev')]

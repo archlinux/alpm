@@ -11,7 +11,7 @@ use winnow::{
 ///
 /// See the [`--itemize-changes` section in `man 1 rsync`](https://man.archlinux.org/man/rsync.1#itemize-changes).
 /// This type corresponds to the `Y` placeholder in the format.
-#[derive(Clone, Debug, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) enum ChangeKind {
     /// A file is being transferred to the remote host.
     Sent,
@@ -32,7 +32,7 @@ pub(crate) enum ChangeKind {
 ///
 /// See the [`--itemize-changes` section in `man 1 rsync`](https://man.archlinux.org/man/rsync.1#itemize-changes).
 /// This type corresponds to the `X` placeholder in the format.
-#[derive(Clone, Debug, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) enum PathKind {
     /// A file is changed.
     File,

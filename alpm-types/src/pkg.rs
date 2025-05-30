@@ -22,7 +22,7 @@ use crate::{Error, Name};
 /// assert_eq!("src", format!("{}", PackageType::Source));
 /// assert_eq!("split", format!("{}", PackageType::Split));
 /// ```
-#[derive(Copy, Clone, Debug, Display, EnumString, Eq, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, Display, EnumString, Eq, PartialEq, Serialize)]
 pub enum PackageType {
     /// a debug package
     #[strum(to_string = "debug")]
@@ -76,7 +76,7 @@ pub type PackageBaseName = Name;
 /// Extra data associated with a package
 ///
 /// This type wraps a key-value pair of data as String, which is separated by an equal sign (`=`).
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct ExtraData {
     key: String,
     value: String,

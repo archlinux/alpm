@@ -228,7 +228,7 @@ impl SourceInfoV1 {
 ///
 /// In case no errors are encountered, the resulting [`SourceInfoV1`] may be accessed via
 /// [`SourceInfoResult::source_info`].
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct SourceInfoResult {
     source_info: SourceInfoV1,
     errors: Option<SourceInfoErrors>,

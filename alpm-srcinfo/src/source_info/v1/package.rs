@@ -43,7 +43,7 @@ use crate::{
 /// However, in some file formats (e.g. JSON) it is not possible to represent data such as
 /// `Option<Option<T>>`, as serialization would flatten the structure. This type enables
 /// representation of this type of data.
-#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[serde(tag = "override")]
 pub enum Override<T> {
     #[default]

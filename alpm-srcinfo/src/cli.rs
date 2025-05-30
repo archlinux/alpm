@@ -14,7 +14,7 @@ pub struct Cli {
 }
 
 /// Output format for the parse command
-#[derive(Clone, Debug, Default, clap::ValueEnum, strum::Display)]
+#[derive(Clone, Debug, Default, strum::Display, clap::ValueEnum)]
 pub enum OutputFormat {
     #[default]
     #[strum(serialize = "json")]

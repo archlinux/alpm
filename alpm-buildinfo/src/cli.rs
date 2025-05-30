@@ -105,7 +105,7 @@ pub enum Command {
 }
 
 /// Arguments for validating and parsing a BUILDINFO file
-#[derive(Clone, Debug, Args)]
+#[derive(Args, Clone, Debug)]
 pub struct ValidateArgs {
     /// Provide the BUILDINFO schema version to use.
     ///
@@ -121,7 +121,7 @@ pub struct ValidateArgs {
 ///
 /// This struct is defined separately for reusing it for both v1 and v2 since they have
 /// an overlapping set of fields.
-#[derive(Clone, Debug, Args)]
+#[derive(Args, Clone, Debug)]
 pub struct V1CreateArgs {
     /// Provide a builddate
     #[arg(env = "BUILDINFO_BUILDDATE", long, value_name = "BUILDDATE")]

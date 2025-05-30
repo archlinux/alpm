@@ -25,7 +25,7 @@ use super::de::Error;
 const INVALID_KEY_NAME_SYMBOLS: [char; 3] = ['=', ' ', '\n'];
 
 /// Representation of parsed items.
-#[derive(Debug, Clone, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Deserialize, PartialEq)]
 #[serde(untagged)]
 pub enum Item {
     Value(String),

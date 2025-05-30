@@ -290,7 +290,7 @@ impl<D: Digest> PartialOrd for Checksum<D> {
 ///
 /// Strings representing checksums are used to verify the integrity of files.
 /// If the `"SKIP"` keyword is found, the integrity check is skipped.
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(tag = "type")]
 pub enum SkippableChecksum<D: Digest + Clone> {
     /// Sourcefile checksum validation may be skipped, which is expressed with this variant.

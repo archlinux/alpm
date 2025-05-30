@@ -140,7 +140,7 @@ pub enum Command {
 ///
 /// This struct is defined separately for reusing it for v1 and v2 because both share
 /// a set of overlapping fields.
-#[derive(Clone, Debug, Args)]
+#[derive(Args, Clone, Debug)]
 pub struct V1CreateArgs {
     /// The pkgname to use in the PKGINFO
     ///

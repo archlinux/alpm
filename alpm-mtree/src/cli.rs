@@ -12,7 +12,7 @@ pub struct Cli {
 }
 
 /// Output format for the parse command
-#[derive(Clone, Debug, Default, ValueEnum, strum::Display)]
+#[derive(Clone, Debug, Default, strum::Display, ValueEnum)]
 pub enum OutputFormat {
     #[default]
     #[strum(serialize = "json")]

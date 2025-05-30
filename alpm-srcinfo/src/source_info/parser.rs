@@ -1017,7 +1017,7 @@ impl SourceProperty {
 /// ```txt
 /// depends =
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub enum ClearableProperty {
     Description,
     Url,

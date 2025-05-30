@@ -17,7 +17,7 @@ pub mod mirror;
 pub mod pkgsrc;
 
 /// All Arch Linux package repositories we may want to test.
-#[derive(Clone, Display, Debug, EnumIter, PartialEq, ValueEnum)]
+#[derive(Clone, Debug, Display, EnumIter, PartialEq, ValueEnum)]
 pub enum PackageRepositories {
     #[strum(to_string = "core")]
     Core,

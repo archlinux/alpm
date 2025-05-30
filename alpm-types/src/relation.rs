@@ -38,7 +38,7 @@ use crate::{
 /// Provides either a [`PackageVersion`] or a [`SharedObjectName`].
 ///
 /// This enum is used when creating [`SonameV1`].
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum VersionOrSoname {
     /// A version for a [`SonameV1`].
     Version(PackageVersion),

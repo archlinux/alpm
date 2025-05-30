@@ -5,7 +5,7 @@ use strum::Display;
 
 use crate::sync::PackageRepositories;
 
-#[derive(Parser, Debug)]
+#[derive(Debug, Parser)]
 #[clap(name = "ALPM Dev Scripts", about = "Dev scripts for the ALPM project")]
 pub struct Cli {
     /// Verbose mode (-v, -vv)
@@ -16,7 +16,7 @@ pub struct Cli {
     pub cmd: Command,
 }
 
-#[derive(Parser, Debug)]
+#[derive(Debug, Parser)]
 pub enum Command {
     /// Tests file formats with real-world files from official repositories.
     TestFiles {
@@ -25,7 +25,7 @@ pub enum Command {
     },
 }
 
-#[derive(Parser, ValueEnum, Display, Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Display, Eq, Parser, PartialEq, ValueEnum)]
 pub enum TestFileType {
     #[strum(to_string = ".BUILDINFO")]
     BuildInfo,
@@ -45,7 +45,7 @@ pub enum TestFileType {
     LocalFiles,
 }
 
-#[derive(Parser, Debug)]
+#[derive(Debug, Parser)]
 pub enum TestFilesCmd {
     /// Download/synchronize files for testing to this machine.
     ///
@@ -99,7 +99,7 @@ pub enum TestFilesCmd {
     },
 }
 
-#[derive(Parser, Debug)]
+#[derive(Debug, Parser)]
 pub enum DownloadCmd {
     /// Download all official package source repositories
     ///
@@ -154,7 +154,7 @@ pub enum DownloadCmd {
     },
 }
 
-#[derive(Parser, Debug)]
+#[derive(Debug, Parser)]
 pub enum CleanCmd {
     /// Remove all package source repositories and .SRCINFO files
     PkgSrcRepositories,

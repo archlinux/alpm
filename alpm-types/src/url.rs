@@ -387,7 +387,7 @@ impl VcsInfo {
 /// VCS.
 /// This is necessary as the fragment and the query are parsed at a later step and we have to
 /// keep track of the VCS somehow.
-#[derive(strum::EnumString, strum::Display)]
+#[derive(strum::Display, strum::EnumString)]
 #[strum(serialize_all = "lowercase")]
 enum VcsProtocol {
     Bzr,

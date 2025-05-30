@@ -73,7 +73,7 @@ pub enum Error {
 /// A helper struct to provide proper line based error/linting messages.
 ///
 /// Provides a list of [`SourceInfoError`]s and the SRCINFO data in which the errors occurred.
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct SourceInfoErrors {
     inner: Vec<SourceInfoError>,
     file_content: String,
@@ -228,7 +228,7 @@ impl SourceInfoErrors {
 ///
 /// The severity of an error is defined by its [`SourceInfoErrorType`], which may range from linting
 /// errors, deprecation warnings to hard unrecoverable errors.
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct SourceInfoError {
     pub error_type: SourceInfoErrorType,
     pub line: Option<usize>,
@@ -239,7 +239,7 @@ pub struct SourceInfoError {
 ///
 /// Provides context for the severity of a [`SourceInfoError`].
 /// The type of "error" that has occurred.
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub enum SourceInfoErrorType {
     /// A simple linter error type. Can be ignored but should be fixed.
     LintWarning,

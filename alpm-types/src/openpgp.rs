@@ -302,7 +302,7 @@ pub(crate) static PACKAGER_REGEX: Lazy<Regex> =
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct Packager {
     name: String,
     email: EmailAddress,
