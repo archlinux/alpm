@@ -11,8 +11,11 @@ repository.workspace = true
 version = "0.1.0"
 
 [dependencies]
+directories = "6"
 log = "0.4"
 strum.workspace = true
+uzers = "0.12"
+xdg = "3"
 
 [features]
 _containerized-integration-test = []
