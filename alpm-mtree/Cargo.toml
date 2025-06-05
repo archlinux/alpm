@@ -33,7 +33,7 @@ serde.workspace = true
 serde_json.workspace = true
 strum.workspace = true
 thiserror.workspace = true
-which = { optional = true, version = "7.0.3" }
+which = { optional = true, version = "8.0.0" }
 winnow.workspace = true
 
 [dev-dependencies]
