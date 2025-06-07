@@ -2,6 +2,7 @@
 
 - [alpm-buildinfo](/rustdoc/alpm_buildinfo)
 - [alpm-mtree](/rustdoc/alpm_mtree)
+- [alpm-package](/rustdoc/alpm_package)
 - [alpm-parsers](/rustdoc/alpm_parsers)
 - [alpm-pkginfo](/rustdoc/alpm_pkginfo)
 - [alpm-srcinfo](/rustdoc/alpm_srcinfo)
