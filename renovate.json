@@ -9,5 +9,8 @@
   "separateMinorPatch": true,
   "patch": {
     "enabled": false
-  }
+  },
+  "addLabels": [
+    "scope::deps"
+]
 }
