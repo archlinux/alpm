@@ -13,7 +13,6 @@ stages:
   before_script:
     - pacman-key --init
     - pacman -Sy --needed --noconfirm archlinux-keyring
-    - source .env && pacman -Syu --needed --noconfirm $PACMAN_PACKAGES
   interruptible: true
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
@@ -25,7 +24,7 @@ stages:
   before_script:
     - pacman-key --init
     - pacman -Sy --needed --noconfirm archlinux-keyring
-    - source .env && pacman -Syu --needed --noconfirm $PACMAN_PACKAGES
+    - source .env && pacman -Syu --needed --noconfirm $RUST_DEV_TOOLS_PACKAGES
     - just install-rust-dev-tools
 
 commits:
@@ -33,6 +32,7 @@ commits:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
   script:
+    - source .env && pacman -Syu --needed --noconfirm $CHECK_COMMITS_PACKAGES
     # fetch the default branch as we need it for comparison
     - git fetch origin $CI_DEFAULT_BRANCH
     # setup a dummy user as `cog verify` needs that
@@ -43,6 +43,8 @@ commits:
 
 spelling:
   extends: .default
+  before_script:
+    - source .env && pacman -Syu --needed --noconfirm $SPELLING_PACKAGES
   script:
     - just check-spelling
   stage: check
@@ -50,72 +52,84 @@ spelling:
 formatting:
   extends: .default-with-rust
   script:
+    - source .env && pacman -Syu --needed --noconfirm $FORMAT_PACKAGES
     - just check-formatting
   stage: check
 
 shell-code:
   extends: .default
   script:
+    - source .env && pacman -Syu --needed --noconfirm $CHECK_SHELL_PACKAGES
     - just check-shell-code
   stage: check
 
 rust-code:
   extends: .default-with-rust
   script:
+    - source .env && pacman -Syu --needed --noconfirm $CHECK_RUST_PACKAGES
     - just check-rust-code
   stage: check
 
 unused-deps:
   extends: .default-with-rust
   script:
+    - source .env && pacman -Syu --needed --noconfirm $CHECK_UNUSED_PACKAGES
     - just check-unused-deps
   stage: check
 
 dependencies:
   extends: .default-with-rust
   script:
+    - source .env && pacman -Syu --needed --noconfirm $CHECK_DEPENDENCIES_PACKAGES
     - just check-dependencies
   stage: check
 
 licenses:
   extends: .default-with-rust
   script:
+    - source .env && pacman -Syu --needed --noconfirm $CHECK_LICENSES_PACKAGES
     - just check-licenses
   stage: check
 
 links:
   extends: .default-with-rust
   script:
+    - source .env && pacman -Syu --needed --noconfirm $CHECK_LINKS_PACKAGES
     - just check-links
   stage: check
 
 test:
   extends: .default-with-rust
   script:
+    - source .env && pacman -Syu --needed --noconfirm $TEST_PACKAGES
     - just test
   stage: test
 
 docs:
   extends: .default-with-rust
   script:
+    - source .env && pacman -Syu --needed --noconfirm $DOCS_PACKAGES
     - just docs
   stage: test
 
 test-docs:
   extends: .default-with-rust
   script:
+    - source .env && pacman -Syu --needed --noconfirm $DOCS_PACKAGES
     - just test-docs
   stage: test
 
 test-readmes:
   extends: .default-with-rust
   script:
+    - source .env && pacman -Syu --needed --noconfirm $TEST_READMES_PACKAGES
     - just test-readmes
   stage: test
 
 test-coverage:
   extends: .default-with-rust
   script:
+    - source .env && pacman -Syu --needed --noconfirm $TEST_COVERAGE_PACKAGES
     - just test-coverage
   stage: test
   # This is a regex that looks at the output from the `just test-coverage` command
@@ -135,12 +149,14 @@ test-coverage:
 build-book:
   extends: .default-with-rust
   script:
+    - source .env && pacman -Syu --needed --noconfirm $BUILD_BOOK_PACKAGES
     - just build-book
   stage: test
 
 manpages-specs-completions:
   extends: .default-with-rust
   script:
+    - source .env && pacman -Syu --needed --noconfirm $MANPAGES_PACKAGES
     - just generate-manpages-and-specs
     - just generate-completions
   stage: test
@@ -148,6 +164,7 @@ manpages-specs-completions:
 integration-test:
   extends: .default-with-rust
   script:
+    - source .env && pacman -Syu --needed --noconfirm $TEST_PACKAGES
     - just ignored=true test
   stage: test
 
@@ -157,6 +174,7 @@ crates_publish:
   rules:
     - if: '$CARGO_REGISTRY_TOKEN && $CI_COMMIT_TAG && $CI_PROJECT_PATH == "archlinux/alpm/alpm"'
   script:
+    - source .env && pacman -Syu --needed --noconfirm $PUBLISH_PACKAGES
     - just ci-publish
   stage: publish
   tags:
@@ -179,5 +197,6 @@ pages:
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   script:
+    - source .env && pacman -Syu --needed --noconfirm $BUILD_BOOK_PACKAGES
     - just build-book
   stage: pages
