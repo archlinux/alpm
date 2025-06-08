@@ -503,6 +503,7 @@ impl<'a> VersionSegment<'a> {
 ///
 /// This iterator is capable of handling utf-8 strings.
 /// However, non alphanumeric chars are still interpreted as delimiters.
+#[derive(Debug)]
 pub struct VersionSegments<'a> {
     /// The original version string. We need that reference so we can get some string
     /// slices based on indices later on.
