@@ -26,7 +26,13 @@ use crate::{Error, MtreeSchema, mtree_buffer_to_string, parse_mtree_v2};
 #[derive(Clone, Debug, PartialEq, serde::Serialize)]
 #[serde(untagged)]
 pub enum Mtree {
+    /// The [ALPM-MTREEv1] file format.
+    ///
+    /// [ALPM-MTREEv1]: https://alpm.archlinux.page/specifications/ALPM-MTREEv1.5.html
     V1(Vec<crate::mtree::v2::Path>),
+    /// The [ALPM-MTREEv2] file format.
+    ///
+    /// [ALPM-MTREEv2]: https://alpm.archlinux.page/specifications/ALPM-MTREEv2.5.html
     V2(Vec<crate::mtree::v2::Path>),
 }
 

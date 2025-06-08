@@ -43,10 +43,14 @@ use crate::{
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[serde(tag = "override")]
 pub enum Override<T> {
+    /// The property is not overridden.
     #[default]
     No,
+    /// The property is cleared.
     Clear,
+    /// The property is overridden.
     Yes {
+        /// The value with which the property is overridden.
         value: T,
     },
 }
@@ -125,28 +129,44 @@ impl<T> Override<Vec<T>> {
 /// [MergedPackage] of a package.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Package {
+    /// The alpm-package-name of the package.
     pub name: Name,
+    /// The (potentially overridden) description of the package.
     pub description: Override<PackageDescription>,
+    /// The (potentially overridden) upstream URL of the package.
     pub url: Override<Url>,
+    /// The (potentially overridden) relative path to a changelog file of the package.
     pub changelog: Override<RelativePath>,
+    /// The (potentially overridden) list of licenses that apply to the package.
     pub licenses: Override<Vec<License>>,
 
     // Build or package management related meta fields
+    /// The (potentially overridden) relative path to an alpm-install-scriptlet of the package.
     pub install: Override<RelativePath>,
+    /// The (potentially overridden) list of alpm-package-groups the package is part of.
     pub groups: Override<Vec<String>>,
+    /// The (potentially overridden) list of build tool options used when building the package.
     pub options: Override<Vec<MakepkgOption>>,
+    /// The (potentially overridden) list of relative paths to files in the package that should be
+    /// backed up.
     pub backups: Override<Vec<RelativePath>>,
 
     /// These are all override fields that may be architecture specific.
     /// Despite being overridable, `architectures` field isn't of the `Override` type, as it
     /// **cannot** be cleared.
     pub architectures: Option<Vec<Architecture>>,
+    /// The map of alpm-architecture specific overrides for package relations of a package.
     pub architecture_properties: BTreeMap<Architecture, PackageArchitecture>,
 
+    /// The (potentially overridden) list of run-time dependencies of the package.
     pub dependencies: Override<Vec<RelationOrSoname>>,
+    /// The (potentially overridden) list of optional dependencies of the package.
     pub optional_dependencies: Override<Vec<OptionalDependency>>,
+    /// The (potentially overridden) list of provisions of the package.
     pub provides: Override<Vec<RelationOrSoname>>,
+    /// The (potentially overridden) list of conflicts of the package.
     pub conflicts: Override<Vec<PackageRelation>>,
+    /// The (potentially overridden) list of replacements of the package.
     pub replaces: Override<Vec<PackageRelation>>,
 }
 
@@ -156,10 +176,15 @@ pub struct Package {
 /// present in [`Package::architecture_properties`].
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct PackageArchitecture {
+    /// The (potentially overridden) list of run-time dependencies of the package.
     pub dependencies: Override<Vec<RelationOrSoname>>,
+    /// The (potentially overridden) list of optional dependencies of the package.
     pub optional_dependencies: Override<Vec<OptionalDependency>>,
+    /// The (potentially overridden) list of provisions of the package.
     pub provides: Override<Vec<RelationOrSoname>>,
+    /// The (potentially overridden) list of conflicts of the package.
     pub conflicts: Override<Vec<PackageRelation>>,
+    /// The (potentially overridden) list of replacements of the package.
     pub replaces: Override<Vec<PackageRelation>>,
 }
 

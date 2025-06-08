@@ -39,6 +39,9 @@ use simplelog::{Config, TermLogger};
 use tempfile::TempDir;
 use testresult::TestResult;
 
+/// A string slice representing valid [BUILDINFOv2] data.
+///
+/// [BUILDINFOv2]: https://alpm.archlinux.page/specifications/BUILIDNFOv2.5.html
 pub const VALID_BUILDINFO_V2_DATA: &str = r#"
 builddate = 1
 builddir = /build
@@ -60,6 +63,9 @@ pkgname = example
 pkgver = 1:1.0.0-1
 "#;
 
+/// A string slice representing valid [PKGINFOv2] data.
+///
+/// [PKGINFOv2]: https://alpm.archlinux.page/specifications/PKGINFOv2.5.html
 pub const VALID_PKGINFO_V2_DATA: &str = r#"
 pkgname = example
 pkgbase = example

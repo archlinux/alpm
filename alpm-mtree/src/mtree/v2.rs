@@ -175,10 +175,15 @@ fn path_metadata(
 /// A directory type path statement in an mtree file.
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Directory {
+    /// The path of the directory.
     pub path: PathBuf,
+    /// The user ID of the directory.
     pub uid: u32,
+    /// The group ID of the directory.
     pub gid: u32,
+    /// The file mode of the directory.
     pub mode: String,
+    /// The modification time of the directory in seconds since the epoch.
     pub time: i64,
 }
 
@@ -287,17 +292,25 @@ impl Directory {
 /// The md5_digest is accepted for backwards compatibility reasons in v2 as well.
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct File {
+    /// The path of the file.
     pub path: PathBuf,
+    /// The user ID of the file.
     pub uid: u32,
+    /// The group ID of the file.
     pub gid: u32,
+    /// The file mode of the file.
     pub mode: String,
+    /// The size of the file in bytes.
     pub size: u64,
+    /// The modification time of the file in seconds since the epoch.
     pub time: i64,
     #[serde(
         skip_serializing_if = "Option::is_none",
         serialize_with = "serialize_optional_checksum_as_hex"
     )]
+    /// The optional MD-5 hash digest of the file.
     pub md5_digest: Option<Md5Checksum>,
+    /// The SHA-256 hash digest of the file.
     #[serde(serialize_with = "serialize_checksum_as_hex")]
     pub sha256_digest: Sha256Checksum,
 }
@@ -490,11 +503,17 @@ where
 /// A link type path in an mtree file that points to a file somewhere on the system.
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Link {
+    /// The path of the symlink.
     pub path: PathBuf,
+    /// The user ID of the symlink.
     pub uid: u32,
+    /// The group ID of the symlink.
     pub gid: u32,
+    /// The file mode of the symlink.
     pub mode: String,
+    /// The modification time of the symlink in seconds since the epoch.
     pub time: i64,
+    /// The target path of the symlink.
     pub link_path: PathBuf,
 }
 
@@ -607,10 +626,15 @@ impl Link {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub enum Path {
+    /// A directory.
     #[serde(rename = "dir")]
     Directory(Directory),
+
+    /// A file.
     #[serde(rename = "file")]
     File(File),
+
+    /// A symlink.
     #[serde(rename = "link")]
     Link(Link),
 }

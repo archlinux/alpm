@@ -1,3 +1,5 @@
+//! Tests against downloaded artifacts.
+
 use std::path::PathBuf;
 
 use alpm_buildinfo::cli::ValidateArgs;
@@ -14,8 +16,11 @@ static DATABASES_DIR: &str = "databases";
 
 /// This is the entry point for running validation tests of parsers on ALPM metadata files.
 pub struct TestRunner {
+    /// The directory in which test data is stored.
     pub test_data_dir: PathBuf,
+    /// The type of file that is targeted in the test.
     pub file_type: TestFileType,
+    /// The list of repositories against which the test runs.
     pub repositories: Vec<PackageRepositories>,
 }
 

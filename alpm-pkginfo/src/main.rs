@@ -1,3 +1,5 @@
+//! The `alpm-pkginfo` CLI tool.
+
 use std::process::ExitCode;
 
 use alpm_pkginfo::{

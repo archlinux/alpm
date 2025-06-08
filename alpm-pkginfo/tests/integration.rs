@@ -1,3 +1,5 @@
+//! Integration tests for the `alpm-pkginfo` CLI tool.
+
 use std::{str::FromStr, thread};
 
 use alpm_pkginfo::{PackageInfoV1, PackageInfoV2};
@@ -7,6 +9,9 @@ use rstest::rstest;
 use tempfile::tempdir;
 use testresult::TestResult;
 
+/// A string slice representing valid [PKGINFOv1] data.
+///
+/// [PKGINFOv1]: https://alpm.archlinux.page/specifications/PKGINFOv1.5.html
 pub const VALID_PKGINFO_V1_DATA: &str = r#"
 pkgname = example
 pkgbase = example
@@ -38,6 +43,9 @@ checkdepend = extra-test-tool
 checkdepend = other-extra-test-tool
 "#;
 
+/// A string slice representing valid [PKGINFOv2] data.
+///
+/// [PKGINFOv2]: https://alpm.archlinux.page/specifications/PKGINFOv2.5.html
 pub const VALID_PKGINFO_V2_DATA: &str = r#"
 pkgname = example
 pkgbase = example
@@ -70,29 +78,56 @@ checkdepend = extra-test-tool
 checkdepend = other-extra-test-tool
 "#;
 
+/// A helper struct for testing [`PackageInfo`].
 #[derive(Default)]
 pub struct PackageInfoInput {
+    /// The [alpm-package-name] of a package.
+    ///
+    /// [alpm-package-name]: https://alpm.archlinux.page/specifications/alpm-package-name.7.html
     pub pkgname: String,
+    /// The alpm-package-base of a package.
     pub pkgbase: String,
+    /// The [alpm-package-version] of a package.
+    ///
+    /// [alpm-package-version]: https://alpm.archlinux.page/specifications/alpm-package-version.7.html
     pub pkgver: String,
+    /// The description of a package.
     pub pkgdesc: String,
+    /// The upstream URL for a package.
     pub url: String,
+    /// The build date of a package.
     pub builddate: String,
+    /// The packager of a package.
     pub packager: String,
+    /// The size of a package.
     pub size: String,
+    /// The [alpm-architecture] of a package.
+    ///
+    /// [alpm-architecture]: https://alpm.archlinux.page/specifications/alpm-architecture.7.html
     pub arch: String,
+    /// The list of licenses that apply for a package.
     pub license: Option<Vec<String>>,
+    /// A list of package names or virtual provisions a package replaces.
     pub replaces: Option<Vec<String>>,
+    /// A list of alpm-package-groups a package belongs to.
     pub group: Option<Vec<String>>,
+    /// A list of package names or virtual provisions a package conflicts with.
     pub conflict: Option<Vec<String>>,
+    /// A list of package names or virtual provisions a package provides.
     pub provides: Option<Vec<String>>,
+    /// A list of relative file paths in a package that should be backed up.
     pub backup: Option<Vec<String>>,
+    /// A list of package names or virtual provisions a package depends on.
     pub depend: Option<Vec<String>>,
+    /// A list of package names or virtual provisions a package optionally depends on.
     pub optdepend: Option<Vec<String>>,
+    /// A list of package names or virtual provisions a package depends on during build.
     pub makedepend: Option<Vec<String>>,
+    /// A list of package names or virtual provisions a package depends on during test.
     pub checkdepend: Option<Vec<String>>,
 
     // V2 fields
+    /// Extra data.
     pub xdata: Option<Vec<String>>,
 }
 

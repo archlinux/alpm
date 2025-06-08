@@ -36,7 +36,9 @@ use crate::{
 /// [`Self::packages_for_architecture`] can be used to create usable [`MergedPackage`]s.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct SourceInfoV1 {
+    /// The information of the `pkgbase` section.
     pub base: PackageBase,
+    /// The information of the `pkgname` sections.
     pub packages: Vec<Package>,
 }
 

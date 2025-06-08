@@ -1,3 +1,7 @@
+//! Interpreter error integration tests for the `alpm-mtree` CLI.
+
+// NOTE: With rstest > 0.25.0 this can be removed!
+#![allow(missing_docs)]
 #![cfg(feature = "cli")]
 
 use std::{fs::read_to_string, path::PathBuf};

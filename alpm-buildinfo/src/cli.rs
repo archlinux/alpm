@@ -50,13 +50,16 @@ impl FromStr for OutputFile {
     }
 }
 
+/// The command-line interface handling for `alpm-buildinfo`.
 #[derive(Clone, Debug, Parser)]
 #[command(about, author, name = "alpm-buildinfo", version)]
 pub struct Cli {
+    /// The `alpm-buildinfo` commands.
     #[command(subcommand)]
     pub command: Command,
 }
 
+/// The `alpm-buildinfo` commands.
 #[allow(clippy::large_enum_variant)]
 #[derive(Clone, Debug, Subcommand)]
 pub enum Command {
@@ -67,6 +70,7 @@ pub enum Command {
     /// is emitted on stderr and the program exits with a non-zero exit code.
     #[command()]
     Create {
+        /// The `create` command.
         #[command(subcommand)]
         command: CreateCommand,
     },
@@ -79,6 +83,7 @@ pub enum Command {
     /// a non-zero exit code.
     #[command()]
     Validate {
+        /// Arguments for the `validate` command.
         #[command(flatten)]
         args: ValidateArgs,
     },
@@ -86,6 +91,7 @@ pub enum Command {
     /// Parse a BUILDINFO file and output it in a different format
     #[command()]
     Format {
+        /// Arguments for the `format` command.
         #[command(flatten)]
         args: ValidateArgs,
 
@@ -189,11 +195,13 @@ pub struct V1CreateArgs {
 pub enum CreateCommand {
     /// Create a BUILDINFO version 1 file
     V1 {
+        /// Arguments for the `create v1` command.
         #[command(flatten)]
         args: V1CreateArgs,
     },
     /// Create a BUILDINFO version 2 file
     V2 {
+        /// Arguments for the `create v2` command.
         #[command(flatten)]
         args: V1CreateArgs,
 
@@ -215,6 +223,7 @@ pub enum CreateCommand {
 #[derive(Clone, Debug, Default, Display, ValueEnum)]
 #[non_exhaustive]
 pub enum OutputFormat {
+    /// The JSON output format.
     #[default]
     #[strum(to_string = "json")]
     Json,

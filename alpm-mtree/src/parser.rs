@@ -39,7 +39,9 @@ pub enum Statement<'a> {
     Unset(Vec<UnsetProperty>),
     /// Any path statement followed by some properties.
     Path {
+        /// The path.
         path: PathBuf,
+        /// The properties of the path.
         properties: Vec<PathProperty<'a>>,
     },
 }
@@ -47,40 +49,60 @@ pub enum Statement<'a> {
 /// Represents the properties that may be set in `/set` lines.
 #[derive(Clone, Debug)]
 pub enum SetProperty<'a> {
+    /// A user ID.
     Uid(u32),
+    /// A group ID.
     Gid(u32),
+    /// A file mode.
     Mode(&'a str),
+    /// A path type.
     Type(PathType),
 }
 
 /// Represents the properties that can be unset by `/unset` lines.
 #[derive(Clone, Debug)]
 pub enum UnsetProperty {
+    /// A user ID.
     Uid,
+    /// A group ID.
     Gid,
+    /// A file mode.
     Mode,
+    /// A path type.
     Type,
 }
 
 /// This type is used in a path line to define properties for that path.
 #[derive(Clone, Debug)]
 pub enum PathProperty<'a> {
+    /// A user ID.
     Uid(u32),
+    /// A group ID.
     Gid(u32),
+    /// A file mode.
     Mode(&'a str),
+    /// A path type.
     Type(PathType),
+    /// A file size.
     Size(u64),
+    /// The target of a symlink.
     Link(PathBuf),
+    /// An MD-5 hash digest.
     Md5Digest(Md5Checksum),
+    /// A SHA-256 hash digest.
     Sha256Digest(Sha256Checksum),
+    /// A point in time in seconds since the epoch.
     Time(i64),
 }
 
 /// All allowed kinds of path types.
 #[derive(Clone, Copy, Debug)]
 pub enum PathType {
+    /// A directory.
     Dir,
+    /// A file.
     File,
+    /// A symlink.
     Link,
 }
 

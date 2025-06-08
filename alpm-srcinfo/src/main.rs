@@ -1,3 +1,5 @@
+//! The `alpm-srcinfo` CLI tool.
+
 use std::process::ExitCode;
 
 use alpm_srcinfo::{

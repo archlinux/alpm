@@ -6,6 +6,9 @@ use assert_cmd::Command;
 use rstest::rstest;
 use testresult::TestResult;
 
+/// A string slice representing valid [ALPM-MTREEv2] data.
+///
+/// [ALPM-MTREEv2]: https://alpm.archlinux.page/specifications/ALPM-MTREEv2.5.html
 pub const VALID_MTREE: &str = r#"
 #mtree
 /set mode=644 uid=0 gid=0 type=file

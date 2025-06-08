@@ -1,3 +1,7 @@
+//! The [PKGINFOv2] file format.
+//!
+//! [PKGINFOv2]: https://alpm.archlinux.page/specifications/PKGINFOv2.5.html
+
 use std::{
     fmt::{Display, Formatter},
     str::FromStr,

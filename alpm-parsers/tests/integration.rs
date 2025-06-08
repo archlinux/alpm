@@ -1,3 +1,5 @@
+//! Integration tests for the alpm-parsers crate.
+
 use std::thread;
 
 use alpm_parsers::custom_ini::parser::ini_file;

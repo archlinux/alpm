@@ -38,8 +38,11 @@ pub enum Error {
         "The SRCINFO data misses one or more required sections ({sections}) or keywords ({keywords}) for schema version {schema_version}"
     )]
     MissingSchemaSectionsOrKeywords {
+        /// The missing sections.
         sections: &'static str,
+        /// The missing keywords.
         keywords: &'static str,
+        /// The SRCINFO schema version for which the error applies.
         schema_version: &'static str,
     },
 
@@ -230,8 +233,11 @@ impl SourceInfoErrors {
 /// errors, deprecation warnings to hard unrecoverable errors.
 #[derive(Clone, Debug)]
 pub struct SourceInfoError {
+    /// The type of error.
     pub error_type: SourceInfoErrorType,
+    /// The optional line number in which the error occurred.
     pub line: Option<usize>,
+    /// The message in which the error occurred.
     pub message: String,
 }
 

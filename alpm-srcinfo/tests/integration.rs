@@ -4,6 +4,9 @@ use std::{fs::File, io::Write};
 use assert_cmd::Command;
 use testresult::TestResult;
 
+/// A string slice representing valid [SRCINFO] data.
+///
+/// [SRCINFO]: https://alpm.archlinux.page/specifications/SRCINFO.5.html
 pub const VALID_SRCINFO: &str = r#"
 pkgbase = example
     pkgver = 1.0.0

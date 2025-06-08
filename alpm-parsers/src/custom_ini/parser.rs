@@ -1,3 +1,5 @@
+//! A custom parser for INI-style file formats.
+
 use std::collections::BTreeMap;
 
 use serde::Deserialize;
@@ -28,11 +30,18 @@ const INVALID_KEY_NAME_SYMBOLS: [char; 3] = ['=', ' ', '\n'];
 #[derive(Clone, Debug, Deserialize, PartialEq)]
 #[serde(untagged)]
 pub enum Item {
+    /// A single value.
     Value(String),
+    /// A list of values.
     List(Vec<String>),
 }
 
 impl Item {
+    /// Returns a string slice representing a single value.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the [`Item`] represents a list of values.
     pub fn value_or_error(&self) -> Result<&str, Error> {
         match self {
             Item::Value(value) => Ok(value),

@@ -20,7 +20,13 @@ use crate::{Error, mtree_buffer_to_string};
 /// [ALPM-MTREE]: https://alpm.archlinux.page/specifications/ALPM-MTREE.5.html
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum MtreeSchema {
+    /// The [ALPM-MTREEv1] file format.
+    ///
+    /// [ALPM-MTREEv1]: https://alpm.archlinux.page/specifications/ALPM-MTREEv1.5.html
     V1(SchemaVersion),
+    /// The [ALPM-MTREEv2] file format.
+    ///
+    /// [ALPM-MTREEv2]: https://alpm.archlinux.page/specifications/ALPM-MTREEv2.5.html
     V2(SchemaVersion),
 }
 

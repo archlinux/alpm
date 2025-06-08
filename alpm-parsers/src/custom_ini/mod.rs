@@ -1,3 +1,5 @@
+//! Custom INI parser.
+
 mod de;
 pub mod parser;
 

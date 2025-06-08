@@ -1,3 +1,5 @@
+//! Syncing of source and binary repositories.
+
 use std::{
     collections::HashSet,
     fs::{DirEntry, read_dir},
@@ -8,21 +10,27 @@ use anyhow::Result;
 use clap::ValueEnum;
 use strum::{Display, EnumIter};
 
-/// The [mirror] module contains all logic to download data from an Arch Linux package mirror.
-/// This includes the database files or packages.
 pub mod mirror;
-/// The [pkgsrc] module handles the download of package source repositories.
-/// This requires interaction with `git` and the official Arch Linux Gitlab, where all of the
-/// package source repositories for the official packages are located.
 pub mod pkgsrc;
 
 /// All Arch Linux package repositories we may want to test.
 #[derive(Clone, Debug, Display, EnumIter, PartialEq, ValueEnum)]
 pub enum PackageRepositories {
+    /// The [core] repository.
+    ///
+    /// [core]: https://wiki.archlinux.org/title/Official_repositories#core
     #[strum(to_string = "core")]
     Core,
+
+    /// The [extra] repository.
+    ///
+    /// [extra]: https://wiki.archlinux.org/title/Official_repositories#extra
     #[strum(to_string = "extra")]
     Extra,
+
+    /// The [multilib] repository.
+    ///
+    /// [multilib]: https://wiki.archlinux.org/title/Official_repositories#multilib
     #[strum(to_string = "multilib")]
     Multilib,
 }

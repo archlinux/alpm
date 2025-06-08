@@ -21,6 +21,9 @@ use crate::{Error, source_info::parser::SourceInfoContent};
 /// [SRCINFO]: https://alpm.archlinux.page/specifications/SRCINFO.5.html
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum SourceInfoSchema {
+    /// Schema for the [SRCINFO] file format.
+    ///
+    /// [SRCINFO]: https://alpm.archlinux.page/specifications/SRCINFO.5.html
     V1(SchemaVersion),
 }
 

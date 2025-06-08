@@ -15,7 +15,13 @@ use crate::Error;
 /// An enum describing all valid BUILDINFO schemas
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum BuildInfoSchema {
+    /// Schema for the [BUILDINFOv1] file format.
+    ///
+    /// [BUILDINFOv1]: https://alpm.archlinux.page/specifications/BUILDINFOv1.5.html
     V1(SchemaVersion),
+    /// Schema for the [BUILDINFOv2] file format.
+    ///
+    /// [BUILDINFOv2]: https://alpm.archlinux.page/specifications/BUILDINFOv2.5.html
     V2(SchemaVersion),
 }
 

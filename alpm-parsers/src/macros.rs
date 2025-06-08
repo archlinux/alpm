@@ -1,3 +1,5 @@
+//! Macros used with the winnow parser.
+
 /// Take an array of `dyn Iterator<Item = &'static str>` and return a closure that flattens the
 /// outer array to map the inner values  onto [winnow::error::StrContextValue::StringLiteral].
 ///

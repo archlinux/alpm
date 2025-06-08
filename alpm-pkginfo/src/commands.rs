@@ -1,3 +1,5 @@
+//! Command-line functions, that are called by the `alpm-pkginfo` executable.
+
 use std::{
     fs::{File, create_dir_all},
     io::{self, IsTerminal, Write},

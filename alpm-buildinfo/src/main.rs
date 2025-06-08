@@ -1,3 +1,5 @@
+//! The `alpm-buildinfo` CLI tool.
+
 use std::process::ExitCode;
 
 use alpm_buildinfo::{
@@ -6,6 +8,10 @@ use alpm_buildinfo::{
 };
 use clap::Parser;
 
+/// The main entrypoint for the `alpm-buildinfo` executable.
+///
+/// Returns an [`ExitCode::SUCCESS`] if the chosen command succeeded.
+/// Returns an [`ExitCode::FAILURE`] and prints an error on stderr if the chosen command failed.
 fn main() -> ExitCode {
     let cli = Cli::parse();
     let result = match cli.command {

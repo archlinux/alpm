@@ -126,6 +126,7 @@ pub struct ArchProperty<T> {
     /// If `architecture` is [`None`] it is considered to be `"any"`.
     /// [alpm-architecture]: <https://alpm.archlinux.page/specifications/alpm-architecture.7.html>
     pub architecture: Option<Architecture>,
+    /// The architecture specific type.
     pub value: T,
 }
 
@@ -166,7 +167,10 @@ fn architecture_suffix(input: &mut &str) -> ModalResult<Option<Architecture>> {
 /// Track empty/comment lines
 #[derive(Debug)]
 pub enum Ignored {
+    /// An empty line
     EmptyLine,
+
+    /// A commented line.
     Comment(String),
 }
 
@@ -175,8 +179,9 @@ pub enum Ignored {
 pub struct SourceInfoContent {
     /// Empty or comment lines that occur outside of `pkgbase` or `pkgname` sections.
     pub preceding_lines: Vec<Ignored>,
-
+    /// The raw package base data.
     pub package_base: RawPackageBase,
+    /// The list of raw package data.
     pub packages: Vec<RawPackage>,
 }
 
@@ -254,7 +259,9 @@ impl SourceInfoContent {
 /// The parsed contents of a `pkgbase` section in SRCINFO data.
 #[derive(Debug)]
 pub struct RawPackageBase {
+    /// The name of the `pkgbase` section.
     pub name: Name,
+    /// The properties of the `pkbase` section.
     pub properties: Vec<PackageBaseProperty>,
 }
 
@@ -299,7 +306,9 @@ impl RawPackageBase {
 /// The parsed contents of a `pkgname` section in SRCINFO data.
 #[derive(Debug)]
 pub struct RawPackage {
+    /// The name of the `pkgname` section.
     pub name: Name,
+    /// The properties of the `pkgname` section.
     pub properties: Vec<PackageProperty>,
 }
 
@@ -345,11 +354,17 @@ impl RawPackage {
 #[derive(Debug, EnumString, VariantNames)]
 #[strum(serialize_all = "lowercase")]
 pub enum PackageBaseKeyword {
+    /// Test dependencies.
     CheckDepends,
+    /// Build dependencies.
     MakeDepends,
+    /// An alpm-pkgver.
     PkgVer,
+    /// An alpm-pkgrel.
     PkgRel,
+    /// An alpm-epoch
     Epoch,
+    /// Valid Openpgp keys.
     ValidPGPKeys,
 }
 
@@ -376,13 +391,21 @@ impl PackageBaseKeyword {
 /// on which an error occurred is encoded in the parsed data.
 #[derive(Debug)]
 pub enum PackageBaseProperty {
+    /// An empty line.
     EmptyLine,
+    /// A commented line.
     Comment(String),
+    /// A [`SharedMetaProperty`].
     MetaProperty(SharedMetaProperty),
+    /// A [`PackageVersion`].
     PackageVersion(PackageVersion),
+    /// A [`PackageRelease`].
     PackageRelease(PackageRelease),
+    /// An [`Epoch`].
     PackageEpoch(Epoch),
+    /// An [`OpenPGPIdentifier`].
     ValidPgpKeys(OpenPGPIdentifier),
+    /// A [`RelationProperty`]
     RelationProperty(RelationProperty),
     /// Build-time specific check dependencies.
     CheckDependency(ArchProperty<PackageRelation>),
@@ -544,10 +567,15 @@ impl PackageBaseProperty {
 /// set some fields to "empty".
 #[derive(Debug)]
 pub enum PackageProperty {
+    /// An empty line.
     EmptyLine,
+    /// A commented line.
     Comment(String),
+    /// A [`SharedMetaProperty`].
     MetaProperty(SharedMetaProperty),
+    /// A [`RelationProperty`].
     RelationProperty(RelationProperty),
+    /// A [`ClearableProperty`].
     Clear(ClearableProperty),
 }
 
@@ -642,14 +670,23 @@ impl PackageProperty {
 #[derive(Debug, EnumString, VariantNames)]
 #[strum(serialize_all = "lowercase")]
 pub enum SharedMetaKeyword {
+    /// The description of a package.
     PkgDesc,
+    /// The upstream URL of a package.
     Url,
+    /// The license of a package.
     License,
+    /// The alpm-architecture of a package.
     Arch,
+    /// The path to a changelog file of a package.
     Changelog,
+    /// The path to an alpm-install-scriptlet of a package.
     Install,
+    /// The alpm-package-groups a package is part of.
     Groups,
+    /// The build tool options used when building a package.
     Options,
+    /// The path of a file in a package that should be backed up.
     Backup,
 }
 
@@ -669,14 +706,23 @@ impl SharedMetaKeyword {
 /// Metadata properties that may be shared between `pkgbase` and `pkgname` sections in SRCINFO data.
 #[derive(Debug)]
 pub enum SharedMetaProperty {
+    /// A [`PackageDescription`].
     Description(PackageDescription),
+    /// A [`Url`].
     Url(Url),
+    /// A [`License`].
     License(License),
+    /// An [`Architecture`].
     Architecture(Architecture),
+    /// A [`RelativePath`] for a changelog file of a package.
     Changelog(RelativePath),
+    /// A [`RelativePath`] for an alpm-install-scriptlet file of a package.
     Install(RelativePath),
+    /// An alpm-package-group of a package.
     Group(String),
+    /// A [`MakepkgOption`] used for building a package.
     Option(MakepkgOption),
+    /// A [`RelativePath`] for file in a package that should be backed up.
     Backup(RelativePath),
 }
 
@@ -757,10 +803,15 @@ impl SharedMetaProperty {
 #[derive(Debug, EnumString, VariantNames)]
 #[strum(serialize_all = "lowercase")]
 pub enum RelationKeyword {
+    /// A run-time dependency.
     Depends,
+    /// An optional dependency.
     OptDepends,
+    /// A provision.
     Provides,
+    /// A conflict.
     Conflicts,
+    /// A replacement.
     Replaces,
 }
 
@@ -788,10 +839,15 @@ impl RelationKeyword {
 /// [alpm-sonamev1]: <https://alpm.archlinux.page/specifications/alpm-sonamev1.7.html>
 #[derive(Debug)]
 pub enum RelationProperty {
+    /// An [`ArchProperty<RelationOrSoname>`] for a run-time dependency.
     Dependency(ArchProperty<RelationOrSoname>),
+    /// An [`ArchProperty<OptionalDependency>`] for an optional dependency.
     OptionalDependency(ArchProperty<OptionalDependency>),
+    /// An [`ArchProperty<RelationOrSoname>`] for a provision.
     Provides(ArchProperty<RelationOrSoname>),
+    /// An [`ArchProperty<PackageRelation>`] for a conflict.
     Conflicts(ArchProperty<PackageRelation>),
+    /// An [`ArchProperty<PackageRelation>`] for a replacement.
     Replaces(ArchProperty<PackageRelation>),
 }
 
@@ -862,9 +918,9 @@ impl RelationProperty {
         Ok(property)
     }
 
-    // Returns the [`Architecture`] of the current variant.
-    //
-    // Can be used to extract the architecture without knowing which variant this is.
+    /// Returns the [`Architecture`] of the current variant.
+    ///
+    /// Can be used to extract the architecture without knowing which variant this is.
     pub fn architecture(&self) -> Option<Architecture> {
         match self {
             RelationProperty::Dependency(arch_property) => arch_property.architecture,
@@ -880,14 +936,23 @@ impl RelationProperty {
 #[derive(Debug, EnumString, VariantNames)]
 #[strum(serialize_all = "lowercase")]
 pub enum SourceKeyword {
+    /// A source entry.
     Source,
+    /// A noextract entry.
     NoExtract,
+    /// A blake2 hash digest.
     B2sums,
+    /// An MD-5 hash digest.
     Md5sums,
+    /// An SHA-1 hash digest.
     Sha1sums,
+    /// An SHA-224 hash digest.
     Sha224sums,
+    /// An SHA-256 hash digest.
     Sha256sums,
+    /// An SHA-384 hash digest.
     Sha384sums,
+    /// An SHA-512 hash digest.
     Sha512sums,
 }
 
@@ -914,14 +979,23 @@ impl SourceKeyword {
 /// parsing.
 #[derive(Debug)]
 pub enum SourceProperty {
+    /// An [`ArchProperty<Source>`] for a source entry.
     Source(ArchProperty<Source>),
+    /// An [`ArchProperty<String>`] for a noextract entry.
     NoExtract(ArchProperty<String>),
+    /// An [`ArchProperty<SkippableChecksum<Blake2b512>>`] for a blake2 hash digest.
     B2Checksum(ArchProperty<SkippableChecksum<Blake2b512>>),
+    /// An [`ArchProperty<SkippableChecksum<Md5>>`] for an MD-5 hash digest.
     Md5Checksum(ArchProperty<SkippableChecksum<Md5>>),
+    /// An [`ArchProperty<SkippableChecksum<Sha1>>`] for a SHA-1 hash digest.
     Sha1Checksum(ArchProperty<SkippableChecksum<Sha1>>),
+    /// An [`ArchProperty<SkippableChecksum<Sha256>>`] for a SHA-256 hash digest.
     Sha256Checksum(ArchProperty<SkippableChecksum<Sha256>>),
+    /// An [`ArchProperty<SkippableChecksum<Sha224>>`] for a SHA-224 hash digest.
     Sha224Checksum(ArchProperty<SkippableChecksum<Sha224>>),
+    /// An [`ArchProperty<SkippableChecksum<Sha384>>`] for a SHA-384 hash digest.
     Sha384Checksum(ArchProperty<SkippableChecksum<Sha384>>),
+    /// An [`ArchProperty<SkippableChecksum<Sha512>>`] for a SHA-512 hash digest.
     Sha512Checksum(ArchProperty<SkippableChecksum<Sha512>>),
 }
 
@@ -1019,20 +1093,31 @@ impl SourceProperty {
 /// ```
 #[derive(Clone, Debug)]
 pub enum ClearableProperty {
+    /// The description for a package.
     Description,
+    /// The upstream URL for a package.
     Url,
+    /// The licenses that apply to a package.
     Licenses,
+    /// The changelog for a package.
     Changelog,
-
+    /// The alpm-install-scriptlet for a package.
     Install,
+    /// The alpm-package-groups a package is part of.
     Groups,
+    /// The build tool options used for building a package.
     Options,
+    /// The path to a file in a package that should be backed up.
     Backups,
-
+    /// The alpm-architecture of run-time dependencies.
     Dependencies(Option<Architecture>),
+    /// The alpm-architecture of optional dependencies.
     OptionalDependencies(Option<Architecture>),
+    /// The alpm-architecture of provisions.
     Provides(Option<Architecture>),
+    /// The alpm-architecture of conflicts.
     Conflicts(Option<Architecture>),
+    /// The alpm-architecture of replacements.
     Replaces(Option<Architecture>),
 }
 

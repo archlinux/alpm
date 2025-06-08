@@ -1,3 +1,4 @@
+//! Integration tests for the `alpm-mtree create` command.
 #![cfg(feature = "creation")]
 
 use std::{

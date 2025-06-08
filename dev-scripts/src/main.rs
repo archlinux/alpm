@@ -1,3 +1,5 @@
+//! The `dev-scripts` CLI tool.
+
 use std::fs::remove_dir_all;
 
 use anyhow::{Context, Result};

@@ -1,3 +1,5 @@
+//! Integration tests for `alpm-types`.
+
 use std::{path::PathBuf, str::FromStr, thread::current};
 
 use alpm_types::{Architecture, CompressionAlgorithmFileExtension, Name, PackageFileName, Version};

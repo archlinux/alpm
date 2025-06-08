@@ -17,7 +17,11 @@ pub enum Error {
     /// I/O error while reading a buffer.
     #[error("Read error while {context}:\n{source}")]
     IoReadError {
+        /// The context in which the error occurred.
+        ///
+        /// This is meant to complete the sentence "Read error while ".
         context: &'static str,
+        /// The error source.
         source: std::io::Error,
     },
 
@@ -25,7 +29,7 @@ pub enum Error {
     #[error(transparent)]
     InvalidUTF8(#[from] FromUtf8Error),
 
-    // Deserialize error
+    /// An [`alpm_parsers::custom_ini::Error`].
     #[error("Failed to deserialize BUILDINFO file:\n{0}")]
     DeserializeError(#[from] alpm_parsers::custom_ini::Error),
 

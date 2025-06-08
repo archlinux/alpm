@@ -1,3 +1,8 @@
+//! Handles the download of package source repositories.
+//!
+//! This requires interaction with `git` and the official Arch Linux Gitlab, where all of the
+//! package source repositories for the official packages are located.
+
 use std::{
     collections::{HashMap, HashSet},
     fs::remove_dir_all,

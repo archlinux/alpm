@@ -21,7 +21,13 @@ use crate::Error;
 /// [PKGINFO]: https://alpm.archlinux.page/specifications/PKGINFO.5.html
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum PackageInfoSchema {
+    /// Schema for the [PKGINFOv1] file format.
+    ///
+    /// [PKGINFOv1]: https://alpm.archlinux.page/specifications/PKGINFOv1.5.html
     V1(SchemaVersion),
+    /// Schema for the [PKGINFOv2] file format.
+    ///
+    /// [PKGINFOv2]: https://alpm.archlinux.page/specifications/PKGINFOv2.5.html
     V2(SchemaVersion),
 }
 

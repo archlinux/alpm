@@ -56,6 +56,7 @@ use winnow::Parser;
 
 use super::parser::{Item, ini_file};
 
+/// An error that may occur when parsing.
 #[derive(Clone, Debug)]
 pub enum Error {
     /// Parsing error
@@ -120,6 +121,7 @@ impl de::Error for Error {
     }
 }
 
+/// A custom, generic [`Result`] type which returns an [`Error`].
 pub type Result<T> = std::result::Result<T, Error>;
 
 impl IntoDeserializer<'_, Error> for Item {
@@ -174,12 +176,14 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
     }
 }
 
+/// A deserializer for an [`Item`].
 pub struct ItemDeserializer<E> {
     item: Item,
     marker: PhantomData<E>,
 }
 
 impl<E> ItemDeserializer<E> {
+    /// Creates a new [`ItemDeserializer`] from an [`Item`].
     pub fn new(item: Item) -> Self {
         ItemDeserializer {
             item,
@@ -322,6 +326,14 @@ impl IntoDeserializer<'_> for SeqItemDeserializer {
     }
 }
 
+/// Generically creates a deserializer from string slice.
+///
+/// # Errors
+///
+/// Returns an error if
+///
+/// - a deserializer cannot be created from `s`,
+/// - or the deserializer cannot be deserialized using [`Deserialize::deserialize`].
 pub fn from_str<T: DeserializeOwned>(s: &str) -> Result<T> {
     let mut de = Deserializer::try_from(s)?;
     let value = Deserialize::deserialize(&mut de)?;

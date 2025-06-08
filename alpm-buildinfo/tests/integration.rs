@@ -1,3 +1,5 @@
+//! Integration tests for `alpm-buildinfo`.
+
 use std::{str::FromStr, thread};
 
 use alpm_buildinfo::{BuildInfoSchema, BuildInfoV1, BuildInfoV2};
@@ -9,6 +11,9 @@ use strum::Display;
 use tempfile::tempdir;
 use testresult::TestResult;
 
+/// A string slice representing valid [BUILDINFOv1] data.
+///
+/// [BUILDINFOv1]: https://alpm.archlinux.page/specifications/BUILDINFOv1.5.html
 pub const VALID_BUILDINFO_V1_DATA: &str = r#"
 builddate = 1
 builddir = /build
@@ -27,6 +32,9 @@ pkgname = foo
 pkgver = 1:1.0.0-1
 "#;
 
+/// A string slice representing valid [BUILDINFOv2] data.
+///
+/// [BUILDINFOv2]: https://alpm.archlinux.page/specifications/BUILDINFOv2.5.html
 pub const VALID_BUILDINFO_V2_DATA: &str = r#"
 builddate = 1
 builddir = /build
@@ -48,24 +56,52 @@ pkgname = foo
 pkgver = 1:1.0.0-1
 "#;
 
+/// A helper struct to aide in testing [`Buildinfo`].
+///
+/// All fields directly relate to the [BUILDINFO] file format.
+///
+/// [BUILDINFO]: https://alpm.archlinux.page/specifications/BUILDINFO.5.html
 #[derive(Clone, Debug, Default)]
 pub struct BuildInfoInput {
+    /// The schema of the [`BuildInfo`].
     pub format: BuildInfoSchema,
+    /// The build date.
     pub builddate: Option<String>,
+    /// The build dir.
     pub builddir: Option<String>,
+    /// The environment variables available during build.
     pub buildenv: Option<Vec<String>>,
+    /// The list of packages installed during package build.
     pub installed: Option<Vec<String>>,
+    /// The build tool options present during package build.
     pub options: Option<Vec<String>>,
+    /// The packager that built the package.
     pub packager: Option<String>,
+    /// The [alpm-architecture] of the package.
+    ///
+    /// [alpm-architecture]: https://alpm.archlinux.page/specifications/alpm-architecture.7.html
     pub pkgarch: Option<String>,
+    /// The alpm-package-base of the package.
     pub pkgbase: Option<String>,
+    /// The SHA-256 hash digest of the [PKGBUILD] from which the package was built.
+    ///
+    /// [PKGBUILD]: https://man.archlinux.org/man/PKGBUILD.5
     pub pkgbuild_sha256sum: Option<String>,
+    /// The [alpm-package-name] of the package.
+    ///
+    /// [alpm-package-name]: https://alpm.archlinux.page/specifications/alpm-package-name.7.html
     pub pkgname: Option<String>,
+    /// The [alpm-package-version] of the package.
+    ///
+    /// [alpm-package-version]: https://alpm.archlinux.page/specifications/alpm-package-version.7.html
     pub pkgver: Option<String>,
 
     // V2 fields
+    /// The directory in which the build of the package started.
     pub startdir: Option<String>,
+    /// The tool that was used to build the package.
     pub buildtool: Option<String>,
+    /// The version and architecture of the build tool that was used to build the package.
     pub buildtoolver: Option<String>,
 }
 

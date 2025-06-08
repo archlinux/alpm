@@ -6,9 +6,11 @@ use clap::{Parser, Subcommand};
 
 use crate::SourceInfoSchema;
 
+/// The command-line interface handling for `alpm-srcinfo`.
 #[derive(Clone, Debug, Parser)]
 #[command(about, author, name = "alpm-srcinfo", version)]
 pub struct Cli {
+    /// The `alpm-srcinfo` commands.
     #[command(subcommand)]
     pub command: Command,
 }
@@ -16,11 +18,13 @@ pub struct Cli {
 /// Output format for the parse command
 #[derive(Clone, Debug, Default, strum::Display, clap::ValueEnum)]
 pub enum OutputFormat {
+    /// The JSON output format.
     #[default]
     #[strum(serialize = "json")]
     Json,
 }
 
+/// The `alpm-srcinfo` commands.
 #[derive(Clone, Debug, Subcommand)]
 pub enum Command {
     /// Validate a SRCINFO file from a path or `stdin`.
@@ -30,6 +34,10 @@ pub enum Command {
     /// a non-zero exit status.
     #[command()]
     Validate {
+        /// An optional input file path to read from
+        ///
+        /// If no file is specified, stdin is read from and expected to contain PKGINFO data to
+        /// validate.
         #[arg(value_name = "FILE")]
         file: Option<PathBuf>,
 
@@ -81,6 +89,10 @@ pub enum Command {
     /// requested file format to stdout and returns with an exit status of 0.
     #[command()]
     FormatPackages {
+        /// An optional input file path to read from
+        ///
+        /// If no file is specified, stdin is read from and expected to contain PKGINFO data to
+        /// validate.
         #[arg(value_name = "FILE")]
         file: Option<PathBuf>,
 

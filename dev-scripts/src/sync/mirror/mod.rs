@@ -1,3 +1,7 @@
+//! All logic for downloading data from an Arch Linux package mirror.
+//!
+//! This includes the database files or packages.
+
 mod rsync_changes;
 
 use std::{

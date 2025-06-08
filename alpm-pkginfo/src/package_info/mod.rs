@@ -21,7 +21,13 @@ use crate::{Error, PackageInfoSchema, PackageInfoV1, PackageInfoV2};
 #[derive(Clone, Debug, PartialEq, serde::Serialize)]
 #[serde(untagged)]
 pub enum PackageInfo {
+    /// The [PKGINFOv1] file format.
+    ///
+    /// [PKGINFOv1]: https://alpm.archlinux.page/specifications/PKGINFOv1.5.html
     V1(PackageInfoV1),
+    /// The [PKGINFOv2] file format.
+    ///
+    /// [PKGINFOv2]: https://alpm.archlinux.page/specifications/PKGINFOv2.5.html
     V2(PackageInfoV2),
 }
 

@@ -21,7 +21,13 @@ use crate::{BuildInfoSchema, BuildInfoV1, BuildInfoV2, Error};
 #[derive(Clone, Debug, PartialEq, serde::Serialize)]
 #[serde(untagged)]
 pub enum BuildInfo {
+    /// The [BUILDINFOv1] file format.
+    ///
+    /// [BUILDINFOv1]: https://alpm.archlinux.page/specifications/BUILDINFOv1.5.html
     V1(BuildInfoV1),
+    /// The [BUILDINFOv2] file format.
+    ///
+    /// [BUILDINFOv2]: https://alpm.archlinux.page/specifications/BUILDINFOv2.5.html
     V2(BuildInfoV2),
 }
 

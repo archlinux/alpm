@@ -4,9 +4,11 @@ use clap::{Parser, Subcommand, ValueEnum};
 
 use crate::MtreeSchema;
 
+/// The command-line interface handling for `alpm-mtree`.
 #[derive(Clone, Debug, Parser)]
 #[command(about, author, name = "alpm-mtree", version)]
 pub struct Cli {
+    /// The `alpm-mtree` commands.
     #[command(subcommand)]
     pub command: Command,
 }
@@ -14,11 +16,13 @@ pub struct Cli {
 /// Output format for the parse command
 #[derive(Clone, Debug, Default, strum::Display, ValueEnum)]
 pub enum OutputFormat {
+    /// The JSON output format.
     #[default]
     #[strum(serialize = "json")]
     Json,
 }
 
+/// The `alpm-mtree` commands.
 #[allow(clippy::large_enum_variant)]
 #[derive(Clone, Debug, Subcommand)]
 pub enum Command {
@@ -31,6 +35,9 @@ pub enum Command {
     /// a non-zero exit code.
     #[command()]
     Format {
+        /// An optional file to read from.
+        ///
+        /// If no file is provided, stdin is used instead.
         #[arg(value_name = "FILE")]
         file: Option<PathBuf>,
 
@@ -65,6 +72,9 @@ pub enum Command {
     /// a non-zero exit code.
     #[command()]
     Validate {
+        /// An optional file to read from.
+        ///
+        /// If no file is provided, stdin is used instead.
         #[arg(value_name = "FILE")]
         file: Option<PathBuf>,
 

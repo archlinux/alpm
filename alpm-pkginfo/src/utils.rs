@@ -26,8 +26,17 @@ use crate::{PackageInfoV1, PackageInfoV2};
 /// [alpm-package-relations]: https://alpm.archlinux.page/specifications/alpm-package-relation.7.html
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum RelationOrSoname {
+    /// An [alpm-package-relation].
+    ///
+    /// [alpm-package-relation]: https://alpm.archlinux.page/specifications/alpm-package-relation.7.html
     Relation(PackageRelation),
+    /// An [alpm-sonamev1].
+    ///
+    /// [alpm-sonamev1]: https://alpm.archlinux.page/specifications/alpm-sonamev1.7.html
     SonameV1(SonameV1),
+    /// An [alpm-sonamev2].
+    ///
+    /// [alpm-sonamev2]: https://alpm.archlinux.page/specifications/alpm-sonamev2.7.html
     SonameV2(SonameV2),
 }
 

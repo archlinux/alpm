@@ -45,16 +45,25 @@ use crate::{
 /// [`SourceInfoV1::packages_for_architecture`].
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct PackageBase {
+    /// The alpm-package-name of the package base.
     pub name: Name,
+    /// The optional description of the package base.
     pub description: Option<PackageDescription>,
+    /// The optional upstream URL of the package base.
     pub url: Option<Url>,
+    /// The optional relative path to a changelog file of the package base.
     pub changelog: Option<RelativePath>,
+    /// The list of licenses that apply to the package base.
     pub licenses: Vec<License>,
 
     // Build or package management related meta fields
+    /// The optional relative path to an alpm-install-scriptlet of the package base.
     pub install: Option<RelativePath>,
+    /// The optional list of alpm-package-groups the package base is part of.
     pub groups: Vec<String>,
+    /// The list of build tool options used when building.
     pub options: Vec<MakepkgOption>,
+    /// The list of relative paths to files in a package that should be backed up.
     pub backups: Vec<RelativePath>,
 
     // These metadata fields are PackageBase specific
@@ -65,31 +74,50 @@ pub struct PackageBase {
     /// The epoch of the package
     pub epoch: Option<Epoch>,
 
+    /// The list of OpenPGP fingerprints of OpenPGP certificates used for the verification of
+    /// upstream sources.
     pub pgp_fingerprints: Vec<OpenPGPIdentifier>,
 
-    // Architectures and architecture specific properties
+    /// Architectures and architecture specific properties
     pub architectures: Vec<Architecture>,
+    /// The map of alpm-architecture specific overrides for package relations of a package base.
     pub architecture_properties: BTreeMap<Architecture, PackageBaseArchitecture>,
 
+    /// The list of run-time dependencies of the package base.
     pub dependencies: Vec<RelationOrSoname>,
+    /// The list of optional dependencies of the package base.
     pub optional_dependencies: Vec<OptionalDependency>,
+    /// The list of provisions of the package base.
     pub provides: Vec<RelationOrSoname>,
+    /// The list of conflicts of the package base.
     pub conflicts: Vec<PackageRelation>,
+    /// The list of replacements of the package base.
     pub replaces: Vec<PackageRelation>,
     // The following dependencies are build-time specific dependencies.
     // `makepkg` expects all dependencies for all split packages to be specified in the
     // PackageBase.
+    /// The list of test dependencies of the package base.
     pub check_dependencies: Vec<PackageRelation>,
+    /// The list of build dependencies of the package base.
     pub make_dependencies: Vec<PackageRelation>,
 
+    /// The list of sources of the package base.
     pub sources: Vec<Source>,
+    /// The list of sources of the package base that are not extracted.
     pub no_extracts: Vec<String>,
+    /// The list of Blake2 hash digests for `sources` of the package base.
     pub b2_checksums: Vec<SkippableChecksum<Blake2b512>>,
+    /// The list of MD-5 hash digests for `sources` of the package base.
     pub md5_checksums: Vec<SkippableChecksum<Md5>>,
+    /// The list of SHA-1 hash digests for `sources` of the package base.
     pub sha1_checksums: Vec<SkippableChecksum<Sha1>>,
+    /// The list of SHA-224 hash digests for `sources` of the package base.
     pub sha224_checksums: Vec<SkippableChecksum<Sha224>>,
+    /// The list of SHA-256 hash digests for `sources` of the package base.
     pub sha256_checksums: Vec<SkippableChecksum<Sha256>>,
+    /// The list of SHA-384 hash digests for `sources` of the package base.
     pub sha384_checksums: Vec<SkippableChecksum<Sha384>>,
+    /// The list of SHA-512 hash digests for `sources` of the package base.
     pub sha512_checksums: Vec<SkippableChecksum<Sha512>>,
 }
 
@@ -99,25 +127,41 @@ pub struct PackageBase {
 /// [`PackageBaseArchitecture`] is present in [`PackageBase::architecture_properties`].
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct PackageBaseArchitecture {
+    /// The list of run-time dependencies of the package base.
     pub dependencies: Vec<RelationOrSoname>,
+    /// The list of optional dependencies of the package base.
     pub optional_dependencies: Vec<OptionalDependency>,
+    /// The list of provisions of the package base.
     pub provides: Vec<RelationOrSoname>,
+    /// The list of conflicts of the package base.
     pub conflicts: Vec<PackageRelation>,
+    /// The list of replacements of the package base.
     pub replaces: Vec<PackageRelation>,
     // The following dependencies are build-time specific dependencies.
     // `makepkg` expects all dependencies for all split packages to be specified in the
     // PackageBase.
+    /// The list of test dependencies of the package base.
     pub check_dependencies: Vec<PackageRelation>,
+    /// The list of build dependencies of the package base.
     pub make_dependencies: Vec<PackageRelation>,
 
+    /// The list of sources of the package base.
     pub sources: Vec<Source>,
+    /// The list of sources of the package base that are not extracted.
     pub no_extracts: Vec<String>,
+    /// The list of Blake2 hash digests for `sources` of the package base.
     pub b2_checksums: Vec<SkippableChecksum<Blake2b512>>,
+    /// The list of MD-5 hash digests for `sources` of the package base.
     pub md5_checksums: Vec<SkippableChecksum<Md5>>,
+    /// The list of SHA-1 hash digests for `sources` of the package base.
     pub sha1_checksums: Vec<SkippableChecksum<Sha1>>,
+    /// The list of SHA-224 hash digests for `sources` of the package base.
     pub sha224_checksums: Vec<SkippableChecksum<Sha224>>,
+    /// The list of SHA-256 hash digests for `sources` of the package base.
     pub sha256_checksums: Vec<SkippableChecksum<Sha256>>,
+    /// The list of SHA-384 hash digests for `sources` of the package base.
     pub sha384_checksums: Vec<SkippableChecksum<Sha384>>,
+    /// The list of SHA-512 hash digests for `sources` of the package base.
     pub sha512_checksums: Vec<SkippableChecksum<Sha512>>,
 }
 

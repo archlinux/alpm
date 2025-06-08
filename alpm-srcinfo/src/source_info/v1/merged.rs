@@ -37,17 +37,27 @@ use crate::{
 /// [`SourceInfoV1::packages_for_architecture`].
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct MergedPackage {
+    /// The alpm-package-name for the package.
     pub name: Name,
+    /// The description for the package.
     pub description: Option<PackageDescription>,
+    /// The upstream URL for the package.
     pub url: Option<Url>,
+    /// The list of licenses that apply to the package.
     pub licenses: Vec<License>,
+    /// The alpm-architecture for the package.
     pub architecture: Architecture,
+    /// The optional relative path to a changelog file for the package.
     pub changelog: Option<RelativePath>,
 
     // Build or package management related meta fields
+    /// The optional relative path to an alpm-install-scriptlet for the package.
     pub install: Option<RelativePath>,
+    /// The list of alpm-package-groups the package is part of.
     pub groups: Vec<String>,
+    /// The list of build tool options used when builidng the package.
     pub options: Vec<MakepkgOption>,
+    /// The list of relative paths to files in the package that should be backed up.
     pub backups: Vec<RelativePath>,
 
     /// The version of the package
@@ -56,17 +66,28 @@ pub struct MergedPackage {
     pub package_release: PackageRelease,
     /// The epoch of the package
     pub epoch: Option<Epoch>,
+    /// The list of OpenPGP fingerprints of OpenPGP certificates used for the verification of
+    /// upstream sources.
     pub pgp_fingerprints: Vec<OpenPGPIdentifier>,
 
+    /// The list of run-time dependencies.
     pub dependencies: Vec<RelationOrSoname>,
+    /// The list of optional dependencies.
     pub optional_dependencies: Vec<OptionalDependency>,
+    /// The list of provisions.
     pub provides: Vec<RelationOrSoname>,
+    /// The list of conflicts.
     pub conflicts: Vec<PackageRelation>,
+    /// The list of replacements.
     pub replaces: Vec<PackageRelation>,
+    /// The list of test dependencies.
     pub check_dependencies: Vec<PackageRelation>,
+    /// The list of build dependencies.
     pub make_dependencies: Vec<PackageRelation>,
 
+    /// The list of sources for the package.
     pub sources: Vec<MergedSource>,
+    /// The list of sources for the package that are not extracted.
     pub no_extracts: Vec<String>,
 }
 
@@ -107,13 +128,21 @@ impl Iterator for MergedPackagesIterator<'_> {
 /// provides a convenient aggregated representation for a single source.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct MergedSource {
+    /// The source.
     pub source: Source,
+    /// The optional Blake2 hash digest of `source`.
     pub b2_checksum: Option<SkippableChecksum<Blake2b512>>,
+    /// The optional MD-5 hash digest of `source`.
     pub md5_checksum: Option<SkippableChecksum<Md5>>,
+    /// The optional SHA-1 hash digest of `source`.
     pub sha1_checksum: Option<SkippableChecksum<Sha1>>,
+    /// The optional SHA-224 hash digest of `source`.
     pub sha224_checksum: Option<SkippableChecksum<Sha224>>,
+    /// The optional SHA-256 hash digest of `source`.
     pub sha256_checksum: Option<SkippableChecksum<Sha256>>,
+    /// The optional SHA-384 hash digest of `source`.
     pub sha384_checksum: Option<SkippableChecksum<Sha384>>,
+    /// The optional SHA-512 hash digest of `source`.
     pub sha512_checksum: Option<SkippableChecksum<Sha512>>,
 }
 

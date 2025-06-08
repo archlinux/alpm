@@ -1,3 +1,8 @@
+//! Integration tests for the alpm-mtree parser.
+
+// NOTE: With rstest > 0.25.0 this can be removed!
+#![allow(missing_docs)]
+
 use std::{fs::read_to_string, path::PathBuf};
 
 use alpm_mtree::parser::mtree;
