@@ -79,7 +79,7 @@ checkdepend = other-extra-test-tool
 "#;
 
 /// A helper struct for testing [`PackageInfo`].
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct PackageInfoInput {
     /// The [alpm-package-name] of a package.
     ///
