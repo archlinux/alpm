@@ -23,3 +23,6 @@ winnow.workspace = true
 insta.workspace = true
 rstest.workspace = true
 testresult.workspace = true
+
+[lints]
+workspace = true

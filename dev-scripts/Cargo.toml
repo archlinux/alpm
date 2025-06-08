@@ -44,3 +44,6 @@ proptest.workspace = true
 rstest.workspace = true
 tempfile.workspace = true
 testresult.workspace = true
+
+[lints]
+workspace = true

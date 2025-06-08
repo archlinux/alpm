@@ -47,3 +47,6 @@ testresult.workspace = true
 
 [package.metadata.cargo-machete]
 ignored = ["md-5"]
+
+[lints]
+workspace = true
