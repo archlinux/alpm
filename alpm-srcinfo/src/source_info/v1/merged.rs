@@ -92,6 +92,7 @@ pub struct MergedPackage {
 }
 
 /// An iterator over all packages of a specific architecture.
+#[derive(Clone, Debug)]
 pub struct MergedPackagesIterator<'a> {
     pub(crate) architecture: Architecture,
     pub(crate) source_info: &'a SourceInfoV1,
