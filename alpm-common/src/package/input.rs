@@ -18,6 +18,7 @@ use alpm_types::{INSTALL_SCRIPTLET_FILE_NAME, MetadataFileName};
 /// An input path.
 ///
 /// Tracks an absolute base directory and a relative path.
+#[derive(Clone, Copy, Debug)]
 pub struct InputPath<'a, 'b> {
     base_dir: &'a Path,
     path: &'b Path,
