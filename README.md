@@ -35,7 +35,7 @@ mindmap
       📚️ alpm-buildinfo
       📚️ alpm-pkginfo
       📚️ alpm-mtree
-      📚️ alpm-package*
+      📚️ alpm-package
       📚️ alpm-package-verify*
       📚️ alpm-package-verify-vda*
     🗄️ Repository
@@ -66,6 +66,7 @@ Currently the following components are available:
 
 - [alpm-buildinfo]: a library and commandline interface to work with `BUILDINFO` files
 - [alpm-mtree]: a library and commandline interface to work with `.MTREE` and `mtree` files
+- [alpm-package]: a library for the creation of [alpm-package][spec:alpm-package] files
 - [alpm-parsers]: a library for providing various custom parsers/deserializers for file types used in ALPM
 - [alpm-pkginfo]: a library and commandline interface to work with `.PKGINFO` files
 - [alpm-srcinfo]: a library and commandline interface to work with `SRCINFO` files
@@ -94,6 +95,7 @@ Contributions to this project, unless noted otherwise, are automatically license
 [Apache-2.0]: LICENSES/Apache-2.0.txt
 [alpm-buildinfo]: alpm-buildinfo/
 [alpm-mtree]: alpm-mtree/
+[alpm-package]: alpm-package/
 [alpm-parsers]: alpm-parsers/
 [alpm-pkginfo]: alpm-pkginfo/
 [alpm-srcinfo]: alpm-srcinfo/
@@ -109,4 +111,5 @@ Contributions to this project, unless noted otherwise, are automatically license
 [OpenPGP fingerprints]: https://openpgp.dev/book/certificates.html#fingerprint
 [pacman]: https://gitlab.archlinux.org/pacman/pacman
 [Rust]: https://www.rust-lang.org/
+[spec:alpm-package]: https://alpm.archlinux.page/specifications/alpm-package.7.html
 [Sovereign Tech Agency]: https://www.sovereign.tech/tech/arch-linux-package-management
