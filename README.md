@@ -64,12 +64,12 @@ For an overview of planned specifications and components, refer to the [mileston
 
 Currently the following components are available:
 
-- [alpm-buildinfo]: a library and commandline interface to work with `BUILDINFO` files
-- [alpm-mtree]: a library and commandline interface to work with `.MTREE` and `mtree` files
+- [alpm-buildinfo]: a library and commandline interface to work with [BUILDINFO] files
+- [alpm-mtree]: a library and commandline interface to work with [ALPM-MTREE] files
 - [alpm-package]: a library for the creation of [alpm-package][spec:alpm-package] files
 - [alpm-parsers]: a library for providing various custom parsers/deserializers for file types used in ALPM
-- [alpm-pkginfo]: a library and commandline interface to work with `.PKGINFO` files
-- [alpm-srcinfo]: a library and commandline interface to work with `SRCINFO` files
+- [alpm-pkginfo]: a library and commandline interface to work with [PKGINFO] files
+- [alpm-srcinfo]: a library and commandline interface to work with [SRCINFO] files
 - [alpm-types]: a central library for types used by other ALPM libraries and tools
 
 ## Contributing
@@ -92,11 +92,15 @@ The above are part of [archlinux-keyring] and certified by at least three [main 
 This project can be used under the terms of the [Apache-2.0] or [MIT].
 Contributions to this project, unless noted otherwise, are automatically licensed under the terms of both of those licenses.
 
+[ALPM-MTREE]: https://alpm.archlinux.page/specifications/ALPM-MTREE.5.html
 [Apache-2.0]: LICENSES/Apache-2.0.txt
+[BUILDINFO]: https://alpm.archlinux.page/specifications/BUILDINFO.5.html
 [MIT]: LICENSES/MIT.txt
 [OpenPGP certificates]: https://openpgp.dev/book/certificates.html
 [OpenPGP fingerprints]: https://openpgp.dev/book/certificates.html#fingerprint
+[PKGINFO]: https://alpm.archlinux.page/specifications/PKGINFO.5.html
 [Rust]: https://www.rust-lang.org/
+[SRCINFO]: https://alpm.archlinux.page/specifications/SRCINFO.5.html
 [Sovereign Tech Agency]: https://www.sovereign.tech/tech/arch-linux-package-management
 [alpm-buildinfo]: alpm-buildinfo/
 [alpm-mtree]: alpm-mtree/
