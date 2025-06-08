@@ -177,6 +177,7 @@ impl<'de> de::Deserializer<'de> for &mut Deserializer {
 }
 
 /// A deserializer for an [`Item`].
+#[derive(Clone, Debug)]
 pub struct ItemDeserializer<E> {
     item: Item,
     marker: PhantomData<E>,
