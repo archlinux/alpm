@@ -15,6 +15,7 @@ static PACKAGES_DIR: &str = "packages";
 static DATABASES_DIR: &str = "databases";
 
 /// This is the entry point for running validation tests of parsers on ALPM metadata files.
+#[derive(Clone, Debug)]
 pub struct TestRunner {
     /// The directory in which test data is stored.
     pub test_data_dir: PathBuf,
