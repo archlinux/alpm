@@ -329,6 +329,7 @@ check-shell-code:
     just check-shell-recipe check-unused-deps
     just check-shell-recipe ci-publish
     just check-shell-recipe 'generate shell_completions alpm-buildinfo'
+    just check-shell-recipe install-pacman-dev-packages
     just check-shell-recipe 'is-workspace-member alpm-buildinfo'
     just check-shell-recipe 'prepare-release alpm-buildinfo'
     just check-shell-recipe 'release alpm-buildinfo'
@@ -411,8 +412,25 @@ fix:
 # Installs development packages using pacman
 [group('dev')]
 install-pacman-dev-packages:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
     # All packages are set in the `.env` file
-    run0 pacman -S --needed --noconfirm $PACMAN_PACKAGES
+    source .env
+
+    # Read all packages into an array.
+    read -r -d '' -a packages < <(printf '%s\0' "$PACMAN_PACKAGES")
+
+    # Deduplicate using an associated array
+    declare -A unique_packages
+    for package in "${packages[@]}"; do
+        if [[ ! "${unique_packages[$package]+_}" ]]; then
+            unique_packages["$package"]=1
+        fi
+    done
+
+    pacman -S --needed --noconfirm "${!unique_packages[@]}"
+    # run0 pacman -S --needed --noconfirm "${!unique_packages[@]}"
 
 # Installs all Rust tools required for development
 [group('dev')]
