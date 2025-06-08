@@ -73,6 +73,7 @@ impl<'a, 'b> InputPath<'a, 'b> {
 /// A set of input paths.
 ///
 /// Tracks a base directory and a set of relative paths.
+#[derive(Clone, Copy, Debug)]
 pub struct InputPaths<'a, 'b> {
     base_dir: &'a Path,
     paths: &'b [PathBuf],
