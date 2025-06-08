@@ -19,6 +19,7 @@ use super::{PackageRepositories, filenames_in_dir};
 use crate::{cmd::ensure_success, ui::get_progress_bar};
 
 /// The entry point for downloading any data from package mirrors.
+#[derive(Clone, Debug)]
 pub struct MirrorDownloader {
     /// The destination folder into which files should be downloaded.
     pub dest: PathBuf,
