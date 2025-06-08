@@ -34,6 +34,7 @@ const PACKAGE_REPO_RENAMES: [(&str, &str); 3] = [
 /// Gitlab.
 ///
 /// Look at [Self::download_package_source_repositories] for more information.
+#[derive(Clone, Debug)]
 pub struct PkgSrcDownloader {
     /// The destination folder into which files should be downloaded.
     pub dest: PathBuf,
