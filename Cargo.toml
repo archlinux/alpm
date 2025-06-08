@@ -54,6 +54,10 @@ testresult = "0.4.1"
 thiserror = "2.0.0"
 winnow = "0.7.9"
 
+[workspace.lints.rust]
+missing_debug_implementations = "deny"
+missing_docs = "deny"
+
 [profile.release]
 codegen-units = 1
 lto = true
