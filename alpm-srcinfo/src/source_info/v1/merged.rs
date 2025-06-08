@@ -152,6 +152,7 @@ pub struct MergedSource {
 ///
 /// The checksums and sources are by convention all in the same order, which makes this quite
 /// convenient to convert into a aggregated struct representation.
+#[derive(Clone, Debug)]
 pub struct MergedSourceIterator<'a> {
     sources: std::slice::Iter<'a, Source>,
     b2_checksums: std::slice::Iter<'a, SkippableChecksum<Blake2b512>>,
