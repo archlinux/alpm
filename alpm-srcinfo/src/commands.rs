@@ -113,6 +113,6 @@ pub fn parse(
     } else if !io::stdin().is_terminal() {
         SourceInfo::from_stdin_with_schema(schema)
     } else {
-        return Err(Error::NoInputFile);
+        Err(Error::NoInputFile)
     }
 }

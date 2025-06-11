@@ -95,7 +95,7 @@ pub fn parse(args: ValidateArgs) -> Result<BuildInfo, Error> {
     } else if !io::stdin().is_terminal() {
         BuildInfo::from_stdin_with_schema(args.schema)
     } else {
-        return Err(Error::NoInputFile);
+        Err(Error::NoInputFile)
     }
 }
 

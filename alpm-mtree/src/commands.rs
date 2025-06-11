@@ -71,6 +71,6 @@ pub fn parse(file: Option<&PathBuf>, schema: Option<MtreeSchema>) -> Result<Mtre
     } else if !io::stdin().is_terminal() {
         Mtree::from_stdin_with_schema(schema)
     } else {
-        return Err(Error::NoInputFile);
+        Err(Error::NoInputFile)
     }
 }
