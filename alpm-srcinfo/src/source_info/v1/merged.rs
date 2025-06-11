@@ -341,7 +341,5 @@ impl MergedPackage {
 
         self.sources
             .extend_from_slice(&merged_sources.collect::<Vec<MergedSource>>());
-        self.no_extracts
-            .extend_from_slice(&base_architecture.no_extracts);
     }
 }

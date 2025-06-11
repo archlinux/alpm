@@ -75,7 +75,6 @@ expression: source_info_json
         "check_dependencies": [],
         "make_dependencies": [],
         "sources": [],
-        "no_extracts": [],
         "b2_checksums": [],
         "md5_checksums": [],
         "sha1_checksums": [],

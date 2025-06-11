@@ -147,8 +147,6 @@ pub struct PackageBaseArchitecture {
 
     /// The list of sources of the package base.
     pub sources: Vec<Source>,
-    /// The list of sources of the package base that are not extracted.
-    pub no_extracts: Vec<String>,
     /// The list of Blake2 hash digests for `sources` of the package base.
     pub b2_checksums: Vec<SkippableChecksum<Blake2b512>>,
     /// The list of MD-5 hash digests for `sources` of the package base.
@@ -437,14 +435,7 @@ impl PackageBase {
                         arch_property,
                         sources,
                     ),
-                    parser::SourceProperty::NoExtract(arch_property) => package_base_arch_prop!(
-                        line,
-                        errors,
-                        architectures,
-                        architecture_properties,
-                        arch_property,
-                        no_extracts,
-                    ),
+                    parser::SourceProperty::NoExtract(value) => no_extracts.push(value),
                     parser::SourceProperty::B2Checksum(arch_property) => package_base_arch_prop!(
                         line,
                         errors,
