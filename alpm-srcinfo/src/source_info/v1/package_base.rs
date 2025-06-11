@@ -111,7 +111,6 @@ pub struct PackageBaseArchitecture {
     pub make_dependencies: Vec<PackageRelation>,
 
     pub sources: Vec<Source>,
-    pub no_extracts: Vec<String>,
     pub b2_checksums: Vec<SkippableChecksum<Blake2b512>>,
     pub md5_checksums: Vec<SkippableChecksum<Md5>>,
     pub sha1_checksums: Vec<SkippableChecksum<Sha1>>,
@@ -393,14 +392,7 @@ impl PackageBase {
                         arch_property,
                         sources,
                     ),
-                    parser::SourceProperty::NoExtract(arch_property) => package_base_arch_prop!(
-                        line,
-                        errors,
-                        architectures,
-                        architecture_properties,
-                        arch_property,
-                        no_extracts,
-                    ),
+                    parser::SourceProperty::NoExtract(value) => no_extracts.push(value),
                     parser::SourceProperty::B2Checksum(arch_property) => package_base_arch_prop!(
                         line,
                         errors,

@@ -103,7 +103,6 @@ expression: source_info_json
             "location": "unexpected"
           }
         ],
-        "no_extracts": [],
         "b2_checksums": [
           {
             "type": "Checksum",
@@ -275,7 +274,6 @@ expression: source_info_json
             "location": "arch_source_2.patch"
           }
         ],
-        "no_extracts": [],
         "b2_checksums": [
           {
             "type": "Checksum",
