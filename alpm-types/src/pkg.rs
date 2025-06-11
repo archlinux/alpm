@@ -59,7 +59,7 @@ pub enum PackageType {
 /// assert_eq!(&description.to_string(), "my special package");
 /// # }
 /// ```
-#[derive(Clone, Debug, Eq, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct PackageDescription(String);
 
 impl PackageDescription {
