@@ -1,6 +1,6 @@
-use std::{fmt::Display, str::FromStr};
+use std::{convert::Infallible, fmt::Display, str::FromStr};
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 
 use crate::{Error, Name};
@@ -40,16 +40,79 @@ pub enum PackageType {
 
 /// Description of a package
 ///
+/// This type enforces the following invariants on the contained string:
+/// - No leading/trailing spaces
+/// - Tabs and newlines are substituted with spaces.
+/// - Multiple, consecutive spaces are substituted with a single space.
+///
 /// This is a type alias for [`String`].
 ///
 /// ## Examples
-/// ```
-/// use alpm_types::{Error, PackageDescription};
 ///
-/// // Create a PackageDescription
-/// let desc: PackageDescription = "A simple package".to_string();
 /// ```
-pub type PackageDescription = String;
+/// use alpm_types::PackageDescription;
+///
+/// # fn main() {
+/// // Create PackageDescription from a string slice
+/// let description = PackageDescription::from("my special package ");
+///
+/// assert_eq!(&description.to_string(), "my special package");
+/// # }
+/// ```
+#[derive(Clone, Debug, Eq, PartialEq, Deserialize, Serialize)]
+pub struct PackageDescription(String);
+
+impl PackageDescription {
+    /// Create a new `PackageDescription` from a given `String`.
+    pub fn new(description: &str) -> Self {
+        Self::from(description)
+    }
+}
+
+impl FromStr for PackageDescription {
+    type Err = Infallible;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self::from(s))
+    }
+}
+
+impl AsRef<str> for PackageDescription {
+    /// Returns a reference to the inner [`String`].
+    fn as_ref(&self) -> &str {
+        &self.0
+    }
+}
+
+impl From<&str> for PackageDescription {
+    /// Creates a new [`PackageDescription`] from a string slice.
+    ///
+    /// Trims leading and trailing whitespace.
+    /// Replaces any new lines and tabs with a space.
+    /// Replaces any consecutive spaces with a single space.
+    fn from(value: &str) -> Self {
+        // Trim front and back and replace unwanted whitespace chars.
+        let mut description = value.trim().replace(['\n', '\r', '\t'], " ");
+
+        // Remove all spaces that follow a space.
+        let mut previous = ' ';
+        description.retain(|ch| {
+            if ch == ' ' && previous == ' ' {
+                return false;
+            };
+            previous = ch;
+            true
+        });
+
+        Self(description)
+    }
+}
+
+impl Display for PackageDescription {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
 
 /// Name of the base package information that one or more packages are built from.
 ///
@@ -203,5 +266,14 @@ mod tests {
         #[case] result: Result<ExtraData, Error>,
     ) {
         assert_eq!(ExtraData::from_str(extra_data), result);
+    }
+
+    #[rstest]
+    #[case("  trailing  ", "trailing")]
+    #[case("in    between    words", "in between words")]
+    #[case("\nsome\t whitespace\n chars\n", "some whitespace chars")]
+    #[case("  \neverything\t   combined\n yeah \n   ", "everything combined yeah")]
+    fn package_description(#[case] input: &str, #[case] result: &str) {
+        assert_eq!(PackageDescription::new(input).to_string(), result);
     }
 }
