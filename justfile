@@ -207,7 +207,7 @@ generate-manpages-and-specs:
 # Checks source code formatting
 [group('check')]
 check-formatting:
-    just ensure-command taplo
+    just ensure-command taplo cargo-sort-derives
 
     just --unstable --fmt --check
     # We're using nightly to properly group imports, see rustfmt.toml
@@ -215,9 +215,12 @@ check-formatting:
 
     taplo format --check
 
+    # Checks for consistent sorting of rust derives
+    cargo sort-derives --check
+
 # Runs all check targets
 [group('check')]
-check: check-spelling check-formatting check-shell-code check-rust-code check-rust-derives check-unused-deps check-dependencies check-licenses check-links
+check: check-spelling check-formatting check-shell-code check-rust-code check-unused-deps check-dependencies check-licenses check-links
 
 # Checks commit messages for correctness
 [group('check')]
@@ -373,11 +376,6 @@ check-unused-deps:
     for name in $(just get-workspace-members); do
         cargo machete "$name"
     done
-
-# Checks for consistent sorting of rust derives
-[group('check')]
-check-rust-derives:
-    cargo sort-derives --check
 
 # Adds needed git configuration for the local repository
 [group('dev')]
