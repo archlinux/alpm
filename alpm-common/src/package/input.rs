@@ -463,11 +463,11 @@ post_remove() {
             Err(crate::Error::NonRelativePaths { .. })
         ));
         assert!(matches!(
-            InputPaths::new(temp_file_path, &[relative_path_a.clone()]),
+            InputPaths::new(temp_file_path, std::slice::from_ref(&relative_path_a)),
             Err(crate::Error::NotADirectory { .. })
         ));
         assert!(matches!(
-            InputPaths::new(&relative_path_a, &[relative_path_a.clone()]),
+            InputPaths::new(&relative_path_a, std::slice::from_ref(&relative_path_a)),
             Err(crate::Error::NonAbsolutePaths { .. })
         ));
 
