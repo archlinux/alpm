@@ -910,7 +910,7 @@ impl SourceKeyword {
 #[derive(Debug)]
 pub enum SourceProperty {
     Source(ArchProperty<Source>),
-    NoExtract(ArchProperty<String>),
+    NoExtract(String),
     B2Checksum(ArchProperty<SkippableChecksum<Blake2b512>>),
     Md5Checksum(ArchProperty<SkippableChecksum<Md5>>),
     Sha1Checksum(ArchProperty<SkippableChecksum<Sha1>>),
@@ -930,72 +930,85 @@ impl SourceProperty {
         // First off, get the type of the property.
         let keyword = SourceKeyword::parser.parse_next(input)?;
 
-        // All properties may be architecture specific and thereby have an architecture suffix.
-        let architecture = architecture_suffix.parse_next(input)?;
-
-        // Expect the ` = ` separator between the key-value pair
-        let _ = delimiter.parse_next(input)?;
-
         let property = match keyword {
-            SourceKeyword::Source => {
-                cut_err(till_line_end.try_map(Source::from_str).map(|value| {
-                    SourceProperty::Source(ArchProperty {
-                        architecture,
-                        value,
-                    })
-                }))
-                .parse_next(input)?
+            SourceKeyword::NoExtract => {
+                // Expect the ` = ` separator between the key-value pair
+                let _ = delimiter.parse_next(input)?;
+
+                cut_err(till_line_end.map(|s| SourceProperty::NoExtract(s.to_string())))
+                    .parse_next(input)?
             }
-            SourceKeyword::NoExtract => cut_err(till_line_end.map(|s| {
-                SourceProperty::NoExtract(ArchProperty {
-                    architecture,
-                    value: s.to_string(),
-                })
-            }))
-            .parse_next(input)?,
-            // all checksum properties are parsed the same way.
-            SourceKeyword::B2sums => SourceProperty::B2Checksum(ArchProperty {
-                architecture,
-                value: till_line_end
-                    .and_then(SkippableChecksum::parser)
-                    .parse_next(input)?,
-            }),
-            SourceKeyword::Md5sums => SourceProperty::Md5Checksum(ArchProperty {
-                architecture,
-                value: till_line_end
-                    .and_then(SkippableChecksum::parser)
-                    .parse_next(input)?,
-            }),
-            SourceKeyword::Sha1sums => SourceProperty::Sha1Checksum(ArchProperty {
-                architecture,
-                value: till_line_end
-                    .and_then(SkippableChecksum::parser)
-                    .parse_next(input)?,
-            }),
-            SourceKeyword::Sha224sums => SourceProperty::Sha224Checksum(ArchProperty {
-                architecture,
-                value: till_line_end
-                    .and_then(SkippableChecksum::parser)
-                    .parse_next(input)?,
-            }),
-            SourceKeyword::Sha256sums => SourceProperty::Sha256Checksum(ArchProperty {
-                architecture,
-                value: till_line_end
-                    .and_then(SkippableChecksum::parser)
-                    .parse_next(input)?,
-            }),
-            SourceKeyword::Sha384sums => SourceProperty::Sha384Checksum(ArchProperty {
-                architecture,
-                value: till_line_end
-                    .and_then(SkippableChecksum::parser)
-                    .parse_next(input)?,
-            }),
-            SourceKeyword::Sha512sums => SourceProperty::Sha512Checksum(ArchProperty {
-                architecture,
-                value: till_line_end
-                    .and_then(SkippableChecksum::parser)
-                    .parse_next(input)?,
-            }),
+            SourceKeyword::Source
+            | SourceKeyword::B2sums
+            | SourceKeyword::Md5sums
+            | SourceKeyword::Sha1sums
+            | SourceKeyword::Sha224sums
+            | SourceKeyword::Sha256sums
+            | SourceKeyword::Sha384sums
+            | SourceKeyword::Sha512sums => {
+                // All other properties may be architecture specific and thereby have an
+                // architecture suffix.
+                let architecture = architecture_suffix.parse_next(input)?;
+
+                // Expect the ` = ` separator between the key-value pair
+                let _ = delimiter.parse_next(input)?;
+
+                match keyword {
+                    SourceKeyword::Source => {
+                        cut_err(till_line_end.try_map(Source::from_str).map(|value| {
+                            SourceProperty::Source(ArchProperty {
+                                architecture,
+                                value,
+                            })
+                        }))
+                        .parse_next(input)?
+                    }
+                    // all checksum properties are parsed the same way.
+                    SourceKeyword::B2sums => SourceProperty::B2Checksum(ArchProperty {
+                        architecture,
+                        value: till_line_end
+                            .and_then(SkippableChecksum::parser)
+                            .parse_next(input)?,
+                    }),
+                    SourceKeyword::Md5sums => SourceProperty::Md5Checksum(ArchProperty {
+                        architecture,
+                        value: till_line_end
+                            .and_then(SkippableChecksum::parser)
+                            .parse_next(input)?,
+                    }),
+                    SourceKeyword::Sha1sums => SourceProperty::Sha1Checksum(ArchProperty {
+                        architecture,
+                        value: till_line_end
+                            .and_then(SkippableChecksum::parser)
+                            .parse_next(input)?,
+                    }),
+                    SourceKeyword::Sha224sums => SourceProperty::Sha224Checksum(ArchProperty {
+                        architecture,
+                        value: till_line_end
+                            .and_then(SkippableChecksum::parser)
+                            .parse_next(input)?,
+                    }),
+                    SourceKeyword::Sha256sums => SourceProperty::Sha256Checksum(ArchProperty {
+                        architecture,
+                        value: till_line_end
+                            .and_then(SkippableChecksum::parser)
+                            .parse_next(input)?,
+                    }),
+                    SourceKeyword::Sha384sums => SourceProperty::Sha384Checksum(ArchProperty {
+                        architecture,
+                        value: till_line_end
+                            .and_then(SkippableChecksum::parser)
+                            .parse_next(input)?,
+                    }),
+                    SourceKeyword::Sha512sums => SourceProperty::Sha512Checksum(ArchProperty {
+                        architecture,
+                        value: till_line_end
+                            .and_then(SkippableChecksum::parser)
+                            .parse_next(input)?,
+                    }),
+                    SourceKeyword::NoExtract => unreachable!(),
+                }
+            }
         };
 
         Ok(property)
