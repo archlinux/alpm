@@ -202,7 +202,6 @@ The value is an **alpm-package-relation** of type **replacement** (e.g. `example
 A local source file name (see **alpm-package-source**) of a file that should not be extracted during package building.
 Each value must represent the valid local file name of an existing **source** keyword assignment (e.g.  `source = https://example.org/project-1.0.0.tar.gz` and `noextract = project-1.0.0.tar.gz`).
 A file matching the provided filename is _not_ automatically extracted during package building, even if it is a compressed file (e.g. `example.tar.gz` or `example.zip`).
-An architecture-specific **noextract** may be specified using a keyword consisting of 'noextract', directly followed by an '_' sign, directly followed by an **alpm-architecture** (all **alpm-architectures** except `any` can be used), e.g. `noextract_aarch64`.
 
 This keyword assignment may be provided zero or more times, exclusively in the **pkgbase** section.
 
