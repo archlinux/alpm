@@ -29,7 +29,7 @@ use std::{
 };
 
 use alpm_common::{InputPaths, MetadataFile, relative_files};
-use alpm_mtree::{Mtree, mtree_v2_from_input_dir};
+use alpm_mtree::{Mtree, create_mtree_v2_from_input_dir};
 use alpm_types::MetadataFileName;
 use filetime::{FileTime, set_symlink_file_times};
 use insta::{Settings, assert_snapshot, with_settings};
@@ -207,7 +207,7 @@ fn prepare_input_dir() -> TestResult<(Mtree, TempDir)> {
     create_package_info_file(path)?;
 
     // Create .MTREE file (as ALPM-MTREEv2) and derive an Mtree from it.
-    let mtree_file = mtree_v2_from_input_dir(path)?;
+    let mtree_file = create_mtree_v2_from_input_dir(path)?;
 
     Ok((Mtree::from_file(mtree_file)?, test_dir))
 }

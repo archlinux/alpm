@@ -16,7 +16,7 @@ use crate::file::common::{BsdtarOptions, create_mtree_file_from_input_dir};
 ///
 /// [ALPM-MTREEv1]: https://alpm.archlinux.page/specifications/ALPM-MTREEv1.5.html
 /// [bsdtar]: https://man.archlinux.org/man/bsdtar.1
-pub fn mtree_v1_from_input_dir(path: impl AsRef<Path>) -> Result<PathBuf, crate::Error> {
+pub fn create_mtree_v1_from_input_dir(path: impl AsRef<Path>) -> Result<PathBuf, crate::Error> {
     create_mtree_file_from_input_dir(path, BsdtarOptions::MtreeV1)
 }
 
@@ -30,6 +30,6 @@ pub fn mtree_v1_from_input_dir(path: impl AsRef<Path>) -> Result<PathBuf, crate:
 ///
 /// [ALPM-MTREEv2]: https://alpm.archlinux.page/specifications/ALPM-MTREEv2.5.html
 /// [bsdtar]: https://man.archlinux.org/man/bsdtar.1
-pub fn mtree_v2_from_input_dir(path: impl AsRef<Path>) -> Result<PathBuf, crate::Error> {
+pub fn create_mtree_v2_from_input_dir(path: impl AsRef<Path>) -> Result<PathBuf, crate::Error> {
     create_mtree_file_from_input_dir(path, BsdtarOptions::MtreeV2)
 }

@@ -13,7 +13,7 @@ pub use error::Error;
 pub mod file;
 #[cfg(feature = "creation")]
 pub use file::{
-    create::{mtree_v1_from_input_dir, mtree_v2_from_input_dir},
+    create::{create_mtree_v1_from_input_dir, create_mtree_v2_from_input_dir},
     error::Error as CreationError,
 };
 

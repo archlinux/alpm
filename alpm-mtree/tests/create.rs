@@ -9,7 +9,12 @@ use std::{
 };
 
 use alpm_common::MetadataFile;
-use alpm_mtree::{Mtree, MtreeSchema, mtree_v1_from_input_dir, mtree_v2_from_input_dir};
+use alpm_mtree::{
+    Mtree,
+    MtreeSchema,
+    create_mtree_v1_from_input_dir,
+    create_mtree_v2_from_input_dir,
+};
 use alpm_types::SchemaVersion;
 use log::debug;
 use rstest::rstest;
@@ -55,7 +60,7 @@ fn create_mtreev1_from_input() -> TestResult {
 
     create_test_files(test_dir.as_ref())?;
 
-    let mtree_file = mtree_v1_from_input_dir(test_dir.as_ref())?;
+    let mtree_file = create_mtree_v1_from_input_dir(test_dir.as_ref())?;
 
     Mtree::from_file_with_schema(
         mtree_file,
@@ -77,7 +82,7 @@ fn create_mtreev2_from_input() -> TestResult {
     create_test_files(test_dir.as_ref())?;
 
     // Create .MTREE file (as ALPM-MTREEv2).
-    let mtree_file = mtree_v2_from_input_dir(test_dir.as_ref())?;
+    let mtree_file = create_mtree_v2_from_input_dir(test_dir.as_ref())?;
 
     Mtree::from_file_with_schema(
         mtree_file,
