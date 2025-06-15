@@ -1,1 +1,0 @@
-../../../../alpm-types/resources/specification/alpm-local-descv1.5.md
