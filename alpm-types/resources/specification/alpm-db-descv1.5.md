@@ -1,30 +1,30 @@
 # NAME
 
-alpm-local-desc - File format for the representation of metadata of ALPM based packages (version 1).
+alpm-db-desc - File format for the representation of metadata of ALPM based packages (version 1).
 
 # DESCRIPTION
 
-The **alpm-local-desc** format is a textual format that represents the metadata of a single package.
+The **alpm-db-desc** format is a textual format that represents the metadata of a single package.
 Each file describes various properties of a package, including its name, version, dependencies, size, licensing information, and more.
 For a full list of properties refer to **sections**.
 
-An operating system relying on **A**rch **L**inux **P**ackage **M**anagement maintains a local **libalpm** database with one **alpm-local-desc** file per package, each named _desc_ and located in a unique, per-package directory.
+An operating system relying on **A**rch **L**inux **P**ackage **M**anagement maintains a local **libalpm** database with one **alpm-db-desc** file per package, each named _desc_ and located in a unique, per-package directory.
 
-The accumulation of all **alpm-local-desc** files in a **libalpm** database describe the current state of the system (i.e. which packages have been installed when, under what circumstances).
+The accumulation of all **alpm-db-desc** files in a **libalpm** database describe the current state of the system (i.e. which packages have been installed when, under what circumstances).
 More specifically, package management software such as **pacman** and related tools use this file format e.g. to resolve dependencies and to display package information.
 
-The data in an **alpm-local-desc** file is derived from an **alpm-package**.
+The data in an **alpm-db-desc** file is derived from an **alpm-package**.
 Here, most of the metadata originates from the package's **PKGINFO** data.
 
-The **alpm-local-desc** file format must not be confused with the **alpm-repo-desc** file format, which is used in the context of an **alpm-repo-database** and carries a different set of metadata, but is usually also named _desc_.
+The **alpm-db-desc** file format must not be confused with the **alpm-repo-desc** file format, which is used in the context of an **alpm-repo-database** and carries a different set of metadata, but is usually also named _desc_.
 
-The **alpm-local-desc** format exists in multiple versions.
+The **alpm-db-desc** format exists in multiple versions.
 This document describes version 1, which is a legacy version and has been available since the release of **pacman** 5.1.0 on 2018-05-28.
-For the latest specification, refer to **alpm-local-desc**.
+For the latest specification, refer to **alpm-db-desc**.
 
 ## General Format
 
-An **alpm-local-desc** file is a UTF-8 encoded, newline-delimited file consisting of a series of **sections**.
+An **alpm-db-desc** file is a UTF-8 encoded, newline-delimited file consisting of a series of **sections**.
 
 Each section starts with a unique _section header line_.
 The section header line is followed by one or more lines with a _section-specific value_ each.
@@ -168,7 +168,7 @@ The value is an **alpm-package-relation** of type **provision** (e.g. `example` 
 
 # EXAMPLES
 
-An example **alpm-local-desc** file for a package named `example` in version `1.0.0-1`:
+An example **alpm-db-desc** file for a package named `example` in version `1.0.0-1`:
 
 ```text
 %NAME%

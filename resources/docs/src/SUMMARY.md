@@ -22,13 +22,13 @@
 # Specifications
 
 - [File formats](./specifications/file-formats.md)
-  - [alpm-install-scriptlet](./specifications/alpm-install-scriptlet.5.md)
+  - [alpm-db-desc](./specifications/alpm-db-desc.5.md)
+    - [alpm-db-descv1](./specifications/alpm-db-descv1.5.md)
+    - [alpm-db-descv2](./specifications/alpm-db-descv2.5.md)
   - [alpm-files](./specifications/alpm-files.5.md)
     - [alpm-repo-files](./specifications/alpm-repo-files.5.md)
     - [alpm-db-files](./specifications/alpm-db-files.5.md)
-  - [alpm-local-desc](./specifications/alpm-local-desc.5.md)
-    - [alpm-local-descv1](./specifications/alpm-local-descv1.5.md)
-    - [alpm-local-descv2](./specifications/alpm-local-descv2.5.md)
+  - [alpm-install-scriptlet](./specifications/alpm-install-scriptlet.5.md)
   - [ALPM-MTREE](./specifications/ALPM-MTREE.5.md)
     - [ALPM-MTREEv1](./specifications/ALPM-MTREEv1.5.md)
     - [ALPM-MTREEv2](./specifications/ALPM-MTREEv2.5.md)

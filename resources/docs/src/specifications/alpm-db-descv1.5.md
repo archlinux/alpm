@@ -1,0 +1,1 @@
+../../../../alpm-types/resources/specification/alpm-db-descv1.5.md
