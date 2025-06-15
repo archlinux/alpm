@@ -1,0 +1,1 @@
+../../../../alpm-types/resources/specification/alpm-repo-desc.5.md
