@@ -16,7 +16,7 @@ More specifically, package management software such as **pacman** and related to
 The data in an **alpm-local-desc** file is derived from an **alpm-package**.
 Here, most of the metadata originates from the package's **PKGINFO** data.
 
-The **alpm-local-desc** file format must not be confused with the **alpm-sync-desc** file format, which is used in the context of an **alpm-repo-database** and carries a different set of metadata, but is usually also named _desc_.
+The **alpm-local-desc** file format must not be confused with the **alpm-repo-desc** file format, which is used in the context of an **alpm-repo-database** and carries a different set of metadata, but is usually also named _desc_.
 
 The **alpm-local-desc** format exists in multiple versions.
 The information in this document is for version 2, which is the current version and has been introduced with the release of pacman 6.1.0 on 2024-03-04.
@@ -231,7 +231,7 @@ pkgtype=pkg
 
 # SEE ALSO
 
-**libalpm**(3), **BUILDINFO**(5), **PKGBUILD**(5), **PKGINFO**(5), **alpm-sync-desc**(5), **alpm-architecture**(7), **alpm-package**(7), **alpm-package-file-name**(7), **alpm-package-name**(7), **alpm-package-relation**(7), **alpm-package-version**(7), **alpm-repo-database**(7), **alpm-split-package**(7), **pacman**(8)
+**libalpm**(3), **BUILDINFO**(5), **PKGBUILD**(5), **PKGINFO**(5), **alpm-repo-desc**(5), **alpm-architecture**(7), **alpm-package**(7), **alpm-package-file-name**(7), **alpm-package-name**(7), **alpm-package-relation**(7), **alpm-package-version**(7), **alpm-repo-database**(7), **alpm-split-package**(7), **pacman**(8)
 
 # NOTES
 
