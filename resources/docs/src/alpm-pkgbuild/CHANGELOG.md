@@ -1,0 +1,1 @@
+../../../../alpm-pkgbuild/CHANGELOG.md
