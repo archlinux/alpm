@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2025-06-16
+
+### Added
+- *(cargo)* Use the workspace linting rules
+- Derive `Debug` for `PackageInfoInput`
+- Enforce PackageDescription invariants
+- Derive `PartialEq` for `PackageInfo` and `PackageInfoV1`/V2
+- Rely on `PackageInfo` when parsing PKGINFO data
+- Add `PackageInfo` as entry point for reading PKGINFO data
+- Add `PkgInfoSchema` to track PKGINFO data schemas
+
+### Fixed
+- Wrong pkginfo tests
+- *(cargo)* Use the package's README instead of the workspace README
+
+### Other
+- Add missing documentation for all public items
+- Cleanup unneeded return statements
+- Update package description specification
+- *(justfile)* Add cargo-sort-derives
+- Fix typos in README.md of file formats
+- Enum for pkginfo write testing
+- *(parser)* Add winnow parser for PackageRelation
+- Move `PackageInfoV1` and `PackageInfoV2` to a module
+- *(cargo)* Consolidate and sort package section
+
 ## [0.1.0] - 2025-02-28
 
 ### Added

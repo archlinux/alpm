@@ -31,7 +31,7 @@ alpm-buildinfo = { path = "./alpm-buildinfo", version = "0.2.0" }
 alpm-common = { path = "./alpm-common", version = "0.1.0" }
 alpm-mtree = { path = "./alpm-mtree", version = "0.2.0" }
 alpm-parsers = { path = "./alpm-parsers", version = "0.2.0" }
-alpm-pkginfo = { path = "./alpm-pkginfo", version = "0.1.0" }
+alpm-pkginfo = { path = "./alpm-pkginfo", version = "0.2.0" }
 alpm-types = { path = "./alpm-types", version = "0.6.0" }
 assert_cmd = "2.0.11"
 clap = { version = "4.5.19", features = [
