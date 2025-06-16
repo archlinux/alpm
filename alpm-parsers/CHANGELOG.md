@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2025-06-16
+
+### Added
+- *(cargo)* Use the workspace linting rules
+- Derive `Clone` and `Debug` for `ItemDeserializer`
+- [**breaking**] Fully validate makepkg's BUILDENV and OPTIONS
+
+### Fixed
+- *(cargo)* Use the package's README instead of the workspace README
+
+### Other
+- Add missing documentation for all public items
+- *(justfile)* Add cargo-sort-derives
+- Add helper macros for parse error contexts
+- *(cargo)* Consolidate and sort package section
+
 ## [0.1.0] - 2025-02-28
 
 ### Added
