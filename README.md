@@ -33,6 +33,7 @@ mindmap
       📄 .INSTALL
       📄 .MTREE
       📚️ alpm-buildinfo
+      📚️ alpm-pkgbuild
       📚️ alpm-pkginfo
       📚️ alpm-mtree
       📚️ alpm-package

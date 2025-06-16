@@ -8,6 +8,8 @@
   - [CHANGELOG](./alpm-buildinfo/CHANGELOG.md)
 - [alpm-mtree](./alpm-mtree/README.md)
   - [CHANGELOG](./alpm-mtree/CHANGELOG.md)
+- [alpm-pkgbuild](./alpm-pkgbuild/README.md)
+  - [CHANGELOG](./alpm-pkgbuild/CHANGELOG.md)
 - [alpm-package](./alpm-package/README.md)
 - [alpm-parsers](./alpm-parsers/README.md)
   - [CHANGELOG](./alpm-parsers/CHANGELOG.md)
