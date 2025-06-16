@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2025-06-16
+
+### Added
+- *(cargo)* Use the workspace linting rules
+- Derive `PartialEq` for `BuildInfo`, `BuildInfoV1`, `BuildInfoV2`
+- [**breaking**] Fully validate makepkg's BUILDENV and OPTIONS
+- Implement `alpm_common::MetadataFile` for `BuildInfo`
+- Implement `alpm_common::FileFormatSchema` for `BuildInfoSchema`
+- Switch to `Schema` version 2 as default
+- Rely on `BuildInfo` type when parsing BUILDINFO data
+- Add `BuildInfo` as entry point for reading BUILDINFO data
+
+### Fixed
+- Remove old buildinfo insta snapshots
+- [**breaking**] Make `Schema` enum not `non_exhaustive`
+- *(cargo)* Use the package's README instead of the workspace README
+
+### Other
+- Add missing documentation for all public items
+- Cleanup unneeded return statements
+- *(justfile)* Add cargo-sort-derives
+- Fix typos in README.md of file formats
+- Deduplicate buildinfo tests
+- *(deps)* Remove unused version key for alpm-common
+- Rely on inner data for `Display` impl of `BuildInfoSchema`
+- Improve documentation of `BuildInfoSchema` trait impl blocks
+- Rename `Schema` to `BuildInfoSchema`
+- Move `BuildInfoV1` and `BuildInfoV2` to a module
+- *(cargo)* Consolidate and sort package section
+
 ## [0.1.0] - 2025-02-28
 
 ### Added
