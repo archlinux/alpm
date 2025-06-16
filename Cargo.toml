@@ -5,7 +5,7 @@ authors = [
     "Orhun Parmaksız <orhun@archlinux.org>",
 ]
 edition = "2024"
-homepage = "https://gitlab.archlinux.org/archlinux/alpm/alpm"
+homepage = "https://alpm.archlinux.page"
 keywords = ["alpm", "arch", "linux", "packaging"]
 license = "Apache-2.0 OR MIT"
 repository = "https://gitlab.archlinux.org/archlinux/alpm/alpm"
