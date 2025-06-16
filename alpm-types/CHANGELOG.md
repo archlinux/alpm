@@ -7,6 +7,67 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2025-06-16
+
+### Added
+- Make Name hashable
+- *(cargo)* Use the workspace linting rules
+- Derive `Debug` for `VersionSegments`
+- Enforce PackageDescription invariants
+- Add `Eq`, `Ord` and `PartialOrd` impls for `Digest`
+- Add `PackageFileName` to describe valid package file names
+- Add `FileTypeIdentifier` to distinguish ALPM file types
+- Add `CompressionAlgorithmFileExtension` for compressed files
+- Add MakepkgOption wrapper
+- Add buildflags and makeflags to BuildEnvironmentOption
+- Add abstractions for file names related to packages
+- [**breaking**] Fully validate makepkg's BUILDENV and OPTIONS
+- *(types)* Implement Deserialize for all alpm-types
+- *(docs)* Add note about newlines in optdepends description
+- *(parser)* Implement From for winnow error types for Error
+- Add public re-export for `semver::Version` used by `SchemaVersion`
+
+### Fixed
+- OptionalDependency ToString
+- Derive sort formatting
+- *(architecture)* Serialize architecture as lowercase
+- Make Digest type Send
+- *(cargo)* Use the package's README instead of the workspace README
+
+### Other
+- Rename `alpm-local-desc` to `alpm-db-desc`
+- Replace the use of `alpm-sync-desc` with `alpm-repo-desc`
+- Ensure `alpm-repo-files` and `alpm-db-files` man pages are created
+- Move architecture parser into own function
+- *(package)* Add alpm-local-desc specification
+- Add missing documentation for all public items
+- Fix clippy error regarding uninlined format args
+- *(justfile)* Add cargo-sort-derives
+- Update the doc comment for InvalidPackageFileNameVersion error
+- Rewrite PackageOption and BuildEnvironmentOption parsers
+- Sort option match statements
+- Move RelationOrSoname to alpm_types
+- Add helper macros for parse error contexts
+- Use winnow's new error context functions
+- *(testing-tool)* Shared function to parse rsync output
+- *(package)* Add alpm-files specification
+- Remove all non-exhaustive enum markers
+- Pkgver comparison algorithm
+- *(types)* Extend and clean up pkgver comparison test cases
+- Mention alpm-state-repo in version spec
+- *(parsers)* Add winnow parser for SkippableChecksum
+- *(parsers)* [**breaking**] Add winnow parser for Checksum
+- *(types)* Properly type PackageRelease version data
+- Improve parser code
+- *(parser)* Add OptionalDependency winnow parser
+- *(parser)* Add winnow parser for PackageRelation
+- *(parser)* Add winnow parser for VersionRequirement
+- *(parser)* Replace EnumString parser with winnow for VersionComparison
+- *(parser)* Add Version composite winnow parser
+- *(parser)* Add winnow parsers for PackageVersion, Epoch, PackageRelease
+- *(parser)* Swap from regex-based parser to winnow for Name
+- *(cargo)* Consolidate and sort package section
+
 ## [0.5.0] - 2025-02-28
 
 ### Added
