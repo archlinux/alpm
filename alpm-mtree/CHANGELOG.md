@@ -7,6 +7,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2025-06-16
+
+### Added
+- *(cargo)* Use the workspace linting rules
+- Add `Mtree::validate_paths` to validate file system paths
+- Enable comparing ALPM-MTREE paths to file system paths
+- Consolidate data types for gid, size, time and uid
+- Use a sorted list of `Path` objects in the `Mtree` variants
+- Add `Eq`, `Ord` and `PartialOrd` for `Path` and its variants
+- Add functions for the creation of ALPM-MTREE files
+- Derive `PartialEq` for `Mtree`, `MtreeV1` and `MtreeV2`
+- Make all members of structs for Path variants public
+- Rely on `Mtree` when parsing ALPM-MTREE data
+- Add `Mtree` as entry point for reading ALPM-MTREE data
+- Add `MtreeSchema` to track ALPM-MTREE data schemas
+
+### Fixed
+- *(deps)* Update Rust crate which to v8
+- *(codespell)* Ignore false-positive `ser` using codespell config
+- *(Mtree)* [**breaking**] Auto-detect gzip compressed readers and decompress them
+- *(mtree)* Ensure that stdin can be used in cli
+- *(mtree)* Fix default value for --output-format
+- *(cargo)* Use the package's README instead of the workspace README
+
+### Other
+- [**breaking**] Rename functions for the creation of ALPM-MTREE files
+- *(deps)* Move `flate2` crate to workspace dependencies
+- Add missing documentation for all public items
+- Cleanup unneeded return statements
+- *(justfile)* Add cargo-sort-derives
+- Move `simplelog` crate to workspace dependencies
+- Move `log` crate to workspace dependencies
+- Add mtree cli tests
+- Add helper macros for parse error contexts
+- Use winnow's new error context functions
+- Fix typos in README.md of file formats
+- Configure relevant tests with "cli" feature
+- Move ALPM-MTREE (v1/v2) handling to separate module
+- Move handling of gzip compression to separate module
+- *(cargo)* Consolidate and sort package section
+
 ## [0.1.0] - 2025-02-28
 
 ### Added
