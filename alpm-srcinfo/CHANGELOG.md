@@ -7,6 +7,59 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2025-06-16
+
+### Added
+- Add SRCINFO file writer
+- Add PartialEq to SourceInfo
+- *(cargo)* Use the workspace linting rules
+- Derive `Clone` and `Debug` for `MergedSource`
+- Derive `Clone` and `Debug` for `MergedPackagesIterator`
+- Add format command to alpm-srcinfo
+- Enforce PackageDescription invariants
+- [**breaking**] Fully validate makepkg's BUILDENV and OPTIONS
+- *(srcinfo)* Type to represent package overrides
+- *(types)* Implement Deserialize for all srcinfo types
+- Rely on `SourceInfo` when parsing SRCINFO data
+- Add `SourceInfo` as entry point for reading SRCINFO data
+- Add `SourceInfoSchema` to track SRCINFO schemas
+
+### Fixed
+- Make noextract not architecture specific
+- Use correct type aliases for alpm-types
+- Don't create blanket architecture specific properties
+- Use new option wrapper type in sourceinfo
+- *(architecture)* Serialize architecture as lowercase
+- SourceInfo Architecture urls
+- *(srcinfo)* Package versioning representation
+- *(cargo)* Use the package's README instead of the workspace README
+
+### Other
+- Noextract may not be architecture specific
+- Move architecture parser into own function
+- Add missing documentation for all public items
+- Cleanup unneeded return statements
+- Update package description specification
+- Change architectures to Vec
+- *(justfile)* Add cargo-sort-derives
+- Move RelationOrSoname to alpm_types
+- Move keyword parsers to keyword enum types
+- Add srcinfo cli tests
+- Add helper macros for parse error contexts
+- Use winnow's new error context functions
+- Fix typos in README.md of file formats
+- Srcinfo bin check command for now
+- *(parsers)* Add winnow parser for SkippableChecksum
+- *(types)* Properly type PackageRelease version data
+- *(srcinfo)* Restructure files hierarchy
+- Rename `SourceInfo` to `SourceInfoV1` and move to own module
+- Improve parser code
+- *(parser)* Add OptionalDependency winnow parser
+- *(parser)* Add winnow parser for PackageRelation
+- *(parser)* Add winnow parsers for PackageVersion, Epoch, PackageRelease
+- *(parser)* Swap from regex-based parser to winnow for Name
+- *(cargo)* Consolidate and sort package section
+
 ## [0.1.0] - 2025-02-28
 
 ### Added
