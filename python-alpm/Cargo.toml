@@ -19,6 +19,7 @@ name = "python_alpm"
 alpm-types = { path = "../alpm-types" }
 deriving_via = "2.1.0"
 pyo3 = { version = "0.25", features = ["abi3-py39"] }
+semver = "1.0"
 
 [lints]
 workspace = true

@@ -1855,6 +1855,7 @@ dependencies = [
  "alpm-types",
  "deriving_via",
  "pyo3",
+ "semver",
 ]
 
 [[package]]

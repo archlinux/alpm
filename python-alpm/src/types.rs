@@ -20,6 +20,8 @@ impl From<Error> for PyErr {
 pub mod types {
     #[pymodule_export]
     use version::PackageVersion;
+    #[pymodule_export]
+    use version::SchemaVersion;
 
     use super::*;
 }

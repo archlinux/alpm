@@ -14,6 +14,10 @@ TBD
 import alpm
 
 alpm.types.PackageVersion('1.0.0alpha')
+
+version_one = alpm.types.SchemaVersion.from_str('1.0.0')
+version_also_one = alpm.types.SchemaVersion.from_str('1')
+assert version_one == version_also_one
 ```
 
 ## Contributing
