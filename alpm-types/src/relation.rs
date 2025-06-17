@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use winnow::{
     ModalResult,
     Parser,
-    ascii::digit1,
+    ascii::{digit1, space1},
     combinator::{
         alt,
         cut_err,
@@ -1007,11 +1007,11 @@ impl OptionalDependency {
         });
 
         let (package_relation, description) = alt((
-            // look for ": ", then dispatch either side to the relevant parser
-            // without allowing backtracking
+            // look for a ":" followed by at least one whitespace, then dispatch either side to the
+            // relevant parser without allowing backtracking.
             separated_pair(
-                take_until(1.., ": ").and_then(cut_err(PackageRelation::parser)),
-                ": ",
+                take_until(1.., ":").and_then(cut_err(PackageRelation::parser)),
+                (":", space1),
                 rest.and_then(cut_err(description_parser)),
             ),
             // if we can't find ": ", then assume it's all PackageRelation
@@ -1391,6 +1391,10 @@ mod tests {
     #[case(
         "example-two:     a description with lots of whitespace padding     ",
         "example-two: a description with lots of whitespace padding"
+    )]
+    #[case(
+        "tabs:    a description with a tab directly after the colon",
+        "tabs: a description with a tab directly after the colon"
     )]
     #[case("dep_name", "dep_name")]
     #[case("dep_name: ", "dep_name")]
