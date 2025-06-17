@@ -11,6 +11,7 @@
 - [alpm-mtree](./alpm-mtree/README.md)
   - [CHANGELOG](./alpm-mtree/CHANGELOG.md)
 - [alpm-package](./alpm-package/README.md)
+  - [CHANGELOG](./alpm-package/CHANGELOG.md)
 - [alpm-parsers](./alpm-parsers/README.md)
   - [CHANGELOG](./alpm-parsers/CHANGELOG.md)
 - [alpm-pkginfo](./alpm-pkginfo/README.md)
