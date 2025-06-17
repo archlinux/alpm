@@ -1,0 +1,24 @@
+[package]
+authors.workspace = true
+description = "Python bindings for the ALPM project"
+edition.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+license.workspace = true
+name = "python-alpm"
+readme = "README.md"
+repository.workspace = true
+rust-version.workspace = true
+version = "0.0.0"
+
+[lib]
+crate-type = ["cdylib"]
+name = "python_alpm"
+
+[dependencies]
+alpm-types = { path = "../alpm-types" }
+deriving_via = "2.1.0"
+pyo3 = { version = "0.25", features = ["abi3-py39"] }
+
+[lints]
+workspace = true

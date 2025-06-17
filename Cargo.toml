@@ -23,6 +23,7 @@ members = [
     "alpm-state-repo",
     "alpm-types",
     "dev-scripts",
+    "python-alpm",
 ]
 resolver = "3"
 
