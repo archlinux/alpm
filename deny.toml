@@ -16,6 +16,7 @@ allow = [
     "MIT",
     "MPL-2.0",
     "Unicode-3.0",
+    "bzip2-1.0.6",
 ]
 version = 2
 

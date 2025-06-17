@@ -17,7 +17,7 @@ alpm-common.workspace = true
 alpm-mtree.workspace = true
 alpm-pkginfo.workspace = true
 alpm-types.workspace = true
-bzip2 = "0.5.2"
+bzip2 = "0.6.0"
 flate2.workspace = true
 liblzma = { version = "0.4.1", features = ["parallel"] }
 log.workspace = true
