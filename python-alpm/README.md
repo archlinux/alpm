@@ -8,8 +8,12 @@ TBD
 
 ## Examples
 
+### `alpm.types`
+
 ```python
 import alpm
+
+alpm.types.PackageVersion('1.0.0alpha')
 ```
 
 ## Contributing

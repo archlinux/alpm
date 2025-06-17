@@ -1,7 +1,7 @@
 use deriving_via::DerivingVia;
 use pyo3::{PyErr, create_exception, prelude::*};
 
-mod package_version;
+mod version;
 
 create_exception!(types, ALPMError, pyo3::exceptions::PyException);
 
@@ -17,4 +17,9 @@ impl From<Error> for PyErr {
 }
 
 #[pymodule(gil_used = false)]
-pub mod types {}
+pub mod types {
+    #[pymodule_export]
+    use version::PackageVersion;
+
+    use super::*;
+}
