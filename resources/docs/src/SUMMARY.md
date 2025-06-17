@@ -6,6 +6,8 @@
 
 - [alpm-buildinfo](./alpm-buildinfo/README.md)
   - [CHANGELOG](./alpm-buildinfo/CHANGELOG.md)
+- [alpm-common](./alpm-common/README.md)
+  - [CHANGELOG](./alpm-common/CHANGELOG.md)
 - [alpm-mtree](./alpm-mtree/README.md)
   - [CHANGELOG](./alpm-mtree/CHANGELOG.md)
 - [alpm-package](./alpm-package/README.md)

@@ -65,6 +65,7 @@ For an overview of planned specifications and components, refer to the [mileston
 Currently the following components are available:
 
 - [alpm-buildinfo]: a library and commandline interface to work with [BUILDINFO] files
+- [alpm-common]: a library for common traits and functionality
 - [alpm-mtree]: a library and commandline interface to work with [ALPM-MTREE] files
 - [alpm-package]: a library for the creation of [alpm-package][spec:alpm-package] files
 - [alpm-parsers]: a library for providing various custom parsers/deserializers for file types used in ALPM
@@ -103,6 +104,7 @@ Contributions to this project, unless noted otherwise, are automatically license
 [SRCINFO]: https://alpm.archlinux.page/specifications/SRCINFO.5.html
 [Sovereign Tech Agency]: https://www.sovereign.tech/tech/arch-linux-package-management
 [alpm-buildinfo]: alpm-buildinfo/
+[alpm-common]: alpm-common/
 [alpm-mtree]: alpm-mtree/
 [alpm-package]: alpm-package/
 [alpm-parsers]: alpm-parsers/
