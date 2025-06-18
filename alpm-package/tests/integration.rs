@@ -16,6 +16,7 @@ use alpm_package::{
     Package,
     PackageCreationConfig,
     PackageInput,
+    PackageReader,
     compression::{
         Bzip2CompressionLevel,
         GzipCompressionLevel,
@@ -140,6 +141,12 @@ fn default_filetime() -> FileTime {
 /// Creates data files and directories below `path`.
 fn create_data_files(path: impl AsRef<Path>) -> TestResult {
     let path = path.as_ref();
+
+    // Create an arbitrary file at root of the package. (.ARBITRARY)
+    let mut file = File::create(path.join(".ARBITRARY"))?;
+    write!(file, "This is an arbitrary file.")?;
+    file.set_times(default_filetimes())?;
+
     // Create dummy directory structure
     create_dir_all(path.join("foo/bar/baz"))?;
     create_dir_all(path.join("foo/bar/buh"))?;
@@ -552,6 +559,132 @@ fn package_creation_config_new_fails() -> TestResult {
             }
         )),
         Ok(_) => return Err("Succeeded, but should have failed".into()),
+    }
+
+    Ok(())
+}
+
+#[rstest(
+    compression => [
+        CompressionSettings::Bzip2 { compression_level: Default::default() },
+        CompressionSettings::Gzip { compression_level: Default::default() },
+        CompressionSettings::Xz { compression_level: Default::default() },
+        CompressionSettings::Zstd { compression_level: Default::default(), threads: ZstdThreads::all() },
+    ],
+    config_flags => [
+        // All present
+        InputDirConfig {
+            build_info: true,
+            data_files: true,
+            mtree: true,
+            package_info: true,
+            scriptlet: true,
+        },
+        // No data files
+        InputDirConfig {
+            build_info: true,
+            data_files: false,
+            mtree: true,
+            package_info: true,
+            scriptlet: true,
+        },
+        // No scriptlet
+        InputDirConfig {
+            build_info: true,
+            data_files: true,
+            mtree: true,
+            package_info: true,
+            scriptlet: false,
+        },
+        // No data files and no scriptlet
+        InputDirConfig {
+            build_info: true,
+            data_files: false,
+            mtree: true,
+            package_info: true,
+            scriptlet: false,
+        },
+    ]
+)]
+fn read_package_contents(
+    compression: CompressionSettings,
+    config_flags: InputDirConfig,
+) -> TestResult {
+    init_logger();
+
+    let temp_dir = TempDir::new()?;
+    let input_dir_path = temp_dir.path().join("input");
+    let output_dir_path = temp_dir.path().join("output");
+
+    create_dir(&input_dir_path)?;
+    let input_dir = InputDir::new(input_dir_path)?;
+    prepare_input_dir(&input_dir, &config_flags)?;
+
+    let package_input: PackageInput = input_dir.try_into()?;
+    let output_dir = OutputDir::new(output_dir_path)?;
+    let config = PackageCreationConfig::new(package_input, output_dir, Some(compression))?;
+    let package = Package::try_from(&config)?;
+
+    let pkginfo = package.read_pkginfo()?;
+    let pkgname = match &pkginfo {
+        alpm_pkginfo::PackageInfo::V1(v) => v.pkgname(),
+        alpm_pkginfo::PackageInfo::V2(v) => v.pkgname(),
+    };
+    assert_eq!(pkgname.to_string(), "example");
+
+    let buildinfo = package.read_buildinfo()?;
+    let pkgbase = match &buildinfo {
+        alpm_buildinfo::BuildInfo::V1(v) => v.pkgbase(),
+        alpm_buildinfo::BuildInfo::V2(v) => v.pkgbase(),
+    };
+    assert_eq!(pkgbase.to_string(), "example");
+
+    let mtree = package.read_mtree()?;
+    let paths = match &mtree {
+        alpm_mtree::Mtree::V1(paths) | alpm_mtree::Mtree::V2(paths) => paths,
+    }
+    .iter()
+    .map(|p| p.to_path_buf())
+    .collect::<Vec<_>>();
+    assert!(paths.contains(&PathBuf::from("./.BUILDINFO")));
+    if config_flags.data_files {
+        assert!(paths.contains(&PathBuf::from("./foo/bar/baz/buh.txt")));
+        assert!(paths.contains(&PathBuf::from("./foo/bar/baz/beh.txt")));
+    }
+
+    if config_flags.scriptlet {
+        let install_scriptlet = package.read_install_scriptlet()?;
+        assert_eq!(Some(VALID_INSTALL_SCRIPTLET), install_scriptlet.as_deref());
+    } else {
+        assert!(package.read_install_scriptlet()?.is_none());
+    }
+
+    if config_flags.data_files {
+        let mut reader: PackageReader = package.clone().try_into()?;
+        let data_files = reader.data_entries()?;
+        assert_eq!(
+            vec![
+                PathBuf::from(".ARBITRARY"),
+                PathBuf::from("foo/bar/baz/beh.txt"),
+                PathBuf::from("foo/bar/baz/buh.txt"),
+                PathBuf::from("foo/beh.txt"),
+            ],
+            data_files
+                .filter_map(|entry| entry.map(|e| e.path().to_path_buf()).ok())
+                .collect::<Vec<_>>()
+        );
+
+        let mut reader: PackageReader = package.clone().try_into()?;
+        let mut entry = match reader.read_data_entry(".ARBITRARY")? {
+            Some(entry) => entry,
+            None => return Err("Expected .ARBITRARY entry, but found none".into()),
+        };
+        let content = entry.content()?;
+        let content = String::from_utf8(content)?;
+        assert_eq!("This is an arbitrary file.", content);
+    } else {
+        let mut reader: PackageReader = package.clone().try_into()?;
+        assert_eq!(0, reader.data_entries()?.count());
     }
 
     Ok(())

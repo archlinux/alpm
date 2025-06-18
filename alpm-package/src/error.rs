@@ -1,6 +1,8 @@
 //! Error handling.
 
-use std::path::PathBuf;
+use std::{path::PathBuf, string::FromUtf8Error};
+
+use alpm_types::MetadataFileName;
 
 /// An error that can occur when dealing with alpm-package.
 #[derive(Debug, thiserror::Error)]
@@ -85,6 +87,39 @@ pub enum Error {
         /// The source error.
         source: std::io::Error,
     },
+
+    /// An I/O error occurred while reading.
+    #[error("I/O read error while {context}:\n{source}")]
+    IoRead {
+        /// The context in which the error occurred.
+        ///
+        /// This is meant to complete the sentence "I/O read error while ".
+        context: &'static str,
+        /// The source error.
+        source: std::io::Error,
+    },
+
+    /// UTF-8 parse error.
+    #[error("Invalid UTF-8 while {context}:\n{source}")]
+    InvalidUTF8 {
+        /// The context in which the error occurred.
+        ///
+        /// This is meant to complete the sentence "Invalid UTF-8 while {context}".
+        context: &'static str,
+        /// The source error.
+        source: FromUtf8Error,
+    },
+
+    /// Metadata file not found in package.
+    #[error("Metadata file {name} not found in package")]
+    MetadataFileNotFound {
+        /// The metadata file that was not found.
+        name: MetadataFileName,
+    },
+
+    /// Reached the end of known entries while reading a package.
+    #[error("Reached the end of known entries while reading a package")]
+    EndOfPackageEntries,
 
     /// A package input directory is located inside of a package output directory.
     #[error(
