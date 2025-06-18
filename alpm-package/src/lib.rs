@@ -21,4 +21,4 @@ pub use compression::{
 pub use config::{OutputDir, PackageCreationConfig};
 pub use error::Error;
 pub use input::{InputDir, PackageInput};
-pub use package::{ExistingAbsoluteDir, Package};
+pub use package::{ExistingAbsoluteDir, Package, PackageReader};
