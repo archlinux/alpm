@@ -556,3 +556,59 @@ fn package_creation_config_new_fails() -> TestResult {
 
     Ok(())
 }
+
+#[rstest]
+#[case::bzip2(CompressionSettings::Bzip2 { compression_level: Bzip2CompressionLevel::default() })]
+#[case::gzip(CompressionSettings::Gzip { compression_level: GzipCompressionLevel::default() })]
+#[case::xz(CompressionSettings::Xz { compression_level: XzCompressionLevel::default() })]
+#[case::zstd(CompressionSettings::Zstd { compression_level: ZstdCompressionLevel::default(), threads: ZstdThreads::all() })]
+fn read_metadata_files_from_package(#[case] compression: CompressionSettings) -> TestResult {
+    init_logger();
+
+    let temp_dir = TempDir::new()?;
+    let input_dir_path = temp_dir.path().join("input");
+    let output_dir_path = temp_dir.path().join("output");
+
+    create_dir(&input_dir_path)?;
+    let input_dir = InputDir::new(input_dir_path)?;
+    prepare_input_dir(
+        &input_dir,
+        &InputDirConfig {
+            build_info: true,
+            data_files: false,
+            mtree: true,
+            package_info: true,
+            scriptlet: false,
+        },
+    )?;
+
+    let package_input: PackageInput = input_dir.try_into()?;
+    let output_dir = OutputDir::new(output_dir_path)?;
+    let config = PackageCreationConfig::new(package_input, output_dir, Some(compression))?;
+    let package = Package::try_from(&config)?;
+
+    let pkginfo = package.read_pkginfo()?;
+    let pkgname = match &pkginfo {
+        alpm_pkginfo::PackageInfo::V1(v) => v.pkgname(),
+        alpm_pkginfo::PackageInfo::V2(v) => v.pkgname(),
+    };
+    assert_eq!(pkgname.to_string(), "example");
+
+    let buildinfo = package.read_buildinfo()?;
+    let pkgbase = match &buildinfo {
+        alpm_buildinfo::BuildInfo::V1(v) => v.pkgbase(),
+        alpm_buildinfo::BuildInfo::V2(v) => v.pkgbase(),
+    };
+    assert_eq!(pkgbase.to_string(), "example");
+
+    let mtree = package.read_mtree()?;
+    let mut paths = match &mtree {
+        alpm_mtree::Mtree::V1(paths) | alpm_mtree::Mtree::V2(paths) => paths,
+    }
+    .iter()
+    .map(|p| p.to_path_buf());
+    assert_eq!(paths.next(), Some("./.BUILDINFO".into()));
+    assert_eq!(paths.next(), Some("./.PKGINFO".into()));
+
+    Ok(())
+}

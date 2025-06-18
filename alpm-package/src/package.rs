@@ -4,18 +4,30 @@
 
 use std::{
     fs::{File, create_dir_all},
-    io::Write,
+    io::{Read, Write},
     path::{Path, PathBuf},
     str::FromStr,
 };
 
-use alpm_common::InputPaths;
+use alpm_buildinfo::BuildInfo;
+use alpm_common::{InputPaths, MetadataFile};
 use alpm_mtree::Mtree;
-use alpm_types::{MetadataFileName, PackageError, PackageFileName};
+use alpm_pkginfo::PackageInfo;
+use alpm_types::{
+    CompressionAlgorithmFileExtension,
+    MetadataFileName,
+    PackageError,
+    PackageFileName,
+};
 use log::debug;
 use tar::Builder;
 
-use crate::{CompressionEncoder, OutputDir, PackageCreationConfig};
+use crate::{
+    CompressionEncoder,
+    OutputDir,
+    PackageCreationConfig,
+    compression::CompressionDecoder,
+};
 
 /// An error that can occur when handling [alpm-package] files.
 ///
@@ -196,6 +208,108 @@ where
     Ok(builder)
 }
 
+/// A reader for [`Package`] files.
+///
+/// It implements the [`Read`] trait, allowing reading the contents of a package file
+/// as a stream of bytes.
+///
+/// A [`PackageReader`] can be created from a [`Package`] using the
+/// [`Package::into_reader`] or [`PackageReader::try_from`] methods.
+#[derive(Debug)]
+pub struct PackageReader<'a> {
+    decoder: CompressionDecoder<'a>,
+}
+
+impl<'a> PackageReader<'a> {
+    /// Creates a new [`PackageReader`] from a [`CompressionDecoder`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the `decoder` cannot be created from the file and its extension.
+    pub fn new(decoder: CompressionDecoder<'a>) -> Result<Self, crate::Error> {
+        Ok(Self { decoder })
+    }
+
+    /// Returns a [`tar::Archive`] from the [`PackageReader`].
+    pub fn into_tar(self) -> tar::Archive<CompressionDecoder<'a>> {
+        tar::Archive::new(self.decoder)
+    }
+
+    /// Reads a metadata file from the package archive.
+    ///
+    /// Returns the contents of the metadata file as a `Vec<u8>`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    ///
+    /// - the metadata does not exist in the package archive,
+    /// - reading the package archive entries fails,
+    /// - reading a package archive entry fails,
+    /// - reading the contents of a package archive entry fails,
+    /// - or the path of the entry cannot be retrieved.
+    pub fn read_metadata_file(mut self, name: MetadataFileName) -> Result<Vec<u8>, crate::Error> {
+        let mut archive = tar::Archive::new(&mut self.decoder);
+        let entries = archive.entries().map_err(|source| crate::Error::IoRead {
+            context: "reading package archive entries",
+            source,
+        })?;
+        for entry in entries {
+            let mut entry = entry.map_err(|source| crate::Error::IoRead {
+                context: "reading package archive entry",
+                source,
+            })?;
+            if let Ok(path) = entry.path() {
+                if path.to_string_lossy() == name.to_string() {
+                    let path = path.to_path_buf();
+                    let mut buffer = Vec::new();
+                    entry
+                        .read_to_end(&mut buffer)
+                        .map_err(|source| crate::Error::IoPath {
+                            path,
+                            context: "reading package archive entries",
+                            source,
+                        })?;
+                    return Ok(buffer);
+                }
+            }
+        }
+        Err(crate::Error::MetadataNotFound { name })
+    }
+}
+
+impl<'a> TryFrom<Package> for PackageReader<'a> {
+    type Error = crate::Error;
+
+    /// Creates a [`PackageReader`] from a [`Package`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    ///
+    /// - the package file cannot be opened,
+    /// - the package file extension cannot be determined,
+    /// - or the compression decoder cannot be created from the file and its extension.
+    fn try_from(package: Package) -> Result<Self, Self::Error> {
+        let path = package.to_path_buf();
+        let file = File::open(&path).map_err(|source| crate::Error::IoPath {
+            path: path.clone(),
+            context: "opening package file",
+            source,
+        })?;
+        let extension = CompressionAlgorithmFileExtension::try_from(path.as_path())?;
+        let decoder = CompressionDecoder::from_extension(file, extension)?;
+        Ok(Self { decoder })
+    }
+}
+
+impl<'a> Read for PackageReader<'a> {
+    /// Reads the contents of the package file into `buf`.
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        self.decoder.read(buf)
+    }
+}
+
 /// An [alpm-package] file.
 ///
 /// Tracks the [`PackageFileName`] of the [alpm-package] as well as its absolute `parent_dir`.
@@ -234,6 +348,47 @@ impl Package {
     /// Returns the absolute path of the [`Package`].
     pub fn to_path_buf(&self) -> PathBuf {
         self.parent_dir.join(self.file_name.to_path_buf())
+    }
+
+    /// Reads the contents of the `.PKGINFO` file from the package archive.
+    ///
+    /// This is a convenience wrapper around [`PackageReader::read_metadata_file`]
+    pub fn read_pkginfo(&self) -> Result<PackageInfo, crate::Error> {
+        let reader = PackageReader::try_from(self.clone())?;
+        let data = reader.read_metadata_file(MetadataFileName::PackageInfo)?;
+        let pkginfo = PackageInfo::from_reader(&*data)?;
+        Ok(pkginfo)
+    }
+
+    /// Reads the contents of the `.BUILDINFO` file from the package archive.
+    ///
+    /// This is a convenience wrapper around [`PackageReader::read_metadata_file`]
+    pub fn read_buildinfo(&self) -> Result<BuildInfo, crate::Error> {
+        let reader = PackageReader::try_from(self.clone())?;
+        let data = reader.read_metadata_file(MetadataFileName::BuildInfo)?;
+        let buildinfo = BuildInfo::from_reader(&*data)?;
+        Ok(buildinfo)
+    }
+
+    /// Reads the contents of the `.MTREE` file from the package archive.
+    ///
+    /// This is a convenience wrapper around [`PackageReader::read_metadata_file`]
+    pub fn read_mtree(&self) -> Result<Mtree, crate::Error> {
+        let reader = PackageReader::try_from(self.clone())?;
+        let data = reader.read_metadata_file(MetadataFileName::Mtree)?;
+        let mtree = Mtree::from_reader_with_schema(&*data, None)?;
+        Ok(mtree)
+    }
+
+    /// Returns the [`PackageReader`] for this [`Package`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the [`Package`] cannot be converted into a [`PackageReader`].
+    ///
+    /// See [`PackageReader::try_from`] for more details.
+    pub fn into_reader<'a>(self) -> Result<PackageReader<'a>, crate::Error> {
+        PackageReader::try_from(self)
     }
 }
 
@@ -337,6 +492,21 @@ impl TryFrom<&PackageCreationConfig> for Package {
         }
 
         Self::new(filename, parent_dir)
+    }
+}
+
+impl Read for Package {
+    /// Reads the contents of the package file into `buf`.
+    ///
+    /// # Note
+    ///
+    /// It is recommended to use [`PackageReader`] instead of this method, as this method
+    /// creates a new [`PackageReader`] each time it is called, which is inefficient.
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        let mut reader = self.clone().into_reader().map_err(|source| {
+            std::io::Error::other(format!("Failed to create package reader: {source}"))
+        })?;
+        reader.read(buf)
     }
 }
 
