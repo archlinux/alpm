@@ -3,16 +3,16 @@
 use std::{
     fmt::{Debug, Display},
     fs::File,
-    io::Write,
+    io::{BufReader, Read, Write},
     num::TryFromIntError,
 };
 
 use alpm_types::CompressionAlgorithmFileExtension;
-use bzip2::write::BzEncoder;
-use flate2::write::GzEncoder;
-use liblzma::write::XzEncoder;
+use bzip2::{bufread::BzDecoder, write::BzEncoder};
+use flate2::{bufread::GzDecoder, write::GzEncoder};
+use liblzma::{bufread::XzDecoder, write::XzEncoder};
 use log::trace;
-use zstd::Encoder;
+use zstd::{Decoder, Encoder};
 
 /// An error that can occur when using compression.
 #[derive(Debug, thiserror::Error)]
@@ -32,6 +32,10 @@ pub enum Error {
         /// The source error.
         source: std::io::Error,
     },
+
+    /// An error occurred while creating a Zstandard decoder.
+    #[error("Error creating a Zstandard decoder:\n{0}")]
+    CreateZstandardDecoder(#[source] std::io::Error),
 
     /// An error occurred while finishing a compression encoder.
     #[error("Error while finishing {compression_type} compression encoder:\n{source}")]
@@ -60,6 +64,55 @@ pub enum Error {
         /// The maximum valid compression level.
         max: u8,
     },
+
+    /// An unsupported compression algorithm was used.
+    #[error("Unsupported compression algorithm: {value}")]
+    UnsupportedCompressionAlgorithm {
+        /// The unsupported compression algorithm.
+        value: String,
+    },
+}
+
+/// A supported compression algorithm.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum CompressionAlgorithm {
+    /// The bzip2 compression algorithm.
+    Bzip2,
+    /// The gzip compression algorithm.
+    Gzip,
+    /// The xz compression algorithm.
+    Xz,
+    /// The zstandard compression algorithm.
+    Zstd,
+}
+
+impl TryFrom<CompressionAlgorithmFileExtension> for CompressionAlgorithm {
+    type Error = Error;
+
+    /// Converts a [`CompressionAlgorithmFileExtension`] into a [`CompressionAlgorithm`].
+    fn try_from(value: CompressionAlgorithmFileExtension) -> Result<Self, Self::Error> {
+        match value {
+            CompressionAlgorithmFileExtension::Bzip2 => Ok(Self::Bzip2),
+            CompressionAlgorithmFileExtension::Gzip => Ok(Self::Gzip),
+            CompressionAlgorithmFileExtension::Xz => Ok(Self::Xz),
+            CompressionAlgorithmFileExtension::Zstd => Ok(Self::Zstd),
+            _ => Err(Error::UnsupportedCompressionAlgorithm {
+                value: value.to_string(),
+            }),
+        }
+    }
+}
+
+impl From<&CompressionSettings> for CompressionAlgorithm {
+    /// Converts a [`CompressionSettings`] into a [`CompressionAlgorithm`].
+    fn from(value: &CompressionSettings) -> Self {
+        match value {
+            CompressionSettings::Bzip2 { .. } => CompressionAlgorithm::Bzip2,
+            CompressionSettings::Gzip { .. } => CompressionAlgorithm::Gzip,
+            CompressionSettings::Xz { .. } => CompressionAlgorithm::Xz,
+            CompressionSettings::Zstd { .. } => CompressionAlgorithm::Zstd,
+        }
+    }
 }
 
 /// A macro to define a compression level struct.
@@ -559,9 +612,84 @@ impl Write for CompressionEncoder<'_> {
     }
 }
 
+/// Decoder for decompression which supports multiple backends.
+///
+/// Wraps [`BzDecoder`], [`GzDecoder`], [`XzDecoder`] and [`Decoder`]
+/// and provides a unified [`Read`] implementation across all of them.
+pub enum CompressionDecoder<'a> {
+    /// The bzip2 decompression decoder.
+    Bzip2(BzDecoder<BufReader<File>>),
+
+    /// The gzip decompression decoder.
+    Gzip(GzDecoder<BufReader<File>>),
+
+    /// The xz decompression decoder.
+    Xz(XzDecoder<BufReader<File>>),
+
+    /// The zstd decompression decoder.
+    Zstd(Decoder<'a, BufReader<File>>),
+}
+
+impl CompressionDecoder<'_> {
+    /// Creates a new [`CompressionDecoder`].
+    ///
+    /// Uses a [`File`] to stream from and initializes a specific backend based on the provided
+    /// [`CompressionAlgorithm`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if creating the decoder for zstd compression fails
+    /// (all other decoder initializations are infallible).
+    pub fn new(file: File, algorithm: CompressionAlgorithm) -> Result<Self, Error> {
+        match algorithm {
+            CompressionAlgorithm::Bzip2 => Ok(Self::Bzip2(BzDecoder::new(BufReader::new(file)))),
+            CompressionAlgorithm::Gzip => Ok(Self::Gzip(GzDecoder::new(BufReader::new(file)))),
+            CompressionAlgorithm::Xz => Ok(Self::Xz(XzDecoder::new(BufReader::new(file)))),
+            CompressionAlgorithm::Zstd => Ok(Self::Zstd(
+                Decoder::new(file).map_err(Error::CreateZstandardDecoder)?,
+            )),
+        }
+    }
+}
+
+impl Debug for CompressionDecoder<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "CompressionDecoder({})",
+            match self {
+                CompressionDecoder::Bzip2(_) => "Bzip2",
+                CompressionDecoder::Gzip(_) => "Gzip",
+                CompressionDecoder::Xz(_) => "Xz",
+                CompressionDecoder::Zstd(_) => "Zstd",
+            }
+        )
+    }
+}
+
+impl Read for CompressionDecoder<'_> {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        match self {
+            CompressionDecoder::Bzip2(decoder) => decoder.read(buf),
+            CompressionDecoder::Gzip(decoder) => decoder.read(buf),
+            CompressionDecoder::Xz(decoder) => decoder.read(buf),
+            CompressionDecoder::Zstd(decoder) => decoder.read(buf),
+        }
+    }
+
+    fn read_to_end(&mut self, buf: &mut Vec<u8>) -> std::io::Result<usize> {
+        match self {
+            CompressionDecoder::Bzip2(decoder) => decoder.read_to_end(buf),
+            CompressionDecoder::Gzip(decoder) => decoder.read_to_end(buf),
+            CompressionDecoder::Xz(decoder) => decoder.read_to_end(buf),
+            CompressionDecoder::Zstd(decoder) => decoder.read_to_end(buf),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use std::io::IoSlice;
+    use std::io::{IoSlice, Seek};
 
     use proptest::{proptest, test_runner::Config as ProptestConfig};
     use rstest::rstest;
@@ -918,6 +1046,127 @@ mod tests {
 
         ref_encoder.flush()?;
 
+        Ok(())
+    }
+
+    /// Ensures that the [`CompressionDecoder`] can decompress data compressed by
+    /// [`CompressionEncoder`].
+    #[rstest]
+    #[case::bzip2(CompressionAlgorithm::Bzip2, CompressionSettings::Bzip2 {
+        compression_level: Bzip2CompressionLevel::default()
+    })]
+    #[case::gzip(CompressionAlgorithm::Gzip, CompressionSettings::Gzip {
+        compression_level: GzipCompressionLevel::default()
+    })]
+    #[case::xz(CompressionAlgorithm::Xz, CompressionSettings::Xz {
+        compression_level: XzCompressionLevel::default()
+    })]
+    #[case::zstd(CompressionAlgorithm::Zstd, CompressionSettings::Zstd {
+        compression_level: ZstdCompressionLevel::default(),
+        threads: ZstdThreads::new(0),
+    })]
+    fn test_compression_decoder_roundtrip(
+        #[case] algorithm: CompressionAlgorithm,
+        #[case] settings: CompressionSettings,
+    ) -> TestResult {
+        // Prepare some sample data
+        let input_data = b"alpm4ever";
+
+        // Compress it
+        let mut file = tempfile()?;
+        {
+            let mut encoder = CompressionEncoder::new(file.try_clone()?, &settings)?;
+            encoder.write_all(input_data)?;
+            encoder.flush()?;
+            encoder.finish()?;
+        }
+
+        // Rewind the file
+        file.rewind()?;
+
+        // Decompress it
+        let mut decoder = CompressionDecoder::new(file, algorithm)?;
+        let mut output = Vec::new();
+        decoder.read_to_end(&mut output)?;
+
+        // Check data integrity
+        assert_eq!(output, input_data);
+        Ok(())
+    }
+
+    /// Ensures that the conversion from [`CompressionAlgorithmFileExtension`] to
+    /// [`CompressionAlgorithm`] works as expected.
+    #[rstest]
+    #[case(CompressionAlgorithmFileExtension::Bzip2, CompressionAlgorithm::Bzip2)]
+    #[case(CompressionAlgorithmFileExtension::Gzip, CompressionAlgorithm::Gzip)]
+    #[case(CompressionAlgorithmFileExtension::Xz, CompressionAlgorithm::Xz)]
+    #[case(CompressionAlgorithmFileExtension::Zstd, CompressionAlgorithm::Zstd)]
+    fn test_compression_algorithm_conversion_success(
+        #[case] ext: CompressionAlgorithmFileExtension,
+        #[case] expected: CompressionAlgorithm,
+    ) -> TestResult {
+        let result = CompressionAlgorithm::try_from(ext)?;
+        assert_eq!(result, expected);
+        Ok(())
+    }
+
+    /// Ensures that the conversion from [`CompressionAlgorithmFileExtension`] to
+    /// [`CompressionAlgorithm`] fails as expected for unsupported algorithms.
+    #[rstest]
+    #[case(CompressionAlgorithmFileExtension::Compress, "Z")]
+    #[case(CompressionAlgorithmFileExtension::Lrzip, "lrz")]
+    #[case(CompressionAlgorithmFileExtension::Lzip, "lz")]
+    #[case(CompressionAlgorithmFileExtension::Lz4, "lz4")]
+    #[case(CompressionAlgorithmFileExtension::Lzop, "lzo")]
+    fn test_compression_algorithm_conversion_failure(
+        #[case] ext: CompressionAlgorithmFileExtension,
+        #[case] expected_str: &str,
+    ) -> TestResult {
+        match CompressionAlgorithm::try_from(ext) {
+            Ok(algorithm) => Err(format!("Expected failure, but got: {algorithm:?}").into()),
+            Err(Error::UnsupportedCompressionAlgorithm { value }) => {
+                assert_eq!(value, expected_str);
+                Ok(())
+            }
+            Err(e) => Err(format!("Unexpected error variant: {e:?}").into()),
+        }
+    }
+
+    /// Ensures that the conversion from [`CompressionSettings`] to
+    /// [`CompressionAlgorithm`] works as expected.
+    #[rstest]
+    #[case::bzip2(CompressionSettings::Bzip2 {
+        compression_level: Bzip2CompressionLevel::default()
+    }, CompressionAlgorithm::Bzip2)]
+    #[case::gzip(CompressionSettings::Gzip {
+        compression_level: GzipCompressionLevel::default()
+    }, CompressionAlgorithm::Gzip)]
+    #[case::xz(CompressionSettings::Xz {
+        compression_level: XzCompressionLevel::default()
+    }, CompressionAlgorithm::Xz)]
+    #[case::zstd(CompressionSettings::Zstd {
+        compression_level: ZstdCompressionLevel::default(),
+        threads: ZstdThreads::new(4),
+    }, CompressionAlgorithm::Zstd)]
+    fn test_from_compression_settings_to_algorithm(
+        #[case] settings: CompressionSettings,
+        #[case] expected: CompressionAlgorithm,
+    ) -> TestResult {
+        let result = CompressionAlgorithm::from(&settings);
+        assert_eq!(result, expected);
+        Ok(())
+    }
+
+    #[rstest]
+    #[case::bzip2(CompressionAlgorithm::Bzip2)]
+    #[case::gzip(CompressionAlgorithm::Gzip)]
+    #[case::xz(CompressionAlgorithm::Xz)]
+    #[case::zstd(CompressionAlgorithm::Zstd)]
+    fn test_compression_decoder_debug(#[case] algorithm: CompressionAlgorithm) -> TestResult {
+        let file = tempfile()?;
+        let decoder = CompressionDecoder::new(file, algorithm)?;
+        let debug_str = format!("{decoder:?}");
+        assert!(debug_str.contains("CompressionDecoder"));
         Ok(())
     }
 }
