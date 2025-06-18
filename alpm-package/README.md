@@ -15,6 +15,7 @@ This library offers integration for creating an [alpm-package] from a prepared i
 
 A package file can be created from a prepared input directory.
 The input directory must contain at the very least a valid [BUILDINFO], a [PKGINFO] and an [ALPM-MTREE] file.
+Then the relevant metadata/data/script files can be read from the package archive using the `PackageReader` API.
 
 ```rust
 use std::fs::{File, Permissions, create_dir_all};
@@ -25,6 +26,7 @@ use alpm_mtree::create_mtree_v2_from_input_dir;
 use alpm_package::{
     CompressionSettings,
     InputDir,
+    MetadataEntry,
     OutputDir,
     Package,
     PackageCreationConfig,
@@ -98,6 +100,50 @@ let config = PackageCreationConfig::new(
 // Create package file.
 let package = Package::try_from(&config)?;
 
+// Create a reader for the package.
+let mut reader = package.clone().into_reader()?;
+
+// Read all the metadata from the package archive.
+let metadata = reader.metadata()?;
+let pkginfo = metadata.pkginfo;
+let buildinfo = metadata.buildinfo;
+let mtree = metadata.mtree;
+
+// Or you can iterate over the metadata entries:
+let mut reader = package.clone().into_reader()?;
+for entry in reader.metadata_entries()? {
+    let entry = entry?;
+    match entry {
+        MetadataEntry::PackageInfo(pkginfo) => {}
+        MetadataEntry::BuildInfo(buildinfo) => {}
+        MetadataEntry::Mtree(mtree) => {}
+        _ => {}
+    }
+}
+
+// You can also read specific metadata files directly:
+let mut reader = package.clone().into_reader()?;
+let pkginfo = reader.read_metadata_file(MetadataFileName::PackageInfo)?;
+// let buildinfo = reader.read_metadata_file(MetadataFileName::BuildInfo)?;
+// let mtree = reader.read_metadata_file(MetadataFileName::Mtree)?;
+
+// Read the install scriptlet, if present:
+let mut reader = package.clone().into_reader()?;
+let install_scriptlet = reader.read_install_scriptlet()?;
+
+// Iterate over the data entries in the package archive.
+let mut reader = package.clone().into_reader()?;
+for data_entry in reader.data_entries()? {
+    let mut data_entry = data_entry?;
+    let content = data_entry.content()?;
+    // Note: data_entry also implements `Read`, so you can read from it directly.
+}
+
+// Convenience functions for reading packages without creating a reader:
+let pkginfo = package.read_pkginfo()?;
+let buildinfo = package.read_buildinfo()?;
+let mtree = package.read_mtree()?;
+let install_scriptlet = package.read_install_scriptlet()?;
 # Ok(())
 # }
 ```
