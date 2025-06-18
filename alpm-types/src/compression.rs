@@ -1,5 +1,10 @@
 //! File compression related types.
 
+use std::{
+    path::{Path, PathBuf},
+    str::FromStr,
+};
+
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, Display, EnumString, IntoStaticStr, VariantNames};
 
@@ -90,4 +95,39 @@ pub enum CompressionAlgorithmFileExtension {
     #[serde(rename = "zst")]
     #[strum(to_string = "zst")]
     Zstd,
+}
+
+impl TryFrom<&Path> for CompressionAlgorithmFileExtension {
+    type Error = crate::Error;
+
+    /// Creates a [`CompressionAlgorithmFileExtension`] from a [`Path`] by extracting the file
+    /// extension.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the file extension does not match a
+    /// [`CompressionAlgorithmFileExtension`] variant.
+    fn try_from(path: &Path) -> Result<Self, Self::Error> {
+        path.extension()
+            .and_then(|ext| ext.to_str())
+            .and_then(|ext| Self::from_str(&ext.to_lowercase()).ok())
+            .ok_or(strum::ParseError::VariantNotFound.into())
+    }
+}
+
+impl TryFrom<PathBuf> for CompressionAlgorithmFileExtension {
+    type Error = crate::Error;
+
+    /// Creates a [`CompressionAlgorithmFileExtension`] from a [`PathBuf`] by extracting the file
+    /// extension.
+    ///
+    /// Delegates to [`TryFrom<&Path>`][`TryFrom::try_from`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the file extension does not match a
+    /// [`CompressionAlgorithmFileExtension`] variant.
+    fn try_from(path: PathBuf) -> Result<Self, Self::Error> {
+        path.as_path().try_into()
+    }
 }
