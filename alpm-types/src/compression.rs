@@ -1,5 +1,10 @@
 //! File compression related types.
 
+use std::{
+    path::{Path, PathBuf},
+    str::FromStr,
+};
+
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, Display, EnumString, IntoStaticStr, VariantNames};
 
@@ -90,4 +95,94 @@ pub enum CompressionAlgorithmFileExtension {
     #[serde(rename = "zst")]
     #[strum(to_string = "zst")]
     Zstd,
+}
+
+impl TryFrom<&Path> for CompressionAlgorithmFileExtension {
+    type Error = crate::Error;
+
+    /// Creates a [`CompressionAlgorithmFileExtension`] from a [`Path`] by extracting the file
+    /// extension.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the file extension does not match a
+    /// [`CompressionAlgorithmFileExtension`] variant.
+    fn try_from(path: &Path) -> Result<Self, Self::Error> {
+        path.extension()
+            .and_then(|ext| ext.to_str())
+            .and_then(|ext| Self::from_str(ext).ok())
+            .ok_or(strum::ParseError::VariantNotFound.into())
+    }
+}
+
+impl TryFrom<PathBuf> for CompressionAlgorithmFileExtension {
+    type Error = crate::Error;
+
+    /// Creates a [`CompressionAlgorithmFileExtension`] from a [`PathBuf`] by extracting the file
+    /// extension.
+    ///
+    /// Delegates to [`TryFrom<&Path>`][`TryFrom::try_from`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the file extension does not match a
+    /// [`CompressionAlgorithmFileExtension`] variant.
+    fn try_from(path: PathBuf) -> Result<Self, Self::Error> {
+        path.as_path().try_into()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use rstest::*;
+
+    use super::*;
+
+    #[rstest]
+    #[case("Z", CompressionAlgorithmFileExtension::Compress)]
+    #[case("bz2", CompressionAlgorithmFileExtension::Bzip2)]
+    #[case("gz", CompressionAlgorithmFileExtension::Gzip)]
+    #[case("lrz", CompressionAlgorithmFileExtension::Lrzip)]
+    #[case("lz", CompressionAlgorithmFileExtension::Lzip)]
+    #[case("lz4", CompressionAlgorithmFileExtension::Lz4)]
+    #[case("lzo", CompressionAlgorithmFileExtension::Lzop)]
+    #[case("xz", CompressionAlgorithmFileExtension::Xz)]
+    #[case("zst", CompressionAlgorithmFileExtension::Zstd)]
+    fn compression_algorithm_file_extension_from_str(
+        #[case] input: &str,
+        #[case] expected: CompressionAlgorithmFileExtension,
+    ) {
+        let parsed = CompressionAlgorithmFileExtension::from_str(input).unwrap();
+        assert_eq!(parsed, expected);
+    }
+
+    #[rstest]
+    #[case("archive.Z", CompressionAlgorithmFileExtension::Compress)]
+    #[case("data.bz2", CompressionAlgorithmFileExtension::Bzip2)]
+    #[case("doc.gz", CompressionAlgorithmFileExtension::Gzip)]
+    #[case("video.lrz", CompressionAlgorithmFileExtension::Lrzip)]
+    #[case("binary.lz", CompressionAlgorithmFileExtension::Lzip)]
+    #[case("dump.lz4", CompressionAlgorithmFileExtension::Lz4)]
+    #[case("image.lzo", CompressionAlgorithmFileExtension::Lzop)]
+    #[case("package.xz", CompressionAlgorithmFileExtension::Xz)]
+    #[case("/var/cache/repo.zst", CompressionAlgorithmFileExtension::Zstd)]
+    fn compression_algorithm_file_extension_try_from_path(
+        #[case] filename: &str,
+        #[case] expected: CompressionAlgorithmFileExtension,
+    ) -> testresult::TestResult {
+        let path = PathBuf::from(filename);
+        let parsed = CompressionAlgorithmFileExtension::try_from(path)?;
+        assert_eq!(parsed, expected);
+        Ok(())
+    }
+
+    #[rstest]
+    #[case("file.txt")]
+    #[case("unknown.abc")]
+    #[case("noext")]
+    fn invalid_compression_file_extension(#[case] filename: &str) {
+        let path = Path::new(filename);
+        let error = CompressionAlgorithmFileExtension::try_from(path).unwrap_err();
+        assert!(matches!(error, crate::Error::InvalidVariant(_)));
+    }
 }
