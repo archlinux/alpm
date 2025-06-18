@@ -3,16 +3,16 @@
 use std::{
     fmt::{Debug, Display},
     fs::File,
-    io::Write,
+    io::{BufReader, Read, Write},
     num::TryFromIntError,
 };
 
 use alpm_types::CompressionAlgorithmFileExtension;
-use bzip2::write::BzEncoder;
-use flate2::write::GzEncoder;
-use liblzma::write::XzEncoder;
+use bzip2::{bufread::BzDecoder, write::BzEncoder};
+use flate2::{bufread::GzDecoder, write::GzEncoder};
+use liblzma::{bufread::XzDecoder, write::XzEncoder};
 use log::trace;
-use zstd::Encoder;
+use zstd::{Decoder, Encoder};
 
 /// An error that can occur when using compression.
 #[derive(Debug, thiserror::Error)]
@@ -32,6 +32,10 @@ pub enum Error {
         /// The source error.
         source: std::io::Error,
     },
+
+    /// An error occurred while creating a Zstandard decoder.
+    #[error("Error creating a Zstandard decoder:\n{0}")]
+    CreateZstandardDecoder(#[source] std::io::Error),
 
     /// An error occurred while finishing a compression encoder.
     #[error("Error while finishing {compression_type} compression encoder:\n{source}")]
@@ -60,6 +64,10 @@ pub enum Error {
         /// The maximum valid compression level.
         max: u8,
     },
+
+    /// Unsupported decompression algorithm.
+    #[error("Unsupported decompression algorithm: {0}")]
+    UnsupportedDecompressionAlgorithm(CompressionAlgorithmFileExtension),
 }
 
 /// A macro to define a compression level struct.
@@ -559,9 +567,87 @@ impl Write for CompressionEncoder<'_> {
     }
 }
 
+/// Decoder for decompression which supports multiple backends.
+///
+/// Wraps [`BzDecoder`], [`GzDecoder`], [`XzDecoder`] and [`Decoder`]
+/// and provides a unified [`Read`] implementation across all of them.
+pub enum CompressionDecoder<'a> {
+    /// The bzip2 decompression decoder.
+    Bzip2(BzDecoder<BufReader<File>>),
+
+    /// The gzip decompression decoder.
+    Gzip(GzDecoder<BufReader<File>>),
+
+    /// The xz decompression decoder.
+    Xz(XzDecoder<BufReader<File>>),
+
+    /// The zstd decompression decoder.
+    Zstd(Decoder<'a, BufReader<File>>),
+}
+
+impl<'a> CompressionDecoder<'a> {
+    /// Creates a new [`CompressionDecoder`] from a file and a compression algorithm file
+    /// extension.
+    pub fn from_extension(
+        file: File,
+        extension: CompressionAlgorithmFileExtension,
+    ) -> Result<Self, Error> {
+        match extension {
+            CompressionAlgorithmFileExtension::Bzip2 => {
+                Ok(Self::Bzip2(BzDecoder::new(BufReader::new(file))))
+            }
+            CompressionAlgorithmFileExtension::Gzip => {
+                Ok(Self::Gzip(GzDecoder::new(BufReader::new(file))))
+            }
+            CompressionAlgorithmFileExtension::Xz => {
+                Ok(Self::Xz(XzDecoder::new(BufReader::new(file))))
+            }
+            CompressionAlgorithmFileExtension::Zstd => Ok(Self::Zstd(
+                Decoder::new(file).map_err(Error::CreateZstandardDecoder)?,
+            )),
+            _ => Err(Error::UnsupportedDecompressionAlgorithm(extension)),
+        }
+    }
+}
+
+impl Debug for CompressionDecoder<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "CompressionDecoder({})",
+            match self {
+                CompressionDecoder::Bzip2(_) => "Bzip2",
+                CompressionDecoder::Gzip(_) => "Gzip",
+                CompressionDecoder::Xz(_) => "Xz",
+                CompressionDecoder::Zstd(_) => "Zstd",
+            }
+        )
+    }
+}
+
+impl Read for CompressionDecoder<'_> {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        match self {
+            CompressionDecoder::Bzip2(decoder) => decoder.read(buf),
+            CompressionDecoder::Gzip(decoder) => decoder.read(buf),
+            CompressionDecoder::Xz(decoder) => decoder.read(buf),
+            CompressionDecoder::Zstd(decoder) => decoder.read(buf),
+        }
+    }
+
+    fn read_to_end(&mut self, buf: &mut Vec<u8>) -> std::io::Result<usize> {
+        match self {
+            CompressionDecoder::Bzip2(decoder) => decoder.read_to_end(buf),
+            CompressionDecoder::Gzip(decoder) => decoder.read_to_end(buf),
+            CompressionDecoder::Xz(decoder) => decoder.read_to_end(buf),
+            CompressionDecoder::Zstd(decoder) => decoder.read_to_end(buf),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use std::io::IoSlice;
+    use std::io::{IoSlice, Seek};
 
     use proptest::{proptest, test_runner::Config as ProptestConfig};
     use rstest::rstest;
@@ -918,6 +1004,61 @@ mod tests {
 
         ref_encoder.flush()?;
 
+        Ok(())
+    }
+
+    #[rstest]
+    #[case::bzip2(CompressionAlgorithmFileExtension::Bzip2, CompressionSettings::Bzip2 {
+        compression_level: Bzip2CompressionLevel::default()
+    })]
+    #[case::gzip(CompressionAlgorithmFileExtension::Gzip, CompressionSettings::Gzip {
+        compression_level: GzipCompressionLevel::default()
+    })]
+    #[case::xz(CompressionAlgorithmFileExtension::Xz, CompressionSettings::Xz {
+        compression_level: XzCompressionLevel::default()
+    })]
+    #[case::zstd(CompressionAlgorithmFileExtension::Zstd, CompressionSettings::Zstd {
+        compression_level: ZstdCompressionLevel::default(),
+        threads: ZstdThreads::new(0),
+    })]
+    fn test_compression_decoder_roundtrip(
+        #[case] extension: CompressionAlgorithmFileExtension,
+        #[case] settings: CompressionSettings,
+    ) -> TestResult {
+        // Prepare some sample data
+        let input_data = b"alpm4ever";
+
+        // Compress it
+        let mut file = tempfile()?;
+        {
+            let mut encoder = CompressionEncoder::new(file.try_clone()?, &settings)?;
+            encoder.write_all(input_data)?;
+            encoder.flush()?;
+            encoder.finish()?;
+        }
+
+        // Rewind the file
+        file.rewind()?;
+
+        // Decompress it
+        let mut decoder = CompressionDecoder::from_extension(file, extension)?;
+        let mut output = Vec::new();
+        decoder.read_to_end(&mut output)?;
+
+        // Check data integrity
+        assert_eq!(output, input_data);
+        Ok(())
+    }
+
+    #[test]
+    fn compression_decoder_unsupported_extension_fails() -> TestResult {
+        let file = tempfile()?;
+        let result =
+            CompressionDecoder::from_extension(file, CompressionAlgorithmFileExtension::Lzop);
+        assert!(matches!(
+            result,
+            Err(Error::UnsupportedDecompressionAlgorithm(_))
+        ));
         Ok(())
     }
 }

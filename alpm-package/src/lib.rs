@@ -9,6 +9,7 @@ mod scriptlet;
 
 pub use compression::{
     Bzip2CompressionLevel,
+    CompressionDecoder,
     CompressionEncoder,
     CompressionSettings,
     GzipCompressionLevel,
