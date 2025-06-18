@@ -3,19 +3,34 @@
 //! [alpm-package]: https://alpm.archlinux.page/specifications/alpm-package.7.html
 
 use std::{
+    fmt::{self, Debug},
     fs::{File, create_dir_all},
-    io::Write,
+    io::{Read, Write},
     path::{Path, PathBuf},
     str::FromStr,
 };
 
-use alpm_common::InputPaths;
+use alpm_buildinfo::BuildInfo;
+use alpm_common::{InputPaths, MetadataFile};
 use alpm_mtree::Mtree;
-use alpm_types::{MetadataFileName, PackageError, PackageFileName};
+use alpm_pkginfo::PackageInfo;
+use alpm_types::{
+    CompressionAlgorithmFileExtension,
+    INSTALL_SCRIPTLET_FILE_NAME,
+    MetadataFileName,
+    PackageError,
+    PackageFileName,
+};
 use log::debug;
-use tar::Builder;
+use tar::{Archive, Builder, Entries, Entry};
 
-use crate::{CompressionEncoder, OutputDir, PackageCreationConfig};
+use crate::{
+    CompressionAlgorithm,
+    CompressionEncoder,
+    OutputDir,
+    PackageCreationConfig,
+    compression::CompressionDecoder,
+};
 
 /// An error that can occur when handling [alpm-package] files.
 ///
@@ -196,6 +211,420 @@ where
     Ok(builder)
 }
 
+/// Metadata entry contained in a package archive.
+///
+/// This is being used in [`PackageReader::metadata_entries`] to iterate over available
+/// metadata files.
+#[derive(Debug)]
+pub enum MetadataEntry {
+    /// The [PKGINFO] file in the package.
+    ///
+    /// [PKGINFO]: https://alpm.archlinux.page/specifications/PKGINFO.5.html
+    PackageInfo(PackageInfo),
+    /// The [BUILDINFO] file in the package.
+    ///
+    /// [BUILDINFO]: https://alpm.archlinux.page/specifications/BUILDINFO.5.html
+    BuildInfo(BuildInfo),
+    /// The [ALPM-MTREE] file in the package.
+    ///
+    /// [ALPM-MTREE]: https://alpm.archlinux.page/specifications/ALPM-MTREE.5.html
+    Mtree(Mtree),
+    /// An [alpm-install-scriptlet] file in the package.
+    ///
+    /// [alpm-install-scriptlet]:
+    /// https://alpm.archlinux.page/specifications/alpm-install-scriptlet.5.html
+    InstallScriptlet(String),
+}
+
+/// All the metadata contained in an [alpm-package] file.
+///
+/// [alpm-package]: https://alpm.archlinux.page/specifications/alpm-package.7.html
+#[derive(Clone, Debug)]
+pub struct Metadata {
+    /// The [PKGINFO] file in the package.
+    ///
+    /// [PKGINFO]: https://alpm.archlinux.page/specifications/PKGINFO.5.html
+    pub pkginfo: PackageInfo,
+    /// The [BUILDINFO] file in the package.
+    ///
+    /// [BUILDINFO]: https://alpm.archlinux.page/specifications/BUILDINFO.5.html
+    pub buildinfo: BuildInfo,
+    /// The [ALPM-MTREE] file in the package.
+    ///
+    /// [ALPM-MTREE]: https://alpm.archlinux.page/specifications/ALPM-MTREE.5.html
+    pub mtree: Mtree,
+    /// The [alpm-install-scriptlet] file in the package, if present.
+    ///
+    /// [alpm-install-scriptlet]:
+    /// https://alpm.archlinux.page/specifications/alpm-install-scriptlet.5.html
+    pub install_scriptlet: Option<String>,
+}
+
+/// Data entry contained in a package archive.
+///
+/// This is being used in [`PackageReader::metadata_entries`] to iterate over available
+/// data files in a package archive.
+///
+/// It implements [`Read`] to allow reading the contents of the data entry directly.
+pub struct DataEntry<'r, 'a> {
+    /// The path of the data entry in the package archive.
+    path: PathBuf,
+    /// The contents of the data entry.
+    entry: Entry<'r, CompressionDecoder<'a>>,
+}
+
+impl Debug for DataEntry<'_, '_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("DataEntry")
+            .field("path", &self.path)
+            .field("entry", &"tar::Entry<CompressionDecoder>")
+            .finish()
+    }
+}
+
+impl<'r, 'a> DataEntry<'r, 'a> {
+    /// Returns the path of the data entry in the package archive.
+    pub fn path(&self) -> &Path {
+        self.path.as_path()
+    }
+
+    /// Returns the contents of the data entry.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if [`tar::Entry::read_to_end`] fails.
+    pub fn contents(&mut self) -> Result<Vec<u8>, crate::Error> {
+        let mut buffer = Vec::new();
+        self.entry
+            .read_to_end(&mut buffer)
+            .map_err(|source| crate::Error::IoRead {
+                context: "reading package archive entry contents",
+                source,
+            })?;
+        Ok(buffer)
+    }
+
+    /// Returns the raw [`tar::Entry`] of the data entry.
+    ///
+    /// This is useful for accessing metadata of the entry, such as its header or path.
+    pub fn entry(&'r self) -> &'r Entry<'r, CompressionDecoder<'a>> {
+        &self.entry
+    }
+}
+
+impl Read for DataEntry<'_, '_> {
+    /// Reads data from the entry into the provided buffer.
+    ///
+    /// Delegates to [`tar::Entry::read`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if reading from the entry fails.
+    fn read(&mut self, buf: &mut [u8]) -> Result<usize, std::io::Error> {
+        self.entry.read(buf)
+    }
+}
+
+/// A reader for [`Package`] files.
+///
+/// A [`PackageReader`] can be created from a [`Package`] using the
+/// [`Package::into_reader`] or [`PackageReader::try_from`] methods.
+///
+/// # Example
+///
+/// ```no_run
+/// use std::path::Path;
+///
+/// use alpm_package::{MetadataEntry, Package, PackageReader};
+/// use alpm_types::MetadataFileName;
+///
+/// # fn main() -> Result<(), alpm_package::Error> {
+/// let package = Package::try_from(Path::new("/path/to/example-1.0.0-1-x86_64.pkg.tar.zst"))?;
+///
+/// // Create a reader for the package.
+/// let mut reader = package.into_reader()?;
+///
+/// // Read all the metadata from the package archive.
+/// let metadata = reader.metadata()?;
+/// let pkginfo = metadata.pkginfo;
+/// let buildinfo = metadata.buildinfo;
+/// let mtree = metadata.mtree;
+/// let install_scriptlet = metadata.install_scriptlet;
+///
+/// // Or you can iterate over the metadata entries:
+/// for entry in reader.metadata_entries()? {
+///     let entry = entry?;
+///     match entry {
+///         MetadataEntry::PackageInfo(pkginfo) => {}
+///         MetadataEntry::BuildInfo(buildinfo) => {}
+///         MetadataEntry::Mtree(mtree) => {}
+///         MetadataEntry::InstallScriptlet(scriptlet) => {}
+///         _ => {}
+///     }
+/// }
+///
+/// // You can also read specific metadata files directly:
+/// let pkginfo = reader.read_metadata_file(MetadataFileName::PackageInfo)?;
+/// let buildinfo = reader.read_metadata_file(MetadataFileName::BuildInfo)?;
+/// let mtree = reader.read_metadata_file(MetadataFileName::Mtree)?;
+///
+/// // Iterate over the data entries in the package archive.
+/// for data_entry in reader.data_entries()? {
+///     let mut data_entry = data_entry?;
+///     let contents = data_entry.contents()?;
+///     // Note: data_entry also implements `Read`, so you can read from it directly.
+/// }
+/// # Ok(())
+/// # }
+/// ```
+pub struct PackageReader<'a> {
+    archive: Archive<CompressionDecoder<'a>>,
+}
+
+impl<'a> Debug for PackageReader<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("PackageReader")
+            .field("archive", &"Archive<CompressionDecoder>")
+            .finish()
+    }
+}
+
+impl<'a> PackageReader<'a> {
+    /// Creates a new [`PackageReader`] from a [`Archive<CompressionDecoder>`].
+    pub fn new(archive: Archive<CompressionDecoder<'a>>) -> Self {
+        Self { archive }
+    }
+
+    /// Returns an iterator over the entries in the package archive.
+    ///
+    /// This iterator yields [`tar::Entry`]s, which can be used to read the contents of the
+    /// entries.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the entries cannot be read from the archive.
+    pub fn entries(&mut self) -> Result<Entries<'_, CompressionDecoder<'a>>, crate::Error> {
+        self.archive
+            .entries()
+            .map_err(|source| crate::Error::IoRead {
+                context: "reading package archive entries",
+                source,
+            })
+    }
+
+    /// Returns an iterator over the data entries in the package archive.
+    ///
+    /// This iterator yields [`DataEntry`]s, which contain the path and contents of the data files
+    ///
+    /// # Notes
+    ///
+    /// This iterator filters out:
+    ///
+    /// - directories,
+    /// - known metadata files such as `.PKGINFO`, `BUILDINFO`, `ALPM-MTREE`, and the install
+    ///   scriptlet file,
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if
+    ///
+    /// - reading the package archive entries fails,
+    /// - reading a package archive entry fails,
+    /// - reading the contents of a package archive entry fails,
+    /// - or retrieving the path of a package archive entry fails.
+    pub fn data_entries<'r>(
+        &'r mut self,
+    ) -> Result<impl Iterator<Item = Result<DataEntry<'r, 'a>, crate::Error>>, crate::Error> {
+        let non_data_file_names = [
+            MetadataFileName::PackageInfo.as_ref(),
+            MetadataFileName::BuildInfo.as_ref(),
+            MetadataFileName::Mtree.as_ref(),
+            INSTALL_SCRIPTLET_FILE_NAME,
+        ];
+        let entries = self.entries()?;
+        Ok(entries.filter_map(move |entry| {
+            let filter = (|| {
+                let entry = entry.map_err(|source| crate::Error::IoRead {
+                    context: "reading package archive entry",
+                    source,
+                })?;
+                // Filter out directories
+                if entry.header().entry_type() == tar::EntryType::Directory {
+                    return Ok(None);
+                }
+                let path = entry.path().map_err(|source| crate::Error::IoRead {
+                    context: "retrieving path of package archive entry",
+                    source,
+                })?;
+                // Filter out known metadata files
+                if non_data_file_names.contains(&path.to_string_lossy().as_ref()) {
+                    return Ok(None);
+                }
+                Ok(Some(DataEntry {
+                    path: path.to_path_buf(),
+                    entry,
+                }))
+            })();
+            match filter {
+                Ok(Some(entry)) => Some(Ok(entry)),
+                Ok(None) => None,
+                Err(e) => Some(Err(e)),
+            }
+        }))
+    }
+
+    /// Returns an iterator over the metadata entries in the package archive.
+    ///
+    /// This iterator yields [`MetadataEntry`]s, which can be either a [`PackageInfo`],
+    /// [`BuildInfo`], or [`Mtree`].
+    ///
+    /// The iterator stops when it encounters an entry that does not match any
+    /// known metadata file names.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if
+    ///
+    /// - reading the package archive entries fails,
+    /// - reading a package archive entry fails,
+    /// - reading the contents of a package archive entry fails,
+    /// - retrieving the path of a package archive entry fails,
+    /// - or if the path of a package archive entry does not match any known metadata file names.
+    pub fn metadata_entries(
+        &mut self,
+    ) -> Result<impl Iterator<Item = Result<MetadataEntry, crate::Error>>, crate::Error> {
+        let entries = self.entries()?;
+        Ok(entries.map(|entry| {
+            let mut entry = entry.map_err(|source| crate::Error::IoRead {
+                context: "reading package archive entry",
+                source,
+            })?;
+            let mut buffer = Vec::new();
+            entry
+                .read_to_end(&mut buffer)
+                .map_err(|source| crate::Error::IoRead {
+                    context: "reading package archive entry contents",
+                    source,
+                })?;
+            let path = entry.path().map_err(|source| crate::Error::IoRead {
+                context: "retrieving path of package archive entry",
+                source,
+            })?;
+            let path = path.to_string_lossy();
+            if path == MetadataFileName::PackageInfo.as_ref() {
+                PackageInfo::from_reader(&*buffer)
+                    .map(MetadataEntry::PackageInfo)
+                    .map_err(crate::Error::from)
+            } else if path == MetadataFileName::BuildInfo.as_ref() {
+                BuildInfo::from_reader(&*buffer)
+                    .map(MetadataEntry::BuildInfo)
+                    .map_err(crate::Error::from)
+            } else if path == MetadataFileName::Mtree.as_ref() {
+                Mtree::from_reader(&*buffer)
+                    .map(MetadataEntry::Mtree)
+                    .map_err(crate::Error::from)
+            } else if path == INSTALL_SCRIPTLET_FILE_NAME {
+                let scriptlet =
+                    String::from_utf8(buffer).map_err(|source| crate::Error::InvalidUTF8 {
+                        context: "reading install scriptlet",
+                        source,
+                    })?;
+                Ok(MetadataEntry::InstallScriptlet(scriptlet))
+            } else {
+                Err(crate::Error::MetadataFileEndOfFiles)
+            }
+        }))
+    }
+
+    //// Reads the metadata from the package archive.
+    ///
+    /// This method reads all the metadata entries in the package archive and returns a
+    /// [`Metadata`] struct containing the parsed metadata.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if
+    ///
+    /// - reading the metadata entries fails,
+    /// - parsing a metadata entry fails,
+    /// - or if any of the required metadata files are not found in the package.
+    pub fn metadata(&mut self) -> Result<Metadata, crate::Error> {
+        let mut pkginfo = None;
+        let mut buildinfo = None;
+        let mut mtree = None;
+        let mut scriptlet = None;
+        for entry in self.metadata_entries()? {
+            match entry? {
+                MetadataEntry::PackageInfo(m) => pkginfo = Some(m),
+                MetadataEntry::BuildInfo(m) => buildinfo = Some(m),
+                MetadataEntry::Mtree(m) => mtree = Some(m),
+                MetadataEntry::InstallScriptlet(s) => {
+                    scriptlet = Some(s);
+                }
+            }
+        }
+        Ok(Metadata {
+            pkginfo: pkginfo.ok_or(crate::Error::MetadataFileNotFound {
+                name: MetadataFileName::PackageInfo,
+            })?,
+            buildinfo: buildinfo.ok_or(crate::Error::MetadataFileNotFound {
+                name: MetadataFileName::BuildInfo,
+            })?,
+            mtree: mtree.ok_or(crate::Error::MetadataFileNotFound {
+                name: MetadataFileName::Mtree,
+            })?,
+            install_scriptlet: scriptlet,
+        })
+    }
+
+    /// Reads a specific metadata file from the package.
+    ///
+    /// This method searches for a metadata file that matches the provided
+    /// [`MetadataFileName`] and returns the corresponding [`MetadataEntry`].
+    pub fn read_metadata_file(
+        &mut self,
+        file_name: MetadataFileName,
+    ) -> Result<MetadataEntry, crate::Error> {
+        for entry in self.metadata_entries()? {
+            let entry = entry?;
+            match (&entry, &file_name) {
+                (MetadataEntry::PackageInfo(_), MetadataFileName::PackageInfo)
+                | (MetadataEntry::BuildInfo(_), MetadataFileName::BuildInfo)
+                | (MetadataEntry::Mtree(_), MetadataFileName::Mtree) => return Ok(entry),
+                _ => continue,
+            }
+        }
+        Err(crate::Error::MetadataFileNotFound { name: file_name })
+    }
+}
+
+impl<'a> TryFrom<Package> for PackageReader<'a> {
+    type Error = crate::Error;
+
+    /// Creates a [`PackageReader`] from a [`Package`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    ///
+    /// - the package file cannot be opened,
+    /// - the package file extension cannot be determined,
+    /// - or the compression decoder cannot be created from the file and its extension.
+    fn try_from(package: Package) -> Result<Self, Self::Error> {
+        let path = package.to_path_buf();
+        let file = File::open(&path).map_err(|source| crate::Error::IoPath {
+            path: path.clone(),
+            context: "opening package file",
+            source,
+        })?;
+        let extension = CompressionAlgorithmFileExtension::try_from(path.as_path())?;
+        let algorithm = CompressionAlgorithm::try_from(extension)?;
+        let decoder = CompressionDecoder::new(file, algorithm)?;
+        let archive = Archive::new(decoder);
+        Ok(Self { archive })
+    }
+}
+
 /// An [alpm-package] file.
 ///
 /// Tracks the [`PackageFileName`] of the [alpm-package] as well as its absolute `parent_dir`.
@@ -234,6 +663,110 @@ impl Package {
     /// Returns the absolute path of the [`Package`].
     pub fn to_path_buf(&self) -> PathBuf {
         self.parent_dir.join(self.file_name.to_path_buf())
+    }
+
+    /// Returns the [`PackageInfo`] of the package.
+    ///
+    /// This is a convenience wrapper around [`PackageReader::read_metadata_file`]
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if
+    ///
+    /// - a [`PackageReader`] cannot be created for the package,
+    /// - the package does not contain a [PKGINFO] file,
+    /// - or the [PKGINFO] file in the package is not valid.
+    ///
+    /// [PKGINFO]: https://alpm.archlinux.page/specifications/PKGINFO.5.html
+    pub fn read_pkginfo(&self) -> Result<PackageInfo, crate::Error> {
+        let mut reader = PackageReader::try_from(self.clone())?;
+        let metadata = reader.read_metadata_file(MetadataFileName::PackageInfo)?;
+        match metadata {
+            MetadataEntry::PackageInfo(pkginfo) => Ok(pkginfo),
+            _ => Err(crate::Error::MetadataFileNotFound {
+                name: MetadataFileName::PackageInfo,
+            }),
+        }
+    }
+
+    /// Returns the [`BuildInfo`] of the package.
+    ///
+    /// This is a convenience wrapper around [`PackageReader::read_metadata_file`]
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if
+    ///
+    /// - a [`PackageReader`] cannot be created for the package,
+    /// - the package does not contain a [BUILDINFO] file,
+    /// - or the [BUILDINFO] file in the package is not valid.
+    ///
+    /// [BUILDINFO]: https://alpm.archlinux.page/specifications/BUILDINFO.5.html
+    pub fn read_buildinfo(&self) -> Result<BuildInfo, crate::Error> {
+        let mut reader = PackageReader::try_from(self.clone())?;
+        let metadata = reader.read_metadata_file(MetadataFileName::BuildInfo)?;
+        match metadata {
+            MetadataEntry::BuildInfo(buildinfo) => Ok(buildinfo),
+            _ => Err(crate::Error::MetadataFileNotFound {
+                name: MetadataFileName::BuildInfo,
+            }),
+        }
+    }
+
+    /// Returns the [`Mtree`] of the package.
+    ///
+    /// This is a convenience wrapper around [`PackageReader::read_metadata_file`]
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if
+    ///
+    /// - a [`PackageReader`] cannot be created for the package,
+    /// - the package does not contain a [ALPM-MTREE] file,
+    /// - or the [ALPM-MTREE] file in the package is not valid.
+    ///
+    /// [ALPM-MTREE]: https://alpm.archlinux.page/specifications/ALPM-MTREE.5.html
+    pub fn read_mtree(&self) -> Result<Mtree, crate::Error> {
+        let mut reader = PackageReader::try_from(self.clone())?;
+        let metadata = reader.read_metadata_file(MetadataFileName::Mtree)?;
+        match metadata {
+            MetadataEntry::Mtree(mtree) => Ok(mtree),
+            _ => Err(crate::Error::MetadataFileNotFound {
+                name: MetadataFileName::Mtree,
+            }),
+        }
+    }
+
+    /// Reads the install scriptlet from the package, if present.
+    ///
+    /// Returns `None` if the package does not contain an install scriptlet.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if
+    ///
+    /// - a [`PackageReader`] cannot be created for the package,
+    /// - reading the entries via [`PackageReader::metadata_entries`] fails,
+    /// - or reading the install scriptlet fails.
+    pub fn read_install_scriptlet(&self) -> Result<Option<String>, crate::Error> {
+        let mut reader = PackageReader::try_from(self.clone())?;
+        for entry in reader.metadata_entries()?.flatten() {
+            if let MetadataEntry::InstallScriptlet(scriptlet) = entry {
+                return Ok(Some(scriptlet));
+            }
+        }
+        Ok(None)
+    }
+
+    /// Creates a [`PackageReader`] for the package.
+    ///
+    /// Convenience wrapper for [`PackageReader::try_from`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if `self` cannot be converted into a [`PackageReader`].
+    pub fn into_reader<'a>(self) -> Result<PackageReader<'a>, crate::Error> {
+        PackageReader::try_from(self)
     }
 }
 

@@ -13,6 +13,8 @@ This library offers integration for creating an [alpm-package] from a prepared i
 
 ### Library
 
+#### Creating packages
+
 A package file can be created from a prepared input directory.
 The input directory must contain at the very least a valid [BUILDINFO], a [PKGINFO] and an [ALPM-MTREE] file.
 
@@ -98,6 +100,55 @@ let config = PackageCreationConfig::new(
 // Create package file.
 let package = Package::try_from(&config)?;
 
+# Ok(())
+# }
+```
+
+#### Reading packages
+
+A package file can be read from a file on disk.
+
+```rust no_run
+use alpm_package::{Package, PackageReader, MetadataEntry};
+use alpm_types::MetadataFileName;
+use std::path::Path;
+
+# fn main() -> Result<(), alpm_package::Error> {
+let package = Package::try_from(Path::new("/path/to/example-1.0.0-1-x86_64.pkg.tar.zst"))?;
+
+// Create a reader for the package.
+let mut reader = package.into_reader()?;
+
+// Read all the metadata from the package archive.
+let metadata = reader.metadata()?;
+let pkginfo = metadata.pkginfo;
+let buildinfo = metadata.buildinfo;
+let mtree = metadata.mtree;
+let install_scriptlet = metadata.install_scriptlet;
+
+// Or you can iterate over the metadata entries:
+for entry in reader.metadata_entries()? {
+    let entry = entry?;
+    match entry {
+        MetadataEntry::PackageInfo(pkginfo) => {}
+        MetadataEntry::BuildInfo(buildinfo) => {}
+        MetadataEntry::Mtree(mtree) => {}
+        MetadataEntry::InstallScriptlet(scriptlet) => {}
+        _ => {}
+    }
+}
+
+// You can also read specific metadata files directly:
+let pkginfo = reader.read_metadata_file(MetadataFileName::PackageInfo)?;
+let buildinfo = reader.read_metadata_file(MetadataFileName::BuildInfo)?;
+let mtree = reader.read_metadata_file(MetadataFileName::Mtree)?;
+
+// Iterate over the data entries in the package archive.
+for data_entry in reader.data_entries()? {
+    let mut data_entry = data_entry?;
+    let contents = data_entry.contents()?;
+    // Note: data_entry also implements `Read`, so you can read from it directly.
+}
 # Ok(())
 # }
 ```
