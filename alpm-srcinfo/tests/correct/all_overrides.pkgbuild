@@ -1,5 +1,8 @@
+#!/bin/bash
 # This PKGBUILD file is used to ensure that all overridable properties can be overridden
 # with both architecture and non-architecture specific assignments.
+# Disable unused variable warnings:
+# shellcheck disable=2034
 
 pkgname=(example)
 pkgver=0.1.0

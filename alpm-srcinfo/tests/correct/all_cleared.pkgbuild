@@ -1,5 +1,8 @@
-# This PKGBUILD file is used to ensure that all clearable properties can be cleared, on both 
+#!/bin/bash
+# This PKGBUILD file is used to ensure that all clearable properties can be cleared, on both
 # architecture and non-architecture specific assignments.
+# Disable unused variable warnings:
+# shellcheck disable=2034
 
 pkgname=(example)
 pkgver=0.1.0

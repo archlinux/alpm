@@ -1,6 +1,9 @@
+#!/bin/bash
 # This PKGBUILD file is used to ensure that all possible pkgbase fields are properly detected
-# by the parser. It also checks that architecture specific fields are detected and only those 
+# by the parser. It also checks that architecture specific fields are detected and only those
 # that're selected (always x86_64 in our tests) show up in the output.
+# Disable unused variable warnings:
+# shellcheck disable=2034
 
 pkgname=(example)
 pkgver=0.1.0
