@@ -58,6 +58,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "alpm-db-desc"
+version = "0.1.0"
+dependencies = [
+ "alpm-parsers",
+ "alpm-types",
+ "pretty_assertions",
+ "rstest",
+ "serde",
+ "serde_with",
+ "strum",
+ "testresult",
+ "thiserror",
+ "winnow",
+]
+
+[[package]]
 name = "alpm-mtree"
 version = "0.2.0"
 dependencies = [
