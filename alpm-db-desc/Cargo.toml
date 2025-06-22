@@ -1,0 +1,30 @@
+[package]
+authors.workspace = true
+description = "Library and command line tool for handling the ALPM database desc files"
+edition.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+license.workspace = true
+name = "alpm-db-desc"
+readme = "README.md"
+repository.workspace = true
+rust-version.workspace = true
+version = "0.1.0"
+
+[features]
+default = []
+winnow-debug = ["winnow/debug"]
+
+[dependencies]
+alpm-parsers.workspace = true
+alpm-types.workspace = true
+serde.workspace = true
+serde_with = "3.13.0"
+strum.workspace = true
+thiserror.workspace = true
+winnow.workspace = true
+
+[dev-dependencies]
+pretty_assertions.workspace = true
+rstest.workspace = true
+testresult.workspace = true

@@ -62,6 +62,22 @@ name = "alpm-db"
 version = "0.1.0"
 
 [[package]]
+name = "alpm-db-desc"
+version = "0.1.0"
+dependencies = [
+ "alpm-parsers",
+ "alpm-types",
+ "pretty_assertions",
+ "rstest",
+ "serde",
+ "serde_with",
+ "strum",
+ "testresult",
+ "thiserror",
+ "winnow",
+]
+
+[[package]]
 name = "alpm-lint-config"
 version = "0.1.0"
 dependencies = [
