@@ -44,6 +44,7 @@ colored = { version = "3", features = ["no-color"] }
 flate2 = "1"
 insta = "1.40.0"
 log = "0.4.27"
+pretty_assertions = "1.4.1"
 proptest = "1.4.0"
 rstest = "0.25.0"
 serde = { version = "1.0", features = ["derive"] }

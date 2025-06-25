@@ -36,7 +36,7 @@ winnow.workspace = true
 [dev-dependencies]
 assert_cmd.workspace = true
 insta.workspace = true
-pretty_assertions = "1.4.1"
+pretty_assertions.workspace = true
 rstest.workspace = true
 tempfile.workspace = true
 testresult.workspace = true
