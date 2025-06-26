@@ -12,6 +12,12 @@ precedence = "aggregate"
 
 [[annotations]]
 SPDX-FileCopyrightText = "ALPM Contributors"
+SPDX-License-Identifier = "LGPL-2.0-or-later"
+path = ["alpm-types/src/version/comparison.rs"]
+precedence = "aggregate"
+
+[[annotations]]
+SPDX-FileCopyrightText = "ALPM Contributors"
 SPDX-License-Identifier = "CC0-1.0"
 path = [
     "**.bash",
