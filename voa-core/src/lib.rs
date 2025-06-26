@@ -1,5 +1,4 @@
 #![doc = include_str!("../README.md")]
-#![warn(missing_docs)]
 
 mod load_path;
 mod symlinks;
@@ -19,6 +18,7 @@ use crate::{
 ///
 /// [`Voa`] provides lookup facilities for signature verifiers that are stored in a VOA hierarchy.
 /// Lookup of verifiers is agnostic to the cryptographic technology later using the verifiers.
+#[derive(Debug)]
 pub struct Voa {
     load_paths: LoadPathList,
 }
@@ -33,7 +33,7 @@ impl Voa {
     /// for user ids >= 1000, the VOA instance initialize in user mode.
     pub fn init() -> Self {
         let load_path_mode = LoadPathMode::init();
-        warn!("Initializing VOA instance for {:?}", load_path_mode);
+        warn!("Initializing VOA instance for {load_path_mode:?}");
 
         Self {
             load_paths: load_path_mode.load_path_list(),
@@ -82,10 +82,10 @@ impl Voa {
         technology: Technology,
     ) -> Vec<Verifier> {
         // Collects all verifiers that we find for this set of search parameters
-        let mut verifiers = vec![];
+        let mut verifiers = Vec::new();
 
         // A set of filenames that we will mask out of `verifiers` in the end
-        let mut masked_names = vec![];
+        let mut masked_names = Vec::new();
 
         for load_path in &self.load_paths.paths {
             debug!("Looking for signature verifiers in the load path {load_path:?}");
@@ -98,7 +98,7 @@ impl Voa {
                 os.clone(),
                 purpose.clone(),
                 context.clone(),
-                technology,
+                technology.clone(),
             );
 
             // Get the validated and canonicalized filesystem path for this verifier path

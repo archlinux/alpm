@@ -1,3 +1,5 @@
+//! Containerized tests
+
 #![cfg(feature = "_containerized-integration-test")]
 
 use std::{
@@ -15,7 +17,7 @@ use voa_core::{
     types::{Context, CustomContext, Mode, Os, Purpose, Role, Technology},
 };
 
-fn init_logger() -> TestResult {
+fn init_logger() {
     if TermLogger::init(
         LevelFilter::Info,
         Config::default(),
@@ -26,8 +28,6 @@ fn init_logger() -> TestResult {
     {
         debug!("Not initializing another logger, as one is initialized already.");
     }
-
-    Ok(())
 }
 
 /// Objects to create during a VOA test setup:
@@ -40,6 +40,9 @@ enum TestObject {
 }
 
 /// Set up a test environment
+///
+/// Note that the list of `objs` is processed in order, so the ordering of entries is important!
+/// (E.g.: a directory must be created first, before creating a file inside that directory).
 fn setup(objs: &[TestObject]) -> std::io::Result<()> {
     for obj in objs {
         match obj {
@@ -60,7 +63,7 @@ fn setup(objs: &[TestObject]) -> std::io::Result<()> {
 /// This test does nothing fancy, except follow a symlink. It mostly tests the happy path.
 #[test]
 fn list_verifiers() -> TestResult {
-    init_logger()?;
+    init_logger();
 
     const SETUP: &[TestObject] = &[
         TestObject::Path("/usr/local/share/voa/arch/packages/default/openpgp/"),
@@ -72,11 +75,11 @@ fn list_verifiers() -> TestResult {
         ),
     ];
 
-    setup(SETUP).expect("test setup");
+    setup(SETUP)?;
 
     let voa = Voa::init();
     let verifiers = voa.lookup(
-        Os::new("arch".to_string(), None, None, None, None).unwrap(),
+        Os::new("arch".to_string(), None, None, None, None)?,
         Purpose::new(Role::Packages, Mode::ArtifactVerifier),
         Context::Default,
         Technology::OpenPGP,
@@ -84,7 +87,7 @@ fn list_verifiers() -> TestResult {
 
     assert_eq!(verifiers.len(), 2);
 
-    warn!("Found verifiers: {:#?}", verifiers);
+    warn!("Found verifiers: {verifiers:#?}");
 
     Ok(())
 }
@@ -92,7 +95,7 @@ fn list_verifiers() -> TestResult {
 /// A symlink that points to a verifier outside the load paths
 #[test]
 fn invalid_verifier_symlink() -> TestResult {
-    init_logger()?;
+    init_logger();
 
     const SETUP: &[TestObject] = &[
         TestObject::Path("/usr/local/share/voa/arch/packages/default/openpgp/"),
@@ -103,11 +106,11 @@ fn invalid_verifier_symlink() -> TestResult {
         ),
     ];
 
-    setup(SETUP).expect("test setup");
+    setup(SETUP)?;
 
     let voa = Voa::init();
     let verifiers = voa.lookup(
-        Os::new("arch".to_string(), None, None, None, None).unwrap(),
+        Os::new("arch".to_string(), None, None, None, None)?,
         Purpose::new(Role::Packages, Mode::ArtifactVerifier),
         Context::Default,
         Technology::OpenPGP,
@@ -121,7 +124,7 @@ fn invalid_verifier_symlink() -> TestResult {
 /// VOA setup with a symlink that intermittently escapes outside the load paths
 #[test]
 fn invalid_dir_symlink() -> TestResult {
-    init_logger()?;
+    init_logger();
 
     // We start with a verifier in the "default" context in
     // "/etc/voa/arch/packages/default/openpgp/"
@@ -143,16 +146,16 @@ fn invalid_dir_symlink() -> TestResult {
         ),
     ];
 
-    setup(SETUP).expect("test setup");
+    setup(SETUP)?;
 
     let voa = Voa::init();
 
     // Try to load the verifier in the "custom" context, which will fail
     // because the symlink setup is invalid
     let verifiers = voa.lookup(
-        Os::new("arch".to_string(), None, None, None, None).unwrap(),
+        Os::new("arch".to_string(), None, None, None, None)?,
         Purpose::new(Role::Packages, Mode::ArtifactVerifier),
-        Context::Custom(CustomContext::new("custom".into()).expect("custom context")),
+        Context::Custom(CustomContext::new("custom".into())?),
         Technology::OpenPGP,
     );
 
@@ -165,7 +168,7 @@ fn invalid_dir_symlink() -> TestResult {
 /// All copies of verifiers with that name should not be returned as a result.
 #[test]
 fn masking() -> TestResult {
-    init_logger()?;
+    init_logger();
 
     const SETUP: &[TestObject] = &[
         TestObject::Path("/etc/voa/arch/packages/default/openpgp/"),
@@ -180,13 +183,13 @@ fn masking() -> TestResult {
         ),
     ];
 
-    setup(SETUP).expect("test setup");
+    setup(SETUP)?;
 
     let voa = Voa::init();
 
     // Try to load verifiers, which should return no results because there is a masking
     let verifiers = voa.lookup(
-        Os::new("arch".to_string(), None, None, None, None).unwrap(),
+        Os::new("arch".to_string(), None, None, None, None)?,
         Purpose::new(Role::Packages, Mode::ArtifactVerifier),
         Context::Default,
         Technology::OpenPGP,
@@ -201,7 +204,7 @@ fn masking() -> TestResult {
 /// VOA setup with a file that is linked via a chain of two symlinks.
 #[test]
 fn symlink_multihop_file() -> TestResult {
-    init_logger()?;
+    init_logger();
 
     const SETUP: &[TestObject] = &[
         TestObject::Path("/etc/voa/arch/packages/default/openpgp/"),
@@ -218,16 +221,16 @@ fn symlink_multihop_file() -> TestResult {
         ),
     ];
 
-    setup(SETUP).expect("test setup");
+    setup(SETUP)?;
 
     let voa = Voa::init();
 
     // Try to load verifiers via "custom2", which should return foo.pgp,
     // which points to the default context via an intermediate hop in the "custom1" context.
     let verifiers = voa.lookup(
-        Os::new("arch".to_string(), None, None, None, None).unwrap(),
+        Os::new("arch".to_string(), None, None, None, None)?,
         Purpose::new(Role::Packages, Mode::ArtifactVerifier),
-        Context::Custom(CustomContext::new("custom2".into()).expect("custom context")),
+        Context::Custom(CustomContext::new("custom2".into())?),
         Technology::OpenPGP,
     );
 
@@ -243,7 +246,7 @@ fn symlink_multihop_file() -> TestResult {
 /// Will not terminate without cycle detection!
 #[test]
 fn symlink_cycle_file() -> TestResult {
-    init_logger()?;
+    init_logger();
 
     const SETUP: &[TestObject] = &[
         TestObject::Path("/etc/voa/arch/packages/custom1/openpgp/"),
@@ -258,15 +261,15 @@ fn symlink_cycle_file() -> TestResult {
         ),
     ];
 
-    setup(SETUP).expect("test setup");
+    setup(SETUP)?;
 
     let voa = Voa::init();
 
     // Try to load verifiers via "custom2", which should only find a symlink loop and return empty.
     let verifiers = voa.lookup(
-        Os::new("arch".to_string(), None, None, None, None).unwrap(),
+        Os::new("arch".to_string(), None, None, None, None)?,
         Purpose::new(Role::Packages, Mode::ArtifactVerifier),
-        Context::Custom(CustomContext::new("custom2".into()).expect("custom context")),
+        Context::Custom(CustomContext::new("custom2".into())?),
         Technology::OpenPGP,
     );
 
@@ -278,7 +281,7 @@ fn symlink_cycle_file() -> TestResult {
 /// VOA setup with a directory that is linked via a chain of two symlinks.
 #[test]
 fn symlink_multihop_dir() -> TestResult {
-    init_logger()?;
+    init_logger();
 
     const SETUP: &[TestObject] = &[
         TestObject::Path("/etc/voa/arch/packages/default/openpgp/"),
@@ -295,16 +298,16 @@ fn symlink_multihop_dir() -> TestResult {
         ),
     ];
 
-    setup(SETUP).expect("test setup");
+    setup(SETUP)?;
 
     let voa = Voa::init();
 
     // Try to load verifiers via "custom2", which should return foo.pgp,
     // which points to the default context via an intermediate hop in the "custom1" context.
     let verifiers = voa.lookup(
-        Os::new("arch".to_string(), None, None, None, None).unwrap(),
+        Os::new("arch".to_string(), None, None, None, None)?,
         Purpose::new(Role::Packages, Mode::ArtifactVerifier),
-        Context::Custom(CustomContext::new("custom2".into()).expect("custom context")),
+        Context::Custom(CustomContext::new("custom2".into())?),
         Technology::OpenPGP,
     );
 
@@ -320,7 +323,7 @@ fn symlink_multihop_dir() -> TestResult {
 /// Will not terminate without cycle detection!
 #[test]
 fn symlink_cycle_dir() -> TestResult {
-    init_logger()?;
+    init_logger();
 
     const SETUP: &[TestObject] = &[
         TestObject::Path("/etc/voa/arch/packages/custom1/"),
@@ -335,15 +338,15 @@ fn symlink_cycle_dir() -> TestResult {
         ),
     ];
 
-    setup(SETUP).expect("test setup");
+    setup(SETUP)?;
 
     let voa = Voa::init();
 
     // Try to load verifiers via "custom2", which should only find a symlink loop and return empty.
     let verifiers = voa.lookup(
-        Os::new("arch".to_string(), None, None, None, None).unwrap(),
+        Os::new("arch".to_string(), None, None, None, None)?,
         Purpose::new(Role::Packages, Mode::ArtifactVerifier),
-        Context::Custom(CustomContext::new("custom2".into()).expect("custom context")),
+        Context::Custom(CustomContext::new("custom2".into())?),
         Technology::OpenPGP,
     );
 
@@ -357,21 +360,21 @@ fn symlink_cycle_dir() -> TestResult {
 /// We find the verifier, read it, and check that it contains the expected data.
 #[test]
 fn read_verifier() -> TestResult {
-    init_logger()?;
+    init_logger();
 
     // Set up the verifier and write data into it
     const SETUP: &[TestObject] = &[TestObject::Path("/etc/voa/arch/packages/default/openpgp/")];
 
-    setup(SETUP).expect("test setup");
+    setup(SETUP)?;
 
-    let mut file = File::create("/etc/voa/arch/packages/default/openpgp/foo.pgp").unwrap();
-    file.write_all(b"hello world").unwrap();
+    let mut file = File::create("/etc/voa/arch/packages/default/openpgp/foo.pgp")?;
+    file.write_all(b"hello world")?;
 
     // Find the verifier and read its data
     let voa = Voa::init();
 
     let verifiers = voa.lookup(
-        Os::new("arch".to_string(), None, None, None, None).unwrap(),
+        Os::new("arch".to_string(), None, None, None, None)?,
         Purpose::new(Role::Packages, Mode::ArtifactVerifier),
         Context::Default,
         Technology::OpenPGP,
@@ -379,10 +382,10 @@ fn read_verifier() -> TestResult {
 
     assert_eq!(verifiers.len(), 1);
 
-    let mut verifier = &verifiers[0].open().expect("open file");
+    let mut verifier = &verifiers[0].open()?;
 
     let mut s = String::new();
-    let _ = verifier.read_to_string(&mut s).expect("read file");
+    let _ = verifier.read_to_string(&mut s)?;
 
     assert_eq!(s, "hello world");
 

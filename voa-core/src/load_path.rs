@@ -44,6 +44,8 @@ impl LoadPathMode {
             LoadPathMode::User
         }
     }
+
+    /// Returns a list of load paths for the current LoadPathMode.
     pub(crate) fn load_path_list(&self) -> LoadPathList {
         match self {
             LoadPathMode::System => {
@@ -150,7 +152,6 @@ impl LoadPathList {
     /// all load paths with lower priority. Ephemeral LoadPaths are excluded from the result.
     ///
     /// If `current` is not contained in `self.paths`, an empty list is returned.
-    #[allow(dead_code)]
     pub fn legal_symlink_load_paths(&self, current: &LoadPath) -> Vec<&LoadPath> {
         let mut legal = vec![];
 

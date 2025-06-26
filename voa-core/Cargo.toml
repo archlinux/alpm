@@ -17,6 +17,9 @@ strum.workspace = true
 uzers = "0.12"
 xdg = "3"
 
+[lints]
+workspace = true
+
 [features]
 _containerized-integration-test = []
 

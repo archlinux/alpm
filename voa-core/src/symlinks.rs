@@ -14,10 +14,14 @@ use crate::{
     types::{Error, VerifierSourcePath},
 };
 
+/// The result of resolving a symlink in a VOA structure.
+///
+/// The resolved target of a link is either a [PathBuf] to a directory or a file, or it shows
+/// that the symlink points to `/dev/null` to signal that the source is "masked".
 pub(crate) enum ResolveSym {
-    Masked,
-    File(PathBuf),
     Dir(PathBuf),
+    File(PathBuf),
+    Masked,
 }
 
 /// Check and resolve an arbitrarily long chain of symlinks.
@@ -54,46 +58,44 @@ pub(crate) fn resolve_symlink(
             return Err(Error::IllegalSymlink); // FIXME: signal cycle
         }
 
+        // If this is a masking symlink, we're done and return
         if link_target.as_path().to_str() == Some("/dev/null") {
-            // Individual _signature verifiers_ may be masked using a symlink to `/dev/null`,
-            // independent of [technology].
-
             return Ok(ResolveSym::Masked);
-        } else {
-            // Check that target file path is legal
-
-            // Symlinks may only point into locations under
-            // legal_symlink_paths
-            if !legal_symlink_paths
-                .iter()
-                .any(|p| link_target.starts_with(&p.path))
-            {
-                trace!("⤷ Illegal symlink target"); // FIXME: message should go in error
-                return Err(Error::IllegalSymlink);
-            }
-
-            let meta = match std::fs::symlink_metadata(&link_target) {
-                Ok(meta) => meta,
-                Err(err) => {
-                    warn!("⤷ Cannot get metadata of {link_target:?}");
-                    return Err(err.into());
-                }
-            };
-
-            // set up next loop iteration
-            let file_type = meta.file_type();
-            if file_type.is_file() {
-                return Ok(ResolveSym::File(link_target));
-            } else if file_type.is_dir() {
-                return Ok(ResolveSym::Dir(link_target));
-            } else if !file_type.is_symlink() {
-                warn!("Unexpected file type {file_type:?} for {link_target:?}");
-                return Err(Error::IllegalSymlink);
-            }
-
-            path = link_target;
-            paths_seen.insert(path.clone());
         }
+
+        // Check that target file path is legal
+
+        // Symlinks may only point into locations under
+        // legal_symlink_paths
+        if !legal_symlink_paths
+            .iter()
+            .any(|p| link_target.starts_with(&p.path))
+        {
+            trace!("⤷ Illegal symlink target"); // FIXME: message should go in error
+            return Err(Error::IllegalSymlink);
+        }
+
+        let meta = match std::fs::symlink_metadata(&link_target) {
+            Ok(meta) => meta,
+            Err(err) => {
+                warn!("⤷ Cannot get metadata of {link_target:?}");
+                return Err(err.into());
+            }
+        };
+
+        // set up next loop iteration
+        let file_type = meta.file_type();
+        if file_type.is_file() {
+            return Ok(ResolveSym::File(link_target));
+        } else if file_type.is_dir() {
+            return Ok(ResolveSym::Dir(link_target));
+        } else if !file_type.is_symlink() {
+            warn!("Unexpected file type {file_type:?} for {link_target:?}");
+            return Err(Error::IllegalSymlink);
+        }
+
+        path = link_target;
+        paths_seen.insert(path.clone());
     }
 }
 

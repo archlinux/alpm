@@ -8,14 +8,14 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use strum::IntoStaticStr;
+use strum::{Display, IntoStaticStr};
 
 pub use crate::load_path::LoadPath;
 
 /// Error type for voa-core
 ///
 /// TODO: use thiserror?
-#[derive(Debug)]
+#[derive(Debug, Display)]
 pub enum Error {
     /// Illegal data for an identifier (e.g. using illegal characters)
     IllegalIdentifier,
@@ -170,7 +170,7 @@ impl Purpose {
 /// A [`Role`] is always combined with a [`Mode`] and in combination forms a [`Purpose`].
 /// E.g. [`Role::Packages`] combined with [`Mode::TrustAnchor`] specify the purpose path
 /// `trust-anchor-packages`.
-#[derive(Clone, Debug, PartialEq, strum::Display)]
+#[derive(Clone, Debug, strum::Display, PartialEq)]
 pub enum Role {
     /// Identifies verifiers used for verifying package signatures.
     #[strum(to_string = "packages")]
@@ -217,7 +217,7 @@ impl CustomRole {
 /// A [`Mode`] is always combined with a [`Role`] and in combination forms a [`Purpose`].
 /// E.g. [`Role::Packages`] combined with [`Mode::TrustAnchor`] specify the purpose path
 /// `trust-anchor-packages`.
-#[derive(Clone, Copy, Debug, PartialEq, IntoStaticStr)]
+#[derive(Clone, Copy, Debug, IntoStaticStr, PartialEq)]
 pub enum Mode {
     /// Identifies verifiers that are used to directly validate signatures on artifacts.
     #[strum(serialize = "")]
@@ -277,9 +277,11 @@ impl AsRef<str> for CustomContext {
     }
 }
 
-/// The name of a cryptography technology for handling specific verifiers and the verification of
-/// signatures.
-#[derive(Clone, Copy, Debug, PartialEq, IntoStaticStr)]
+/// The name of a technology backend.
+///
+/// Technology-specific backends implement the logic for each supported verification technology
+/// in VOA.
+#[derive(Clone, Debug, IntoStaticStr, PartialEq)]
 pub enum Technology {
     /// The [OpenPGP] technology.
     ///
@@ -292,12 +294,39 @@ pub enum Technology {
     /// [SSH]: https://www.openssh.com/
     #[strum(to_string = "ssh")]
     SSH,
+
+    /// Defines a custom [`Technology`] name.
+    CustomTechnology(CustomTechnology),
 }
 
 impl Technology {
     pub(crate) fn path_segment(&self) -> PathBuf {
         let segment: &str = self.into();
         segment.into()
+    }
+}
+
+/// A `CustomTechnology` defines a technology name that is not covered by the variants defined in
+/// [Technology].
+#[derive(Clone, Debug, PartialEq)]
+pub struct CustomTechnology {
+    technology: String,
+}
+
+impl CustomTechnology {
+    /// Creates a new `CustomTechnology` instance.
+    ///
+    /// Returns `Error` if `value` contains illegal characters.
+    pub fn new(value: String) -> Result<Self, Error> {
+        // FIXME: check validity of `value` based on limitation of allowed characters
+
+        Ok(Self { technology: value })
+    }
+}
+
+impl AsRef<str> for CustomTechnology {
+    fn as_ref(&self) -> &str {
+        self.technology.as_ref()
     }
 }
 
@@ -363,8 +392,8 @@ impl VerifierSourcePath {
     }
 
     /// The [`Technology`] of the [`VerifierSourcePath`].
-    pub fn technology(&self) -> Technology {
-        self.technology
+    pub fn technology(&self) -> &Technology {
+        &self.technology
     }
 }
 
