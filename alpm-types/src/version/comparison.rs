@@ -1,4 +1,11 @@
 //! Comparison for [`PackageVersion`].
+//!
+//! This code is derived from the [rpmvercmp algorithm in RPM version 4.8.1].
+//! The current version, including its improvements over the original are described in detail in
+//! [alpm-pkgver].
+//!
+//! [alpm-pkgver]: https://alpm.archlinux.page/specifications/alpm-pkgver.7.html
+//! [rpmvercmp algorithm in RPM version 4.8.1]: https://github.com/rpm-software-management/rpm/blob/rpm-4.8.1-release/lib/rpmvercmp.c
 
 use std::{
     cmp::Ordering,
