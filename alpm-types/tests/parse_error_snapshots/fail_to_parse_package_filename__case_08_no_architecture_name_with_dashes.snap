@@ -5,4 +5,4 @@ expression: "format!(\"{error}\")"
 ---
 example-pkg-1.0.0-1.pkg.tar.zst
         ^
-expected end of package release value
+expected end of package release value, alpm-pkgrel string
