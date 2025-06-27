@@ -12,12 +12,12 @@ use alpm_mtree::{Mtree, mtree::v2::MTREE_PATH_PREFIX};
 use alpm_pkginfo::PackageInfo;
 use alpm_types::{
     Architecture,
+    FullVersion,
     INSTALL_SCRIPTLET_FILE_NAME,
     MetadataFileName,
     Name,
     Packager,
     Sha256Checksum,
-    Version,
 };
 use log::{debug, trace};
 
@@ -359,7 +359,7 @@ pub struct MetadataComparison<'a> {
     /// The [alpm-package-version] encoded in the metadata file.
     ///
     /// [alpm-package-version]: https://alpm.archlinux.page/specifications/alpm-package-version.7.html
-    pub version: &'a Version,
+    pub version: &'a FullVersion,
     /// The [alpm-architecture] encoded in the metadata file.
     ///
     /// [alpm-architecture]: https://alpm.archlinux.page/specifications/alpm-architecture.7.html

@@ -157,32 +157,24 @@ impl PackageCreationConfig {
     }
 }
 
-impl TryFrom<&PackageCreationConfig> for PackageFileName {
-    type Error = crate::Error;
-
-    /// Creates a [`PackageFileName`] from a reference to a [`PackageCreationConfig`].
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the package version tracked in the [`PackageInfo`] of the `value`'s
-    /// [`PackageInput`] cannot be converted to a [`FullVersion`] which is required by the
-    /// [`PackageFileName`].
-    fn try_from(value: &PackageCreationConfig) -> Result<Self, Self::Error> {
-        Ok(Self::new(
+impl From<&PackageCreationConfig> for PackageFileName {
+    /// Creates a [`PackageFileName`] from a [`PackageCreationConfig`] reference.
+    fn from(value: &PackageCreationConfig) -> Self {
+        Self::new(
             match value.package_input.package_info() {
                 alpm_pkginfo::PackageInfo::V1(package_info) => package_info.pkgname().clone(),
                 alpm_pkginfo::PackageInfo::V2(package_info) => package_info.pkgname().clone(),
             },
             match value.package_input.package_info() {
-                alpm_pkginfo::PackageInfo::V1(package_info) => package_info.pkgver().try_into()?,
-                alpm_pkginfo::PackageInfo::V2(package_info) => package_info.pkgver().try_into()?,
+                alpm_pkginfo::PackageInfo::V1(package_info) => package_info.pkgver().clone(),
+                alpm_pkginfo::PackageInfo::V2(package_info) => package_info.pkgver().clone(),
             },
             match value.package_input.package_info() {
                 alpm_pkginfo::PackageInfo::V1(package_info) => *package_info.arch(),
                 alpm_pkginfo::PackageInfo::V2(package_info) => *package_info.arch(),
             },
             value.compression.as_ref().map(|settings| settings.into()),
-        ))
+        )
     }
 }
 

@@ -287,7 +287,7 @@ impl TryFrom<&PackageCreationConfig> for Package {
     /// - finishing a compressed or uncompressed package file fails,
     /// - or creating a [`Package`] fails.
     fn try_from(value: &PackageCreationConfig) -> Result<Self, Self::Error> {
-        let filename = PackageFileName::try_from(value)?;
+        let filename = PackageFileName::from(value);
         let parent_dir: ExistingAbsoluteDir = value.output_dir().into();
         let output_path = value.output_dir().join(filename.to_path_buf());
 

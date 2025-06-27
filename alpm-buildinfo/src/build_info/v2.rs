@@ -12,13 +12,13 @@ use alpm_types::{
     BuildTool,
     BuildToolVersion,
     Checksum,
+    FullVersion,
     InstalledPackage,
     Name,
     PackageOption,
     Packager,
     SchemaVersion,
     StartDirectory,
-    Version,
     digests::Sha256,
 };
 use serde_with::{DisplayFromStr, serde_as};
@@ -94,7 +94,7 @@ impl BuildInfoV2 {
         pkgbase: Name,
         pkgbuild_sha256sum: Checksum<Sha256>,
         pkgname: Name,
-        pkgver: Version,
+        pkgver: FullVersion,
     ) -> Result<Self, Error> {
         if format.inner().major != 2 {
             return Err(Error::WrongSchemaVersion(format));
@@ -275,7 +275,7 @@ pkgver = 1:1.0.0-1
             Name::new("foo")?,
             Checksum::<Sha256>::calculate_from("foo"),
             Name::new("foo")?,
-            Version::from_str("1:1.0.0-1")?,
+            FullVersion::from_str("1:1.0.0-1")?,
         )?;
         Ok(())
     }
@@ -298,7 +298,7 @@ pkgver = 1:1.0.0-1
                 Name::new("foo")?,
                 Checksum::<Sha256>::calculate_from("foo"),
                 Name::new("foo")?,
-                Version::from_str("1:1.0.0-1")?,
+                FullVersion::from_str("1:1.0.0-1")?,
             )
             .is_err()
         );
