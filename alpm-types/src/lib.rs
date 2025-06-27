@@ -101,6 +101,7 @@ pub use version::{
     base::{Epoch, PackageRelease, PackageVersion},
     buildtool::BuildToolVersion,
     comparison::{VersionSegment, VersionSegments},
+    pkg_full::FullVersion,
     pkg_generic::Version,
     requirement::{VersionComparison, VersionRequirement},
     schema::SchemaVersion,
