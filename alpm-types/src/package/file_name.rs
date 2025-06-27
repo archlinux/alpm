@@ -24,21 +24,21 @@ use crate::{
     Architecture,
     CompressionAlgorithmFileExtension,
     FileTypeIdentifier,
+    FullVersion,
     Name,
     PackageError,
-    Version,
 };
 
 /// The full filename of a package.
 ///
-/// A package filename tracks its [`Name`], [`Version`], [`Architecture`] and the optional
+/// A package filename tracks its [`Name`], [`FullVersion`], [`Architecture`] and the optional
 /// [`CompressionAlgorithmFileExtension`].
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(into = "String")]
 #[serde(try_from = "String")]
 pub struct PackageFileName {
     name: Name,
-    version: Version,
+    version: FullVersion,
     architecture: Architecture,
     compression: Option<CompressionAlgorithmFileExtension>,
 }
@@ -65,39 +65,24 @@ impl PackageFileName {
     ///         "1:1.0.0-1".parse()?,
     ///         "x86_64".parse()?,
     ///         Some("zst".parse()?)
-    ///     )?
-    ///     .to_string()
-    /// );
-    ///
-    /// // This fails because the provided Version does not have the pkgrel component.
-    /// assert!(
-    ///     PackageFileName::new(
-    ///         "example".parse()?,
-    ///         "1:1.0.0".parse()?,
-    ///         "x86_64".parse()?,
-    ///         Some("zst".parse()?)
     ///     )
-    ///     .is_err()
+    ///     .to_string()
     /// );
     /// # Ok(())
     /// # }
     /// ```
     pub fn new(
         name: Name,
-        version: Version,
+        version: FullVersion,
         architecture: Architecture,
         compression: Option<CompressionAlgorithmFileExtension>,
-    ) -> Result<Self, crate::Error> {
-        if version.pkgrel.is_none() {
-            return Err(crate::PackageError::InvalidPackageFileNameVersion { version }.into());
-        }
-
-        Ok(Self {
+    ) -> Self {
+        Self {
             name,
             version,
             architecture,
             compression,
-        })
+        }
     }
 
     /// Returns a reference to the [`Name`].
@@ -115,7 +100,7 @@ impl PackageFileName {
     ///     "1:1.0.0-1".parse()?,
     ///     "x86_64".parse()?,
     ///     Some("zst".parse()?),
-    /// )?;
+    /// );
     ///
     /// assert_eq!(file_name.name(), &Name::new("example")?);
     /// # Ok(())
@@ -125,14 +110,14 @@ impl PackageFileName {
         &self.name
     }
 
-    /// Returns a reference to the [`Version`].
+    /// Returns a reference to the [`FullVersion`].
     ///
     /// # Examples
     ///
     /// ```
     /// use std::str::FromStr;
     ///
-    /// use alpm_types::{PackageFileName, Version};
+    /// use alpm_types::{FullVersion, PackageFileName};
     ///
     /// # fn main() -> Result<(), alpm_types::Error> {
     /// let file_name = PackageFileName::new(
@@ -140,13 +125,13 @@ impl PackageFileName {
     ///     "1:1.0.0-1".parse()?,
     ///     "x86_64".parse()?,
     ///     Some("zst".parse()?),
-    /// )?;
+    /// );
     ///
-    /// assert_eq!(file_name.version(), &Version::from_str("1:1.0.0-1")?);
+    /// assert_eq!(file_name.version(), &FullVersion::from_str("1:1.0.0-1")?);
     /// # Ok(())
     /// # }
     /// ```
-    pub fn version(&self) -> &Version {
+    pub fn version(&self) -> &FullVersion {
         &self.version
     }
 
@@ -165,7 +150,7 @@ impl PackageFileName {
     ///     "1:1.0.0-1".parse()?,
     ///     "x86_64".parse()?,
     ///     Some("zst".parse()?),
-    /// )?;
+    /// );
     ///
     /// assert_eq!(file_name.architecture(), Architecture::X86_64);
     /// # Ok(())
@@ -190,7 +175,7 @@ impl PackageFileName {
     ///     "1:1.0.0-1".parse()?,
     ///     "x86_64".parse()?,
     ///     Some("zst".parse()?),
-    /// )?;
+    /// );
     ///
     /// assert_eq!(
     ///     file_name.compression(),
@@ -218,7 +203,7 @@ impl PackageFileName {
     ///     "1:1.0.0-1".parse()?,
     ///     "x86_64".parse()?,
     ///     Some("zst".parse()?),
-    /// )?;
+    /// );
     ///
     /// assert_eq!(
     ///     file_name.to_path_buf(),
@@ -247,7 +232,7 @@ impl PackageFileName {
     ///     "1:1.0.0-1".parse()?,
     ///     "x86_64".parse()?,
     ///     Some("zst".parse()?),
-    /// )?;
+    /// );
     /// // Remove the compression
     /// file_name.set_compression(None);
     ///
@@ -270,7 +255,7 @@ impl PackageFileName {
 
     /// Recognizes a [`PackageFileName`] in a string slice.
     ///
-    /// Relies on [`winnow`] to parse `input` and recognize the [`Name`], [`Version`],
+    /// Relies on [`winnow`] to parse `input` and recognize the [`Name`], [`FullVersion`],
     /// [`Architecture`] and [`CompressionAlgorithmFileExtension`] components.
     ///
     /// # Errors
@@ -278,7 +263,7 @@ impl PackageFileName {
     /// Returns an error if
     ///
     /// - the [`Name`] component can not be recognized,
-    /// - the [`Version`] component can not be recognized,
+    /// - the [`FullVersion`] component can not be recognized,
     /// - the [`Architecture`] component can not be recognized,
     /// - or the [`CompressionAlgorithmFileExtension`] component can not be recognized.
     ///
@@ -305,10 +290,10 @@ impl PackageFileName {
         // components of the file name and the Name component (an alpm-package-name) can contain
         // dashes, too.
         // We know that the minimum amount of dashes in a valid alpm-package file name is
-        // three (one dash between the Name, Version, PackageRelease, and Architecture
+        // three (one dash between the Name, FullVersion, PackageRelease, and Architecture
         // component each).
         // We rely on this fact to determine the amount of dashes in the Name component and
-        // thereby the cut-off point between the Name and the Version component.
+        // thereby the cut-off point between the Name and the FullVersion component.
         let dashes: usize = input.chars().filter(|char| char == &'-').count();
 
         if dashes < 3 {
@@ -355,21 +340,21 @@ impl PackageFileName {
         .parse_next(input)?;
         debug!("Detected Name: {name}");
 
-        // Consume leading dash in front of Version, e.g.:
+        // Consume leading dash in front of FullVersion, e.g.:
         // "-1:1.0.0-1-x86_64.pkg.tar.zst" -> "1:1.0.0-1-x86_64.pkg.tar.zst"
         "-".parse_next(input)?;
 
-        // Advance the parser to beyond the Version component (which contains one dash), e.g.:
+        // Advance the parser to beyond the FullVersion component (which contains one dash), e.g.:
         // "1:1.0.0-1-x86_64.pkg.tar.zst" -> "-x86_64.pkg.tar.zst"
-        let version: Version = cut_err((take_until(0.., "-"), "-", take_until(0.., "-")))
+        let version: FullVersion = cut_err((take_until(0.., "-"), "-", take_until(0.., "-")))
             .context(StrContext::Label("alpm-package-version"))
             .context(StrContext::Expected(StrContextValue::Description(
                 "an alpm-package-version (full or full with epoch) followed by a `-` and an architecture",
             )))
             .take()
-            .and_then(cut_err(Version::parser))
+            .and_then(cut_err(FullVersion::parser))
             .parse_next(input)?;
-        debug!("Detected Version: {version}");
+        debug!("Detected FullVersion: {version}");
 
         // Consume leading dash, e.g.:
         // "-x86_64.pkg.tar.zst" -> "x86_64.pkg.tar.zst"
@@ -600,26 +585,21 @@ mod test {
         Ok(())
     }
 
-    /// Tests that common and uncommon cases of package filenames can be created.
+    /// Ensures that common and uncommon cases of package filenames can be created.
     #[rstest]
-    #[case::name_with_dashes(Name::new("example-package")?, Version::from_str("1.0.0-1")?, Architecture::X86_64, Some(CompressionAlgorithmFileExtension::Zstd))]
-    #[case::name_with_dashes_version_with_epoch_no_compression(Name::new("example-package")?, Version::from_str("1:1.0.0-1")?, Architecture::X86_64, None)]
+    #[case::name_with_dashes(Name::new("example-package")?, FullVersion::from_str("1.0.0-1")?, Architecture::X86_64, Some(CompressionAlgorithmFileExtension::Zstd))]
+    #[case::name_with_dashes_version_with_epoch_no_compression(Name::new("example-package")?, FullVersion::from_str("1:1.0.0-1")?, Architecture::X86_64, None)]
     fn succeed_to_create_package_file_name(
         #[case] name: Name,
-        #[case] version: Version,
+        #[case] version: FullVersion,
         #[case] architecture: Architecture,
         #[case] compression: Option<CompressionAlgorithmFileExtension>,
     ) -> TestResult {
         init_logger()?;
 
-        if let Err(error) =
-            PackageFileName::new(name.clone(), version.clone(), architecture, compression)
-        {
-            return Err(format!(
-                    "Failed to create PackageFileName with {name}, {version}, {architecture} and {compression:?} although it should have succeeded:\n{error}"
-                )
-                .into());
-        };
+        let package_file_name =
+            PackageFileName::new(name.clone(), version.clone(), architecture, compression);
+        debug!("Package file name: {package_file_name}");
 
         Ok(())
     }
@@ -686,23 +666,23 @@ mod test {
             "1:1.0.0-1".parse()?,
             "x86_64".parse()?,
             Some("zst".parse()?),
-        )?;
+        );
 
         assert_eq!(file_name.name(), &name);
 
         Ok(())
     }
 
-    /// Tests that a matching [`Version`] can be derived from a [`PackageFileName`].
+    /// Tests that a matching [`FullVersion`] can be derived from a [`PackageFileName`].
     #[test]
     fn package_file_name_version() -> TestResult {
-        let version = Version::from_str("1:1.0.0-1")?;
+        let version = FullVersion::from_str("1:1.0.0-1")?;
         let file_name = PackageFileName::new(
             Name::new("example")?,
             version.clone(),
             "x86_64".parse()?,
             Some("zst".parse()?),
-        )?;
+        );
 
         assert_eq!(file_name.version(), &version);
 
@@ -718,7 +698,7 @@ mod test {
             "1:1.0.0-1".parse()?,
             architecture,
             Some("zst".parse()?),
-        )?;
+        );
 
         assert_eq!(file_name.architecture(), architecture);
 
@@ -738,7 +718,7 @@ mod test {
             "1:1.0.0-1".parse()?,
             "x86_64".parse()?,
             compression,
-        )?;
+        );
 
         assert_eq!(file_name.compression(), compression);
 
@@ -758,7 +738,7 @@ mod test {
             "1:1.0.0-1".parse()?,
             "x86_64".parse()?,
             compression,
-        )?;
+        );
         assert_eq!(file_name.to_path_buf(), PathBuf::from(path));
 
         Ok(())
@@ -775,7 +755,7 @@ mod test {
             "1:1.0.0-1".parse()?,
             "x86_64".parse()?,
             None,
-        )?)]
+        ))]
     #[case::no_compression_to_compression(
         None,
         Some(CompressionAlgorithmFileExtension::Zstd),
@@ -784,7 +764,7 @@ mod test {
             "1:1.0.0-1".parse()?,
             "x86_64".parse()?,
             Some(CompressionAlgorithmFileExtension::Zstd),
-        )?)]
+        ))]
     fn package_file_name_set_compression(
         #[case] initial_compression: Option<CompressionAlgorithmFileExtension>,
         #[case] compression: Option<CompressionAlgorithmFileExtension>,
@@ -795,7 +775,7 @@ mod test {
             "1:1.0.0-1".parse()?,
             "x86_64".parse()?,
             initial_compression,
-        )?;
+        );
         file_name.set_compression(compression);
         assert_eq!(file_name, output_file_name);
 
