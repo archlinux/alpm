@@ -100,6 +100,7 @@ mod version;
 pub use version::{
     BuildToolVersion,
     Epoch,
+    FullVersion,
     PackageRelease,
     PackageVersion,
     SchemaVersion,
