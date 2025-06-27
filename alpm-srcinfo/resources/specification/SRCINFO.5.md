@@ -28,7 +28,7 @@ While the **pkgbase** section contains metadata shared by all packages built fro
 
 All section headers consist of a key, immediately followed by a whitespace, an '=' sign, another whitespace and a value.
 
-The section header for a **pkgbase** section must use the word 'pkgbase' as key and an **alpm-package-name** as value.
+The section header for a **pkgbase** section must use the word 'pkgbase' as key and an **alpm-package-base** as value.
 Exactly one such section header must exist in a **SRCINFO** file at the beginning of the file.
 
 The section header for a **pkgname** section must use the word 'pkgname' as key and an **alpm-package-name** as value.
@@ -424,7 +424,7 @@ For `x86_64`:
 
 # SEE ALSO
 
-**alpm-srcinfo**(1), **bash**(1), **PKGBUILD**(5), **makepkg.conf**(5), **alpm-architecture**(7), **alpm-comparison**(7), **alpm-epoch**(7), **alpm-install-scriptlet**(7), **alpm-package-group**(7), **alpm-package-name**(7), **alpm-package-relation**(7), **alpm-package-version**(7), **alpm-pkgrel**(7), **alpm-pkgver**(7), **alpm-split-package**(7), **makepkg**(8), **pacman**(8)
+**alpm-srcinfo**(1), **bash**(1), **PKGBUILD**(5), **makepkg.conf**(5), **alpm-architecture**(7), **alpm-comparison**(7), **alpm-epoch**(7), **alpm-install-scriptlet**(7), **alpm-package-base**(7), **alpm-package-group**(7), **alpm-package-name**(7), **alpm-package-relation**(7), **alpm-package-version**(7), **alpm-pkgrel**(7), **alpm-pkgver**(7), **alpm-split-package**(7), **makepkg**(8), **pacman**(8)
 
 # NOTES
 
