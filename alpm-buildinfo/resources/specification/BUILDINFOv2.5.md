@@ -43,11 +43,8 @@ The value is an **alpm-package-name** (e.g. `example`).
 
 ### pkgbase
 
-The base name of the package.
-This keyword reflects the name of the sources from which the package is built.
-If the sources of the package are used to build a single package, the value is the same as that of **pkgname**.
-If the sources of the package are used to build several packages, the value may differ from that of **pkgname** (see **PKGBUILD** **PACKAGE SPLITTING** for further information).
-The value is covered by the same rules as that of **pkgname** (e.g. `example`).
+The **alpm-package-base** of the package.
+The value is an **alpm-package-base** (e.g. `example`).
 
 ### pkgver
 
