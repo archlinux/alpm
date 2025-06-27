@@ -52,8 +52,7 @@ An **alpm-package-version** (_full_ or _full with epoch_) which represents the v
 ### %BASE%
 
 An **alpm-package-base** which represents the package base from which a package originates.
-If a package is not an **alpm-split-package**, the value is the same as that of the `%NAME%` section.
-If a package is an **alpm-split-package**, the value may be different from that in the `%NAME%` section.
+The value may be the same as that of the `%NAME%` section.
 
 ### %DESC%
 
