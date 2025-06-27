@@ -11,12 +11,12 @@ use alpm_types::{
     BuildEnvironmentOption,
     BuildTool,
     BuildToolVersion,
+    FullVersion,
     InstalledPackage,
     Name,
     PackageOption,
     Packager,
     StartDirectory,
-    Version,
 };
 use clap::{Args, Parser, Subcommand, ValueEnum};
 use strum::Display;
@@ -180,7 +180,7 @@ pub struct V1CreateArgs {
     pub pkgname: Name,
     /// Provide a pkgver
     #[arg(env = "BUILDINFO_PKGVER", long, value_name = "PKGVER")]
-    pub pkgver: Version,
+    pub pkgver: FullVersion,
     /// Provide a file to write to
     #[arg(default_value_t = OutputFile::default(), env = "BUILDINFO_OUTPUT_FILE", value_name = "FILE")]
     pub output: OutputFile,

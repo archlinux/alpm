@@ -11,6 +11,7 @@ use alpm_types::{
     Architecture,
     Backup,
     BuildDate,
+    FullVersion,
     Group,
     InstalledSize,
     License,
@@ -20,7 +21,6 @@ use alpm_types::{
     PackageRelation,
     Packager,
     Url,
-    Version,
 };
 use serde_with::{DisplayFromStr, serde_as};
 
@@ -45,7 +45,7 @@ macro_rules! generate_pkginfo {
             pkgbase: Name,
 
             #[serde_as(as = "DisplayFromStr")]
-            pkgver: Version,
+            pkgver: FullVersion,
 
             #[serde_as(as = "DisplayFromStr")]
             pkgdesc: PackageDescription,
@@ -120,7 +120,7 @@ macro_rules! generate_pkginfo {
             }
 
             /// Returns the version of the package
-            pub fn pkgver(&self) -> &Version {
+            pub fn pkgver(&self) -> &FullVersion {
                 &self.pkgver
             }
 
@@ -271,7 +271,7 @@ impl PackageInfoV1 {
     pub fn new(
         name: Name,
         base: Name,
-        version: Version,
+        version: FullVersion,
         desc: PackageDescription,
         url: Url,
         builddate: BuildDate,
@@ -443,7 +443,7 @@ checkdepend = other-extra-test-tool"#
         let pkg_info = PackageInfoV1::new(
             Name::new("example")?,
             Name::new("example")?,
-            Version::from_str("1:1.0.0-1")?,
+            FullVersion::from_str("1:1.0.0-1")?,
             PackageDescription::from("A project that does something"),
             Url::from_str("https://example.org")?,
             BuildDate::from_str("1729181726")?,

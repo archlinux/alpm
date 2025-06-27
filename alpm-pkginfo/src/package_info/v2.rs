@@ -12,6 +12,7 @@ use alpm_types::{
     Backup,
     BuildDate,
     ExtraData,
+    FullVersion,
     Group,
     InstalledSize,
     License,
@@ -22,7 +23,6 @@ use alpm_types::{
     PackageType,
     Packager,
     Url,
-    Version,
 };
 use serde_with::{DisplayFromStr, serde_as};
 
@@ -94,7 +94,7 @@ impl PackageInfoV2 {
     pub fn new(
         pkgname: Name,
         pkgbase: Name,
-        pkgver: Version,
+        pkgver: FullVersion,
         pkgdesc: PackageDescription,
         url: Url,
         builddate: BuildDate,
@@ -352,7 +352,7 @@ checkdepend = extra-test-tool
         let pkg_info = PackageInfoV2::new(
             Name::new("example")?,
             Name::new("example")?,
-            Version::from_str("1:1.0.0-1")?,
+            FullVersion::from_str("1:1.0.0-1")?,
             PackageDescription::from("A project that does something"),
             Url::from_str("https://example.org")?,
             BuildDate::from_str("1729181726")?,
