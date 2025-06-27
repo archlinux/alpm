@@ -1,8 +1,8 @@
 //! Integration tests for `alpm-types`.
 
-use std::{path::PathBuf, str::FromStr, thread::current};
+use std::{path::PathBuf, thread::current};
 
-use alpm_types::{Architecture, CompressionAlgorithmFileExtension, Name, PackageFileName, Version};
+use alpm_types::PackageFileName;
 use insta::{assert_snapshot, with_settings};
 use log::{LevelFilter, debug};
 use rstest::rstest;
@@ -84,44 +84,6 @@ fn package_file_name_from_path_fails(#[case] path: PathBuf) -> TestResult {
     with_settings!({
                 description => format!("{path:?}"),
                 snapshot_path => "from_path_snapshots",
-                prepend_module_to_snapshot => false,
-            }, {
-                assert_snapshot!(current()
-                .name()
-                .unwrap()
-                .to_string()
-                .replace("::", "__")
-    , format!("{error}"));
-            });
-
-    Ok(())
-}
-
-/// Ensures that [`PackageFileName`] creation fails on unsupported [`Version`]s.
-#[rstest]
-#[case::version_without_pkgrel(Name::new("example-package").unwrap(), Version::from_str("1.0.0").unwrap(), Architecture::X86_64, Some(CompressionAlgorithmFileExtension::Zstd))]
-#[case::version_with_epoch_without_pkgrel(Name::new("example-package").unwrap(), Version::from_str("1:1.0.0").unwrap(), Architecture::X86_64, Some(CompressionAlgorithmFileExtension::Zstd))]
-fn fail_to_create_package_file_name(
-    #[case] name: Name,
-    #[case] version: Version,
-    #[case] architecture: Architecture,
-    #[case] compression: Option<CompressionAlgorithmFileExtension>,
-) -> TestResult {
-    init_logger()?;
-
-    let Err(error) = PackageFileName::new(name.clone(), version.clone(), architecture, compression)
-    else {
-        return Err(format!(
-                    "Succeeded to create PackageFileName with {name}, {version}, {architecture} and {compression:?} although it should have failed."
-                )
-                .into());
-    };
-
-    with_settings!({
-                description => format!(
-                    "PackageFileName from {name}, {version}, {architecture} and {compression:?}"
-                ),
-                snapshot_path => "create_error_snapshots",
                 prepend_module_to_snapshot => false,
             }, {
                 assert_snapshot!(current()

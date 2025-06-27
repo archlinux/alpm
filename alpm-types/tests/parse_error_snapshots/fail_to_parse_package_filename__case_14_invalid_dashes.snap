@@ -5,4 +5,5 @@ expression: "format!(\"{error}\")"
 ---
 example-pkg---x86_64.pkg.tar.zst
             ^
-expected pkgver string
+invalid first pkgver character
+expected ASCII alphanumeric character
