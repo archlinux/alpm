@@ -10,12 +10,12 @@ use alpm_types::{
     BuildDirectory,
     BuildEnvironmentOption,
     Checksum,
+    FullVersion,
     InstalledPackage,
     Name,
     PackageOption,
     Packager,
     SchemaVersion,
-    Version,
     digests::Sha256,
 };
 use serde_with::{DisplayFromStr, serde_as};
@@ -43,7 +43,7 @@ macro_rules! generate_buildinfo {
             pkgbase: Name,
 
             #[serde_as(as = "DisplayFromStr")]
-            pkgver: Version,
+            pkgver: FullVersion,
 
             #[serde_as(as = "DisplayFromStr")]
             pkgarch: Architecture,
@@ -92,7 +92,7 @@ macro_rules! generate_buildinfo {
             }
 
             /// Returns the package version
-            pub fn pkgver(&self) -> &Version {
+            pub fn pkgver(&self) -> &FullVersion {
                 &self.pkgver
             }
 
@@ -195,7 +195,7 @@ impl BuildInfoV1 {
         pkgbase: Name,
         pkgbuild_sha256sum: Checksum<Sha256>,
         pkgname: Name,
-        pkgver: Version,
+        pkgver: FullVersion,
     ) -> Result<Self, Error> {
         if format.inner().major != 1 {
             return Err(Error::WrongSchemaVersion(format));
@@ -327,7 +327,7 @@ pkgver = 1:1.0.0-1
             Name::new("foo")?,
             Checksum::<Sha256>::calculate_from("foo"),
             Name::new("foo")?,
-            Version::from_str("1:1.0.0-1")?,
+            FullVersion::from_str("1:1.0.0-1")?,
         )?;
         Ok(())
     }
@@ -347,7 +347,7 @@ pkgver = 1:1.0.0-1
                 Name::new("foo")?,
                 Checksum::<Sha256>::calculate_from("foo"),
                 Name::new("foo")?,
-                Version::from_str("1:1.0.0-1")?,
+                FullVersion::from_str("1:1.0.0-1")?,
             )
             .is_err()
         );

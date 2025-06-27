@@ -11,6 +11,7 @@ use alpm_types::{
     Backup,
     BuildDate,
     ExtraData,
+    FullVersion,
     Group,
     InstalledSize,
     License,
@@ -20,7 +21,6 @@ use alpm_types::{
     PackageRelation,
     Packager,
     Url,
-    Version,
 };
 use clap::{Args, Parser, Subcommand, ValueEnum};
 use strum::Display;
@@ -164,7 +164,7 @@ pub struct V1CreateArgs {
     ///
     /// The pkgver value must follow the alpm-pkgver format (see `man 7 alpm-pkgver`).
     #[arg(env = "PKGINFO_PKGVER", long, value_name = "PKGVER")]
-    pub pkgver: Version,
+    pub pkgver: FullVersion,
 
     /// The package description to use in the PKGINFO
     ///
