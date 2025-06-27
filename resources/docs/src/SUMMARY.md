@@ -46,6 +46,7 @@
     - [PKGINFOv2](./specifications/PKGINFOv2.5.md)
   - [SRCINFO](./specifications/SRCINFO.5.md)
 - [Concepts](./specifications/concepts.md)
+  - [alpm](./specifications/alpm.7.md)
   - [alpm-architecture](./specifications/alpm-architecture.7.md)
   - [alpm-comparison](./specifications/alpm-comparison.7.md)
   - [alpm-epoch](./specifications/alpm-epoch.7.md)
