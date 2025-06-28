@@ -16,11 +16,19 @@ use winnow::{
 };
 
 use crate::{Epoch, Error, PackageRelease, PackageVersion};
+#[cfg(doc)]
+use crate::{FullVersion, MinimalVersion};
 
 /// A version of a package
 ///
-/// A `Version` tracks an optional `Epoch`, a `PackageVersion` and an optional `PackageRelease`.
+/// A [`Version`] generically tracks an optional [`Epoch`], a [`PackageVersion`] and an optional
+/// [`PackageRelease`].
 /// See [alpm-package-version] for details on the format.
+///
+/// # Notes
+///
+/// - If [`PackageRelease`] should be mandatory for your use-case, use [`FullVersion`] instead.
+/// - If [`PackageRelease`] should not be used in your use-case, use [`MinimalVersion`] instead.
 ///
 /// ## Examples
 /// ```
