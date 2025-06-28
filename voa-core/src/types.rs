@@ -10,8 +10,7 @@ use std::{
 
 use strum::IntoStaticStr;
 
-use crate::error::Error;
-pub use crate::load_path::LoadPath;
+use crate::{error::Error, load_path::LoadPath};
 
 /// The Os identifier is used to uniquely identify an Operating System (OS), it relies on data
 /// provided by [`os-release`].
@@ -361,11 +360,12 @@ impl VerifierSourcePath {
             .join(self.technology.path_segment())
     }
 
-    /// The [`LoadPath`] of the [`VerifierSourcePath`].
-    ///
-    /// TODO: maybe return just a &Path, and keep the [LoadPath] type private?
-    pub fn load_path(&self) -> &LoadPath {
-        &self.load_path
+    /// The load path of the [`VerifierSourcePath`].
+    pub fn load_path(&self) -> &Path {
+        // Note: the LoadPath type is handled as an internal implementation detail,
+        // we're just returning a &Path
+
+        &self.load_path.path
     }
 
     /// The [`Os`] of the [`VerifierSourcePath`].

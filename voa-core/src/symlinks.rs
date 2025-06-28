@@ -111,7 +111,7 @@ impl VerifierSourcePath {
     ) -> std::io::Result<PathBuf> {
         // Canonicalized base load path
         // (any potential internal symlinks of this top level "load_path" are not checked)
-        let base_path = self.load_path().path.canonicalize()?;
+        let base_path = self.load_path().canonicalize()?;
 
         /// Append a segment to a path and ensure that the resulting path conforms
         /// to the VOA symlink constraints.

@@ -62,7 +62,7 @@ impl LoadPathMode {
 
                 let paths = LOAD_PATHS_SYSTEM_MODE
                     .iter()
-                    .map(|&path| path.into())
+                    .map(|(path, ephemeral)| LoadPath::new(path, *ephemeral))
                     .collect();
 
                 LoadPathList { paths }
@@ -72,14 +72,14 @@ impl LoadPathMode {
 
                 if let Some(proj_dirs) = directories::ProjectDirs::from("voa", "VOA", "VOA") {
                     // 1. $XDG_CONFIG_HOME/voa/
-                    paths.push((proj_dirs.config_dir().to_path_buf(), false).into());
+                    paths.push(LoadPath::new(proj_dirs.config_dir().to_path_buf(), false));
 
                     // 2. the ./voa/ directory in each directory defined in $XDG_CONFIG_DIRS
                     let xdg = xdg::BaseDirectories::with_prefix("voa");
 
                     xdg.get_config_dirs()
                         .into_iter()
-                        .for_each(|dir| paths.push((dir, false).into()));
+                        .for_each(|dir| paths.push(LoadPath::new(dir, false)));
 
                     // 3. $XDG_RUNTIME_DIR/voa/
                     if let Some(runtime_dir) = proj_dirs.runtime_dir() {
@@ -107,7 +107,7 @@ impl LoadPathMode {
 
                     data_dirs
                         .into_iter()
-                        .for_each(|dir| paths.push((dir, false).into()));
+                        .for_each(|dir| paths.push(LoadPath::new(dir, false)));
                 }
 
                 LoadPathList { paths }
@@ -117,26 +117,20 @@ impl LoadPathMode {
 }
 
 /// A VOA load path.
+///
+/// This type is an internal implementation detail of voa-core, and not exposed publicly.
 #[derive(Clone, Debug, PartialEq)]
-pub struct LoadPath {
+pub(crate) struct LoadPath {
     pub(crate) path: PathBuf,
     ephemeral: bool,
 }
 
-impl From<(&str, bool)> for LoadPath {
-    fn from(value: (&str, bool)) -> Self {
-        LoadPath {
-            path: value.0.into(),
-            ephemeral: value.1,
-        }
-    }
-}
-
-impl From<(PathBuf, bool)> for LoadPath {
-    fn from(value: (PathBuf, bool)) -> Self {
-        LoadPath {
-            path: value.0,
-            ephemeral: value.1,
+impl LoadPath {
+    /// Construct a new LoadPath from a `path` and the `ephemeral` flag
+    pub(crate) fn new(path: impl Into<PathBuf>, ephemeral: bool) -> Self {
+        Self {
+            path: path.into(),
+            ephemeral,
         }
     }
 }
