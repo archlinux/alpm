@@ -71,18 +71,6 @@ impl Version {
         }
     }
 
-    /// Create a new Version, which is guaranteed to have a PackageRelease
-    pub fn with_pkgrel(version: &str) -> Result<Self, Error> {
-        let version = Version::from_str(version)?;
-        if version.pkgrel.is_some() {
-            Ok(version)
-        } else {
-            Err(Error::MissingComponent {
-                component: "pkgrel",
-            })
-        }
-    }
-
     /// Compare two Versions and return a number
     ///
     /// The comparison algorithm is based on libalpm/ pacman's vercmp behavior.
@@ -280,22 +268,6 @@ mod tests {
             err_msg.contains(err_snippet),
             "Error:\n=====\n{err_msg}\n=====\nshould contain snippet:\n\n{err_snippet}"
         );
-    }
-
-    /// Test that version parsing works/fails for the special case where a pkgrel is expected.
-    /// This is done by calling the `with_pkgrel` function directly.
-    #[rstest]
-    #[case(
-        "1.0.0-1",
-        Ok(Version{
-            pkgver: PackageVersion::new("1.0.0".to_string()).unwrap(),
-            pkgrel: Some(PackageRelease::new(1, None)),
-            epoch: None,
-        })
-    )]
-    #[case("1.0.0", Err(Error::MissingComponent { component: "pkgrel" }))]
-    fn version_with_pkgrel(#[case] version: &str, #[case] result: Result<Version, Error>) {
-        assert_eq!(result, Version::with_pkgrel(version));
     }
 
     /// Ensure that versions are properly serialized back to their string representation.
