@@ -101,6 +101,7 @@ pub use version::{
     BuildToolVersion,
     Epoch,
     FullVersion,
+    MinimalVersion,
     PackageRelease,
     PackageVersion,
     SchemaVersion,
