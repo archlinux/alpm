@@ -2,6 +2,8 @@
 //!
 //! This module detects the appropriate load path mode, and produces a [LoadPathList]
 //! for the current context.
+//!
+//! See <https://uapi-group.org/specifications/specs/file_hierarchy_for_the_verification_of_os_artifacts/#load-paths>
 
 use std::path::PathBuf;
 

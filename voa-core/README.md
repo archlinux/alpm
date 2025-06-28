@@ -2,7 +2,7 @@
 
 VOA is mechanism for the storage and retrieval of cryptography technology-agnostic signature verifiers.
 
-For specification draft see: <https://github.com/uapi-group/specifications/pull/134>.
+For specification draft see: <https://uapi-group.org/specifications/specs/file_hierarchy_for_the_verification_of_os_artifacts/>.
 
 ## Purpose
 

@@ -48,6 +48,8 @@ impl From<std::io::Error> for Error {
 ///
 /// Trailing colons must be omitted for all parts that are unset
 /// (e.g. `arch` instead of `arch::::`).
+///
+/// See <https://uapi-group.org/specifications/specs/file_hierarchy_for_the_verification_of_os_artifacts/#os>
 #[derive(Clone, Debug, PartialEq)]
 pub struct Os {
     id: String,
@@ -131,6 +133,8 @@ impl Os {
 /// The combination of [`Role`] and [`Mode`] reflects one directory layer in the VOA directory
 /// hierarchy. Purpose paths have values such as: `packages`, `trust-anchor-packages`,
 /// `repository-metadata`.
+///
+/// See <https://uapi-group.org/specifications/specs/file_hierarchy_for_the_verification_of_os_artifacts/#purpose>
 #[derive(Clone, Debug, PartialEq)]
 pub struct Purpose {
     role: Role,
@@ -170,6 +174,8 @@ impl Purpose {
 /// A [`Role`] is always combined with a [`Mode`] and in combination forms a [`Purpose`].
 /// E.g. [`Role::Packages`] combined with [`Mode::TrustAnchor`] specify the purpose path
 /// `trust-anchor-packages`.
+///
+/// See <https://uapi-group.org/specifications/specs/file_hierarchy_for_the_verification_of_os_artifacts/#purpose>
 #[derive(Clone, Debug, strum::Display, PartialEq)]
 pub enum Role {
     /// Identifies verifiers used for verifying package signatures.
@@ -217,6 +223,8 @@ impl CustomRole {
 /// A [`Mode`] is always combined with a [`Role`] and in combination forms a [`Purpose`].
 /// E.g. [`Role::Packages`] combined with [`Mode::TrustAnchor`] specify the purpose path
 /// `trust-anchor-packages`.
+///
+/// See <https://uapi-group.org/specifications/specs/file_hierarchy_for_the_verification_of_os_artifacts/#purpose>
 #[derive(Clone, Copy, Debug, IntoStaticStr, PartialEq)]
 pub enum Mode {
     /// Identifies verifiers that are used to directly validate signatures on artifacts.
@@ -235,6 +243,8 @@ pub enum Mode {
 /// used in the context of the packages purpose (e.g. "core").
 ///
 /// If no specific context is required, the context `Default` must be used.
+///
+/// See <https://uapi-group.org/specifications/specs/file_hierarchy_for_the_verification_of_os_artifacts/#context>
 #[derive(Clone, Debug, Default, PartialEq)]
 pub enum Context {
     /// The default context.
@@ -281,6 +291,8 @@ impl AsRef<str> for CustomContext {
 ///
 /// Technology-specific backends implement the logic for each supported verification technology
 /// in VOA.
+///
+/// See <https://uapi-group.org/specifications/specs/file_hierarchy_for_the_verification_of_os_artifacts/#technology>
 #[derive(Clone, Debug, IntoStaticStr, PartialEq)]
 pub enum Technology {
     /// The [OpenPGP] technology.
