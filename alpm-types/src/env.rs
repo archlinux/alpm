@@ -14,7 +14,7 @@ use winnow::{
     token::one_of,
 };
 
-use crate::{Architecture, Name, Version, error::Error};
+use crate::{Architecture, FullVersion, Name, error::Error};
 
 /// Recognizes the `!` boolean operator in option names.
 ///
@@ -444,41 +444,55 @@ impl Display for PackageOption {
 
 /// Information on an installed package in an environment
 ///
-/// Tracks a `Name`, `Version` (which is guaranteed to have a `PackageRelease`) and `Architecture`
-/// of a package in an environment.
+/// Tracks the [`Name`], [`FullVersion`] and an [`Architecture`] of a package in an environment.
 ///
-/// ## Examples
+/// # Examples
+///
 /// ```
 /// use std::str::FromStr;
 ///
-/// use alpm_types::InstalledPackage;
-///
-/// assert!(InstalledPackage::from_str("foo-bar-1:1.0.0-1-any").is_ok());
-/// assert!(InstalledPackage::from_str("foo-bar-1:1.0.0-1").is_err());
-/// assert!(InstalledPackage::from_str("foo-bar-1:1.0.0-any").is_err());
-/// assert!(InstalledPackage::from_str("1:1.0.0-1-any").is_err());
+/// use alpm_types::{Architecture, FullVersion, InstalledPackage, Name};
+/// # fn main() -> Result<(), alpm_types::Error> {
+/// assert_eq!(
+///     InstalledPackage::from_str("foo-bar-1:1.0.0-1-any")?,
+///     InstalledPackage::new(
+///         Name::new("foo-bar")?,
+///         FullVersion::from_str("1:1.0.0-1")?,
+///         Architecture::Any
+///     )
+/// );
+/// assert_eq!(
+///     InstalledPackage::from_str("foo-bar-1.0.0-1-any")?,
+///     InstalledPackage::new(
+///         Name::new("foo-bar")?,
+///         FullVersion::from_str("1.0.0-1")?,
+///         Architecture::Any
+///     )
+/// );
+/// # Ok(())
+/// # }
 /// ```
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct InstalledPackage {
     name: Name,
-    version: Version,
+    version: FullVersion,
     architecture: Architecture,
 }
 
 impl InstalledPackage {
-    /// Create a new InstalledPackage
-    pub fn new(name: Name, version: Version, architecture: Architecture) -> Result<Self, Error> {
-        Ok(InstalledPackage {
+    /// Creates a new [`InstalledPackage`].
+    pub fn new(name: Name, version: FullVersion, architecture: Architecture) -> Self {
+        InstalledPackage {
             name,
             version,
             architecture,
-        })
+        }
     }
 }
 
 impl FromStr for InstalledPackage {
     type Err = Error;
-    /// Create an Installed from a string
+    /// Create an [`InstalledPackage`] from a string slice.
     fn from_str(s: &str) -> Result<InstalledPackage, Self::Err> {
         const DELIMITER: char = '-';
         let mut parts = s.rsplitn(4, DELIMITER);
@@ -507,7 +521,7 @@ impl FromStr for InstalledPackage {
 
         Ok(InstalledPackage {
             name: Name::new(&name)?,
-            version: Version::with_pkgrel(version.as_str())?,
+            version: FullVersion::from_str(version.as_str())?,
             architecture,
         })
     }
@@ -522,6 +536,7 @@ impl Display for InstalledPackage {
 #[cfg(test)]
 mod tests {
     use rstest::rstest;
+    use testresult::TestResult;
 
     use super::*;
 
@@ -649,22 +664,26 @@ mod tests {
     #[case(
         "foo-bar-1:1.0.0-1-any",
         Ok(InstalledPackage{
-            name: Name::new("foo-bar").unwrap(),
-            version: Version::from_str("1:1.0.0-1").unwrap(),
+            name: Name::new("foo-bar")?,
+            version: FullVersion::from_str("1:1.0.0-1")?,
             architecture: Architecture::Any,
         }),
     )]
     #[case("foo-bar-1:1.0.0-1", Err(strum::ParseError::VariantNotFound.into()))]
     #[case("1:1.0.0-1-any", Err(Error::MissingComponent { component: "name" }))]
-    fn installed_new(#[case] s: &str, #[case] result: Result<InstalledPackage, Error>) {
+    fn installed_package_new(
+        #[case] s: &str,
+        #[case] result: Result<InstalledPackage, Error>,
+    ) -> TestResult {
         assert_eq!(InstalledPackage::from_str(s), result);
+        Ok(())
     }
 
     #[rstest]
     #[case("foo-1:1.0.0-bar-any", "invalid package release")]
     #[case("packagename-30-0.1oops-any", "expected end of package release value")]
     #[case("package$with$dollars-30-0.1-any", "invalid character in package name")]
-    fn installed_new_parse_error(#[case] input: &str, #[case] error_snippet: &str) {
+    fn installed_package_from_str_parse_error(#[case] input: &str, #[case] error_snippet: &str) {
         let result = InstalledPackage::from_str(input);
         assert!(result.is_err(), "Expected InstalledPackage parsing to fail");
         let err = result.unwrap_err();
