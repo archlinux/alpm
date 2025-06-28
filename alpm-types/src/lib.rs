@@ -103,6 +103,7 @@ pub use version::{
     comparison::{VersionSegment, VersionSegments},
     pkg_full::FullVersion,
     pkg_generic::Version,
+    pkg_minimal::MinimalVersion,
     requirement::{VersionComparison, VersionRequirement},
     schema::SchemaVersion,
 };
