@@ -1313,6 +1313,7 @@ impl From<&MinimalVersion> for Version {
 /// # Note
 ///
 /// - If [`PackageRelease`] should be optional for your use-case, use [`Version`] instead.
+/// - If [`PackageRelease`] should not be used in your use-case, use [`MinimalVersion`] instead.
 ///
 /// # Examples
 ///
