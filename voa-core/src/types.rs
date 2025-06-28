@@ -8,30 +8,10 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use strum::{Display, IntoStaticStr};
+use strum::IntoStaticStr;
 
+use crate::error::Error;
 pub use crate::load_path::LoadPath;
-
-/// Error type for voa-core
-///
-/// TODO: use thiserror?
-#[derive(Debug, Display)]
-pub enum Error {
-    /// Illegal data for an identifier (e.g. using illegal characters)
-    IllegalIdentifier,
-
-    /// Illegal symlink found during canonicalization
-    IllegalSymlink,
-
-    /// Wrapper for a [std::io::Error]
-    Ioerror(std::io::Error),
-}
-
-impl From<std::io::Error> for Error {
-    fn from(value: std::io::Error) -> Self {
-        Self::Ioerror(value)
-    }
-}
 
 /// The Os identifier is used to uniquely identify an Operating System (OS), it relies on data
 /// provided by [`os-release`].
@@ -69,7 +49,7 @@ impl Os {
     /// ```
     /// use voa_core::types::Os;
     ///
-    /// # fn main() -> Result<(), voa_core::types::Error> {
+    /// # fn main() -> Result<(), voa_core::error::Error> {
     /// // Arch Linux is a rolling release distribution.
     /// Os::new("arch".into(), None, None, None, None);
     ///
@@ -149,7 +129,7 @@ impl Purpose {
     /// ```
     /// use voa_core::types::{Mode, Purpose, Role};
     ///
-    /// # fn main() -> Result<(), voa_core::types::Error> {
+    /// # fn main() -> Result<(), voa_core::error::Error> {
     /// Purpose::new(Role::Packages, Mode::ArtifactVerifier);
     /// # Ok(())
     /// # }

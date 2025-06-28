@@ -9,10 +9,7 @@ use std::{
 
 use log::{trace, warn};
 
-use crate::{
-    load_path::LoadPath,
-    types::{Error, VerifierSourcePath},
-};
+use crate::{error::Error, load_path::LoadPath, types::VerifierSourcePath};
 
 /// The result of resolving a symlink in a VOA structure.
 ///
