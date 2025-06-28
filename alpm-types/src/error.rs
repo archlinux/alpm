@@ -119,6 +119,18 @@ pub enum Error {
     #[error("Deprecated license: {0}")]
     DeprecatedLicense(String),
 
+    /// A component is invalid and cannot be used.
+    #[error("Invalid component {component} encountered while {context}")]
+    InvalidComponent {
+        /// The invalid component
+        component: &'static str,
+        /// The context in which the error occurs.
+        ///
+        /// This is meant to complete the sentence "Invalid component {component} encountered
+        /// while ".
+        context: &'static str,
+    },
+
     /// An invalid OpenPGP v4 fingerprint
     #[error("Invalid OpenPGP v4 fingerprint, only 40 uppercase hexadecimal characters are allowed")]
     InvalidOpenPGPv4Fingerprint,
