@@ -399,7 +399,7 @@ pub struct Verifier {
     /// Specification of the path from which the verifier was loaded
     pub(crate) verifier_path: VerifierSourcePath,
 
-    /// Canonicalized path of the verifier file, in [`Verifier::path`]
+    /// Canonicalized path of the verifier file, in [`Verifier::canonicalized`]
     pub(crate) canonicalized: PathBuf,
 }
 
@@ -424,7 +424,7 @@ impl Verifier {
     }
 
     /// The canonicalized [`Path`] representation of this [`Verifier`]
-    pub fn path(&self) -> &Path {
+    pub fn canonicalized(&self) -> &Path {
         &self.canonicalized
     }
 

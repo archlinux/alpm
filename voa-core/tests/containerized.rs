@@ -3,7 +3,6 @@
 #![cfg(feature = "_containerized-integration-test")]
 
 use std::{
-    ffi::OsStr,
     fs::{File, create_dir_all},
     io::{Read, Write},
     os::unix::fs::symlink,
@@ -14,7 +13,7 @@ use simplelog::{ColorChoice, Config, LevelFilter, TermLogger, TerminalMode};
 use testresult::TestResult;
 use voa_core::{
     Voa,
-    types::{Context, CustomContext, Mode, Os, Purpose, Role, Technology},
+    types::{Context, CustomContext, Mode, Os, Purpose, Role, Technology, Verifier},
 };
 
 fn init_logger() {
@@ -30,12 +29,19 @@ fn init_logger() {
     }
 }
 
-/// Objects to create during a VOA test setup:
-/// Paths, (empty) files and symlinks.
+/// Objects to create for a VOA test setup
 #[derive(Debug)]
 enum TestObject {
+    /// A filesystem path
     Path(&'static str),
+
+    /// An empty file
     File(&'static str),
+
+    /// A file with specific content
+    FileWithContent(&'static str, &'static [u8]),
+
+    /// A symlink (from the second path to the first path)
     SymLink(&'static str, &'static str),
 }
 
@@ -50,11 +56,24 @@ fn setup(objs: &[TestObject]) -> std::io::Result<()> {
             TestObject::File(f) => {
                 File::create(f)?;
             }
+            TestObject::FileWithContent(f, data) => {
+                let mut f = File::create(f)?;
+                f.write_all(data)?;
+            }
             TestObject::SymLink(orig, link) => symlink(orig, link)?,
         }
     }
 
     Ok(())
+}
+
+/// Check if the canonical paths in "verifiers" match the paths in "expected"
+fn compare_expected(verifiers: &[Verifier], expected: &[&str]) {
+    let paths: Vec<_> = verifiers
+        .iter()
+        .map(|v| v.canonicalized().to_str().unwrap())
+        .collect();
+    assert_eq!(&paths, expected);
 }
 
 /// List information about verifiers in the system load paths
@@ -85,9 +104,16 @@ fn list_verifiers() -> TestResult {
         Technology::OpenPGP,
     );
 
-    assert_eq!(verifiers.len(), 2);
-
     warn!("Found verifiers: {verifiers:#?}");
+
+    assert_eq!(verifiers.len(), 2);
+    compare_expected(
+        &verifiers,
+        &[
+            "/usr/local/share/voa/arch/packages/default/openpgp/foo.pgp",
+            "/usr/local/share/voa/arch/packages/default/openpgp/foo.pgp",
+        ],
+    );
 
     Ok(())
 }
@@ -187,7 +213,7 @@ fn masking() -> TestResult {
 
     let voa = Voa::init();
 
-    // Try to load verifiers, which should return no results because there is a masking
+    // Verifiers should not contain "foo.pgp" because it is masked in one load path
     let verifiers = voa.lookup(
         Os::new("arch".to_string(), None, None, None, None)?,
         Purpose::new(Role::Packages, Mode::ArtifactVerifier),
@@ -195,8 +221,13 @@ fn masking() -> TestResult {
         Technology::OpenPGP,
     );
 
+    warn!("Found verifiers: {verifiers:#?}");
+
     assert_eq!(verifiers.len(), 1);
-    assert_eq!(verifiers[0].path().file_name(), Some(OsStr::new("bar.pgp")));
+    compare_expected(
+        &verifiers,
+        &["/etc/voa/arch/packages/default/openpgp/bar.pgp"],
+    );
 
     Ok(())
 }
@@ -234,10 +265,13 @@ fn symlink_multihop_file() -> TestResult {
         Technology::OpenPGP,
     );
 
-    assert_eq!(verifiers.len(), 1);
-    assert_eq!(verifiers[0].path().file_name(), Some(OsStr::new("foo.pgp")));
+    warn!("Found verifiers: {verifiers:#?}");
 
-    // TODO: assert that we found the full canonicalized path
+    assert_eq!(verifiers.len(), 1);
+    compare_expected(
+        &verifiers,
+        &["/etc/voa/arch/packages/default/openpgp/foo.pgp"],
+    );
 
     Ok(())
 }
@@ -311,10 +345,13 @@ fn symlink_multihop_dir() -> TestResult {
         Technology::OpenPGP,
     );
 
-    assert_eq!(verifiers.len(), 1);
-    assert_eq!(verifiers[0].path().file_name(), Some(OsStr::new("foo.pgp")));
+    warn!("Found verifiers: {verifiers:#?}");
 
-    // TODO: assert that we found the full canonicalized path
+    assert_eq!(verifiers.len(), 1);
+    compare_expected(
+        &verifiers,
+        &["/etc/voa/arch/packages/default/openpgp/foo.pgp"],
+    );
 
     Ok(())
 }
@@ -363,12 +400,15 @@ fn read_verifier() -> TestResult {
     init_logger();
 
     // Set up the verifier and write data into it
-    const SETUP: &[TestObject] = &[TestObject::Path("/etc/voa/arch/packages/default/openpgp/")];
+    const SETUP: &[TestObject] = &[
+        TestObject::Path("/etc/voa/arch/packages/default/openpgp/"),
+        TestObject::FileWithContent(
+            "/etc/voa/arch/packages/default/openpgp/foo.pgp",
+            b"hello world",
+        ),
+    ];
 
     setup(SETUP)?;
-
-    let mut file = File::create("/etc/voa/arch/packages/default/openpgp/foo.pgp")?;
-    file.write_all(b"hello world")?;
 
     // Find the verifier and read its data
     let voa = Voa::init();
@@ -379,6 +419,8 @@ fn read_verifier() -> TestResult {
         Context::Default,
         Technology::OpenPGP,
     );
+
+    warn!("Found verifiers: {verifiers:#?}");
 
     assert_eq!(verifiers.len(), 1);
 
