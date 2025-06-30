@@ -11,7 +11,17 @@ use std::{
 use crate::load_path::LoadPath;
 pub use crate::{
     error::Error,
-    identifiers::{Context, CustomRole, Mode, Os, Purpose, Role, Technology},
+    identifiers::{
+        Context,
+        CustomContext,
+        CustomRole,
+        CustomTechnology,
+        Mode,
+        Os,
+        Purpose,
+        Role,
+        Technology,
+    },
 };
 
 /// Specifies a logical location in a VOA directory structure.

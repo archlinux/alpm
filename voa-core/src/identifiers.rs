@@ -12,6 +12,18 @@ use strum::IntoStaticStr;
 
 use crate::error::Error;
 
+/// Allowed characters: [a-z], [0-9], "_", "." and "-"
+fn legal_identifier_part(s: &str) -> bool {
+    for char in s.chars() {
+        if !char.is_ascii_lowercase() && !char.is_ascii_digit() && !['_', '-', '.'].contains(&char)
+        {
+            return false;
+        }
+    }
+
+    true
+}
+
 /// The Os identifier is used to uniquely identify an Operating System (OS), it relies on data
 /// provided by [`os-release`].
 ///
@@ -75,8 +87,35 @@ impl Os {
             return Err(Error::IllegalIdentifier);
         }
 
-        // FIXME: check validity of inputs based on limitation of allowed characters
-        // legal character sets for all parts: ("0–9", "a–z", ".", "_" and "-")
+        // Check validity of inputs based on limitation of allowed characters
+
+        if !legal_identifier_part(&id) {
+            return Err(Error::IllegalIdentifier);
+        }
+
+        if let Some(version_id) = &version_id {
+            if !legal_identifier_part(version_id) {
+                return Err(Error::IllegalIdentifier);
+            }
+        }
+
+        if let Some(variant_id) = &variant_id {
+            if !legal_identifier_part(variant_id) {
+                return Err(Error::IllegalIdentifier);
+            }
+        }
+
+        if let Some(image_id) = &image_id {
+            if !legal_identifier_part(image_id) {
+                return Err(Error::IllegalIdentifier);
+            }
+        }
+
+        if let Some(image_version) = &image_version {
+            if !legal_identifier_part(image_version) {
+                return Err(Error::IllegalIdentifier);
+            }
+        }
 
         Ok(Self {
             id,
@@ -319,4 +358,11 @@ impl AsRef<str> for CustomTechnology {
     fn as_ref(&self) -> &str {
         self.technology.as_ref()
     }
+}
+
+#[test]
+fn legal_identifier_part_chars() {
+    assert!(legal_identifier_part("arch"));
+    assert!(legal_identifier_part("foo-0.99_1"));
+    assert!(!legal_identifier_part("a&b"));
 }
