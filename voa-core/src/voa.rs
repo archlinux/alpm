@@ -43,7 +43,7 @@ impl Voa {
     /// # Examples
     ///
     /// ```
-    /// # fn main() -> Result<(), voa_core::error::Error> {
+    /// # fn main() -> Result<(), voa_core::Error> {
     /// use voa_core::{
     ///     Voa,
     ///     types::{Context, Mode, Os, Purpose, Role, Technology},
