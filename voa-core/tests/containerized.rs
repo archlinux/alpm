@@ -13,7 +13,8 @@ use simplelog::{ColorChoice, Config, LevelFilter, TermLogger, TerminalMode};
 use testresult::TestResult;
 use voa_core::{
     Voa,
-    types::{Context, CustomContext, Mode, Os, Purpose, Role, Technology, Verifier},
+    identifiers::{Context, CustomContext, Mode, Os, Purpose, Role, Technology},
+    verifier::Verifier,
 };
 
 fn init_logger() {

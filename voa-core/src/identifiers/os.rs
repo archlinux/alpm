@@ -36,7 +36,7 @@ impl Os {
     /// # Examples
     ///
     /// ```
-    /// use voa_core::types::Os;
+    /// use voa_core::identifiers::Os;
     ///
     /// # fn main() -> Result<(), voa_core::Error> {
     /// // Arch Linux is a rolling release distribution.

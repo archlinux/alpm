@@ -28,7 +28,7 @@ impl Purpose {
     /// # Examples
     ///
     /// ```
-    /// use voa_core::types::{Mode, Purpose, Role};
+    /// use voa_core::identifiers::{Mode, Purpose, Role};
     ///
     /// # fn main() -> Result<(), voa_core::Error> {
     /// Purpose::new(Role::Packages, Mode::ArtifactVerifier);
@@ -120,4 +120,18 @@ pub enum Mode {
     /// directly validate signatures on artifacts.
     #[strum(serialize = "trust-anchor")]
     TrustAnchor,
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::identifiers::{CustomRole, Role};
+
+    #[test]
+    fn role_to_string() {
+        assert_eq!(Role::Image.to_string(), "image");
+
+        let foo = CustomRole::new("foo".to_string()).unwrap();
+        let custom_role = Role::Custom(foo);
+        assert_eq!(custom_role.to_string(), "foo");
+    }
 }

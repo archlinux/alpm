@@ -8,20 +8,10 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use crate::load_path::LoadPath;
-pub use crate::{
-    error::Error,
-    identifiers::{
-        Context,
-        CustomContext,
-        CustomRole,
-        CustomTechnology,
-        Mode,
-        Os,
-        Purpose,
-        Role,
-        Technology,
-    },
+pub use crate::error::Error;
+use crate::{
+    identifiers::{Context, Os, Purpose, Technology},
+    load_path::LoadPath,
 };
 
 /// Specifies a logical location in a VOA directory structure.
@@ -135,13 +125,4 @@ impl Verifier {
     pub fn open(&self) -> std::io::Result<File> {
         File::open(&self.canonicalized)
     }
-}
-
-#[test]
-fn role_to_string() {
-    assert_eq!(Role::Image.to_string(), "image");
-
-    let foo = CustomRole::new("foo".to_string()).unwrap();
-    let custom_role = Role::Custom(foo);
-    assert_eq!(custom_role.to_string(), "foo");
 }

@@ -1,4 +1,4 @@
-//! Error type
+//! Error type for voa-core
 
 use strum::Display;
 

@@ -1,5 +1,7 @@
-//! Signature verifiers are located in directory structures described by the VOA file hierarchy.
+//! Signature verifiers are located in a directory structure described by the VOA file hierarchy.
 //! The hierarchy consists of four distinct subdirectory layers, each represented by an identifier.
+//!
+//! This module provides types for each of these identifier layers.
 //!
 //! See <https://uapi-group.org/specifications/specs/file_hierarchy_for_the_verification_of_os_artifacts/#identifiers>
 

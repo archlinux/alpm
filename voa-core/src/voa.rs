@@ -3,9 +3,10 @@ use std::{ffi::OsStr, fs::read_dir};
 use log::{debug, trace, warn};
 
 use crate::{
+    identifiers::{Context, Os, Purpose, Technology},
     load_path::{LoadPathList, LoadPathMode},
     symlinks::{ResolveSym, resolve_symlink},
-    types::{Context, Os, Purpose, Technology, Verifier, VerifierSourcePath},
+    verifier::{Verifier, VerifierSourcePath},
 };
 
 /// Access to the "File Hierarchy for the Verification of OS Artifacts (VOA)".
@@ -46,7 +47,7 @@ impl Voa {
     /// # fn main() -> Result<(), voa_core::Error> {
     /// use voa_core::{
     ///     Voa,
-    ///     types::{Context, Mode, Os, Purpose, Role, Technology},
+    ///     identifiers::{Context, Mode, Os, Purpose, Role, Technology},
     /// };
     ///
     /// let voa = Voa::init(); // Auto-detects System or User mode
