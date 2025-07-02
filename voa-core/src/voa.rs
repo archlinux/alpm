@@ -1,4 +1,4 @@
-use std::fs::read_dir;
+use std::{ffi::OsStr, fs::read_dir};
 
 use log::{debug, trace, warn};
 
@@ -156,8 +156,13 @@ impl Voa {
                             //
                             //  -> check if the current load path is writable, otherwise ... warn?
 
-                            // FIXME: unwrap in filename handling
-                            masked_names.push(entry.file_name().to_str().unwrap().to_string());
+                            match entry.file_name().to_str() {
+                                None => warn!("Masked file name {entry:?} contains invalid UTF-8"),
+                                Some(name) => {
+                                    masked_names.push(name.to_string());
+                                }
+                            }
+
                             continue;
                         }
                         ResolveSym::Dir(d) => {
@@ -175,8 +180,6 @@ impl Voa {
 
                 trace!("Checking verifier file {path:?}");
 
-                // FIXME: resolve further symlinks here?
-
                 if path.is_file() {
                     verifiers.push(Verifier {
                         verifier_path: verifier_path.clone(),
@@ -190,11 +193,14 @@ impl Voa {
 
         verifiers
             .into_iter()
-            // Filter out any masked verifiers
             .filter(|verifier| {
-                // FIXME: unwraps
-                let filename = verifier.filename().unwrap().to_str().unwrap();
-                !masked_names.contains(&filename.to_string())
+                if let Some(filename) = verifier.filename().and_then(OsStr::to_str) {
+                    // Filter out masked verifiers
+                    !masked_names.contains(&filename.to_string())
+                } else {
+                    // Filename is not valid UTF-8 -> filter out
+                    false
+                }
             })
             .collect()
     }

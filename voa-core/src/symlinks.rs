@@ -48,11 +48,11 @@ pub(crate) fn resolve_symlink(
     // Loop through chains of symlinks.
     // Check legality of each intermediate hop!
     loop {
-        let link_target = read_link(&path).unwrap(); // FIXME: map to our error
+        let link_target = read_link(&path)?;
 
         // Are we in a symlink cycle?
         if paths_seen.contains(&link_target) {
-            return Err(Error::IllegalSymlink); // FIXME: signal cycle
+            return Err(Error::CyclicSymlinks);
         }
 
         // If this is a masking symlink, we're done and return
@@ -68,8 +68,7 @@ pub(crate) fn resolve_symlink(
             .iter()
             .any(|p| link_target.starts_with(&p.path))
         {
-            trace!("⤷ Illegal symlink target"); // FIXME: message should go in error
-            return Err(Error::IllegalSymlink);
+            return Err(Error::IllegalSymlinkTarget);
         }
 
         let meta = match std::fs::symlink_metadata(&link_target) {

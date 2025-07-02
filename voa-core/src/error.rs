@@ -11,6 +11,12 @@ pub enum Error {
     /// Illegal symlink found during canonicalization
     IllegalSymlink,
 
+    /// Illegal symlink target found during canonicalization
+    IllegalSymlinkTarget,
+
+    /// Cyclic symlinks found during canonicalization
+    CyclicSymlinks,
+
     /// Wrapper for a [std::io::Error]
     Ioerror(std::io::Error),
 }
