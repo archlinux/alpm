@@ -98,16 +98,12 @@ pub use system::{Architecture, ElfArchitectureFormat};
 
 mod version;
 pub use version::{
-    BuildToolVersion,
-    Epoch,
-    PackageRelease,
-    PackageVersion,
-    SchemaVersion,
-    Version,
-    VersionComparison,
-    VersionRequirement,
-    VersionSegment,
-    VersionSegments,
+    base::{Epoch, PackageRelease, PackageVersion},
+    buildtool::BuildToolVersion,
+    comparison::{VersionSegment, VersionSegments},
+    pkg_generic::Version,
+    requirement::{VersionComparison, VersionRequirement},
+    schema::SchemaVersion,
 };
 
 /// Public re-exports for use with [`SchemaVersion`].
