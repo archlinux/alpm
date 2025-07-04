@@ -10,11 +10,13 @@ use std::path::PathBuf;
 /// See [Error::source](https://doc.rust-lang.org/std/error/trait.Error.html#method.source) for
 /// more information.
 #[derive(Debug, thiserror::Error, PartialEq)]
-#[allow(missing_docs)]
 pub enum Error {
     /// An invalid integer
     #[error("Invalid integer (caused by {kind:?})")]
-    InvalidInteger { kind: std::num::IntErrorKind },
+    InvalidInteger {
+        /// The reason for the invalid integer.
+        kind: std::num::IntErrorKind,
+    },
 
     /// An invalid enum variant
     #[error("Invalid variant ({0})")]
@@ -40,29 +42,49 @@ pub enum Error {
     ///
     /// TODO: Use the error source when the issue above is resolved.
     #[error("Invalid semver ({kind})")]
-    InvalidSemver { kind: String },
+    InvalidSemver {
+        /// The reason for the invalid semantic version.
+        kind: String,
+    },
 
-    /// Value contains invalid characters
+    /// Value contains an invalid character
     #[error("Value contains invalid characters: {invalid_char:?}")]
-    ValueContainsInvalidChars { invalid_char: char },
+    ValueContainsInvalidChars {
+        /// The invalid character
+        invalid_char: char,
+    },
 
     /// Value length is incorrect
     #[error("Incorrect length, got {length} expected {expected}")]
-    IncorrectLength { length: usize, expected: usize },
+    IncorrectLength {
+        /// The incorrect length.
+        length: usize,
+        /// The expected length.
+        expected: usize,
+    },
 
     /// Value is missing a delimiter character
     #[error("Value is missing the required delimiter: {delimiter}")]
-    DelimiterNotFound { delimiter: char },
+    DelimiterNotFound {
+        /// The required delimiter.
+        delimiter: char,
+    },
 
     /// Value does not match the restrictions
     #[error("Does not match the restrictions ({restrictions:?})")]
-    ValueDoesNotMatchRestrictions { restrictions: Vec<String> },
+    ValueDoesNotMatchRestrictions {
+        /// The list of restrictions that cannot be met.
+        restrictions: Vec<String>,
+    },
 
     /// A validation regex does not match the value
     #[error("Value '{value}' does not match the '{regex_type}' regex: {regex}")]
     RegexDoesNotMatch {
+        /// The value that does not match.
         value: String,
+        /// The type of regular expression applied to the `value`.
         regex_type: String,
+        /// The regular expression applied to the `value`.
         regex: String,
     },
 
@@ -72,7 +94,10 @@ pub enum Error {
 
     /// Missing field in a value
     #[error("Missing component: {component}")]
-    MissingComponent { component: &'static str },
+    MissingComponent {
+        /// The component that is missing.
+        component: &'static str,
+    },
 
     /// An invalid absolute path (i.e. does not start with a `/`)
     #[error("The path is not absolute: {0}")]
