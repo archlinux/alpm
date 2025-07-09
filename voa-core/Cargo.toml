@@ -1,0 +1,31 @@
+[package]
+authors.workspace = true
+description = "File Hierarchy for the Verification of OS Artifacts (VOA)"
+edition.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+license.workspace = true
+name = "voa-core"
+readme.workspace = true
+repository.workspace = true
+version = "0.1.0"
+
+[dependencies]
+directories = "6"
+log.workspace = true
+strum.workspace = true
+thiserror.workspace = true
+uzers = "0.12"
+xdg = "3"
+
+[lints]
+workspace = true
+
+[features]
+_containerized-integration-test = []
+
+[dev-dependencies]
+insta.workspace = true
+rstest.workspace = true
+simplelog.workspace = true
+testresult.workspace = true
