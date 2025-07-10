@@ -140,7 +140,7 @@ pub struct ArchProperty<T> {
 ///           ^^^^^
 ///         This is the suffix with `i386` being the architecture.
 /// ```
-fn architecture_suffix(input: &mut &str) -> ModalResult<Option<Architecture>> {
+pub fn architecture_suffix(input: &mut &str) -> ModalResult<Option<Architecture>> {
     // First up, check if there's an underscore.
     // If there's none, there's no suffix and we can return early.
     let underscore = opt('_').parse_next(input)?;
