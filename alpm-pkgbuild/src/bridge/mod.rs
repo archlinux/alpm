@@ -139,3 +139,118 @@ pub fn run_bridge_script(pkgbuild_path: &Path) -> Result<String, Error> {
 
     String::from_utf8(output.stdout).map_err(Error::from)
 }
+
+#[cfg(test)]
+mod tests {
+    use std::{fs::File, io::Write};
+
+    use tempfile::tempdir;
+    use testresult::{TestError, TestResult};
+
+    use super::*;
+
+    /// Make sure the `run_bridge_script` function fails when called on a directory.
+    #[test]
+    fn fail_on_directory() -> TestResult {
+        // Create an empty temporary directory
+        let tempdir = tempdir()?;
+        let temp_path = tempdir.path();
+
+        let result = run_bridge_script(temp_path);
+        let Err(error) = result else {
+            return Err(TestError::from(
+                "Expected an error, got {result:?} instead.",
+            ));
+        };
+
+        let Error::InvalidFile { path, context } = error else {
+            return Err(TestError::from(format!(
+                "Expected an InvalidFile error, got {error:?} instead."
+            )));
+        };
+
+        assert_eq!(temp_path, path);
+        assert_eq!(context, "Path doesn't point to a file.");
+
+        Ok(())
+    }
+
+    /// Make sure the `run_bridge_script` function fails when called on a non-existing file.
+    #[test]
+    fn fail_on_missing_file() -> TestResult {
+        // Create an empty temporary directory
+        let tempdir = tempdir()?;
+        let temp_path = tempdir.path().join("Nonexistent");
+
+        let result = run_bridge_script(&temp_path);
+        let Err(error) = result else {
+            return Err(TestError::from(
+                "Expected an error, got {result:?} instead.",
+            ));
+        };
+
+        let Error::IoPath { path, context, .. } = error else {
+            return Err(TestError::from(format!(
+                "Expected an IoPath error, got {error:?} instead."
+            )));
+        };
+
+        assert_eq!(temp_path, path);
+        assert_eq!(context, "checking for PKGBUILD");
+
+        Ok(())
+    }
+
+    /// Make sure the `run_bridge_script` function fails when called on a non-existing file.
+    #[test]
+    fn fail_on_no_filename() -> TestResult {
+        // Create an empty temporary directory
+        let tempdir = tempdir()?;
+        // Paths that end with `..` will return `None` as a filename in Rust.
+        let temp_path = tempdir.path().join("..");
+
+        let result = run_bridge_script(&temp_path);
+        let Err(error) = result else {
+            return Err(TestError::from(
+                "Expected an error, got {result:?} instead.",
+            ));
+        };
+
+        let Error::InvalidFile { path, context } = error else {
+            return Err(TestError::from(format!(
+                "Expected an InvalidFile error, got {error:?} instead."
+            )));
+        };
+
+        assert_eq!(temp_path, path);
+        assert_eq!(context, "No filename provided in path");
+
+        Ok(())
+    }
+
+    /// Test what happens
+    #[test]
+    fn fail_on_bridge_failure() -> TestResult {
+        // Create an empty temporary directory
+        let tempdir = tempdir()?;
+        let temp_path = tempdir.path().join("PKGBUILd");
+
+        let mut file = File::create_new(&temp_path)?;
+        file.write_all("<->#!%@!Definitely some invalid bash syntax.".as_bytes())?;
+
+        let result = run_bridge_script(&temp_path);
+        let Err(error) = result else {
+            return Err(TestError::from(
+                "Expected an error, got {result:?} instead.",
+            ));
+        };
+
+        let Error::ScriptExecutionError { .. } = error else {
+            return Err(TestError::from(format!(
+                "Expected an ScriptExecutionError error, got {error:?} instead."
+            )));
+        };
+
+        Ok(())
+    }
+}
