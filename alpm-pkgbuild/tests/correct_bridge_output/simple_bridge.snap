@@ -1,0 +1,14 @@
+---
+source: alpm-pkgbuild/tests/correct.rs
+description: simple PKGBUILD -> SRCINFO generation.
+expression: raw_bridge_output
+---
+VAR GLOBAL ARRAY arch "x86_64"
+VAR GLOBAL ARRAY license "MIT"
+VAR GLOBAL STRING pkgbase "example"
+VAR GLOBAL STRING pkgdesc "A minimalistic example."
+VAR GLOBAL STRING pkgname "example"
+VAR GLOBAL STRING pkgrel "1"
+VAR GLOBAL STRING pkgver "0.1.0"
+VAR GLOBAL STRING url "https://archlinux.org/"
+FUNCTION package
