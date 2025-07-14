@@ -1,0 +1,6 @@
+---
+source: alpm-pkgbuild/tests/invalid.rs
+description: cleared_architecture PKGBUILD -> SRCINFO generation.
+expression: err.to_string()
+---
+Tried to clear value for keyword 'arch', which is not allowed.

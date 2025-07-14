@@ -1,0 +1,13 @@
+#!/bin/bash
+# Disable unused variable warnings:
+# shellcheck disable=2034
+
+pkgname=example
+pkgver=0.1.0
+pkgrel=1
+arch=(x86_64)
+
+package() {
+    # Architectures are not allowed to be cleared
+    arch=()
+}

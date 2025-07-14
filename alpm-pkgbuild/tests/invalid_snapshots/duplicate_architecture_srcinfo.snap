@@ -1,0 +1,6 @@
+---
+source: alpm-pkgbuild/tests/invalid.rs
+description: duplicate_architecture PKGBUILD -> SRCINFO generation.
+expression: err.to_string()
+---
+Found duplicate architecture: x86_64

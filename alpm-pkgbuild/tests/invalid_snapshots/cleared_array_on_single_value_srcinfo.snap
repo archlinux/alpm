@@ -1,0 +1,6 @@
+---
+source: alpm-pkgbuild/tests/invalid.rs
+description: cleared_array_on_single_value PKGBUILD -> SRCINFO generation.
+expression: err.to_string()
+---
+Found array of values for keyword 'url' that expects a single value:
