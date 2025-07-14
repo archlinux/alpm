@@ -207,3 +207,26 @@ fn parse_value_array<'a, O, P: Parser<&'a str, O, ErrMode<ContextError>>>(
         .map(|item| parser.parse(item).map_err(|err| (keyword.clone(), err)))
         .collect::<Result<Vec<O>, (Keyword, ParseError<&'a str, ContextError>)>>()?)
 }
+
+#[cfg(test)]
+mod tests {
+    use testresult::TestResult;
+    use winnow::token::rest;
+
+    use super::*;
+    use crate::bridge::Keyword;
+
+    /// Ensure that an empty single value will return `None` when passed into
+    /// [`parse_optional_value`].
+    #[test]
+    pub fn test_empty_optional_value() -> TestResult {
+        let keyword = Keyword::simple("test");
+        let value = Value::Single("".to_string());
+
+        let value = parse_optional_value(&keyword, &value, rest)?;
+
+        assert!(value.is_none(), "Empty string values should return `None`.");
+
+        Ok(())
+    }
+}
