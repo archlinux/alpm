@@ -1,0 +1,14 @@
+#!/bin/bash
+# Disable unused variable warnings:
+# shellcheck disable=2034
+
+pkgname=example
+pkgver=0.1.0
+pkgrel=1
+arch=(x86_64)
+
+package() {
+    # URL is a single value, now clear the value with an empty array.
+    # This should result in an error.
+    url=()
+}

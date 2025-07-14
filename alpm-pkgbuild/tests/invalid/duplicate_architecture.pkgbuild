@@ -1,0 +1,13 @@
+#!/bin/bash
+# Disable unused variable warnings:
+# shellcheck disable=2034
+
+pkgname=example
+pkgver=0.1.0
+pkgrel=1
+# Architectures must be unique
+arch=(x86_64 x86_64)
+
+package() {
+    echo "Nothing happening inside here."
+}
