@@ -114,3 +114,5 @@ pub use version::{
 pub mod semver_version {
     pub use semver::Version;
 }
+
+rust_i18n::i18n!("locales", fallback = "en");

@@ -37,6 +37,7 @@ thiserror.workspace = true
 time = "0.3.22"
 url = { version = "2.4.0", features = ["serde"] }
 winnow.workspace = true
+rust-i18n.workspace = true
 
 [dev-dependencies]
 insta.workspace = true

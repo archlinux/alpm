@@ -2,6 +2,8 @@
 
 use std::path::PathBuf;
 
+use rust_i18n::t;
+
 use crate::Version;
 #[cfg(doc)]
 use crate::{MetadataFileName, PackageFileName};
@@ -10,21 +12,21 @@ use crate::{MetadataFileName, PackageFileName};
 #[derive(Debug, thiserror::Error, PartialEq)]
 pub enum Error {
     /// A string is not a valid [`MetadataFileName`].
-    #[error("Invalid package metadata file name: {name}")]
+    #[error("{msg}: {name}", msg = t!("error.package.invalid_metadata_name"))]
     InvalidMetadataFilename {
         /// The invalid file name.
         name: String,
     },
 
     /// A path is not a valid [`PackageFileName`].
-    #[error("The path {path:?} is not a valid alpm-package file name")]
+    #[error("{msg}: {path:?}", msg = t!("error.package.invalid_package_file_name"))]
     InvalidPackageFileNamePath {
         /// The file path that is not valid.
         path: PathBuf,
     },
 
     /// A path is not a valid [`PackageFileName`].
-    #[error("The version \"{version}\" is not valid for an alpm-package file name")]
+    #[error("{msg}: \"{version}\"", msg = t!("error.package.invalid_version"))]
     InvalidPackageFileNameVersion {
         /// The version that is not valid.
         version: Version,

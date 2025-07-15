@@ -1,5 +1,7 @@
 use std::path::PathBuf;
 
+use rust_i18n::t;
+
 /// The library's error type
 ///
 /// These errors are usually parsing errors and they each contain a context
@@ -12,26 +14,26 @@ use std::path::PathBuf;
 #[derive(Debug, thiserror::Error, PartialEq)]
 pub enum Error {
     /// An invalid integer
-    #[error("Invalid integer (caused by {kind:?})")]
+    #[error("{msg}", msg = t!("error.invalid_integer", kind = format!("{kind:?}")))]
     InvalidInteger {
         /// The reason for the invalid integer.
         kind: std::num::IntErrorKind,
     },
 
     /// An invalid enum variant
-    #[error("Invalid variant ({0})")]
+    #[error("{msg} ({0})", msg = t!("error.invalid_variant"))]
     InvalidVariant(#[from] strum::ParseError),
 
     /// An invalid email address
-    #[error("Invalid e-mail ({0})")]
+    #[error("{msg} ({0})", msg = t!("error.invalid_email"))]
     InvalidEmail(#[from] email_address::Error),
 
     /// An invalid URL
-    #[error("Invalid URL ({0})")]
+    #[error("{msg} ({0})", msg = t!("error.invalid_url"))]
     InvalidUrl(#[from] url::ParseError),
 
     /// An invalid license
-    #[error("Invalid license ({0})")]
+    #[error("{msg} ({0})", msg = t!("error.invalid_license"))]
     InvalidLicense(#[from] spdx::ParseError),
 
     /// An invalid semantic version string
@@ -41,21 +43,21 @@ pub enum Error {
     /// See: <https://github.com/dtolnay/semver/issues/326>
     ///
     /// TODO: Use the error source when the issue above is resolved.
-    #[error("Invalid semver ({kind})")]
+    #[error("{msg} ({kind})", msg = t!("error.invalid_semver"))]
     InvalidSemver {
         /// The reason for the invalid semantic version.
         kind: String,
     },
 
     /// Value contains an invalid character
-    #[error("Value contains invalid characters: {invalid_char:?}")]
+    #[error("{msg} ({invalid_char})", msg = t!("error.contains_invalid_chars"))]
     ValueContainsInvalidChars {
         /// The invalid character
         invalid_char: char,
     },
 
     /// Value length is incorrect
-    #[error("Incorrect length, got {length} expected {expected}")]
+    #[error("{msg}", msg = t!("error.incorrect_length", length = length, expected = expected))]
     IncorrectLength {
         /// The incorrect length.
         length: usize,
@@ -64,21 +66,21 @@ pub enum Error {
     },
 
     /// Value is missing a delimiter character
-    #[error("Value is missing the required delimiter: {delimiter}")]
+    #[error("{msg}: {delimiter}", msg = t!("error.missing_delimiter"))]
     DelimiterNotFound {
         /// The required delimiter.
         delimiter: char,
     },
 
     /// Value does not match the restrictions
-    #[error("Does not match the restrictions ({restrictions:?})")]
+    #[error("{msg} ({restrictions:?})", msg = t!("error.restriction_mismatch"))]
     ValueDoesNotMatchRestrictions {
         /// The list of restrictions that cannot be met.
         restrictions: Vec<String>,
     },
 
     /// A validation regex does not match the value
-    #[error("Value '{value}' does not match the '{regex_type}' regex: {regex}")]
+    #[error("{msg}: {regex}", msg = t!("error.regex_mismatch", value = value, regex_type = regex_type))]
     RegexDoesNotMatch {
         /// The value that does not match.
         value: String,
@@ -89,61 +91,61 @@ pub enum Error {
     },
 
     /// A winnow parser for a type didn't work and produced an error.
-    #[error("Parser failed with the following error:\n{0}")]
+    #[error("{msg}:\n{0}", msg = t!("error.parser_failed"))]
     ParseError(String),
 
     /// Missing field in a value
-    #[error("Missing component: {component}")]
+    #[error("{msg}: {component}", msg = t!("error.missing_component"))]
     MissingComponent {
         /// The component that is missing.
         component: &'static str,
     },
 
     /// An invalid absolute path (i.e. does not start with a `/`)
-    #[error("The path is not absolute: {0}")]
+    #[error("{msg}: {0}", msg = t!("error.path_not_absolute"))]
     PathNotAbsolute(PathBuf),
 
     /// An invalid relative path (i.e. starts with a `/`)
-    #[error("The path is not relative: {0}")]
+    #[error("{msg}: {0}", msg = t!("error.path_not_relative"))]
     PathNotRelative(PathBuf),
 
     /// File name contains invalid characters
-    #[error("File name ({0}) contains invalid characters: {1:?}")]
+    #[error("{msg}: {0} ({1:?})", msg = t!("error.invalid_file_name_chars"))]
     FileNameContainsInvalidChars(PathBuf, char),
 
     /// File name is empty
-    #[error("File name is empty")]
+    #[error("{msg}", msg = t!("error.empty_file_name"))]
     FileNameIsEmpty,
 
     /// A deprecated license
-    #[error("Deprecated license: {0}")]
+    #[error("{msg}: {0}", msg = t!("error.deprecated_license"))]
     DeprecatedLicense(String),
 
     /// An invalid OpenPGP v4 fingerprint
-    #[error("Invalid OpenPGP v4 fingerprint, only 40 uppercase hexadecimal characters are allowed")]
+    #[error("{msg}", msg = t!("error.invalid_openpgp_fingerprint"))]
     InvalidOpenPGPv4Fingerprint,
 
     /// An invalid OpenPGP key ID
-    #[error("The string is not a valid OpenPGP key ID: {0}, must be 16 hexadecimal characters")]
+    #[error("{msg}: {0}", msg = t!("error.invalid_openpgp_key_id"))]
     InvalidOpenPGPKeyId(String),
 
     /// An invalid shared object name (v1)
-    #[error("Invalid shared object name (v1): {0}")]
+    #[error("{msg}: {0}", msg = t!("error.invalid_soname_v1"))]
     InvalidSonameV1(&'static str),
 
     /// A package data error.
-    #[error("Package error: {0}")]
+    #[error("{msg}: {0}", msg = t!("error.package_error"))]
     Package(#[from] crate::PackageError),
 
     /// A string represents an unknown compression algorithm file extension.
-    #[error("Unknown compression algorithm file extension: {value:?}")]
+    #[error("{msg}: {value:?}", msg = t!("error.unknown_compression_ext"))]
     UnknownCompressionAlgorithmFileExtension {
         /// A String representing an unknown compression algorithm file extension.
         value: String,
     },
 
     /// A string represents an unknown file type identifier.
-    #[error("Unknown file type identifier: {value:?}")]
+    #[error("{msg}: {value:?}", msg = t!("error.unknown_file_type"))]
     UnknownFileTypeIdentifier {
         /// A String representing an unknown file type identifier.
         value: String,
