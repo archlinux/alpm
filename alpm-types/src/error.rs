@@ -175,7 +175,6 @@ mod tests {
     use rstest::rstest;
 
     use super::*;
-    use crate::openpgp::PACKAGER_REGEX;
 
     #[rstest]
     #[case(
@@ -201,14 +200,6 @@ mod tests {
         "Invalid integer (caused by InvalidDigit)",
         Error::InvalidInteger {
             kind: IntErrorKind::InvalidDigit
-        }
-    )]
-    #[case(
-        "Value '€i²' does not match the 'packager' regex: ^(?P<name>[\\w\\s\\-().]+) <(?P<email>.*)>$",
-        Error::RegexDoesNotMatch {
-            value: "€i²".to_string(),
-            regex_type: "packager".to_string(),
-            regex: PACKAGER_REGEX.to_string(),
         }
     )]
     #[case(
