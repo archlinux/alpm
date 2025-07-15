@@ -5,9 +5,14 @@ use std::{
 };
 
 use email_address::EmailAddress;
-use lazy_regex::{Lazy, lazy_regex};
-use regex::Regex;
 use serde::{Deserialize, Serialize};
+use winnow::{
+    ModalResult,
+    Parser,
+    combinator::{cut_err, eof, seq},
+    error::{StrContext, StrContextValue},
+    token::take_till,
+};
 
 use crate::Error;
 
@@ -266,9 +271,6 @@ impl Display for OpenPGPv4Fingerprint {
     }
 }
 
-pub(crate) static PACKAGER_REGEX: Lazy<Regex> =
-    lazy_regex!(r"^(?P<name>[\w\s\-().]+) <(?P<email>.*)>$");
-
 /// A packager of a package
 ///
 /// A `Packager` is represented by a User ID (e.g. `"Foobar McFooFace <foobar@mcfooface.org>"`).
@@ -323,35 +325,45 @@ impl Packager {
     pub fn email(&self) -> &EmailAddress {
         &self.email
     }
+
+    /// Parses a [`Packager`] from a string slice.
+    ///
+    /// Consumes all of its input.
+    ///
+    /// # Examples
+    ///
+    /// See [`Self::from_str`] for code examples.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if `input` does not represent a valid [`Packager`].
+    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+        seq!(Self {
+            // The name that precedes the email address
+            name: cut_err(take_till(1.., '<'))
+                .map(|s: &str| s.trim().to_string())
+                .context(StrContext::Label("packager name")),
+            // The '<' delimiter that marks the start of the email string
+            _: cut_err('<').context(StrContext::Label("or missing opening delimiter '<' for email address")),
+            // The email address, which is validated by the EmailAddress struct.
+            email: cut_err(
+                take_till(1.., '>')
+                    .try_map(EmailAddress::from_str))
+                    .context(StrContext::Label("Email address")
+                ),
+            // The '>' delimiter that marks the end of the email string
+            _: cut_err('>').context(StrContext::Label("or missing closing delimiter '>' for email address")),
+            _: eof.context(StrContext::Expected(StrContextValue::Description("end of packager string"))),
+        })
+        .parse_next(input)
+    }
 }
 
 impl FromStr for Packager {
     type Err = Error;
     /// Create a Packager from a string
     fn from_str(s: &str) -> Result<Packager, Self::Err> {
-        if let Some(captures) = PACKAGER_REGEX.captures(s) {
-            if captures.name("name").is_some() && captures.name("email").is_some() {
-                let email = EmailAddress::from_str(captures.name("email").unwrap().as_str())?;
-                Ok(Packager {
-                    name: captures.name("name").unwrap().as_str().to_string(),
-                    email,
-                })
-            } else {
-                Err(Error::MissingComponent {
-                    component: if captures.name("name").is_none() {
-                        "name"
-                    } else {
-                        "email"
-                    },
-                })
-            }
-        } else {
-            Err(Error::RegexDoesNotMatch {
-                value: s.to_string(),
-                regex_type: "packager".to_string(),
-                regex: PACKAGER_REGEX.to_string(),
-            })
-        }
+        Ok(Self::parser.parse(s)?)
     }
 }
 
@@ -364,7 +376,7 @@ impl Display for Packager {
 #[cfg(test)]
 mod tests {
     use rstest::rstest;
-    use testresult::TestResult;
+    use testresult::{TestError, TestResult};
 
     use super::*;
 
@@ -467,35 +479,36 @@ mod tests {
         assert_eq!(Packager::from_str(from_str), Ok(packager));
     }
 
-    /// Test that invalid packager email expressions throw the expected email errors.
+    /// Test that invalid packager expressions are detected as such and throw the expected error.
     #[rstest]
-    #[case(
-        "Foobar McFooface <@mcfooface.org>",
-        email_address::Error::LocalPartEmpty
+    #[case::no_name("<foobar@mcfooface.org>", "invalid packager name")]
+    #[case::no_name_and_address_not_wrapped(
+        "foobar@mcfooface.org",
+        "invalid or missing opening delimiter '<' for email address"
     )]
-    #[case(
+    #[case::no_wrapped_address(
+        "Foobar McFooface",
+        "invalid or missing opening delimiter '<' for email address"
+    )]
+    #[case::two_wrapped_addresses(
         "Foobar McFooface <foobar@mcfooface.org> <foobar@mcfoofacemcfooface.org>",
-        email_address::Error::MissingEndBracket
+        "expected end of packager string"
     )]
-    fn invalid_packager_email(#[case] packager: &str, #[case] error: email_address::Error) {
-        assert_eq!(Packager::from_str(packager), Err(error.into()));
-    }
+    #[case::address_without_local_part("Foobar McFooface <@mcfooface.org>", "Local part is empty")]
+    fn invalid_packager(#[case] packager: &str, #[case] expected_error: &str) -> TestResult {
+        let Err(err) = Packager::from_str(packager) else {
+            return Err(TestError::from(format!(
+                "Expected packager string to be invalid: {packager}"
+            )));
+        };
 
-    /// Test that invalid packager expressionare detected as such throw the expected Regex error.
-    #[rstest]
-    #[case("<foobar@mcfooface.org>")]
-    #[case("[foo] <foobar@mcfooface.org>")]
-    #[case("foobar@mcfooface.org")]
-    #[case("Foobar McFooface")]
-    fn invalid_packager_regex(#[case] packager: &str) {
-        assert_eq!(
-            Packager::from_str(packager),
-            Err(Error::RegexDoesNotMatch {
-                value: packager.to_string(),
-                regex_type: "packager".to_string(),
-                regex: PACKAGER_REGEX.to_string(),
-            })
+        let error = err.to_string();
+        assert!(
+            error.contains(expected_error),
+            "Expected error:\n{error}\n\nto contain string:\n{expected_error}"
         );
+
+        Ok(())
     }
 
     #[rstest]
