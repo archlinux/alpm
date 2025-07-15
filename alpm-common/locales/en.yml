@@ -1,0 +1,10 @@
+error:
+  io_path: "I/O error while %{context}"
+  not_a_directory: "The path is not a directory"
+  non_absolute_paths: "The following paths are not absolute"
+  non_relative_paths: "The following paths are not relative"
+  strip_prefix: "Cannot strip prefix from path"
+  context:
+    read_dir: "reading entries of directory"
+    read_entry: "reading entry in directory"
+    stat_file: "getting metadata of file"

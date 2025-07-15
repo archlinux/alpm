@@ -14,6 +14,7 @@ use std::{
 };
 
 use alpm_types::{INSTALL_SCRIPTLET_FILE_NAME, MetadataFileName};
+use rust_i18n::t;
 
 /// An input path.
 ///
@@ -197,18 +198,18 @@ pub fn relative_files(
         let mut paths = Vec::new();
         let entries = read_dir(path).map_err(|source| crate::Error::IoPath {
             path: path.to_path_buf(),
-            context: "reading entries of directory",
+            context: t!("error.context.read_dir").into(),
             source,
         })?;
         for entry in entries {
             let entry = entry.map_err(|source| crate::Error::IoPath {
                 path: path.to_path_buf(),
-                context: "reading entry in directory",
+                context: t!("error.context.read_entry").into(),
                 source,
             })?;
             let meta = entry.metadata().map_err(|source| crate::Error::IoPath {
                 path: entry.path(),
-                context: "getting metadata of file",
+                context: t!("error.context.stat_file").into(),
                 source,
             })?;
 

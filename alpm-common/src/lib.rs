@@ -6,3 +6,5 @@ mod traits;
 pub use error::Error;
 pub use package::input::{InputPath, InputPaths, relative_data_files, relative_files};
 pub use traits::{metadata_file::MetadataFile, schema::FileFormatSchema};
+
+rust_i18n::i18n!("locales", fallback = "en");
