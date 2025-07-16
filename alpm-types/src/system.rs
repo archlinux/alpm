@@ -3,13 +3,7 @@ use std::str::FromStr;
 use alpm_parsers::iter_str_context;
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString, VariantNames};
-use winnow::{
-    ModalResult,
-    Parser,
-    combinator::cut_err,
-    error::{StrContext, StrContextValue},
-    token::rest,
-};
+use winnow::{ModalResult, Parser, combinator::cut_err, error::StrContext, token::rest};
 
 /// CPU architecture
 ///
@@ -101,9 +95,6 @@ impl Architecture {
     pub fn parser(input: &mut &str) -> ModalResult<Architecture> {
         cut_err(rest.try_map(Architecture::from_str))
             .context(StrContext::Label("architecture"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "an alpm-architecture:",
-            )))
             .context_with(iter_str_context!([Architecture::VARIANTS]))
             .parse_next(input)
     }
