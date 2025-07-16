@@ -7,14 +7,13 @@ use std::{
 };
 
 use alpm_parsers::iter_str_context;
-use log::debug;
 use serde::{Deserialize, Serialize};
 use strum::VariantNames;
 use winnow::{
     ModalResult,
     Parser,
     ascii::alphanumeric1,
-    combinator::{cut_err, eof, opt, peek, preceded, repeat, terminated},
+    combinator::{cut_err, eof, opt, peek, preceded, repeat},
     error::{AddContext, ContextError, ErrMode, ParserError, StrContext, StrContextValue},
     stream::Stream,
     token::take_until,
@@ -283,7 +282,6 @@ impl PackageFileName {
     /// # }
     /// ```
     pub fn parser(input: &mut &str) -> ModalResult<Self> {
-        debug!("Recognize PackageFileName in {input:?}");
         // Detect the amount of dashes in input and subsequently in the Name component.
         //
         // Note: This is a necessary step because dashes are used as delimiters between the
@@ -338,7 +336,6 @@ impl PackageFileName {
         )
         .context(StrContext::Label("alpm-package-name"))
         .parse_next(input)?;
-        debug!("Detected Name: {name}");
 
         // Consume leading dash in front of FullVersion, e.g.:
         // "-1:1.0.0-1-x86_64.pkg.tar.zst" -> "1:1.0.0-1-x86_64.pkg.tar.zst"
@@ -354,7 +351,6 @@ impl PackageFileName {
             .take()
             .and_then(cut_err(FullVersion::parser))
             .parse_next(input)?;
-        debug!("Detected FullVersion: {version}");
 
         // Consume leading dash, e.g.:
         // "-x86_64.pkg.tar.zst" -> "x86_64.pkg.tar.zst"
@@ -365,7 +361,6 @@ impl PackageFileName {
         let architecture = take_until(0.., ".")
             .try_map(Architecture::from_str)
             .parse_next(input)?;
-        debug!("Detected Architecture: {architecture}");
 
         // Consume leading dot, e.g.:
         // ".pkg.tar.zst" -> "pkg.tar.zst"
@@ -397,7 +392,7 @@ impl PackageFileName {
         // If input is "", we use no compression.
         let compression = opt(preceded(
             ".",
-            cut_err(terminated(alphanumeric1, eof).try_map(|s| {
+            cut_err(alphanumeric1.try_map(|s| {
                 CompressionAlgorithmFileExtension::from_str(s).map_err(|_source| {
                     crate::Error::UnknownCompressionAlgorithmFileExtension {
                         value: s.to_string(),
@@ -410,7 +405,6 @@ impl PackageFileName {
             ])),
         ))
         .parse_next(input)?;
-        debug!("Detected CompressionAlgorithmFileExtension: {compression:?}");
 
         // Ensure that there are no trailing chars left.
         eof.context(StrContext::Expected(StrContextValue::Description(
