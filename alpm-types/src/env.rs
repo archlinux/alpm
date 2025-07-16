@@ -1,7 +1,6 @@
 use std::{
     fmt::{Display, Formatter},
     str::FromStr,
-    string::ToString,
 };
 
 use alpm_parsers::{iter_char_context, iter_str_context};
@@ -10,8 +9,16 @@ use winnow::{
     ModalResult,
     Parser,
     combinator::{alt, cut_err, eof, fail, opt, peek, repeat},
-    error::{StrContext, StrContextValue::*},
-    token::one_of,
+    error::{
+        AddContext,
+        ContextError,
+        ErrMode,
+        ParserError,
+        StrContext,
+        StrContextValue::{self, *},
+    },
+    stream::Stream,
+    token::{one_of, rest, take_until},
 };
 
 use crate::{Architecture, FullVersion, Name, error::Error};
@@ -481,49 +488,232 @@ pub struct InstalledPackage {
 
 impl InstalledPackage {
     /// Creates a new [`InstalledPackage`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::str::FromStr;
+    ///
+    /// use alpm_types::InstalledPackage;
+    ///
+    /// # fn main() -> Result<(), alpm_types::Error> {
+    /// assert_eq!(
+    ///     "example-1:1.0.0-1-x86_64",
+    ///     InstalledPackage::new("example".parse()?, "1:1.0.0-1".parse()?, "x86_64".parse()?)
+    ///         .to_string()
+    /// );
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn new(name: Name, version: FullVersion, architecture: Architecture) -> Self {
-        InstalledPackage {
+        Self {
             name,
             version,
             architecture,
         }
     }
+
+    /// Returns a reference to the [`Name`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::str::FromStr;
+    ///
+    /// use alpm_types::{InstalledPackage, Name};
+    ///
+    /// # fn main() -> Result<(), alpm_types::Error> {
+    /// let file_name =
+    ///     InstalledPackage::new("example".parse()?, "1:1.0.0-1".parse()?, "x86_64".parse()?);
+    ///
+    /// assert_eq!(file_name.name(), &Name::new("example")?);
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn name(&self) -> &Name {
+        &self.name
+    }
+
+    /// Returns a reference to the [`FullVersion`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::str::FromStr;
+    ///
+    /// use alpm_types::{FullVersion, InstalledPackage};
+    ///
+    /// # fn main() -> Result<(), alpm_types::Error> {
+    /// let file_name =
+    ///     InstalledPackage::new("example".parse()?, "1:1.0.0-1".parse()?, "x86_64".parse()?);
+    ///
+    /// assert_eq!(file_name.version(), &FullVersion::from_str("1:1.0.0-1")?);
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn version(&self) -> &FullVersion {
+        &self.version
+    }
+
+    /// Returns the [`Architecture`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::str::FromStr;
+    ///
+    /// use alpm_types::{Architecture, InstalledPackage};
+    ///
+    /// # fn main() -> Result<(), alpm_types::Error> {
+    /// let file_name =
+    ///     InstalledPackage::new("example".parse()?, "1:1.0.0-1".parse()?, "x86_64".parse()?);
+    ///
+    /// assert_eq!(file_name.architecture(), Architecture::X86_64);
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn architecture(&self) -> Architecture {
+        self.architecture
+    }
+
+    /// Recognizes an [`InstalledPackage`] in a string slice.
+    ///
+    /// Relies on [`winnow`] to parse `input` and recognize the [`Name`], [`FullVersion`], and
+    /// [`Architecture`] components.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if
+    ///
+    /// - the [`Name`] component can not be recognized,
+    /// - the [`FullVersion`] component can not be recognized,
+    /// - or the [`Architecture`] component can not be recognized.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use alpm_types::InstalledPackage;
+    /// use winnow::Parser;
+    ///
+    /// # fn main() -> Result<(), alpm_types::Error> {
+    /// let name = "example-package-1:1.0.0-1-x86_64";
+    /// assert_eq!(name, InstalledPackage::parser.parse(name)?.to_string());
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+        // Detect the amount of dashes in input and subsequently in the Name component.
+        //
+        // This is a necessary step because dashes are used as delimiters between the
+        // components of the file name and the Name component (an alpm-package-name) can contain
+        // dashes, too.
+        // We know that the minimum amount of dashes in a valid alpm-package file name is
+        // three (one dash between the Name, Version, PackageRelease, and Architecture
+        // component each).
+        // We rely on this fact to determine the amount of dashes in the Name component and
+        // thereby the cut-off point between the Name and the Version component.
+        let dashes: usize = input.chars().filter(|char| char == &'-').count();
+
+        if dashes < 2 {
+            let context_error = ContextError::from_input(input)
+                .add_context(
+                    input,
+                    &input.checkpoint(),
+                    StrContext::Label("alpm-package file name"),
+                )
+                .add_context(
+                    input,
+                    &input.checkpoint(),
+                    StrContext::Expected(StrContextValue::Description(
+                        concat!(
+                        "a package name, followed by an alpm-package-version (full or full with epoch) and an architecture.",
+                        "\nAll components must be delimited with a dash ('-')."
+                        )
+                    ))
+                );
+
+            return Err(ErrMode::Cut(context_error));
+        }
+
+        // The (zero or more) dashes in the Name component.
+        let dashes_in_name = dashes.saturating_sub(3);
+
+        // Advance the parser to the dash just behind the Name component, based on the amount of
+        // dashes in the Name, e.g.:
+        // "example-package-1:1.0.0-1-x86_64.pkg.tar.zst" -> "-1:1.0.0-1-x86_64.pkg.tar.zst"
+        let name = cut_err(
+            repeat::<_, _, (), _, _>(
+                dashes_in_name + 1,
+                // Advances to the next `-`.
+                // If multiple `-` are present, the `-` that has been previously advanced to will
+                // be consumed in the next itaration via the `opt("-")`. This enables us to go
+                // **up to** the last `-`, while still consuming all `-` in between.
+                (opt("-"), take_until(0.., "-"), peek("-")),
+            )
+            .take()
+            // example-package
+            .and_then(Name::parser),
+        )
+        .context(StrContext::Label("alpm-package-name"))
+        .parse_next(input)?;
+
+        // Consume leading dash in front of Version, e.g.:
+        // "-1:1.0.0-1-x86_64.pkg.tar.zst" -> "1:1.0.0-1-x86_64.pkg.tar.zst"
+        "-".parse_next(input)?;
+
+        // Advance the parser to beyond the Version component (which contains one dash), e.g.:
+        // "1:1.0.0-1-x86_64.pkg.tar.zst" -> "-x86_64.pkg.tar.zst"
+        let version: FullVersion = cut_err((take_until(0.., "-"), "-", take_until(0.., "-")))
+            .context(StrContext::Label("alpm-package-version"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "an alpm-package-version (full or full with epoch) followed by a `-` and an architecture",
+            )))
+            .take()
+            .and_then(cut_err(FullVersion::parser))
+            .parse_next(input)?;
+
+        // Consume leading dash, e.g.:
+        // "-x86_64.pkg.tar.zst" -> "x86_64.pkg.tar.zst"
+        "-".parse_next(input)?;
+
+        // Advance the parser to beyond the Architecture component, e.g.:
+        // "x86_64.pkg.tar.zst" -> ".pkg.tar.zst"
+        let architecture = rest.and_then(Architecture::parser).parse_next(input)?;
+
+        Ok(Self {
+            name,
+            version,
+            architecture,
+        })
+    }
 }
 
 impl FromStr for InstalledPackage {
     type Err = Error;
-    /// Create an [`InstalledPackage`] from a string slice.
+
+    /// Creates an [`InstalledPackage`] from a string slice.
+    ///
+    /// Delegates to [`InstalledPackage::parser`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if [`InstalledPackage::parser`] fails.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::str::FromStr;
+    ///
+    /// use alpm_types::InstalledPackage;
+    ///
+    /// # fn main() -> Result<(), alpm_types::Error> {
+    /// let filename = "example-package-1:1.0.0-1-x86_64";
+    /// assert_eq!(filename, InstalledPackage::from_str(filename)?.to_string());
+    /// # Ok(())
+    /// # }
+    /// ```
     fn from_str(s: &str) -> Result<InstalledPackage, Self::Err> {
-        const DELIMITER: char = '-';
-        let mut parts = s.rsplitn(4, DELIMITER);
-
-        let architecture = parts.next().ok_or(Error::MissingComponent {
-            component: "architecture",
-        })?;
-        let architecture = architecture.parse()?;
-        let version = {
-            let Some(pkgrel) = parts.next() else {
-                return Err(Error::MissingComponent {
-                    component: "pkgrel",
-                })?;
-            };
-            let Some(epoch_pkgver) = parts.next() else {
-                return Err(Error::MissingComponent {
-                    component: "epoch_pkgver",
-                })?;
-            };
-            epoch_pkgver.to_string() + "-" + pkgrel
-        };
-        let name = parts
-            .next()
-            .ok_or(Error::MissingComponent { component: "name" })?
-            .to_string();
-
-        Ok(InstalledPackage {
-            name: Name::new(&name)?,
-            version: FullVersion::from_str(version.as_str())?,
-            architecture,
-        })
+        Ok(Self::parser.parse(s)?)
     }
 }
 
@@ -663,27 +853,35 @@ mod tests {
     #[rstest]
     #[case(
         "foo-bar-1:1.0.0-1-any",
-        Ok(InstalledPackage{
+        InstalledPackage {
             name: Name::new("foo-bar")?,
             version: FullVersion::from_str("1:1.0.0-1")?,
             architecture: Architecture::Any,
-        }),
+        },
     )]
-    #[case("foo-bar-1:1.0.0-1", Err(strum::ParseError::VariantNotFound.into()))]
-    #[case("1:1.0.0-1-any", Err(Error::MissingComponent { component: "name" }))]
-    fn installed_package_new(
-        #[case] s: &str,
-        #[case] result: Result<InstalledPackage, Error>,
-    ) -> TestResult {
-        assert_eq!(InstalledPackage::from_str(s), result);
+    #[case(
+        "foobar-1.0.0-1-x86_64",
+        InstalledPackage {
+            name: Name::new("foobar")?,
+            version: FullVersion::from_str("1.0.0-1")?,
+            architecture: Architecture::X86_64,
+        },
+    )]
+    fn installed_from_str(#[case] s: &str, #[case] result: InstalledPackage) -> TestResult {
+        assert_eq!(InstalledPackage::from_str(s), Ok(result));
         Ok(())
     }
 
     #[rstest]
     #[case("foo-1:1.0.0-bar-any", "invalid package release")]
+    #[case(
+        "foo-1:1.0.0_any",
+        "expected a package name, followed by an alpm-package-version (full or full with epoch) and an architecture."
+    )]
     #[case("packagename-30-0.1oops-any", "expected end of package release value")]
     #[case("package$with$dollars-30-0.1-any", "invalid character in package name")]
-    fn installed_package_from_str_parse_error(#[case] input: &str, #[case] error_snippet: &str) {
+    #[case("packagename-30-0.1-any*asdf", "invalid architecture")]
+    fn installed_new_parse_error(#[case] input: &str, #[case] error_snippet: &str) {
         let result = InstalledPackage::from_str(input);
         assert!(result.is_err(), "Expected InstalledPackage parsing to fail");
         let err = result.unwrap_err();
