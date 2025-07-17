@@ -1,0 +1,24 @@
+# alpm-lint
+
+This project provides a binary for all linting purposes in the scope of the ALPM project.
+
+All lints and their respective documentation can be found on the official [ALPM lints website](https://alpm.archlinux.page/lints/index.html).
+
+## Documentation
+
+- <https://alpm.archlinux.page/lints/index.html/> specification of all lints that're used in this project.
+- <https://alpm.archlinux.page/rustdoc/alpm_lint/> for development version of the crate
+- <https://docs.rs/alpm-lint/latest/alpm_lint/> for released versions of the crate
+
+## Contributing
+
+Please refer to the [contribution guidelines] to learn how to contribute to this project.
+
+## License
+
+This project can be used under the terms of the [Apache-2.0] or [MIT].
+Contributions to this project, unless noted otherwise, are automatically licensed under the terms of both of those licenses.
+
+[contribution guidelines]: ../CONTRIBUTING.md
+[Apache-2.0]: ../LICENSES/Apache-2.0.txt
+[MIT]: ../LICENSES/MIT.txt
