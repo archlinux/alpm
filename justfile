@@ -404,8 +404,8 @@ install-workspace-binaries:
     ignored_members=(
         alpm-common
         alpm-package
-        alpm-pkgbuild
         alpm-parsers
+        alpm-pkgbuild
         alpm-state-repo
         alpm-types
     )
