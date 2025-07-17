@@ -1,0 +1,1 @@
+../../../../alpm-linting/CHANGELOG.md

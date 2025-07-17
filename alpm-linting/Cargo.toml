@@ -1,0 +1,21 @@
+[package]
+authors.workspace = true
+description = "Library and commandline toolkit for linting of ALPM packaging related files and projects"
+edition.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+license.workspace = true
+name = "alpm-linting"
+readme = "README.md"
+repository.workspace = true
+rust-version.workspace = true
+version = "0.1.0"
+
+[features]
+
+[dependencies]
+
+[dev-dependencies]
+
+[lints]
+workspace = true
