@@ -4,6 +4,7 @@ use std::collections::BTreeMap;
 use alpm_types::{
     Architecture,
     Epoch,
+    FullVersion,
     License,
     MakepkgOption,
     Name,
@@ -67,13 +68,8 @@ pub struct PackageBase {
     pub backups: Vec<RelativePath>,
 
     // These metadata fields are PackageBase specific
-    /// The version of the package
-    pub package_version: PackageVersion,
-    /// The release of the package
-    pub package_release: PackageRelease,
-    /// The epoch of the package
-    pub epoch: Option<Epoch>,
-
+    /// The full version of the `pkgbase`.
+    pub version: FullVersion,
     /// The list of OpenPGP fingerprints of OpenPGP certificates used for the verification of
     /// upstream sources.
     pub pgp_fingerprints: Vec<OpenPGPIdentifier>,
@@ -535,6 +531,7 @@ impl PackageBase {
                 PackageRelease::new(1, None)
             }
         };
+        let version = FullVersion::new(package_version, package_release, epoch);
 
         PackageBase {
             name: parsed.name,
@@ -548,9 +545,7 @@ impl PackageBase {
             groups,
             options,
             backups,
-            package_version,
-            package_release,
-            epoch,
+            version,
             pgp_fingerprints,
             dependencies,
             optional_dependencies,

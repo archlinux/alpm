@@ -1,7 +1,7 @@
 //! Provides fully resolved package metadata derived from SRCINFO data.
 use alpm_types::{
     Architecture,
-    Epoch,
+    FullVersion,
     License,
     MakepkgOption,
     Name,
@@ -9,8 +9,6 @@ use alpm_types::{
     OptionalDependency,
     PackageDescription,
     PackageRelation,
-    PackageRelease,
-    PackageVersion,
     RelationOrSoname,
     RelativePath,
     SkippableChecksum,
@@ -60,12 +58,8 @@ pub struct MergedPackage {
     /// The list of relative paths to files in the package that should be backed up.
     pub backups: Vec<RelativePath>,
 
-    /// The version of the package
-    pub package_version: PackageVersion,
-    /// The release of the package
-    pub package_release: PackageRelease,
-    /// The epoch of the package
-    pub epoch: Option<Epoch>,
+    /// The full version of the package.
+    pub version: FullVersion,
     /// The list of OpenPGP fingerprints of OpenPGP certificates used for the verification of
     /// upstream sources.
     pub pgp_fingerprints: Vec<OpenPGPIdentifier>,
@@ -269,9 +263,7 @@ impl MergedPackage {
             groups: base.groups.clone(),
             options: base.options.clone(),
             backups: base.backups.clone(),
-            package_version: base.package_version.clone(),
-            package_release: base.package_release.clone(),
-            epoch: base.epoch,
+            version: base.version.clone(),
             pgp_fingerprints: base.pgp_fingerprints.clone(),
             dependencies: base.dependencies.clone(),
             optional_dependencies: base.optional_dependencies.clone(),

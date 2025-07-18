@@ -68,12 +68,14 @@ cat > "$SRCINFO_OUTPUT.expected" <<EOF
     "groups": [],
     "options": [],
     "backups": [],
-    "package_version": "1.0.0",
-    "package_release": {
-      "major": 1,
-      "minor": null
+    "version": {
+      "pkgver": "1.0.0",
+      "pkgrel": {
+        "major": 1,
+        "minor": null
+      },
+      "epoch": 1
     },
-    "epoch": 1,
     "pgp_fingerprints": [],
     "dependencies": [
       {
