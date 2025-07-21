@@ -1,6 +1,6 @@
 pkgbase = test
-    pkgver = 1.0.0
+	pkgver = 1.0.0
 	pkgrel = 1
-    # No architecture
+	# No architecture
 
 pkgname = test

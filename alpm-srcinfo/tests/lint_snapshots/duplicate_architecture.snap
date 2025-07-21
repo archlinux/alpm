@@ -1,17 +1,17 @@
 ---
 source: alpm-srcinfo/tests/lints.rs
-description: "pkgbase = test\n    pkgver = 1.0.0\n\tpkgrel = 1\n    arch = x86_64\n    arch = x86_64\n\npkgname = test\n    arch = x86_64\n    arch = x86_64\n"
+description: "pkgbase = test\n\tpkgver = 1.0.0\n\tpkgrel = 1\n\tarch = x86_64\n\tarch = x86_64\n\npkgname = test\n\tarch = x86_64\n\tarch = x86_64\n"
 expression: error_msg
 ---
 Errors while parsing SRCINFO data:
 
 [0] Linter Warning on line 5:
-    5: |     arch = x86_64
+    5: | 	arch = x86_64
 
     Found duplicate architecture declaration: x86_64
 
 ──────────────────────────────
 [1] Linter Warning on line 9:
-    9: |     arch = x86_64
+    9: | 	arch = x86_64
 
     Found duplicate architecture declaration: x86_64

@@ -1,5 +1,5 @@
 pkgbase = test
-    pkgver = 1.0.0
+	pkgver = 1.0.0
 	pkgrel = 1
 
 # Missing pkgname section.

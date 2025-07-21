@@ -1,12 +1,12 @@
 ---
 source: alpm-srcinfo/tests/lints.rs
-description: "pkgbase = test\n    pkgver = 1.0.0\n\tpkgrel = 1\n    arch = any\n    validpgpkeys = 2F2670AC164DB36F\n\npkgname = test\n"
+description: "pkgbase = test\n\tpkgver = 1.0.0\n\tpkgrel = 1\n\tarch = any\n\tvalidpgpkeys = 2F2670AC164DB36F\n\npkgname = test\n"
 expression: error_msg
 ---
 Errors while parsing SRCINFO data:
 
 [0] Linter Warning on line 5:
-    5: |     validpgpkeys = 2F2670AC164DB36F
+    5: | 	validpgpkeys = 2F2670AC164DB36F
 
     OpenPGP Key IDs are highly discouraged, as the length doesn't guarantee uniqueness.
 Use an OpenPGP v4 fingerprint instead.

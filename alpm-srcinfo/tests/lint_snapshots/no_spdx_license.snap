@@ -1,11 +1,11 @@
 ---
 source: alpm-srcinfo/tests/lints.rs
-description: "pkgbase = test\n    pkgver = 1.0.0\n\tpkgrel = 1\n    arch = any\n    license = \"BSD_4*Clause\"\n\npkgname = test\n"
+description: "pkgbase = test\n\tpkgver = 1.0.0\n\tpkgrel = 1\n\tarch = any\n\tlicense = \"BSD_4*Clause\"\n\npkgname = test\n"
 expression: error_msg
 ---
 Errors while parsing SRCINFO data:
 
 [0] Linter Warning on line 5:
-    5: |     license = "BSD_4*Clause"
+    5: | 	license = "BSD_4*Clause"
 
     Found license declaration that's either not in the SPDX format or not supported by SPDX: "BSD_4*Clause"

@@ -1,17 +1,17 @@
 ---
 source: alpm-srcinfo/tests/lints.rs
-description: "pkgbase = test\n    pkgver = 1.0.0\n\tpkgrel = 1\n    arch = any\n    source = https://domain.tld/testing/test.tar.gz\n    # Unsafe digests\n    md5sums = e544e8bb207ed8d5b22ad53c879bcd55\n    sha1sums = 1b0bed1920d3387bc8e6b54859a205dc230985ea\n\npkgname = test\n"
+description: "pkgbase = test\n\tpkgver = 1.0.0\n\tpkgrel = 1\n\tarch = any\n\tsource = https://domain.tld/testing/test.tar.gz\n\t# Unsafe digests\n\tmd5sums = e544e8bb207ed8d5b22ad53c879bcd55\n\tsha1sums = 1b0bed1920d3387bc8e6b54859a205dc230985ea\n\npkgname = test\n"
 expression: error_msg
 ---
 Errors while parsing SRCINFO data:
 
 [0] Linter Warning on line 7:
-    7: |     md5sums = e544e8bb207ed8d5b22ad53c879bcd55
+    7: | 	md5sums = e544e8bb207ed8d5b22ad53c879bcd55
 
     Found cryptographically unsafe checksum type "md5". Its use is discouraged!
 
 ──────────────────────────────
 [1] Linter Warning on line 8:
-    8: |     sha1sums = 1b0bed1920d3387bc8e6b54859a205dc230985ea
+    8: | 	sha1sums = 1b0bed1920d3387bc8e6b54859a205dc230985ea
 
     Found cryptographically unsafe checksum type "sha1". Its use is discouraged!

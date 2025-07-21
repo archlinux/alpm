@@ -1,6 +1,6 @@
 pkgbase = test
-    # The pkgver is definitely **not** valid
-    pkgver = $!@#%1.0.0
+	# The pkgver is definitely **not** valid
+	pkgver = $!@#%1.0.0
 	pkgrel = 1
 
 pkgname = test

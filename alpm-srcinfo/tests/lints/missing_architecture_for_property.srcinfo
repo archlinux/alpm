@@ -1,16 +1,16 @@
 pkgbase = test
-    pkgver = 1.0.0
+	pkgver = 1.0.0
 	pkgrel = 1
-    arch = x86_64
-    # Add a source property for an architecture that isn't specified for `pkgbuild`.
-    source_aarch64 = https://domain.tld/testing/test.tar.gz
+	arch = x86_64
+	# Add a source property for an architecture that isn't specified for `pkgbuild`.
+	source_aarch64 = https://domain.tld/testing/test.tar.gz
 
 pkgname = test
-    arch = aarch64
-    # Add a source property for an architecture that isn't specified for this package.
-    depends_x86_64 = base-devel
+	arch = aarch64
+	# Add a source property for an architecture that isn't specified for this package.
+	depends_x86_64 = base-devel
 
 pkgname = rofl
-    arch = aarch64
-    # Add a source property for an architecture that isn't specified for this package.
-    depends_x86_64 = base-devel
+	arch = aarch64
+	# Add a source property for an architecture that isn't specified for this package.
+	depends_x86_64 = base-devel

@@ -1,7 +1,6 @@
 pkgbase = test
-    pkgver = 1.0.0
+	pkgver = 1.0.0
 	pkgrel = 1
-    arch = my_special_arch
+	arch = my_special_arch
 
 # Missing pkgname section.
-

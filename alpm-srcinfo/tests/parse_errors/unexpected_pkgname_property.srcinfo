@@ -1,7 +1,7 @@
 pkgbase = test
-    pkgver = 1.0.0
+	pkgver = 1.0.0
 	pkgrel = 1
 
 pkgname = test
-    # validpgpkeys is not valid in the context of pkgname
-    validpgpkeys = 4A0C4DFFC02E1A7ED969ED231C2358A25A10D94E
+	# validpgpkeys is not valid in the context of pkgname
+	validpgpkeys = 4A0C4DFFC02E1A7ED969ED231C2358A25A10D94E

@@ -1,12 +1,12 @@
 ---
 source: alpm-srcinfo/tests/parse_errors.rs
-description: "pkgbase = test\n    pkgver = 1.0.0\n\tpkgrel = 1\n    bogus_field = lol\n\npkgname = test\n"
+description: "pkgbase = test\n\tpkgver = 1.0.0\n\tpkgrel = 1\n\tbogus_field = lol\n\npkgname = test\n"
 expression: "format!(\"{error}\")"
 ---
 File parsing error:
-parse error at line 4, column 5
+parse error at line 4, column 2
   |
-4 |     bogus_field = lol
-  |     ^
+4 | 	bogus_field = lol
+  |  ^
 invalid package base property type
 expected one of the allowed pkgbase section properties:, `checkdepends`, `makedepends`, `pkgver`, `pkgrel`, `epoch`, `validpgpkeys`, `depends`, `optdepends`, `provides`, `conflicts`, `replaces`, `pkgdesc`, `url`, `license`, `arch`, `changelog`, `install`, `groups`, `options`, `backup`, `source`, `noextract`, `b2sums`, `md5sums`, `sha1sums`, `sha224sums`, `sha256sums`, `sha384sums`, `sha512sums`
