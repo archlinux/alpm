@@ -36,10 +36,10 @@ use crate::{
 #[serde(into = "String")]
 #[serde(try_from = "String")]
 pub struct PackageFileName {
-    name: Name,
-    version: FullVersion,
-    architecture: Architecture,
-    compression: Option<CompressionAlgorithmFileExtension>,
+    pub(crate) name: Name,
+    pub(crate) version: FullVersion,
+    pub(crate) architecture: Architecture,
+    pub(crate) compression: Option<CompressionAlgorithmFileExtension>,
 }
 
 impl PackageFileName {

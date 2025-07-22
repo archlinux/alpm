@@ -21,7 +21,7 @@ use winnow::{
     token::{one_of, rest, take_until},
 };
 
-use crate::{Architecture, FullVersion, Name, error::Error};
+use crate::{Architecture, FullVersion, Name, PackageFileName, error::Error};
 
 /// Recognizes the `!` boolean operator in option names.
 ///
@@ -685,6 +685,17 @@ impl InstalledPackage {
             version,
             architecture,
         })
+    }
+}
+
+impl From<PackageFileName> for InstalledPackage {
+    /// Creates a [`InstalledPackage`] from a [`PackageFileName`].
+    fn from(value: PackageFileName) -> Self {
+        Self {
+            name: value.name,
+            version: value.version,
+            architecture: value.architecture,
+        }
     }
 }
 
