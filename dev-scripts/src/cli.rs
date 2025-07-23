@@ -23,6 +23,28 @@ pub enum Command {
         #[clap(subcommand)]
         cmd: TestFilesCmd,
     },
+
+    /// Run the `alpm-pkgbuild srcinfo format` command on a PKGBUILD and compare its output with a
+    /// given .SRCINFO file.
+    CompareSrcinfo {
+        /// Path to the PKGBUILD file.
+        #[arg(
+            short,
+            long = "pkgbuild",
+            value_name = "PKGBUILD_PATH",
+            default_value = "./PKGBUILD"
+        )]
+        pkgbuild_path: PathBuf,
+
+        /// Path to the .SRCINFO file.
+        #[arg(
+            short,
+            long = "srcinfo",
+            value_name = "SRCINFO_PATH",
+            default_value = "./.SRCINFO"
+        )]
+        srcinfo_path: PathBuf,
+    },
 }
 
 #[derive(Clone, Copy, Debug, Display, Eq, Parser, PartialEq, ValueEnum)]

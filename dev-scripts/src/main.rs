@@ -1,18 +1,16 @@
 //! The `dev-scripts` CLI tool.
 
-use std::fs::remove_dir_all;
-
 use anyhow::{Context, Result};
 use clap::Parser;
 use cli::Cli;
-use log::{LevelFilter, warn};
+use log::LevelFilter;
 use simplelog::{Config, SimpleLogger};
-use strum::IntoEnumIterator;
-use sync::{PackageRepositories, mirror::MirrorDownloader, pkgsrc::PkgSrcDownloader};
-use testing::TestRunner;
+
+use crate::commands::{compare_source_info, test_files};
 
 mod cli;
 mod cmd;
+mod commands;
 pub mod sync;
 pub mod testing;
 mod ui;
@@ -30,110 +28,11 @@ fn main() -> Result<()> {
     SimpleLogger::init(level, Config::default()).context("Failed to initialize simple logger")?;
 
     match args.cmd {
-        cli::Command::TestFiles { cmd } => match cmd {
-            cli::TestFilesCmd::Test {
-                test_data_dir,
-                repositories,
-                file_type,
-            } => {
-                // Set a default download destination.
-                let test_data_dir = match test_data_dir {
-                    Some(test_data_dir) => test_data_dir,
-                    None => dirs::cache_dir()
-                        .context("Failed to determine home user cache directory.")?
-                        .join("alpm/testing"),
-                };
-                let repositories = PackageRepositories::iter()
-                    .filter(|v| repositories.clone().is_none_or(|r| r.contains(v)))
-                    .collect();
-                let runner = TestRunner {
-                    test_data_dir,
-                    file_type,
-                    repositories,
-                };
-                runner.run_tests()?;
-            }
-            cli::TestFilesCmd::Download {
-                destination,
-                repositories,
-                source,
-            } => {
-                // Set a default download destination.
-                let dest = match destination {
-                    Some(dest) => dest,
-                    None => dirs::cache_dir()
-                        .context("Failed to determine home user cache directory.")?
-                        .join("alpm/testing"),
-                };
-                let repositories = PackageRepositories::iter()
-                    .filter(|v| repositories.clone().is_none_or(|r| r.contains(v)))
-                    .collect();
-
-                match source {
-                    cli::DownloadCmd::PkgSrcRepositories {} => {
-                        let downloader = PkgSrcDownloader { dest };
-                        downloader.download_package_source_repositories()?;
-                    }
-                    cli::DownloadCmd::Databases {
-                        mirror,
-                        force_extract,
-                    } => {
-                        let downloader = MirrorDownloader {
-                            dest,
-                            mirror,
-                            repositories,
-                            extract_all: force_extract,
-                        };
-                        warn!(
-                            "Beginning database retrieval\nIf the process is unexpectedly halted, rerun with `--force-extract` flag"
-                        );
-                        downloader.sync_remote_databases()?;
-                    }
-                    cli::DownloadCmd::Packages {
-                        mirror,
-                        force_extract,
-                    } => {
-                        let downloader = MirrorDownloader {
-                            dest,
-                            mirror,
-                            repositories,
-                            extract_all: force_extract,
-                        };
-                        warn!(
-                            "Beginning package retrieval\nIf the process is unexpectedly halted, rerun with `--force-extract` flag"
-                        );
-                        downloader.sync_remote_packages()?;
-                    }
-                };
-            }
-            cli::TestFilesCmd::Clean {
-                destination,
-                source,
-            } => {
-                // Set a default download destination.
-                let dest = match destination {
-                    Some(dest) => dest,
-                    None => dirs::cache_dir()
-                        .context("Failed to determine home user cache directory.")?
-                        .join("alpm/testing"),
-                };
-
-                match source {
-                    cli::CleanCmd::PkgSrcRepositories => {
-                        remove_dir_all(dest.join("download").join("pkgsrc"))?;
-                        remove_dir_all(dest.join("pkgsrc"))?;
-                    }
-                    cli::CleanCmd::Databases => {
-                        remove_dir_all(dest.join("download").join("databases"))?;
-                        remove_dir_all(dest.join("databases"))?;
-                    }
-                    cli::CleanCmd::Packages => {
-                        remove_dir_all(dest.join("download").join("packages"))?;
-                        remove_dir_all(dest.join("packages"))?;
-                    }
-                };
-            }
-        },
+        cli::Command::TestFiles { cmd } => test_files(cmd)?,
+        cli::Command::CompareSrcinfo {
+            pkgbuild_path,
+            srcinfo_path,
+        } => compare_source_info(pkgbuild_path, srcinfo_path)?,
     }
 
     Ok(())

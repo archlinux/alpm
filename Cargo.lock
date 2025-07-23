@@ -124,7 +124,6 @@ dependencies = [
 name = "alpm-pkgbuild"
 version = "0.1.0"
 dependencies = [
- "alpm-common",
  "alpm-parsers",
  "alpm-srcinfo",
  "alpm-types",
@@ -692,10 +691,13 @@ name = "dev-scripts"
 version = "0.0.0"
 dependencies = [
  "alpm-buildinfo",
+ "alpm-common",
  "alpm-mtree",
+ "alpm-pkgbuild",
  "alpm-pkginfo",
  "alpm-srcinfo",
  "anyhow",
+ "assert_cmd",
  "clap",
  "colored",
  "dirs",
@@ -705,6 +707,7 @@ dependencies = [
  "rayon",
  "reqwest",
  "rstest",
+ "serde_json",
  "simplelog",
  "strum",
  "tempfile",
