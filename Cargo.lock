@@ -60,6 +60,10 @@ dependencies = [
 [[package]]
 name = "alpm-linting"
 version = "0.1.0"
+dependencies = [
+ "clap",
+ "strum",
+]
 
 [[package]]
 name = "alpm-mtree"
