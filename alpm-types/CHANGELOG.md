@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2025-07-24
+
+### Added
+- Impl From<PackageFileName> for InstalledPackage
+- Support constructing `CompressionAlgorithmFileExtension` from path
+- [**breaking**] Use `FullVersion`, not `Version` in `InstalledPackage`
+- [**breaking**] Use `FullVersion`, not `Version` in `PackageFileName`
+- Add `MinimalVersion` for the minimal `alpm-package-version` format
+- Add `FullVersion` for the full `alpm-package-version` format
+
+### Fixed
+- Allow tabs at start of optdepends description
+- Adjust license of `PackageVersion` comparison to LGPL-2.0-or-later
+
+### Other
+- Add version comparison algorithm documentation
+- Add winnow parser for InstalledPackage
+- Clean up PackageFileName parser
+- Better architecture parsing error text
+- Describe `alpm`
+- Use winnow for packager info parsing
+- *(cargo)* Set a new license identifier, independent of the workspace
+- Add information on the use of LGPL-2.0-or-later
+- [**breaking**] Remove `Version::with_pkgrel`
+- [**breaking**] Turn `BuildToolVersion` into an enum
+- Point to `FullVersion` and `MinimalVersion` use-cases in `Version`
+- Split the various version handling types into further modules
+- Move version module to dedicated module directory
+- *(alpm-db-desc)* Generalize that `BASE` may be the same as `NAME`
+- Add specification for `alpm-package-base`
+- Add missing documentation for variants of `Error`
+- *(specification)* Describe the `alpm-repo-desc` file format
+
 ## [0.6.0] - 2025-06-16
 
 ### Added
