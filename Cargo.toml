@@ -31,7 +31,7 @@ resolver = "3"
 alpm-buildinfo = { path = "./alpm-buildinfo", version = "0.3.0" }
 alpm-common = { path = "./alpm-common", version = "0.1.1" }
 alpm-mtree = { path = "./alpm-mtree", version = "0.2.1" }
-alpm-package = { path = "./alpm-package", version = "0.1.0" }
+alpm-package = { path = "./alpm-package", version = "0.2.0" }
 alpm-parsers = { path = "./alpm-parsers", version = "0.2.0" }
 alpm-pkgbuild = { path = "./alpm-pkgbuild", version = "0.1.0" }
 alpm-pkginfo = { path = "./alpm-pkginfo", version = "0.3.0" }

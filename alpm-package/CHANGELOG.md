@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2025-07-24
+
+### Added
+- Support reading package contents
+- Add CompressionDecoder for multi-format decompression
+- [**breaking**] Use `FullVersion`, not `Version` in `BuildInfo` and `PackageInfo`
+- [**breaking**] Use `FullVersion`, not `Version` in `PackageFileName`
+
+### Fixed
+- *(deps)* Update Rust crate bzip2 to 0.6.0
+
 ## [0.1.0] - 2025-06-16
 
 ### Added
