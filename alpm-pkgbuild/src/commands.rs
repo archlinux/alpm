@@ -2,12 +2,7 @@
 
 use std::path::PathBuf;
 
-use alpm_pkgbuild::{
-    bridge::{BridgeOutput, run_bridge_script},
-    cli::OutputFormat,
-    error::Error,
-};
-use alpm_srcinfo::SourceInfoV1;
+use alpm_pkgbuild::{Error, cli::OutputFormat, run_bridge_script, source_info_v1_from_pkgbuild};
 
 /// Run the bridge script on a `PKGBUILD` and return the output.
 ///
@@ -36,8 +31,7 @@ pub fn print_source_info(
     output_format: OutputFormat,
     pretty: bool,
 ) -> Result<(), Error> {
-    let output = BridgeOutput::from_file(&pkgbuild_path)?;
-    let source_info: SourceInfoV1 = output.try_into()?;
+    let source_info = source_info_v1_from_pkgbuild(&pkgbuild_path)?;
 
     match output_format {
         OutputFormat::Json => {
