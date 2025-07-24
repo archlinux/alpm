@@ -1,8 +1,12 @@
 //! This test file contains basic tests to ensure that the alpm-srcinfo CLI behaves as expected.
 use std::{fs::File, io::Write};
 
+use alpm_srcinfo::SourceInfoV1;
 use assert_cmd::Command;
+use tempfile::tempdir;
 use testresult::TestResult;
+
+const TEST_PKGBUILD: &str = include_str!("unit_test_files/normal.pkgbuild");
 
 /// A string slice representing valid [SRCINFO] data.
 ///
@@ -23,6 +27,34 @@ pkgname = example_2
 pkgname = example_aarch64
     arch = aarch64
 "#;
+
+mod create {
+    use super::*;
+
+    /// Run the `srcinfo format` subcommand to convert a PKGBUILD into a .SRCINFO file.
+    #[test]
+    fn format() -> TestResult {
+        // Write the PKGBUILD to a temporary directory
+        let tempdir = tempdir()?;
+        let path = tempdir.path().join("PKGBUILD");
+        let mut file = File::create_new(&path)?;
+        file.write_all(TEST_PKGBUILD.as_bytes())?;
+
+        // Generate the .SRCINFO file from the that PKGBUILD file.
+        let mut cmd = Command::cargo_bin("alpm-srcinfo")?;
+        cmd.args(vec!["create".into(), path.to_string_lossy().to_string()]);
+
+        // Make sure the command was successful and get the output.
+        let output = cmd.assert().success();
+        let output = String::from_utf8_lossy(&output.get_output().stdout);
+
+        let srcinfo = SourceInfoV1::from_string(&output)?.source_info()?;
+
+        assert_eq!(srcinfo.base.name.inner(), "example");
+
+        Ok(())
+    }
+}
 
 mod validate {
     use super::*;

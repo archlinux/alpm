@@ -6,6 +6,7 @@ pub mod cli;
 pub mod commands;
 pub mod error;
 pub mod lints;
+pub mod pkgbuild_bridge;
 pub mod source_info;
 
 pub use error::Error;

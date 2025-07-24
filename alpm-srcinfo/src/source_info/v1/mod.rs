@@ -9,6 +9,7 @@ use std::{
     path::Path,
 };
 
+use alpm_pkgbuild::bridge::BridgeOutput;
 use alpm_types::Architecture;
 use serde::{Deserialize, Serialize};
 use winnow::Parser;
@@ -95,6 +96,34 @@ impl SourceInfoV1 {
         let content = String::from_utf8(buffer)?.to_string();
 
         Self::from_string(&content)
+    }
+
+    /// Creates a [`SourceInfoV1`] from a [`PKGBUILD`] file.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if
+    ///
+    /// - The `PKGBUILD` cannot be read.
+    /// - a required field is not set,
+    /// - a `package` functions exists, but does not correspond to a declared [alpm-split-package],
+    /// - a `package` function without an [alpm-package-name] suffix exists in an
+    ///   [alpm-split-package] setup,
+    /// - a value cannot be turned into its [`alpm_types`] equivalent,
+    /// - multiple values exist for a field that only accepts a singular value,
+    /// - an [alpm-architecture] is duplicated,
+    /// - an [alpm-architecture] is cleared in `package` function,
+    /// - or an [alpm-architecture] suffix is set on a keyword that does not support it.
+    ///
+    /// [`PKGBUILD`]: https://man.archlinux.org/man/PKGBUILD.5
+    /// [alpm-architecture]: https://alpm.archlinux.page/specifications/alpm-architecture.7.html
+    /// [alpm-package-name]: https://alpm.archlinux.page/specifications/alpm-package-name.7.html
+    /// [alpm-split-package]: https://alpm.archlinux.page/specifications/alpm-split-package.7.html
+    pub fn from_pkgbuild(pkgbuild_path: &Path) -> Result<SourceInfoV1, Error> {
+        let output = BridgeOutput::from_file(pkgbuild_path)?;
+        let source_info: SourceInfoV1 = output.try_into()?;
+
+        Ok(source_info)
     }
 
     /// Parses a SRCINFO file's content into a [`SourceInfoV1`] struct.

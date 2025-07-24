@@ -1,7 +1,7 @@
 use std::{fs::remove_dir_all, path::PathBuf};
 
 use alpm_common::MetadataFile;
-use alpm_pkgbuild::{BridgeOutput, Error};
+use alpm_pkgbuild::Error;
 use alpm_srcinfo::{SourceInfo, SourceInfoV1};
 use anyhow::{Context, Result};
 use log::warn;
@@ -151,9 +151,8 @@ pub(crate) fn test_files(cmd: TestFilesCmd) -> Result<()> {
 /// [`PKGBUILD`]: https://man.archlinux.org/man/PKGBUILD.5
 /// [`SRCINFO`]: https://alpm.archlinux.page/specifications/SRCINFO.5.html
 /// [`alpm-pkgbuild-bridge`]: https://gitlab.archlinux.org/archlinux/alpm/alpm-pkgbuild-bridge
-pub fn compare_source_info(pkgbuild_path: PathBuf, srcinfo_path: PathBuf) -> Result<(), Error> {
-    let output = BridgeOutput::from_file(&pkgbuild_path)?;
-    let pkgbuild_source_info: SourceInfoV1 = output.try_into()?;
+pub fn compare_source_info(pkgbuild_path: PathBuf, srcinfo_path: PathBuf) -> Result<()> {
+    let pkgbuild_source_info: SourceInfoV1 = SourceInfoV1::from_pkgbuild(&pkgbuild_path)?;
 
     let source_info = SourceInfo::from_file_with_schema(srcinfo_path, None)?;
     let SourceInfo::V1(source_info) = source_info;

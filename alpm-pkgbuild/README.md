@@ -1,6 +1,6 @@
 # alpm-pkgbuild
 
-A library and command line tool to interact with [PKGBUILD] files used in **A**rch **L**inux **P**ackage **M**anagement (ALPM).
+A library to interact with [PKGBUILD] files used in **A**rch **L**inux **P**ackage **M**anagement (ALPM).
 
 A [PKGBUILD] file is a bash script, that describe all necessary steps and data for creating an [alpm-package].
 It contains metadata and instructions that may describe a single [alpm-package], an [alpm-meta-package], or one or more [alpm-split-packages], built for potentially multiple architectures.
@@ -14,73 +14,12 @@ Make sure to install it beforehand or have it somewhere in your `$PATH`.
 - <https://alpm.archlinux.page/rustdoc/alpm_pkgbuild/> for development version of the crate.
 - <https://docs.rs/alpm-pkgbuild/latest/alpm_pkgbuild/> for released versions of the crate.
 
-## Examples
+## Where is this used?
 
-<!--
-```bash
-# Create a temporary directory for testing.
-test_tmpdir="$(mktemp --directory --suffix '.')"
+This crate is intended solely for use by the `alpm-srcinfo` crate.
+`alpm-pkgbuild` produces an intermediate representation of a PKGBUILD file, which is then handled and converted into a proper `SourceInfoV1` struct by the `alpm-srcinfo` crate.
 
-# Get a random temporary file location in the created temporary directory.
-PKGBUILD_IN="$test_tmpdir/PKGBUILD"
-SRCINFO_OUT="$test_tmpdir/SRCINFO"
-export PKGBUILD_IN
-export SRCINFO_OUT
-
-cp tests/test_files/normal.pkgbuild "$PKGBUILD_IN"
-```
--->
-
-The following command takes a **PKGBUILD** file and outputs a **.SRCINFO** from the extracted metadata.
-
-```bash
-alpm-pkgbuild srcinfo format "$PKGBUILD_IN" > "$SRCINFO_OUT"
-```
-
-<!--
-Make sure the generated SRCINFO file is as expected.
-```bash
-cat > "$SRCINFO_OUT.expected" <<EOF
-pkgbase = example
-	pkgdesc = A example with all pkgbase properties set.
-	pkgver = 0.1.0
-	pkgrel = 1
-	epoch = 1
-	url = https://archlinux.org/
-	install = install.sh
-	changelog = changelog
-	arch = x86_64
-	arch = aarch64
-	groups = group
-	groups = group_2
-	license = MIT
-	depends = default_dep
-	optdepends = default_optdep
-	provides = default_provides
-	conflicts = default_conflict
-	replaces = default_replaces
-	options = !lto
-	backup = etc/pacman.conf
-	provides_x86_64 = arch_default_provides
-	conflicts_x86_64 = arch_default_conflict
-	depends_x86_64 = arch_default_dep
-	replaces_x86_64 = arch_default_replaces
-	optdepends_x86_64 = arch_default_optdep
-
-pkgname = example
-
-EOF
-
-diff --ignore-trailing-space "$SRCINFO_OUT" "$SRCINFO_OUT.expected"
-```
--->
-
-
-## Features
-
-- `cli` (enabled by default) adds the commandline handling needed for the `alpm-buildinfo` binary.
-- `bridge_output` (enabled by default) exposes the `BridgeOutput` struct and helper functions to interact with the [`alpm-pkgbuild-bridge`]. It's discouraged to interact with these functions as they only represent intermediate representations of the data format.
-- `winnow-debug` enables the `winnow/debug` feature, which shows the exact parsing process of winnow.
+As `alpm-pkgbuild` is designed to be used in conjunction with the `alpm-srcinfo` crate, the tests for the bridge logic of this crate also live in the `alpm-srcinfo` project.
 
 ### Library
 

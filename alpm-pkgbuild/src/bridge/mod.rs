@@ -1,8 +1,6 @@
 //! The `PKGBUILD` to `.SRCINFO` bridge logic.
 
-pub mod error;
 pub(crate) mod parser;
-pub mod source_info;
 
 use std::{
     io::ErrorKind,
@@ -11,6 +9,7 @@ use std::{
 };
 
 use log::debug;
+pub use parser::{BridgeOutput, ClearableValue, Keyword, RawPackageName, Value};
 use which::which;
 
 use crate::error::Error;
@@ -27,7 +26,7 @@ const DEFAULT_SCRIPT_NAME: &str = "alpm-pkgbuild-bridge";
 /// ```
 /// use std::{fs::File, io::Write};
 ///
-/// use alpm_pkgbuild::run_bridge_script;
+/// use alpm_pkgbuild::bridge::run_bridge_script;
 /// use tempfile::tempdir;
 ///
 /// const TEST_FILE: &str = include_str!("../../tests/test_files/normal.pkgbuild");

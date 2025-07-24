@@ -5,8 +5,8 @@
 
 use std::path::PathBuf;
 
-use alpm_pkgbuild::{BridgeError, BridgeOutput, run_bridge_script};
-use alpm_srcinfo::SourceInfoV1;
+use alpm_pkgbuild::bridge::{BridgeOutput, run_bridge_script};
+use alpm_srcinfo::{SourceInfoV1, pkgbuild_bridge::error::BridgeError};
 use insta::assert_snapshot;
 use rstest::rstest;
 use testresult::{TestError, TestResult};
@@ -16,7 +16,7 @@ use testresult::{TestError, TestResult};
 ///
 /// This test does snapshot testing of the formatted errors for each invalid PKGBUILD.
 #[rstest]
-pub fn invalid_files(#[files("tests/invalid/*.pkgbuild")] case: PathBuf) -> TestResult {
+pub fn invalid_files(#[files("tests/pkgbuild_invalid/*.pkgbuild")] case: PathBuf) -> TestResult {
     let test_name = case.file_stem().unwrap().to_str().unwrap().to_string();
 
     // Run the bridge script on the input file.
@@ -38,7 +38,7 @@ pub fn invalid_files(#[files("tests/invalid/*.pkgbuild")] case: PathBuf) -> Test
     // This is necessary, as we're manually sorting snapshots by test scenario.
     insta::with_settings!({
         description => format!("{test_name} PKGBUILD -> SRCINFO generation."),
-        snapshot_path => "invalid_snapshots",
+        snapshot_path => "pkgbuild_invalid_snapshots",
         prepend_module_to_snapshot => false,
     }, {
         assert_snapshot!(format!("{test_name}_srcinfo"), err.to_string());

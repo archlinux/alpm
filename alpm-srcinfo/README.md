@@ -14,6 +14,8 @@ A library and command line tool for the specification, parsing and linting of **
 
 ### Commandline
 
+#### Inspect SRCINFO packages
+
 <!--
 ```bash
 # Create a temporary directory for testing.
@@ -25,6 +27,8 @@ export SRCINFO_TEMPFILE
 export SRCINFO_OUTPUT
 ```
 -->
+
+The following command takes a **.SRCINFO** file and outputs the merged and compiled details of all (split-)packages for a specific architecture as structured data.
 
 ```bash
 cat > "$SRCINFO_TEMPFILE" << EOF
@@ -120,6 +124,69 @@ EOF
 diff --ignore-trailing-space "$SRCINFO_OUTPUT" "$SRCINFO_OUTPUT.expected"
 ```
 -->
+
+#### PKGBUILD to SRCINFO conversion
+
+<!--
+```bash
+# Create a temporary directory for testing.
+test_tmpdir="$(mktemp --directory --suffix '.')"
+
+# Get a random temporary file location in the created temporary directory.
+PKGBUILD_IN="$test_tmpdir/PKGBUILD"
+SRCINFO_OUT="$test_tmpdir/SRCINFO"
+export PKGBUILD_IN
+export SRCINFO_OUT
+
+cp tests/unit_test_files/normal.pkgbuild "$PKGBUILD_IN"
+```
+-->
+
+The following command takes a **PKGBUILD** file and outputs a **.SRCINFO** from the extracted metadata.
+
+```bash
+alpm-srcinfo create "$PKGBUILD_IN" > "$SRCINFO_OUT"
+```
+
+<!--
+Make sure the generated SRCINFO file is as expected.
+```bash
+cat > "$SRCINFO_OUT.expected" <<EOF
+pkgbase = example
+	pkgdesc = A example with all pkgbase properties set.
+	pkgver = 0.1.0
+	pkgrel = 1
+	epoch = 1
+	url = https://archlinux.org/
+	install = install.sh
+	changelog = changelog
+	arch = x86_64
+	arch = aarch64
+	groups = group
+	groups = group_2
+	license = MIT
+	depends = default_dep
+	optdepends = default_optdep
+	provides = default_provides
+	conflicts = default_conflict
+	replaces = default_replaces
+	options = !lto
+	backup = etc/pacman.conf
+	provides_x86_64 = arch_default_provides
+	conflicts_x86_64 = arch_default_conflict
+	depends_x86_64 = arch_default_dep
+	replaces_x86_64 = arch_default_replaces
+	optdepends_x86_64 = arch_default_optdep
+
+pkgname = example
+
+EOF
+
+diff --ignore-trailing-space "$SRCINFO_OUT" "$SRCINFO_OUT.expected"
+```
+-->
+
+
 
 ### Library
 

@@ -186,7 +186,6 @@ generate kind pkg:
 generate-completions:
     just generate shell_completions alpm-buildinfo
     just generate shell_completions alpm-mtree
-    just generate shell_completions alpm-pkgbuild
     just generate shell_completions alpm-pkginfo
     just generate shell_completions alpm-srcinfo
 
@@ -195,7 +194,6 @@ generate-completions:
 generate-manpages-and-specs:
     just generate manpages alpm-buildinfo
     just generate manpages alpm-mtree
-    just generate manpages alpm-pkgbuild
     just generate manpages alpm-pkginfo
     just generate manpages alpm-srcinfo
     just generate specifications alpm-buildinfo
@@ -323,12 +321,10 @@ check-rust-code:
 check-shell-code:
     just check-shell-readme alpm-buildinfo
     just check-shell-readme alpm-mtree
-    just check-shell-readme alpm-pkgbuild
     just check-shell-readme alpm-pkginfo
     just check-shell-readme alpm-srcinfo
 
     just check-shell-recipe 'test-readme alpm-buildinfo'
-    just check-shell-recipe 'test-readme alpm-pkgbuild'
     just check-shell-recipe 'test-readme alpm-pkginfo'
     just check-shell-recipe 'test-readme alpm-srcinfo'
     just check-shell-recipe build-book
@@ -405,6 +401,7 @@ install-workspace-binaries:
     ignored_members=(
         alpm-common
         alpm-package
+        alpm-pkgbuild
         alpm-parsers
         alpm-state-repo
         alpm-types
@@ -633,7 +630,6 @@ test-readme project:
 [group('test')]
 test-readmes:
     just test-readme alpm-buildinfo
-    just test-readme alpm-pkgbuild
     just test-readme alpm-pkginfo
     just test-readme alpm-srcinfo
 

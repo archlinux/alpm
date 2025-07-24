@@ -1,5 +1,5 @@
 ---
-source: alpm-pkgbuild/tests/invalid.rs
+source: alpm-srcinfo/tests/pkgbuild_invalid.rs
 description: cleared_array_on_single_value PKGBUILD -> SRCINFO generation.
 expression: err.to_string()
 ---

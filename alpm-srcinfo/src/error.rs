@@ -1,9 +1,11 @@
 //! All error types that are exposed by this crate.
 use std::{fmt::Display, path::PathBuf, string::FromUtf8Error};
 
+use alpm_pkgbuild::error::Error as PkgbuildError;
 use colored::Colorize;
 use thiserror::Error;
 
+use crate::pkgbuild_bridge::error::BridgeError;
 #[cfg(doc)]
 use crate::{SourceInfoV1, source_info::parser::SourceInfoContent};
 
@@ -71,6 +73,20 @@ pub enum Error {
     /// Unsupported schema version
     #[error("Unsupported schema version: {0}")]
     UnsupportedSchemaVersion(String),
+
+    /// A alpm-pkgbuild bridge error that occurred when converting a PKGBUILD to a [`SourceInfoV1`]
+    /// struct.
+    ///
+    /// See [`PkgbuildError`] for further details.
+    #[error(transparent)]
+    BridgeError(#[from] PkgbuildError),
+
+    /// A logical error occurred when transforming `alpm-pkgbuild-bridge` script output to a
+    /// [`SourceInfoV1`] struct.
+    ///
+    /// See [`BridgeError`] for further details.
+    #[error(transparent)]
+    BridgeConversionError(#[from] BridgeError),
 }
 
 /// A helper struct to provide proper line based error/linting messages.

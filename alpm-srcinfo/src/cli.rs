@@ -40,6 +40,36 @@ pub enum SourceInfoOutputFormat {
 /// The `alpm-srcinfo` commands.
 #[derive(Clone, Debug, Subcommand)]
 pub enum Command {
+    /// Create a SRCINFO file from a PKGBUILD file at a given path.
+    ///
+    /// If the PKGBUILD can be created and validated, the program exits with no output and a return
+    /// code of 0. If the file is missing or can not be validated, an error is emitted on stderr and
+    /// the program exits with a non-zero exit status.
+    #[command()]
+    Create {
+        /// An optional input file path to read from
+        ///
+        /// If no file is specified, stdin is read from and expected to contain PKGINFO data to
+        /// validate.
+        #[arg(value_name = "FILE")]
+        file: PathBuf,
+
+        /// Provide the output format
+        #[arg(
+            short,
+            long,
+            value_name = "OUTPUT_FORMAT",
+            default_value_t = SourceInfoOutputFormat::Srcinfo,
+        )]
+        output_format: SourceInfoOutputFormat,
+
+        /// Pretty-print the output.
+        ///
+        /// Only applies to formats that support pretty output and is otherwise ignored.
+        #[arg(short, long)]
+        pretty: bool,
+    },
+
     /// Validate a SRCINFO file from a path or `stdin`.
     ///
     /// If the file can be validated, the program exits with no output and a return code of 0.

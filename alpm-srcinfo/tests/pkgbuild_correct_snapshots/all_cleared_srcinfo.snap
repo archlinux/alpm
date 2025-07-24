@@ -1,5 +1,5 @@
 ---
-source: alpm-pkgbuild/tests/correct.rs
+source: alpm-srcinfo/tests/pkgbuild_correct.rs
 description: all_cleared PKGBUILD -> SRCINFO generation.
 expression: srcinfo_output
 ---

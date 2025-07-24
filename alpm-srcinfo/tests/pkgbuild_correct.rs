@@ -5,7 +5,7 @@
 
 use std::path::PathBuf;
 
-use alpm_pkgbuild::{BridgeOutput, run_bridge_script};
+use alpm_pkgbuild::bridge::{BridgeOutput, run_bridge_script};
 use alpm_srcinfo::SourceInfoV1;
 use insta::assert_snapshot;
 use rstest::rstest;
@@ -16,7 +16,7 @@ use testresult::TestResult;
 /// This tests the whole pipeline by also inspecting and snapshotting the intermediate output
 /// from the `alpm-pkgbuild-bridge`
 #[rstest]
-pub fn correct_files(#[files("tests/correct/*.pkgbuild")] case: PathBuf) -> TestResult {
+pub fn correct_files(#[files("tests/pkgbuild_correct/*.pkgbuild")] case: PathBuf) -> TestResult {
     let test_name = case.file_stem().unwrap().to_str().unwrap().to_string();
 
     // Run the bridge script on the input file.
@@ -25,7 +25,7 @@ pub fn correct_files(#[files("tests/correct/*.pkgbuild")] case: PathBuf) -> Test
     // Make sure the generated bridge output matches the expected values.
     insta::with_settings!({
         description => format!("{test_name} PKGBUILD -> SRCINFO generation."),
-        snapshot_path => "correct_bridge_output",
+        snapshot_path => "pkgbuild_correct_bridge_output",
         prepend_module_to_snapshot => false,
     }, {
         assert_snapshot!(format!("{test_name}_bridge"), raw_bridge_output);
@@ -44,7 +44,7 @@ pub fn correct_files(#[files("tests/correct/*.pkgbuild")] case: PathBuf) -> Test
     // This is necessary, as we're manually sorting snapshots by test scenario.
     insta::with_settings!({
         description => format!("{test_name} PKGBUILD -> SRCINFO generation."),
-        snapshot_path => "correct_snapshots",
+        snapshot_path => "pkgbuild_correct_snapshots",
         prepend_module_to_snapshot => false,
     }, {
         assert_snapshot!(format!("{test_name}_srcinfo"), srcinfo_output  );

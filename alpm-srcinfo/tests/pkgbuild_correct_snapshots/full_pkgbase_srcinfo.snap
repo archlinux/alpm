@@ -1,6 +1,6 @@
 ---
-source: alpm-pkgbuild/tests/correct.rs
-description: full_pkgbase SourceInfo representation.
+source: alpm-srcinfo/tests/pkgbuild_correct.rs
+description: full_pkgbase PKGBUILD -> SRCINFO generation.
 expression: srcinfo_output
 ---
 pkgbase = example

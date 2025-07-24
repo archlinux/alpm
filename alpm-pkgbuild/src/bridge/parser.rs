@@ -331,7 +331,7 @@ impl Display for Keyword {
 
 impl Keyword {
     /// Creates a [`Keyword`] without an [`Architecture`] suffix from a string.
-    pub(crate) fn simple<T: ToString>(keyword: T) -> Self {
+    pub fn simple<T: ToString>(keyword: T) -> Self {
         Self {
             keyword: keyword.to_string(),
             suffix: None,

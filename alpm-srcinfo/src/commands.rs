@@ -1,7 +1,7 @@
 //! Functions called from the binary.
 use std::{
     io::{self, IsTerminal},
-    path::PathBuf,
+    path::{Path, PathBuf},
 };
 
 use alpm_common::MetadataFile;
@@ -10,10 +10,47 @@ use alpm_types::Architecture;
 use crate::{
     SourceInfo,
     SourceInfoSchema,
+    SourceInfoV1,
     cli::{PackagesOutputFormat, SourceInfoOutputFormat},
     error::Error,
     source_info::v1::merged::MergedPackage,
 };
+
+/// Take a [PKGBUILD], create [SRCINFO] data from it and print it.
+///
+/// # Errors
+///
+/// Returns an error if
+///
+/// - running the [`alpm-pkgbuild-bridge`] script fails,
+/// - or parsing the output of the ``alpm-pkgbuild-bridge`] script fails.
+///
+/// [PKGBUILD]: https://man.archlinux.org/man/PKGBUILD.5
+/// [SRCINFO]: https://alpm.archlinux.page/specifications/SRCINFO.5.html
+/// [`alpm-pkgbuild-bridge`]: https://gitlab.archlinux.org/archlinux/alpm/alpm-pkgbuild-bridge
+pub fn create(
+    pkgbuild_path: &Path,
+    output_format: SourceInfoOutputFormat,
+    pretty: bool,
+) -> Result<(), Error> {
+    let source_info = SourceInfoV1::from_pkgbuild(pkgbuild_path)?;
+
+    match output_format {
+        SourceInfoOutputFormat::Json => {
+            let json = if pretty {
+                serde_json::to_string_pretty(&source_info)?
+            } else {
+                serde_json::to_string(&source_info)?
+            };
+            println!("{json}");
+        }
+        SourceInfoOutputFormat::Srcinfo => {
+            println!("{}", source_info.as_srcinfo())
+        }
+    }
+
+    Ok(())
+}
 
 /// Validates a SRCINFO file from a path or stdin.
 ///

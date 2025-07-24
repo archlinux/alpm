@@ -1,5 +1,5 @@
 ---
-source: alpm-pkgbuild/tests/invalid.rs
+source: alpm-srcinfo/tests/pkgbuild_invalid.rs
 description: cleared_architecture PKGBUILD -> SRCINFO generation.
 expression: err.to_string()
 ---

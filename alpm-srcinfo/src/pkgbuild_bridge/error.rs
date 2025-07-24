@@ -1,12 +1,12 @@
 //! The error types used in the scope of `alpm-pkgbuild-bridge` output logic.
 
-#[cfg(doc)]
-use alpm_srcinfo::SourceInfo;
+use alpm_pkgbuild::bridge::Keyword;
 use alpm_types::{Architecture, Name};
 use thiserror::Error;
 use winnow::error::{ContextError, ParseError};
 
-use super::parser::Keyword;
+#[cfg(doc)]
+use crate::SourceInfo;
 
 /// A lower-level error that may occur when converting `alpm-pkgbuild-bridge` script output into the
 /// [`SourceInfo`] format.

@@ -4,7 +4,7 @@ use std::process::ExitCode;
 
 use alpm_srcinfo::{
     cli::{Cli, Command},
-    commands::{format_packages, format_source_info, validate},
+    commands::{create, format_packages, format_source_info, validate},
 };
 use clap::Parser;
 
@@ -14,6 +14,11 @@ use clap::Parser;
 fn main() -> ExitCode {
     let cli = Cli::parse();
     let result = match cli.command {
+        Command::Create {
+            file,
+            output_format,
+            pretty,
+        } => create(&file, output_format, pretty),
         Command::Validate { file, schema } => validate(file.as_ref(), schema),
         Command::Format {
             file,

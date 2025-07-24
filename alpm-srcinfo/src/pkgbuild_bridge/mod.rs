@@ -1,11 +1,12 @@
 //! Convert untyped and unchecked [`BridgeOutput`] into a well-formed [`SourceInfoV1`].
 
+pub mod error;
 mod package;
 mod package_base;
 
-use std::{collections::HashMap, path::Path};
+use std::collections::HashMap;
 
-use alpm_srcinfo::SourceInfoV1;
+use alpm_pkgbuild::bridge::{BridgeOutput, Keyword, Value};
 use alpm_types::{Architecture, Name};
 use package::handle_packages;
 use package_base::handle_package_base;
@@ -14,64 +15,14 @@ use winnow::{
     error::{ContextError, ErrMode, ParseError},
 };
 
-use crate::{
-    bridge::{
-        error::BridgeError,
-        parser::{BridgeOutput, Keyword, Value},
-    },
-    error::Error,
-};
-
-/// Creates a [`SourceInfoV1`] from a [`PKGBUILD`] file.
-///
-/// # Errors
-///
-/// Returns an error if
-///
-/// - The `PKGBUILD` cannot be read.
-/// - a required field is not set,
-/// - a `package` functions exists, but does not correspond to a declared [alpm-split-package],
-/// - a `package` function without an [alpm-package-name] suffix exists in an [alpm-split-package]
-///   setup,
-/// - a value cannot be turned into its [`alpm_types`] equivalent,
-/// - multiple values exist for a field that only accepts a singular value,
-/// - an [alpm-architecture] is duplicated,
-/// - an [alpm-architecture] is cleared in `package` function,
-/// - or an [alpm-architecture] suffix is set on a keyword that does not support it.
-///
-/// [`PKGBUILD`]: https://man.archlinux.org/man/PKGBUILD.5
-/// [alpm-architecture]: https://alpm.archlinux.page/specifications/alpm-architecture.7.html
-/// [alpm-package-name]: https://alpm.archlinux.page/specifications/alpm-package-name.7.html
-/// [alpm-split-package]: https://alpm.archlinux.page/specifications/alpm-split-package.7.html
-pub fn source_info_v1_from_pkgbuild(pkgbuild_path: &Path) -> Result<SourceInfoV1, Error> {
-    let output = BridgeOutput::from_file(pkgbuild_path)?;
-    let source_info: SourceInfoV1 = output.try_into()?;
-
-    Ok(source_info)
-}
+use crate::{SourceInfoV1, pkgbuild_bridge::error::BridgeError};
 
 impl TryFrom<BridgeOutput> for SourceInfoV1 {
     type Error = BridgeError;
 
     /// Creates a [`SourceInfoV1`] from a [`BridgeOutput`].
     ///
-    /// # Errors
-    ///
-    /// Returns an error if
-    ///
-    /// - a required field is not set,
-    /// - a `package` functions exists, but does not correspond to a declared [alpm-split-package],
-    /// - a `package` function without an [alpm-package-name] suffix exists in an
-    ///   [alpm-split-package] setup,
-    /// - a value cannot be turned into its [`alpm_types`] equivalent,
-    /// - multiple values exist for a field that only accepts a singular value,
-    /// - an [alpm-architecture] is duplicated,
-    /// - an [alpm-architecture] is cleared in `package` function,
-    /// - or an [alpm-architecture] suffix is set on a keyword that does not support it.
-    ///
-    /// [alpm-architecture]: https://alpm.archlinux.page/specifications/alpm-architecture.7.html
-    /// [alpm-package-name]: https://alpm.archlinux.page/specifications/alpm-package-name.7.html
-    /// [alpm-split-package]: https://alpm.archlinux.page/specifications/alpm-split-package.7.html
+    /// See errors and documentation in [`SourceInfoV1::from_pkgbuild`]
     fn try_from(mut value: BridgeOutput) -> Result<Self, Self::Error> {
         let mut name = None;
         // Check if there's a `pkgbase` section, which hints that this is a split package.
@@ -245,7 +196,6 @@ mod tests {
     use winnow::token::rest;
 
     use super::*;
-    use crate::bridge::parser::Keyword;
 
     /// Ensure that an empty single value will return `None` when passed into
     /// [`parse_optional_value`].

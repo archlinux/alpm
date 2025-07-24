@@ -6,10 +6,9 @@ use std::{
 };
 
 use alpm_parsers::iter_str_context;
-use alpm_srcinfo::source_info::{
-    parser::{PackageBaseKeyword, RelationKeyword, SharedMetaKeyword, SourceKeyword},
-    v1::package_base::{PackageBase, PackageBaseArchitecture},
-};
+#[cfg(doc)]
+use alpm_pkgbuild::bridge::BridgeOutput;
+use alpm_pkgbuild::bridge::{Keyword, Value};
 use alpm_types::{
     Architecture,
     Backup,
@@ -40,17 +39,18 @@ use winnow::{
     token::rest,
 };
 
-#[cfg(doc)]
-use crate::bridge::parser::BridgeOutput;
-use crate::bridge::{
-    error::BridgeError,
-    parser::{Keyword, Value},
-    source_info::{
+use crate::{
+    pkgbuild_bridge::{
         ensure_keyword_exists,
         ensure_no_suffix,
+        error::BridgeError,
         parse_optional_value,
         parse_value,
         parse_value_array,
+    },
+    source_info::{
+        parser::{PackageBaseKeyword, RelationKeyword, SharedMetaKeyword, SourceKeyword},
+        v1::package_base::{PackageBase, PackageBaseArchitecture},
     },
 };
 

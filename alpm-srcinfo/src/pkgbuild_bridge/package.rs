@@ -3,10 +3,9 @@
 use std::{collections::HashMap, str::FromStr};
 
 use alpm_parsers::iter_str_context;
-use alpm_srcinfo::source_info::{
-    parser::{RelationKeyword, SharedMetaKeyword},
-    v1::package::{Override, Package, PackageArchitecture},
-};
+#[cfg(doc)]
+use alpm_pkgbuild::bridge::BridgeOutput;
+use alpm_pkgbuild::bridge::{ClearableValue, Keyword, RawPackageName};
 use alpm_types::{
     Architecture,
     Backup,
@@ -32,11 +31,12 @@ use winnow::{
 };
 
 use super::ensure_no_suffix;
-#[cfg(doc)]
-use crate::bridge::parser::BridgeOutput;
-use crate::bridge::{
-    error::BridgeError,
-    parser::{ClearableValue, Keyword, RawPackageName},
+use crate::{
+    pkgbuild_bridge::error::BridgeError,
+    source_info::{
+        parser::{RelationKeyword, SharedMetaKeyword},
+        v1::package::{Override, Package, PackageArchitecture},
+    },
 };
 
 /// Converts parsed [`BridgeOutput::packages`] output into [`Package`]s.
