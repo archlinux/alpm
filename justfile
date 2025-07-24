@@ -116,7 +116,10 @@ build-book:
     #!/usr/bin/env bash
     set -euo pipefail
 
-    just ensure-command cargo jq mdbook mdbook-mermaid
+    just ensure-command cargo jq mdbook mdbook-mermaid cargo-depgraph dot
+
+    # Build the local dependency graph.
+    cargo depgraph --workspace-only | dot -Tpng > resources/docs/src/api-docs/dependency_graph.png
 
     target_dir="$(just get-cargo-target-directory)"
     readonly output_dir="{{ output_dir }}"

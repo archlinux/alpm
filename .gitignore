@@ -1,5 +1,6 @@
 output/
 resources/docs/mermaid*.js
+resources/docs/src/api-docs/dependency_graph.png
 target/
 *.5
 .lycheecache
