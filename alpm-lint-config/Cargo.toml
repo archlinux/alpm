@@ -1,11 +1,11 @@
 [package]
 authors.workspace = true
-description = "Library and commandline toolkit for linting of ALPM packaging related files and projects"
+description = "Structs and enums for alpm-lint configuration"
 edition.workspace = true
 homepage.workspace = true
 keywords.workspace = true
 license.workspace = true
-name = "alpm-linting"
+name = "alpm-lint-config"
 readme = "README.md"
 repository.workspace = true
 rust-version.workspace = true
@@ -14,8 +14,9 @@ version = "0.1.0"
 [features]
 
 [dependencies]
-
-[dev-dependencies]
+serde.workspace = true
+strum.workspace = true
+toml.workspace = true
 
 [lints]
 workspace = true

@@ -15,7 +15,8 @@ rust-version = "1.85.0"
 members = [
     "alpm-buildinfo",
     "alpm-common",
-    "alpm-linting",
+    "alpm-lint",
+    "alpm-lint-config",
     "alpm-mtree",
     "alpm-package",
     "alpm-parsers",
@@ -31,6 +32,7 @@ resolver = "3"
 [workspace.dependencies]
 alpm-buildinfo = { path = "./alpm-buildinfo", version = "0.3.0" }
 alpm-common = { path = "./alpm-common", version = "0.1.1" }
+alpm-lint-config = { path = "./alpm-lint-config", version = "0.1.0" }
 alpm-mtree = { path = "./alpm-mtree", version = "0.2.1" }
 alpm-package = { path = "./alpm-package", version = "0.2.0" }
 alpm-parsers = { path = "./alpm-parsers", version = "0.2.0" }
@@ -59,6 +61,7 @@ strum = { version = "0.27.0", features = ["derive"] }
 tempfile = "3"
 testresult = "0.4.1"
 thiserror = "2.0.0"
+toml = "0.9.3"
 which = "8.0.0"
 winnow = "0.7.9"
 

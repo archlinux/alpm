@@ -1,11 +1,13 @@
-# alpm-linting
+# alpm-lint-config
 
-This project provides a binary for all linting purposes in the scope of the ALPM project.
+This project provides the configuration specification for linting rules.
+
+It is contained in its own crate to prevent circular dependencies with `alpm-lint` and the future `alpm-config` crate.
 
 ## Documentation
 
-- <https://alpm.archlinux.page/rustdoc/alpm_linting/> for development version of the crate
-- <https://docs.rs/alpm-buildinfo/latest/alpm_linting/> for released versions of the crate
+- <https://alpm.archlinux.page/rustdoc/alpm-lint-config/> for development version of the crate.
+- <https://docs.rs/alpm-buildinfo/latest/alpm-lint-config/> for released versions of the crate.
 
 ## Contributing
 
