@@ -5,7 +5,7 @@ A library providing common traits and functionalities for other **A**rch **L**in
 ## Documentation
 
 - <https://alpm.archlinux.page/rustdoc/alpm_common/> for development version of the crate
-- <https://docs.rs/alpm-buildinfo/latest/alpm_common/> for released versions of the crate
+- <https://docs.rs/alpm-common/latest/alpm_common/> for released versions of the crate
 
 ## Contributing
 
