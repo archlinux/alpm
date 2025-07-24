@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2025-07-24
+
+### Added
+- [**breaking**] Use `FullVersion` for `MergedPackage` and `PackageBase`
+
+### Fixed
+- Add bash shebang and shellcheck rules for test pkgbuild files
+
+### Other
+- Move BridgeOutput to SourceInfo conversion to alpm-srcinfo
+- Make SourceInfo architecture_suffix parser public
+- Convert all srcinfo tests to tabs
+- Parse error for invalid architecture
+- Simplify the information on `alpm-package-base` related values
+- *(deps)* Move `pretty_assertions` to workspace dependencies
+
 ## [0.2.0] - 2025-06-16
 
 ### Added
