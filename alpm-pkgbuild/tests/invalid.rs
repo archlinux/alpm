@@ -5,7 +5,7 @@
 
 use std::path::PathBuf;
 
-use alpm_pkgbuild::bridge::{BridgeOutput, run_bridge_script};
+use alpm_pkgbuild::{BridgeError, BridgeOutput, run_bridge_script};
 use alpm_srcinfo::SourceInfoV1;
 use insta::assert_snapshot;
 use rstest::rstest;
@@ -17,8 +17,6 @@ use testresult::{TestError, TestResult};
 /// This test does snapshot testing of the formatted errors for each invalid PKGBUILD.
 #[rstest]
 pub fn invalid_files(#[files("tests/invalid/*.pkgbuild")] case: PathBuf) -> TestResult {
-    use alpm_pkgbuild::bridge::error::BridgeError;
-
     let test_name = case.file_stem().unwrap().to_str().unwrap().to_string();
 
     // Run the bridge script on the input file.

@@ -3,7 +3,7 @@
 mod package;
 mod package_base;
 
-use std::collections::HashMap;
+use std::{collections::HashMap, path::Path};
 
 use alpm_srcinfo::SourceInfoV1;
 use alpm_types::{Architecture, Name};
@@ -14,9 +14,12 @@ use winnow::{
     error::{ContextError, ErrMode, ParseError},
 };
 
-use super::{
-    error::BridgeError,
-    parser::{BridgeOutput, Keyword, Value},
+use crate::{
+    bridge::{
+        error::BridgeError,
+        parser::{BridgeOutput, Keyword, Value},
+    },
+    error::Error,
 };
 
 /// Creates a [`SourceInfoV1`] from a [`PKGBUILD`] file.
@@ -242,7 +245,7 @@ mod tests {
     use winnow::token::rest;
 
     use super::*;
-    use crate::bridge::Keyword;
+    use crate::bridge::parser::Keyword;
 
     /// Ensure that an empty single value will return `None` when passed into
     /// [`parse_optional_value`].

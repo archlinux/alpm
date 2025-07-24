@@ -75,6 +75,13 @@ diff --ignore-trailing-space "$SRCINFO_OUT" "$SRCINFO_OUT.expected"
 ```
 -->
 
+
+## Features
+
+- `cli` (enabled by default) adds the commandline handling needed for the `alpm-buildinfo` binary.
+- `bridge_output` (enabled by default) exposes the `BridgeOutput` struct and helper functions to interact with the [`alpm-pkgbuild-bridge`]. It's discouraged to interact with these functions as they only represent intermediate representations of the data format.
+- `winnow-debug` enables the `winnow/debug` feature, which shows the exact parsing process of winnow.
+
 ### Library
 
 [PKGBUILD]: https://man.archlinux.org/man/PKGBUILD.5

@@ -14,11 +14,12 @@ version = "0.1.0"
 [[bin]]
 name = "alpm-pkgbuild"
 path = "src/main.rs"
-required-features = ["cli"]
+required-features = ["bridge_output", "cli"]
 
 [features]
+bridge_output = []
 cli = ["dep:clap"]
-default = ["cli"]
+default = ["bridge_output", "cli"]
 winnow-debug = ["winnow/debug"]
 
 [dependencies]

@@ -1,7 +1,7 @@
 use std::{fs::remove_dir_all, path::PathBuf};
 
 use alpm_common::MetadataFile;
-use alpm_pkgbuild::{bridge::BridgeOutput, error::Error};
+use alpm_pkgbuild::{BridgeOutput, Error};
 use alpm_srcinfo::{SourceInfo, SourceInfoV1};
 use anyhow::{Context, Result};
 use log::warn;

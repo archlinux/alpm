@@ -5,7 +5,7 @@
 
 use std::path::PathBuf;
 
-use alpm_pkgbuild::bridge::{BridgeOutput, run_bridge_script};
+use alpm_pkgbuild::{BridgeOutput, run_bridge_script};
 use alpm_srcinfo::SourceInfoV1;
 use insta::assert_snapshot;
 use rstest::rstest;

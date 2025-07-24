@@ -27,7 +27,7 @@ const DEFAULT_SCRIPT_NAME: &str = "alpm-pkgbuild-bridge";
 /// ```
 /// use std::{fs::File, io::Write};
 ///
-/// use alpm_pkgbuild::bridge::run_bridge_script;
+/// use alpm_pkgbuild::run_bridge_script;
 /// use tempfile::tempdir;
 ///
 /// const TEST_FILE: &str = include_str!("../../tests/test_files/normal.pkgbuild");
