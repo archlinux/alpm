@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.1] - 2025-06-16
 
 ### Added
+
 - *(cargo)* Use the workspace linting rules
 - Derive `Clone`, `Copy` and `Debug` for `InputPaths`
 - Derive `Clone`, `Copy` and `Debug` for `InputPath`
@@ -18,4 +19,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `alpm-common` crate for common traits and functionalities
 
 ### Other
+
 - Convert cloned reference to slice::from_ref

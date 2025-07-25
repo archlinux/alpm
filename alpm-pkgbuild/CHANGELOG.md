@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2025-07-24
 
 ### Added
+
 - Add source_info_v1_from_pkgbuild function
 - Add pkgbuild srcinfo comparison command
 - BridgeOutput to SourceInfo conversion
@@ -17,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use bridge script to export PKGBUILD variables
 
 ### Other
+
 - Move BridgeOutput to SourceInfo conversion to alpm-srcinfo
 - Clean up, and feature gate API surface
 - Move alpm-pkgbuild srcinfo-compare function to dev-tools

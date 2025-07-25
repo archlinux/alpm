@@ -10,14 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.3.0] - 2025-07-24
 
 ### Added
+
 - [**breaking**] Use `FullVersion`, not `Version` in `BuildInfo` and `PackageInfo`
 
 ### Other
+
 - Simplify the information on `alpm-package-base` related values
 
 ## [0.2.0] - 2025-06-16
 
 ### Added
+
 - *(cargo)* Use the workspace linting rules
 - Derive `PartialEq` for `BuildInfo`, `BuildInfoV1`, `BuildInfoV2`
 - [**breaking**] Fully validate makepkg's BUILDENV and OPTIONS
@@ -28,11 +31,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `BuildInfo` as entry point for reading BUILDINFO data
 
 ### Fixed
+
 - Remove old buildinfo insta snapshots
 - [**breaking**] Make `Schema` enum not `non_exhaustive`
 - *(cargo)* Use the package's README instead of the workspace README
 
 ### Other
+
 - Add missing documentation for all public items
 - Cleanup unneeded return statements
 - *(justfile)* Add cargo-sort-derives
@@ -48,6 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2025-02-28
 
 ### Added
+
 - *(srcinfo)* Add srcinfo parser
 - *(buildinfo)* Add cli feature flag
 - *(types)* Rename BuildEnv -> BuildEnvironmentOption
@@ -68,6 +74,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add specification for BUILDINFOv1 as man page
 
 ### Fixed
+
 - Sanitize `cargo-insta` snapshot names
 - *(tests)* Replace testdir with tempfile
 - *(buildinfo)* Use macro for flattened struct generation
@@ -80,6 +87,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Change README license to GFDL-1.3-or-later
 
 ### Other
+
 - Consolidate keywords in the the `SEE ALSO` section
 - Switch to rustfmt style edition 2024
 - *(cargo)* Declare `rust-version` in the workspace not per crate

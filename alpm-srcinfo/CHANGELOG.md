@@ -10,12 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.3.0] - 2025-07-24
 
 ### Added
+
 - [**breaking**] Use `FullVersion` for `MergedPackage` and `PackageBase`
 
 ### Fixed
+
 - Add bash shebang and shellcheck rules for test pkgbuild files
 
 ### Other
+
 - Move BridgeOutput to SourceInfo conversion to alpm-srcinfo
 - Make SourceInfo architecture_suffix parser public
 - Convert all srcinfo tests to tabs
@@ -26,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.0] - 2025-06-16
 
 ### Added
+
 - Add SRCINFO file writer
 - Add PartialEq to SourceInfo
 - *(cargo)* Use the workspace linting rules
@@ -41,6 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `SourceInfoSchema` to track SRCINFO schemas
 
 ### Fixed
+
 - Make noextract not architecture specific
 - Use correct type aliases for alpm-types
 - Don't create blanket architecture specific properties
@@ -51,6 +56,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - *(cargo)* Use the package's README instead of the workspace README
 
 ### Other
+
 - Noextract may not be architecture specific
 - Move architecture parser into own function
 - Add missing documentation for all public items
@@ -79,6 +85,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2025-02-28
 
 ### Added
+
 - Add `SonameV1::Basic` support for `depends` and `provides`
 - *(srcinfo)* Add format command for MergedPackage representation
 - *(srcinfo)* Merged package representation
@@ -86,6 +93,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - *(srcinfo)* Add srcinfo parser
 
 ### Other
+
 - Consolidate keywords in the the `SEE ALSO` section
 - Switch to rustfmt style edition 2024
 - *(cargo)* Declare `rust-version` in the workspace not per crate

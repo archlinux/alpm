@@ -10,14 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.0] - 2025-06-16
 
 ### Added
+
 - *(cargo)* Use the workspace linting rules
 - Derive `Clone` and `Debug` for `ItemDeserializer`
 - [**breaking**] Fully validate makepkg's BUILDENV and OPTIONS
 
 ### Fixed
+
 - *(cargo)* Use the package's README instead of the workspace README
 
 ### Other
+
 - Add missing documentation for all public items
 - *(justfile)* Add cargo-sort-derives
 - Add helper macros for parse error contexts
@@ -26,17 +29,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2025-02-28
 
 ### Added
+
 - *(srcinfo)* Add srcinfo parser
 - winnow-debug flags for winnow debugging
 - *(alpm-parser)* Use winnow for custom-ini parsing
 - *(parsers)* implement the custom INI parser
 
 ### Fixed
+
 - Sanitize `cargo-insta` snapshot names
 - *(parser)* Allow comments in custom INI parser
 - *(clippy)* Remove needless lifetimes
 
 ### Other
+
 - Switch to rustfmt style edition 2024
 - *(cargo)* Declare `rust-version` in the workspace not per crate
 - *(README)* Sort components alphabetically

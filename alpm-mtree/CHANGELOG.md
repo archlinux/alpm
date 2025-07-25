@@ -10,11 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.1] - 2025-07-24
 
 ### Other
+
 - Make which a workspace dependency
 
 ## [0.2.0] - 2025-06-16
 
 ### Added
+
 - *(cargo)* Use the workspace linting rules
 - Add `Mtree::validate_paths` to validate file system paths
 - Enable comparing ALPM-MTREE paths to file system paths
@@ -29,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `MtreeSchema` to track ALPM-MTREE data schemas
 
 ### Fixed
+
 - *(deps)* Update Rust crate which to v8
 - *(codespell)* Ignore false-positive `ser` using codespell config
 - *(Mtree)* [**breaking**] Auto-detect gzip compressed readers and decompress them
@@ -37,6 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - *(cargo)* Use the package's README instead of the workspace README
 
 ### Other
+
 - [**breaking**] Rename functions for the creation of ALPM-MTREE files
 - *(deps)* Move `flate2` crate to workspace dependencies
 - Add missing documentation for all public items
@@ -56,6 +60,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2025-02-28
 
 ### Added
+
 - *(mtree)* Add cli feature flag
 - winnow-debug flags for winnow debugging
 - *(mtree)* Custom UTF-8 decoder
@@ -65,6 +70,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - *(mtree)* Skeleton mtree crate
 
 ### Other
+
 - Consolidate keywords in the the `SEE ALSO` section
 - Switch to rustfmt style edition 2024
 - *(cargo)* Declare `rust-version` in the workspace not per crate

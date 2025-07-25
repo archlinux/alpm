@@ -160,6 +160,7 @@ The **ELF**[1] file encodes this requirement by relying on the **soname**[2] `li
 Following the **alpm-soname** specification, `lib:libexample.so.1` can be added as a **run-time dependency** to the **PKGINFO** file of the `application` package, if the library _lookup directory_ `/usr/lib` is represented by the _prefix_ `lib` and the _shared object_ encoding the `libexample.so.1` **soname**[2] (here `/usr/lib/libexample.so.1.0.0`) is present in the _lookup directory_.
 
 **Note**: For legacy behavior of **alpm-soname** refer to **alpm-sonamev1**.
+
 # SEE ALSO
 
 **BUILDINFO**(5), **PKGBUILD**(5), **PKGINFO**(5), **SRCINFO**(5), **alpm-architecture**(7), **alpm-comparison**(7), **alpm-package-name**(7), **alpm-package-version**(7), **alpm-soname**(7)

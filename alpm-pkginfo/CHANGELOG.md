@@ -10,15 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.3.0] - 2025-07-24
 
 ### Added
+
 - [**breaking**] Use `FullVersion`, not `Version` in `BuildInfo` and `PackageInfo`
 
 ### Other
+
 - Simplify the information on `alpm-package-base` related values
 - *(deps)* Move `pretty_assertions` to workspace dependencies
 
 ## [0.2.0] - 2025-06-16
 
 ### Added
+
 - *(cargo)* Use the workspace linting rules
 - Derive `Debug` for `PackageInfoInput`
 - Enforce PackageDescription invariants
@@ -28,10 +31,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `PkgInfoSchema` to track PKGINFO data schemas
 
 ### Fixed
+
 - Wrong pkginfo tests
 - *(cargo)* Use the package's README instead of the workspace README
 
 ### Other
+
 - Add missing documentation for all public items
 - Cleanup unneeded return statements
 - Update package description specification
@@ -45,6 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2025-02-28
 
 ### Added
+
 - Add `SonameV1` and `SonameV2` support for `depend` and `provides`
 - *(srcinfo)* Add srcinfo parser
 - *(pkginfo)* Add cli feature flag
@@ -52,11 +58,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - *(pkginfo)* Create structs for PKGINFO v1 and v2
 
 ### Fixed
+
 - Sanitize `cargo-insta` snapshot names
 - *(tests)* Replace testdir with tempfile
 - *(pkginfo)* Do not reuse the same test directory
 
 ### Other
+
 - Consolidate keywords in the the `SEE ALSO` section
 - Switch to rustfmt style edition 2024
 - *(cargo)* Declare `rust-version` in the workspace not per crate
