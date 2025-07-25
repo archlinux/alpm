@@ -253,7 +253,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 0.4.0 - 2023-11-17
 
-#### Bug Fixes
+### Bug Fixes
 
 - **(Cargo.toml)** Update MSRV to 1.67.1 - (66d3e47) - David Runge
 - **(deps)** update rust crate regex to 1.10.2 - (bf3423b) - renovate
@@ -270,7 +270,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - avoid unnecessary string allocations in Version Display - (6813580) - Xiretza
 - Relicense README under the terms of GFDL-1.3-or-later. - (58494dc) - David Runge
 
-#### Continuous Integration
+### Continuous Integration
 
 - Verify that the advertised MSRV can be used. - (cd08b09) - David Runge
 - Add renovate.json - (9adf80a) - renovate
@@ -282,7 +282,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use default before_script instead of extending from .prepare job - (b51bbf6) - David Runge
 - Only run `cargo semver-checks` if there are commits requiring a new version - (ae15fc0) - David Runge
 
-#### Documentation
+### Documentation
 
 - Add information on where to find documentation. - (78d6271) - David Runge
 - Clarify licensing of documentation contribution. - (ffdb0f0) - David Runge
@@ -290,18 +290,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add links to mailing list and IRC channel to contributing guidelines - (7ba5841) - David Runge
 - Add security policy - (3cf22d2) - David Runge
 
-#### Features
+### Features
 
 - add #![forbid(unsafe_code)] - (7451249) - Xiretza
 - add more BuildOption tests - (08c22a5) - Xiretza
 
-#### Miscellaneous Chores
+### Miscellaneous Chores
 
 - **(deps)** update rust crate proptest to 1.4.0 - (0ac0208) - renovate
 - **(deps)** update rust crate rstest to 0.18.1 - (61e083f) - renovate
 - Upgrade dependencies - (9b3c2b2) - David Runge
 
-#### Refactoring
+### Refactoring
 
 - Replace chrono with time - (e3b8922) - Óscar García Amor
 
@@ -309,17 +309,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 0.3.0 - 2023-06-11
 
-#### Continuous Integration
+### Continuous Integration
 
 - Enable releasing to crates.io via CI - (e74334a) - David Runge
 
-#### Documentation
+### Documentation
 
 - Add example for Filename, Source and SourceLocation to README - (e3df355) - David Runge
 - Add example for VersionComparison and VersionRequirement to README - (b9ef3c5) - David Runge
 - No longer manually break long lines in README and contributing guidelines - (af3fea2) - David Runge
 
-#### Features
+### Features
 
 - Derive Clone for BuildTool - (32d9315) - David Runge
 - Derive Clone for PkgType - (83bbed5) - David Runge
@@ -334,11 +334,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - make Version Clone - (67b5fcc) - Xiretza
 - Add Checksum type to generically support checksum algorithms - (f1a6b57) - David Runge
 
-#### Miscellaneous Chores
+### Miscellaneous Chores
 
 - Deprecate Md5Sum in favor of `Checksum<Md5>` - (50f6f74) - David Runge
 
-#### Tests
+### Tests
 
 - Guard against breaking semver using cargo-semver-checks - (757ac72) - David Runge
 
@@ -346,7 +346,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 0.2.0 - 2023-06-01
 
-#### Bug Fixes
+### Bug Fixes
 
 - **(SchemaVersion)** Use semver:Version as SemverVersion to prevent name clash - (1725d10) - David Runge
 - Sort Error variants alphabetically - (19ba3ed) - David Runge
@@ -354,7 +354,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove implementations of Deref - (1011148) - David Runge
 - Apply NewType pattern for all types wrapping one other type - (883526f) - David Runge
 
-#### Documentation
+### Documentation
 
 - **(BuildDir)** Add example in README. - (a0eee64) - David Runge
 - Fix all code examples in README. - (1b87592) - David Runge
@@ -362,7 +362,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add documentation for Error::InvalidVersion and fix for SchemaVersion - (ad7eaac) - David Runge
 - Reference 'deny' at the CONTRIBUTING.md - (15c7352) - Leonidas Spyropoulos
 
-#### Features
+### Features
 
 - **(Version)** Add method to create Version with Pkgrel - (25b1001) - David Runge
 - Add StartDir type - (c2e02b9) - David Runge
@@ -379,11 +379,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add Packager type - (be30773) - David Runge
 - Add SchemaVersion type - (10fc69a) - David Runge
 
-#### Miscellaneous Chores
+### Miscellaneous Chores
 
 - **(lib)** Sort imports by std/external/alphabetically. - (55dfadf) - David Runge
 
-#### Refactoring
+### Refactoring
 
 - Move environmen related types to separate module - (5442732) - David Runge
 - Move package related types to separate module - (860ecb6) - David Runge
@@ -399,15 +399,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 0.1.0 - 2023-04-04
 
-#### Continuous Integration
+### Continuous Integration
 
 - Add check scripts and Gitlab CI integration - (a301b04) - David Runge
 
-#### Documentation
+### Documentation
 
 - correct path for quick-check.sh - (06c36ee) - Leonidas Spyropoulos
 
-#### Features
+### Features
 
 - Limit chrono features to avoid audit RUSTSEC-2020-0071 - (a32127f) - Leonidas Spyropoulos
 - Implement Md5sum type - (6ab68a8) - Leonidas Spyropoulos
@@ -419,7 +419,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Replace enum boilerplate with strum - (d6fc661) - David Runge
 - Add initial types (Architecture, BuildDate, CompressedSize, InstalledSize) - (2deba0f) - David Runge
 
-#### Miscellaneous Chores
+### Miscellaneous Chores
 
 - Publish to crates.io locally (not from CI) - (a0e6b54) - David Runge
 - Change CI scripts to LGPL-3.0-or-later - (8995c51) - David Runge
