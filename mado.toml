@@ -1,0 +1,141 @@
+[lint]
+exclude = []
+output-format = "concise"
+quiet = false
+respect-gitignore = true
+respect-ignore = true
+rules = [
+    # Header levels should only increment by one level at a time
+    "MD001",
+    # First header should be a top level header
+    "MD002",
+    # Header style
+    "MD003",
+    # Unordered list style
+    "MD004",
+    # Inconsistent indentation for list items at the same level
+    "MD005",
+    # Consider starting bulleted lists at the beginning of the line
+    "MD006",
+    # Unordered list indentation
+    "MD007",
+    # Multiple consecutive blank lines
+    "MD012",
+    # Line length
+    "MD013",
+    # Dollar signs used before commands without showing output
+    "MD014",
+    # No space after hash on atx style header
+    "MD018",
+    # Multiple spaces after hash on atx style header
+    "MD019",
+    # No space inside hashes on closed atx style header
+    "MD020",
+    # Multiple spaces inside hashes on closed atx style header
+    "MD021",
+    # Headers should be surrounded by blank lines
+    "MD022",
+    # Headers must start at the beginning of the line
+    "MD023",
+    # Multiple headers with the same content
+    "MD024",
+    # Trailing punctuation in header
+    "MD026",
+    # Multiple spaces after blockquote symbol
+    "MD027",
+    # Blank line inside blockquote
+    "MD028",
+    # Ordered list item prefix
+    "MD029",
+    # Spaces after list markers
+    "MD030",
+    # Fenced code blocks should be surrounded by blank lines
+    "MD031",
+    # Lists should be surrounded by blank lines
+    "MD032",
+    # Inline HTML
+    "MD033",
+    # Horizontal rule style
+    "MD035",
+    # Emphasis used instead of a header
+    "MD036",
+    # Spaces inside emphasis markers
+    "MD037",
+    # Spaces inside code span elements
+    "MD038",
+    # Spaces inside link text
+    "MD039",
+    # Fenced code blocks should have a language specified
+    "MD040",
+    # First line in file should be a top level header
+    "MD041",
+    # Code block style
+    "MD046",
+    # File should end with a single newline character
+    "MD047",
+]
+
+# The first header should be a level 1 header
+[lint.md002]
+level = 1
+
+# Requires a consistent header style
+[lint.md003]
+style = "consistent"
+
+# Requires a consistent list style
+[lint.md004]
+style = "consistent"
+
+# Requires an indentation of 4 spaces for unordered lists
+[lint.md007]
+indent = 4
+
+# Set the max line length and exclude code-blocks and tables
+[lint.md013]
+code-blocks = false
+line-length = 600
+tables = false
+
+# Allow header duplication under different nesting
+[lint.md024]
+allow-different-nesting = true
+
+# Require a single level 1 heading at the start
+[lint.md025]
+level = 1
+
+# Trigger the lint for headers ending with this punctuation
+[lint.md026]
+punctuation = ".,;:!"
+
+# Require items in ordered lists to have the prefix 1
+[lint.md029]
+style = "one"
+
+# Require 2 spaces after ordered list markers, 1 space after unordered list markers
+[lint.md030]
+ol-multi = 2
+ol-single = 2
+ul-multi = 1
+ul-single = 1
+
+# Don't trigger the lint for these html elements
+[lint.md033]
+allowed-elements = ["iframe", "source", "video"]
+
+# Require a consistent style of horizontal rules
+[lint.md035]
+style = "consistent"
+
+# Don't trigger this lint for paragraphs ending with this punctuation
+[lint.md036]
+punctuation = ".,;:!?"
+
+# Require the first line in a file to be a top level header
+[lint.md041]
+level = 1
+
+# Require code blocks to use the fenced style
+[lint.md046]
+style = "fenced"

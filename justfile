@@ -210,7 +210,7 @@ generate-manpages-and-specs:
 # Checks source code formatting
 [group('check')]
 check-formatting:
-    just ensure-command cargo-sort-derives taplo
+    just ensure-command cargo-sort-derives mado taplo
 
     just --unstable --fmt --check
     # We're using nightly to properly group imports, see rustfmt.toml
@@ -220,6 +220,8 @@ check-formatting:
 
     # Checks for consistent sorting of rust derives
     cargo sort-derives --check
+
+    mado check
 
 # Runs all check targets
 [group('check')]
