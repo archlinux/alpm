@@ -14,7 +14,7 @@ The value must be covered by the set of alphanumeric characters and '@', '.', '_
 
 # EXAMPLES
 
-```
+```text
 "package-name"
 ```
 

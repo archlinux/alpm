@@ -35,49 +35,49 @@ Depending on comparison operator, the given match towards **alpm-package-name** 
 
 The below composite comparison expressions can be matched by a package named `example` in specific versions:
 
-```
+```text
 "example<1.0.0"
 ```
 
 A version less than '1.0.0' (e.g. '0.8.0-1').
 
-```
+```text
 "example<=1.0.0"
 ```
 
 A version less than or equal to '1.0.0' (e.g. '0.8.0-1' or '1.0.0-3').
 
-```
+```text
 "example<=1.0.0-1"
 ```
 
 A version less than or equal to '1.0.0-1' (e.g. '0.8.0-1' or '1.0.0-1', but '1.0.0-2' does not work).
 
-```
+```text
 "example=1.0.0"
 ```
 
 Any version '1.0.0' (e.g. '1.0.0-1' or '1.0.0-2', etc.).
 
-```
+```text
 "example=1.0.0-1"
 ```
 
 The version '1.0.0-1'.
 
-```
+```text
 "example=1:1.0.0-1"
 ```
 
 The version '1:1.0.0-1'.
 
-```
+```text
 "example>=1.0.0"
 ```
 
 A version greater than or equal to '1.0.0' (e.g. '1.0.0-1' or '1.1.0-1').
 
-```
+```text
 "example>1.0.0"
 ```
 

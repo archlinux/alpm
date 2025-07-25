@@ -26,19 +26,19 @@ This implies that the shell interpreter cannot be changed on a per-package basis
 The available functions are listed below.
 They accept one or two arguments which are package versions, provided as **alpm-package-version**.
 
-```
+```text
 pre_install
 ```
 
 Executed before a package is installed, with the new package version as its argument.
 
-```
+```text
 post_install
 ```
 
 Executed after a package is installed, with the new package version as its argument.
 
-```
+```text
 pre_upgrade
 ```
 
@@ -47,7 +47,7 @@ Executed before a package is upgraded, with the following arguments:
 1. New package version
 1. Old package version
 
-```
+```text
 post_upgrade
 ```
 
@@ -56,13 +56,13 @@ Executed after a package is upgraded, with the following arguments:
 1. New package version
 1. Old package version
 
-```
+```text
 pre_remove
 ```
 
 Executed before a package is removed, with the old package version as its argument.
 
-```
+```text
 post_remove
 ```
 
@@ -72,7 +72,7 @@ Executed after a package is removed, with the old package version as its argumen
 
 Example of specifying an install script in the **PKGBUILD** file:
 
-```
+```text
 install=example.install
 ```
 

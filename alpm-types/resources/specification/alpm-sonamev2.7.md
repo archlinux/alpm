@@ -77,7 +77,7 @@ package() {
 
 This example assumes that the project results in installing the following files to the filesystem:
 
-```
+```text
 /usr/lib/libexample.so -> libexample.so.1
 /usr/lib/libexample.so.1 -> libexample.so.1.0.0
 /usr/lib/libexample.so.1.0.0

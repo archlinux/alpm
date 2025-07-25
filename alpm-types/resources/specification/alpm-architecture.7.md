@@ -17,83 +17,83 @@ The **architecture** value must be covered by the set of alphanumeric characters
 The below **architecture** values all relate to specific **CPU instruction set architectures**[1] or microarchitectures and can be used to specify a package architecture.
 This usually means that packages of a specific **architecture** can only be used in a particular context.
 
-```
+```text
 "any"
 ```
 
 A package can be used on any hardware as its contents are not specific to any architecture.
 
-```
+```text
 "x86_64"
 ```
 
 A package can only be used on hardware compatible with the **x86-64**[2] instruction set version 1 and above (see **x86-64 microarchitecture levels**[3]).
 
-```
+```text
 "x86_64_v2"
 ```
 
 A package can only be used on hardware compatible with the **x86-64**[2] instruction set version 2 and above (see **x86-64 microarchitecture levels**[3]).
 
-```
+```text
 "x86_64_v3"
 ```
 
 A package can only be used on hardware compatible with the **x86-64**[2] instruction set version 3 and above (see **x86-64 microarchitecture levels**[3]).
 
-```
+```text
 "x86_64_v4"
 ```
 
 A package can only be used on hardware compatible with the **x86-64**[2] instruction set version 4 and above (see **x86-64 microarchitecture levels**[3]).
 
-```
+```text
 "i686"
 ```
 
 A package can only be used on hardware compatible with the **IA-32**[4] instruction set version 6 (aka. **P6**[5], or 'i686').
 This architecture is considered legacy.
 
-```
+```text
 "i486"
 ```
 
 A package can only be used on hardware compatible with the **IA-32**[4] instruction set version 4 (aka. **i486**[6]).
 This architecture is considered legacy.
 
-```
+```text
 "pentium4"
 ```
 
 A package can only be used on hardware compatible with the **Pentium 4**[7] microarchitecture.
 This architecture is considered legacy.
 
-```
+```text
 "armv7"
 ```
 
 A package can only be used on hardware compatible with the **ARMv7 architecture family**[8].
 This architecture is considered legacy.
 
-```
+```text
 "armv8"
 ```
 
 A package can only be used on hardware compatible with the **ARMv8 architecture family**[9].
 
-```
+```text
 "aarch64"
 ```
 
 A package can only be used on hardware compatible with the **AArch64**[10] (64-bit execution state of the **ARM architecture family**[11]).
 
-```
+```text
 "riscv64"
 ```
 
 A package can only be used on hardware compatible with the 64-bit variant of the **RISC-V**[12] instruction set architecture (**ISA**[13]).
 
-```
+```text
 "loong64"
 ```
 

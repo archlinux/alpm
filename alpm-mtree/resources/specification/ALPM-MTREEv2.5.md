@@ -87,7 +87,7 @@ The **md5** field is no longer generated, effectively making this a breaking cha
 
 # EXAMPLES
 
-```
+```text
 #mtree
 /set type=file uid=0 gid=0 mode=644
 ./.BUILDINFO time=1696727741.0 size=5574 sha256digest=708be566788a6a2712bcd40425d93761569ede07371781374edb1f22e2a3eb96

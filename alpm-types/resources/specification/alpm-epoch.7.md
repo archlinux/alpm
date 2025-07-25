@@ -21,13 +21,13 @@ As general rule, the sorting precedence is: `epoch > pkgver`.
 The explicit `1` **epoch** component in the right hand composite version string overrules the implicit `0` **epoch** component of the left hand composite version string.
 Since the **epoch** takes precedence, `1:0.9.0` is considered "newer" than `1.0.0` even though the upstream version represented by the **pkgver** component is older.
 
-```
+```text
 "1.0.0" < "1:0.9.0"
 ```
 
 Composite version strings with the same **pkgver** component are also sorted according to their **epoch** component first.
 
-```
+```text
 "1:1.0.0" < "2:1.0.0"
 ```
 

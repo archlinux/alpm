@@ -86,7 +86,7 @@ Follow these rules when writing commit messages:
 
 Here is an example of a good commit message:
 
-```
+```text
 feat(parser): Enhance error handling in parser
 
 Improve error handling by adding specific error codes and messages

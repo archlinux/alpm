@@ -13,11 +13,11 @@ If an upstream version contains an invalid character, it is advised to replace i
 
 # EXAMPLES
 
-```
+```text
 "1.0.0"
 ```
 
-```
+```text
 "1.0.0alpha"
 ```
 
@@ -123,7 +123,7 @@ The comparison between version strings without any sub-segments is simple.
 
 Examples:
 
-```
+```text
 1.0.0 < 1.1.0
 ```
 
@@ -132,7 +132,7 @@ The second segments `0` and `1` are compared, resulting in `1 > 0`.
 The comparison concludes with `1.0.0 < 1.1.0`.
 The last segment is not considered.
 
-```
+```text
 1.2.0 > 1.foo.0
 ```
 
@@ -141,7 +141,7 @@ The second segments `2` and `foo` are compared, resulting in `2 > foo`.
 The comparison concludes with `1.2.0 > 1.foo.0`.
 The last segment is not considered.
 
-```
+```text
 foo.0 > boo.0
 ```
 
@@ -149,7 +149,7 @@ For `boo.0` and `foo.0`, the first segments `boo` and `foo` are compared, result
 The comparison concludes with `foo.0 > boo.0`.
 The last segment is not considered.
 
-```
+```text
 1.0 == 1.0
 ```
 
@@ -162,7 +162,7 @@ While the comparison behavior is similar to that of **comparison of version stri
 
 Examples:
 
-```
+```text
 alpha0 < beta0
 ```
 
@@ -170,7 +170,7 @@ The sub-segments `alpha` and `beta` are compared by applying simple string order
 The comparison concludes with `alpha0 < beta0`.
 The last sub-segment is not considered.
 
-```
+```text
 alpha1 < alpha02
 ```
 
@@ -178,7 +178,7 @@ The first sub-segments `alpha` and `alpha` are equal.
 The second sub-segments `1` and `02` are compared and result in `1 < 2`.
 The comparison concludes with `alpha1 < alpha02`.
 
-```
+```text
 1alpha0 < 2alpha0
 ```
 
@@ -186,7 +186,7 @@ The first sub-segments `1` and `2` are compared, resulting in `1 < 2`.
 The comparison concludes with `1alpha0 < 2alpha0`.
 The other sub-segments are not considered.
 
-```
+```text
 alpha1 < alpha.0
 ```
 
@@ -209,7 +209,7 @@ If a version string has multiple consecutive delimiters between two segments and
 
 Examples:
 
-```
+```text
 1...0 > 1.2
 ```
 
@@ -222,7 +222,7 @@ The contents of the second segments are not considered.
 
 Examples:
 
-```
+```text
 1 < 1.0
 1 < 1.foo
 ```
@@ -232,7 +232,7 @@ The first version string then ends while the second has another segment.
 An additional segment always leads to the version string to be considered newer than the one with no additional segment (this also applies to additional alphanumeric segments).
 The comparison concludes with `1 < 1.0` and `1 < 1.foo`.
 
-```
+```text
 1.0 > 1.0foo.2
 ```
 
@@ -245,7 +245,7 @@ However, this is no longer relevant with modern **semantic versioning**.
 As a result, the comparison concludes with `1.0 > 1.0foo.2`.
 The last segment of `1.0foo.2` is not considered.
 
-```
+```text
 1.foo < 1.foo2
 ```
 
@@ -266,7 +266,7 @@ For the sake of completeness, the behavior has been analyzed, re-implemented and
 
 Examples:
 
-```
+```text
 1... == 1.
 ```
 
@@ -275,7 +275,7 @@ Both version strings then end with an arbitrary amount of trailing delimiters.
 Counterintuitively, the amount of trailing delimiters **does not** matter in this case and they are always considered equal.
 The comparison concludes with `1... == 1.`.
 
-```
+```text
 1. > 1.foo.2
 ```
 
@@ -287,7 +287,7 @@ This logic is a remnant of the special case that was historically introduced to 
 The comparison concludes with `1. > 1.foo.2`.
 The remaining segment of `1.foo.2` is not considered.
 
-```
+```text
 1. < 1.2
 1. < 1.2foo
 ```
@@ -297,7 +297,7 @@ The first version string then ends with a delimiter, while the second version ha
 Because `2` is a numerical value, it is automatically considered newer, as it is not compared to an empty segment.
 The comparison concludes with `1. < 1.2` and `1. < 1.2foo`.
 
-```
+```text
 1.alpha. < 1.alpha0
 ```
 

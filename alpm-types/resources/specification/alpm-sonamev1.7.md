@@ -40,7 +40,7 @@ Refer to **readelf** for further information on how to extract the _ELF header_ 
 When using the name of a _shared object_ file, this always refers to the least specific file name.
 If for example the following files exist on a system:
 
-```
+```text
 /usr/lib/libexample.so -> libexample.so.1
 /usr/lib/libexample.so.1 -> libexample.so.1.0.0
 /usr/lib/libexample.so.1.0.0
@@ -124,7 +124,7 @@ pkgname = example
 
 This example assumes that the project results in installing the following files to the filesystem:
 
-```
+```text
 /usr/lib/libexample.so -> libexample.so.1
 /usr/lib/libexample.so.1 -> libexample.so.1.0.0
 /usr/lib/libexample.so.1.0.0

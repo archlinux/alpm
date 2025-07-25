@@ -63,25 +63,25 @@ This **alpm-package-version** form is used in various scenarios, such as:
 
 # EXAMPLES
 
-```
+```text
 "1.0.0-1"
 ```
 
 A full package version.
 
-```
+```text
 "1:1.0.0-1"
 ```
 
 A full package version with epoch.
 
-```
+```text
 "1.0.0"
 ```
 
 A minimal package version.
 
-```
+```text
 "1:1.0.0"
 ```
 
