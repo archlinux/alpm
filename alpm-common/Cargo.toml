@@ -13,7 +13,10 @@ version = "0.1.0"
 
 [dependencies]
 alpm-types.workspace = true
+fluent-templates = "0.13.0"
+sys-locale = "0.3.2"
 thiserror.workspace = true
+unic-langid = "0.9.6"
 
 [dev-dependencies]
 rstest.workspace = true

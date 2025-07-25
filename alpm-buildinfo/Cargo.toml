@@ -32,6 +32,8 @@ serde_with = "3.11.0"
 strum.workspace = true
 thiserror.workspace = true
 
+fluent-templates = "0.13.0"
+
 [dev-dependencies]
 assert_cmd.workspace = true
 insta.workspace = true

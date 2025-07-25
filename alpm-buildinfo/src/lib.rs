@@ -15,3 +15,5 @@ pub use error::Error;
 
 mod schema;
 pub use schema::BuildInfoSchema;
+
+alpm_common::i18n!("locales", fallback = "en-US");

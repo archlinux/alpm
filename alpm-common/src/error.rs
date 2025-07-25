@@ -1,10 +1,14 @@
 use std::path::{PathBuf, StripPrefixError};
 
+use unic_langid::LanguageIdentifierError;
+
+use crate::t;
+
 /// An error that can occur when dealing with package inputs.
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     /// An I/O error occurred at a path.
-    #[error("I/O error at path {path} while {context}:\n{source}")]
+    #[error("{msg}", msg = t!("error-io-path", { "context" => context, "path" => path }))]
     IoPath {
         /// The path at which the error occurred.
         path: PathBuf,
@@ -17,44 +21,47 @@ pub enum Error {
     },
 
     /// A path is not a directory.
-    #[error("The path is not a directory: {path:?}")]
+    #[error("{msg}", msg = t!("error-not-a-directory", { "path" => path }))]
     NotADirectory {
         /// The path that is not a directory.
         path: PathBuf,
     },
 
     /// One or more paths are not absolute.
-    #[error(
-        "The following paths are not absolute:\n{}",
-        paths.iter().fold(
+    #[error("{msg}", msg = t!("error-non-absolute-paths", {
+        "paths" => paths.iter().fold(
             String::new(),
             |mut output, path| {
                 output.push_str(&format!("{path:?}\n"));
                 output
-            })
-    )]
+            }
+        )
+    }))]
     NonAbsolutePaths {
         /// The list of non-absolute paths.
         paths: Vec<PathBuf>,
     },
 
     /// One or more paths are not relative.
-    #[error(
-        "The following paths are not relative:\n{}",
-        paths.iter().fold(
+    #[error("{msg}", msg = t!("error-non-relative-paths", {
+        "paths" => paths.iter().fold(
             String::new(),
             |mut output, path| {
                 output.push_str(&format!("{path:?}\n"));
                 output
-            })
-    )]
+            }
+        )
+    }))]
     NonRelativePaths {
         /// The list of non-relative paths.
         paths: Vec<PathBuf>,
     },
 
     /// A path's prefix cannot be stripped.
-    #[error("Cannot strip prefix {prefix} from path {path}:\n{source}")]
+    #[error("{msg}\n{source}", msg = t!("error-path-strip-prefix", {
+        "prefix" => prefix,
+        "path" => path
+    }))]
     PathStripPrefix {
         /// The prefix that is supposed to be stripped from `path`.
         prefix: PathBuf,
@@ -63,4 +70,49 @@ pub enum Error {
         /// The source error.
         source: StripPrefixError,
     },
+
+    /// An error occurred while parsing a locale.
+    #[error("{msg}\n{source}", msg = t!("error-locale-parse", {
+        "locale" => locale
+    }))]
+    LocaleParseError {
+        /// The locale string that could not be parsed.
+        locale: String,
+        /// The source error.
+        source: LanguageIdentifierError,
+    },
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::i18n;
+
+    i18n!("locales", fallback = "en-US");
+
+    #[test]
+    fn test_localized_io_path_error() -> testresult::TestResult {
+        use std::{io, path::PathBuf};
+
+        use crate::Error;
+
+        // Initialize localization
+        crate::locale::set_locale(Some("en-US"))?;
+
+        // Construct the error
+        let err = Error::IoPath {
+            path: PathBuf::from("/etc/foo"),
+            context: "reading",
+            source: io::Error::new(io::ErrorKind::NotFound, "File not found"),
+        };
+
+        let msg = err.to_string();
+
+        // Check translation was applied
+        assert!(
+            msg.contains("I/O error while reading: /etc/foo"),
+            "Unexpected translation: {msg}"
+        );
+
+        Ok(())
+    }
 }

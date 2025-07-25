@@ -99,7 +99,7 @@ pub enum Command {
         #[arg(
             short,
             long,
-            value_name = "OUTPUT_FORMAT",
+            value_name = alpm_common::t!("format"),
             default_value_t = OutputFormat::Json
         )]
         output_format: OutputFormat,
