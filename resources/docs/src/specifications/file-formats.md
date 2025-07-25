@@ -1,4 +1,4 @@
-## File format specifications
+# File format specifications
 
 Specifications for various file formats are provided in the context of the [components] that make use of them and are located in a component's `resources/specification/` directory.
 

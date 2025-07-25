@@ -1,4 +1,4 @@
-## Concept specifications
+# Concept specifications
 
 Specifications for common fields, composite types and concepts are provided by the [alpm-types] [component] in its `resources/specification/` directory.
 
