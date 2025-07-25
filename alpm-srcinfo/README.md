@@ -186,8 +186,6 @@ diff --ignore-trailing-space "$SRCINFO_OUT" "$SRCINFO_OUT.expected"
 ```
 -->
 
-
-
 ### Library
 
 ```rust
