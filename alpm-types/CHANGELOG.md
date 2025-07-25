@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Impl From<PackageFileName> for InstalledPackage
+- Impl `From<PackageFileName>` for InstalledPackage
 - Support constructing `CompressionAlgorithmFileExtension` from path
 - [**breaking**] Use `FullVersion`, not `Version` in `InstalledPackage`
 - [**breaking**] Use `FullVersion`, not `Version` in `PackageFileName`
@@ -201,7 +201,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - *(alpm-types)* Document Version::from_str()
 - *(types)* Move Packager type to openpgp module
 - *(deps)* Move testresult to workspace dependencies
-- *(name)* implement AsRef<str> for Name
+- *(name)* implement `AsRef<str>` for Name
 - Add specification for package groups
 - Add specification for meta packages
 - *(types)* Use lowercase serialization for Architecture
@@ -336,7 +336,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Miscellaneous Chores
 
-- Deprecate Md5Sum in favor of Checksum<Md5> - (50f6f74) - David Runge
+- Deprecate Md5Sum in favor of `Checksum<Md5>` - (50f6f74) - David Runge
 
 #### Tests
 
