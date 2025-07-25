@@ -7,15 +7,15 @@ The project is based on a modern, Rust-based framework and comprises a common se
 Project goals:
 
 - Rigorous specifications
-  - Formalize existing ad-hoc systems and behaviors
+    - Formalize existing ad-hoc systems and behaviors
 - Focus on reusability
-  - Extensive documentation
-  - Language bindings
-  - Liberal license
-  - Solid foundation for new tools
+    - Extensive documentation
+    - Language bindings
+    - Liberal license
+    - Solid foundation for new tools
 - Modern implementation in Rust
-  - Maintainability
-  - Memory safety
+    - Maintainability
+    - Memory safety
 
 Project methodology:
 

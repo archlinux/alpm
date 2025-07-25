@@ -35,9 +35,9 @@ The [`SourceInfo`] struct is an accurate representation of the `SRCINFO` file, h
 The [`SourceInfo`] struct contains:
 
 - A [`PackageBase`] struct that contains the defaults for all packages in this `SRCINFO` file.
-  - The `PackageBase::architecture_properties` field contains additional defaults that are architecture specific.
+    - The `PackageBase::architecture_properties` field contains additional defaults that are architecture specific.
 - A list of [`Package`]s that contains package specific information as well as overrides for the [`PackageBase`] defaults.
-  - The `Package::architecture_properties` field contains additional data that provides overrides for the respective defaults found in `PackageBase::architecture_properties`.
+    - The `Package::architecture_properties` field contains additional data that provides overrides for the respective defaults found in `PackageBase::architecture_properties`.
 
 Although already fully validated, this representation is not easy to use if one is interested in the properties of a specific package for a specific architecture.
 For that, we have the [`MergedPackage`] representation.

@@ -17,9 +17,9 @@ Currently supported features:
 - `git`
 - A registered Arch Linux GitLab account and a configured environment to pull from it via `ssh`.
 - Disk space (around ~100GB). Especially the package download is quite big:
-  - `packages`: ~90GB
-  - `databases`: ~1GB
-  - `pkg-src-repositories`: ~3GB
+    - `packages`: ~90GB
+    - `databases`: ~1GB
+    - `pkg-src-repositories`: ~3GB
 
 ## Workflow
 

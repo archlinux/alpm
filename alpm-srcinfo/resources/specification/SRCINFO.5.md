@@ -46,8 +46,8 @@ More specifically, all keyword assignments in a **pkgname** section are used to 
 The following rules apply:
 
 - A keyword that has been previously defined in the **pkgbase** section and may be used in a **pkgname** section can be
-  - unset by assigning an empty value to it (e.g. the **pkgbase** section defines `depends = bash` and the **pkgname** section defines `depends =`), or
-  - overridden by defining it again (e.g. the **pkgbase** section defines `depends = bash` and the **pkgname** section defines `depends = zsh`).
+    - unset by assigning an empty value to it (e.g. the **pkgbase** section defines `depends = bash` and the **pkgname** section defines `depends =`), or
+    - overridden by defining it again (e.g. the **pkgbase** section defines `depends = bash` and the **pkgname** section defines `depends = zsh`).
 - All keywords that allow multiple assignments and that may be used in a **pkgname** section can be extended by first adding all keyword assignments found in the **pkgbase** section and afterwards adding further keyword assignments in a **pkgname** section (e.g. the **pkgbase** section defines `depends = bash` and the **pkgname** section defines `depends = bash` and `depends = bash-completion`).
 
 Further rules may apply depending on keyword.

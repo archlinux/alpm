@@ -64,18 +64,18 @@ A package build tool (e.g. **makepkg**) automatically derives **soname** informa
 
 - If the package that is built contains a _shared object_ file and the name of that _shared object_ file (i.e. the _basic form_) is present as an **alpm-package-relation** of type **provision** in the package's **PKGBUILD** file (e.g. `provides=(libexample.so)`), then relevant data from the `SONAME` field in the _dynamic section_ of the targeted **ELF**[2] file is extracted.
 
-  - If the **soname** data contains a version, it is extracted together with the _ELF architecture format_ of the file to construct the _explicit form_.
-    It is added instead of the _basic form_ to the **alpm-package-relation** of type **provision** in the **PKGINFO** file of the package (e.g. `provides = libexample.so=1-64`).
-  - If the **soname** data does not contain a version, the entire **soname** together with the _ELF architecture format_ of the file is used to construct the _unversioned form_.
-    It is added instead of the _basic form_ to the **alpm-package-relation** of type **provision** in the **PKGINFO** file of the package (e.g. `provides = libexample.so=libexample.so-64`).
+    - If the **soname** data contains a version, it is extracted together with the _ELF architecture format_ of the file to construct the _explicit form_.
+      It is added instead of the _basic form_ to the **alpm-package-relation** of type **provision** in the **PKGINFO** file of the package (e.g. `provides = libexample.so=1-64`).
+    - If the **soname** data does not contain a version, the entire **soname** together with the _ELF architecture format_ of the file is used to construct the _unversioned form_.
+      It is added instead of the _basic form_ to the **alpm-package-relation** of type **provision** in the **PKGINFO** file of the package (e.g. `provides = libexample.so=libexample.so-64`).
 
 - If the package that is built contains an **ELF**[2] file that dynamically links against a _shared object_ available in the build environment and the name of that _shared object_ file (i.e. the _basic form_) is present as an **alpm-package-relation** of type **run-time dependency** in the package's **PKGBUILD** file (e.g. `depends=(libexample.so)`), then relevant **soname** data from the `NEEDED` fields in the _dynamic section_ of the **ELF**[2] file is extracted for those specific _shared objects_.
-  - All **soname** data that contains a version is extracted together with the _ELF architecture format_ of the **ELF**[2] file and is used to construct the _explicit form_.
-    It is matched against the **alpm-package-relation** of type **provision** in the **PKGINFO** data of the packages available in the build environment.
-    If one matches, the _explicit form_ instead of the _basic form_ is added to the **alpm-package-relation** of type **run-time dependency** in the **PKGINFO** file of the package that is being built (e.g. `depend = libexample.so=1-64`).
-  - All **soname** data that does not contain a version is extracted in its entirety, together with the _ELF architecture format_ of the **ELF**[2] file and is used to construct the _unversioned form_.
-    It is matched against the **alpm-package-relation** of type **provision** in the **PKGINFO** data of the packages available in the build environment.
-    If one matches, the _unversioned form_ instead of the _basic form_ is added to the **alpm-package-relation** of type **run-time dependency** in the **PKGINFO** file of the package that is being built (e.g. `depend = libexample.so=1-64`).
+    - All **soname** data that contains a version is extracted together with the _ELF architecture format_ of the **ELF**[2] file and is used to construct the _explicit form_.
+      It is matched against the **alpm-package-relation** of type **provision** in the **PKGINFO** data of the packages available in the build environment.
+      If one matches, the _explicit form_ instead of the _basic form_ is added to the **alpm-package-relation** of type **run-time dependency** in the **PKGINFO** file of the package that is being built (e.g. `depend = libexample.so=1-64`).
+    - All **soname** data that does not contain a version is extracted in its entirety, together with the _ELF architecture format_ of the **ELF**[2] file and is used to construct the _unversioned form_.
+      It is matched against the **alpm-package-relation** of type **provision** in the **PKGINFO** data of the packages available in the build environment.
+      If one matches, the _unversioned form_ instead of the _basic form_ is added to the **alpm-package-relation** of type **run-time dependency** in the **PKGINFO** file of the package that is being built (e.g. `depend = libexample.so=1-64`).
 
 # EXAMPLES
 

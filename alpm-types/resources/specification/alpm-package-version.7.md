@@ -17,7 +17,7 @@ This **alpm-package-version** form is used in various scenarios, such as:
 
 - package filenames
 - **package-relation** expressions
-  - **replaces**, **conflict**, **provides**, **depend**, **makedepend** and **checkdepend** in **PKGINFO** files
+    - **replaces**, **conflict**, **provides**, **depend**, **makedepend** and **checkdepend** in **PKGINFO** files
 - **pkgver** in **BUILDINFO** files
 - **pkgver** in **PKGINFO** files
 - as part of **buildtoolver** in **BUILDINFOv2** files
@@ -30,7 +30,7 @@ This **alpm-package-version** form is used in various scenarios, such as:
 
 - package filenames
 - **package-relation** expressions
-  - **replaces**, **conflict**, **provides**, **depend**, **makedepend** and **checkdepend** in **PKGINFO** files
+    - **replaces**, **conflict**, **provides**, **depend**, **makedepend** and **checkdepend** in **PKGINFO** files
 - **pkgver** in **BUILDINFO** files
 - **pkgver** in **PKGINFO** files
 - as part of **buildtoolver** in **BUILDINFOv2** files
@@ -43,8 +43,8 @@ The value for this form consists of an **alpm-pkgver** (e.g. `1.0.0`).
 This **alpm-package-version** form is used in various scenarios, such as:
 
 - **package-relation** expressions
-  - **replaces**, **conflicts**, **provides**, **depends**, **makedepends** and **checkdepends** in **PKGBUILD** files
-  - **replaces**, **conflict**, **provides**, **depend**, **makedepend** and **checkdepend** in **PKGINFO** files
+    - **replaces**, **conflicts**, **provides**, **depends**, **makedepends** and **checkdepends** in **PKGBUILD** files
+    - **replaces**, **conflict**, **provides**, **depend**, **makedepend** and **checkdepend** in **PKGINFO** files
 - **pkgver** in **PKGBUILD** files
 - **pkgver** in **SRCINFO** files
 - as part of **buildtoolver** in **BUILDINFOv2** files
@@ -55,8 +55,8 @@ The value for this form consists of an **alpm-epoch**, directly followed by a ':
 This **alpm-package-version** form is used in various scenarios, such as:
 
 - as part of **package-relation** expressions
-  - **replaces**, **conflicts**, **provides**, **depends**, **makedepends** and **checkdepends** in **PKGBUILD** files
-  - **replaces**, **conflict**, **provides**, **depend**, **makedepend** and **checkdepend** in **PKGINFO** files
+    - **replaces**, **conflicts**, **provides**, **depends**, **makedepends** and **checkdepends** in **PKGBUILD** files
+    - **replaces**, **conflict**, **provides**, **depend**, **makedepend** and **checkdepend** in **PKGINFO** files
 - **pkgver** in **PKGBUILD** files
 - **pkgver** in **SRCINFO** files
 - as part of **buildtoolver** in **BUILDINFOv2** files
