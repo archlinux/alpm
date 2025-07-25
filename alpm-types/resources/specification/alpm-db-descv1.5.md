@@ -221,22 +221,22 @@ gcc-libs
 
    https://en.wikipedia.org/wiki/ASCII#Printable_characters
 
-2. OpenPGP User ID
+1. OpenPGP User ID
 
    https://openpgp.dev/book/certificates.html#user-ids
 
-3. RFC 2822
+1. RFC 2822
 
    https://www.rfc-editor.org/rfc/rfc2822
 
-4. SPDX License List
+1. SPDX License List
 
    https://spdx.org/licenses/
 
-5. OpenPGP signature
+1. OpenPGP signature
 
    https://openpgp.dev/book/signing_data.html#detached-signatures
 
-6. OpenPGP certificates
+1. OpenPGP certificates
 
    https://openpgp.dev/book/certificates.html

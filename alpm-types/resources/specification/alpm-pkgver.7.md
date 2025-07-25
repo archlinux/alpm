@@ -316,6 +316,6 @@ The comparison concludes with `1.alpha. < 1.alpha0`.
 
    https://github.com/rpm-software-management/rpm/blob/rpm-4.8.1-release/lib/rpmvercmp.c
 
-2. **semantic versioning**
+1. **semantic versioning**
 
    https://semver.org/

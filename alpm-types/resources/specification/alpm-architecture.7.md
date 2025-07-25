@@ -109,55 +109,55 @@ A package can only be used on hardware compatible with the 64-bit variant of the
 
    https://en.wikipedia.org/wiki/Comparison_of_instruction_set_architectures#Instruction_sets
 
-2. **x86-64**
+1. **x86-64**
 
    https://en.wikipedia.org/wiki/X86-64
 
-3. **x86-64 microarchitecture levels**
+1. **x86-64 microarchitecture levels**
 
    https://en.wikipedia.org/wiki/X86-64#Microarchitecture_levels
 
-4. **IA-32**
+1. **IA-32**
 
    https://en.wikipedia.org/wiki/IA-32
 
-5. **P6**
+1. **P6**
 
    https://en.wikipedia.org/wiki/P6_(microarchitecture)
 
-6. **i486**
+1. **i486**
 
    https://en.wikipedia.org/wiki/I486
 
-7. **pentium4**
+1. **pentium4**
 
    https://en.wikipedia.org/wiki/Pentium_4
 
-8. **ARMv7 architecture family**
+1. **ARMv7 architecture family**
 
    https://en.wikipedia.org/wiki/ARM_architecture_family#32-bit_architecture
 
-9. **ARMv8 architecture family**
+1. **ARMv8 architecture family**
 
    https://en.wikipedia.org/wiki/ARM_architecture_family#Armv8
 
-10. **AArch64**
+1. **AArch64**
 
     https://en.wikipedia.org/wiki/AArch64
 
-11. **ARM architecture family**
+1. **ARM architecture family**
 
     https://en.wikipedia.org/wiki/ARM_architecture_family
 
-12. **RISC-V**
+1. **RISC-V**
 
     https://en.wikipedia.org/wiki/RISC-V
 
-13. **ISA**
+1. **ISA**
 
     https://en.wikipedia.org/wiki/Instruction_set_architecture
 
-14. **LoongArch**
+1. **LoongArch**
 
     https://en.wikipedia.org/wiki/Loongson#LoongArch
 

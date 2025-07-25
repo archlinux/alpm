@@ -123,10 +123,10 @@ installed = package2-2.1.0-6-x86_64
 
    https://wiki.archlinux.org/title/Reproducible_builds
 
-2. **OpenPGP User ID**
+1. **OpenPGP User ID**
 
    https://openpgp.dev/book/certificates.html#user-ids
 
-3. **RFC 2822**
+1. **RFC 2822**
 
    https://www.rfc-editor.org/rfc/rfc2822

@@ -268,14 +268,14 @@ pkgname = example-git
 
   https://en.wikipedia.org/wiki/URL
 
-2. **OpenPGP signature verification**
+1. **OpenPGP signature verification**
 
   https://openpgp.dev/book/verification.html
 
-3. **OpenPGP certificates**
+1. **OpenPGP certificates**
 
   https://openpgp.dev/book/certificates.html
 
-4. **OpenPGP fingerprints**
+1. **OpenPGP fingerprints**
 
   https://openpgp.dev/book/certificates.html#fingerprint

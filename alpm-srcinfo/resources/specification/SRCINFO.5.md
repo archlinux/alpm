@@ -432,34 +432,34 @@ For `x86_64`:
 
    https://en.wikipedia.org/wiki/ASCII#Printable_characters
 
-2. **OpenPGP fingerprint**
+1. **OpenPGP fingerprint**
 
    https://openpgp.dev/book/certificates.html#fingerprint
 
-3. **OpenPGP signatures**
+1. **OpenPGP signatures**
 
    https://openpgp.dev/book/signing_data.html
 
-4. **OpenPGP Key ID**
+1. **OpenPGP Key ID**
 
    https://openpgp.dev/book/glossary.html#term-Key-ID
 
-5. **SPDX License List**
+1. **SPDX License List**
 
    https://spdx.org/licenses/
 
-6. **MD5**
+1. **MD5**
 
    https://en.wikipedia.org/wiki/MD5
 
-7. **SHA-1**
+1. **SHA-1**
 
    https://en.wikipedia.org/wiki/SHA-1
 
-8. **SHA-2**
+1. **SHA-2**
 
    https://en.wikipedia.org/wiki/SHA-2
 
-9. **BLAKE2**
+1. **BLAKE2**
 
    https://en.wikipedia.org/wiki/BLAKE_(hash_function)#BLAKE2

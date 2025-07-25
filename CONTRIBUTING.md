@@ -77,11 +77,11 @@ Follow these rules when writing commit messages:
 
 1. The subject line should be capitalized and should not end with a period.
 
-2. The total length of the line should not exceed **72** characters.
+1. The total length of the line should not exceed **72** characters.
 
-3. The commit body should be in the imperative mood.
+1. The commit body should be in the imperative mood.
 
-4. Avoid using the crate name as the commit scope. (e.g. `feat(alpm-types)`)
+1. Avoid using the crate name as the commit scope. (e.g. `feat(alpm-types)`)
    The changelog entries will be generated for the associated crate accordingly using [`release-plz`] and [`git-cliff`].
 
 Here is an example of a good commit message:

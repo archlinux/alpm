@@ -184,14 +184,14 @@ checkdepend = other-extra-test-tool
 
    https://en.wikipedia.org/wiki/ASCII#Printable_characters
 
-2. **OpenPGP User ID**
+1. **OpenPGP User ID**
 
    https://openpgp.dev/book/certificates.html#user-ids
 
-3. **RFC 2822**
+1. **RFC 2822**
 
    https://www.rfc-editor.org/rfc/rfc2822
 
-4. **SPDX License List**
+1. **SPDX License List**
 
    https://spdx.org/licenses/

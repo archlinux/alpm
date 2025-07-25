@@ -45,7 +45,7 @@ pre_upgrade
 Executed before a package is upgraded, with the following arguments:
 
 1. New package version
-2. Old package version
+1. Old package version
 
 ```
 post_upgrade
@@ -54,7 +54,7 @@ post_upgrade
 Executed after a package is upgraded, with the following arguments:
 
 1. New package version
-2. Old package version
+1. Old package version
 
 ```
 pre_remove

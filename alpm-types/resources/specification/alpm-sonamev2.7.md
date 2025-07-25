@@ -158,6 +158,6 @@ depend = lib:libexample.so.1
 
    https://en.wikipedia.org/wiki/Soname
 
-2. **ELF**
+1. **ELF**
 
    https://en.wikipedia.org/wiki/Executable_and_Linkable_Format

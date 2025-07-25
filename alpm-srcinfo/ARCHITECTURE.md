@@ -49,10 +49,10 @@ To get a [`MergedPackage`], the [`SourceInfo::packages_for_architecture`] functi
 The way the merging works is as follows:
 
 1. Take the [`PackageBase`] non-architecture default values.
-2. Apply the [`Package`] non-architecture override values.
-3. Take the [`PackageBase`] architecture-specific default values.
-4. Apply the [`Package`] architecture-specific override values.
-5. Merge the final architecture-specific values into the non-architecture specific values.
+1. Apply the [`Package`] non-architecture override values.
+1. Take the [`PackageBase`] architecture-specific default values.
+1. Apply the [`Package`] architecture-specific override values.
+1. Merge the final architecture-specific values into the non-architecture specific values.
 
 [`MergedPackage`]: https://alpm.archlinux.page/rustdoc/alpm_srcinfo/source_info/v1/merged/struct.MergedPackage.html
 [`PackageBase`]: https://alpm.archlinux.page/rustdoc/alpm_srcinfo/source_info/v1/package_base/struct.PackageBase.html

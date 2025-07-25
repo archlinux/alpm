@@ -51,10 +51,10 @@ A state file consists of a single line with the four components _package name_, 
 
 1. _package name_: The **alpm-package-base** of one or more **alpm-packages** in the targeted **alpm-repo**.
    This value must be identical to the name of the **state file**!
-3. _version_: The version of the **alpm-package-base**, formatted as an **alpm-package-version** in **full** or **full with epoch** variant.
-4. _tag_: The git tag in the **alpm-source-repo** from which all **alpm-packages** that share _package name_ are built.
+1. _version_: The version of the **alpm-package-base**, formatted as an **alpm-package-version** in **full** or **full with epoch** variant.
+1. _tag_: The git tag in the **alpm-source-repo** from which all **alpm-packages** that share _package name_ are built.
    This value is based on _version_ but is subject to **version normalization**.
-6. _digest_: The SHA-1 hash digest of the commit that _tag_ points at in the **alpm-source-repo**.
+1. _digest_: The SHA-1 hash digest of the commit that _tag_ points at in the **alpm-source-repo**.
 
 ### Version normalization
 
@@ -64,7 +64,7 @@ To be able to relate the version encoded in a **PKGBUILD** or **SRCINFO** file t
 The following modifications are applied in order to normalize the string:
 
 1. Replace all occurrences of ':' (colon) with a '-' (dash)
-2. Replace all occurrences of '~' (tilde) with a '.' (dot)
+1. Replace all occurrences of '~' (tilde) with a '.' (dot)
 
 # EXAMPLES
 

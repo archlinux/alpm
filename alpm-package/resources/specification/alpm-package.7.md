@@ -120,18 +120,18 @@ usr/share/example/data.txt
 
    https://openpgp.dev/book/signing_data.html#detached-signatures
 
-2. **reproducible builds**
+1. **reproducible builds**
 
    https://reproducible-builds.org/
 
-3. **root directory**
+1. **root directory**
 
    https://en.wikipedia.org/wiki/Root_directory
 
-4. **systemd File Hierarchy Requirements**
+1. **systemd File Hierarchy Requirements**
 
    https://systemd.io/SYSTEMD_FILE_HIERARCHY_REQUIREMENTS/
 
-5. **Filesystem Hierarchy Standard**
+1. **Filesystem Hierarchy Standard**
 
    https://en.wikipedia.org/wiki/Filesystem_Hierarchy_Standard

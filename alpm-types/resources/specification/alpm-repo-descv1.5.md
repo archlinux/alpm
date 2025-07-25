@@ -315,30 +315,30 @@ Foobar McFooface <foobar@mcfooface.org>
 
    https://en.wikipedia.org/wiki/ASCII#Printable_characters
 
-2. MD-5
+1. MD-5
 
    https://en.wikipedia.org/wiki/MD5
 
-3. SHA-256
+1. SHA-256
 
    https://en.wikipedia.org/wiki/SHA-2
 
-4. Base64
+1. Base64
 
    https://en.wikipedia.org/wiki/Base64
 
-5. OpenPGP signature
+1. OpenPGP signature
 
    https://openpgp.dev/book/signing_data.html#detached-signatures
 
-6. SPDX License List
+1. SPDX License List
 
    https://spdx.org/licenses/
 
-7. OpenPGP User ID
+1. OpenPGP User ID
 
    https://openpgp.dev/book/certificates.html#user-ids
 
-8. RFC 2822
+1. RFC 2822
 
    https://www.rfc-editor.org/rfc/rfc2822

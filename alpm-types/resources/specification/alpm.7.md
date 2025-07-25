@@ -380,22 +380,22 @@ The **ALPM-MTREE** file also equals that contained in the **alpm-package** file:
 
    https://archlinux.org
 
-2. **reproducible builds**
+1. **reproducible builds**
 
    https://reproducible-builds.org
 
-3. **supply chain attack**
+1. **supply chain attack**
 
    https://en.wikipedia.org/wiki/Supply_chain_attack
 
-4. **OpenPGP signatures**
+1. **OpenPGP signatures**
 
    https://openpgp.dev/book/signing_data.html#detached-signatures
 
-5. **OpenPGP certificate**
+1. **OpenPGP certificate**
 
    https://openpgp.dev/book/certificates.html
 
-6. **dbscripts**
+1. **dbscripts**
 
    https://gitlab.archlinux.org/archlinux/dbscripts
