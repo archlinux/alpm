@@ -1,5 +1,9 @@
 //! Error handling for rootless backends.
 
+#[cfg(doc)]
+use crate::RootlessBackend;
+use crate::utils::SystemdDetectVirtOutput;
+
 /// An error that can occur when using a rootless backend.
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -28,5 +32,15 @@ pub enum Error {
     UnknownSystemdDetectVirtOutput {
         /// The unknown output for [systemd-detect-virt].
         output: String,
+    },
+
+    /// A [`RootlessBackend`] based on kernel namespaces is used in a container runtime.
+    #[error(
+        "Rootless backends based on kernel namespaces are not supported in the \"{runtime}\" containerization runtime."
+    )]
+    NamespacesInContainer {
+        /// The container runtime in which the [`RootlessBackend`] based on kernel namespaces is
+        /// used.
+        runtime: SystemdDetectVirtOutput,
     },
 }

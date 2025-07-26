@@ -22,5 +22,8 @@ rstest.workspace = true
 simplelog.workspace = true
 testresult.workspace = true
 
+[features]
+_virtualized-integration-test = []
+
 [lints]
 workspace = true
