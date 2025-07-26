@@ -11,5 +11,12 @@ repository.workspace = true
 rust-version.workspace = true
 version = "0.1.0"
 
+[dependencies]
+thiserror.workspace = true
+which.workspace = true
+
+[dev-dependencies]
+testresult.workspace = true
+
 [lints]
 workspace = true
