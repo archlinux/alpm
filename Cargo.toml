@@ -19,7 +19,7 @@ members = [
     "alpm-package",
     "alpm-parsers",
     "alpm-pkgbuild",
-    "alpm-pkginfo",
+    "alpm-pkginfo", "alpm-rootless",
     "alpm-srcinfo",
     "alpm-state-repo",
     "alpm-types",
