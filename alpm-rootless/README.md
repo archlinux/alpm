@@ -12,7 +12,14 @@ A library for the execution of commands as root without being root.
 ### Library
 
 ```rust
-use alpm_rootless::{FakerootBackend, FakerootOptions, RootlessBackend};
+use alpm_rootless::{
+    FakerootBackend,
+    FakerootOptions,
+    RootlessBackend,
+    RootlesskitBackend,
+    RootlesskitOptions,
+};
+# use alpm_rootless::detect_virt;
 
 # fn main() -> testresult::TestResult {
 // Create a fakeroot backend with default options.
@@ -22,6 +29,17 @@ let backend = FakerootBackend::new(FakerootOptions::default());
 let output = backend.run(&["whoami"])?;
 
 assert_eq!("root\n", String::from_utf8_lossy(&output.stdout));
+
+# let virt = detect_virt()?;
+# if !virt.uses_namespaces() {
+// Create a rootlesskit backend with default options.
+let backend = RootlesskitBackend::new(RootlesskitOptions::default());
+
+// Call `whoami` using rootlesskit and return its output.
+let output = backend.run(&["whoami"])?;
+
+assert_eq!("root\n", String::from_utf8_lossy(&output.stdout));
+# }
 # Ok(())
 # }
 ```

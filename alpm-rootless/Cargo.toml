@@ -18,9 +18,15 @@ thiserror.workspace = true
 which.workspace = true
 
 [dev-dependencies]
+cargo_metadata = "0.20.0"
+change-user-run = "0.1.0"
+clap.workspace = true
 rstest.workspace = true
 simplelog.workspace = true
 testresult.workspace = true
+
+[features]
+_virtualized-integration-test = []
 
 [lints]
 workspace = true

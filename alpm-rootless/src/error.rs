@@ -1,5 +1,11 @@
 //! Error handling for rootless backends.
 
+use std::process::ExitStatus;
+
+#[cfg(doc)]
+use crate::RootlessBackend;
+use crate::utils::SystemdDetectVirtOutput;
+
 /// An error that can occur when using a rootless backend.
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -21,6 +27,19 @@ pub enum Error {
         source: std::io::Error,
     },
 
+    /// A command exited unsuccessfully.
+    #[error(
+        "The command \"{command}\" exited with non-zero status code \"{exit_status}\":\nstderr:\n{stderr}"
+    )]
+    CommandNonZero {
+        /// The command that exited with a non-zero exit code.
+        command: String,
+        /// The exit status of `command`.
+        exit_status: ExitStatus,
+        /// The stderr of `command`.
+        stderr: String,
+    },
+
     /// Unknown output of [systemd-detect-virt] detected.
     ///
     /// [systemd-detect-virt]: https://man.archlinux.org/man/systemd-detect-virt.1
@@ -28,5 +47,15 @@ pub enum Error {
     UnknownSystemdDetectVirtOutput {
         /// The unknown output for [systemd-detect-virt].
         output: String,
+    },
+
+    /// A [`RootlessBackend`] based on kernel namespaces is used in a container runtime.
+    #[error(
+        "Rootless backends based on kernel namespaces are not supported in the \"{runtime}\" containerization runtime."
+    )]
+    NamespacesInContainer {
+        /// The container runtime in which the [`RootlessBackend`] based on kernel namespaces is
+        /// used.
+        runtime: SystemdDetectVirtOutput,
     },
 }
