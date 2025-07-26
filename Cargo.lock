@@ -165,6 +165,8 @@ dependencies = [
 name = "alpm-rootless"
 version = "0.1.0"
 dependencies = [
+ "log",
+ "simplelog",
  "testresult",
  "thiserror",
  "which",

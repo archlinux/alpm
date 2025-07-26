@@ -12,6 +12,7 @@ rust-version.workspace = true
 version = "0.1.0"
 
 [dependencies]
+log.workspace = true
 thiserror.workspace = true
 which.workspace = true
 
@@ -19,4 +20,5 @@ which.workspace = true
 workspace = true
 
 [dev-dependencies]
+simplelog.workspace = true
 testresult.workspace = true
