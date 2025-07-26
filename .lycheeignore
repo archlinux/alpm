@@ -3,3 +3,9 @@ https://www.gnu.org/software/libtool/manual/html_node/Versioning.html
 
 # This file is created on-demand when building the book.
 .*/resources/docs/src/api-docs/dependency_graph.png
+
+# Only available after first release of the crate.
+https://docs.rs/alpm-rootless/latest/alpm_rootless/
+
+# Only available after first merge of the crate.
+https://alpm.archlinux.page/rustdoc/alpm_rootless/
