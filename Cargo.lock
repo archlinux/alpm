@@ -164,6 +164,11 @@ dependencies = [
 [[package]]
 name = "alpm-rootless"
 version = "0.1.0"
+dependencies = [
+ "testresult",
+ "thiserror",
+ "which",
+]
 
 [[package]]
 name = "alpm-srcinfo"
