@@ -6,3 +6,9 @@ https://www.gnu.org/software/libtool/manual/html_node/Versioning.html
 
 # Arch Linux is being DDoSed
 https://archlinux.org
+
+# Only available after first release of the crate.
+https://docs.rs/alpm-rootless/latest/alpm_rootless/
+
+# Only available after first merge of the crate.
+https://alpm.archlinux.page/rustdoc/alpm_rootless/
