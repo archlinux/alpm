@@ -59,8 +59,8 @@ Using git it is possible to rely on branch, commit and tag identifiers using the
 Using hg it is possible to rely on branch, revision and tag identifiers using the `branch`, `revision` and `tag` URL fragments, respectively, e.g.:
 
 - `hg+https://example.org/repo#branch=my-branch`
-- `git+https://example.org/repo#revision=f1d2d2f924e986ac86fdf7b36c94bcdf32beec15`
-- `git+https://example.org/repo#tag=1.0.0`
+- `hg+https://example.org/repo#revision=f1d2d2f924e986ac86fdf7b36c94bcdf32beec15`
+- `hg+https://example.org/repo#tag=1.0.0`
 
 ### svn
 
