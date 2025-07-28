@@ -24,6 +24,7 @@ members = [
     "alpm-state-repo",
     "alpm-types",
     "dev-scripts",
+    "fluent-i18n",
 ]
 resolver = "3"
 
@@ -46,6 +47,7 @@ clap = { version = "4.5.19", features = [
 ] }
 colored = { version = "3", features = ["no-color"] }
 flate2 = "1"
+fluent-i18n = { path = "./fluent-i18n", version = "0.1.0" }
 insta = "1.40.0"
 log = "0.4.27"
 pretty_assertions = "1.4.1"

@@ -1,0 +1,17 @@
+[package]
+name = "fluent-i18n"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0 OR MIT"
+keywords = ["fluent", "i18n", "internationalization", "localization"]
+rust-version = "1.85.1"
+
+[dependencies]
+fluent-templates = "0.13.0"
+sys-locale = "0.3.2"
+thiserror = "2.0.12"
+unic-langid = "0.9.6"
+
+[dev-dependencies]
+rstest = "0.25.0"
+testresult = "0.4.1"
