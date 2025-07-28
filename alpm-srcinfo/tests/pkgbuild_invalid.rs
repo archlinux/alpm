@@ -1,8 +1,5 @@
 //! Error test cases for the BridgeOutput to SRCINFO conversion.
 
-// NOTE: With rstest > 0.25.0 this can be removed!
-#![allow(missing_docs)]
-
 use std::path::PathBuf;
 
 use alpm_pkgbuild::bridge::{BridgeOutput, run_bridge_script};
@@ -16,7 +13,7 @@ use testresult::{TestError, TestResult};
 ///
 /// This test does snapshot testing of the formatted errors for each invalid PKGBUILD.
 #[rstest]
-pub fn invalid_files(#[files("tests/pkgbuild_invalid/*.pkgbuild")] case: PathBuf) -> TestResult {
+fn invalid_files(#[files("tests/pkgbuild_invalid/*.pkgbuild")] case: PathBuf) -> TestResult {
     let test_name = case.file_stem().unwrap().to_str().unwrap().to_string();
 
     // Run the bridge script on the input file.

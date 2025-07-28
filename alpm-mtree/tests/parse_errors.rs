@@ -1,8 +1,5 @@
 //! Integration tests for the alpm-mtree parser.
 
-// NOTE: With rstest > 0.25.0 this can be removed!
-#![allow(missing_docs)]
-
 use std::{fs::read_to_string, path::PathBuf};
 
 use alpm_mtree::parser::mtree;
@@ -22,7 +19,7 @@ use winnow::Parser;
 /// messages. The error messages are stored in the `parse_error_snapshots` directory under the
 /// respective name of the input file.
 #[rstest]
-pub fn ensure_errors_v1(#[files("tests/parse_error_inputs/*")] case: PathBuf) -> TestResult {
+fn ensure_errors_v1(#[files("tests/parse_error_inputs/*")] case: PathBuf) -> TestResult {
     // Read the input file and parse it.
     let input = read_to_string(&case)?;
     let result = mtree.parse(input.as_str());

@@ -1,7 +1,5 @@
 //! Syntax integration tests for the `alpm-mtree` CLI.
 
-// NOTE: With rstest > 0.25.0 this can be removed!
-#![allow(missing_docs)]
 #![cfg(feature = "cli")]
 
 use std::{fs::read_to_string, path::PathBuf};
@@ -15,9 +13,7 @@ use testresult::TestResult;
 ///
 /// Take some input, parse it and compare the serialized JSON output with the snapshot.
 #[rstest]
-pub fn ensure_correct_syntax(
-    #[files("tests/correct_syntax_inputs/*")] case: PathBuf,
-) -> TestResult {
+fn ensure_correct_syntax(#[files("tests/correct_syntax_inputs/*")] case: PathBuf) -> TestResult {
     // Read the input file and parse it.
 
     let input = read_to_string(&case)?;

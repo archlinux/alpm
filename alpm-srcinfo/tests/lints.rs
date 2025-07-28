@@ -1,8 +1,5 @@
 //! Integration tests to check lints.
 
-// NOTE: With rstest > 0.25.0 this can be removed!
-#![allow(missing_docs)]
-
 use std::{fs::read_to_string, path::PathBuf};
 
 use alpm_srcinfo::{Error, SourceInfoV1};
@@ -17,7 +14,7 @@ use testresult::TestResult;
 ///
 /// This test tests linting issues and error messages during the second step.
 #[rstest]
-pub fn ensure_lints(#[files("tests/lints/*")] case: PathBuf) -> TestResult {
+fn ensure_lints(#[files("tests/lints/*")] case: PathBuf) -> TestResult {
     // Read the input file and parse it.
 
     let input = read_to_string(&case)?;

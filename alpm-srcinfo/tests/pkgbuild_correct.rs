@@ -1,8 +1,5 @@
 //! Happy-path tests for the PKGBUILD to SRCINFO conversion.
 
-// NOTE: With rstest > 0.25.0 this can be removed!
-#![allow(missing_docs)]
-
 use std::path::PathBuf;
 
 use alpm_pkgbuild::bridge::{BridgeOutput, run_bridge_script};
@@ -16,7 +13,7 @@ use testresult::TestResult;
 /// This tests the whole pipeline by also inspecting and snapshotting the intermediate output
 /// from the `alpm-pkgbuild-bridge`
 #[rstest]
-pub fn correct_files(#[files("tests/pkgbuild_correct/*.pkgbuild")] case: PathBuf) -> TestResult {
+fn correct_files(#[files("tests/pkgbuild_correct/*.pkgbuild")] case: PathBuf) -> TestResult {
     let test_name = case.file_stem().unwrap().to_str().unwrap().to_string();
 
     // Run the bridge script on the input file.

@@ -1,8 +1,5 @@
 //! Integration tests to test parser errors.
 
-// NOTE: With rstest > 0.25.0 this can be removed!
-#![allow(missing_docs)]
-
 use std::{fs::read_to_string, path::PathBuf};
 
 use alpm_srcinfo::SourceInfoV1;
@@ -17,7 +14,7 @@ use testresult::TestResult;
 ///
 /// This test tests parse errors during the first step.
 #[rstest]
-pub fn ensure_parse_errors(#[files("tests/parse_errors/*")] case: PathBuf) -> TestResult {
+fn ensure_parse_errors(#[files("tests/parse_errors/*")] case: PathBuf) -> TestResult {
     // Read the input file and parse it.
     let input = read_to_string(&case)?;
     let result = SourceInfoV1::from_string(input.as_str());

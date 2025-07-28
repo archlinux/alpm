@@ -1,7 +1,5 @@
 //! Interpreter error integration tests for the `alpm-mtree` CLI.
 
-// NOTE: With rstest > 0.25.0 this can be removed!
-#![allow(missing_docs)]
 #![cfg(feature = "cli")]
 
 use std::{fs::read_to_string, path::PathBuf};
@@ -24,7 +22,7 @@ use testresult::TestResult;
 /// The snapshot files are stored in the `interpreter_error_snapshots` directory under the
 /// respective filenames.
 #[rstest]
-pub fn ensure_errors_v1(#[files("tests/interpreter_error_inputs/*")] case: PathBuf) -> TestResult {
+fn ensure_errors_v1(#[files("tests/interpreter_error_inputs/*")] case: PathBuf) -> TestResult {
     // Read the input file and parse it.
     let input = read_to_string(&case)?;
     let result = validate(

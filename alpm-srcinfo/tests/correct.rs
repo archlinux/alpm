@@ -1,8 +1,5 @@
 //! Integration tests to test correct SRCINFO files.
 
-// NOTE: With rstest > 0.25.0 this can be removed!
-#![allow(missing_docs)]
-
 use std::{fs::read_to_string, path::PathBuf};
 
 use alpm_srcinfo::{MergedPackage, SourceInfoV1};
@@ -28,7 +25,7 @@ use testresult::TestResult;
 /// `makepkg` expects changelog and INSTALL files to be in the build directory when creating
 /// the SRCINFO file. The script also takes care of creating those files.
 #[rstest]
-pub fn correct_files(#[files("tests/correct/*.srcinfo")] case: PathBuf) -> TestResult {
+fn correct_files(#[files("tests/correct/*.srcinfo")] case: PathBuf) -> TestResult {
     // Read the input file and parse it.
     let input = read_to_string(&case)?;
     let source_info_result = SourceInfoV1::from_string(input.as_str());
