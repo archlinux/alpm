@@ -16,7 +16,31 @@ The examples below assume that the following shared object setup exists in a pac
 
 Here, `/usr/lib/libexample.so.1.0.0` encodes the soname `libexample.so.1` in its [ELF] dynamic section.
 
+For the examples below, the environment variables are set as follows:
+
+- `LIB_PACKAGE_PATH`: `example-1.0.0-1-x86_64.pkg.tar.zst`
+- `BIN_PACKAGE_PATH`: `application-1.0.0-1-x86_64.pkg.tar.zst`
+
 ### Command Line
+
+<!--
+```bash
+# use a custom, temporary directory for all generated files
+test_tmpdir="$(mktemp --directory --suffix '.soname-test')"
+
+# set a custom, temporary output file location
+OUTPUT_DIR="$(mktemp --tmpdir="$test_tmpdir" --dry-run)"
+export OUTPUT_DIR
+
+# generate the test files
+cd tests/
+script_output="$(rust-script integration.rs)"
+
+# extract and export vars
+export LIB_PACKAGE_PATH="$(jq -r '.lib_package_path' <<<"$script_output")"
+export BIN_PACKAGE_PATH="$(jq -r '.bin_package_path' <<<"$script_output")"
+```
+-->
 
 You can use the subcommands to find the sonames provided by a package and the sonames required by a package.
 
@@ -27,20 +51,54 @@ The `-v` option can be used to set the verbosity level. (e.g. `-v` for debug and
 You can retrieve the sonames provided by the package:
 
 ```bash
-$ alpm-soname get-provisions --lookup-dir 'lib:/usr/lib' example-1.0.0-1-x86_64.pkg.tar.zst
+alpm-soname get-provisions --lookup-dir 'lib:/usr/lib' "$LIB_PACKAGE_PATH" | tee "$OUTPUT_DIR/output.txt"
 
-lib:libexample.so.1
+# lib:libexample.so.1
 ```
+
+<!--
+
+Asserts the command above:
+
+```bash
+expected="lib:libexample.so.1"
+
+# assert the output
+output="$(cat $OUTPUT_DIR/output.txt)"
+if [ "$output" != "$expected" ]; then
+  echo "Expected output to be '$expected', but got '$output'"
+  exit 1
+fi
+```
+
+-->
 
 #### Finding Dependencies
 
 You can retrieve the sonames required by the package:
 
 ```bash
-$ alpm-soname get-dependencies --lookup-dir 'lib:/usr/lib' application-1.0.0-1-x86_64.pkg.tar.zst
+alpm-soname get-dependencies --lookup-dir 'lib:/usr/lib' "$BIN_PACKAGE_PATH" | tee "$OUTPUT_DIR/output.txt"
 
-lib:libexample.so.1
+# lib:libexample.so.1
 ```
+
+<!--
+
+Asserts the command above:
+
+```bash
+expected="lib:libexample.so.1"
+
+# assert the output
+output="$(cat $OUTPUT_DIR/output.txt)"
+if [ "$output" != "$expected" ]; then
+  echo "Expected output to be '$expected', but got '$output'"
+  exit 1
+fi
+```
+
+-->
 
 #### Finding Raw Dependencies
 
@@ -49,11 +107,32 @@ lib:libexample.so.1
 If you are interested in all soname dependencies encoded in the [ELF] files of a package, you can use the `get-raw-dependencies` subcommand.
 
 ```bash
-$ alpm-soname get-raw-dependencies application-1.0.0-1-x86_64.pkg.tar.zst
+alpm-soname get-raw-dependencies $BIN_PACKAGE_PATH --output-format json | tee "$OUTPUT_DIR/output.txt"
 
-libc.so.6
-libexample.so.1
+# [{"name":"libc.so","version":"6"},{"name":"libexample.so","version":"1"}]
 ```
+
+As demonstrated above, the output format can be set to `json` using the `--output-format` option.
+
+<!--
+
+Asserts the command above:
+
+```bash
+expected='[{"name":"libc.so","version":"6"},{"name":"libexample.so","version":"1"}]'
+
+# assert the output
+output="$(cat $OUTPUT_DIR/output.txt)"
+if [ "$output" != "$expected" ]; then
+  echo "Expected output to be '$expected', but got '$output'"
+  exit 1
+fi
+
+# clean up
+rm -r -- "$test_tmpdir"
+```
+
+-->
 
 ### Library
 

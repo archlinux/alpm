@@ -39,6 +39,7 @@ path = [
     ".gitlab/CODEOWNERS",
     ".lycheeignore",
     ".shellcheckrc",
+    "alpm-soname/tests/test_files/*",
     "alpm-srcinfo/tests/files/*.srcinfo",
 ]
 precedence = "aggregate"

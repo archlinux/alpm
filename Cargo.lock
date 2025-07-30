@@ -201,9 +201,11 @@ version = "0.1.0"
 name = "alpm-soname"
 version = "0.1.0"
 dependencies = [
+ "alpm-mtree",
  "alpm-package",
  "alpm-pkginfo",
  "alpm-types",
+ "assert_cmd",
  "clap",
  "clap-verbosity",
  "goblin",
@@ -213,6 +215,8 @@ dependencies = [
  "serde_json",
  "simplelog",
  "strum",
+ "tempfile",
+ "testresult",
  "thiserror",
 ]
 
