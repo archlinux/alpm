@@ -165,6 +165,7 @@ dependencies = [
 name = "alpm-soname"
 version = "0.1.0"
 dependencies = [
+ "alpm-mtree",
  "alpm-package",
  "alpm-pkginfo",
  "alpm-types",
@@ -173,6 +174,8 @@ dependencies = [
  "log",
  "rstest",
  "simplelog",
+ "tempfile",
+ "testresult",
  "thiserror",
 ]
 

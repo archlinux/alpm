@@ -33,4 +33,7 @@ simplelog = "0.12.2"
 thiserror.workspace = true
 
 [dev-dependencies]
+alpm-mtree.workspace = true
 rstest.workspace = true
+tempfile.workspace = true
+testresult.workspace = true
