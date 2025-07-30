@@ -177,6 +177,7 @@ dependencies = [
  "log",
  "rstest",
  "simplelog",
+ "strum",
  "testresult",
  "thiserror",
  "which",

@@ -49,7 +49,7 @@ mod fakeroot {
 }
 
 mod utils {
-    use alpm_rootless::get_command;
+    use alpm_rootless::{detect_virt, get_command};
     use testresult::TestResult;
 
     /// Ensures that the "whoami" command can be found on a Linux system.
@@ -73,6 +73,17 @@ mod utils {
         if let Ok(path) = get_command(command) {
             panic!("Should not have found command {path:?}, but succeeded");
         };
+
+        Ok(())
+    }
+
+    /// Ensures that the current environment is successfully detected using [systemd-detect-virt].
+    ///
+    /// [systemd-detect-virt]: https://man.archlinux.org/man/systemd-detect-virt.1
+    #[test]
+    #[cfg(target_os = "linux")]
+    fn detect_virt_succeeds() -> TestResult {
+        detect_virt()?;
 
         Ok(())
     }
