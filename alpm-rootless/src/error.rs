@@ -20,4 +20,13 @@ pub enum Error {
         /// The source error.
         source: std::io::Error,
     },
+
+    /// Unknown output of [systemd-detect-virt] detected.
+    ///
+    /// [systemd-detect-virt]: https://man.archlinux.org/man/systemd-detect-virt.1
+    #[error("Unknown output of \"systemd-detect-virt\": \"{output}\"")]
+    UnknownSystemdDetectVirtOutput {
+        /// The unknown output for [systemd-detect-virt].
+        output: String,
+    },
 }
