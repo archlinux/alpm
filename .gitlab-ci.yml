@@ -168,6 +168,18 @@ integration-test:
     - just ignored=true test
   stage: test
 
+virtualized-integration-test:
+  extends: .default
+  script:
+    - source .env && pacman -Syu --needed --noconfirm $RUST_DEV_TOOLS_PACKAGES $TEST_PACKAGES
+    - useradd -m testuser
+    - chown -R testuser:testuser .
+    - WORKDIR="$(pwd)" runuser -w CI,WORKDIR -l testuser -c 'env && cd "$WORKDIR" && just install-rust-dev-tools'
+    - WORKDIR="$(pwd)" runuser -w CI,WORKDIR -l testuser -c 'env && cd "$WORKDIR" && just virtualized-integration-tests'
+  stage: test
+  tags:
+    - vm
+
 crates_publish:
   extends: .default-with-rust
   dependencies: []
