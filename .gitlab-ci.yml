@@ -148,6 +148,25 @@ manpages-specs-completions:
     - just generate-completions
   stage: test
 
+virtualized-integration-test:
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: target/llvm-cov/cobertura-coverage.xml
+      # Expose the code coverage as a GitLab metric.
+      # This allows us to easily spot changes in the overall coverage.
+      metrics: target/llvm-cov/coverage-metrics.txt
+  coverage: "/Test-coverage: ([0-9.]*)%/"
+  extends: .default-with-rust
+  script:
+    - just install-alpm-package-set coverage
+    - just virtualized-integration-tests
+    - just create-coverage-report without-docs virtual-test-coverage
+  stage: test
+  tags:
+    - vm
+
 crates_publish:
   extends: .default-with-rust
   dependencies: []
