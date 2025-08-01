@@ -168,6 +168,15 @@ integration-test:
     - just ignored=true test
   stage: test
 
+virtualized-integration-test:
+  extends: .default-with-rust
+  script:
+    - source .env && pacman -Syu --needed --noconfirm $TEST_PACKAGES
+    - just virtualized-integration-tests
+  stage: test
+  tags:
+    - vm
+
 crates_publish:
   extends: .default-with-rust
   dependencies: []
