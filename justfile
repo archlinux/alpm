@@ -452,6 +452,7 @@ check-shell-code:
     just check-shell-recipe test
     just check-shell-recipe test-docs
     just check-shell-recipe 'ensure-command test'
+    just check-shell-recipe virtualized-integration-tests
 
     just check-shell-script alpm-srcinfo/tests/generate_srcinfo.bash
     just check-shell-script .cargo/runner.sh
@@ -774,6 +775,30 @@ test-readmes:
 [group('test')]
 test-python *options:
     uv run --directory python-alpm pytest {{ options }}
+
+# Runs integration tests guarded by the `_virtualized-integration-test` feature (accepts `cargo nextest run` options via `options`).
+[group('test')]
+virtualized-integration-tests *options:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    readonly coverage="{{ coverage }}"
+    commands=(cargo)
+    read -r -a options <<< "{{ options }}"
+
+    just ensure-command bash cargo cargo-nextest
+    if [[ "$coverage" == "true" ]]; then
+        commands+=(cargo-llvm-cov)
+        just ensure-command "${commands[@]}"
+        # Use the environment prepared by `cargo llvm-cov show-env`
+        # shellcheck source=/dev/null
+        source <(cargo llvm-cov show-env --export-prefix)
+    else
+        just ensure-command "${commands[@]}"
+    fi
+
+    cargo build --examples --bins
+    cargo nextest run --features _virtualized-integration-test --filterset 'kind(test) and binary_id(/::virtualized$/)' "${options[@]}"
 
 # Publishes a crate in the workspace from GitLab CI in a pipeline for tags
 [group('release')]
