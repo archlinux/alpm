@@ -636,6 +636,13 @@ test-readmes:
     just test-readme alpm-pkginfo
     just test-readme alpm-srcinfo
 
+# Runs integration tests guarded by the `_virtualized-integration-test` feature (accepts `cargo nextest run` options via `options`).
+[group('test')]
+virtualized-integration-tests *options:
+    just ensure-command bash cargo cargo-nextest
+    cargo build --examples --bins
+    cargo nextest run --features _virtualized-integration-test --filterset 'kind(test) and binary_id(/::virtualized$/)' {{ options }}
+
 # Publishes a crate in the workspace from GitLab CI in a pipeline for tags
 [group('release')]
 ci-publish:
