@@ -115,8 +115,10 @@ pkgdesc="An example application"
 arch=(x86_64)
 url="https://example.org/application.html"
 license=(MIT)
-depends=(glibc)
-depends=(example)
+depends=(
+  glibc
+  example
+)
 source=("https://example.org/$pkgname-$pkgver.tar.gz")
 sha256sums=(b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c)
 
