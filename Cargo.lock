@@ -62,6 +62,7 @@ name = "alpm-common"
 version = "0.1.1"
 dependencies = [
  "alpm-types",
+ "fluent-i18n",
  "rstest",
  "tempfile",
  "testresult",

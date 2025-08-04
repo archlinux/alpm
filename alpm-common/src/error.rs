@@ -1,10 +1,12 @@
 use std::path::{PathBuf, StripPrefixError};
 
+use fluent_i18n::t;
+
 /// An error that can occur when dealing with package inputs.
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     /// An I/O error occurred at a path.
-    #[error("I/O error at path {path} while {context}:\n{source}")]
+    #[error("{msg}", msg = t!("error-io-path", { "context" => context, "path" => path }))]
     IoPath {
         /// The path at which the error occurred.
         path: PathBuf,
@@ -17,44 +19,47 @@ pub enum Error {
     },
 
     /// A path is not a directory.
-    #[error("The path is not a directory: {path:?}")]
+    #[error("{msg}", msg = t!("error-not-a-directory", { "path" => path }))]
     NotADirectory {
         /// The path that is not a directory.
         path: PathBuf,
     },
 
     /// One or more paths are not absolute.
-    #[error(
-        "The following paths are not absolute:\n{}",
-        paths.iter().fold(
+    #[error("{msg}", msg = t!("error-non-absolute-paths", {
+        "paths" => paths.iter().fold(
             String::new(),
             |mut output, path| {
                 output.push_str(&format!("{path:?}\n"));
                 output
-            })
-    )]
+            }
+        )
+    }))]
     NonAbsolutePaths {
         /// The list of non-absolute paths.
         paths: Vec<PathBuf>,
     },
 
     /// One or more paths are not relative.
-    #[error(
-        "The following paths are not relative:\n{}",
-        paths.iter().fold(
+    #[error("{msg}", msg = t!("error-non-relative-paths", {
+        "paths" => paths.iter().fold(
             String::new(),
             |mut output, path| {
                 output.push_str(&format!("{path:?}\n"));
                 output
-            })
-    )]
+            }
+        )
+    }))]
     NonRelativePaths {
         /// The list of non-relative paths.
         paths: Vec<PathBuf>,
     },
 
     /// A path's prefix cannot be stripped.
-    #[error("Cannot strip prefix {prefix} from path {path}:\n{source}")]
+    #[error("{msg}\n{source}", msg = t!("error-path-strip-prefix", {
+        "prefix" => prefix,
+        "path" => path
+    }))]
     PathStripPrefix {
         /// The prefix that is supposed to be stripped from `path`.
         prefix: PathBuf,
