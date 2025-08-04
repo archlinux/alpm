@@ -1,0 +1,44 @@
+image: "archlinux:latest"
+
+before_script:
+  - pacman -Syu --needed --noconfirm cargo cargo-deny reuse
+
+stages:
+  - lint
+  - test
+  - audit
+  - publish
+
+format:
+  stage: lint
+  script:
+    - cargo fmt --all -- --check
+
+clippy:
+  stage: lint
+  script:
+    - cargo clippy --all -- -D warnings
+
+reuse:
+  stage: lint
+  script:
+    - reuse lint
+
+deny:
+  stage: audit
+  script:
+    - cargo deny check
+
+test:
+  stage: test
+  script:
+    - cargo test --locked
+
+publish:
+  stage: publish
+  rules:
+    - if: "$CARGO_REGISTRY_TOKEN && $CI_COMMIT_TAG"
+  script:
+    - cargo publish
+  tags:
+    - secure
