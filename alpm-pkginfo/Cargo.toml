@@ -17,9 +17,9 @@ path = "src/main.rs"
 required-features = ["cli"]
 
 [features]
+_winnow-debug = ["alpm-parsers/_winnow-debug"]
 cli = ["dep:clap"]
 default = ["cli"]
-winnow-debug = ["alpm-parsers/winnow-debug"]
 
 [dependencies]
 alpm-common.workspace = true

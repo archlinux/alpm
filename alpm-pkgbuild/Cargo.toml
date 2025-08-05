@@ -12,7 +12,7 @@ rust-version.workspace = true
 version = "0.1.0"
 
 [features]
-winnow-debug = ["winnow/debug"]
+_winnow-debug = ["winnow/debug"]
 
 [dependencies]
 alpm-parsers.workspace = true

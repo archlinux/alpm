@@ -40,7 +40,7 @@ alpm-mtree format ~/.cache/alpm/testing/packages/core/argon2-20190702-6-x86_64/.
 
 - `cli` adds the commandline handling needed for the `alpm-mtree` binary (enabled by default).
 - `creation` adds library support for the creation of [ALPM-MTREE] files (enabled by default).
-- `winnow-debug` enables the `winnow/debug` feature, which shows the exact parsing process of winnow.
+- `_winnow-debug` enables the `winnow/debug` feature, which shows the exact parsing process of winnow.
 
 ## Contributing
 

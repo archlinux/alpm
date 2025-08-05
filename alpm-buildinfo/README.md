@@ -163,7 +163,7 @@ rm -r -- "$test_tmpdir"
 ## Features
 
 - `cli` adds the commandline handling needed for the `alpm-buildinfo` binary (enabled by default).
-- `winnow-debug` enables the `winnow/debug` feature, which shows the exact parsing process of winnow.
+- `_winnow-debug` enables the `winnow/debug` feature, which shows the exact parsing process of winnow.
 
 ## Contributing
 
