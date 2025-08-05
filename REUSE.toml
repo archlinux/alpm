@@ -38,7 +38,7 @@ path = [
     ".gitlab/CODEOWNERS",
     ".lycheeignore",
     ".shellcheckrc",
-    "alpm-soname/tests/test_files/*",
+    "alpm-soname/tests/test_files/**",
     "alpm-srcinfo/tests/files/*.srcinfo",
     "justfile",
 ]

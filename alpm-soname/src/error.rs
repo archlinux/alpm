@@ -41,6 +41,19 @@ pub enum Error {
         source: std::io::Error,
     },
 
+    /// Error while running a command
+    #[error("Command error while {context}: failed to run '{command}':\n{source}")]
+    CommandError {
+        /// The context in which the error occurred.
+        context: &'static str,
+
+        /// The command that was executed
+        command: String,
+
+        /// The source of the error.
+        source: std::io::Error,
+    },
+
     /// ALPM PKGINFO error
     #[error(transparent)]
     AlpmPkginfo(#[from] alpm_pkginfo::Error),
@@ -61,5 +74,15 @@ pub enum Error {
 
         /// The source of the error.
         source: goblin::error::Error,
+    },
+
+    /// Dependency analyzer error
+    #[error("Failed to find dependencies for {path}:\n{source}")]
+    LibraryDependenciesError {
+        /// The path of the library
+        path: PathBuf,
+
+        /// The source of the error.
+        source: lddtree::Error,
     },
 }

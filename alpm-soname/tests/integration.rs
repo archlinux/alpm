@@ -13,7 +13,7 @@ use alpm_package::{
     PackageCreationConfig,
     PackageInput,
 };
-use alpm_soname::{find_dependencies, find_provisions};
+use alpm_soname::{Autodeps, find_dependencies, find_provisions};
 use alpm_types::{AbsolutePath, MetadataFileName, SharedLibraryPrefix, SonameLookupDirectory};
 use rstest::rstest;
 use tempfile::TempDir;
@@ -65,16 +65,17 @@ struct SotestConfig {
     /// provisions.
     all: bool,
     /// the depstring added as a provide for the lib .PKGINFO and as a depend for the bin .PKGINFO.
-    dep: &'static str,
+    dep: Option<&'static str>,
     /// The string representation of the soname we expect find_dependencies to return
-    expect_dep: Option<&'static str>,
+    expect_dep: Vec<&'static str>,
     /// The string representation of the soname we expect find_provisions to return
-    expect_provide: Option<&'static str>,
+    expect_provide: Vec<&'static str>,
+    /// Also place the shared object into the bin package.
+    lib_in_bin: bool,
 }
 
-fn pkginfo_lib(dep: &str) -> String {
-    format!(
-        r#"
+fn pkginfo_lib(dep: Option<&str>) -> String {
+    let mut pkginfo = r#"
 pkgname = lib
 pkgbase = lib
 xdata = pkgtype=pkg
@@ -86,14 +87,17 @@ packager = John Doe <john@example.org>
 size = 181849963
 arch = any
 license = GPL-3.0-or-later
-provides = {dep}
 "#
-    )
+    .to_string();
+    if let Some(dep) = dep {
+        pkginfo.push_str("provides = ");
+        pkginfo.push_str(dep);
+    }
+    pkginfo
 }
 
-fn pkginfo_bin(dep: &str) -> String {
-    format!(
-        r#"
+fn pkginfo_bin(dep: Option<&str>) -> String {
+    let mut pkginfo = r#"
 pkgname = bin
 pkgbase = bin
 xdata = pkgtype=pkg
@@ -105,9 +109,14 @@ packager = John Doe <john@example.org>
 size = 181849963
 arch = any
 license = GPL-3.0-or-later
-depend = {dep}
 "#
-    )
+    .to_string();
+
+    if let Some(dep) = dep {
+        pkginfo.push_str("depend = ");
+        pkginfo.push_str(dep);
+    }
+    pkginfo
 }
 
 fn setup_lib(config: &SotestConfig, path: &Path) -> TestResult {
@@ -151,7 +160,15 @@ fn create_bin(path: &Path, config: &SotestConfig) -> TestResult<Package> {
     )?;
 
     create_dir_all(input_dir.join("usr/bin"))?;
+    create_dir_all(input_dir.join("usr/lib"))?;
+    create_dir_all(input_dir.join("empty"))?;
     std::fs::copy(path.join("build/sotest"), input_dir.join("usr/bin/sotest"))?;
+    if config.lib_in_bin {
+        std::fs::copy(
+            path.join(format!("build/lib{}.so.1", config.libname)),
+            input_dir.join(format!("usr/lib/lib{}.so.1", config.libname)),
+        )?;
+    }
 
     create_mtree_v2_from_input_dir(&input_dir)?;
 
@@ -180,10 +197,12 @@ fn create_lib(path: &Path, config: &SotestConfig) -> TestResult<Package> {
         BUILDINFO_LIB,
     )?;
 
+    create_dir_all(input_dir.join("usr/bin"))?;
     create_dir_all(input_dir.join("usr/lib"))?;
+    create_dir_all(input_dir.join("empty"))?;
     std::fs::copy(
-        path.join(format!("build/lib{}.so", config.libname)),
-        input_dir.join(format!("usr/lib/lib{}.so", config.libname)),
+        path.join(format!("build/lib{}.so.1", config.libname)),
+        input_dir.join(format!("usr/lib/lib{}.so.1", config.libname)),
     )?;
 
     create_mtree_v2_from_input_dir(&input_dir)?;
@@ -205,9 +224,10 @@ fn create_lib(path: &Path, config: &SotestConfig) -> TestResult<Package> {
         prefix: "lib",
         libdir: "/usr/lib",
         all: false,
-        dep: "lib:libsotest.so.1",
-        expect_dep: Some("lib:libsotest.so.1"),
-        expect_provide: Some("lib:libsotest.so.1"),
+        dep: Some("lib:libsotest.so.1"),
+        expect_dep: vec!["lib:libsotest.so.1"],
+        expect_provide: vec!["lib:libsotest.so.1"],
+        lib_in_bin: false,
     },
 )]
 #[case::normal_all(
@@ -216,9 +236,10 @@ fn create_lib(path: &Path, config: &SotestConfig) -> TestResult<Package> {
         prefix: "lib",
         libdir: "/usr/lib",
         all: true,
-        dep: "lib:libsotest.so.1",
-        expect_dep: Some("lib:libsotest.so.1"),
-        expect_provide: Some("lib:libsotest.so.1"),
+        dep: Some("lib:libsotest.so.1"),
+        expect_dep: vec!["lib:libsotest.so.1"],
+        expect_provide: vec!["lib:libsotest.so.1"],
+        lib_in_bin: false,
     },
 )]
 #[case::no_ver(
@@ -227,9 +248,10 @@ fn create_lib(path: &Path, config: &SotestConfig) -> TestResult<Package> {
         prefix: "lib",
         libdir: "/usr/lib",
         all: false,
-        dep: "lib:libsotest.so",
-        expect_dep: None,
-        expect_provide: Some("lib:libsotest.so"),
+        dep: Some("lib:libsotest.so"),
+        expect_dep: vec![],
+        expect_provide: vec!["lib:libsotest.so"],
+        lib_in_bin: false,
     },
 )]
 #[case::no_ver_all(
@@ -238,9 +260,10 @@ fn create_lib(path: &Path, config: &SotestConfig) -> TestResult<Package> {
         prefix: "lib",
         libdir: "/usr/lib",
         all: true,
-        dep: "lib:libsotest.so",
-        expect_dep: Some("lib:libsotest.so"),
-        expect_provide: Some("lib:libsotest.so"),
+        dep: Some("lib:libsotest.so"),
+        expect_dep: vec!["lib:libsotest.so"],
+        expect_provide: vec!["lib:libsotest.so"],
+        lib_in_bin: false,
     },
 )]
 #[case::wrong_ver(
@@ -249,9 +272,10 @@ fn create_lib(path: &Path, config: &SotestConfig) -> TestResult<Package> {
         prefix: "lib",
         libdir: "/usr/lib",
         all: false,
-        dep: "lib:libsotest.so.2",
-        expect_dep: None,
-        expect_provide: Some("lib:libsotest.so.2"),
+        dep: Some("lib:libsotest.so.2"),
+        expect_dep: vec![],
+        expect_provide: vec!["lib:libsotest.so.2"],
+        lib_in_bin: false,
     },
 )]
 #[case::wrong_ver_all(
@@ -260,9 +284,10 @@ fn create_lib(path: &Path, config: &SotestConfig) -> TestResult<Package> {
         prefix: "lib",
         libdir: "/usr/lib",
         all: true,
-        dep: "lib:libsotest.so.2",
-        expect_dep: Some("lib:libsotest.so.2"),
-        expect_provide: Some("lib:libsotest.so.2"),
+        dep: Some("lib:libsotest.so.2"),
+        expect_dep: vec!["lib:libsotest.so.2"],
+        expect_provide: vec!["lib:libsotest.so.2"],
+        lib_in_bin: false,
     },
 )]
 #[case::alt_soname(
@@ -271,9 +296,10 @@ fn create_lib(path: &Path, config: &SotestConfig) -> TestResult<Package> {
         prefix: "lib",
         libdir: "/usr/lib",
         all: false,
-        dep: "lib:libfoo.so.1",
-        expect_dep: Some("lib:libfoo.so.1"),
-        expect_provide: Some("lib:libfoo.so.1"),
+        dep: Some("lib:libfoo.so.1"),
+        expect_dep: vec!["lib:libfoo.so.1"],
+        expect_provide: vec!["lib:libfoo.so.1"],
+        lib_in_bin: false,
     },
 )]
 #[case::alt_soname_all(
@@ -282,9 +308,10 @@ fn create_lib(path: &Path, config: &SotestConfig) -> TestResult<Package> {
         prefix: "lib",
         libdir: "/usr/lib",
         all: true,
-        dep: "lib:libfoo.so.1",
-        expect_dep: Some("lib:libfoo.so.1"),
-        expect_provide: Some("lib:libfoo.so.1"),
+        dep: Some("lib:libfoo.so.1"),
+        expect_dep: vec!["lib:libfoo.so.1"],
+        expect_provide: vec!["lib:libfoo.so.1"],
+        lib_in_bin: false,
     },
 )]
 #[case::mismatch_soname(
@@ -293,9 +320,10 @@ fn create_lib(path: &Path, config: &SotestConfig) -> TestResult<Package> {
         prefix: "lib",
         libdir: "/usr/lib",
         all: false,
-        dep: "lib:libsotest.so.1",
-        expect_dep: None,
-        expect_provide: Some("lib:libsotest.so.1"),
+        dep: Some("lib:libsotest.so.1"),
+        expect_dep: vec![],
+        expect_provide: vec!["lib:libsotest.so.1"],
+        lib_in_bin: false,
     },
 )]
 #[case::mismatch_soname_all(
@@ -304,9 +332,10 @@ fn create_lib(path: &Path, config: &SotestConfig) -> TestResult<Package> {
         prefix: "lib",
         libdir: "/usr/lib",
         all: true,
-        dep: "lib:libsotest.so.1",
-        expect_dep: Some("lib:libsotest.so.1"),
-        expect_provide: Some("lib:libsotest.so.1"),
+        dep: Some("lib:libsotest.so.1"),
+        expect_dep: vec!["lib:libsotest.so.1"],
+        expect_provide: vec!["lib:libsotest.so.1"],
+        lib_in_bin: false,
     },
 )]
 #[case::wrong_prefix(
@@ -315,9 +344,10 @@ fn create_lib(path: &Path, config: &SotestConfig) -> TestResult<Package> {
         prefix: "lib64",
         libdir: "/usr/lib",
         all: false,
-        dep: "lib:libsotest.so.1",
-        expect_dep: None,
-        expect_provide: None,
+        dep: Some("lib:libsotest.so.1"),
+        expect_dep: vec![],
+        expect_provide: vec![],
+        lib_in_bin: false,
     },
 )]
 #[case::alt_prefi(
@@ -326,9 +356,10 @@ fn create_lib(path: &Path, config: &SotestConfig) -> TestResult<Package> {
         prefix: "lib64",
         libdir: "/usr/lib",
         all: false,
-        dep: "lib64:libsotest.so.1",
-        expect_dep: Some("lib64:libsotest.so.1"),
-        expect_provide: Some("lib64:libsotest.so.1"),
+        dep: Some("lib64:libsotest.so.1"),
+        expect_dep: vec!["lib64:libsotest.so.1"],
+        expect_provide: vec!["lib64:libsotest.so.1"],
+        lib_in_bin: false,
     },
 )]
 fn test_so(#[case] config: SotestConfig) -> TestResult {
@@ -348,12 +379,143 @@ fn test_so(#[case] config: SotestConfig) -> TestResult {
     let dependencies = find_dependencies(bin.to_path_buf(), lookup, config.all)?;
 
     assert_eq!(
-        provisions.first().map(|d| d.to_string()).as_deref(),
+        provisions.iter().map(|d| d.to_string()).collect::<Vec<_>>(),
         config.expect_provide,
         "Provision mismatch for case: {config:#?}",
     );
     assert_eq!(
-        dependencies.first().map(|d| d.to_string()).as_deref(),
+        dependencies
+            .iter()
+            .map(|d| d.to_string())
+            .collect::<Vec<_>>(),
+        config.expect_dep,
+        "Dependency mismatch for case: {config:#?}",
+    );
+
+    Ok(())
+}
+
+#[rstest]
+#[case::normal(
+    SotestConfig {
+        libname: "sotest",
+        prefix: "lib",
+        libdir: "/usr/lib",
+        all: false,
+        dep: None,
+        expect_dep: vec!["lib:libc.so.6", "lib:libsotest.so.1"],
+        expect_provide: vec!["lib:libsotest.so.1"],
+        lib_in_bin: false,
+    },
+)]
+#[case::alt_libname(
+    SotestConfig {
+        libname: "lu",
+        prefix: "lib",
+        libdir: "/usr/lib",
+        all: false,
+        dep: None,
+        expect_dep: vec!["lib:libc.so.6", "lib:liblu.so.1"],
+        expect_provide: vec!["lib:liblu.so.1"],
+        lib_in_bin: false,
+    },
+)]
+#[case::alt_prefix(
+    SotestConfig {
+        libname: "sotest",
+        prefix: "lib64",
+        libdir: "/usr/lib",
+        all: false,
+        dep: None,
+        expect_dep: vec!["lib64:libc.so.6", "lib64:libsotest.so.1"],
+        expect_provide: vec!["lib64:libsotest.so.1"],
+        lib_in_bin: false,
+    },
+)]
+#[case::alt_libdir(
+    SotestConfig {
+        libname: "sotest",
+        prefix: "lib",
+        libdir: "/empty",
+        all: false,
+        dep: None,
+        expect_dep: vec!["lib:libc.so.6", "lib:libsotest.so.1"],
+        expect_provide: vec![],
+        lib_in_bin: false,
+    },
+)]
+#[case::alt_libdir2(
+    SotestConfig {
+        libname: "sotest",
+        prefix: "lib",
+        libdir: "/usr",
+        all: false,
+        dep: None,
+        expect_dep: vec!["lib:libc.so.6", "lib:libsotest.so.1"],
+        expect_provide: vec![],
+        lib_in_bin: false,
+    },
+)]
+#[case::package_provides_dependency(
+    SotestConfig {
+        libname: "sotest",
+        prefix: "lib",
+        libdir: "/usr/lib",
+        all: false,
+        dep: None,
+        expect_dep: vec!["lib:libc.so.6"],
+        expect_provide: vec!["lib:libsotest.so.1"],
+        lib_in_bin: true,
+    },
+)]
+#[case::libdir_missing(
+    SotestConfig {
+        libname: "sotest",
+        prefix: "lib",
+        libdir: "/foo/bar",
+        all: false,
+        dep: None,
+        expect_dep: vec!["lib:libc.so.6", "lib:libsotest.so.1"],
+        expect_provide: vec![],
+        lib_in_bin: false,
+    },
+)]
+
+fn test_autodeps(#[case] config: SotestConfig) -> TestResult {
+    let temp_dir = TempDir::new()?;
+    let path = temp_dir.path();
+
+    setup_lib(&config, path)?;
+    create_lib(path, &config)?;
+    create_bin(path, &config)?;
+
+    let lookup = SonameLookupDirectory::new(
+        SharedLibraryPrefix::new(config.prefix)?,
+        AbsolutePath::new(config.libdir.into())?,
+    );
+
+    let input_bin = path.join("input_bin");
+    let input_lib = path.join("input_lib");
+
+    let bin_deps = Autodeps::new(input_bin, lookup.clone())?;
+    let lib_deps = Autodeps::new(input_lib, lookup.clone())?;
+
+    assert_eq!(
+        lib_deps
+            .provides
+            .into_iter()
+            .map(|d| d.to_string())
+            .collect::<Vec<_>>(),
+        config.expect_provide,
+        "Provision mismatch for case: {config:#?}",
+    );
+
+    assert_eq!(
+        bin_deps
+            .depends
+            .into_iter()
+            .map(|d| d.to_string())
+            .collect::<Vec<_>>(),
         config.expect_dep,
         "Dependency mismatch for case: {config:#?}",
     );

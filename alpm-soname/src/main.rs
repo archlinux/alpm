@@ -2,7 +2,7 @@ use std::process::ExitCode;
 
 use alpm_soname::{
     cli::{Cli, Command},
-    commands::{get_dependencies, get_provisions},
+    commands::{autodeps, get_dependencies, get_provisions},
 };
 use clap::Parser;
 use log::{LevelFilter, debug, error};
@@ -23,6 +23,7 @@ fn main() -> ExitCode {
     let result = match cli.command {
         Command::GetProvisions { args } => get_provisions(args, &mut std::io::stdout()),
         Command::GetDependencies { args } => get_dependencies(args, &mut std::io::stdout()),
+        Command::AutoDeps { args } => autodeps(args, &mut std::io::stdout()),
     };
 
     if let Err(error) = result {
