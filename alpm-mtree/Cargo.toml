@@ -17,10 +17,10 @@ path = "src/main.rs"
 required-features = ["cli"]
 
 [features]
+_winnow-debug = ["winnow/debug"]
 cli = ["dep:clap"]
 creation = ["dep:log", "dep:which"]
 default = ["cli", "creation"]
-winnow-debug = ["winnow/debug"]
 
 [dependencies]
 alpm-common.workspace = true

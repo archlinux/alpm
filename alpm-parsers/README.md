@@ -42,7 +42,7 @@ Furthermore, the delimiter must be a `=`, which is much more rigid than classic 
 
 ## Features
 
-- `winnow-debug` enables the `winnow/debug` feature, which shows the exact parsing process of winnow.
+- `_winnow-debug` enables the `winnow/debug` feature, which shows the exact parsing process of winnow.
 
 ## Contributing
 

@@ -14,7 +14,7 @@ rust-version.workspace = true
 version = "0.0.0"
 
 [features]
-winnow-debug = ["winnow/debug"]
+_winnow-debug = ["winnow/debug"]
 
 [dependencies]
 alpm-buildinfo.workspace = true
