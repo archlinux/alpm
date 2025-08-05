@@ -95,13 +95,6 @@ pub enum BridgeError {
         /// The values that are used for the `keyword`.
         values: Vec<String>,
     },
-
-    /// A duplicate [`Architecture`] is specified.
-    #[error("Found duplicate architecture: {duplicate}")]
-    DuplicateArchitecture {
-        /// The duplicate architecture.
-        duplicate: Architecture,
-    },
 }
 
 impl<'a> From<(Keyword, ParseError<&'a str, ContextError>)> for BridgeError {
