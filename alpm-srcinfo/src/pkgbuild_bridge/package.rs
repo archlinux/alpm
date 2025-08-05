@@ -383,19 +383,7 @@ fn handle_package(
                                 keyword: raw_keyword,
                             });
                         }
-                        Override::Yes { value } => {
-                            let mut architectures = Vec::new();
-                            // Make sure all architectures are unique.
-                            for arch in value {
-                                if architectures.contains(&arch) {
-                                    return Err(BridgeError::DuplicateArchitecture {
-                                        duplicate: arch,
-                                    });
-                                }
-                                architectures.push(arch);
-                            }
-                            Some(architectures)
-                        }
+                        Override::Yes { value } => Some(value.clone()),
                     };
                 }
                 SharedMetaKeyword::Changelog => {
