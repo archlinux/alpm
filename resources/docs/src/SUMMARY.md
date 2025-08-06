@@ -78,6 +78,7 @@
 
 # About
 
+- [Mission Statement](./mission-statement.md)
 - [Related Projects](./related-projects.md)
 - [In the media](./media.md)
 - [Community](./community.md)
