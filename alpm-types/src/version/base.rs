@@ -253,7 +253,7 @@ impl PackageVersion {
     }
 
     /// Return an iterator over all segments of this version.
-    pub fn segments(&self) -> VersionSegments {
+    pub fn segments(&self) -> VersionSegments<'_> {
         VersionSegments::new(&self.0)
     }
 
