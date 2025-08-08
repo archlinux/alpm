@@ -569,27 +569,32 @@ impl Iterator for PackageEntryIterator<'_, '_> {
 
             // Now, if the entry is either an error or a valid PackageEntry, return it.
             // Otherwise, we look at the next entry.
-            if let Some(Ok(package_entry)) = &entry {
-                // Remember each file we found.
-                // Once all files are found, the iterator can short-circuit and stop early.
-                match &package_entry {
-                    PackageEntry::Metadata(metadata_entry) => match **metadata_entry {
-                        MetadataEntry::PackageInfo(_) => self.found_pkginfo = true,
-                        MetadataEntry::BuildInfo(_) => self.found_buildinfo = true,
-                        MetadataEntry::Mtree(_) => self.found_mtree = true,
-                    },
-                    PackageEntry::InstallScriptlet(_) => self.checked_install_scriptlet = true,
+            match entry {
+                Some(Ok(ref package_entry)) => {
+                    // Remember each file we found.
+                    // Once all files are found, the iterator can short-circuit and stop early.
+                    match &package_entry {
+                        PackageEntry::Metadata(metadata_entry) => match **metadata_entry {
+                            MetadataEntry::PackageInfo(_) => self.found_pkginfo = true,
+                            MetadataEntry::BuildInfo(_) => self.found_buildinfo = true,
+                            MetadataEntry::Mtree(_) => self.found_mtree = true,
+                        },
+                        PackageEntry::InstallScriptlet(_) => self.checked_install_scriptlet = true,
+                    }
+                    return entry;
                 }
-                return entry;
-            } else if self.found_buildinfo && self.found_mtree && self.found_pkginfo {
-                // Found three required metadata files and hit the first non-metadata file.
-                // This means that install scriptlet does not exist in the package and we
-                // can stop iterating.
-                //
-                // This logic relies on the ordering of files, where the `.INSTALL` file is placed
-                // in between `.PKGINFO` and `.MTREE`.
-                self.checked_install_scriptlet = true;
-                break;
+                Some(Err(e)) => return Some(Err(e)),
+                _ if self.found_buildinfo && self.found_mtree && self.found_pkginfo => {
+                    // Found three required metadata files and hit the first non-metadata file.
+                    // This means that install scriptlet does not exist in the package and we
+                    // can stop iterating.
+                    //
+                    // This logic relies on the ordering of files, where the `.INSTALL` file is
+                    // placed in between `.PKGINFO` and `.MTREE`.
+                    self.checked_install_scriptlet = true;
+                    break;
+                }
+                _ => (),
             }
         }
 
