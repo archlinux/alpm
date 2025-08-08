@@ -135,8 +135,8 @@ macro_rules! generate_pkginfo {
             }
 
             /// Returns the build date of the package
-            pub fn builddate(&self) -> &BuildDate {
-                &self.builddate
+            pub fn builddate(&self) -> BuildDate {
+                self.builddate
             }
 
             /// Returns the packager of the package
@@ -150,8 +150,8 @@ macro_rules! generate_pkginfo {
             }
 
             /// Returns the architecture of the package
-            pub fn arch(&self) -> &Architecture {
-                &self.arch
+            pub fn arch(&self) -> Architecture {
+                self.arch
             }
 
             /// Returns the licenses of the package
