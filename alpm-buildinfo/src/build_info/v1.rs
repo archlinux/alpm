@@ -97,8 +97,8 @@ macro_rules! generate_buildinfo {
             }
 
             /// Returns the package architecture
-            pub fn pkgarch(&self) -> &Architecture {
-                &self.pkgarch
+            pub fn pkgarch(&self) -> Architecture {
+                self.pkgarch
             }
 
             /// Returns the package build SHA-256 checksum
@@ -112,8 +112,8 @@ macro_rules! generate_buildinfo {
             }
 
             /// Returns the build date
-            pub fn builddate(&self) -> &BuildDate {
-                &self.builddate
+            pub fn builddate(&self) -> BuildDate {
+               self.builddate
             }
 
             /// Returns the build directory
@@ -122,17 +122,17 @@ macro_rules! generate_buildinfo {
             }
 
             /// Returns the build environment
-            pub fn buildenv(&self) -> &Vec<BuildEnvironmentOption> {
+            pub fn buildenv(&self) -> &[BuildEnvironmentOption] {
                 &self.buildenv
             }
 
             /// Returns the package options
-            pub fn options(&self) -> &Vec<PackageOption> {
+            pub fn options(&self) -> &[PackageOption] {
                 &self.options
             }
 
             /// Returns the installed packages
-            pub fn installed(&self) -> &Vec<InstalledPackage> {
+            pub fn installed(&self) -> &[InstalledPackage] {
                 &self.installed
             }
         }
