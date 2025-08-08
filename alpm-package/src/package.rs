@@ -394,7 +394,7 @@ impl<'a, 'c> DataEntry<'a, 'c> {
     /// Returns a reference to the underlying tar [`Entry`].
     ///
     /// This is useful for accessing metadata of the entry, such as its header or path.
-    pub fn entry(&'a self) -> &'a Entry<'a, CompressionDecoder<'c>> {
+    pub fn entry(&self) -> &Entry<'a, CompressionDecoder<'c>> {
         &self.entry
     }
 }
