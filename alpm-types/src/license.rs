@@ -95,8 +95,8 @@ impl License {
     /// assert!(License::from_valid_spdx("Custom-License".to_string()).is_err());
     ///
     /// assert_eq!(
-    ///     License::from_valid_spdx("GPL-2.0".to_string()),
-    ///     Err(Error::DeprecatedLicense("GPL-2.0".to_string()))
+    ///     License::from_valid_spdx("BSD-2-Clause-NetBSD".to_string()),
+    ///     Err(Error::DeprecatedLicense("BSD-2-Clause-NetBSD".to_string()))
     /// );
     /// # Ok(())
     /// # }
@@ -234,8 +234,9 @@ mod tests {
     }
 
     #[rstest]
-    #[case("GPL-2.0")]
     #[case("BSD-2-Clause-FreeBSD")]
+    #[case("BSD-2-Clause-NetBSD")]
+    #[case("bzip2-1.0.5")]
     fn test_deprecated_spdx(#[case] input: &str) {
         let result = License::from_valid_spdx(input.to_string());
         assert_eq!(result, Err(Error::DeprecatedLicense(input.to_string())));
