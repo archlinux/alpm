@@ -102,17 +102,32 @@ impl License {
     /// # }
     /// ```
     ///
+    /// # Note
+    ///
+    /// This function uses [strict parsing] which means:
+    ///
+    /// 1. Only license identifiers in the SPDX license list, or Document/LicenseRef, are allowed.
+    ///    The license identifiers are also case-sensitive.
+    /// 2. `WITH`, `AND`, and `OR`, case-insensitive, are the only valid operators.
+    /// 3. Deprecated licenses are not allowed and will return an error
+    ///    ([`Error::DeprecatedLicense`]).
+    ///
     /// # Errors
     ///
     /// Returns an error if the given input cannot be parsed or is a deprecated license.
+    ///
+    /// [strict parsing]: https://docs.rs/spdx/latest/spdx/lexer/struct.ParseMode.html#associatedconstant.STRICT
     pub fn from_valid_spdx(identifier: String) -> Result<Self, Error> {
-        let expression = Expression::parse(&identifier)?;
-        if spdx::license_id(&identifier)
-            .map(|v| v.is_deprecated())
-            .unwrap_or(false)
-        {
-            return Err(Error::DeprecatedLicense(identifier));
-        }
+        let expression = match Expression::parse(&identifier) {
+            Ok(expr) => expr,
+            Err(e) => {
+                if e.reason == spdx::error::Reason::DeprecatedLicenseId {
+                    return Err(Error::DeprecatedLicense(identifier));
+                } else {
+                    return Err(Error::InvalidLicense(e));
+                }
+            }
+        };
 
         Ok(Self::Spdx(Box::new(expression)))
     }
