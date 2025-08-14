@@ -6,6 +6,7 @@ use std::{
 
 pub use digest::Digest;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use strum::{Display, EnumString, VariantNames};
 use winnow::{
     ModalResult,
     Parser,
@@ -41,6 +42,76 @@ pub type Sha384Checksum = Checksum<Sha384>;
 
 /// A checksum using the Sha512 algorithm
 pub type Sha512Checksum = Checksum<Sha512>;
+
+/// This enum represents all accepted checksum algorithms used in the Arch Linux distribution.
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    Deserialize,
+    Display,
+    EnumString,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+    Serialize,
+    VariantNames,
+)]
+pub enum CheckSumAlgorithm {
+    /// Blake2b-512 cryptographic hash algorithm
+    Blake2b512,
+    /// Md5 hash algorithm (deprecated)
+    Md5,
+    /// Sha1 hash algorithm (deprecated)
+    Sha1,
+    /// Sha224 hash algorithm
+    Sha224,
+    /// Sha256 hash algorithm
+    Sha256,
+    /// Sha384 hash algorithm
+    Sha384,
+    /// Sha512 hash algorithm
+    Sha512,
+}
+
+impl CheckSumAlgorithm {
+    /// Determines if a checksum algorithm is considered deprecated for security reasons.
+    ///
+    /// Returns `true` for cryptographically unsafe algorithms that should be avoided in new
+    /// implementations. These algorithms are still supported for backward compatibility but
+    /// their use is strongly discouraged.
+    ///
+    /// Currently deprecated algorithms:
+    ///
+    /// - [`CheckSumAlgorithm::Md5`]: Vulnerable to collision attacks
+    /// - [`CheckSumAlgorithm::Sha1`]: Vulnerable to collision attacks
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use alpm_types::CheckSumAlgorithm;
+    ///
+    /// // Deprecated algorithms
+    /// assert!(CheckSumAlgorithm::Md5.is_deprecated());
+    /// assert!(CheckSumAlgorithm::Sha1.is_deprecated());
+    ///
+    /// // Safe algorithms
+    /// assert!(!CheckSumAlgorithm::Sha256.is_deprecated());
+    /// assert!(!CheckSumAlgorithm::Blake2b512.is_deprecated());
+    /// ```
+    pub fn is_deprecated(&self) -> bool {
+        match self {
+            CheckSumAlgorithm::Md5 | CheckSumAlgorithm::Sha1 => true,
+            CheckSumAlgorithm::Blake2b512
+            | CheckSumAlgorithm::Sha224
+            | CheckSumAlgorithm::Sha256
+            | CheckSumAlgorithm::Sha384
+            | CheckSumAlgorithm::Sha512 => false,
+        }
+    }
+}
 
 /// A [checksum] using a supported algorithm
 ///
