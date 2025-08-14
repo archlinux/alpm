@@ -18,7 +18,7 @@ rules = [
     # Consider starting bulleted lists at the beginning of the line
     "MD006",
     # Unordered list indentation
-    "MD007",
+    # "MD007",  # broken behavior: https://github.com/akiomik/mado/issues/190
     # Multiple consecutive blank lines
     "MD012",
     # Line length
