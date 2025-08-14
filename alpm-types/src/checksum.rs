@@ -6,6 +6,7 @@ use std::{
 
 pub use digest::Digest;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use strum::{Display, EnumString, VariantArray, VariantNames};
 use winnow::{
     ModalResult,
     Parser,
@@ -41,6 +42,86 @@ pub type Sha384Checksum = Checksum<Sha384>;
 
 /// A checksum using the Sha512 algorithm
 pub type Sha512Checksum = Checksum<Sha512>;
+
+/// This enum represents all accepted checksum algorithms used in the Arch Linux distribution.
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    Deserialize,
+    Display,
+    EnumString,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+    Serialize,
+    VariantNames,
+    VariantArray,
+)]
+pub enum ChecksumAlgorithm {
+    /// Blake2b-512 cryptographic hash algorithm
+    Blake2b512,
+    /// Md5 hash algorithm (deprecated)
+    Md5,
+    /// Sha1 hash algorithm (deprecated)
+    Sha1,
+    /// Sha224 hash algorithm
+    Sha224,
+    /// Sha256 hash algorithm
+    Sha256,
+    /// Sha384 hash algorithm
+    Sha384,
+    /// Sha512 hash algorithm
+    Sha512,
+}
+
+impl ChecksumAlgorithm {
+    /// Determines if a checksum algorithm is considered deprecated for security reasons.
+    ///
+    /// Returns `true` for cryptographically unsafe algorithms that should be avoided.
+    /// These algorithms are still supported for backwards compatibility but their use is strongly
+    /// discouraged.
+    ///
+    /// Currently deprecated algorithms:
+    ///
+    /// - [`ChecksumAlgorithm::Md5`]: Vulnerable to collision attacks
+    /// - [`ChecksumAlgorithm::Sha1`]: Vulnerable to collision attacks
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use alpm_types::ChecksumAlgorithm;
+    ///
+    /// // Deprecated algorithms
+    /// assert!(ChecksumAlgorithm::Md5.is_deprecated());
+    /// assert!(ChecksumAlgorithm::Sha1.is_deprecated());
+    ///
+    /// // Safe algorithms
+    /// assert!(!ChecksumAlgorithm::Sha256.is_deprecated());
+    /// assert!(!ChecksumAlgorithm::Blake2b512.is_deprecated());
+    /// ```
+    pub fn is_deprecated(&self) -> bool {
+        match self {
+            ChecksumAlgorithm::Md5 | ChecksumAlgorithm::Sha1 => true,
+            ChecksumAlgorithm::Blake2b512
+            | ChecksumAlgorithm::Sha224
+            | ChecksumAlgorithm::Sha256
+            | ChecksumAlgorithm::Sha384
+            | ChecksumAlgorithm::Sha512 => false,
+        }
+    }
+
+    /// Returns a list of [`ChecksumAlgorithm`] variants that are not considered deprecated.
+    pub fn non_deprecated_checksums(&self) -> Vec<ChecksumAlgorithm> {
+        <ChecksumAlgorithm as VariantArray>::VARIANTS
+            .iter()
+            .filter(|algo| !algo.is_deprecated())
+            .copied()
+            .collect::<Vec<ChecksumAlgorithm>>()
+    }
+}
 
 /// A [checksum] using a supported algorithm
 ///
@@ -304,7 +385,9 @@ pub enum SkippableChecksum<D: Digest + Clone> {
 }
 
 impl<D: Digest + Clone> SkippableChecksum<D> {
-    /// Return whether this skippable checksum is of type `SkippableChecksum::Skip`.
+    /// Determines whether the [`SkippableChecksum`] is skipped.
+    ///
+    /// Checksums are considered skipped if they are of the variant [`SkippableChecksum::Skip`].
     pub fn is_skipped(&self) -> bool {
         matches!(self, SkippableChecksum::Skip)
     }

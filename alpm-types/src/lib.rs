@@ -6,6 +6,7 @@ mod checksum;
 pub use checksum::{
     Blake2b512Checksum,
     Checksum,
+    ChecksumAlgorithm,
     Digest,
     Md5Checksum,
     Sha1Checksum,
