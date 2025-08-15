@@ -16,6 +16,12 @@ set -euo pipefail
 
 readonly test_executable_path="${1:-}"
 readonly first_test_argument="${2:-}"
+# Use Arch Linux's container registry when running in CI (indicated by the presence of the `CI` environment variable).
+if [[ -z "${CI+x}" ]]; then
+  arch_container="archlinux:latest"
+else
+  arch_container="registry.archlinux.org/archlinux/archlinux-docker:base-master"
+fi
 
 # If the test file name contains "containerized" and the invocation is not for listing the test, run the test in a container.
 # Otherwise run on the host.
@@ -31,7 +37,7 @@ if [[ "$test_executable_path" == *containerized* ]] && [[ "$first_test_argument"
     --volume "$target_dir/debug:/usr/local/bin:ro,z"
     # Mount the test executable into the container at the same location as on the host
     --volume "$test_executable_path:$test_executable_path:ro,z"
-    archlinux:latest
+    "$arch_container"
   )
 
   podman run "${podman_run_options[@]}" "$@"
