@@ -1,0 +1,63 @@
+"""Tests for OpenPGP-related alpm_types: OpenPGPKeyId, OpenPGPv4Fingerprint, parse_openpgp_identifier."""
+
+import pytest
+from alpm import alpm_types, ALPMError
+
+
+def test_openpgp_key_id_valid():
+    """Test creating a valid OpenPGP key ID."""
+    key_id = alpm_types.OpenPGPKeyId("ABCD1234ABCD5678")
+    assert str(key_id) == "ABCD1234ABCD5678"
+
+
+def test_openpgp_key_id_invalid():
+    """Test creating an invalid OpenPGP key ID raises error."""
+    with pytest.raises(ALPMError):
+        alpm_types.OpenPGPKeyId("invalid")
+
+
+def test_openpgp_fingerprint_valid():
+    """Test creating a valid OpenPGP v4 fingerprint."""
+    fingerprint = "1234567890ABCDEF1234567890ABCDEF12345678"
+    fp = alpm_types.OpenPGPv4Fingerprint(fingerprint)
+    assert str(fp) == fingerprint
+
+
+def test_openpgp_fingerprint_invalid():
+    """Test creating an invalid OpenPGP fingerprint raises error."""
+    with pytest.raises(ALPMError):
+        alpm_types.OpenPGPv4Fingerprint("invalid")
+
+
+def test_parse_openpgp_identifier_key_id():
+    """Test parsing OpenPGP identifier as key ID."""
+    result = alpm_types.parse_openpgp_identifier("ABCD1234ABCD5678")
+    assert isinstance(result, alpm_types.OpenPGPKeyId)
+
+
+def test_parse_openpgp_identifier_fingerprint():
+    """Test parsing OpenPGP identifier as fingerprint."""
+    fingerprint = "1234567890ABCDEF1234567890ABCDEF12345678"
+    result = alpm_types.parse_openpgp_identifier(fingerprint)
+    assert isinstance(result, alpm_types.OpenPGPv4Fingerprint)
+
+
+def test_parse_openpgp_identifier_invalid():
+    """Test parsing invalid OpenPGP identifier raises error."""
+    with pytest.raises(ALPMError):
+        alpm_types.parse_openpgp_identifier("invalid_identifier")
+
+
+def test_openpgp_key_id_equality():
+    """Test OpenPGP key ID equality."""
+    key_id1 = alpm_types.OpenPGPKeyId("ABCD1234ABCD5678")
+    key_id2 = alpm_types.OpenPGPKeyId("ABCD1234ABCD5678")
+    assert key_id1 == key_id2
+
+
+def test_openpgp_fingerprint_equality():
+    """Test OpenPGP fingerprint equality."""
+    fingerprint_str = "1234567890ABCDEF1234567890ABCDEF12345678"
+    fp1 = alpm_types.OpenPGPv4Fingerprint(fingerprint_str)
+    fp2 = alpm_types.OpenPGPv4Fingerprint(fingerprint_str)
+    assert fp1 == fp2
