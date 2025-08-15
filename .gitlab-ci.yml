@@ -27,6 +27,15 @@ stages:
     - source .env && pacman -Syu --needed --noconfirm $RUST_DEV_TOOLS_PACKAGES $PKGBUILD_DEPENDENCIES
     - just install-rust-dev-tools
 
+# default setup with Python tools running on default branch and in MRs
+.default-with-python:
+  extends: .default-with-rust
+  before_script:
+    - pacman-key --init
+    - pacman -Sy --needed --noconfirm archlinux-keyring
+    - source .env && pacman -Syu --needed --noconfirm $RUST_DEV_TOOLS_PACKAGES $PYTHON_DEV_TOOLS_PACKAGES $PKGBUILD_DEPENDENCIES
+    - just install-rust-dev-tools
+
 commits:
   extends: .default
   rules:
@@ -50,7 +59,7 @@ spelling:
   stage: check
 
 formatting:
-  extends: .default-with-rust
+  extends: .default-with-python
   script:
     - source .env && pacman -Syu --needed --noconfirm $FORMAT_PACKAGES
     - just check-formatting
@@ -68,6 +77,13 @@ rust-code:
   script:
     - source .env && pacman -Syu --needed --noconfirm $CHECK_RUST_PACKAGES
     - just check-rust-code
+  stage: check
+
+python-code:
+  extends: .default-with-python
+  script:
+    - source .env && pacman -Syu --needed --noconfirm $CHECK_RUST_PACKAGES
+    - just check-python-code
   stage: check
 
 unused-deps:
@@ -103,6 +119,13 @@ test:
   script:
     - source .env && pacman -Syu --needed --noconfirm $TEST_PACKAGES
     - just test
+  stage: test
+
+test-python:
+  extends: .default-with-python
+  script:
+    - source .env && pacman -Syu --needed --noconfirm $TEST_PACKAGES
+    - just test-python
   stage: test
 
 docs:
