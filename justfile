@@ -377,6 +377,7 @@ check-shell-script file:
 # Checks common spelling mistakes
 [group('check')]
 check-spelling:
+    just ensure-command codespell
     codespell
 
 # Checks for unused dependencies
