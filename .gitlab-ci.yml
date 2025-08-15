@@ -1,4 +1,10 @@
 variables:
+  CARGO_HOME: $CI_PROJECT_DIR/.cargo-home
+  # Set Gitlab's cache compression to tar+zstd for better performance.
+  CACHE_COMPRESSION_FORMAT: tarzstd
+  COVERAGE_REPORT: true
+  # Enable timestamps in Gitlab's job logs.
+  FF_TIMESTAMPS: true
   RUST_BACKTRACE: full
 
 stages:
