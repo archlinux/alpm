@@ -50,6 +50,12 @@ However, this is still an [unstable nightly-only feature](https://github.com/rus
 The `just containerized-integration-tests` recipe executes all tests that are made available by a `_containerized-integration-test` feature and are located in an integration test module named `containerized`.
 With the help of a [custom target runner], these tests are executed in a containerized environment using [`podman`].
 
+## Continuous integration
+
+This project's checks and tests are executed in a continuous integration environment based on Arch Linux.
+
+If the `CI` environment variable is set (this is usually the case e.g. in GitLab CI pipelines), our [custom target runner] script will automatically select the Arch Linux GitLab container registry instead of the default container registry to circumvent running into rate limiting.
+
 ## Writing specifications
 
 Specifications for technology of this project are written in markdown documents in the context of a [component], that serves as its reference implementation.
