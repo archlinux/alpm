@@ -557,7 +557,7 @@ check-spelling:
 [group('check')]
 check-unused-deps:
     #!/usr/bin/env bash
-    set -euxo pipefail
+    set -euo pipefail
 
     just gitlab-section-start "check-unused-deps" "Check for unused Rust dependencies"
 
@@ -693,7 +693,7 @@ containerized-integration-tests *options:
 [group('test')]
 test:
     #!/usr/bin/env bash
-    set -euxo pipefail
+    set -euo pipefail
 
     readonly ignored="{{ ignored }}"
 
@@ -711,7 +711,7 @@ test:
 [group('test')]
 test-coverage mode="nodoc":
     #!/usr/bin/env bash
-    set -euxo pipefail
+    set -euo pipefail
 
     target_dir="$(just get-cargo-target-directory)"
 
@@ -803,7 +803,7 @@ test-docs:
 [group('test')]
 test-readme project:
     #!/usr/bin/env bash
-    set -euxo pipefail
+    set -euo pipefail
 
     CARGO_HOME="${CARGO_HOME:-$HOME/.cargo}"
 
@@ -817,7 +817,7 @@ test-readme project:
     PATH="$CARGO_HOME/bin:$PATH"
     printf "PATH=%s\n" "$PATH"
 
-    cd {{ project }} && PATH="$PATH" tangler bash < README.md | bash -euxo pipefail -
+    cd {{ project }} && PATH="$PATH" tangler bash < README.md | bash -euo pipefail -
 
 # Run end-to-end tests for README files of projects
 [group('test')]
