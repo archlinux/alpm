@@ -3,10 +3,6 @@
 
 set dotenv-load := true
 
-# Whether to run ignored tests (set to "true" to run ignored tests)
-
-ignored := "false"
-
 # The output directory for documentation artifacts
 
 output_dir := "output"
@@ -606,19 +602,15 @@ containerized-integration-tests *options:
     just ensure-command bash cargo cargo-nextest podman
     cargo nextest run --features _containerized-integration-test --filterset 'kind(test) and binary_id(/::containerized$/)' {{ options }}
 
-# Runs all unit tests. By default ignored tests are not run. Run with `ignored=true` to run only ignored tests
+# Runs all unit tests. Options to `cargo nextest run` can be passed in using `options`.
 [group('test')]
-test:
+test *options:
     #!/usr/bin/env bash
     set -euo pipefail
 
-    readonly ignored="{{ ignored }}"
+    read -r -a options <<< "{{ options }}"
 
-    if [[ "${ignored}" == "true" ]]; then
-        cargo nextest run --workspace --run-ignored all
-    else
-        cargo nextest run --workspace
-    fi
+    cargo nextest run --workspace "${options[@]}"
 
 # Creates code coverage for all projects.
 [group('test')]
