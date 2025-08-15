@@ -12,7 +12,7 @@ stages:
 .default:
   before_script:
     - pacman-key --init
-    - pacman -Sy --needed --noconfirm archlinux-keyring
+    - pacman -Sy --needed --noconfirm archlinux-keyring just
   interruptible: true
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
@@ -23,8 +23,8 @@ stages:
   extends: .default
   before_script:
     - pacman-key --init
-    - pacman -Sy --needed --noconfirm archlinux-keyring
-    - source .env && pacman -Syu --needed --noconfirm $RUST_DEV_TOOLS_PACKAGES $PKGBUILD_DEPENDENCIES
+    - pacman -Sy --needed --noconfirm archlinux-keyring just
+    - just install-alpm-package-set rust-dev
     - just install-rust-dev-tools
 
 commits:
@@ -32,7 +32,7 @@ commits:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
   script:
-    - source .env && pacman -Syu --needed --noconfirm $CHECK_COMMITS_PACKAGES
+    - just install-alpm-package-set commits
     # fetch the default branch as we need it for comparison
     - git fetch origin $CI_DEFAULT_BRANCH
     # setup a dummy user as `cog verify` needs that
@@ -43,51 +43,50 @@ commits:
 
 spelling:
   extends: .default
-  before_script:
-    - source .env && pacman -Syu --needed --noconfirm $SPELLING_PACKAGES
   script:
+    - just install-alpm-package-set spelling
     - just check-spelling
   stage: check
 
 formatting:
   extends: .default-with-rust
   script:
-    - source .env && pacman -Syu --needed --noconfirm $FORMAT_PACKAGES
+    - just install-alpm-package-set formatting
     - just check-formatting
   stage: check
 
 shell-code:
   extends: .default
   script:
-    - source .env && pacman -Syu --needed --noconfirm $CHECK_SHELL_PACKAGES
+    - just install-alpm-package-set shell
     - just check-shell-code
   stage: check
 
 rust-code:
   extends: .default-with-rust
   script:
-    - source .env && pacman -Syu --needed --noconfirm $CHECK_RUST_PACKAGES
+    - just install-alpm-package-set rust
     - just check-rust-code
   stage: check
 
 unused-deps:
   extends: .default-with-rust
   script:
-    - source .env && pacman -Syu --needed --noconfirm $CHECK_UNUSED_PACKAGES
+    - just install-alpm-package-set unused
     - just check-unused-deps
   stage: check
 
 dependencies:
   extends: .default-with-rust
   script:
-    - source .env && pacman -Syu --needed --noconfirm $CHECK_DEPENDENCIES_PACKAGES
+    - just install-alpm-package-set dependencies
     - just check-dependencies
   stage: check
 
 licenses:
   extends: .default-with-rust
   script:
-    - source .env && pacman -Syu --needed --noconfirm $CHECK_LICENSES_PACKAGES
+    - just install-alpm-package-set licenses
     - just check-licenses
   stage: check
 
@@ -101,35 +100,35 @@ links:
 test:
   extends: .default-with-rust
   script:
-    - source .env && pacman -Syu --needed --noconfirm $TEST_PACKAGES
+    - just install-alpm-package-set coverage
     - just test
   stage: test
 
 docs:
   extends: .default-with-rust
   script:
-    - source .env && pacman -Syu --needed --noconfirm $DOCS_PACKAGES
+    - just install-alpm-package-set docs
     - just docs
   stage: test
 
 test-docs:
   extends: .default-with-rust
   script:
-    - source .env && pacman -Syu --needed --noconfirm $DOCS_PACKAGES
+    - just install-alpm-package-set coverage
     - just test-docs
   stage: test
 
 test-readmes:
   extends: .default-with-rust
   script:
-    - source .env && pacman -Syu --needed --noconfirm $TEST_READMES_PACKAGES
+    - just install-alpm-package-set readmes
     - just test-readmes
   stage: test
 
 test-coverage:
   extends: .default-with-rust
   script:
-    - source .env && pacman -Syu --needed --noconfirm $TEST_COVERAGE_PACKAGES
+    - just install-alpm-package-set coverage
     - just test-coverage
   stage: test
   # This is a regex that looks at the output from the `just test-coverage` command
@@ -149,14 +148,14 @@ test-coverage:
 build-book:
   extends: .default-with-rust
   script:
-    - source .env && pacman -Syu --needed --noconfirm $BUILD_BOOK_PACKAGES
+    - just install-alpm-package-set book
     - just build-book
   stage: test
 
 manpages-specs-completions:
   extends: .default-with-rust
   script:
-    - source .env && pacman -Syu --needed --noconfirm $MANPAGES_PACKAGES
+    - just install-alpm-package-set manpages
     - just generate-manpages-and-specs
     - just generate-completions
   stage: test
@@ -164,7 +163,7 @@ manpages-specs-completions:
 integration-test:
   extends: .default-with-rust
   script:
-    - source .env && pacman -Syu --needed --noconfirm $TEST_PACKAGES
+    - just install-alpm-package-set coverage
     - just ignored=true test
   stage: test
 
@@ -174,7 +173,7 @@ crates_publish:
   rules:
     - if: '$CARGO_REGISTRY_TOKEN && $CI_COMMIT_TAG && $CI_PROJECT_PATH == "archlinux/alpm/alpm"'
   script:
-    - source .env && pacman -Syu --needed --noconfirm $PUBLISH_PACKAGES
+    - just install-alpm-package-set publish
     - just ci-publish
   stage: publish
   tags:
@@ -197,6 +196,6 @@ pages:
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   script:
-    - source .env && pacman -Syu --needed --noconfirm $BUILD_BOOK_PACKAGES
+    - just install-alpm-package-set book
     - just build-book
   stage: pages
