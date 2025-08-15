@@ -223,9 +223,11 @@ check-formatting:
 
     mado check
 
+    uv run --directory python-alpm ruff format --check
+
 # Runs all check targets
 [group('check')]
-check: check-spelling check-formatting check-shell-code check-rust-code check-unused-deps check-dependencies check-licenses check-links
+check: check-spelling check-formatting check-shell-code check-rust-code check-python-code check-unused-deps check-dependencies check-licenses check-links
 
 # Checks commit messages for correctness
 [group('check')]
@@ -320,6 +322,12 @@ check-links:
 check-rust-code:
     just ensure-command cargo cargo-clippy mold
     cargo clippy --all-features --all-targets --workspace -- -D warnings
+
+# Checks the Python source code using ruff and mypy.
+[group('check')]
+check-python-code:
+    uv run --directory python-alpm ruff check
+    uv run --directory python-alpm mypy .
 
 # Checks shell code using shellcheck.
 [group('check')]
@@ -447,6 +455,9 @@ fix:
 
     # fmt must be last as clippy's changes may break formatting
     cargo +nightly fmt
+
+    uv run --directory python-alpm ruff format
+    uv run --directory python-alpm ruff check --fix
 
 # Installs development packages using pacman
 [group('dev')]
@@ -637,6 +648,11 @@ test-readmes:
     just test-readme alpm-buildinfo
     just test-readme alpm-pkginfo
     just test-readme alpm-srcinfo
+
+# Run tests for Python bindings (accepts pytest `options`).
+[group('test')]
+test-python *options:
+    uv run --directory python-alpm pytest {{ options }}
 
 # Publishes a crate in the workspace from GitLab CI in a pipeline for tags
 [group('release')]
