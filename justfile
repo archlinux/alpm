@@ -3,6 +3,10 @@
 
 set dotenv-load := true
 
+# Whether coverage should be measured when running tests. Use `create-coverage-report` to create a report from the collected data.
+
+coverage := env("COVERAGE_REPORT", "false")
+
 # The output directory for documentation artifacts
 
 output_dir := "output"
@@ -505,6 +509,7 @@ check-shell-code:
     just check-shell-recipe check-commits
     just check-shell-recipe check-unused-deps
     just check-shell-recipe ci-publish
+    just check-shell-recipe containerized-integration-tests
     just check-shell-recipe 'generate shell_completions alpm-buildinfo'
     just check-shell-recipe 'gitlab-section-end foo'
     just check-shell-recipe 'gitlab-section-start foo bar'
@@ -514,6 +519,7 @@ check-shell-code:
     just check-shell-recipe 'release alpm-buildinfo'
     just check-shell-recipe flaky
     just check-shell-recipe test
+    just check-shell-recipe test-docs
     just check-shell-recipe 'ensure-command test'
 
     just check-shell-script alpm-srcinfo/tests/generate_srcinfo.bash
@@ -678,10 +684,32 @@ watch-book:
 # Runs integration tests guarded by the `_containerized-integration-test` feature, located in modules named `containerized` (accepts `cargo nextest run` options via `options`).
 [group('test')]
 containerized-integration-tests *options:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    readonly coverage="{{ coverage }}"
+    commands=(
+        cargo
+        cargo-nextest
+        podman
+    )
+    read -r -a options <<< "{{ options }}"
+
     just gitlab-section-start "containerized-integration-tests" "Run containerized integration tests"
 
-    just ensure-command bash cargo cargo-nextest podman
-    cargo nextest run --features _containerized-integration-test --filterset 'kind(test) and binary_id(/::containerized$/)' {{ options }}
+    if [[ "$coverage" == "true" ]]; then
+        commands+=(cargo-llvm-cov)
+        just ensure-command "${commands[@]}"
+        # Use the environment prepared by `cargo llvm-cov show-env`
+        # shellcheck source=/dev/null
+        source <(cargo llvm-cov show-env --export-prefix)
+    else
+        just ensure-command "${commands[@]}"
+    fi
+
+    cargo build --examples --bins
+    cargo nextest run --features _containerized-integration-test --filterset 'kind(test) and binary_id(/::containerized$/)' "${options[@]}"
+
 
     just gitlab-section-end "containerized-integration-tests"
 
@@ -760,11 +788,27 @@ test *options:
     #!/usr/bin/env bash
     set -euo pipefail
 
+    readonly coverage="{{ coverage }}"
+    commands=(
+        cargo
+        cargo-nextest
+        mold
+    )
     read -r -a options <<< "{{ options }}"
 
     just gitlab-section-start "test" "Run unit tests"
 
-    cargo nextest run --workspace "${options[@]}"
+    if [[ "$coverage" == "true" ]]; then
+        commands+=(cargo-llvm-cov)
+        just ensure-command "${commands[@]}"
+        # Use the environment prepared by `cargo llvm-cov show-env`
+        # shellcheck source=/dev/null
+        source <(cargo llvm-cov show-env --export-prefix)
+    else
+        just ensure-command "${commands[@]}"
+    fi
+
+    cargo nextest run --locked --all "${options[@]}"
 
     just gitlab-section-end "test"
 
@@ -850,13 +894,31 @@ test-coverage mode="nodoc":
 
     just gitlab-section-end "test-coverage"
 
-# Runs all doc tests
+# Runs all doc tests. Options to `cargo test` can be passed in using `options`.
 [group('test')]
-test-docs:
+test-docs *options:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    readonly coverage="{{ coverage }}"
+    toolchain="+stable"
+    commands=(cargo)
+    read -r -a options <<< "{{ options }}"
+
     just gitlab-section-start "test-docs" "Run doc tests"
 
-    just ensure-command cargo
-    cargo test --doc
+    if [[ "$coverage" == "true" ]]; then
+        commands+=(cargo-llvm-cov)
+        toolchain="+nightly"
+        just ensure-command "${commands[@]}"
+        # Use the environment prepared by `cargo llvm-cov show-env`
+        # shellcheck source=/dev/null
+        source <(cargo llvm-cov show-env --export-prefix)
+    else
+        just ensure-command "${commands[@]}"
+    fi
+
+    cargo "$toolchain" test --locked --doc "${options[@]}"
 
     just gitlab-section-end "test-docs"
 
