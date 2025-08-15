@@ -83,7 +83,7 @@ The information in this document is for version 1, which is outdated. The **ALPM
 
 # EXAMPLES
 
-````text
+```text
 #mtree
 /set type=file uid=0 gid=0 mode=644
 ./.BUILDINFO time=1696727741.0 size=5574 md5digest=04a85103d4780101c710a297aae33837 sha256digest=708be566788a6a2712bcd40425d93761569ede07371781374edb1f22e2a3eb96
@@ -103,7 +103,7 @@ bsdtar \
   --format=mtree \
   --options='!all,use-set,type,uid,gid,mode,time,size,md5,sha256,link' \
   $folder
-````
+```
 
 # Usages
 
