@@ -449,6 +449,7 @@ check-shell-script file:
 check-spelling:
     just gitlab-section-start "check-spelling" "Check spelling in all files"
 
+    just ensure-command codespell
     codespell
 
     just gitlab-section-end "check-spelling"
@@ -461,6 +462,7 @@ check-unused-deps:
 
     just gitlab-section-start "check-unused-deps" "Check for unused Rust dependencies"
 
+    just ensure-command cargo-machete
     for name in $(just get-workspace-members); do
         cargo machete "$name"
     done
