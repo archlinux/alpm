@@ -1,4 +1,8 @@
 variables:
+  CARGO_HOME: $CI_PROJECT_DIR/.cargo-home
+  CACHE_COMPRESSION_FORMAT: tarzstd
+  COVERAGE_REPORT: true
+  FF_TIMESTAMPS: true
   RUST_BACKTRACE: full
 
 stages:
