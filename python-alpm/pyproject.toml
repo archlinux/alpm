@@ -1,0 +1,22 @@
+[build-system]
+build-backend = "maturin"
+requires = ["maturin>=1.8,<2.0"]
+
+[project]
+classifiers = [
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Programming Language :: Rust",
+]
+dynamic = ["version"]
+license = "Apache-2.0 OR MIT"
+name = "alpm"
+requires-python = ">=3.9"
+
+[tool.maturin]
+features = ["pyo3/extension-module"]
+module-name = "alpm"
+python-source = "python"
+
+[dependency-groups]
+dev = ["mypy>=1.17,<2.0", "pytest>=8.4,<9.0", "ruff>=0.12,<0.13"]
