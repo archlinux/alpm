@@ -120,10 +120,21 @@ links:
   stage: check
 
 test:
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: target/llvm-cov/cobertura-coverage.xml
+      # Expose the code coverage as a GitLab metric.
+      # This allows us to easily spot changes in the overall coverage.
+      metrics: target/llvm-cov/coverage-metrics.txt
+  coverage: "/Test-coverage: ([0-9.]*)%/"
   extends: .default-with-rust
   script:
     - just install-alpm-package-set coverage
     - just test
+    - just test-docs
+    - just create-coverage-report with-docs Unit-test-coverage
   stage: test
 
 test-python:
@@ -140,39 +151,12 @@ docs:
     - just docs
   stage: test
 
-test-docs:
-  extends: .default-with-rust
-  script:
-    - just install-alpm-package-set coverage
-    - just test-docs
-  stage: test
-
 test-readmes:
   extends: .default-with-rust
   script:
     - just install-alpm-package-set readmes
     - just test-readmes
   stage: test
-
-test-coverage:
-  extends: .default-with-rust
-  script:
-    - just install-alpm-package-set coverage
-    - just test-coverage
-  stage: test
-  # This is a regex that looks at the output from the `just test-coverage` command
-  # and extracts the coverage percent from it.
-  coverage: '/Test-coverage: ([0-9.]*)%/'
-  artifacts:
-    paths:
-      - target/llvm-cov/html
-    reports:
-      coverage_report:
-        coverage_format: cobertura
-        path: target/llvm-cov/cobertura-coverage.xml
-      # Expose the code coverage as a GitLab metric.
-      # This allows us to easily spot changes in the overall coverage.
-      metrics: target/coverage-metrics.txt
 
 build-book:
   extends: .default-with-rust
