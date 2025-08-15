@@ -87,6 +87,104 @@ get-workspace-member-version package:
 
     printf "$version\n"
 
+# Installs a `set` of ALPM packages.
+[private]
+install-alpm-package-set set:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    readonly set="{{ set }}"
+
+    case "$set" in
+        all)
+            packages="${PACMAN_PACKAGES}"
+            ;;
+        book)
+            packages="${BUILD_BOOK_PACKAGES}"
+            ;;
+        commits)
+            packages="${CHECK_COMMITS_PACKAGES}"
+            ;;
+        containerized)
+            packages="${CONTAINERIZED_TEST_PACKAGES}"
+            ;;
+        coverage)
+            packages="${TEST_COVERAGE_PACKAGES}"
+            ;;
+        docs)
+            packages="${DOCS_PACKAGES}"
+            ;;
+        dependencies)
+            packages="${CHECK_DEPENDENCIES_PACKAGES}"
+            ;;
+        formatting)
+            packages="${FORMAT_PACKAGES}"
+            ;;
+        licenses)
+            packages="${CHECK_LICENSES_PACKAGES}"
+            ;;
+        links)
+            packages="${CHECK_LINKS_PACKAGES}"
+            ;;
+        manpages)
+            packages="${MANPAGES_PACKAGES}"
+            ;;
+        publish)
+            packages="${PUBLISH_PACKAGES}"
+            ;;
+        python-dev)
+            packages="${PYTHON_DEV_TOOLS_PACKAGES}"
+            ;;
+        readmes)
+            packages="${TEST_READMES_PACKAGES}"
+            ;;
+        rust)
+            packages="${CHECK_RUST_PACKAGES}"
+            ;;
+        rust-dev)
+            packages="${RUST_DEV_TOOLS_PACKAGES}"
+            ;;
+        shell)
+            packages="${CHECK_SHELL_PACKAGES}"
+            ;;
+        spelling)
+            packages="${SPELLING_PACKAGES}"
+            ;;
+        test)
+            packages="${TEST_PACKAGES}"
+            ;;
+        unused)
+            packages="${CHECK_UNUSED_PACKAGES}"
+            ;;
+        *)
+            printf 'Invalid package set %s\n' "$set" >&2
+            exit 1
+    esac
+
+    just ensure-command pacman run0
+
+    # Read all packages into an array.
+    read -r -d '' -a packages < <(printf '%s\0' "$packages")
+
+    # Deduplicate using an associative array
+    declare -A unique_packages
+    for package in "${packages[@]}"; do
+        if [[ ! "${unique_packages[$package]+_}" ]]; then
+            unique_packages["$package"]=1
+        fi
+    done
+
+    # Use run0 when not root
+    command=()
+    if (( "$(id -u)" > 0 )); then
+        command+=(run0)
+    fi
+    command+=(
+        pacman -Su --needed --noconfirm
+    )
+
+    "${command[@]}" "${!unique_packages[@]}"
+
 # Checks if a string matches a workspace member exactly
 [private]
 is-workspace-member package:
@@ -345,7 +443,7 @@ check-shell-code:
     just check-shell-recipe check-unused-deps
     just check-shell-recipe ci-publish
     just check-shell-recipe 'generate shell_completions alpm-buildinfo'
-    just check-shell-recipe install-pacman-dev-packages
+    just check-shell-recipe 'install-alpm-package-set all'
     just check-shell-recipe 'is-workspace-member alpm-buildinfo'
     just check-shell-recipe 'prepare-release alpm-buildinfo'
     just check-shell-recipe 'release alpm-buildinfo'
@@ -463,25 +561,7 @@ fix:
 # Installs development packages using pacman
 [group('dev')]
 install-pacman-dev-packages:
-    #!/usr/bin/env bash
-    set -euo pipefail
-
-    # All packages are set in the `.env` file
-    source .env
-
-    # Read all packages into an array.
-    read -r -d '' -a packages < <(printf '%s\0' "$PACMAN_PACKAGES")
-
-    # Deduplicate using an associated array
-    declare -A unique_packages
-    for package in "${packages[@]}"; do
-        if [[ ! "${unique_packages[$package]+_}" ]]; then
-            unique_packages["$package"]=1
-        fi
-    done
-
-    pacman -S --needed --noconfirm "${!unique_packages[@]}"
-    # run0 pacman -S --needed --noconfirm "${!unique_packages[@]}"
+    just install-alpm-package-set all
 
 # Installs all Rust tools required for development
 [group('dev')]
