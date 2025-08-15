@@ -3,10 +3,6 @@
 
 set dotenv-load := true
 
-# Whether to run ignored tests (set to "true" to run ignored tests)
-
-ignored := "false"
-
 # The output directory for documentation artifacts
 
 output_dir := "output"
@@ -689,21 +685,17 @@ containerized-integration-tests *options:
 
     just gitlab-section-end "containerized-integration-tests"
 
-# Runs all unit tests. By default ignored tests are not run. Run with `ignored=true` to run only ignored tests
+# Runs all unit tests. Options to `cargo nextest run` can be passed in using `options`.
 [group('test')]
-test:
+test *options:
     #!/usr/bin/env bash
     set -euo pipefail
 
-    readonly ignored="{{ ignored }}"
+    read -r -a options <<< "{{ options }}"
 
     just gitlab-section-start "test" "Run unit tests"
 
-    if [[ "${ignored}" == "true" ]]; then
-        cargo nextest run --workspace --run-ignored all
-    else
-        cargo nextest run --workspace
-    fi
+    cargo nextest run --workspace "${options[@]}"
 
     just gitlab-section-end "test"
 
