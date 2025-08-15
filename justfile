@@ -87,6 +87,37 @@ get-workspace-member-version package:
 
     printf "$version\n"
 
+# Prints a section end marker for GitLab collapsible sections. Accepts a `section_name`.
+[private]
+gitlab-section-end section_name:
+    #!/usr/bin/env bash
+    # 
+    # https://docs.gitlab.com/ci/jobs/job_logs/#custom-collapsible-sections
+    set -euo pipefail
+
+    readonly ci="${CI:-}"
+    readonly section_name="{{ section_name }}"
+
+    if [[ "$ci" == "true" ]]; then
+        printf '\e[0Ksection_end:%(%s)T:%s\r\e[0K\n' '-1' "$section_name"
+    fi
+
+# Prints a section start marker for GitLab collapsible sections. Accepts a `section_name` and its `title`.
+[private]
+gitlab-section-start section_name title:
+    #!/usr/bin/env bash
+    # 
+    # https://docs.gitlab.com/ci/jobs/job_logs/#custom-collapsible-sections
+    set -euo pipefail
+
+    readonly ci="${CI:-}"
+    readonly section_name="{{ section_name }}"
+    readonly title="{{ title }}"
+
+    if [[ "$ci" == "true" ]]; then
+        printf '\e[0Ksection_start:%(%s)T:%s\r\e[0K%s\n' '-1' "$section_name" "$title"
+    fi
+
 # Checks if a string matches a workspace member exactly
 [private]
 is-workspace-member package:
@@ -116,15 +147,17 @@ build-book:
     #!/usr/bin/env bash
     set -euo pipefail
 
-    just ensure-command cargo jq mdbook mdbook-mermaid cargo-depgraph dot
-
-    # Build the local dependency graph.
-    cargo depgraph --workspace-only | dot -Tpng > resources/docs/src/api-docs/dependency_graph.png
-
     target_dir="$(just get-cargo-target-directory)"
     readonly output_dir="{{ output_dir }}"
     readonly rustdoc_dir="$output_dir/docs/rustdoc/"
     mapfile -t workspace_members < <(just get-workspace-members 2>/dev/null)
+
+    just gitlab-section-start "build-book" "Build project documentation"
+
+    just ensure-command cargo jq mdbook mdbook-mermaid cargo-depgraph dot
+
+    # Build the local dependency graph.
+    cargo depgraph --workspace-only | dot -Tpng > resources/docs/src/api-docs/dependency_graph.png
 
     just docs
     mdbook-mermaid install resources/docs/
@@ -138,10 +171,16 @@ build-book:
     cp -r "$target_dir/doc/"{search.desc,src,static.files,trait.impl,type.impl} "$rustdoc_dir"
     cp -r "$target_dir/doc/"*.{js,html} "$rustdoc_dir"
 
+    just gitlab-section-end "build-book"
+
 # Build local documentation
 [group('build')]
 docs:
+    just gitlab-section-start "docs" "Build Rust API documentation"
+
     RUSTDOCFLAGS='-D warnings' cargo doc --document-private-items --no-deps
+
+    just gitlab-section-end "docs"
 
 # Render `manpages`, `shell_completions` or `specifications` (`kind`) of a given package (`pkg`).
 [group('build')]
@@ -187,14 +226,20 @@ generate kind pkg:
 # Generates shell completions
 [group('build')]
 generate-completions:
+    just gitlab-section-start "generate-completions" "Generate shell completions"
+
     just generate shell_completions alpm-buildinfo
     just generate shell_completions alpm-mtree
     just generate shell_completions alpm-pkginfo
     just generate shell_completions alpm-srcinfo
 
+    just gitlab-section-end "generate-completions"
+
 # Generates all manpages and specifications
 [group('build')]
 generate-manpages-and-specs:
+    just gitlab-section-start "generate-manpages-and-specs" "Generate man pages and specifications"
+
     just generate manpages alpm-buildinfo
     just generate manpages alpm-mtree
     just generate manpages alpm-pkginfo
@@ -207,9 +252,13 @@ generate-manpages-and-specs:
     just generate specifications alpm-state-repo
     just generate specifications alpm-types
 
+    just gitlab-section-end "generate-manpages-and-specs"
+
 # Checks source code formatting
 [group('check')]
 check-formatting:
+    just gitlab-section-start "check-formatting" "Check source file formatting"
+
     just ensure-command cargo-sort-derives mado taplo
 
     just --unstable --fmt --check
@@ -223,6 +272,8 @@ check-formatting:
 
     mado check
 
+    just gitlab-section-end "check-formatting"
+
 # Runs all check targets
 [group('check')]
 check: check-spelling check-formatting check-shell-code check-rust-code check-unused-deps check-dependencies check-licenses check-links
@@ -233,9 +284,11 @@ check-commits:
     #!/usr/bin/env bash
     set -euo pipefail
 
-    just ensure-command codespell cog committed rg
-
     readonly default_branch="${CI_DEFAULT_BRANCH:-main}"
+
+    just gitlab-section-start "check-commits" "Check commits"
+
+    just ensure-command codespell cog committed rg
 
     if ! git rev-parse --verify "origin/$default_branch" > /dev/null 2>&1; then
         printf "The default branch '%s' does not exist!\n" "$default_branch" >&2
@@ -298,32 +351,53 @@ check-commits:
         fi
     done
 
+    just gitlab-section-end "check-commits"
+
 # Checks for issues with dependencies
 [group('check')]
 check-dependencies: dry-update
+    just gitlab-section-start "check-dependencies" "Check Rust dependencies"
+
+    just ensure-command cargo-deny
     cargo deny --all-features check
+
+    just gitlab-section-end "check-licenses"
 
 # Checks licensing status
 [group('check')]
 check-licenses:
+    just gitlab-section-start "check-licenses" "Check licenses"
+
     just ensure-command reuse
     reuse lint
+
+    just gitlab-section-end "check-licenses"
 
 # Check for stale links in documentation
 [group('check')]
 check-links:
+    just gitlab-section-start "check-links" "Check links in all files"
+
     just ensure-command lychee
     lychee .
+
+    just gitlab-section-end "check-links"
 
 # Checks the Rust source code using cargo-clippy.
 [group('check')]
 check-rust-code:
+    just gitlab-section-start "check-rust-code" "Check Rust code"
+
     just ensure-command cargo cargo-clippy mold
     cargo clippy --all-features --all-targets --workspace -- -D warnings
+
+    just gitlab-section-end "check-rust-code"
 
 # Checks shell code using shellcheck.
 [group('check')]
 check-shell-code:
+    just gitlab-section-start "check-shell-code" "Check shell code"
+
     just check-shell-readme alpm-buildinfo
     just check-shell-readme alpm-mtree
     just check-shell-readme alpm-pkginfo
@@ -337,6 +411,8 @@ check-shell-code:
     just check-shell-recipe check-unused-deps
     just check-shell-recipe ci-publish
     just check-shell-recipe 'generate shell_completions alpm-buildinfo'
+    just check-shell-recipe 'gitlab-section-end foo'
+    just check-shell-recipe 'gitlab-section-start foo bar'
     just check-shell-recipe install-pacman-dev-packages
     just check-shell-recipe 'is-workspace-member alpm-buildinfo'
     just check-shell-recipe 'prepare-release alpm-buildinfo'
@@ -347,6 +423,8 @@ check-shell-code:
 
     just check-shell-script alpm-srcinfo/tests/generate_srcinfo.bash
     just check-shell-script .cargo/runner.sh
+
+    just gitlab-section-end "check-shell-code"
 
 # Checks the script examples of a project's README using shellcheck.
 [group('check')]
@@ -369,18 +447,25 @@ check-shell-script file:
 # Checks common spelling mistakes
 [group('check')]
 check-spelling:
+    just gitlab-section-start "check-spelling" "Check spelling in all files"
+
     codespell
+
+    just gitlab-section-end "check-spelling"
 
 # Checks for unused dependencies
 [group('check')]
 check-unused-deps:
     #!/usr/bin/env bash
     set -euxo pipefail
-    just ensure-command cargo-machete
+
+    just gitlab-section-start "check-unused-deps" "Check for unused Rust dependencies"
 
     for name in $(just get-workspace-members); do
         cargo machete "$name"
     done
+
+    just gitlab-section-end "check-unused-deps"
 
 # Adds needed git configuration for the local repository
 [group('dev')]
@@ -474,6 +559,8 @@ install-pacman-dev-packages:
 # Installs all Rust tools required for development
 [group('dev')]
 install-rust-dev-tools:
+    just gitlab-section-start "install-rust-dev-tools" "Install Rust development tools"
+
     rustup default stable
     rustup component add clippy
     # Install nightly as we use it for formatting rules.
@@ -481,6 +568,8 @@ install-rust-dev-tools:
     rustup component add --toolchain nightly rustfmt
     # llvm-tools-preview for code coverage
     rustup component add llvm-tools-preview
+
+    just gitlab-section-end "install-rust-dev-tools"
 
 # Continuously run integration tests for a given number of rounds
 [group('test')]
@@ -510,8 +599,12 @@ watch-book:
 # Runs integration tests guarded by the `_containerized-integration-test` feature, located in modules named `containerized` (accepts `cargo nextest run` options via `options`).
 [group('test')]
 containerized-integration-tests *options:
+    just gitlab-section-start "containerized-integration-tests" "Run containerized integration tests"
+
     just ensure-command bash cargo cargo-nextest podman
     cargo nextest run --features _containerized-integration-test --filterset 'kind(test) and binary_id(/::containerized$/)' {{ options }}
+
+    just gitlab-section-end "containerized-integration-tests"
 
 # Runs all unit tests. By default ignored tests are not run. Run with `ignored=true` to run only ignored tests
 [group('test')]
@@ -521,11 +614,15 @@ test:
 
     readonly ignored="{{ ignored }}"
 
+    just gitlab-section-start "test" "Run unit tests"
+
     if [[ "${ignored}" == "true" ]]; then
         cargo nextest run --workspace --run-ignored all
     else
         cargo nextest run --workspace
     fi
+
+    just gitlab-section-end "test"
 
 # Creates code coverage for all projects.
 [group('test')]
@@ -534,6 +631,8 @@ test-coverage mode="nodoc":
     set -euxo pipefail
 
     target_dir="$(just get-cargo-target-directory)"
+
+    just gitlab-section-start "test-coverage" "Run tests with coverage"
 
     # Clean any previous code coverage run.
     rm -rf "$target_dir/llvm-cov"
@@ -605,11 +704,17 @@ test-coverage mode="nodoc":
     printf "Test-coverage ${percentage}\n" > "$target_dir/coverage-metrics.txt"
     printf "Test-coverage: ${percentage}%%\n"
 
+    just gitlab-section-end "test-coverage"
+
 # Runs all doc tests
 [group('test')]
 test-docs:
+    just gitlab-section-start "test-docs" "Run doc tests"
+
     just ensure-command cargo
     cargo test --doc
+
+    just gitlab-section-end "test-docs"
 
 # Runs per project end-to-end tests found in a project README.md
 [group('test')]
@@ -634,9 +739,13 @@ test-readme project:
 # Run end-to-end tests for README files of projects
 [group('test')]
 test-readmes:
+    just gitlab-section-start "test-readmes" "Test READMEs"
+
     just test-readme alpm-buildinfo
     just test-readme alpm-pkginfo
     just test-readme alpm-srcinfo
+
+    just gitlab-section-end "test-readmes"
 
 # Publishes a crate in the workspace from GitLab CI in a pipeline for tags
 [group('release')]
@@ -650,6 +759,8 @@ ci-publish:
     readonly tag="${CI_COMMIT_TAG:-}"
     readonly crate="${tag//\/*/}"
     readonly version="${tag#*/}"
+
+    just gitlab-section-start "ci-publish" "Publish a release to crates.io in CI"
 
     just ensure-command cargo mold
 
@@ -675,6 +786,8 @@ ci-publish:
 
     printf "Found tag %s (crate %s in version %s).\n" "$tag" "$crate" "$version"
     cargo publish -p "$crate"
+
+    just gitlab-section-end "ci-publish"
 
 # Prepares the release of a crate by updating dependencies, incrementing the crate version and creating a changelog entry (optionally, the version can be set explicitly)
 [group('release')]
