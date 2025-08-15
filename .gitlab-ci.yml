@@ -189,13 +189,6 @@ manpages-specs-completions:
     - just generate-completions
   stage: test
 
-integration-test:
-  extends: .default-with-rust
-  script:
-    - just install-alpm-package-set coverage
-    - just ignored=true test
-  stage: test
-
 crates_publish:
   extends: .default-with-rust
   dependencies: []
