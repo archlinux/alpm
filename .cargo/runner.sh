@@ -28,8 +28,18 @@ fi
 if [[ "$test_executable_path" == *containerized* ]] && [[ "$first_test_argument" != "--list" ]]; then
   target_dir="$(just get-cargo-target-directory)"
   readonly podman_run_options=(
-    --env RUST_LOG=info
+    # Pass in environment variables relevant for the Rust compiler and for coverage instrumentation.
+    # Environment variables for coverage instrumentation are made available through `cargo-llvm-cov show-env`.
+    # Payloads used in the containerized environment (e.g. tests or examples) may be compiled using these environment
+    # variables and can be instructed further with the help of those environment variables as well.
+    --env CARGO_LLVM_COV="${CARGO_LLVM_COV:-}"
+    --env CARGO_LLVM_COV_SHOW_ENV="${CARGO_LLVM_COV_SHOW_ENV:-}"
+    --env CARGO_LLVM_COV_TARGET_DIR="${CARGO_LLVM_COV_TARGET_DIR:-}"
+    --env LLVM_PROFILE_FILE="${LLVM_PROFILE_FILE:-}"
+    --env RUSTDOCFLAGS="${RUSTDOCFLAGS:-}"
+    --env RUSTFLAGS="${RUSTFLAGS:-}"
     --env RUST_BACKTRACE=1
+    --env RUST_LOG=info
     --rm
     # Mounts the current working directory into the container.
     --volume "$PWD:/test:ro,z"
@@ -37,6 +47,8 @@ if [[ "$test_executable_path" == *containerized* ]] && [[ "$first_test_argument"
     --volume "$target_dir/debug:/usr/local/bin:ro,z"
     # Mount the test executable into the container at the same location as on the host
     --volume "$test_executable_path:$test_executable_path:ro,z"
+    # Mount the target dir writable so that coverage data is written to the correct location
+    --volume "$target_dir:$target_dir:rw,z"
     "$arch_container"
   )
 
