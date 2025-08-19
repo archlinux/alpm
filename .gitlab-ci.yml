@@ -237,6 +237,13 @@ build-book:
     - just --justfile .gitlab/justfile section-end "build-book"
   stage: test
 
+alpm-lint-website:
+  extends: .default-with-rust
+  script:
+    - source .env && pacman -Syu --needed --noconfirm $LINT_WEBSITE_PACKAGES
+    - cd alpm-lint-website && just lint
+  stage: check
+
 manpages-specs-completions:
   extends: .default-with-rust
   script:

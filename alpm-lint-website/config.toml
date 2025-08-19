@@ -1,16 +1,26 @@
-# The URL the site will be built for
-base_url = "https://alpm.archlinux.page/lints/"
-
-# Whether to automatically compile all Sass files in the sass directory
+# For all config options refer to https://www.getzola.org/documentation/getting-started/configuration/
+author = "archlinux-staff"
+base_url = "http://144.76.120.70:444/lints/"
 compile_sass = true
+description = "ALPM Lint Documentation"
+theme = "linkita"
+title = "ALPM Lint Documentation"
 
-# Whether to build a search index to be used later on by a JavaScript library
-build_search_index = false
+[link_checker]
+skip_prefixes = ["https://alpm.archlinux.page/lints/"]
 
 [markdown]
-# Whether to do syntax highlighting
-# Theme can be customised by setting the `highlight_theme` variable to a theme supported by Zola
 highlight_code = true
 
+# For all theme config options refer to https://www.getzola.org/themes/linkita/
 [extra]
-# Put all your custom variables here
+disable_default_favicon = true
+header_menu_name = "misc_header"
+mermaid = true
+
+[extra.menus]
+misc_header = [
+    { url = "https://gitlab.archlinux.org/archlinux/alpm/alpm/-/tree/main/alpm-lint", name = "ALPM-lint" },
+    { url = "https://gitlab.archlinux.org/archlinux/alpm/alpm/-/tree/main/alpm-lint-website", name = "Source" },
+    { url = "$BASE_URL/about/", name = "About" },
+]
