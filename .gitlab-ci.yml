@@ -30,8 +30,12 @@ stages:
   before_script:
     - pacman-key --init
     - pacman -Sy --needed --noconfirm archlinux-keyring just
+    - just --justfile .gitlab/justfile section-start "install-alpm-packages" "Install ALPM package set 'rust-dev'"
     - just install-alpm-package-set rust-dev
+    - just --justfile .gitlab/justfile section-end "install-alpm-packages"
+    - just --justfile .gitlab/justfile section-start "install-rust-dev-tools" "Install Rust development tools"
     - just install-rust-dev-tools
+    - just --justfile .gitlab/justfile section-end "install-rust-dev-tools"
 
 # default setup with Python tools running on default branch and in MRs
 .default-with-python:
@@ -39,84 +43,128 @@ stages:
   before_script:
     - pacman-key --init
     - pacman -Sy --needed --noconfirm archlinux-keyring just
+    - just --justfile .gitlab/justfile section-start "install-alpm-packages" "Install ALPM package set 'python-dev'"
     - just install-alpm-package-set python-dev
+    - just --justfile .gitlab/justfile section-end "install-alpm-packages"
+    - just --justfile .gitlab/justfile section-start "install-rust-dev-tools" "Install Rust development tools"
     - just install-rust-dev-tools
+    - just --justfile .gitlab/justfile section-end "install-rust-dev-tools"
 
 commits:
   extends: .default
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
   script:
+    - just --justfile .gitlab/justfile section-start "install-alpm-packages" "Install ALPM package set 'commits'"
     - just install-alpm-package-set commits
+    - just --justfile .gitlab/justfile section-end "install-alpm-packages"
     # fetch the default branch as we need it for comparison
     - git fetch origin $CI_DEFAULT_BRANCH
     # setup a dummy user as `cog verify` needs that
     - git config --local user.name "Foobar McFooface"
     - git config --local user.email "foobar@mcfooface.com"
+    - just --justfile .gitlab/justfile section-start "check-commits" "Check commits"
     - just check-commits
+    - just --justfile .gitlab/justfile section-end "check-commits"
   stage: check
 
 spelling:
   extends: .default
   script:
+    - just --justfile .gitlab/justfile section-start "install-alpm-packages" "Install ALPM package set 'spelling'"
     - just install-alpm-package-set spelling
+    - just --justfile .gitlab/justfile section-end "install-alpm-packages"
+    - just --justfile .gitlab/justfile section-start "check-spelling" "Check spelling in all files"
     - just check-spelling
+    - just --justfile .gitlab/justfile section-end "check-spelling"
   stage: check
 
 formatting:
   extends: .default-with-python
   script:
+    - just --justfile .gitlab/justfile section-start "install-alpm-packages" "Install ALPM package set 'formatting'"
     - just install-alpm-package-set formatting
+    - just --justfile .gitlab/justfile section-end "install-alpm-packages"
+    - just --justfile .gitlab/justfile section-start "check-formatting" "Check source file formatting"
     - just check-formatting
+    - just --justfile .gitlab/justfile section-end "check-formatting"
   stage: check
 
 shell-code:
   extends: .default
   script:
+    - just --justfile .gitlab/justfile section-start "install-alpm-packages" "Install ALPM package set 'shell'"
     - just install-alpm-package-set shell
+    - just --justfile .gitlab/justfile section-end "install-alpm-packages"
+    - just --justfile .gitlab/justfile section-start "check-shell-code" "Check shell code"
     - just check-shell-code
+    - just --justfile .gitlab/justfile section-end "check-shell-code"
   stage: check
 
 rust-code:
   extends: .default-with-rust
   script:
+    - just --justfile .gitlab/justfile section-start "install-alpm-packages" "Install ALPM package set 'rust'"
     - just install-alpm-package-set rust
+    - just --justfile .gitlab/justfile section-end "install-alpm-packages"
+    - just --justfile .gitlab/justfile section-start "check-rust-code" "Check Rust code"
     - just check-rust-code
+    - just --justfile .gitlab/justfile section-end "check-rust-code"
   stage: check
 
 python-code:
   extends: .default-with-python
   script:
+    - just --justfile .gitlab/justfile section-start "install-alpm-packages" "Install ALPM package set 'rust'"
     - just install-alpm-package-set rust
+    - just --justfile .gitlab/justfile section-end "install-alpm-packages"
+    - just --justfile .gitlab/justfile section-start "check-python-code" "Check Python code"
     - just check-python-code
+    - just --justfile .gitlab/justfile section-end "check-python-code"
   stage: check
 
 unused-deps:
   extends: .default-with-rust
   script:
+    - just --justfile .gitlab/justfile section-start "install-alpm-packages" "Install ALPM package set 'unused'"
     - just install-alpm-package-set unused
+    - just --justfile .gitlab/justfile section-end "install-alpm-packages"
+    - just --justfile .gitlab/justfile section-start "check-unused-deps" "Check for unused Rust dependencies"
     - just check-unused-deps
+    - just --justfile .gitlab/justfile section-end "check-unused-deps"
   stage: check
 
 dependencies:
   extends: .default-with-rust
   script:
+    - just --justfile .gitlab/justfile section-start "install-alpm-packages" "Install ALPM package set 'dependencies'"
     - just install-alpm-package-set dependencies
+    - just --justfile .gitlab/justfile section-end "install-alpm-packages"
+    - just --justfile .gitlab/justfile section-start "check-dependencies" "Check Rust dependencies"
     - just check-dependencies
+    - just --justfile .gitlab/justfile section-end "check-dependencies"
   stage: check
 
 licenses:
   extends: .default-with-rust
   script:
+    - just --justfile .gitlab/justfile section-start "install-alpm-packages" "Install ALPM package set 'licenses'"
     - just install-alpm-package-set licenses
+    - just --justfile .gitlab/justfile section-end "install-alpm-packages"
+    - just --justfile .gitlab/justfile section-start "check-licenses" "Check licenses"
     - just check-licenses
+    - just --justfile .gitlab/justfile section-end "check-licenses"
   stage: check
 
 links:
   extends: .default-with-rust
   script:
+    - just --justfile .gitlab/justfile section-start "install-alpm-packages" "Install ALPM package set 'links'"
     - just install-alpm-package-set links
+    - just --justfile .gitlab/justfile section-end "install-alpm-packages"
+    - just --justfile .gitlab/justfile section-start "check-links" "Check links in all files"
     - just check-links
+    - just --justfile .gitlab/justfile section-end "check-links"
   stage: check
 
 test:
@@ -131,46 +179,76 @@ test:
   coverage: "/Test-coverage: ([0-9.]*)%/"
   extends: .default-with-rust
   script:
+    - just --justfile .gitlab/justfile section-start "install-alpm-packages" "Install ALPM package set 'coverage'"
     - just install-alpm-package-set coverage
+    - just --justfile .gitlab/justfile section-end "install-alpm-packages"
+    - just --justfile .gitlab/justfile section-start "test" "Run unit tests"
     - just test
+    - just --justfile .gitlab/justfile section-end "test"
+    - just --justfile .gitlab/justfile section-start "test-docs" "Run doc tests"
     - just test-docs
+    - just --justfile .gitlab/justfile section-end "test-docs"
+    - just --justfile .gitlab/justfile section-start "create-coverage-report" "Create coverage report"
     - just create-coverage-report with-docs Unit-test-coverage
+    - just --justfile .gitlab/justfile section-end "create-coverage-report"
   stage: test
 
 test-python:
   extends: .default-with-python
   script:
+    - just --justfile .gitlab/justfile section-start "install-alpm-packages" "Install ALPM package set 'test'"
     - just install-alpm-package-set test
+    - just --justfile .gitlab/justfile section-end "install-alpm-packages"
+    - just --justfile .gitlab/justfile section-start "test-python" "Run Python tests"
     - just test-python
+    - just --justfile .gitlab/justfile section-end "test-python"
   stage: test
 
 docs:
   extends: .default-with-rust
   script:
+    - just --justfile .gitlab/justfile section-start "install-alpm-packages" "Install ALPM package set 'docs'"
     - just install-alpm-package-set docs
+    - just --justfile .gitlab/justfile section-end "install-alpm-packages"
+    - just --justfile .gitlab/justfile section-start "docs" "Build Rust API documentation"
     - just docs
+    - just --justfile .gitlab/justfile section-end "docs"
   stage: test
 
 test-readmes:
   extends: .default-with-rust
   script:
+    - just --justfile .gitlab/justfile section-start "install-alpm-packages" "Install ALPM package set 'readmes'"
     - just install-alpm-package-set readmes
+    - just --justfile .gitlab/justfile section-end "install-alpm-packages"
+    - just --justfile .gitlab/justfile section-start "test-readmes" "Run README tests"
     - just test-readmes
+    - just --justfile .gitlab/justfile section-end "test-readmes"
   stage: test
 
 build-book:
   extends: .default-with-rust
   script:
+    - just --justfile .gitlab/justfile section-start "install-alpm-packages" "Install ALPM package set 'book'"
     - just install-alpm-package-set book
+    - just --justfile .gitlab/justfile section-end "install-alpm-packages"
+    - just --justfile .gitlab/justfile section-start "build-book" "Build project documentation"
     - just build-book
+    - just --justfile .gitlab/justfile section-end "build-book"
   stage: test
 
 manpages-specs-completions:
   extends: .default-with-rust
   script:
+    - just --justfile .gitlab/justfile section-start "install-alpm-packages" "Install ALPM package set 'manpages'"
     - just install-alpm-package-set manpages
+    - just --justfile .gitlab/justfile section-end "install-alpm-packages"
+    - just --justfile .gitlab/justfile section-start "generate-manpages-and-specs" "Generate man pages and specifications"
     - just generate-manpages-and-specs
+    - just --justfile .gitlab/justfile section-end "generate-manpages-and-specs"
+    - just --justfile .gitlab/justfile section-start "generate-completions" "Generate shell completions"
     - just generate-completions
+    - just --justfile .gitlab/justfile section-end "generate-completions"
   stage: test
 
 crates_publish:
@@ -179,8 +257,12 @@ crates_publish:
   rules:
     - if: '$CARGO_REGISTRY_TOKEN && $CI_COMMIT_TAG && $CI_PROJECT_PATH == "archlinux/alpm/alpm"'
   script:
+    - just --justfile .gitlab/justfile section-start "install-alpm-packages" "Install ALPM package set 'publish'"
     - just install-alpm-package-set publish
+    - just --justfile .gitlab/justfile section-end "install-alpm-packages"
+    - just --justfile .gitlab/justfile section-start "ci-publish" "Publish a crate on crates.io"
     - just ci-publish
+    - just --justfile .gitlab/justfile section-end "ci-publish"
   stage: publish
   tags:
     - secure
@@ -202,6 +284,10 @@ pages:
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   script:
+    - just --justfile .gitlab/justfile section-start "install-alpm-packages" "Install ALPM package set 'book'"
     - just install-alpm-package-set book
+    - just --justfile .gitlab/justfile section-end "install-alpm-packages"
+    - just --justfile .gitlab/justfile section-start "build-book" "Build project documentation"
     - just build-book
+    - just --justfile .gitlab/justfile section-end "build-book"
   stage: pages
