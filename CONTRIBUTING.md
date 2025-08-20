@@ -42,13 +42,18 @@ This `just` command takes care of a few things:
 We run [`nextest`] for fast execution of unit and integration tests.
 `just test` calls `cargo nextest` as well as `just test-docs`, which runs the doc tests as `nextest` isn't capable of doing that [yet](https://github.com/nextest-rs/nextest/issues/16).
 
-The `just test-coverage` command creates a cobertura code coverage report and an HTML report.
-Both are written to `target/llvm-cov/`, which utilizes the [`llvm-tools-preview`] component.
-The `just test-coverage doc` additionally includes doc tests into the coverage report.
-However, this is still an [unstable nightly-only feature](https://github.com/rust-lang/rust/issues/85658).
-
 The `just containerized-integration-tests` recipe executes all tests that are made available by a `_containerized-integration-test` feature and are located in an integration test module named `containerized`.
 With the help of a [custom target runner], these tests are executed in a containerized environment using [`podman`].
+
+### Code coverage reports
+
+Code coverage for unit tests, doc tests and integration tests is calculated using [`cargo-llvm-cov`].
+Each test recipe (e.g. `just test`, `just test-docs`, `just containerized-integration-tests`) can be instructed to generate coverage data.
+The payloads (e.g. examples and tests) are compiled while exposing the environment variables set by `cargo-llvm-cov show-env` which results in them including coverage instrumentation.
+
+In a second step, the `just create-coverage-report` command creates a cobertura code coverage report from all existing coverage data in `$CARGO_TARGET_DIR/llvm-cov/`, utilizing the [`llvm-tools-preview`] component.
+When calling `just create-coverage-report with-docs`, doc tests are considered as well.
+However, this is still an [unstable nightly-only feature](https://github.com/rust-lang/rust/issues/85658) and it always requires to generate coverage data for unit tests (`just test`) and doc tests (`just test-docs`) first.
 
 ## Continuous integration
 
@@ -143,6 +148,7 @@ For a full list of individual contributors, refer to `git log --format="%an <%aE
 [`codespell`]: https://github.com/codespell-project/codespell
 [`cargo-deny`]: https://github.com/EmbarkStudios/cargo-deny
 [`cargo-insta`]: https://github.com/mitsuhiko/insta
+[`cargo-llvm-cov`]: https://github.com/taiki-e/cargo-llvm-cov
 [`git-cliff`]: https://git-cliff.org
 [`shellcheck`]: https://www.shellcheck.net/
 [`cocogitto`]: https://docs.cocogitto.io/
