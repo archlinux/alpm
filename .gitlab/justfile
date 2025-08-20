@@ -1,0 +1,28 @@
+#!/usr/bin/env -S just --working-directory . --justfile
+
+# Lists all available recipes.
+default:
+    just --list
+
+# Prints a section end marker for GitLab collapsible sections. Accepts a `section_name`.
+section-end section_name:
+    #!/usr/bin/env bash
+    # 
+    # https://docs.gitlab.com/ci/jobs/job_logs/#custom-collapsible-sections
+    set -euo pipefail
+
+    readonly section_name="{{ section_name }}"
+
+    printf '\e[0Ksection_end:%(%s)T:%s\r\e[0K\n' '-1' "$section_name"
+
+# Prints a section start marker for GitLab collapsible sections. Accepts a `section_name` and its `title`.
+section-start section_name title:
+    #!/usr/bin/env bash
+    # 
+    # https://docs.gitlab.com/ci/jobs/job_logs/#custom-collapsible-sections
+    set -euo pipefail
+
+    readonly section_name="{{ section_name }}"
+    readonly title="{{ title }}"
+
+    printf '\e[0Ksection_start:%(%s)T:%s\r\e[0K%s\n' '-1' "$section_name" "$title"

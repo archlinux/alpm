@@ -29,6 +29,7 @@ path = [
     "**.srcinfo",
     "**.stub",
     "**.toml",
+    "**justfile",
     "*.json",
     "*.yml",
     ".cargo/runner.sh",
@@ -39,7 +40,6 @@ path = [
     ".lycheeignore",
     ".shellcheckrc",
     "alpm-srcinfo/tests/files/*.srcinfo",
-    "justfile",
 ]
 precedence = "aggregate"
 
