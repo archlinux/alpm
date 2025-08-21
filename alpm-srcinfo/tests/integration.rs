@@ -48,7 +48,7 @@ mod create {
         let output = cmd.assert().success();
         let output = String::from_utf8_lossy(&output.get_output().stdout);
 
-        let srcinfo = SourceInfoV1::from_string(&output)?.source_info()?;
+        let srcinfo = SourceInfoV1::from_string(&output)?;
 
         assert_eq!(srcinfo.base.name.inner(), "example");
 

@@ -24,18 +24,12 @@ use alpm_types::{
 use serde::{Deserialize, Serialize};
 
 use super::package::PackageArchitecture;
-#[cfg(doc)]
-use crate::{MergedPackage, SourceInfoV1, source_info::v1::package::Package};
 use crate::{
-    error::{SourceInfoError, lint, unrecoverable},
-    lints::{
-        duplicate_architecture,
-        missing_architecture_for_property,
-        non_spdx_license,
-        unsafe_checksum,
-    },
+    Error,
     source_info::parser::{self, PackageBaseProperty, RawPackageBase, SharedMetaProperty},
 };
+#[cfg(doc)]
+use crate::{MergedPackage, SourceInfoV1, source_info::v1::package::Package};
 
 /// Package base metadata based on the `pkgbase` section in SRCINFO data.
 ///
@@ -180,14 +174,8 @@ impl PackageBaseArchitecture {
 ///
 /// If no architecture is encountered, it simply adds the value on the [`PackageBase`] itself.
 /// Otherwise, it's added to the respective [`PackageBase::architecture_properties`].
-///
-/// Furthermore, adds linter warnings if an architecture is encountered that doesn't exist in the
-/// [`PackageBase::architectures`].
 macro_rules! package_base_arch_prop {
     (
-        $line:ident,
-        $errors:ident,
-        $architectures:ident,
         $architecture_properties:ident,
         $arch_property:ident,
         $field_name:ident,
@@ -204,15 +192,6 @@ macro_rules! package_base_arch_prop {
             architecture_properties
                 .$field_name
                 .push($arch_property.value);
-
-            // Throw an error for all architecture specific properties that don't have
-            // an explicit `arch` statement. This is considered bad style.
-            // Also handle the special `Any` [Architecture], which allows all architectures.
-            if !$architectures.contains(&architecture)
-                && !$architectures.contains(&Architecture::Any)
-            {
-                missing_architecture_for_property($errors, $line, architecture);
-            }
         } else {
             $field_name.push($arch_property.value)
         }
@@ -224,23 +203,10 @@ impl PackageBase {
     ///
     /// # Parameters
     ///
-    /// - `line_start`: The number of preceding lines, so that error/lint messages can reference the
-    ///   correct lines.
     /// - `parsed`: The [`RawPackageBase`] representation of the SRCINFO data. The input guarantees
     ///   that the keyword definitions have been parsed correctly, but not yet that they represent
     ///   valid SRCINFO data as a whole.
-    /// - `errors`: All errors and lints encountered during the creation of the [`PackageBase`].
-    ///
-    /// # Errors
-    ///
-    /// This function does not return a [`Result`], but instead relies on aggregating all lints,
-    /// warnings and errors in `errors`. This allows to keep the function call recoverable, so
-    /// that all errors and lints can be returned all at once.
-    pub fn from_parsed(
-        line_start: usize,
-        parsed: RawPackageBase,
-        errors: &mut Vec<SourceInfoError>,
-    ) -> Self {
+    pub fn from_parsed(parsed: RawPackageBase) -> Result<Self, Error> {
         let mut description = None;
         let mut url = None;
         let mut licenses = Vec::new();
@@ -282,25 +248,13 @@ impl PackageBase {
         let mut sha512_checksums = Vec::new();
 
         // First up check all input for potential architecture declarations.
-        // We need this to do proper linting when doing our actual pass through the file.
-        for (index, prop) in parsed.properties.iter().enumerate() {
+        for prop in parsed.properties.iter() {
             // We're only interested in architecture properties.
             let PackageBaseProperty::MetaProperty(SharedMetaProperty::Architecture(architecture)) =
                 prop
             else {
                 continue;
             };
-
-            // Calculate the actual line in the document based on any preceding lines.
-            // We have to add one, as lines aren't 0 indexed.
-            let line = index + line_start;
-
-            // Lint to make sure there aren't duplicate architectures declarations.
-            if architectures.contains(architecture) {
-                duplicate_architecture(errors, line, *architecture);
-            }
-
-            // Add the architecture in case it hasn't already.
             architectures.push(*architecture);
         }
 
@@ -308,16 +262,10 @@ impl PackageBase {
         // In practice this translates to `any`, as this package is valid to be build on any
         // system as long as `makepkg` is executed on that system.
         if architectures.is_empty() {
-            errors.push(lint(
-                None,
-                "No architecture has been specified. Assuming `any`.",
-            ));
-            architectures.push(Architecture::Any);
+            return Err(Error::MissingKeyword { keyword: "arch" });
         }
 
-        for (index, prop) in parsed.properties.into_iter().enumerate() {
-            // Calculate the actual line in the document based on any preceding lines.
-            let line = index + line_start;
+        for prop in parsed.properties.into_iter() {
             match prop {
                 // Skip empty lines and comments
                 PackageBaseProperty::EmptyLine | PackageBaseProperty::Comment(_) => continue,
@@ -325,22 +273,10 @@ impl PackageBase {
                 PackageBaseProperty::PackageRelease(inner) => package_release = Some(inner),
                 PackageBaseProperty::PackageEpoch(inner) => epoch = Some(inner),
                 PackageBaseProperty::ValidPgpKeys(inner) => {
-                    if let OpenPGPIdentifier::OpenPGPKeyId(_) = &inner {
-                        errors.push(lint(
-                            Some(line),
-                            concat!(
-                                "OpenPGP Key IDs are highly discouraged, as the length doesn't guarantee uniqueness.",
-                                "\nUse an OpenPGP v4 fingerprint instead.",
-                            )
-                        ));
-                    }
                     pgp_fingerprints.push(inner);
                 }
                 PackageBaseProperty::CheckDependency(arch_property) => {
                     package_base_arch_prop!(
-                        line,
-                        errors,
-                        architectures,
                         architecture_properties,
                         arch_property,
                         check_dependencies,
@@ -348,9 +284,6 @@ impl PackageBase {
                 }
                 PackageBaseProperty::MakeDependency(arch_property) => {
                     package_base_arch_prop!(
-                        line,
-                        errors,
-                        architectures,
                         architecture_properties,
                         arch_property,
                         make_dependencies,
@@ -360,14 +293,7 @@ impl PackageBase {
                     match shared_meta_property {
                         SharedMetaProperty::Description(inner) => description = Some(inner),
                         SharedMetaProperty::Url(inner) => url = Some(inner),
-                        SharedMetaProperty::License(inner) => {
-                            // Create lints for non-spdx licenses.
-                            if let License::Unknown(_) = &inner {
-                                non_spdx_license(errors, line, inner.to_string());
-                            }
-
-                            licenses.push(inner)
-                        }
+                        SharedMetaProperty::License(inner) => licenses.push(inner),
                         // We already handled those above.
                         SharedMetaProperty::Architecture(_) => continue,
                         SharedMetaProperty::Changelog(inner) => changelog = Some(inner),
@@ -380,83 +306,46 @@ impl PackageBase {
                 PackageBaseProperty::RelationProperty(relation_property) => match relation_property
                 {
                     parser::RelationProperty::Dependency(arch_property) => package_base_arch_prop!(
-                        line,
-                        errors,
-                        architectures,
                         architecture_properties,
                         arch_property,
                         dependencies,
                     ),
                     parser::RelationProperty::OptionalDependency(arch_property) => {
                         package_base_arch_prop!(
-                            line,
-                            errors,
-                            architectures,
                             architecture_properties,
                             arch_property,
                             optional_dependencies,
                         )
                     }
-                    parser::RelationProperty::Provides(arch_property) => package_base_arch_prop!(
-                        line,
-                        errors,
-                        architectures,
-                        architecture_properties,
-                        arch_property,
-                        provides,
-                    ),
-                    parser::RelationProperty::Conflicts(arch_property) => package_base_arch_prop!(
-                        line,
-                        errors,
-                        architectures,
-                        architecture_properties,
-                        arch_property,
-                        conflicts,
-                    ),
-                    parser::RelationProperty::Replaces(arch_property) => package_base_arch_prop!(
-                        line,
-                        errors,
-                        architectures,
-                        architecture_properties,
-                        arch_property,
-                        replaces,
-                    ),
+                    parser::RelationProperty::Provides(arch_property) => {
+                        package_base_arch_prop!(architecture_properties, arch_property, provides,)
+                    }
+                    parser::RelationProperty::Conflicts(arch_property) => {
+                        package_base_arch_prop!(architecture_properties, arch_property, conflicts,)
+                    }
+                    parser::RelationProperty::Replaces(arch_property) => {
+                        package_base_arch_prop!(architecture_properties, arch_property, replaces,)
+                    }
                 },
                 PackageBaseProperty::SourceProperty(source_property) => match source_property {
-                    parser::SourceProperty::Source(arch_property) => package_base_arch_prop!(
-                        line,
-                        errors,
-                        architectures,
-                        architecture_properties,
-                        arch_property,
-                        sources,
-                    ),
+                    parser::SourceProperty::Source(arch_property) => {
+                        package_base_arch_prop!(architecture_properties, arch_property, sources,)
+                    }
                     parser::SourceProperty::NoExtract(value) => no_extracts.push(value),
                     parser::SourceProperty::B2Checksum(arch_property) => package_base_arch_prop!(
-                        line,
-                        errors,
-                        architectures,
                         architecture_properties,
                         arch_property,
                         b2_checksums,
                     ),
                     parser::SourceProperty::Md5Checksum(arch_property) => {
-                        unsafe_checksum(errors, line, "md5");
                         package_base_arch_prop!(
-                            line,
-                            errors,
-                            architectures,
                             architecture_properties,
                             arch_property,
                             md5_checksums,
                         );
                     }
                     parser::SourceProperty::Sha1Checksum(arch_property) => {
-                        unsafe_checksum(errors, line, "sha1");
                         package_base_arch_prop!(
-                            line,
-                            errors,
-                            architectures,
                             architecture_properties,
                             arch_property,
                             sha1_checksums,
@@ -464,9 +353,6 @@ impl PackageBase {
                     }
                     parser::SourceProperty::Sha224Checksum(arch_property) => {
                         package_base_arch_prop!(
-                            line,
-                            errors,
-                            architectures,
                             architecture_properties,
                             arch_property,
                             sha224_checksums,
@@ -474,9 +360,6 @@ impl PackageBase {
                     }
                     parser::SourceProperty::Sha256Checksum(arch_property) => {
                         package_base_arch_prop!(
-                            line,
-                            errors,
-                            architectures,
                             architecture_properties,
                             arch_property,
                             sha256_checksums,
@@ -484,9 +367,6 @@ impl PackageBase {
                     }
                     parser::SourceProperty::Sha384Checksum(arch_property) => {
                         package_base_arch_prop!(
-                            line,
-                            errors,
-                            architectures,
                             architecture_properties,
                             arch_property,
                             sha384_checksums,
@@ -494,9 +374,6 @@ impl PackageBase {
                     }
                     parser::SourceProperty::Sha512Checksum(arch_property) => {
                         package_base_arch_prop!(
-                            line,
-                            errors,
-                            architectures,
                             architecture_properties,
                             arch_property,
                             sha512_checksums,
@@ -510,30 +387,20 @@ impl PackageBase {
         let package_version = match package_version {
             Some(package_version) => package_version,
             None => {
-                errors.push(unrecoverable(
-                    None,
-                    "pkgbase section doesn't contain a 'pkgver' keyword assignment",
-                ));
-                // Set a package version nevertheless, so we continue parsing the rest of the file.
-                PackageVersion::new("0".to_string()).unwrap()
+                return Err(Error::MissingKeyword { keyword: "pkgver" });
             }
         };
 
-        // Handle a missing package_version
+        // Handle a missing package_release
         let package_release = match package_release {
             Some(package_release) => package_release,
             None => {
-                errors.push(unrecoverable(
-                    None,
-                    "pkgbase section doesn't contain a 'pkgrel' keyword assignment",
-                ));
-                // Set a package version nevertheless, so we continue parsing the rest of the file.
-                PackageRelease::new(1, None)
+                return Err(Error::MissingKeyword { keyword: "pkgrel" });
             }
         };
         let version = FullVersion::new(package_version, package_release, epoch);
 
-        PackageBase {
+        Ok(PackageBase {
             name: parsed.name,
             description,
             url,
@@ -563,6 +430,6 @@ impl PackageBase {
             sha256_checksums,
             sha384_checksums,
             sha512_checksums,
-        }
+        })
     }
 }

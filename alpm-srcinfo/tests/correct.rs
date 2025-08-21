@@ -41,15 +41,8 @@ fn correct_files(#[files("tests/correct/*.srcinfo")] case: PathBuf) -> TestResul
         }
     };
 
-    // Ensure that there're lint errors
-    let source_info = match source_info_result.lint() {
-        Ok(source_info) => source_info,
-        Err(err) => {
-            return Err(
-                format!("The parser produce (lint) errors that weren't expected:\n {err}").into(),
-            );
-        }
-    };
+    // Parse the source info
+    let source_info = source_info_result;
 
     let source_info_json = serde_json::to_string_pretty(&source_info)?;
 

@@ -23,7 +23,7 @@ pub mod writer;
 #[cfg(doc)]
 use crate::MergedPackage;
 use crate::{
-    error::{Error, SourceInfoError, SourceInfoErrors},
+    error::Error,
     source_info::{
         parser::SourceInfoContent,
         v1::{merged::MergedPackagesIterator, package::Package, package_base::PackageBase},
@@ -57,7 +57,7 @@ impl SourceInfoV1 {
     ///
     /// # fn main() -> testresult::TestResult {
     /// // Read a .SRCINFO file and bring it into the `SourceInfoV1` representation.
-    /// let source_info = SourceInfoV1::from_string(TEST_FILE)?.source_info()?;
+    /// let source_info = SourceInfoV1::from_string(TEST_FILE)?;
     /// // Convert the `SourceInfoV1` back into it's alpm `.SRCINFO` format.
     /// println!("{}", source_info.as_srcinfo());
     /// # Ok(())
@@ -82,9 +82,7 @@ impl SourceInfoV1 {
     /// # Errors
     ///
     /// Returns an [`Error`] if the file cannot be read or parsed.
-    /// Returns an error array with potentially un/-recoverable errors, this needs to be explicitly
-    /// handled by the user.
-    pub fn from_file(path: &Path) -> Result<SourceInfoResult, Error> {
+    pub fn from_file(path: &Path) -> Result<SourceInfoV1, Error> {
         let mut buffer = Vec::new();
         let file = File::open(path)
             .map_err(|err| Error::IoPath(path.to_path_buf(), "opening file", err))?;
@@ -133,10 +131,7 @@ impl SourceInfoV1 {
     /// This function returns two types of errors.
     /// 1. An [`Error`] is returned if the input is, for example, invalid UTF-8 or if the input
     ///    SRCINFO file couldn't be parsed due to invalid syntax.
-    /// 2. If the parsing was successful, a [`SourceInfoResult`] is returned, which wraps a possibly
-    ///    invalid [`SourceInfoV1`] and possible [`SourceInfoErrors`]. [`SourceInfoErrors`] contains
-    ///    all errors and lint/deprecation warnings that're encountered while interpreting the
-    ///    SRCINFO file.
+    /// 2. An [`Error`] is returned if the parsed data is incomplete or otherwise invalid.
     ///
     /// ```rust
     /// use alpm_srcinfo::SourceInfoV1;
@@ -161,73 +156,35 @@ impl SourceInfoV1 {
     ///     depends = gcc-libs
     /// "#;
     ///
-    /// // Parse the file. This might already error if the file cannot be parsed on a low level.
-    /// let source_info_result = SourceInfoV1::from_string(source_info_data)?;
-    /// // Make sure there're no other unrecoverable errors.
-    /// let source_info = source_info_result.source_info()?;
+    /// // Parse the file. This errors if the file cannot be parsed, is missing data or contains invalid data.
+    /// let source_info = SourceInfoV1::from_string(source_info_data)?;
     /// # Ok(())
     /// # }
     /// ```
-    pub fn from_string(content: &str) -> Result<SourceInfoResult, Error> {
+    pub fn from_string(content: &str) -> Result<SourceInfoV1, Error> {
         // Parse the given srcinfo content.
         let parsed = SourceInfoContent::parser
             .parse(content)
             .map_err(|err| Error::ParseError(format!("{err}")))?;
 
-        // Bring it into a proper structural representation and run linting checks.
-        let (source_info, errors) = SourceInfoV1::from_raw(parsed);
+        // Bring it into a proper structural representation
+        let source_info = SourceInfoV1::from_raw(parsed)?;
 
-        // If there're some errors, create a SourceInfoErrors to also capture the file content for
-        // context.
-        let errors = if !errors.is_empty() {
-            Some(SourceInfoErrors::new(errors, content.to_string()))
-        } else {
-            None
-        };
-
-        Ok(SourceInfoResult {
-            source_info,
-            errors,
-        })
+        Ok(source_info)
     }
 
     /// Reads raw [`SourceInfoContent`] from a first parsing step and converts it into a
     /// [`SourceInfoV1`].
-    ///
-    /// Instead of a [`Result`] this function returns a tuple of [`SourceInfoV1`] and a vector of
-    /// [`SourceInfoError`]s. The caller is expected to handle the vector of [`SourceInfoError`]s,
-    /// which may only consist of linting errors that can be ignored.
-    pub fn from_raw(content: SourceInfoContent) -> (SourceInfoV1, Vec<SourceInfoError>) {
-        // Set the line cursor for error messages to the last line before we start with the
-        // `pkgbase`
-        let mut current_line = content.preceding_lines.len();
-        let mut errors = Vec::new();
-
-        // Save the number of lines in the `pkgbase` section.
-        let package_base_length = content.package_base.properties.len();
-
-        // Account for the `pkgbase` section header, which is handled separately.
-        current_line += 1;
-        let base = PackageBase::from_parsed(current_line, content.package_base, &mut errors);
-        // Add the length of lines of the pkgbuild section.
-        current_line += package_base_length;
+    pub fn from_raw(content: SourceInfoContent) -> Result<SourceInfoV1, Error> {
+        let base = PackageBase::from_parsed(content.package_base)?;
 
         let mut packages = Vec::new();
         for package in content.packages {
-            // Save the number of lines in the `pkgname` section.
-            let package_length = package.properties.len();
-
-            // Account for the `pkgname` section header, which is handled separately.
-            current_line += 1;
-            let package =
-                Package::from_parsed(current_line, &base.architectures, package, &mut errors);
-            // Add the number of lines of the pkgname section.
-            current_line += package_length;
-
+            let package = Package::from_parsed(package);
             packages.push(package);
         }
 
-        (SourceInfoV1 { base, packages }, errors)
+        Ok(SourceInfoV1 { base, packages })
     }
 
     /// Get an iterator over all packages
@@ -250,10 +207,8 @@ impl SourceInfoV1 {
     /// pkgname = example_other
     ///     pkgdesc = The other example split package
     /// "#;
-    /// // Parse the file. This might already error if the file cannot be parsed on a low level.
-    /// let result = SourceInfoV1::from_string(source_info_data)?;
-    /// // Make sure there're aren't unrecoverable logic errors, such as missing values.
-    /// let source_info = result.source_info()?;
+    /// // Parse the file. This errors if the file cannot be parsed, is missing data or contains invalid data.
+    /// let source_info = SourceInfoV1::from_string(source_info_data)?;
     ///
     /// /// Get all merged package representations for the x86_64 architecture.
     /// let mut packages = source_info.packages_for_architecture(Architecture::X86_64);
@@ -282,67 +237,5 @@ impl SourceInfoV1 {
             source_info: self,
             package_iterator: self.packages.iter(),
         }
-    }
-}
-
-/// Wraps the outcome of [`SourceInfoV1::from_string`].
-///
-/// While building a [`SourceInfoV1`] from raw [`SourceInfoContent`], errors as well as deprecation
-/// and linter warnings may be encountered.
-///
-/// In case no errors are encountered, the resulting [`SourceInfoV1`] may be accessed via
-/// [`SourceInfoResult::source_info`].
-#[derive(Clone, Debug)]
-pub struct SourceInfoResult {
-    source_info: SourceInfoV1,
-    errors: Option<SourceInfoErrors>,
-}
-
-impl SourceInfoResult {
-    /// Returns the [`SourceInfoV1`] as long as no critical errors have been encountered.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if any kind of unrecoverable logic error is encountered, such as missing
-    /// properties
-    pub fn source_info(self) -> Result<SourceInfoV1, Error> {
-        if let Some(errors) = self.errors {
-            errors.check_unrecoverable_errors()?;
-        }
-
-        Ok(self.source_info)
-    }
-
-    /// Returns the generated [`SourceInfoV1`] regardless of whether there're any errors or not.
-    ///
-    /// # Warning
-    ///
-    /// This SourceInfoV1 struct may be incomplete, could contain invalid information and/or invalid
-    /// default values!
-    ///
-    /// Only use this if you know what you're doing and if you want to do stuff like manual
-    /// auto-correction.
-    pub fn incomplete_source_info(&self) -> &SourceInfoV1 {
-        &self.source_info
-    }
-
-    /// Returns a the [`SourceInfoV1`] as long as there're no errors, lints or warnings of any kind.
-    ///
-    /// # Errors
-    ///
-    /// Any kind of error, warning or lint is encountered.
-    pub fn lint(self) -> Result<SourceInfoV1, Error> {
-        if let Some(errors) = self.errors {
-            if !errors.errors().is_empty() {
-                return Err(Error::SourceInfoErrors(errors));
-            }
-        }
-
-        Ok(self.source_info)
-    }
-
-    /// Gets a reference to the errors of this result.
-    pub fn errors(&self) -> Option<&SourceInfoErrors> {
-        self.errors.as_ref()
     }
 }

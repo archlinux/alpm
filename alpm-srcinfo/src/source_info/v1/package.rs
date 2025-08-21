@@ -17,24 +17,15 @@ use alpm_types::{
 };
 use serde::{Deserialize, Serialize};
 
+use crate::source_info::parser::{
+    ClearableProperty,
+    PackageProperty,
+    RawPackage,
+    RelationProperty,
+    SharedMetaProperty,
+};
 #[cfg(doc)]
 use crate::{MergedPackage, SourceInfoV1, source_info::v1::package_base::PackageBase};
-use crate::{
-    error::SourceInfoError,
-    lints::{
-        duplicate_architecture,
-        missing_architecture_for_property,
-        non_spdx_license,
-        reassigned_cleared_property,
-    },
-    source_info::parser::{
-        ClearableProperty,
-        PackageProperty,
-        RawPackage,
-        RelationProperty,
-        SharedMetaProperty,
-    },
-};
 
 /// A [`Package`] property that can override its respective defaults in [`PackageBase`].
 ///
@@ -221,14 +212,8 @@ pub struct PackageArchitecture {
 ///
 /// If no architecture is encountered, it simply clears the value on the [`Package`] itself.
 /// Otherwise, it's added to the respective [`PackageBase::architecture_properties`].
-///
-/// Furthermore, adds linter warnings if an architecture is encountered that doesn't exist in the
-/// [`PackageBase::architectures`] or [`Package::architectures`] if overridden.
 macro_rules! clearable_arch_vec {
     (
-        $line:ident,
-        $errors:ident,
-        $lint_architectures:ident,
         $architecture_properties:ident,
         $architecture:ident,
         $field_name:ident,
@@ -238,15 +223,6 @@ macro_rules! clearable_arch_vec {
         if let Some(architecture) = $architecture {
             let properties = $architecture_properties.entry(*architecture).or_default();
             properties.$field_name = Override::Clear;
-
-            // Throw an error for all architecture specific properties that don't have
-            // an explicit `arch` statement. This is considered bad style.
-            // Also handle the special `Any` [Architecture], which allows all architectures.
-            if !$lint_architectures.contains(&architecture)
-                && !$lint_architectures.contains(&Architecture::Any)
-            {
-                missing_architecture_for_property($errors, $line, *architecture);
-            }
         } else {
             $field_name = Override::Clear;
         }
@@ -258,14 +234,8 @@ macro_rules! clearable_arch_vec {
 ///
 /// If no architecture is encountered, it simply adds the value on the [`Package`] itself.
 /// Otherwise, it clears the value on the respective [`Package::architecture_properties`] entry.
-///
-/// Furthermore, adds linter warnings if an architecture is encountered that doesn't exist in the
-/// [`PackageBase::architectures`] or [`Package::architectures`] if overridden.
 macro_rules! package_arch_prop {
     (
-        $line:ident,
-        $errors:ident,
-        $lint_architectures:ident,
         $architecture_properties:ident,
         $arch_property:ident,
         $field_name:ident,
@@ -283,15 +253,6 @@ macro_rules! package_arch_prop {
                 .$field_name
                 .get_or_insert(Vec::new())
                 .push($arch_property.value);
-
-            // Throw an error for all architecture specific properties that don't have
-            // an explicit `arch` statement. This is considered bad style.
-            // Also handle the special `Any` [Architecture], which allows all architectures.
-            if !$lint_architectures.contains(&architecture)
-                && !$lint_architectures.contains(&Architecture::Any)
-            {
-                missing_architecture_for_property($errors, $line, architecture);
-            }
         } else {
             $field_name
                 .get_or_insert(Vec::new())
@@ -305,25 +266,10 @@ impl Package {
     ///
     /// # Parameters
     ///
-    /// - `line_start`: The number of preceding lines, so that error/lint messages can reference the
-    ///   correct lines.
     /// - `parsed`: The [`RawPackage`] representation of the SRCINFO data. The input guarantees that
     ///   the keyword assignments have been parsed correctly, but not yet that they represent valid
     ///   SRCINFO data as a whole.
-    /// - `errors`: All errors and lints encountered during the creation of the [`Package`].
-    ///
-    /// # Errors
-    ///
-    /// This function does not return a [`Result`], but instead relies on aggregating all lints,
-    /// warnings and errors in `errors`.
-    /// This allows to keep the function call recoverable, so that all errors and lints can
-    /// be returned all at once.
-    pub fn from_parsed(
-        line_start: usize,
-        package_base_architectures: &Vec<Architecture>,
-        parsed: RawPackage,
-        errors: &mut Vec<SourceInfoError>,
-    ) -> Self {
+    pub fn from_parsed(parsed: RawPackage) -> Self {
         let mut description = Override::No;
         let mut url = Override::No;
         let mut licenses = Override::No;
@@ -345,56 +291,25 @@ impl Package {
         let mut replaces = Override::No;
 
         // First up, check all input for potential architecture overrides.
-        // We need this to do proper linting when doing our actual pass through the file.
-        for (index, prop) in parsed.properties.iter().enumerate() {
+        for prop in parsed.properties.iter() {
             // We're only interested in architecture properties.
             let PackageProperty::MetaProperty(SharedMetaProperty::Architecture(architecture)) =
                 prop
             else {
                 continue;
             };
-
-            // Calculate the actual line in the document based on any preceding lines.
-            // We have to add one, as lines aren't 0 indexed.
-            let line = index + line_start;
-
-            // Make sure to set the value of the HashSet to
             let architectures = architectures.get_or_insert(Vec::new());
-
-            // Lint to make sure there aren't duplicate architectures declarations.
-            if architectures.contains(architecture) {
-                duplicate_architecture(errors, line, *architecture);
-            }
-
-            // Add the architecture in case it hasn't already.
             architectures.push(*architecture);
         }
 
-        // If there's an overrides for architectures of this package, we need to use those
-        // architectures for linting. If there isn't, we have to fall back to the PackageBase
-        // architectures, which are then used instead.
-        let architectures_for_lint = match &architectures {
-            Some(architectures) => architectures,
-            None => package_base_architectures,
-        };
-
-        // Save all ClearableProperties so that we may use them for linting lateron.
-        let mut cleared_properties = Vec::new();
-
-        // Next, check if there're any [ClearableProperty] overrides.
+        // Next, check if there are any ClearableProperty overrides.
         // These indicate that a value or a vector should be overridden and set to None or an empty
         // vector, based on the property.
-        for (index, prop) in parsed.properties.iter().enumerate() {
-            // Calculate the actual line in the document based on any preceding lines.
-            // We have to add one, as lines aren't 0 indexed.
-            let line = index + line_start;
-
+        for prop in parsed.properties.iter() {
             // We're only interested in clearable properties.
             let PackageProperty::Clear(clearable_property) = prop else {
                 continue;
             };
-
-            cleared_properties.push(clearable_property.clone());
 
             match clearable_property {
                 ClearableProperty::Description => description = Override::Clear,
@@ -405,157 +320,30 @@ impl Package {
                 ClearableProperty::Groups => groups = Override::Clear,
                 ClearableProperty::Options => options = Override::Clear,
                 ClearableProperty::Backups => backups = Override::Clear,
-                ClearableProperty::Dependencies(architecture) => clearable_arch_vec!(
-                    line,
-                    errors,
-                    architectures_for_lint,
-                    architecture_properties,
-                    architecture,
-                    dependencies,
-                ),
+                ClearableProperty::Dependencies(architecture) => {
+                    clearable_arch_vec!(architecture_properties, architecture, dependencies,)
+                }
                 ClearableProperty::OptionalDependencies(architecture) => {
                     clearable_arch_vec!(
-                        line,
-                        errors,
-                        architectures_for_lint,
                         architecture_properties,
                         architecture,
                         optional_dependencies,
                     )
                 }
-                ClearableProperty::Provides(architecture) => clearable_arch_vec!(
-                    line,
-                    errors,
-                    architectures_for_lint,
-                    architecture_properties,
-                    architecture,
-                    provides,
-                ),
-                ClearableProperty::Conflicts(architecture) => clearable_arch_vec!(
-                    line,
-                    errors,
-                    architectures_for_lint,
-                    architecture_properties,
-                    architecture,
-                    conflicts,
-                ),
-                ClearableProperty::Replaces(architecture) => clearable_arch_vec!(
-                    line,
-                    errors,
-                    architectures_for_lint,
-                    architecture_properties,
-                    architecture,
-                    replaces,
-                ),
+                ClearableProperty::Provides(architecture) => {
+                    clearable_arch_vec!(architecture_properties, architecture, provides,)
+                }
+                ClearableProperty::Conflicts(architecture) => {
+                    clearable_arch_vec!(architecture_properties, architecture, conflicts,)
+                }
+                ClearableProperty::Replaces(architecture) => {
+                    clearable_arch_vec!(architecture_properties, architecture, replaces,)
+                }
             }
         }
 
-        /// Mini helper macro that crates a filter closure to filter a specific SharedMetaProperty.
-        /// Needed in the following ClearableProperty lint check.
-        /// The function must be boxed as we mix this with closures from
-        /// `relation_property_filter`.
-        macro_rules! meta_property_filter {
-            ($pattern:pat) => {
-                Box::new(|(_, property): &(usize, &PackageProperty)| {
-                    matches!(property, PackageProperty::MetaProperty($pattern))
-                })
-            };
-        }
-
-        /// Mini helper macro that crates a filter closure to filter a specific RelationProperty.
-        /// Needed in the following ClearableProperty lint check.
-        macro_rules! relation_property_filter {
-            ($architecture:ident, $pattern:pat) => {{
-                // Clone the cleared architecture so that it may be copied into the closure
-                let cleared_architecture = $architecture.clone();
-                Box::new(move |(_, property): &(usize, &PackageProperty)| {
-                    // Make sure we have a relation
-                    let PackageProperty::RelationProperty(relation) = property else {
-                        return false;
-                    };
-                    // Make sure we match the pattern
-                    if !matches!(relation, $pattern) {
-                        return false;
-                    }
-
-                    // Check whether the architecture matches
-                    cleared_architecture == relation.architecture()
-                })
-            }};
-        }
-
-        // Ensures that cleared properties don't get overwritten again in the same scope of a
-        // package. E.g.
-        // ```txt
-        // depends =
-        // depends = vim
-        // ```
-        for clearable in cleared_properties {
-            #[allow(clippy::type_complexity)]
-            // Return a filter closure/function that's used to search all properties for a certain
-            // enum variant. In the case of architecture specific properties, the closure also
-            // looks for properties that use the same architecture as the cleared property.
-            //
-            // This needs to be boxed as we're working with closures in the context of architecture
-            // specific properties. They capture the cleared property's architecture for comparison.
-            let filter: Box<dyn Fn(&(usize, &PackageProperty)) -> bool> = match clearable {
-                ClearableProperty::Description => {
-                    meta_property_filter!(SharedMetaProperty::Description(_))
-                }
-                ClearableProperty::Url => {
-                    meta_property_filter!(SharedMetaProperty::Url(_))
-                }
-                ClearableProperty::Licenses => {
-                    meta_property_filter!(SharedMetaProperty::License(_))
-                }
-                ClearableProperty::Changelog => {
-                    meta_property_filter!(SharedMetaProperty::Changelog(_))
-                }
-                ClearableProperty::Install => {
-                    meta_property_filter!(SharedMetaProperty::Install(_))
-                }
-                ClearableProperty::Groups => {
-                    meta_property_filter!(SharedMetaProperty::Group(_))
-                }
-                ClearableProperty::Options => {
-                    meta_property_filter!(SharedMetaProperty::Option(_))
-                }
-                ClearableProperty::Backups => {
-                    meta_property_filter!(SharedMetaProperty::Backup(_))
-                }
-                ClearableProperty::Dependencies(architecture) => {
-                    relation_property_filter!(architecture, RelationProperty::Dependency(_))
-                }
-                ClearableProperty::OptionalDependencies(architecture) => {
-                    relation_property_filter!(architecture, RelationProperty::OptionalDependency(_))
-                }
-                ClearableProperty::Provides(architecture) => {
-                    relation_property_filter!(architecture, RelationProperty::Provides(_))
-                }
-                ClearableProperty::Conflicts(architecture) => {
-                    relation_property_filter!(architecture, RelationProperty::Conflicts(_))
-                }
-                ClearableProperty::Replaces(architecture) => {
-                    relation_property_filter!(architecture, RelationProperty::Replaces(_))
-                }
-            };
-
-            // Check if we found a declaration even though the field is also being cleared.
-            let Some((index, _)) = parsed.properties.iter().enumerate().find(filter) else {
-                continue;
-            };
-
-            // Calculate the actual line in the document based on any preceding lines.
-            let line = index + line_start;
-
-            // Create the lint error
-            reassigned_cleared_property(errors, line);
-        }
-
         // Set all of the package's properties.
-        for (line, prop) in parsed.properties.into_iter().enumerate() {
-            // Calculate the actual line in the document based on any preceding lines.
-            let line = line + line_start;
+        for prop in parsed.properties.into_iter() {
             match prop {
                 // Skip empty lines and comments
                 PackageProperty::EmptyLine | PackageProperty::Comment(_) => continue,
@@ -566,10 +354,6 @@ impl Package {
                         }
                         SharedMetaProperty::Url(inner) => url = Override::Yes { value: inner },
                         SharedMetaProperty::License(inner) => {
-                            // Create lints for non-spdx licenses.
-                            if let License::Unknown(_) = &inner {
-                                non_spdx_license(errors, line, inner.to_string());
-                            }
                             licenses.get_or_insert(Vec::new()).push(inner)
                         }
                         SharedMetaProperty::Changelog(inner) => {
@@ -592,48 +376,25 @@ impl Package {
                     }
                 }
                 PackageProperty::RelationProperty(relation_property) => match relation_property {
-                    RelationProperty::Dependency(arch_property) => package_arch_prop!(
-                        line,
-                        errors,
-                        architectures_for_lint,
-                        architecture_properties,
-                        arch_property,
-                        dependencies,
-                    ),
+                    RelationProperty::Dependency(arch_property) => {
+                        package_arch_prop!(architecture_properties, arch_property, dependencies,)
+                    }
                     RelationProperty::OptionalDependency(arch_property) => {
                         package_arch_prop!(
-                            line,
-                            errors,
-                            architectures_for_lint,
                             architecture_properties,
                             arch_property,
                             optional_dependencies,
                         )
                     }
-                    RelationProperty::Provides(arch_property) => package_arch_prop!(
-                        line,
-                        errors,
-                        architectures_for_lint,
-                        architecture_properties,
-                        arch_property,
-                        provides,
-                    ),
-                    RelationProperty::Conflicts(arch_property) => package_arch_prop!(
-                        line,
-                        errors,
-                        architectures_for_lint,
-                        architecture_properties,
-                        arch_property,
-                        conflicts,
-                    ),
-                    RelationProperty::Replaces(arch_property) => package_arch_prop!(
-                        line,
-                        errors,
-                        architectures_for_lint,
-                        architecture_properties,
-                        arch_property,
-                        replaces,
-                    ),
+                    RelationProperty::Provides(arch_property) => {
+                        package_arch_prop!(architecture_properties, arch_property, provides,)
+                    }
+                    RelationProperty::Conflicts(arch_property) => {
+                        package_arch_prop!(architecture_properties, arch_property, conflicts,)
+                    }
+                    RelationProperty::Replaces(arch_property) => {
+                        package_arch_prop!(architecture_properties, arch_property, replaces,)
+                    }
                 },
                 // We already handled at the start in a separate pass.
                 PackageProperty::Clear(_) => continue,

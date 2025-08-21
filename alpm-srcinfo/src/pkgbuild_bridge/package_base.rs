@@ -271,14 +271,7 @@ pub fn handle_package_base(
                 }
                 SharedMetaKeyword::Arch => {
                     ensure_no_suffix(raw_keyword, architecture)?;
-                    let archs = parse_value_array(raw_keyword, value, Architecture::parser)?;
-                    // Make sure all architectures are unique.
-                    for arch in archs {
-                        if architectures.contains(&arch) {
-                            return Err(BridgeError::DuplicateArchitecture { duplicate: arch });
-                        }
-                        architectures.push(arch);
-                    }
+                    architectures = parse_value_array(raw_keyword, value, Architecture::parser)?;
                 }
                 SharedMetaKeyword::Changelog => {
                     ensure_no_suffix(raw_keyword, architecture)?;

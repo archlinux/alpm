@@ -53,6 +53,7 @@ impl MetadataFile<SourceInfoSchema> for SourceInfo {
     ///     let srcinfo_data = r#"
     /// pkgbase = example
     ///     pkgdesc = An example
+    ///     arch = x86_64
     ///     pkgver = 0.1.0
     ///     pkgrel = 1
     ///
@@ -118,6 +119,7 @@ impl MetadataFile<SourceInfoSchema> for SourceInfo {
     ///     let srcinfo_data = r#"
     /// pkgbase = example
     ///     pkgdesc = An example
+    ///     arch = x86_64
     ///     pkgver = 0.1.0
     ///     pkgrel = 1
     ///
@@ -179,6 +181,7 @@ impl MetadataFile<SourceInfoSchema> for SourceInfo {
     /// let srcinfo_data = r#"
     /// pkgbase = example
     ///     pkgdesc = An example
+    ///     arch = x86_64
     ///     pkgver = 0.1.0
     ///     pkgrel = 1
     ///
@@ -210,9 +213,7 @@ impl MetadataFile<SourceInfoSchema> for SourceInfo {
         };
 
         match schema {
-            SourceInfoSchema::V1(_) => {
-                Ok(SourceInfo::V1(SourceInfoV1::from_string(s)?.source_info()?))
-            }
+            SourceInfoSchema::V1(_) => Ok(SourceInfo::V1(SourceInfoV1::from_string(s)?)),
         }
     }
 }

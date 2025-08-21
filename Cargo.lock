@@ -180,7 +180,6 @@ dependencies = [
  "alpm-types",
  "assert_cmd",
  "clap",
- "colored",
  "insta",
  "pretty_assertions",
  "rstest",

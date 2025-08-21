@@ -28,16 +28,8 @@ fn correct_writer(#[files("tests/correct/*.srcinfo")] case: PathBuf) -> TestResu
         }
     };
 
-    // Ensure that there are no lint errors
-    let source_info = match source_info_result.lint() {
-        Ok(source_info) => source_info,
-        Err(err) => {
-            return Err(format!(
-                "The parser produced (lint) errors that weren't expected:\n {err}"
-            )
-            .into());
-        }
-    };
+    // Parse the source info
+    let source_info = source_info_result;
 
     let output = source_info.as_srcinfo();
 

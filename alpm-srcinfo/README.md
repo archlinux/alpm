@@ -210,12 +210,8 @@ pkgname = example
     depends = gcc-libs
 "#;
 
-// Parse the file. This might already error if the file cannot be parsed.
-let source_info_result = SourceInfoV1::from_string(source_info_data)?;
-
-// Make sure there're aren't unrecoverable logic errors, such as missing values.
-// Recoverable errors would be lints and deprecation warnings.
-let source_info = source_info_result.source_info()?;
+// Parse the file. This errors if the file cannot be parsed, is missing data or contains invalid data.
+let source_info = SourceInfoV1::from_string(source_info_data)?;
 
 // Get all merged package representations for the x86_64 architecture.
 let mut packages: Vec<MergedPackage> = source_info.packages_for_architecture(Architecture::X86_64).collect();
