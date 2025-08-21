@@ -179,7 +179,6 @@ pkgbase = example
 	optdepends_x86_64 = arch_default_optdep
 
 pkgname = example
-
 EOF
 
 diff --ignore-trailing-space "$SRCINFO_OUT" "$SRCINFO_OUT.expected"

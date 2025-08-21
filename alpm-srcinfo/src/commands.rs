@@ -45,7 +45,7 @@ pub fn create(
             println!("{json}");
         }
         SourceInfoOutputFormat::Srcinfo => {
-            println!("{}", source_info.as_srcinfo())
+            print!("{}", source_info.as_srcinfo())
         }
     }
 
