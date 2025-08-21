@@ -304,6 +304,11 @@ pub enum SkippableChecksum<D: Digest + Clone> {
 }
 
 impl<D: Digest + Clone> SkippableChecksum<D> {
+    /// Return whether this skippable checksum is of type `SkippableChecksum::Skip`.
+    pub fn is_skipped(&self) -> bool {
+        matches!(self, SkippableChecksum::Skip)
+    }
+
     /// Recognizes a [`SkippableChecksum`] from a string slice.
     ///
     /// Consumes all its input.
