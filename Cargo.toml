@@ -20,6 +20,7 @@ members = [
     "alpm-parsers",
     "alpm-pkgbuild",
     "alpm-pkginfo",
+    "alpm-repo",
     "alpm-srcinfo",
     "alpm-state-repo",
     "alpm-types",
