@@ -68,6 +68,7 @@
     - [alpm-soname](./specifications/alpm-soname.7.md)
         - [alpm-sonamev1](./specifications/alpm-sonamev1.7.md)
         - [alpm-sonamev2](./specifications/alpm-sonamev2.7.md)
+    - [alpm-source-repo](./specifications/alpm-source-repo.7.md)
     - [alpm-state-repo](./specifications/alpm-state-repo.7.md)
 
 # Development
