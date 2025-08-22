@@ -1,0 +1,1 @@
+../../../../alpm-repo/resources/specification/alpm-repo-name.7.md
