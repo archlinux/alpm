@@ -6,7 +6,7 @@ alpm-files - File format for listing files and directories contained in an **alp
 
 The **alpm-files** format is a textual format that lists the directories and files contained in a single **alpm-package**.
 
-Such files are named **files** and are located in **alpm-repo-database** files as well as **libalpm** databases structures.
+Such files are named **files** and are located in **alpm-repo-db** files as well as **libalpm** databases structures.
 They are created by package repository management software (such as **dbscripts** [1]).
 Package management software (e.g. **pacman**) uses them to list and query the paths of directories and files contained in a package file.
 
@@ -57,7 +57,7 @@ The installed package will contain a binary (`usr/bin/foo`), a README file (`usr
 
 # SEE ALSO
 
-**libalpm**(3), **alpm-package**(7), **alpm-repo-database**(7), **pacman**(8)
+**libalpm**(3), **alpm-package**(7), **alpm-repo-db**(7), **pacman**(8)
 
 # NOTES
 

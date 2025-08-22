@@ -6,7 +6,7 @@ use strum::{AsRefStr, Display, EnumString, IntoStaticStr};
 /// The identifier of a file type used in ALPM.
 ///
 /// These identifiers are used in the file names of file types such as binary packages (see
-/// [alpm-package]), source packages and repository sync databases (see alpm-repo-database).
+/// [alpm-package]), source packages and repository sync databases (see alpm-repo-db).
 ///
 /// [alpm-package]: https://alpm.archlinux.page/specifications/alpm-package.7.html
 #[derive(
@@ -31,7 +31,7 @@ pub enum FileTypeIdentifier {
     #[strum(to_string = "pkg")]
     BinaryPackage,
 
-    /// The identifier for alpm-repo-database files.
+    /// The identifier for alpm-repo-db files.
     #[serde(rename = "db")]
     #[strum(to_string = "db")]
     RepositorySyncDatabase,

@@ -11,7 +11,7 @@ use strum::{AsRefStr, Display, EnumString, IntoStaticStr, VariantNames};
 /// The file extension of a compression algorithm.
 ///
 /// Compression may be used for a set of different files in the ALPM context (e.g. [alpm-package],
-/// alpm-source-package, alpm-repo-database).
+/// alpm-source-package, alpm-repo-db).
 /// Each algorithm uses a distinct file extension.
 ///
 /// [alpm-package]: https://alpm.archlinux.page/specifications/alpm-package.7.html
