@@ -5,7 +5,7 @@ state-repo - a directory structure to track **A**rch **L**inux **P**ackage **M**
 # DESCRIPTION
 
 End users gain access to ALPM based packages (see **alpm-package**) through package repositories (see **alpm-repo**).
-These also contain database files describing their current state (see **alpm-repo-database**) to the end users.
+These also contain database files describing their current state (see **alpm-repo-db**) to the end users.
 
 An **alpm-state-repo** is used by package repository maintainers and provides a detailed view on several aspects of one or more package repositories:
 
@@ -107,7 +107,7 @@ example-base 1.0.0-1 1.0.0-1 0685197a7fdc13a91e1b9184c2759a5bf222210f
 
 # SEE ALSO
 
-**git**(1), **PKGBUILD**(5), **alpm-architecture**(7), **alpm-package**(7), **alpm-package-base**(7), **alpm-package-name**(7), **alpm-package-version**(7), **alpm-repo**(7), **alpm-repo-database**(7), **alpm-repo-name**(7), **alpm-source-repo**(7), **alpm-split-package**(7), **devtools**(7),
+**git**(1), **PKGBUILD**(5), **alpm-architecture**(7), **alpm-package**(7), **alpm-package-base**(7), **alpm-package-name**(7), **alpm-package-version**(7), **alpm-repo**(7), **alpm-repo-db**(7), **alpm-repo-name**(7), **alpm-source-repo**(7), **alpm-split-package**(7), **devtools**(7),
 
 # NOTES
 

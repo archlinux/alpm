@@ -16,7 +16,7 @@ More specifically, package management software such as **pacman** and related to
 The data in an **alpm-db-desc** file is derived from an **alpm-package**.
 Here, most of the metadata originates from the package's **PKGINFO** data.
 
-The **alpm-db-desc** file format must not be confused with the **alpm-repo-desc** file format, which is used in the context of an **alpm-repo-database** and carries a different set of metadata, but is usually also named _desc_.
+The **alpm-db-desc** file format must not be confused with the **alpm-repo-desc** file format, which is used in the context of an **alpm-repo-db** and carries a different set of metadata, but is usually also named _desc_.
 
 The **alpm-db-desc** format exists in multiple versions.
 This document describes version 1, which is a legacy version and has been available since the release of **pacman** 5.1.0 on 2018-05-28.
@@ -126,8 +126,8 @@ The validation method used during installation of the package ensuring its authe
 The value must be one of the following:
 
 - `none`: The package integrity and authenticity is not validated.
-- `md5`: The package is validated against an accompanying MD-5 hash digest in an **alpm-repo-database** that belongs to the repository from which the package is installed.
-- `sha256`: The package is validated against an accompanying SHA-256 hash digest in the **alpm-repo-database** that belongs to the repository from which the package is installed.
+- `md5`: The package is validated against an accompanying MD-5 hash digest in an **alpm-repo-db** that belongs to the repository from which the package is installed.
+- `sha256`: The package is validated against an accompanying SHA-256 hash digest in the **alpm-repo-db** that belongs to the repository from which the package is installed.
 - `pgp`: The package's authenticity and integrity is validated using a detached **OpenPGP signature**[5] and a system-wide collection of **OpenPGP certificates**[6].
 
 ### %REPLACES%
@@ -213,7 +213,7 @@ gcc-libs
 
 # SEE ALSO
 
-**libalpm**(3), **BUILDINFO**(5), **PKGBUILD**(5), **PKGINFO**(5), **alpm-repo-desc**(5), **alpm-architecture**(7), **alpm-package**(7), **alpm-package-file-name**(7), **alpm-package-name**(7), **alpm-package-relation**(7), **alpm-package-version**(7), **alpm-repo-database**(7), **alpm-split-package**(7), **pacman**(8)
+**libalpm**(3), **BUILDINFO**(5), **PKGBUILD**(5), **PKGINFO**(5), **alpm-repo-desc**(5), **alpm-architecture**(7), **alpm-package**(7), **alpm-package-file-name**(7), **alpm-package-name**(7), **alpm-package-relation**(7), **alpm-package-version**(7), **alpm-repo-db**(7), **alpm-split-package**(7), **pacman**(8)
 
 # NOTES
 
