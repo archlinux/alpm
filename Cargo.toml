@@ -22,6 +22,7 @@ members = [
     "alpm-pkgbuild",
     "alpm-pkginfo",
     "alpm-repo",
+    "alpm-repo-db",
     "alpm-srcinfo",
     "alpm-state-repo",
     "alpm-types",

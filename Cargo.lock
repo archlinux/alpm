@@ -179,6 +179,10 @@ name = "alpm-repo"
 version = "0.1.0"
 
 [[package]]
+name = "alpm-repo-db"
+version = "0.1.0"
+
+[[package]]
 name = "alpm-srcinfo"
 version = "0.3.0"
 dependencies = [
