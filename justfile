@@ -523,6 +523,7 @@ install-workspace-binaries:
     ignored_members=(
         alpm-common
         alpm-db
+        alpm-lint-config
         alpm-package
         alpm-pkgbuild
         alpm-parsers
