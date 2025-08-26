@@ -13,6 +13,7 @@ use crate::{
     lint_rules::source_info::{
         duplicate_architecture::DuplicateArchitecture,
         no_architecture::NoArchitecture,
+        no_spdx_license::NotSPDX,
     },
 };
 
@@ -71,7 +72,11 @@ impl LintStore {
         // **IMPORTANT** NOTE: ⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️
         // When you edit this, please sort the array while at it :)
         // Much appreciated!
-        self.lint_constructors = vec![DuplicateArchitecture::new_boxed, NoArchitecture::new_boxed];
+        self.lint_constructors = vec![
+            DuplicateArchitecture::new_boxed,
+            NoArchitecture::new_boxed,
+            NotSPDX::new_boxed,
+        ];
     }
 
     /// Initialize and configure all linting rules.
