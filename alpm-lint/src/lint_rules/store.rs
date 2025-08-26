@@ -19,6 +19,8 @@ use crate::{
     lint_rules::source_info::{
         duplicate_architecture::DuplicateArchitecture,
         invalid_spdx_license::NotSPDX,
+        no_architecture::NoArchitecture,
+        openpgp_key_id::OpenPGPKeyId,
     },
 };
 
@@ -95,6 +97,7 @@ impl LintStore {
             DuplicateArchitecture::new_boxed,
             NoArchitecture::new_boxed,
             NotSPDX::new_boxed,
+            OpenPGPKeyId::new_boxed,
         ];
     }
 
