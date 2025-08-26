@@ -15,6 +15,7 @@ use crate::{
         no_architecture::NoArchitecture,
         no_spdx_license::NotSPDX,
         openpgp_key_id::OpenPGPKeyId,
+        undefined_architecture::UndefinedArchitecture,
     },
 };
 
@@ -78,6 +79,7 @@ impl LintStore {
             NoArchitecture::new_boxed,
             NotSPDX::new_boxed,
             OpenPGPKeyId::new_boxed,
+            UndefinedArchitecture::new_boxed,
         ];
     }
 
