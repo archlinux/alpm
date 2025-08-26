@@ -10,7 +10,10 @@ use serde::Serialize;
 use crate::{
     ScopedName,
     internal_prelude::{Level, LintGroup, LintRule, LintScope},
-    lint_rules::source_info::duplicate_architecture::DuplicateArchitecture,
+    lint_rules::source_info::{
+        duplicate_architecture::DuplicateArchitecture,
+        no_architecture::NoArchitecture,
+    },
 };
 
 /// The data representation of a singular lint rule.
@@ -63,7 +66,7 @@ impl LintStore {
     fn register(&mut self) {
         // **IMPORTANT** NOTE:
         // When you edit this, please sort the array while at it :)
-        self.lint_constructors = vec![DuplicateArchitecture::new_boxed];
+        self.lint_constructors = vec![DuplicateArchitecture::new_boxed, NoArchitecture::new_boxed];
     }
 
     /// Initialize and configure all linting rules.

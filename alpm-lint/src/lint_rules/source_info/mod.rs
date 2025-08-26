@@ -5,6 +5,7 @@ use alpm_srcinfo::{SourceInfo, SourceInfoV1};
 use crate::{Error, LintScope, Resources};
 
 pub mod duplicate_architecture;
+pub mod no_architecture;
 
 /// Extract the required resources.
 ///
