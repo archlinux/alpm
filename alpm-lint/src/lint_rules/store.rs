@@ -14,6 +14,7 @@ use crate::{
         duplicate_architecture::DuplicateArchitecture,
         no_architecture::NoArchitecture,
         no_spdx_license::NotSPDX,
+        openpgp_key_id::OpenPGPKeyId,
     },
 };
 
@@ -76,6 +77,7 @@ impl LintStore {
             DuplicateArchitecture::new_boxed,
             NoArchitecture::new_boxed,
             NotSPDX::new_boxed,
+            OpenPGPKeyId::new_boxed,
         ];
     }
 
