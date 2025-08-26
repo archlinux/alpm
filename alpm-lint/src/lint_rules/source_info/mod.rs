@@ -7,6 +7,7 @@ use alpm_srcinfo::{SourceInfo, SourceInfoV1};
 use crate::{Error, LintScope, Resources};
 
 pub mod duplicate_architecture;
+pub mod invalid_spdx_license;
 pub mod no_architecture;
 
 /// Extracts a [`SourceInfoV1`] from a [`Resources`].

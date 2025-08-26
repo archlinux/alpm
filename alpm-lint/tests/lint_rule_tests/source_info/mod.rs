@@ -1,4 +1,5 @@
 //! Tests for source info scope lint rules.
 
 pub mod duplicate_architecture;
+pub mod invalid_spdx_license;
 pub mod no_architecture;
