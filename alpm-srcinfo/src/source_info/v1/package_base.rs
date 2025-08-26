@@ -199,6 +199,62 @@ macro_rules! package_base_arch_prop {
 }
 
 impl PackageBase {
+    /// Create a new PackageBase from a [`Name`] and a [`FullVersion`].
+    ///
+    /// Uses the name and version and initializes all remaining fields of [`PackageBase`] with
+    /// default values.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use std::str::FromStr;
+    ///
+    /// use alpm_srcinfo::source_info::v1::package_base::PackageBase;
+    /// use alpm_types::{FullVersion, Name};
+    ///
+    /// # fn main() -> testresult::TestResult {
+    ///
+    /// let base = PackageBase::new_with_defaults(
+    ///     Name::from_str("example_package")?,
+    ///     FullVersion::from_str("1:1.0.0-2")?,
+    /// );
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn new_with_defaults(name: Name, version: FullVersion) -> Self {
+        PackageBase {
+            name,
+            version,
+            description: None,
+            architectures: Vec::new(),
+            url: None,
+            licenses: Vec::new(),
+            groups: Vec::new(),
+            dependencies: Vec::new(),
+            make_dependencies: Vec::new(),
+            check_dependencies: Vec::new(),
+            optional_dependencies: Vec::new(),
+            provides: Vec::new(),
+            conflicts: Vec::new(),
+            replaces: Vec::new(),
+            backups: Vec::new(),
+            options: Vec::new(),
+            install: None,
+            changelog: None,
+            sources: Vec::new(),
+            no_extracts: Vec::new(),
+            md5_checksums: Vec::new(),
+            sha1_checksums: Vec::new(),
+            sha224_checksums: Vec::new(),
+            sha256_checksums: Vec::new(),
+            sha384_checksums: Vec::new(),
+            sha512_checksums: Vec::new(),
+            b2_checksums: Vec::new(),
+            pgp_fingerprints: Vec::new(),
+            architecture_properties: BTreeMap::new(),
+        }
+    }
+
     /// Creates a new [`PackageBase`] instance from a [`RawPackageBase`].
     ///
     /// # Parameters

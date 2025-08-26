@@ -164,28 +164,9 @@ pub struct Package {
 }
 
 impl From<Name> for Package {
-    /// Creates a new [`Package`] from a [`Name`].
-    ///
-    /// Uses `name` and initializes all remaining fields of [`Package`] with default values.
+    /// Creates a new [`Package`] from a [`Name`] by calling [`Package::new_with_defaults`].
     fn from(value: Name) -> Self {
-        Package {
-            name: value,
-            description: Default::default(),
-            url: Default::default(),
-            changelog: Default::default(),
-            licenses: Default::default(),
-            install: Default::default(),
-            groups: Default::default(),
-            options: Default::default(),
-            backups: Default::default(),
-            architectures: Default::default(),
-            architecture_properties: Default::default(),
-            dependencies: Default::default(),
-            optional_dependencies: Default::default(),
-            provides: Default::default(),
-            conflicts: Default::default(),
-            replaces: Default::default(),
-        }
+        Package::new_with_defaults(value)
     }
 }
 
@@ -262,6 +243,45 @@ macro_rules! package_arch_prop {
 }
 
 impl Package {
+    /// Creates a new [`Package`] from a [`Name`].
+    ///
+    /// Uses `name` and initializes all remaining fields of [`Package`] with default values.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use std::str::FromStr;
+    ///
+    /// use alpm_srcinfo::source_info::v1::package::Package;
+    /// use alpm_types::Name;
+    ///
+    /// # fn main() -> testresult::TestResult {
+    ///
+    /// let package = Package::new_with_defaults(Name::from_str("example_package")?);
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn new_with_defaults(value: Name) -> Self {
+        Package {
+            name: value,
+            description: Default::default(),
+            url: Default::default(),
+            changelog: Default::default(),
+            licenses: Default::default(),
+            install: Default::default(),
+            groups: Default::default(),
+            options: Default::default(),
+            backups: Default::default(),
+            architectures: Default::default(),
+            architecture_properties: Default::default(),
+            dependencies: Default::default(),
+            optional_dependencies: Default::default(),
+            provides: Default::default(),
+            conflicts: Default::default(),
+            replaces: Default::default(),
+        }
+    }
+
     /// Creates a new [`Package`] instance from a [`RawPackage`].
     ///
     /// # Parameters
