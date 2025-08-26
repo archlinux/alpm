@@ -258,9 +258,8 @@ impl PackageBase {
             architectures.push(*architecture);
         }
 
-        // If no architecture is set, `makepkg` simply uses the host system as the default value.
-        // In practice this translates to `any`, as this package is valid to be build on any
-        // system as long as `makepkg` is executed on that system.
+        // If no architecture is set, `makepkg` errors hard, however it happily creates .SRCINFO
+        // files from it. We handle this as a hard error as well.
         if architectures.is_empty() {
             return Err(Error::MissingKeyword { keyword: "arch" });
         }
