@@ -22,6 +22,7 @@ use crate::{
         no_architecture::NoArchitecture,
         openpgp_key_id::OpenPGPKeyId,
         undefined_architecture::UndefinedArchitecture,
+        unsafe_checksum::UnsafeChecksum,
     },
 };
 
@@ -100,6 +101,7 @@ impl LintStore {
             NotSPDX::new_boxed,
             OpenPGPKeyId::new_boxed,
             UndefinedArchitecture::new_boxed,
+            UnsafeChecksum::new_boxed,
         ];
     }
 
