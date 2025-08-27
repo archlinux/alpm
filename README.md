@@ -43,6 +43,7 @@ mindmap
       📄 desc
       📄 files
       📚️ alpm-repo*
+      📚️ alpm-repo-db*
       📚️ alpm-repo-desc*
       📚️ alpm-repo-files
       📂 alpm-state-repo
