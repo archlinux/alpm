@@ -218,7 +218,7 @@ mod tests {
         Err(spdx::ParseError {
             original: String::from("Apache-2.0 WITH"),
             span: 15..15,
-            reason: spdx::error::Reason::Unexpected(&["<exception>"])
+            reason: spdx::error::Reason::Unexpected(&["<addition>"])
         }.into())
     )]
     #[case("Custom-License",
