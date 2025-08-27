@@ -524,6 +524,7 @@ install-workspace-binaries:
         alpm-parsers
         alpm-state-repo
         alpm-types
+        python-alpm
     )
 
     for name in "${workspace_members[@]}"; do
