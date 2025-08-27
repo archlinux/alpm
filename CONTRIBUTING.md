@@ -45,6 +45,9 @@ We run [`nextest`] for fast execution of unit and integration tests.
 The `just containerized-integration-tests` recipe executes all tests that are made available by a `_containerized-integration-test` feature and are located in an integration test module named `containerized`.
 With the help of a [custom target runner], these tests are executed in a containerized environment using [`podman`].
 
+The `just virtualized-integration-tests` recipe executes all tests that are made available by a `_virtualized-integration-test` feature and are located in an integration test module named `virtualized`.
+Different from the `containerized-integration-tests` recipe, this test target concerns itself with tests that are _not_ run in a container, but must be run on bare metal or in a virtual machine.
+
 ### Code coverage reports
 
 Code coverage for unit tests, doc tests and integration tests is calculated using [`cargo-llvm-cov`].
