@@ -30,6 +30,7 @@ dependencies = [
 name = "alpm"
 version = "0.1.0"
 dependencies = [
+ "alpm-srcinfo",
  "alpm-types",
  "pyo3",
  "semver",

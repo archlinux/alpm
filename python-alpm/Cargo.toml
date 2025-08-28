@@ -17,6 +17,7 @@ crate-type = ["cdylib"]
 name = "python_alpm"
 
 [dependencies]
+alpm-srcinfo.workspace = true
 alpm-types.workspace = true
 pyo3 = { version = "0.26", features = ["abi3-py39"] }
 semver = "1.0"

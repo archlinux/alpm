@@ -1,7 +1,8 @@
-from . import alpm_types as alpm_types
-from .alpm_types import ALPMError as ALPMError
+from . import alpm_types, alpm_srcinfo
+from .alpm_types import ALPMError
 
 __all__ = [
+    "alpm_srcinfo",
     "alpm_types",
     "ALPMError",
 ]
