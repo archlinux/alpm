@@ -306,6 +306,7 @@ generate-manpages-and-specs:
     just generate specifications alpm-package
     just generate specifications alpm-pkginfo
     just generate specifications alpm-repo
+    just generate specifications alpm-repo-db
     just generate specifications alpm-srcinfo
     just generate specifications alpm-state-repo
     just generate specifications alpm-types
