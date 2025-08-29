@@ -54,23 +54,23 @@ The following example illustrates a basic **alpm-source-repo**:
 
 ```text
 .
-└── PKGBUILD
+`-- PKGBUILD
 ```
 
 The following example illustrates a more complete **alpm-source-repo** with best practices applied for a package named `example`:
 
 ```text
 .
-├── .SRCINFO
-├── .nvchecker.toml
-├── LICENSES
-│   └── 0BSD.txt
-├── PKGBUILD
-├── REUSE.toml
-├── example.install
-└── keys
-    └── pgp
-        └── F1D2D2F924E986AC86FDF7B36C94BCDF32BEEC15.asc
+|-- .SRCINFO
+|-- .nvchecker.toml
+|-- LICENSES
+|   `-- 0BSD.txt
+|-- PKGBUILD
+|-- REUSE.toml
+|-- example.install
+`-- keys
+    `-- pgp
+        `-- F1D2D2F924E986AC86FDF7B36C94BCDF32BEEC15.asc
 ```
 
 # SEE ALSO
