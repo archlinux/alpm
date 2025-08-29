@@ -249,9 +249,10 @@ generate kind pkg:
     set -Eeuo pipefail
 
     readonly output_dir="{{ output_dir }}"
+    readonly pkg="{{ pkg }}"
+    readonly kind="{{ kind }}"
     mkdir --parents "$output_dir"
 
-    kind="{{ kind }}"
 
     script="$(mktemp --suffix=.ers)"
     readonly script="$script"
@@ -267,20 +268,22 @@ generate kind pkg:
 
     case "$kind" in
         manpages|shell_completions)
-            sed "s/PKG/{{ pkg }}/;s#PATH#$PWD/{{ pkg }}#g;s/KIND/{{ kind }}/g" > "$script" < .rust-script/allgen.ers
+            sed "s/PKG/$pkg/;s#PATH#$PWD/$pkg#g;s/KIND/$kind/g" > "$script" < .rust-script/allgen.ers
+            chmod +x "$script"
+            "$script" "$output_dir/$kind"
             ;;
         specifications)
-            sed "s/PKG/{{ pkg }}/;s#PATH#$PWD/{{ pkg }}#g;s/KIND/{{ kind }}/g" > "$script" < .rust-script/mandown.ers
-            # override kind, as we are in fact generating manpages
-            kind="manpages"
+            output_kind=manpages
+            mkdir -p "$output_dir/$output_kind/"
+            for file in "$PWD/$pkg/resources/specification/"*.md; do
+                output_file="$(basename "$file")"
+                lowdown -s -t man -o "$output_dir/$output_kind/${output_file/.md}" "$file"
+            done
             ;;
         *)
             printf 'Only "manpages", "shell_completions" or "specifications" are supported targets.\n'
             exit 1
     esac
-
-    chmod +x "$script"
-    "$script" "$output_dir/$kind"
 
 # Generates shell completions
 [group('build')]
