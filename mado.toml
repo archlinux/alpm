@@ -55,6 +55,8 @@ rules = [
     "MD032",
     # Inline HTML
     "MD033",
+    # Bare URL used
+    "MD034",
     # Horizontal rule style
     "MD035",
     # Emphasis used instead of a header
