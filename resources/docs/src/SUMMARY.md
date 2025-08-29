@@ -50,6 +50,7 @@
 - [Concepts](./specifications/concepts.md)
     - [alpm](./specifications/alpm.7.md)
     - [alpm-architecture](./specifications/alpm-architecture.7.md)
+    - [alpm-db](./specifications/alpm-db.7.md)
     - [alpm-comparison](./specifications/alpm-comparison.7.md)
     - [alpm-epoch](./specifications/alpm-epoch.7.md)
     - [alpm-meta-package](./specifications/alpm-meta-package.7.md)

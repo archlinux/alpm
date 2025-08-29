@@ -1,0 +1,1 @@
+../../../../alpm-db/resources/specification/alpm-db.7.md
