@@ -28,32 +28,32 @@ Metadata connections between **alpm-source-repo**, **alpm-package** and **alpm-r
      alpm-source-repo
            |
         PKGBUILD
-       /        \\
-  SRCINFO        \\
-                  \\
-                   \\
-         /------- alpm-package ------\\
-        /        /     |      \\       \\
-       /   BUILDINFO   |    PKGINFO   |
+       /        \
+  SRCINFO        \
+                  \
+                   \
+         ,------- alpm-package -----.
+        /        /     |      \      \
+       ,   BUILDINFO   |    PKGINFO   |
        |               |       |      |
        |           ALPM-MTREE  |      |
        |                       |      |
        |        alpm-repo-db   |      |
-       |       /            \\  |     /
+       |       /            \  |     /
      alpm-repo-files   alpm-repo-desc
 ```
 
 Metadata connections between **alpm-package** and **alpm-db** (**libalpm**):
 
 ```text
-      /------- alpm-package ------\\
-     /        /     |      \\       \\
+      ,------- alpm-package ------.
+     /        /     |      \       \
     /   BUILDINFO   |    PKGINFO   |
     |               |       |      |
     |           ALPM-MTREE  |      |
     |                       |     /
     |        alpm-db        |    /
-    |       /        \\      |   /
+    |       /       \       |   /
   alpm-db-files     alpm-db-desc
 ```
 
