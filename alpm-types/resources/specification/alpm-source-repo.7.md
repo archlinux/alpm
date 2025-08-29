@@ -80,29 +80,23 @@ The following example illustrates a more complete **alpm-source-repo** with best
 # NOTES
 
 1. **RFC 0040**
-
-   https://rfc.archlinux.page/0040-license-package-sources/
-
+   
+   <https://rfc.archlinux.page/0040-license-package-sources/>
 1. **RFC 0052**
-
-   https://rfc.archlinux.page/0052-reuse/
-
+   
+   <https://rfc.archlinux.page/0052-reuse/>
 1. **ASCII armored**
-
-   https://openpgp.dev/book/armor.html
-
+   
+   <https://openpgp.dev/book/armor.html>
 1. **OpenPGP certificates**
-
-   https://openpgp.dev/book/certificates.html
-
+   
+   <https://openpgp.dev/book/certificates.html>
 1. **OpenPGP signatures**
-
-   https://openpgp.dev/book/signatures.html
-
+   
+   <https://openpgp.dev/book/signatures.html>
 1. **reproducible builds**
-
-   https://reproducible-builds.org/
-
+   
+   <https://reproducible-builds.org/>
 1. **OpenPGP signature verification**
-
-   https://openpgp.dev/book/verification.html
+   
+   <https://openpgp.dev/book/verification.html>

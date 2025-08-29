@@ -130,7 +130,7 @@ Once the changes are merged to the default branch a tag is created and pushed fo
 just release <package>
 ```
 
-The crate is afterwards automatically published on https://crates.io using a pipeline job.
+The crate is afterwards automatically published on <https://crates.io> using a pipeline job.
 
 ## License
 

@@ -168,9 +168,8 @@ Following the **alpm-soname** specification, `lib:libexample.so.1` can be added 
 # NOTES
 
 1. **ELF**
-
-   https://en.wikipedia.org/wiki/Executable_and_Linkable_Format
-
+   
+   <https://en.wikipedia.org/wiki/Executable_and_Linkable_Format>
 1. **soname**
-
-   https://en.wikipedia.org/wiki/Soname
+   
+   <https://en.wikipedia.org/wiki/Soname>

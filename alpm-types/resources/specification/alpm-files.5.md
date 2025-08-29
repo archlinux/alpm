@@ -63,4 +63,4 @@ The installed package will contain a binary (`usr/bin/foo`), a README file (`usr
 
 1. **dbscripts**
 
-   https://gitlab.archlinux.org/archlinux/dbscripts/
+   <https://gitlab.archlinux.org/archlinux/dbscripts/>

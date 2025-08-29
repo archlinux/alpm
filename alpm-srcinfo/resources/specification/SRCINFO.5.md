@@ -429,37 +429,29 @@ For `x86_64`:
 # NOTES
 
 1. **printable ASCII characters**
-
-   https://en.wikipedia.org/wiki/ASCII#Printable_characters
-
+   
+   <https://en.wikipedia.org/wiki/ASCII#Printable_characters>
 1. **OpenPGP fingerprint**
-
-   https://openpgp.dev/book/certificates.html#fingerprint
-
+   
+   <https://openpgp.dev/book/certificates.html#fingerprint>
 1. **OpenPGP signatures**
-
-   https://openpgp.dev/book/signing_data.html
-
+   
+   <https://openpgp.dev/book/signing_data.html>
 1. **OpenPGP Key ID**
-
-   https://openpgp.dev/book/glossary.html#term-Key-ID
-
+   
+   <https://openpgp.dev/book/glossary.html#term-Key-ID>
 1. **SPDX License List**
-
-   https://spdx.org/licenses/
-
+   
+   <https://spdx.org/licenses/>
 1. **MD5**
-
-   https://en.wikipedia.org/wiki/MD5
-
+   
+   <https://en.wikipedia.org/wiki/MD5>
 1. **SHA-1**
-
-   https://en.wikipedia.org/wiki/SHA-1
-
+   
+   <https://en.wikipedia.org/wiki/SHA-1>
 1. **SHA-2**
-
-   https://en.wikipedia.org/wiki/SHA-2
-
+   
+   <https://en.wikipedia.org/wiki/SHA-2>
 1. **BLAKE2**
-
-   https://en.wikipedia.org/wiki/BLAKE_(hash_function)#BLAKE2
+   
+   <https://en.wikipedia.org/wiki/BLAKE_(hash_function)#BLAKE2>

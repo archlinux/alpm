@@ -195,21 +195,17 @@ pkgname = example
 # NOTES
 
 1. **hash function**
-
-  https://en.wikipedia.org/wiki/Hash_function
-
+   
+   <https://en.wikipedia.org/wiki/Hash_function>
 1. **MD5**
-
-  https://en.wikipedia.org/wiki/MD5
-
+   
+   <https://en.wikipedia.org/wiki/MD5>
 1. **SHA-1**
-
-  https://en.wikipedia.org/wiki/SHA-1
-
+   
+   <https://en.wikipedia.org/wiki/SHA-1>
 1. **SHA-2**
-
-  https://en.wikipedia.org/wiki/SHA-2
-
+   
+   <https://en.wikipedia.org/wiki/SHA-2>
 1. **BLAKE2**
-
-  https://en.wikipedia.org/wiki/BLAKE_(hash_function)#BLAKE2
+   
+   <https://en.wikipedia.org/wiki/BLAKE_(hash_function)#BLAKE2>

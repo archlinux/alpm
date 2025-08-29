@@ -112,5 +112,5 @@ example-base 1.0.0-1 1.0.0-1 0685197a7fdc13a91e1b9184c2759a5bf222210f
 # NOTES
 
 1. **dbscripts**
-
-   https://gitlab.archlinux.org/archlinux/dbscripts/
+   
+   <https://gitlab.archlinux.org/archlinux/dbscripts/>

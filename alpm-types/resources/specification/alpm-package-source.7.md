@@ -261,21 +261,17 @@ pkgname = example-git
 # NOTES
 
 1. **file URI scheme**
-
-  https://en.wikipedia.org/wiki/File_URI_scheme
-
+   
+   <https://en.wikipedia.org/wiki/File_URI_scheme>
 1. **URL**
-
-  https://en.wikipedia.org/wiki/URL
-
+   
+   <https://en.wikipedia.org/wiki/URL>
 1. **OpenPGP signature verification**
-
-  https://openpgp.dev/book/verification.html
-
+   
+   <https://openpgp.dev/book/verification.html>
 1. **OpenPGP certificates**
-
-  https://openpgp.dev/book/certificates.html
-
+   
+   <https://openpgp.dev/book/certificates.html>
 1. **OpenPGP fingerprints**
-
-  https://openpgp.dev/book/certificates.html#fingerprint
+   
+   <https://openpgp.dev/book/certificates.html#fingerprint>

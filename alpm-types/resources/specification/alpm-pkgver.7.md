@@ -313,9 +313,8 @@ The comparison concludes with `1.alpha. < 1.alpha0`.
 # NOTES
 
 1. **rpmvercmp**
-
-   https://github.com/rpm-software-management/rpm/blob/rpm-4.8.1-release/lib/rpmvercmp.c
-
+   
+   <https://github.com/rpm-software-management/rpm/blob/rpm-4.8.1-release/lib/rpmvercmp.c>
 1. **semantic versioning**
-
-   https://semver.org/
+   
+   <https://semver.org/>

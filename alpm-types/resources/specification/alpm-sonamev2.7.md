@@ -155,9 +155,8 @@ depend = lib:libexample.so.1
 # NOTES
 
 1. **soname**
-
-   https://en.wikipedia.org/wiki/Soname
-
+   
+   <https://en.wikipedia.org/wiki/Soname>
 1. **ELF**
-
-   https://en.wikipedia.org/wiki/Executable_and_Linkable_Format
+   
+   <https://en.wikipedia.org/wiki/Executable_and_Linkable_Format>

@@ -106,58 +106,44 @@ A package can only be used on hardware compatible with the 64-bit variant of the
 # NOTES
 
 1. **CPU instruction set architectures**
-
-   https://en.wikipedia.org/wiki/Comparison_of_instruction_set_architectures#Instruction_sets
-
+   
+   <https://en.wikipedia.org/wiki/Comparison_of_instruction_set_architectures#Instruction_sets>
 1. **x86-64**
-
-   https://en.wikipedia.org/wiki/X86-64
-
+   
+   <https://en.wikipedia.org/wiki/X86-64>
 1. **x86-64 microarchitecture levels**
-
-   https://en.wikipedia.org/wiki/X86-64#Microarchitecture_levels
-
+   
+   <https://en.wikipedia.org/wiki/X86-64#Microarchitecture_levels>
 1. **IA-32**
-
-   https://en.wikipedia.org/wiki/IA-32
-
+   
+   <https://en.wikipedia.org/wiki/IA-32>
 1. **P6**
-
-   https://en.wikipedia.org/wiki/P6_(microarchitecture)
-
+   
+   <https://en.wikipedia.org/wiki/P6_(microarchitecture)>
 1. **i486**
-
-   https://en.wikipedia.org/wiki/I486
-
+   
+   <https://en.wikipedia.org/wiki/I486>
 1. **pentium4**
-
-   https://en.wikipedia.org/wiki/Pentium_4
-
+   
+   <https://en.wikipedia.org/wiki/Pentium_4>
 1. **ARMv7 architecture family**
-
-   https://en.wikipedia.org/wiki/ARM_architecture_family#32-bit_architecture
-
+   
+   <https://en.wikipedia.org/wiki/ARM_architecture_family#32-bit_architecture>
 1. **ARMv8 architecture family**
-
-   https://en.wikipedia.org/wiki/ARM_architecture_family#Armv8
-
+   
+   <https://en.wikipedia.org/wiki/ARM_architecture_family#Armv8>
 1. **AArch64**
-
-    https://en.wikipedia.org/wiki/AArch64
-
+   
+   <https://en.wikipedia.org/wiki/AArch64>
 1. **ARM architecture family**
-
-    https://en.wikipedia.org/wiki/ARM_architecture_family
-
+   
+   <https://en.wikipedia.org/wiki/ARM_architecture_family>
 1. **RISC-V**
-
-    https://en.wikipedia.org/wiki/RISC-V
-
+   
+   <https://en.wikipedia.org/wiki/RISC-V>
 1. **ISA**
-
-    https://en.wikipedia.org/wiki/Instruction_set_architecture
-
+   
+   <https://en.wikipedia.org/wiki/Instruction_set_architecture>
 1. **LoongArch**
-
-    https://en.wikipedia.org/wiki/Loongson#LoongArch
-
+   
+   <https://en.wikipedia.org/wiki/Loongson#LoongArch>

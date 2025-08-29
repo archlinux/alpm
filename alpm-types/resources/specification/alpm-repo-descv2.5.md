@@ -312,33 +312,26 @@ Foobar McFooface <foobar@mcfooface.org>
 # NOTES
 
 1. printable ASCII characters
-
-   https://en.wikipedia.org/wiki/ASCII#Printable_characters
-
+   
+   <https://en.wikipedia.org/wiki/ASCII#Printable_characters>
 1. MD-5
-
-   https://en.wikipedia.org/wiki/MD5
-
+   
+   <https://en.wikipedia.org/wiki/MD5>
 1. SHA-256
-
-   https://en.wikipedia.org/wiki/SHA-2
-
+   
+   <https://en.wikipedia.org/wiki/SHA-2>
 1. Base64
-
-   https://en.wikipedia.org/wiki/Base64
-
+   
+   <https://en.wikipedia.org/wiki/Base64>
 1. OpenPGP signature
-
-   https://openpgp.dev/book/signing_data.html#detached-signatures
-
+   
+   <https://openpgp.dev/book/signing_data.html#detached-signatures>
 1. SPDX License List
-
-   https://spdx.org/licenses/
-
+   
+   <https://spdx.org/licenses/>
 1. OpenPGP User ID
-
-   https://openpgp.dev/book/certificates.html#user-ids
-
+   
+   <https://openpgp.dev/book/certificates.html#user-ids>
 1. RFC 2822
-
-   https://www.rfc-editor.org/rfc/rfc2822
+   
+   <https://www.rfc-editor.org/rfc/rfc2822>

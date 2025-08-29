@@ -218,25 +218,20 @@ gcc-libs
 # NOTES
 
 1. printable ASCII characters
-
-   https://en.wikipedia.org/wiki/ASCII#Printable_characters
-
+   
+   <https://en.wikipedia.org/wiki/ASCII#Printable_characters>
 1. OpenPGP User ID
-
-   https://openpgp.dev/book/certificates.html#user-ids
-
+   
+   <https://openpgp.dev/book/certificates.html#user-ids>
 1. RFC 2822
-
-   https://www.rfc-editor.org/rfc/rfc2822
-
+   
+   <https://www.rfc-editor.org/rfc/rfc2822>
 1. SPDX License List
-
-   https://spdx.org/licenses/
-
+   
+   <https://spdx.org/licenses/>
 1. OpenPGP signature
-
-   https://openpgp.dev/book/signing_data.html#detached-signatures
-
+   
+   <https://openpgp.dev/book/signing_data.html#detached-signatures>
 1. OpenPGP certificates
-
-   https://openpgp.dev/book/certificates.html
+   
+   <https://openpgp.dev/book/certificates.html>

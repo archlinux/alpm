@@ -223,13 +223,11 @@ depend = libexample.so=1-64
 # NOTES
 
 1. **soname**
-
-   https://en.wikipedia.org/wiki/Soname
-
+   
+   <https://en.wikipedia.org/wiki/Soname>
 1. **ELF**
-
-   https://en.wikipedia.org/wiki/Executable_and_Linkable_Format
-
+   
+   <https://en.wikipedia.org/wiki/Executable_and_Linkable_Format>
 1. **library interface version**
-
-   https://www.gnu.org/software/libtool/manual/html_node/Versioning.html
+   
+   <https://www.gnu.org/software/libtool/manual/html_node/Versioning.html>
