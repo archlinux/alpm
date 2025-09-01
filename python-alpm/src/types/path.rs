@@ -12,7 +12,7 @@ impl RelativePath {
     #[new]
     fn new(path: PathBuf) -> Result<Self, crate::types::Error> {
         let inner = alpm_types::RelativePath::new(path)?;
-        Ok(Self(inner))
+        Ok(inner.into())
     }
 
     fn __str__(&self) -> String {
@@ -21,5 +21,11 @@ impl RelativePath {
 
     fn __repr__(&self) -> String {
         format!("RelativePath('{}')", self.0)
+    }
+}
+
+impl From<alpm_types::RelativePath> for RelativePath {
+    fn from(inner: alpm_types::RelativePath) -> Self {
+        RelativePath(inner)
     }
 }

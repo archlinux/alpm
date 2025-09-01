@@ -20,6 +20,7 @@ name = "python_alpm"
 alpm-types.workspace = true
 pyo3 = { version = "0.26", features = ["abi3-py39"] }
 semver = "1.0"
+strum.workspace = true
 
 [lints]
 workspace = true

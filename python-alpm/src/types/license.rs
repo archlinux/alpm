@@ -11,7 +11,7 @@ impl License {
         // This should be infallible, as any non-spdx string is valid as an unknown license.
         // That's why the error type here is undocumented.
         let inner = alpm_types::License::new(license.into())?;
-        Ok(Self(inner))
+        Ok(inner.into())
     }
 
     #[classmethod]
@@ -34,5 +34,11 @@ impl License {
 
     fn __str__(&self) -> String {
         self.0.to_string()
+    }
+}
+
+impl From<alpm_types::License> for License {
+    fn from(inner: alpm_types::License) -> Self {
+        License(inner)
     }
 }

@@ -1,4 +1,4 @@
-"""Tests for environment types: BuildEnvironmentOption, PackageOption, parse_makepkg_option."""
+"""Tests for environment types: BuildEnvironmentOption, PackageOption, makepkg_option_from_str."""
 
 import pytest
 from alpm import alpm_types, ALPMError
@@ -57,10 +57,10 @@ def test_package_option(option_str: str, on: bool):
     assert option.on == on
 
 
-def test_parse_makepkg_option_invalid():
+def test_makepkg_option_from_str_invalid():
     """Test parsing an invalid makepkg option raises error."""
     with pytest.raises(ALPMError):
-        alpm_types.parse_makepkg_option("invalid")
+        alpm_types.makepkg_option_from_str("invalid")
 
 
 def test_build_environment_option_equality():
@@ -100,10 +100,10 @@ def test_package_option_equality():
     ],
 )
 @pytest.mark.parametrize("on", [True, False])
-def test_parse_makepkg_option(option_str: str, option_type, on: bool):
+def test_makepkg_option_from_str(option_str: str, option_type, on: bool):
     """Test parsing a valid makepkg option."""
     flag: str = f"{'!' if not on else ''}{option_str}"
-    option = alpm_types.parse_makepkg_option(flag)
+    option = alpm_types.makepkg_option_from_str(flag)
     assert isinstance(option, option_type)
     assert str(option) == flag
     assert option.name == option_str

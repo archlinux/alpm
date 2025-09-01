@@ -1,4 +1,4 @@
-"""Tests for version-related alpm_types: PackageVersion, SchemaVersion, Epoch, PackageRelease."""
+"""Tests for version-related alpm_types: PackageVersion, SchemaVersion, Epoch, PackageRelease, VersionComparison, FullVersion, Version."""
 
 import pytest
 from alpm import alpm_types, ALPMError
@@ -167,6 +167,263 @@ def test_package_release_repr():
 
     assert repr(release1) == "PackageRelease(major=1)"
     assert repr(release2) == "PackageRelease(major=1, minor=2)"
+
+
+# VersionComparison tests
+@pytest.mark.parametrize(
+    "comparison_str, variant",
+    [
+        ("<", alpm_types.VersionComparison.LESS),
+        ("<=", alpm_types.VersionComparison.LESS_OR_EQUAL),
+        ("=", alpm_types.VersionComparison.EQUAL),
+        (">=", alpm_types.VersionComparison.GREATER_OR_EQUAL),
+        (">", alpm_types.VersionComparison.GREATER),
+    ],
+)
+def test_version_comparison_from_str_valid(
+    comparison_str: str, variant: alpm_types.VersionComparison
+):
+    """Test creating VersionComparison from valid string."""
+    comparison = alpm_types.VersionComparison.from_str(comparison_str)
+    assert comparison == variant
+
+
+@pytest.mark.parametrize(
+    "invalid_comparison",
+    [
+        "invalid",
+        "<<",
+        "==",
+        ">>",
+        "",
+        "!=",
+        "~",
+    ],
+)
+def test_version_comparison_from_str_invalid(invalid_comparison):
+    """Test creating VersionComparison from invalid string raises error."""
+    with pytest.raises(ValueError):
+        alpm_types.VersionComparison.from_str(invalid_comparison)
+
+
+def test_version_comparison_equality():
+    """Test VersionComparison equality."""
+    comp1 = alpm_types.VersionComparison.EQUAL
+    comp2 = alpm_types.VersionComparison.EQUAL
+    assert comp1 == comp2
+
+
+def test_version_comparison_inequality():
+    """Test VersionComparison inequality."""
+    comp1 = alpm_types.VersionComparison.LESS
+    comp2 = alpm_types.VersionComparison.GREATER
+    assert comp1 != comp2
+
+
+# FullVersion tests
+def test_full_version_from_str_valid():
+    """Test creating FullVersion from valid string."""
+    full_version = alpm_types.FullVersion.from_str("1.2.3-1")
+    assert str(full_version.pkgver) == "1.2.3"
+    assert str(full_version.pkgrel) == "1"
+    assert full_version.epoch is None
+
+
+def test_full_version_from_str_with_epoch():
+    """Test creating FullVersion from string with epoch."""
+    full_version = alpm_types.FullVersion.from_str("2:1.2.3-1")
+    assert str(full_version.pkgver) == "1.2.3"
+    assert str(full_version.pkgrel) == "1"
+    assert str(full_version.epoch) == "2"
+
+
+@pytest.mark.parametrize(
+    "version_str, expected_pkgver, expected_pkgrel, expected_epoch",
+    [
+        ("1.2.3-1", "1.2.3", "1", None),
+        ("2:1.2.3-1", "1.2.3", "1", "2"),
+        ("0.5.0-2", "0.5.0", "2", None),
+        ("1:2.0.0-3", "2.0.0", "3", "1"),
+    ],
+)
+def test_full_version_from_str_parametrized(
+    version_str, expected_pkgver, expected_pkgrel, expected_epoch
+):
+    """Test creating FullVersion from various valid string formats."""
+    full_version = alpm_types.FullVersion.from_str(version_str)
+    assert str(full_version.pkgver) == expected_pkgver
+    assert str(full_version.pkgrel) == expected_pkgrel
+    if expected_epoch:
+        assert str(full_version.epoch) == expected_epoch
+    else:
+        assert full_version.epoch is None
+
+
+@pytest.mark.parametrize(
+    "invalid_version",
+    [
+        "",
+        "1.2.3",  # missing pkgrel
+        "-1",  # missing pkgver
+        "1.2.3-",  # empty pkgrel
+        ":1.2.3-1",  # empty epoch
+        "a:1.2.3-1",  # invalid epoch
+        "1.2.3-a",  # invalid pkgrel
+    ],
+)
+def test_full_version_from_str_invalid(invalid_version):
+    """Test creating FullVersion from invalid string raises error."""
+    with pytest.raises(ALPMError):
+        alpm_types.FullVersion.from_str(invalid_version)
+
+
+def test_full_version_vercmp_equal():
+    """Test FullVersion vercmp with equal versions."""
+    v1 = alpm_types.FullVersion.from_str("1.2.3-1")
+    v2 = alpm_types.FullVersion.from_str("1.2.3-1")
+    assert v1.vercmp(v2) == 0
+
+
+def test_full_version_vercmp_newer():
+    """Test FullVersion vercmp with newer version."""
+    v1 = alpm_types.FullVersion.from_str("1.2.4-1")
+    v2 = alpm_types.FullVersion.from_str("1.2.3-1")
+    assert v1.vercmp(v2) == 1
+
+
+def test_full_version_vercmp_older():
+    """Test FullVersion vercmp with older version."""
+    v1 = alpm_types.FullVersion.from_str("1.2.2-1")
+    v2 = alpm_types.FullVersion.from_str("1.2.3-1")
+    assert v1.vercmp(v2) == -1
+
+
+def test_full_version_vercmp_with_epoch():
+    """Test FullVersion vercmp with epoch."""
+    v1 = alpm_types.FullVersion.from_str("2:1.0.0-1")
+    v2 = alpm_types.FullVersion.from_str("1:2.0.0-1")
+    assert v1.vercmp(v2) == 1  # higher epoch wins
+
+
+def test_full_version_comparison_operators():
+    """Test FullVersion comparison operators."""
+    v1 = alpm_types.FullVersion.from_str("1.2.3-1")
+    v2 = alpm_types.FullVersion.from_str("1.2.4-1")
+    v3 = alpm_types.FullVersion.from_str("1.2.3-1")
+
+    assert v1 < v2
+    assert v1 <= v2
+    assert v2 > v1
+    assert v2 >= v1
+    assert v1 == v3
+    assert v1 <= v3
+    assert v1 >= v3
+
+
+def test_full_version_string_representation():
+    """Test FullVersion string representation."""
+    full_version = alpm_types.FullVersion.from_str("1.2.3-1")
+    str_repr = str(full_version)
+    assert "1.2.3" in str_repr
+    assert "1" in str_repr
+
+
+def test_full_version_repr():
+    """Test FullVersion repr."""
+    full_version = alpm_types.FullVersion.from_str("1.2.3-1")
+    repr_str = repr(full_version)
+    assert "FullVersion" in repr_str
+
+
+# Version tests
+def test_version_init_basic():
+    """Test creating Version with basic components."""
+    pkgver = alpm_types.PackageVersion("1.2.3")
+    version = alpm_types.Version(pkgver)
+    assert version.pkgver == pkgver
+    assert version.pkgrel is None
+    assert version.epoch is None
+
+
+@pytest.mark.parametrize(
+    "version_str, expected_has_pkgrel, expected_has_epoch",
+    [
+        ("1.2.3", False, False),
+        ("1.2.3-1", True, False),
+        ("2:1.2.3", False, True),
+        ("2:1.2.3-1", True, True),
+    ],
+)
+def test_version_from_str_valid(version_str, expected_has_pkgrel, expected_has_epoch):
+    """Test creating Version from valid string."""
+    version = alpm_types.Version.from_str(version_str)
+    assert version.pkgver is not None
+    if expected_has_pkgrel:
+        assert version.pkgrel is not None
+    else:
+        assert version.pkgrel is None
+    if expected_has_epoch:
+        assert version.epoch is not None
+    else:
+        assert version.epoch is None
+
+
+@pytest.mark.parametrize(
+    "invalid_version",
+    [
+        "",
+        "-1",  # missing pkgver
+        ":1.2.3",  # empty epoch
+        "a:1.2.3",  # invalid epoch
+        "1.2.3-a",  # invalid pkgrel
+    ],
+)
+def test_version_from_str_invalid(invalid_version):
+    """Test creating Version from invalid string raises error."""
+    with pytest.raises(ALPMError):
+        alpm_types.Version.from_str(invalid_version)
+
+
+def test_version_vercmp_equal():
+    """Test Version vercmp with equal versions."""
+    v1 = alpm_types.Version.from_str("1.2.3")
+    v2 = alpm_types.Version.from_str("1.2.3")
+    assert v1.vercmp(v2) == 0
+
+
+def test_version_vercmp_newer():
+    """Test Version vercmp with newer version."""
+    v1 = alpm_types.Version.from_str("1.2.4")
+    v2 = alpm_types.Version.from_str("1.2.3")
+    assert v1.vercmp(v2) == 1
+
+
+def test_version_vercmp_older():
+    """Test Version vercmp with older version."""
+    v1 = alpm_types.Version.from_str("1.2.2")
+    v2 = alpm_types.Version.from_str("1.2.3")
+    assert v1.vercmp(v2) == -1
+
+
+def test_version_vercmp_with_pkgrel():
+    """Test Version vercmp with package release."""
+    v1 = alpm_types.Version.from_str("1.2.3-2")
+    v2 = alpm_types.Version.from_str("1.2.3-1")
+    assert v1.vercmp(v2) == 1
+
+
+def test_version_string_representation():
+    """Test Version string representation."""
+    version = alpm_types.Version.from_str("1.2.3")
+    str_repr = str(version)
+    assert "1.2.3" in str_repr
+
+
+def test_version_repr():
+    """Test Version repr."""
+    version = alpm_types.Version.from_str("1.2.3")
+    repr_str = repr(version)
+    assert "Version" in repr_str
 
 
 def test_package_version_error_handling():

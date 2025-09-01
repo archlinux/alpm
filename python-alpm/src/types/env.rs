@@ -23,7 +23,7 @@ impl From<alpm_types::MakepkgOption> for MakepkgOption {
 // Returns union type `BuildEnvironmentOption | PackageOption`.
 // Equivalent to `alpm_types::MakepkgOption::new` in Rust.
 #[pyfunction]
-pub fn parse_makepkg_option(option: &str) -> Result<MakepkgOption, crate::types::Error> {
+pub fn makepkg_option_from_str(option: &str) -> Result<MakepkgOption, crate::types::Error> {
     let inner_ident = alpm_types::MakepkgOption::from_str(option)?;
     Ok(inner_ident.into())
 }

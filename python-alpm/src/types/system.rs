@@ -1,9 +1,10 @@
 use std::str::FromStr;
 
 use pyo3::{prelude::*, types::PyType};
+use strum::Display;
 
 #[pyclass]
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 // Uses Python's enum variant naming convention.
 #[allow(clippy::upper_case_acronyms)]
 #[allow(non_camel_case_types)]
@@ -23,6 +24,16 @@ pub enum Architecture {
     X86_64_V2,
     X86_64_V3,
     X86_64_V4,
+}
+
+#[pymethods]
+impl Architecture {
+    #[classmethod]
+    fn from_str(_cls: &Bound<'_, PyType>, arch: &str) -> PyResult<Architecture> {
+        alpm_types::Architecture::from_str(arch)
+            .map(Architecture::from)
+            .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))
+    }
 }
 
 impl From<Architecture> for alpm_types::Architecture {
@@ -69,12 +80,42 @@ impl From<alpm_types::Architecture> for Architecture {
     }
 }
 
+#[pyclass]
+#[derive(Clone, Copy, Debug, Display, Eq, Ord, PartialEq, PartialOrd)]
+// Uses Python's enum variant naming convention.
+#[allow(clippy::upper_case_acronyms)]
+#[allow(non_camel_case_types)]
+pub enum ElfArchitectureFormat {
+    #[strum(to_string = "32")]
+    BIT_32,
+    #[strum(to_string = "64")]
+    BIT_64,
+}
+
 #[pymethods]
-impl Architecture {
+impl ElfArchitectureFormat {
     #[classmethod]
-    fn from_str(_cls: &Bound<'_, PyType>, arch: &str) -> PyResult<Architecture> {
-        alpm_types::Architecture::from_str(arch)
-            .map(Architecture::from)
+    fn from_str(_cls: &Bound<'_, PyType>, format: &str) -> PyResult<ElfArchitectureFormat> {
+        alpm_types::ElfArchitectureFormat::from_str(format)
+            .map(ElfArchitectureFormat::from)
             .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))
+    }
+}
+
+impl From<ElfArchitectureFormat> for alpm_types::ElfArchitectureFormat {
+    fn from(format: ElfArchitectureFormat) -> alpm_types::ElfArchitectureFormat {
+        match format {
+            ElfArchitectureFormat::BIT_32 => alpm_types::ElfArchitectureFormat::Bit32,
+            ElfArchitectureFormat::BIT_64 => alpm_types::ElfArchitectureFormat::Bit64,
+        }
+    }
+}
+
+impl From<alpm_types::ElfArchitectureFormat> for ElfArchitectureFormat {
+    fn from(format: alpm_types::ElfArchitectureFormat) -> ElfArchitectureFormat {
+        match format {
+            alpm_types::ElfArchitectureFormat::Bit32 => ElfArchitectureFormat::BIT_32,
+            alpm_types::ElfArchitectureFormat::Bit64 => ElfArchitectureFormat::BIT_64,
+        }
     }
 }

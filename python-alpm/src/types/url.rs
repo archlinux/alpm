@@ -11,7 +11,7 @@ impl Url {
     #[new]
     fn new(url: &str) -> Result<Self, crate::types::Error> {
         let inner = alpm_types::Url::from_str(url)?;
-        Ok(Self(inner))
+        Ok(inner.into())
     }
 
     fn __str__(&self) -> String {
@@ -20,5 +20,11 @@ impl Url {
 
     fn __repr__(&self) -> String {
         format!("Url('{}')", self.0)
+    }
+}
+
+impl From<alpm_types::Url> for Url {
+    fn from(value: alpm_types::Url) -> Self {
+        Url(value)
     }
 }

@@ -25,7 +25,7 @@ impl From<alpm_types::OpenPGPIdentifier> for OpenPGPIdentifier {
 // Returns union type `OpenPGPKeyId | OpenPGPv4Fingerprint`.
 // Equivalent to `alpm_types::OpenPGPIdentifier::from_str` in Rust.
 #[pyfunction]
-pub fn parse_openpgp_identifier(
+pub fn openpgp_identifier_from_str(
     identifier: &str,
 ) -> Result<OpenPGPIdentifier, crate::types::Error> {
     let inner_ident = alpm_types::OpenPGPIdentifier::from_str(identifier)?;

@@ -171,7 +171,9 @@ class PackageOption:
     def __repr__(self) -> str: ...
     def __eq__(self, other: object) -> bool: ...
 
-def parse_makepkg_option(option: str) -> Union[BuildEnvironmentOption, PackageOption]:
+def makepkg_option_from_str(
+    option: str,
+) -> Union[BuildEnvironmentOption, PackageOption]:
     """Parse a makepkg option string into the appropriate option type.
 
     Args:
@@ -195,8 +197,8 @@ class License:
             license (str): License expression.
         """
 
-    @staticmethod
-    def from_valid_spdx(identifier: str) -> "License":
+    @classmethod
+    def from_valid_spdx(cls, identifier: str) -> "License":
         """
         Create a new License instance from a valid SPDX identifier string.
 
@@ -268,7 +270,7 @@ class OpenPGPv4Fingerprint:
     def __repr__(self) -> str: ...
     def __eq__(self, other: object) -> bool: ...
 
-def parse_openpgp_identifier(
+def openpgp_identifier_from_str(
     identifier: str,
 ) -> Union[OpenPGPKeyId, OpenPGPv4Fingerprint]:
     """
@@ -323,8 +325,8 @@ class Architecture(Enum):
     X86_64_V3 = ("x86_64_v3",)
     X86_64_V4 = ("x86_64_v4",)
 
-    @staticmethod
-    def from_string(arch: str) -> "Architecture":
+    @classmethod
+    def from_str(cls, arch: str) -> "Architecture":
         """Create an Architecture from a string.
 
         Args:
@@ -383,8 +385,8 @@ class Epoch:
             OverflowError: If the epoch is greater than the system's pointer size.
         """
 
-    @staticmethod
-    def from_str(epoch: str) -> "Epoch":
+    @classmethod
+    def from_str(cls, epoch: str) -> "Epoch":
         """Create a new Epoch from a string representation.
 
         Args:
@@ -428,8 +430,8 @@ class PackageRelease:
             OverflowError: If the major or minor version is negative or greater than the system's pointer size.
         """
 
-    @staticmethod
-    def from_str(version: str) -> "PackageRelease":
+    @classmethod
+    def from_str(cls, version: str) -> "PackageRelease":
         """Create a PackageRelease from a string representation.
 
         Args:
@@ -493,7 +495,12 @@ class SchemaVersion:
     """
 
     def __init__(
-        self, major: int = 0, minor: int = 0, patch: int = 0, pre="", build=""
+        self,
+        major: int = 0,
+        minor: int = 0,
+        patch: int = 0,
+        pre: str = "",
+        build: str = "",
     ) -> None:
         """Create a new schema version.
 
@@ -511,8 +518,8 @@ class SchemaVersion:
             OverflowError: If the major, minor, or patch version is greater than 2^64 - 1 or negative.
         """
 
-    @staticmethod
-    def from_str(version: str) -> "SchemaVersion":
+    @classmethod
+    def from_str(cls, version: str) -> "SchemaVersion":
         """Create a SchemaVersion from a string representation.
 
         Args:
@@ -553,6 +560,401 @@ class SchemaVersion:
     def __gt__(self, other: "SchemaVersion") -> bool: ...
     def __ge__(self, other: "SchemaVersion") -> bool: ...
 
+class OptionalDependency:
+    """An optional dependency for a package.
+
+    This type is used for representing dependencies that are not essential for base functionality of a package, but may
+    be necessary to make use of certain features of a package.
+
+    An OptionalDependency consists of a package relation and an optional description separated by a colon (':').
+    The package relation component must be a valid PackageRelation.
+    If a description is provided it must be at least one character long.
+    """
+
+    def __init__(
+        self, package_relation: "PackageRelation", description: Optional[str] = None
+    ):
+        """Create a new optional dependency.
+
+        Args:
+            package_relation (PackageRelation): The package relation of the optional dependency.
+            description (Optional[str]): An optional description of the dependency.
+        """
+
+    @classmethod
+    def from_str(cls, s: str):
+        """Create a new OptionalDependency from a string representation.
+
+        Args:
+            s (str): The string representation of the optional dependency.
+
+        Returns:
+            OptionalDependency: A new instance of OptionalDependency.
+
+        Raises:
+            ALPMError: If the string cannot be parsed as a valid optional dependency.
+        """
+
+    @property
+    def name(self) -> str:
+        """Name of the optional dependency."""
+
+    @property
+    def version_requirement(self) -> Optional["VersionRequirement"]:
+        """Version requirement of the optional dependency, if any."""
+
+    @property
+    def description(self) -> Optional[str]:
+        """Description of the optional dependency, if any."""
+
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+    def __eq__(self, other: object) -> bool: ...
+
+class PackageRelation:
+    """A package relation.
+
+    Describes a relation to a component.
+    Package relations may either consist of only a name or of a name and a version_requirement.
+    """
+
+    def __init__(
+        self, name: str, version_requirement: Optional["VersionRequirement"] = None
+    ):
+        """Create a new package relation.
+
+        Args:
+            name (str): The name of the package.
+            version_requirement (Optional[VersionRequirement]): An optional version requirement for the package.
+
+        Raises:
+            ALPMError: If the name is invalid.
+        """
+
+    @property
+    def name(self) -> str:
+        """Name of the package."""
+
+    @property
+    def version_requirement(self) -> Optional["VersionRequirement"]:
+        """Version requirement of the package, if any."""
+
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+    def __eq__(self, other: object) -> bool: ...
+
+class SonameV1Type(Enum):
+    """The form of a SonameV1."""
+
+    BASIC = ("BASIC",)
+    UNVERSIONED = ("UNVERSIONED",)
+    EXPLICIT = ("EXPLICIT",)
+
+class SonameV1:
+    """Representation of soname data of a shared object based on the alpm-sonamev1 specification.
+
+    This type is deprecated and SonameV2 should be preferred instead! Due to the loose nature of the alpm-sonamev1
+    specification, the basic form overlaps with the specification of Name and the explicit form overlaps with that of
+    PackageRelation.
+    """
+
+    def __init__(
+        self,
+        name: str,
+        version_or_soname: Optional["PackageVersion" | str] = None,
+        architecture: Optional["ElfArchitectureFormat"] = None,
+    ):
+        """Create a new SonameV1.
+
+        Depending on input, returns different forms of SonameV1:
+        BASIC, if both version_or_soname and architecture are None
+        UNVERSIONED, if version_or_soname is a str and architecture is not None
+        EXPLICIT, if version_or_soname is a PackageVersion and architecture is not None
+
+        Args:
+            name (str): The name of the shared object.
+            version_or_soname (Optional[PackageVersion | str]): The package version (for explicit form) or soname (for unversioned form) of the shared object.
+            architecture (Optional[ElfArchitectureFormat]): The architecture of the shared object, only for unversioned or explicit forms.
+
+        Raises:
+            ALPMError: If the input is invalid.
+        """
+
+    @property
+    def name(self) -> str:
+        """The least specific name of the shared object file."""
+
+    @property
+    def soname(self) -> Optional[str]:
+        """The value of the shared object's SONAME field in its dynamic section. Available only for unversioned form."""
+
+    @property
+    def version(self) -> Optional["PackageVersion"]:
+        """The version of the shared object file (as exposed in its _soname_ data). Available only for explicit form."""
+
+    @property
+    def architecture(self) -> Optional["ElfArchitectureFormat"]:
+        """The ELF architecture format of the shared object file. Not available for basic form."""
+
+    def form(self) -> "SonameV1Type":
+        """The form of this SonameV1."""
+
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+    def __eq__(self, other: object) -> bool: ...
+
+def relation_or_soname_from_str(s: str) -> Union[PackageRelation, SonameV1]:
+    """Parse a string into either a PackageRelation or a SonameV1.
+
+    Args:
+        s (str): The string representation of PackageRelation or SonameV1.
+
+    Returns:
+        PackageRelation | SonameV1: A valid PackageRelation or SonameV1 object.
+
+    Raises:
+        ALPMError: If the input string can't be parsed to a valid PackageRelation or SonameV1.
+    """
+
+class VersionComparison(Enum):
+    """Specifies the comparison function for a VersionRequirement.
+
+    The package version can be required to be:
+    - less than ('<')
+    - less than or equal to ('<=')
+    - equal to ('=')
+    - greater than or equal to ('>=')
+    - greater than ('>')
+    the specified version.
+    """
+
+    LESS_OR_EQUAL = ("<=",)
+    GREATER_OR_EQUAL = (">=",)
+    EQUAL = ("=",)
+    LESS = ("<",)
+    GREATER = (">",)
+
+    @classmethod
+    def from_str(cls, comparison: str) -> "VersionComparison":
+        """Parse a version comparison string into a VersionComparison enum variant.
+
+        Args:
+            comparison (str): The version comparison string to parse. Must be one of '<', '<=', '=', '>=', '>'.
+
+        Returns:
+            VersionComparison: The corresponding VersionComparison enum variant.
+
+        Raises:
+            ALPMError: If the input string doesn't match any known comparison.
+        """
+
+    def __eq__(self, other: object) -> bool: ...
+
+class VersionRequirement:
+    """A version requirement, e.g. for a dependency package.
+
+    It consists of a target version and a VersionComparison. A version requirement of '>=1.5' has a target version of
+    '1.5' and a comparison function of VersionComparison.GREATER_OR_EQUAL.
+    """
+
+    def __init__(self, comparison: "VersionComparison", version: "Version") -> None:
+        """Create a new version requirement.
+
+        Args:
+            comparison (VersionComparison): The comparison function.
+            version (Version): The version.
+        """
+
+    @classmethod
+    def from_str(cls, s: str) -> "VersionRequirement":
+        """Create a new VersionRequirement from a string representation.
+
+        Args:
+            s (str): The string representation of the version requirement.
+
+        Returns:
+            VersionRequirement: A new instance of VersionRequirement.
+
+        Raises:
+            ALPMError: If the string cannot be parsed as a valid version requirement.
+        """
+
+    def is_satisfied_by(self, ver: "Version") -> bool:
+        """Returns True if the requirement is satisfied by the given package version.
+
+        Args:
+            ver (Version): The version to check.
+
+        Returns:
+            bool: True if the version satisfies the requirement, False otherwise.
+        """
+
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+    def __eq__(self, other: object) -> bool: ...
+
+class ElfArchitectureFormat(Enum):
+    """ELF architecture format.
+
+    This enum represents the Class field in the ELF Header.
+    """
+
+    BIT_32 = ("32",)
+    BIT_64 = ("64",)
+
+    @classmethod
+    def from_str(cls, format: str) -> "ElfArchitectureFormat":
+        """Parse an ELF architecture format string into an ElfArchitectureFormat enum variant.
+
+        Args:
+            format (str): The ELF architecture format string to parse. Must be one of '32' or '64'.
+
+        Returns:
+            ElfArchitectureFormat: The corresponding ElfArchitectureFormat enum variant.
+
+        Raises:
+            ValueError: If the input string doesn't match any known format.
+        """
+
+    def __eq__(self, other: object) -> bool: ...
+
+class FullVersion:
+    """A package version with mandatory PackageRelease.
+
+    Tracks an optional Epoch, a PackageVersion and a PackageRelease. This reflects the 'full' and 'full with epoch'
+    forms of alpm-package-version.
+    """
+
+    def __init__(
+        self,
+        pkgver: "PackageVersion",
+        pkgrel: "PackageRelease",
+        epoch: Optional["Epoch"] = None,
+    ) -> None:
+        """Create a new FullVersion.
+
+        Args:
+            pkgver (PackageVersion): The package version.
+            pkgrel (PackageRelease): The package release.
+            epoch (Optional[Epoch]): The epoch, if any.
+        """
+
+    @classmethod
+    def from_str(cls, version: str):
+        """Create a FullVersion from a string representation.
+
+        Args:
+            version (str): The string representation of the full version.
+
+        Returns:
+            FullVersion: A new instance of FullVersion.
+
+        Raises:
+            ALPMError: If the string cannot be parsed as a valid full version.
+        """
+
+    @property
+    def pkgver(self) -> "PackageVersion":
+        """The package version."""
+
+    @property
+    def pkgrel(self) -> "PackageRelease":
+        """The package release."""
+
+    @property
+    def epoch(self) -> Optional["Epoch"]:
+        """The epoch, if any."""
+
+    def vercmp(self, other: "FullVersion") -> int:
+        """Compare this FullVersion with another FullVersion.
+
+        Output behavior is based on the behavior of the vercmp tool.
+
+        Args:
+            other (FullVersion): The other FullVersion to compare against.
+
+        Returns:
+            int: 1 if self is newer than other,
+                 0 if they are equal,
+                 -1 if self is older than other.
+        """
+
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+    def __eq__(self, other: object) -> bool: ...
+    def __lt__(self, other: "FullVersion") -> bool: ...
+    def __le__(self, other: "FullVersion") -> bool: ...
+    def __gt__(self, other: "FullVersion") -> bool: ...
+    def __ge__(self, other: "FullVersion") -> bool: ...
+
+class Version:
+    """A version of a package.
+
+    A Version generically tracks an optional Epoch, a PackageVersion and an optional PackageRelease.
+    """
+
+    def __init__(
+        self,
+        pkgver: "PackageVersion",
+        pkgrel: Optional["PackageRelease"] = None,
+        epoch: Optional["Epoch"] = None,
+    ) -> None:
+        """Create a new Version.
+
+        Args:
+            pkgver (PackageVersion): The package version.
+            pkgrel (Optional[PackageRelease]): The package release, if any.
+            epoch (Optional[Epoch]): The epoch, if any.
+        """
+
+    @classmethod
+    def from_str(cls, version: str):
+        """Create a FullVersion from a string representation.
+
+        Args:
+            version (str): The string representation of the full version.
+
+        Returns:
+            FullVersion: A new instance of FullVersion.
+
+        Raises:
+            ALPMError: If the string cannot be parsed as a valid full version.
+        """
+
+    @property
+    def pkgver(self) -> "PackageVersion":
+        """The package version."""
+
+    @property
+    def pkgrel(self) -> Optional["PackageRelease"]:
+        """The package release, if any."""
+
+    @property
+    def epoch(self) -> Optional["Epoch"]:
+        """The epoch, if any."""
+
+    def vercmp(self, other: "Version") -> int:
+        """Compare this Version with another Version.
+
+        Output behavior is based on the behavior of the vercmp tool.
+
+        Args:
+            other (Version): The other Version to compare against.
+
+        Returns:
+            int: 1 if self is newer than other,
+                 0 if they are equal,
+                 -1 if self is older than other.
+        """
+
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+    def __eq__(self, other: object) -> bool: ...
+    def __lt__(self, other: "Version") -> bool: ...
+    def __le__(self, other: "Version") -> bool: ...
+    def __gt__(self, other: "Version") -> bool: ...
+    def __ge__(self, other: "Version") -> bool: ...
+
 __all__ = [
     "ALPMError",
     "Checksum",
@@ -565,11 +967,11 @@ __all__ = [
     "Sha512Checksum",
     "BuildEnvironmentOption",
     "PackageOption",
-    "parse_makepkg_option",
+    "makepkg_option_from_str",
     "License",
     "OpenPGPKeyId",
     "OpenPGPv4Fingerprint",
-    "parse_openpgp_identifier",
+    "openpgp_identifier_from_str",
     "RelativePath",
     "Architecture",
     "Url",
@@ -577,4 +979,14 @@ __all__ = [
     "PackageRelease",
     "PackageVersion",
     "SchemaVersion",
+    "OptionalDependency",
+    "PackageRelation",
+    "SonameV1",
+    "SonameV1Type",
+    "relation_or_soname_from_str",
+    "VersionComparison",
+    "VersionRequirement",
+    "ElfArchitectureFormat",
+    "FullVersion",
+    "Version",
 ]

@@ -1,38 +1,52 @@
-"""Tests for system alpm_types: Architecture."""
+"""Tests for system-related types: ElfArchitectureFormat."""
 
 import pytest
 from alpm import alpm_types
 
-ARCHITECTURES = [
-    alpm_types.Architecture.AARCH64,
-    alpm_types.Architecture.ANY,
-    alpm_types.Architecture.ARM,
-    alpm_types.Architecture.ARMV6H,
-    alpm_types.Architecture.ARMV7H,
-    alpm_types.Architecture.I386,
-    alpm_types.Architecture.I486,
-    alpm_types.Architecture.I686,
-    alpm_types.Architecture.PENTIUM4,
-    alpm_types.Architecture.RISCV32,
-    alpm_types.Architecture.RISCV64,
-    alpm_types.Architecture.X86_64,
-    alpm_types.Architecture.X86_64_V2,
-    alpm_types.Architecture.X86_64_V3,
-    alpm_types.Architecture.X86_64_V4,
-]
+
+@pytest.mark.parametrize(
+    "format_str",
+    [
+        "32",
+        "64",
+    ],
+)
+def test_elf_architecture_format_from_str_valid(format_str):
+    """Test creating ElfArchitectureFormat from valid string."""
+    arch_format = alpm_types.ElfArchitectureFormat.from_str(format_str)
+    assert arch_format is not None
 
 
-@pytest.mark.parametrize("arch", ARCHITECTURES)
-def test_architecture_variants(arch: alpm_types.Architecture):
-    """Test that all architecture variants are available."""
-    assert arch is not None
+@pytest.mark.parametrize(
+    "invalid_format",
+    [
+        "",
+        " ",
+        "16",
+        "invalid",
+    ],
+)
+def test_elf_architecture_format_from_str_invalid(invalid_format):
+    """Test creating ElfArchitectureFormat from invalid string raises error."""
+    with pytest.raises(ValueError):
+        alpm_types.ElfArchitectureFormat.from_str(invalid_format)
 
 
-def test_architecture_equality_variants():
-    """Test architecture variants equality/inequality."""
-    for i, arch1 in enumerate(ARCHITECTURES):
-        for j, arch2 in enumerate(ARCHITECTURES):
-            if i != j:
-                assert arch1 != arch2
-            else:
-                assert arch1 == arch2
+def test_elf_architecture_format_equality():
+    """Test ElfArchitectureFormat equality."""
+    arch1 = alpm_types.ElfArchitectureFormat.BIT_64
+    arch2 = alpm_types.ElfArchitectureFormat.BIT_64
+    assert arch1 == arch2
+
+
+def test_elf_architecture_format_inequality():
+    """Test ElfArchitectureFormat inequality."""
+    arch1 = alpm_types.ElfArchitectureFormat.BIT_32
+    arch2 = alpm_types.ElfArchitectureFormat.BIT_64
+    assert arch1 != arch2
+
+
+def test_elf_architecture_format_enum_values():
+    """Test ElfArchitectureFormat enum values."""
+    assert alpm_types.ElfArchitectureFormat.BIT_32 is not None
+    assert alpm_types.ElfArchitectureFormat.BIT_64 is not None

@@ -1,19 +1,21 @@
 use pyo3::prelude::*;
 
-mod checksum;
-mod env;
-mod error;
-mod license;
-mod openpgp;
-mod path;
-mod system;
-mod url;
-mod version;
+pub mod checksum;
+pub mod env;
+pub mod error;
+pub mod license;
+pub mod openpgp;
+pub mod path;
+pub mod relation;
+pub mod requirement;
+pub mod system;
+pub mod url;
+pub mod version;
 
 pub use error::{ALPMError, Error};
 
-#[pymodule(gil_used = false, name = "alpm_types")]
-pub mod types {
+#[pymodule(gil_used = false, name = "alpm_types", submodule)]
+pub mod py_types {
     #[pymodule_export]
     use ALPMError;
     #[pymodule_export]
@@ -35,7 +37,7 @@ pub mod types {
     #[pymodule_export]
     use env::PackageOption;
     #[pymodule_export]
-    use env::parse_makepkg_option;
+    use env::makepkg_option_from_str;
     #[pymodule_export]
     use license::License;
     #[pymodule_export]
@@ -43,21 +45,41 @@ pub mod types {
     #[pymodule_export]
     use openpgp::OpenPGPv4Fingerprint;
     #[pymodule_export]
-    use openpgp::parse_openpgp_identifier;
+    use openpgp::openpgp_identifier_from_str;
     #[pymodule_export]
     use path::RelativePath;
     #[pymodule_export]
+    use relation::OptionalDependency;
+    #[pymodule_export]
+    use relation::PackageRelation;
+    #[pymodule_export]
+    use relation::SonameV1;
+    #[pymodule_export]
+    use relation::SonameV1Type;
+    #[pymodule_export]
+    use relation::relation_or_soname_from_str;
+    #[pymodule_export]
+    use requirement::VersionComparison;
+    #[pymodule_export]
+    use requirement::VersionRequirement;
+    #[pymodule_export]
     use system::Architecture;
+    #[pymodule_export]
+    use system::ElfArchitectureFormat;
     #[pymodule_export]
     use url::Url;
     #[pymodule_export]
     use version::Epoch;
+    #[pymodule_export]
+    use version::FullVersion;
     #[pymodule_export]
     use version::PackageRelease;
     #[pymodule_export]
     use version::PackageVersion;
     #[pymodule_export]
     use version::SchemaVersion;
+    #[pymodule_export]
+    use version::Version;
 
     use super::*;
 }

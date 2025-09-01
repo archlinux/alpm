@@ -33,6 +33,7 @@ dependencies = [
  "alpm-types",
  "pyo3",
  "semver",
+ "strum",
 ]
 
 [[package]]

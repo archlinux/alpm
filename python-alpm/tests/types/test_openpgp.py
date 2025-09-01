@@ -1,4 +1,4 @@
-"""Tests for OpenPGP-related alpm_types: OpenPGPKeyId, OpenPGPv4Fingerprint, parse_openpgp_identifier."""
+"""Tests for OpenPGP-related alpm_types: OpenPGPKeyId, OpenPGPv4Fingerprint, openpgp_identifier_from_str."""
 
 import pytest
 from alpm import alpm_types, ALPMError
@@ -29,23 +29,23 @@ def test_openpgp_fingerprint_invalid():
         alpm_types.OpenPGPv4Fingerprint("invalid")
 
 
-def test_parse_openpgp_identifier_key_id():
+def test_openpgp_identifier_from_str_key_id():
     """Test parsing OpenPGP identifier as key ID."""
-    result = alpm_types.parse_openpgp_identifier("ABCD1234ABCD5678")
+    result = alpm_types.openpgp_identifier_from_str("ABCD1234ABCD5678")
     assert isinstance(result, alpm_types.OpenPGPKeyId)
 
 
-def test_parse_openpgp_identifier_fingerprint():
+def test_openpgp_identifier_from_str_fingerprint():
     """Test parsing OpenPGP identifier as fingerprint."""
     fingerprint = "1234567890ABCDEF1234567890ABCDEF12345678"
-    result = alpm_types.parse_openpgp_identifier(fingerprint)
+    result = alpm_types.openpgp_identifier_from_str(fingerprint)
     assert isinstance(result, alpm_types.OpenPGPv4Fingerprint)
 
 
-def test_parse_openpgp_identifier_invalid():
+def test_openpgp_identifier_from_str_invalid():
     """Test parsing invalid OpenPGP identifier raises error."""
     with pytest.raises(ALPMError):
-        alpm_types.parse_openpgp_identifier("invalid_identifier")
+        alpm_types.openpgp_identifier_from_str("invalid_identifier")
 
 
 def test_openpgp_key_id_equality():

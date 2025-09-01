@@ -1,7 +1,7 @@
 use pyo3::{PyErr, create_exception};
 
 create_exception!(
-    types,
+    alpm_types,
     ALPMError,
     pyo3::exceptions::PyException,
     "The ALPM error type."

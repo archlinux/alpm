@@ -5,10 +5,10 @@ use pyo3::prelude::*;
 
 mod types;
 
-#[pymodule(gil_used = false)]
-mod alpm {
+#[pymodule(gil_used = false, name = "alpm")]
+mod py_alpm {
     #[pymodule_export]
     use crate::types::ALPMError;
     #[pymodule_export]
-    use crate::types::types;
+    use crate::types::py_types;
 }
