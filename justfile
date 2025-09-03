@@ -778,6 +778,7 @@ test-readmes:
     just test-readme alpm-buildinfo
     just test-readme alpm-pkginfo
     just test-readme alpm-srcinfo
+    just test-readme alpm-lint
 
 # Run tests for Python bindings (accepts pytest `options`).
 [group('test')]
