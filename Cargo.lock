@@ -72,6 +72,7 @@ dependencies = [
  "alpm-pkginfo",
  "alpm-srcinfo",
  "alpm-types",
+ "assert_cmd",
  "clap",
  "colored",
  "documented",
