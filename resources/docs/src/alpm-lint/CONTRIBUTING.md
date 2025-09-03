@@ -1,0 +1,1 @@
+../../../../alpm-lint/CONTRIBUTING.md
