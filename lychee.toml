@@ -14,3 +14,5 @@ max_cache_age = "2d"
 
 # only check 5 URLs at a time
 max_concurrency = 5
+
+exclude_path = ["alpm-lint-website/templates", "alpm-lint-website/themes"]
