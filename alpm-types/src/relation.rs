@@ -486,7 +486,7 @@ pub type SharedLibraryPrefix = Name;
 ///
 /// The _soname_ data may contain only a shared object name (e.g. `libexample.so`) or a shared
 /// object name, that also encodes version information (e.g. `libexample.so.1`).
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Soname {
     /// The name part of a shared object's _soname_.
     pub name: SharedObjectName,
@@ -635,7 +635,7 @@ impl FromStr for Soname {
 /// [soname]: https://en.wikipedia.org/wiki/Soname
 /// [`PackageInfoV1`]: https://docs.rs/alpm_pkginfo/latest/alpm_pkginfo/struct.PackageInfoV1.html
 /// [`PackageInfoV2`]: https://docs.rs/alpm_pkginfo/latest/alpm_pkginfo/struct.PackageInfoV2.html
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct SonameV2 {
     /// The directory prefix of the shared object file.
     pub prefix: SharedLibraryPrefix,
