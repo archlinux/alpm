@@ -1,0 +1,75 @@
+# Run the `alpm-lint` project to generate the newest lint rule set and export it
+# to be used in zola.
+[group('build')]
+update-lint-definition:
+    cargo run --manifest-path ../alpm-lint/Cargo.toml \
+        -- rules \
+        --format json \
+        --output ./static/lint-rules.json \
+        --pretty
+
+    cargo run --manifest-path ../alpm-lint/Cargo.toml \
+        -- meta \
+        --format json \
+        --output ./static/lint-meta.json \
+        --pretty
+
+    cargo run --manifest-path ../alpm-lint/Cargo.toml \
+        -- options \
+        --format json \
+        --output ./static/lint-options.json \
+        --pretty
+
+# Use linkita's project setup and build process to bake tailwind
+# that's used in our own templates into the final css.
+[group('build')]
+build-tailwind:
+    #!/bin/env bash
+    just ensure-command pnpm
+
+    cd themes/linkita
+    pnpm install
+    pnpm tailwindcss -i ./src/app.css -o ../../static/main.min.css --minify
+
+# Build the website. Output is placed in `./public`.
+[group('build')]
+build: update-lint-definition build-tailwind
+    zola build
+
+# Start a local hot-reloading development server.
+[group('dev')]
+serve:
+    just ensure-command zola
+
+    zola serve
+
+# Lint and check formatting
+[group('dev')]
+lint:
+    just ensure-command biome
+
+    biome lint
+
+# Remove all temporary artifacts.
+[group('dev')]
+clean:
+    rm -r public
+    rm -r static/lint-meta.json
+    rm -r static/lint-rules.json
+    rm -r static/lint-options.json
+    rm -r static/main.min.css
+
+# Ensures that one or more required commands are installed
+[private]
+ensure-command +command:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    read -r -a commands <<< "{{ command }}"
+
+    for cmd in "${commands[@]}"; do
+        if ! command -v "$cmd" > /dev/null 2>&1 ; then
+            printf "Couldn't find required executable '%s'\n" "$cmd" >&2
+            exit 1
+        fi
+    done

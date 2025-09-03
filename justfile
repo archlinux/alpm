@@ -236,6 +236,15 @@ build-book:
     cp -r "$target_dir/doc/"{search.desc,src,static.files,trait.impl,type.impl} "$rustdoc_dir"
     cp -r "$target_dir/doc/"*.{js,html} "$rustdoc_dir"
 
+    # Build the lint documentation website
+    if [[ ! "${CI:-}" ]]; then
+        # Only init the submodule locally as the dev might've not done so yet.
+        # Gitlab CI does this automatically for us and doesn't have `git` in it's runtime.
+        git submodule init
+    fi
+    just --justfile alpm-lint-website/justfile --working-directory alpm-lint-website build
+    cp -r alpm-lint-website/public "$output_dir/docs/lints"
+
 # Build local documentation
 [group('build')]
 docs:
@@ -525,8 +534,8 @@ install-workspace-binaries:
         alpm-db
         alpm-lint-config
         alpm-package
-        alpm-pkgbuild
         alpm-parsers
+        alpm-pkgbuild
         alpm-state-repo
         alpm-repo
         alpm-repo-db
