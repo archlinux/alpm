@@ -41,7 +41,7 @@ use crate::{Error, SharedLibraryPrefix};
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct AbsolutePath(PathBuf);
 
 impl AbsolutePath {
@@ -260,7 +260,7 @@ pub type Changelog = RelativePath;
 /// [`SonameV2`][crate::SonameV2].
 ///
 /// [alpm-sonamev2]: https://alpm.archlinux.page/specifications/alpm-sonamev2.7.html
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct SonameLookupDirectory {
     /// The lookup prefix for shared objects.
     pub prefix: SharedLibraryPrefix,
