@@ -1,5 +1,8 @@
 [lint]
-exclude = []
+exclude = [
+    "./alpm-lint-website/content/*.md",
+    "./alpm-lint-website/themes/**/*.md",
+]
 output-format = "concise"
 quiet = false
 respect-gitignore = true

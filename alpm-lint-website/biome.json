@@ -1,0 +1,14 @@
+{
+    "formatter": {
+        "enabled": true,
+        "indentStyle": "space",
+        "lineWidth": 140,
+        "indentWidth": 4
+    },
+    "linter": {
+        "enabled": true
+    },
+    "files": {
+        "includes": ["**", "!**/*.min.css", "!themes", "!public"]
+    }
+}
