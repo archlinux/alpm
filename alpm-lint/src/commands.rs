@@ -1,6 +1,14 @@
 use std::{env::current_dir, fs::File, io::Write, path::PathBuf};
 
-use alpm_lint::{Error, Level, LintScope, LintStore, Resources, cli::OutputFormat};
+use alpm_lint::{
+    Error,
+    Level,
+    LintScope,
+    LintStore,
+    Resources,
+    cli::OutputFormat,
+    issue::display::LintIssueDisplay,
+};
 use alpm_lint_config::{LintConfiguration, LintGroup, LintRuleConfiguration};
 use log::debug;
 use serde::Serialize;
@@ -107,7 +115,14 @@ pub fn check(
 
     debug!("Using output format {format:?}.");
     let content = match format {
-        None => unimplemented!(),
+        None => issues
+            .into_iter()
+            .map(|issue| {
+                let display: LintIssueDisplay = issue.into();
+                display.to_string()
+            })
+            .collect::<Vec<_>>()
+            .join("\n"),
         Some(output_format) => serialize_output(issues, output_format, pretty)?,
     };
 
