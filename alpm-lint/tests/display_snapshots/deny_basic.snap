@@ -1,0 +1,11 @@
+---
+source: alpm-lint/tests/display.rs
+description: deny severity level display.
+expression: "format!(\"{display}\")"
+---
+denied[lint_rule_name]
+   |
+   | message
+   |
+help: help_text
+   = see: https://alpm.archlinux.page/lints/index.html#lint_rule_name

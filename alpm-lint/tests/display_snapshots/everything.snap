@@ -1,0 +1,16 @@
+---
+source: alpm-lint/tests/display.rs
+description: Display with everything enabled.
+expression: "format!(\"{display}\")"
+---
+error[lint_rule_name]: summary
+  --> arrow_line
+   |
+   | multi_line
+   | message
+   |
+help: multi_line
+      help_text
+   = link_name_1: url_1
+   = link_name_2: url_2
+   = see: https://alpm.archlinux.page/lints/index.html#lint_rule_name

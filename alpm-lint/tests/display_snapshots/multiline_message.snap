@@ -1,0 +1,12 @@
+---
+source: alpm-lint/tests/display.rs
+description: Display with multi-line message content.
+expression: "format!(\"{display}\")"
+---
+error[lint_rule_name]
+   |
+   | multi_line
+   | message
+   |
+help: help_text
+   = see: https://alpm.archlinux.page/lints/index.html#lint_rule_name
