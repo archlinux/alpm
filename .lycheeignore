@@ -9,7 +9,10 @@ https://archlinux.org
 https://wiki.archlinux.org
 
 # Only available after merge to default branch and deployment of website.
+https://alpm.archlinux.page/rustdoc/alpm_lint/
+https://alpm.archlinux.page/lints
 
 # Only available after first release of the crate.
+https://docs.rs/alpm-lint/latest/alpm_lint/
 https://docs.rs/alpm-lint-config/latest/alpm_lint_config/
 https://docs.rs/alpm-compress/latest/alpm_compress/

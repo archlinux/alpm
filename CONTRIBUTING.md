@@ -47,6 +47,9 @@ With the help of a [custom target runner], these tests are executed in a contain
 The `just virtualized-integration-tests` recipe executes all tests that are made available by a `_virtualized-integration-test` feature and are located in an integration test module named `virtualized`.
 Different from the `containerized-integration-tests` recipe, this test target concerns itself with tests that are _not_ run in a container, but must be run on bare metal or in a virtual machine.
 
+For parameterized tests, we utilize `rstest`. This is encouraged, but don't go overboard when writing your own tests.
+As a rough guideline, if your parameterization results in `if` checks inside the test, consider creating a dedicated test function for that case.
+
 ### Code coverage reports
 
 Code coverage for unit tests, doc tests and integration tests is calculated using [`cargo-llvm-cov`].

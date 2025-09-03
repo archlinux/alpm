@@ -17,6 +17,7 @@ members = [
     "alpm-common",
     "alpm-compress",
     "alpm-db",
+    "alpm-lint",
     "alpm-lint-config",
     "alpm-mtree",
     "alpm-package",
@@ -54,7 +55,7 @@ clap = { version = "4.5.19", features = [
     "wrap_help",
 ] }
 clap-verbosity = "2.1.0"
-colored = { version = "3", features = ["no-color"] }
+colored = "3"
 flate2 = "1"
 fluent-i18n = "0.1.0"
 insta = "1.40.0"
