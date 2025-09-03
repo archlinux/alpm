@@ -520,10 +520,12 @@ install-workspace-binaries:
     # Workspace members without a binary
     ignored_members=(
         alpm-common
+        alpm-db
         alpm-package
         alpm-pkgbuild
         alpm-parsers
         alpm-state-repo
+        alpm-repo
         alpm-types
         python-alpm
     )
