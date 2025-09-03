@@ -1,12 +1,16 @@
 //! Generic representation of a lint issue.
 
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, fmt};
 
 use alpm_types::Architecture;
 use colored::{ColoredString, Colorize};
 use serde::{Deserialize, Serialize};
 
 use crate::{Level, LintRule, LintScope};
+
+pub mod display;
+
+use display::LintIssueDisplay;
 
 /// An issue a [`LintRule`] may encounter.
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -36,6 +40,73 @@ impl LintIssue {
             scope: rule.scope(),
             issue_type,
             links: rule.extra_links().unwrap_or_default(),
+        }
+    }
+}
+
+impl fmt::Display for LintIssue {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", Into::<LintIssueDisplay>::into(self.clone()))
+    }
+}
+
+impl From<LintIssue> for LintIssueDisplay {
+    /// Convert this [`LintIssue`] into a [`LintIssueDisplay`] for formatted output.
+    fn from(other: LintIssue) -> LintIssueDisplay {
+        let mut summary = None;
+        let mut arrow_line = None;
+        let message = match other.issue_type {
+            LintIssueType::SourceInfo(issue) => match issue {
+                SourceInfoIssue::Generic {
+                    summary: inner_summary,
+
+                    arrow_line: inner_arrow_line,
+                    message,
+                } => {
+                    arrow_line = inner_arrow_line;
+                    summary = Some(inner_summary);
+                    message
+                }
+                SourceInfoIssue::BaseField {
+                    field_name,
+                    value,
+                    context,
+                    architecture,
+                } => {
+                    arrow_line = Some(format!(
+                        "in field '{}'",
+                        SourceInfoIssue::field_fmt(&field_name, architecture)
+                    ));
+                    format!("{context}: {value}")
+                }
+                SourceInfoIssue::PackageField {
+                    field_name,
+                    value,
+                    context,
+                    architecture,
+                    package_name,
+                } => {
+                    arrow_line = Some(format!(
+                        "in field '{}' for package '{}'",
+                        SourceInfoIssue::field_fmt(&field_name, architecture),
+                        package_name.bold()
+                    ));
+                    format!("{context}: {value}")
+                }
+                SourceInfoIssue::MissingField { field_name } => {
+                    format!("Field '{}' is required but missing", field_name.bold())
+                }
+            },
+        };
+
+        LintIssueDisplay {
+            level: other.level,
+            scoped_name: other.lint_rule,
+            summary,
+            arrow_line,
+            message,
+            help_text: other.help_text,
+            custom_links: other.links,
         }
     }
 }
