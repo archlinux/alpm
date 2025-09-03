@@ -16,6 +16,7 @@ members = [
     "alpm-buildinfo",
     "alpm-common",
     "alpm-db",
+    "alpm-lint",
     "alpm-lint-config",
     "alpm-mtree",
     "alpm-package",
@@ -50,7 +51,7 @@ clap = { version = "4.5.19", features = [
     "string",
     "wrap_help",
 ] }
-colored = { version = "3", features = ["no-color"] }
+colored = "3"
 flate2 = "1"
 insta = "1.40.0"
 log = "0.4.27"
