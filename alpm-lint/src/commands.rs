@@ -6,7 +6,8 @@ use alpm_lint::{
     LintScope,
     LintStore,
     Resources,
-    cli::{CheckOutputFormat, OutputFormat},
+    cli::OutputFormat,
+    issue::display::LintIssueDisplay,
 };
 use alpm_lint_config::{LintConfiguration, LintGroup, LintRuleConfiguration};
 use log::debug;
@@ -113,21 +114,15 @@ pub fn check(
 
     debug!("Using output format {format:?}.");
     let content = match format {
-        CheckOutputFormat::Text => unimplemented!(),
-        CheckOutputFormat::Json => {
-            if pretty {
-                serde_json::to_string_pretty(&issues)?
-            } else {
-                serde_json::to_string(&issues)?
-            }
-        }
-        CheckOutputFormat::Toml => {
-            if pretty {
-                toml::to_string_pretty(&issues)?
-            } else {
-                toml::to_string(&issues)?
-            }
-        }
+        None => issues
+            .into_iter()
+            .map(|issue| {
+                let display: LintIssueDisplay = issue.into();
+                display.to_string()
+            })
+            .collect::<Vec<_>>()
+            .join("\n"),
+        Some(output_format) => serialize_output(issues, output_format, pretty)?,
     };
 
     write_output(&content, output)?;

@@ -1,6 +1,6 @@
 //! Generic representation of a lint issue.
 
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, fmt};
 
 use alpm_types::Architecture;
 use colored::{ColoredString, Colorize};
@@ -8,7 +8,11 @@ use serde::{Deserialize, Serialize};
 
 use crate::{Level, LintRule, LintScope};
 
-/// A lint failed in some kind of way.
+pub mod display;
+
+use display::LintIssueDisplay;
+
+/// Represents an issue reported by a lint rule.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct LintIssue {
     /// The name of the lint rule that produced this error
@@ -41,7 +45,74 @@ impl LintIssue {
     }
 }
 
-/// Various types of lint issue may be encountered during linting.
+impl fmt::Display for LintIssue {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", Into::<LintIssueDisplay>::into(self.clone()))
+    }
+}
+
+impl From<LintIssue> for LintIssueDisplay {
+    /// Convert this LintIssue into a LintErrorDisplay for formatted output
+    fn from(other: LintIssue) -> LintIssueDisplay {
+        let mut summary = None;
+        let mut arrow_line = None;
+        let message = match other.issue_type {
+            LintIssueType::SourceInfo(issue) => match issue {
+                SourceInfoIssue::Generic {
+                    summary: inner_summary,
+
+                    arrow_line: inner_arrow_line,
+                    message,
+                } => {
+                    arrow_line = inner_arrow_line;
+                    summary = Some(inner_summary);
+                    message
+                }
+                SourceInfoIssue::BaseField {
+                    field_name,
+                    value,
+                    context,
+                    architecture,
+                } => {
+                    arrow_line = Some(format!(
+                        "in field '{}'",
+                        SourceInfoIssue::field_fmt(&field_name, architecture)
+                    ));
+                    format!("{context}: {value}")
+                }
+                SourceInfoIssue::PackageField {
+                    field_name,
+                    value,
+                    context,
+                    architecture,
+                    package_name,
+                } => {
+                    arrow_line = Some(format!(
+                        "in field '{}' for package '{}'",
+                        SourceInfoIssue::field_fmt(&field_name, architecture),
+                        package_name.bold()
+                    ));
+                    format!("{context}: {value}")
+                }
+                SourceInfoIssue::MissingField { field_name } => {
+                    format!("Field '{}' is required but missing", field_name.bold())
+                }
+            },
+        };
+
+        LintIssueDisplay {
+            level: other.level,
+            lint_rule: other.lint_rule,
+            summary,
+            arrow_line,
+            message,
+            help_text: other.help_text,
+            custom_links: other.links,
+        }
+    }
+}
+
+/// Various types of lint issues may be encountered during linting.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub enum LintIssueType {
     /// All issues that can be encountered when linting a `.SRCINFO` file.
