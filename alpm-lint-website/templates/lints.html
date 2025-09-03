@@ -1,0 +1,166 @@
+{% extends "linkita/templates/index.html" %}
+{% import "macros/multi_select.html" as dropdown %}
+{% block main %}
+
+{# Load the lint rule definitions #}
+{% set lint_rules = load_data(path="static/lint-rules.json") %}
+{% set lint_meta = load_data(path="static/lint-meta.json") %}
+{% set lint_options = load_data(path="static/lint-options.json") %}
+
+{# Filter section #}
+<div class="my-0">
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    
+    {# Search field #}
+    <div>
+      <label for="search-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        Search
+      </label>
+      <div class="relative">
+        <input 
+          type="text" 
+          id="search-input" 
+          placeholder="Search lint rules..."
+          class="w-full pl-10 pr-4 py-2 text-sm text-black rounded-md bg-white border border-gray-300 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white dark:border-gray-600"
+        >
+        <div class="absolute left-3 top-1/2 transform -translate-y-1/2 z-[1]">
+          <svg class="h-4 w-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    {# Lint groups filter #}
+    {{ dropdown::multi_select(filter_type="groups", label="Groups", options=lint_meta.groups, has_none_option=true, none_label="No Group") }}
+
+    {# Lint scopes filter #}
+    {{ dropdown::multi_select(filter_type="scopes", label="Scopes", options=lint_meta.scopes) }}
+
+    {# Lint severity levels filter #}
+    {{ dropdown::multi_select(filter_type="levels", label="Levels", options=lint_meta.levels) }}
+  </div>
+
+  <div class="flex flex-row my-4 items-center justify-between"> 
+    {# Results summary #}
+    <p id="results-summary" class="text-sm text-gray-600 dark:text-gray-400">
+      Showing <span id="visible-count">{{ lint_rules | length }}</span> of {{ lint_rules | length }} lint rules
+    </p>
+
+    {# Clear filters button #}
+    <button 
+      id="clear-filters" 
+      type="button"
+      class="px-4 py-2 border text-sm bg-gray-100 text-gray-700 border-gray-300 rounded-md transition-colors hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600"
+    >
+      Clear All Filters
+    </button>
+</div>
+
+{# Lint rules list #}
+<div id="lint-rules-container" class="space-y-4">
+  {% for scoped_name, rule in lint_rules %}
+  <div class="lint-rule transition-all duration-300 ease-out" 
+       id="{{ rule.scoped_name }}"
+       data-scoped-name="{{ rule.scoped_name | lower }}"
+       data-name="{{ rule.name | lower }}"
+       data-scope="{{ rule.scope }}"
+       data-level="{{ rule.level }}"
+       data-groups="{% if rule.groups %}{{ rule.groups | join(sep=',') }}{% endif %}"
+       data-documentation="{{ rule.documentation | lower }}">
+    
+    <div class="border bg-gray-50 border-gray-200 rounded-lg overflow-hidden shadow-sm dark:bg-gray-700 dark:border-gray-700">
+      {# Clickable Header #}
+      <button class="lint-rule-header w-full bg-gray-200 flex px-6 py-2 cursor-pointer border-none transition-colors hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-600">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 w-full">
+          <h3 class="scoped-name my-0 text-lg font-medium text-gray-900 dark:text-gray-200">
+            {{ rule.scoped_name }}
+          </h3>
+          <div class="flex items-center gap-2 flex-shrink-0 justify-center sm:justify-end">
+            {# Group badges #}
+            {% if rule.groups %}
+              {% for group in rule.groups %}
+              <span class="px-2.5 py-0.5 text-xs font-medium bg-purple-100 text-purple-800 rounded-full dark:bg-purple-900 dark:text-purple-200">
+                {{ group }}
+              </span>
+              {% endfor %}
+              {# The delimiter between the groups and severity #}
+              <div class="inline-block w-0.5 self-stretch bg-gray-300 dark:bg-gray-600"></div>
+            {% endif %}
+            {# Severity #}
+            <span class="px-2.5 py-0.5 text-xs font-medium rounded-full
+                  {% if rule.level == 'Error' %}bg-red-300 text-red-800 dark:bg-red-900 dark:text-red-200
+                  {% elif rule.level == 'Deny' %}bg-orange-300 text-orange-800 dark:bg-orange-900 dark:text-orange-200
+                  {% elif rule.level == 'Warn' %}bg-yellow-300 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200
+                  {% elif rule.level == 'Suggest' %}bg-green-300 text-green-800 dark:bg-green-900 dark:text-green-200
+                  {% endif %}">
+              {{ rule.level }}
+            </span>
+            {# Chevron indicator #}
+            <svg class="chevron w-4 h-4 text-gray-500 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </div>
+        </div>
+      </button>
+      
+      {# Lint rule documentation #}
+      <div class="lint-rule-content collapsed">
+        <div class="min-w-0">
+          <div class="lint-rule-documentation px-6 pb-4 prose prose-sm pt-2 max-w-none dark:prose-invert dark:text-gray-200">
+            {{ rule.documentation | markdown | safe }}
+          </div>
+          
+          {# Options table. Only shown if the rule has options #}
+          {% if rule.option_names | length > 0 %}
+          <div class="px-6 pb-2">
+            <h4 class="text-lg font-medium text-gray-900 dark:text-gray-200 my-0">Options</h4>
+            <div class="overflow-x-auto">
+              <table class="my-3 border rounded-md text-sm border-gray-200 dark:border-gray-600">
+                <thead class="bg-gray-200 dark:bg-gray-800">
+                  <tr>
+                    {% for header in ["Option", "Default Value", "Description"] %}
+                    <th class="px-2 py-1 border-b text-left text-xs font-medium uppercase tracking-wider text-gray-700 border-gray-200 dark:text-gray-400 dark:border-gray-600">
+                      {{ header }}
+                    </th>
+                    {% endfor %}
+                  </tr>
+                </thead>
+                <tbody class="divide-y bg-white text-gray-700 divide-gray-200 dark:bg-gray-700 dark:divide-gray-600">
+                  {% for option_name in rule.option_names %}
+                  {% set option = lint_options[option_name] %}
+                  <tr class="hover:bg-gray-50 dark:hover:bg-gray-600">
+                    {% for value in [option.name, option.default] %}
+                    <td class="px-2 py-1 border-r text-xs font-mono text-gray-900 border-gray-200 dark:text-gray-200 dark:border-gray-600">
+                      {{ value }}
+                    </td>
+                    {% endfor %}
+                    {# We give the description 50% of the screen space #}
+                    <td class="w-1/2 px-2 py-1 text-gray-700 dark:text-gray-300">
+                      {{ option.doc | trim }}
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{# No results message #}
+<div id="no-results" class="hidden text-center pt-20">
+  <div class="text-gray-400 dark:text-gray-500">
+    <svg class="h-12 w-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+    </svg>
+    <h3 class="text-lg font-medium mb-2">No lint rules found</h3>
+    <p>Try adjusting your search criteria or clearing the filters.</p>
+  </div>
+</div>
+{%- endblock main %}
