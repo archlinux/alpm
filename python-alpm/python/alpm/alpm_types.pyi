@@ -3,27 +3,22 @@
 from enum import Enum
 from pathlib import Path
 
-from typing_extensions import Union, Optional
-from abc import ABCMeta, abstractmethod
+from typing_extensions import Union, Optional, TypeAlias
 
 class ALPMError(Exception):
     """The ALPM error type."""
 
-class Checksum(metaclass=ABCMeta):
-    """An abstract checksum type."""
+Checksum: TypeAlias = Union[
+    Blake2b512Checksum,
+    Md5Checksum,
+    Sha1Checksum,
+    Sha224Checksum,
+    Sha256Checksum,
+    Sha384Checksum,
+    Sha512Checksum,
+]
 
-    @abstractmethod
-    def __init__(self, value: str):
-        """Create a checksum from a string.
-
-        Args:
-            value: The checksum value as a string.
-
-        Raises:
-            ALPMError: If the value is not a valid checksum.
-        """
-
-class Blake2b512Checksum(Checksum):
+class Blake2b512Checksum:
     """A checksum using the Blake2b512 algorithm."""
 
     def __init__(self, value: str): ...
@@ -35,7 +30,7 @@ class Blake2b512Checksum(Checksum):
     def __gt__(self, other: "Blake2b512Checksum") -> bool: ...
     def __ge__(self, other: "Blake2b512Checksum") -> bool: ...
 
-class Md5Checksum(Checksum):
+class Md5Checksum:
     """A checksum using the Md5 algorithm.
 
     WARNING: Use of this algorithm is highly discouraged, because it is cryptographically unsafe.
@@ -50,7 +45,7 @@ class Md5Checksum(Checksum):
     def __gt__(self, other: "Md5Checksum") -> bool: ...
     def __ge__(self, other: "Md5Checksum") -> bool: ...
 
-class Sha1Checksum(Checksum):
+class Sha1Checksum:
     """A checksum using the Sha1 algorithm.
 
     WARNING: Use of this algorithm is highly discouraged, because it is cryptographically unsafe.
@@ -65,7 +60,7 @@ class Sha1Checksum(Checksum):
     def __gt__(self, other: "Sha1Checksum") -> bool: ...
     def __ge__(self, other: "Sha1Checksum") -> bool: ...
 
-class Sha224Checksum(Checksum):
+class Sha224Checksum:
     """A checksum using the Sha224 algorithm."""
 
     def __init__(self, value: str): ...
@@ -77,7 +72,7 @@ class Sha224Checksum(Checksum):
     def __gt__(self, other: "Sha224Checksum") -> bool: ...
     def __ge__(self, other: "Sha224Checksum") -> bool: ...
 
-class Sha256Checksum(Checksum):
+class Sha256Checksum:
     """A checksum using the Sha256 algorithm."""
 
     def __init__(self, value: str): ...
@@ -89,7 +84,7 @@ class Sha256Checksum(Checksum):
     def __gt__(self, other: "Sha256Checksum") -> bool: ...
     def __ge__(self, other: "Sha256Checksum") -> bool: ...
 
-class Sha384Checksum(Checksum):
+class Sha384Checksum:
     """A checksum using the Sha384 algorithm."""
 
     def __init__(self, value: str): ...
@@ -101,7 +96,7 @@ class Sha384Checksum(Checksum):
     def __gt__(self, other: "Sha384Checksum") -> bool: ...
     def __ge__(self, other: "Sha384Checksum") -> bool: ...
 
-class Sha512Checksum(Checksum):
+class Sha512Checksum:
     """A checksum using the Sha512 algorithm."""
 
     def __init__(self, value: str): ...
