@@ -5,6 +5,7 @@ use std::{
 
 use alpm_parsers::{iter_char_context, iter_str_context};
 use serde::{Deserialize, Serialize};
+use strum::VariantNames;
 use winnow::{
     ModalResult,
     Parser,
@@ -161,28 +162,35 @@ impl Display for MakepkgOption {
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize, VariantNames)]
 #[serde(rename_all = "lowercase")]
 pub enum BuildEnvironmentOption {
     /// Use or unset the values of build flags (e.g. `CPPFLAGS`, `CFLAGS`, `CXXFLAGS`, `LDFLAGS`)
     /// specified in user-specific configs (e.g. [makepkg.conf]).
     ///
     /// [makepkg.conf]: https://man.archlinux.org/man/makepkg.conf.5
+    #[strum(serialize = "buildflags")]
     BuildFlags(bool),
     /// Use ccache to cache compilation
+    #[strum(serialize = "ccache")]
     Ccache(bool),
     /// Run the check() function if present in the PKGBUILD
+    #[strum(serialize = "check")]
     Check(bool),
     /// Colorize output messages
+    #[strum(serialize = "color")]
     Color(bool),
     /// Use the Distributed C/C++/ObjC compiler
+    #[strum(serialize = "distcc")]
     Distcc(bool),
     /// Generate PGP signature file
+    #[strum(serialize = "sign")]
     Sign(bool),
     /// Use or unset the value of the `MAKEFLAGS` environment variable specified in
     /// user-specific configs (e.g. [makepkg.conf]).
     ///
     /// [makepkg.conf]: https://man.archlinux.org/man/makepkg.conf.5
+    #[strum(serialize = "makeflags")]
     MakeFlags(bool),
 }
 
@@ -222,16 +230,6 @@ impl BuildEnvironmentOption {
         }
     }
 
-    const VARIANTS: [&str; 7] = [
-        "buildflags",
-        "ccache",
-        "check",
-        "color",
-        "distcc",
-        "makeflags",
-        "sign",
-    ];
-
     /// Recognizes a [`BuildEnvironmentOption`] in a string slice.
     ///
     /// Consumes all of its input.
@@ -243,22 +241,18 @@ impl BuildEnvironmentOption {
         let on = option_bool_parser.parse_next(input)?;
         let mut name = option_name_parser.parse_next(input)?;
 
-        let name = alt(BuildEnvironmentOption::VARIANTS)
-            .context(StrContext::Label("makepkg build environment option"))
-            .context_with(iter_str_context!([BuildEnvironmentOption::VARIANTS]))
-            .parse_next(&mut name)?;
-
-        match name {
-            "buildflags" => Ok(Self::BuildFlags(on)),
-            "ccache" => Ok(Self::Ccache(on)),
-            "check" => Ok(Self::Check(on)),
-            "color" => Ok(Self::Color(on)),
-            "distcc" => Ok(Self::Distcc(on)),
-            "makeflags" => Ok(Self::MakeFlags(on)),
-            "sign" => Ok(Self::Sign(on)),
-            // Unreachable because the winnow parser returns an error above.
-            _ => unreachable!(),
-        }
+        alt((
+            "buildflags".value(Self::BuildFlags(on)),
+            "ccache".value(Self::Ccache(on)),
+            "check".value(Self::Check(on)),
+            "color".value(Self::Color(on)),
+            "distcc".value(Self::Distcc(on)),
+            "makeflags".value(Self::MakeFlags(on)),
+            "sign".value(Self::Sign(on)),
+            fail.context(StrContext::Label("makepkg build environment option"))
+                .context_with(iter_str_context!([BuildEnvironmentOption::VARIANTS])),
+        ))
+        .parse_next(&mut name)
     }
 }
 
@@ -304,39 +298,49 @@ impl Display for BuildEnvironmentOption {
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize, VariantNames)]
 #[serde(rename_all = "lowercase")]
 pub enum PackageOption {
     /// Automatically add dependencies and provisions (see [alpm-sonamev2]).
     ///
     /// [alpm-sonamev2]: https://alpm.archlinux.page/specifications/alpm-sonamev2.7.html
+    #[strum(serialize = "autodeps")]
     AutoDeps(bool),
 
     /// Add debugging flags as specified in DEBUG_* variables
+    #[strum(serialize = "debug")]
     Debug(bool),
 
     /// Save doc directories specified by DOC_DIRS
+    #[strum(serialize = "docs")]
     Docs(bool),
 
     /// Leave empty directories in packages
+    #[strum(serialize = "emptydirs")]
     EmptyDirs(bool),
 
     /// Leave libtool (.la) files in packages
+    #[strum(serialize = "libtool")]
     Libtool(bool),
 
     /// Add compile flags for building with link time optimization
+    #[strum(serialize = "lto")]
     Lto(bool),
 
     /// Remove files specified by PURGE_TARGETS
+    #[strum(serialize = "purge")]
     Purge(bool),
 
     /// Leave static library (.a) files in packages
+    #[strum(serialize = "staticlibs")]
     StaticLibs(bool),
 
     /// Strip symbols from binaries/libraries
+    #[strum(serialize = "strip")]
     Strip(bool),
 
     /// Compress manual (man and info) pages in MAN_DIRS with gzip
+    #[strum(serialize = "zipman")]
     Zipman(bool),
 }
 
@@ -382,20 +386,6 @@ impl PackageOption {
         }
     }
 
-    const VARIANTS: [&str; 11] = [
-        "autodeps",
-        "debug",
-        "docs",
-        "emptydirs",
-        "libtool",
-        "lto",
-        "debug",
-        "purge",
-        "staticlibs",
-        "strip",
-        "zipman",
-    ];
-
     /// Recognizes a [`PackageOption`] in a string slice.
     ///
     /// Consumes all of its input.
@@ -407,25 +397,21 @@ impl PackageOption {
         let on = option_bool_parser.parse_next(input)?;
         let mut name = option_name_parser.parse_next(input)?;
 
-        let value = alt(PackageOption::VARIANTS)
-            .context(StrContext::Label("makepkg packaging option"))
-            .context_with(iter_str_context!([PackageOption::VARIANTS]))
-            .parse_next(&mut name)?;
-
-        match value {
-            "autodeps" => Ok(Self::AutoDeps(on)),
-            "debug" => Ok(Self::Debug(on)),
-            "docs" => Ok(Self::Docs(on)),
-            "emptydirs" => Ok(Self::EmptyDirs(on)),
-            "libtool" => Ok(Self::Libtool(on)),
-            "lto" => Ok(Self::Lto(on)),
-            "purge" => Ok(Self::Purge(on)),
-            "staticlibs" => Ok(Self::StaticLibs(on)),
-            "strip" => Ok(Self::Strip(on)),
-            "zipman" => Ok(Self::Zipman(on)),
-            // Unreachable because the winnow parser returns an error above.
-            _ => unreachable!(),
-        }
+        alt((
+            "autodeps".value(Self::AutoDeps(on)),
+            "debug".value(Self::Debug(on)),
+            "docs".value(Self::Docs(on)),
+            "emptydirs".value(Self::EmptyDirs(on)),
+            "libtool".value(Self::Libtool(on)),
+            "lto".value(Self::Lto(on)),
+            "purge".value(Self::Purge(on)),
+            "staticlibs".value(Self::StaticLibs(on)),
+            "strip".value(Self::Strip(on)),
+            "zipman".value(Self::Zipman(on)),
+            fail.context(StrContext::Label("makepkg packaging option"))
+                .context_with(iter_str_context!([PackageOption::VARIANTS])),
+        ))
+        .parse_next(&mut name)
     }
 }
 
@@ -760,8 +746,8 @@ mod tests {
     #[case(
         "!somethingelse",
         concat!(
-            "expected `buildflags`, `ccache`, `check`, `color`, `distcc`, `makeflags`, `sign`, ",
-            "`autodeps`, `debug`, `docs`, `emptydirs`, `libtool`, `lto`, `debug`, `purge`, ",
+            "expected `buildflags`, `ccache`, `check`, `color`, `distcc`, `sign`, `makeflags`, ",
+            "`autodeps`, `debug`, `docs`, `emptydirs`, `libtool`, `lto`, `purge`, ",
             "`staticlibs`, `strip`, `zipman`",
         )
     )]
@@ -798,7 +784,7 @@ mod tests {
     #[rstest]
     #[case(
         "!somethingelse",
-        "expected `autodeps`, `debug`, `docs`, `emptydirs`, `libtool`, `lto`, `debug`, `purge`, `staticlibs`, `strip`, `zipman`"
+        "expected `autodeps`, `debug`, `docs`, `emptydirs`, `libtool`, `lto`, `purge`, `staticlibs`, `strip`, `zipman`"
     )]
     #[case(
         "#somethingelse",
@@ -831,7 +817,7 @@ mod tests {
     #[rstest]
     #[case(
         "!somethingelse",
-        "expected `buildflags`, `ccache`, `check`, `color`, `distcc`, `makeflags`, `sign`"
+        "expected `buildflags`, `ccache`, `check`, `color`, `distcc`, `sign`, `makeflags`"
     )]
     #[case(
         "#somethingelse",
