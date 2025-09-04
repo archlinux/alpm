@@ -5,7 +5,7 @@ alpm-repo-db - a database format for describing the metadata of **A**rch **L**in
 # DESCRIPTION
 
 Repository databases are (optionally compressed) **tar** archives that contain directories and metadata files.
-The contents of such a database describes the state of an ALPM package repository (**alpm-repo**).
+The contents of such a database describe the state of an ALPM package repository (**alpm-repo**).
 Here, **alpm-repo-desc** and **alpm-repo-files** files provide metadata on specific package versions currently considered in a package repository.
 
 Repository database files are created from **alpm-package** files using package repository management software (e.g. **dbscripts**[1] which relies on **repo-add**).
@@ -77,7 +77,7 @@ These file names are used by package management software to download package rep
 
 ## Contents
 
-The contents of a repository database depend on its variant and the number of unique **alpm-package** files in an **alpm-repo** that should be described by it.
+The contents of a repository database depend on the database variant and the number of unique **alpm-package** files in the **alpm-repo** it describes.
 Here, each package can only be present in a single version in the repository database.
 In both variants, metadata of a package is kept in a top-level directory, that is named after the package and its specific version.
 The name follows this schema:
