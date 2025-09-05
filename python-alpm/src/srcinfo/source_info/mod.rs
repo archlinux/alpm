@@ -17,6 +17,15 @@ impl From<alpm_srcinfo::SourceInfo> for SourceInfo {
 
 #[pymodule(gil_used = false, name = "source_info", submodule)]
 pub mod py_source_info {
+    use pyo3::prelude::*;
+
     #[pymodule_export]
     use super::v1::py_v1;
+
+    #[pymodule_init]
+    fn init(m: &Bound<'_, PyModule>) -> PyResult<()> {
+        let modules = PyModule::import(m.py(), "sys")?.getattr("modules")?;
+        modules.set_item("alpm.alpm_srcinfo.source_info.v1", m.getattr("v1")?)?;
+        Ok(())
+    }
 }

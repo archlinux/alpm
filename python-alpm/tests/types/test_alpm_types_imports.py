@@ -3,7 +3,6 @@ def test_imports():
 
     from alpm.alpm_types import (  # noqa: F401
         ALPMError,
-        Checksum,
         Blake2b512Checksum,
         Md5Checksum,
         Sha1Checksum,

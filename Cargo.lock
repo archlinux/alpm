@@ -27,17 +27,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "alpm"
-version = "0.1.0"
-dependencies = [
- "alpm-srcinfo",
- "alpm-types",
- "pyo3",
- "semver",
- "strum",
-]
-
-[[package]]
 name = "alpm-buildinfo"
 version = "0.3.0"
 dependencies = [
@@ -1860,6 +1849,17 @@ dependencies = [
  "pyo3-build-config",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "python-alpm"
+version = "0.1.0"
+dependencies = [
+ "alpm-srcinfo",
+ "alpm-types",
+ "pyo3",
+ "semver",
+ "strum",
 ]
 
 [[package]]

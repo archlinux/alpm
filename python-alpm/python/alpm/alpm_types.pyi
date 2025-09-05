@@ -3,20 +3,10 @@
 from enum import Enum
 from pathlib import Path
 
-from typing_extensions import Union, Optional, TypeAlias
+from typing import Union, Optional
 
 class ALPMError(Exception):
     """The ALPM error type."""
-
-Checksum: TypeAlias = Union[
-    Blake2b512Checksum,
-    Md5Checksum,
-    Sha1Checksum,
-    Sha224Checksum,
-    Sha256Checksum,
-    Sha384Checksum,
-    Sha512Checksum,
-]
 
 class Blake2b512Checksum:
     """A checksum using the Blake2b512 algorithm."""
@@ -189,7 +179,7 @@ class License:
         """Create a new License from an SPDX identifier.
 
         Args:
-            license (str): License expression.
+            identifier (str): License expression.
         """
 
     @classmethod
@@ -952,7 +942,6 @@ class Version:
 
 __all__ = [
     "ALPMError",
-    "Checksum",
     "Blake2b512Checksum",
     "Md5Checksum",
     "Sha1Checksum",

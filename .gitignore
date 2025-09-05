@@ -7,4 +7,4 @@ target/
 .idea/
 __pycache__/
 # In mixed Python/Rust projects, Maturin puts compiled Rust module directly in Python source during development.
-python-alpm/python/alpm/alpm.abi3.so
+python-alpm/python/alpm/_native.abi3.so

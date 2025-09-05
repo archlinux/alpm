@@ -77,6 +77,8 @@ impl From<alpm_srcinfo::SourceInfoV1> for SourceInfoV1 {
 
 #[pymodule(gil_used = false, name = "v1", submodule)]
 pub mod py_v1 {
+    use pyo3::prelude::*;
+
     #[pymodule_export]
     use super::SourceInfoV1;
     #[pymodule_export]
@@ -85,4 +87,22 @@ pub mod py_v1 {
     use super::package::py_package;
     #[pymodule_export]
     use super::package_base::py_package_base;
+
+    #[pymodule_init]
+    fn init(m: &Bound<'_, PyModule>) -> PyResult<()> {
+        let modules = PyModule::import(m.py(), "sys")?.getattr("modules")?;
+        modules.set_item(
+            "alpm.alpm_srcinfo.source_info.v1.merged",
+            m.getattr("merged")?,
+        )?;
+        modules.set_item(
+            "alpm.alpm_srcinfo.source_info.v1.package",
+            m.getattr("package")?,
+        )?;
+        modules.set_item(
+            "alpm.alpm_srcinfo.source_info.v1.package_base",
+            m.getattr("package_base")?,
+        )?;
+        Ok(())
+    }
 }
