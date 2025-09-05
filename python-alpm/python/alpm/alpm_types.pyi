@@ -5,6 +5,13 @@ from pathlib import Path
 
 from typing import Union, Optional
 
+from .type_aliases import (
+    OpenPGPIdentifier,
+    MakepkgOption,
+    RelationOrSoname,
+    VersionOrSoname,
+)
+
 class ALPMError(Exception):
     """The ALPM error type."""
 
@@ -158,7 +165,7 @@ class PackageOption:
 
 def makepkg_option_from_str(
     option: str,
-) -> Union[BuildEnvironmentOption, PackageOption]:
+) -> MakepkgOption:
     """Parse a makepkg option string into the appropriate option type.
 
     Args:
@@ -257,7 +264,7 @@ class OpenPGPv4Fingerprint:
 
 def openpgp_identifier_from_str(
     identifier: str,
-) -> Union[OpenPGPKeyId, OpenPGPv4Fingerprint]:
+) -> OpenPGPIdentifier:
     """
     Create a valid OpenPGPKeyId or OpenPGPv4Fingerprint.
 
@@ -646,7 +653,7 @@ class SonameV1:
     def __init__(
         self,
         name: str,
-        version_or_soname: Optional["PackageVersion" | str] = None,
+        version_or_soname: Optional[VersionOrSoname] = None,
         architecture: Optional["ElfArchitectureFormat"] = None,
     ):
         """Create a new SonameV1.
@@ -688,7 +695,7 @@ class SonameV1:
     def __repr__(self) -> str: ...
     def __eq__(self, other: object) -> bool: ...
 
-def relation_or_soname_from_str(s: str) -> Union[PackageRelation, SonameV1]:
+def relation_or_soname_from_str(s: str) -> RelationOrSoname:
     """Parse a string into either a PackageRelation or a SonameV1.
 
     Args:

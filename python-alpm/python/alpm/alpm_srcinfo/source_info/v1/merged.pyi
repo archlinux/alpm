@@ -1,19 +1,15 @@
 """Provides fully resolved package metadata derived from SRCINFO data."""
 
-from typing import Optional, Union
+from typing import Optional
 
+from alpm.type_aliases import MakepkgOption, OpenPGPIdentifier, RelationOrSoname
 from alpm.alpm_types import (
     Url,
     License,
     Architecture,
     RelativePath,
-    BuildEnvironmentOption,
-    PackageOption,
     FullVersion,
-    OpenPGPKeyId,
-    OpenPGPv4Fingerprint,
     PackageRelation,
-    SonameV1,
     OptionalDependency,
 )
 
@@ -57,7 +53,7 @@ class MergedPackage:
         """The list of alpm-package-groups the package is part of."""
 
     @property
-    def options(self) -> list[Union["BuildEnvironmentOption", "PackageOption"]]:
+    def options(self) -> list["MakepkgOption"]:
         """The list of build tool options used when building the package."""
 
     @property
@@ -69,11 +65,11 @@ class MergedPackage:
         """The full version of the package."""
 
     @property
-    def pgp_fingerprints(self) -> list[Union["OpenPGPKeyId", "OpenPGPv4Fingerprint"]]:
+    def pgp_fingerprints(self) -> list["OpenPGPIdentifier"]:
         """The list of OpenPGP fingerprints of OpenPGP certificates used for the verification of upstream sources."""
 
     @property
-    def dependencies(self) -> list[Union["PackageRelation", "SonameV1"]]:
+    def dependencies(self) -> list["RelationOrSoname"]:
         """The list of run-time dependencies."""
 
     @property
@@ -81,7 +77,7 @@ class MergedPackage:
         """The list of optional dependencies."""
 
     @property
-    def provides(self) -> list[Union["PackageRelation", "SonameV1"]]:
+    def provides(self) -> list["RelationOrSoname"]:
         """The list of provisions."""
 
     @property
