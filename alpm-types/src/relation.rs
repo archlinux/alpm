@@ -486,7 +486,7 @@ pub type SharedLibraryPrefix = Name;
 ///
 /// The _soname_ data may contain only a shared object name (e.g. `libexample.so`) or a shared
 /// object name, that also encodes version information (e.g. `libexample.so.1`).
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Soname {
     /// The name part of a shared object's _soname_.
     pub name: SharedObjectName,
