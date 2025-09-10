@@ -1,0 +1,1 @@
+../../../../alpm-config/CHANGELOG.md

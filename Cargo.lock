@@ -69,6 +69,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "alpm-config"
+version = "0.1.0"
+dependencies = [
+ "alpm-lint-config",
+ "tempfile",
+ "testresult",
+ "thiserror",
+ "toml",
+]
+
+[[package]]
 name = "alpm-db"
 version = "0.1.0"
 
