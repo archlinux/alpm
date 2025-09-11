@@ -2,6 +2,8 @@ use std::str::FromStr;
 
 use pyo3::{prelude::*, types::PyType};
 
+use crate::macros::impl_from;
+
 #[pyclass(frozen, eq)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct VersionRequirement(alpm_types::VersionRequirement);
@@ -35,17 +37,7 @@ impl VersionRequirement {
     }
 }
 
-impl From<alpm_types::VersionRequirement> for VersionRequirement {
-    fn from(inner: alpm_types::VersionRequirement) -> Self {
-        VersionRequirement(inner)
-    }
-}
-
-impl From<VersionRequirement> for alpm_types::VersionRequirement {
-    fn from(outer: VersionRequirement) -> Self {
-        outer.0
-    }
-}
+impl_from!(VersionRequirement, alpm_types::VersionRequirement);
 
 #[pyclass(frozen, eq)]
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

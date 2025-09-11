@@ -2,6 +2,8 @@ use std::str::FromStr;
 
 use pyo3::prelude::*;
 
+use crate::macros::impl_from;
+
 #[allow(dead_code)]
 #[derive(FromPyObject, IntoPyObject)]
 pub enum Checksum {
@@ -36,6 +38,8 @@ macro_rules! define_checksum {
                 format!("{}({})", stringify!($name), self.0)
             }
         }
+
+        impl_from!($name, $type);
     };
 }
 

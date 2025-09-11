@@ -1,6 +1,8 @@
 use alpm_srcinfo::source_info::v1::merged as alpm_srcinfo_merged;
 use pyo3::prelude::*;
 
+use crate::macros::impl_from;
+
 #[pyclass(frozen)]
 #[derive(Clone, Debug)]
 pub struct MergedPackage(alpm_srcinfo_merged::MergedPackage);
@@ -158,23 +160,13 @@ impl MergedPackage {
     }
 }
 
-impl From<alpm_srcinfo_merged::MergedPackage> for MergedPackage {
-    fn from(inner: alpm_srcinfo_merged::MergedPackage) -> Self {
-        MergedPackage(inner)
-    }
-}
+impl_from!(MergedPackage, alpm_srcinfo_merged::MergedPackage);
 
 #[pyclass(frozen)]
 #[derive(Clone, Debug)]
-// TODO: remove after implementing getters/properties
-#[allow(dead_code)]
 pub struct MergedSource(alpm_srcinfo_merged::MergedSource);
 
-impl From<alpm_srcinfo_merged::MergedSource> for MergedSource {
-    fn from(inner: alpm_srcinfo_merged::MergedSource) -> Self {
-        MergedSource(inner)
-    }
-}
+impl_from!(MergedSource, alpm_srcinfo_merged::MergedSource);
 
 #[pymodule(gil_used = false, name = "merged", submodule)]
 pub mod py_merged {

@@ -3,6 +3,8 @@ use std::str::FromStr;
 use pyo3::{prelude::*, types::PyType};
 use strum::Display;
 
+use crate::macros::impl_from;
+
 #[derive(Debug, FromPyObject, IntoPyObject)]
 pub enum VersionOrSoname {
     Version(crate::types::version::PackageVersion),
@@ -177,11 +179,7 @@ impl SonameV1 {
     }
 }
 
-impl From<alpm_types::SonameV1> for SonameV1 {
-    fn from(inner: alpm_types::SonameV1) -> Self {
-        SonameV1(inner)
-    }
-}
+impl_from!(SonameV1, alpm_types::SonameV1);
 
 #[pyclass(frozen, eq)]
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -232,17 +230,7 @@ impl PackageRelation {
     }
 }
 
-impl From<alpm_types::PackageRelation> for PackageRelation {
-    fn from(inner: alpm_types::PackageRelation) -> Self {
-        PackageRelation(inner)
-    }
-}
-
-impl From<PackageRelation> for alpm_types::PackageRelation {
-    fn from(value: PackageRelation) -> Self {
-        value.0
-    }
-}
+impl_from!(PackageRelation, alpm_types::PackageRelation);
 
 #[pyclass(frozen, eq)]
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -303,8 +291,4 @@ impl OptionalDependency {
     }
 }
 
-impl From<alpm_types::OptionalDependency> for OptionalDependency {
-    fn from(inner: alpm_types::OptionalDependency) -> Self {
-        OptionalDependency(inner)
-    }
-}
+impl_from!(OptionalDependency, alpm_types::OptionalDependency);

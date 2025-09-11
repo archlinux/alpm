@@ -2,6 +2,8 @@ use std::str::FromStr;
 
 use pyo3::prelude::*;
 
+use crate::macros::impl_from;
+
 // Union type `BuildEnvironmentOption | PackageOption`
 #[derive(FromPyObject, IntoPyObject)]
 pub enum MakepkgOption {
@@ -63,6 +65,8 @@ impl BuildEnvironmentOption {
     }
 }
 
+impl_from!(BuildEnvironmentOption, alpm_types::BuildEnvironmentOption);
+
 #[pyclass(frozen, eq)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PackageOption(alpm_types::PackageOption);
@@ -93,3 +97,5 @@ impl PackageOption {
         self.0.to_string()
     }
 }
+
+impl_from!(PackageOption, alpm_types::PackageOption);

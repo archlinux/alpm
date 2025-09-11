@@ -2,6 +2,8 @@ use std::str::FromStr;
 
 use pyo3::prelude::*;
 
+use crate::macros::impl_from;
+
 #[pyclass(frozen, eq)]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Url(alpm_types::Url);
@@ -23,8 +25,4 @@ impl Url {
     }
 }
 
-impl From<alpm_types::Url> for Url {
-    fn from(value: alpm_types::Url) -> Self {
-        Url(value)
-    }
-}
+impl_from!(Url, alpm_types::Url);
