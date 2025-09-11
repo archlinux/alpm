@@ -8,6 +8,7 @@ pub mod openpgp;
 pub mod path;
 pub mod relation;
 pub mod requirement;
+pub mod source;
 pub mod system;
 pub mod url;
 pub mod version;
@@ -32,6 +33,20 @@ pub mod py_types {
     use checksum::Sha384Checksum;
     #[pymodule_export]
     use checksum::Sha512Checksum;
+    #[pymodule_export]
+    use checksum::SkippableBlake2b512Checksum;
+    #[pymodule_export]
+    use checksum::SkippableMd5Checksum;
+    #[pymodule_export]
+    use checksum::SkippableSha1Checksum;
+    #[pymodule_export]
+    use checksum::SkippableSha224Checksum;
+    #[pymodule_export]
+    use checksum::SkippableSha256Checksum;
+    #[pymodule_export]
+    use checksum::SkippableSha384Checksum;
+    #[pymodule_export]
+    use checksum::SkippableSha512Checksum;
     #[pymodule_export]
     use env::BuildEnvironmentOption;
     #[pymodule_export]
@@ -63,9 +78,23 @@ pub mod py_types {
     #[pymodule_export]
     use requirement::VersionRequirement;
     #[pymodule_export]
+    use source::Source;
+    #[pymodule_export]
     use system::Architecture;
     #[pymodule_export]
     use system::ElfArchitectureFormat;
+    #[pymodule_export]
+    use url::BzrInfo;
+    #[pymodule_export]
+    use url::FossilInfo;
+    #[pymodule_export]
+    use url::GitInfo;
+    #[pymodule_export]
+    use url::HgInfo;
+    #[pymodule_export]
+    use url::SourceUrl;
+    #[pymodule_export]
+    use url::SvnInfo;
     #[pymodule_export]
     use url::Url;
     #[pymodule_export]
