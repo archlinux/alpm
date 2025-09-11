@@ -19,7 +19,7 @@ name = "python_alpm"
 [dependencies]
 alpm-srcinfo.workspace = true
 alpm-types.workspace = true
-pyo3 = { version = "0.26", features = ["abi3-py310"] }
+pyo3 = { version = "0.26", features = ["abi3-py310", "extension-module"] }
 semver.workspace = true
 strum.workspace = true
 
