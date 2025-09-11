@@ -1,3 +1,5 @@
+//! Types for handling URLs and VCS-related information in package sources.
+
 use std::{
     fmt::{Display, Formatter},
     str::FromStr,
@@ -323,20 +325,31 @@ impl SourceUrl {
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(tag = "protocol", rename_all = "lowercase")]
 pub enum VcsInfo {
+    /// Bazaar/Breezy VCS information.
     Bzr {
+        /// Optional URL fragment information.
         fragment: Option<BzrFragment>,
     },
+    /// Fossil VCS information.
     Fossil {
+        /// Optional URL fragment information.
         fragment: Option<FossilFragment>,
     },
+    /// Git VCS information.
     Git {
+        /// Optional URL fragment information.
         fragment: Option<GitFragment>,
+        /// Whether OpenPGP signature verification is required.
         signed: bool,
     },
+    /// Mercurial VCS information.
     Hg {
+        /// Optional URL fragment information.
         fragment: Option<HgFragment>,
     },
+    /// Apache Subversion VCS information.
     Svn {
+        /// Optional URL fragment information.
         fragment: Option<SvnFragment>,
     },
 }
@@ -458,6 +471,7 @@ fn fragment_value(input: &mut &str) -> ModalResult<String> {
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum BzrFragment {
+    /// A specific revision in the repository.
     Revision(String),
 }
 
@@ -495,8 +509,11 @@ impl BzrFragment {
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum FossilFragment {
+    /// A specific branch in the repository.
     Branch(String),
+    /// A specific commit in the repository.
     Commit(String),
+    /// A specific tag in the repository.
     Tag(String),
 }
 
@@ -541,8 +558,11 @@ impl FossilFragment {
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum GitFragment {
+    /// A specific branch in the repository.
     Branch(String),
+    /// A specific commit in the repository.
     Commit(String),
+    /// A specific tag in the repository.
     Tag(String),
 }
 
@@ -595,8 +615,11 @@ fn git_query(input: &mut &str) -> ModalResult<bool> {
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum HgFragment {
+    /// A specific branch in the repository.
     Branch(String),
+    /// A specific revision in the repository.
     Revision(String),
+    /// A specific tag in the repository.
     Tag(String),
 }
 
@@ -641,6 +664,7 @@ impl HgFragment {
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum SvnFragment {
+    /// A specific revision in the repository.
     Revision(String),
 }
 
