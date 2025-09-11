@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use pyo3::{prelude::*, types::PyType};
+use pyo3::{exceptions::PyTypeError, prelude::*, types::PyType};
 use strum::Display;
 
 use crate::macros::impl_from;
@@ -33,7 +33,7 @@ impl TryFrom<VersionOrSoname> for alpm_types::VersionOrSoname {
     }
 }
 
-#[derive(Debug, FromPyObject, IntoPyObject)]
+#[derive(Clone, Debug, FromPyObject, IntoPyObject, PartialEq)]
 pub enum RelationOrSoname {
     BasicSonameV1(SonameV1),
     Relation(PackageRelation),
@@ -55,6 +55,25 @@ impl From<RelationOrSoname> for alpm_types::RelationOrSoname {
         match value {
             RelationOrSoname::BasicSonameV1(s) => alpm_types::RelationOrSoname::BasicSonameV1(s.0),
             RelationOrSoname::Relation(r) => alpm_types::RelationOrSoname::Relation(r.0),
+        }
+    }
+}
+
+impl From<PackageRelation> for RelationOrSoname {
+    fn from(value: PackageRelation) -> Self {
+        RelationOrSoname::Relation(value)
+    }
+}
+
+impl TryFrom<RelationOrSoname> for PackageRelation {
+    type Error = PyErr;
+
+    fn try_from(value: RelationOrSoname) -> Result<Self, Self::Error> {
+        match value {
+            RelationOrSoname::Relation(r) => Ok(r),
+            RelationOrSoname::BasicSonameV1(_) => Err(PyTypeError::new_err(
+                "expected PackageRelation, found SonameV1",
+            )),
         }
     }
 }

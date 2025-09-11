@@ -2,7 +2,7 @@ use std::{path::PathBuf, str::FromStr};
 
 use pyo3::prelude::*;
 
-use crate::{helpers::impl_from, types::url::SourceUrl};
+use crate::{macros::impl_from, types::url::SourceUrl};
 
 #[pyclass(frozen, eq)]
 #[derive(Clone, Debug, Eq, PartialEq)]

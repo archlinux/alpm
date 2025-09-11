@@ -5,7 +5,7 @@ use pyo3::prelude::*;
 use crate::macros::impl_from;
 
 // Union type `OpenPGPKeyId | OpenPGPv4Fingerprint`
-#[derive(FromPyObject, IntoPyObject)]
+#[derive(Debug, FromPyObject, IntoPyObject)]
 pub enum OpenPGPIdentifier {
     OpenPGPKeyId(OpenPGPKeyId),
     OpenPGPv4Fingerprint(OpenPGPv4Fingerprint),
@@ -19,6 +19,19 @@ impl From<alpm_types::OpenPGPIdentifier> for OpenPGPIdentifier {
             }
             alpm_types::OpenPGPIdentifier::OpenPGPv4Fingerprint(fingerprint) => {
                 OpenPGPIdentifier::OpenPGPv4Fingerprint(OpenPGPv4Fingerprint(fingerprint))
+            }
+        }
+    }
+}
+
+impl From<OpenPGPIdentifier> for alpm_types::OpenPGPIdentifier {
+    fn from(value: OpenPGPIdentifier) -> Self {
+        match value {
+            OpenPGPIdentifier::OpenPGPKeyId(key_id) => {
+                alpm_types::OpenPGPIdentifier::OpenPGPKeyId(key_id.0)
+            }
+            OpenPGPIdentifier::OpenPGPv4Fingerprint(fingerprint) => {
+                alpm_types::OpenPGPIdentifier::OpenPGPv4Fingerprint(fingerprint.0)
             }
         }
     }

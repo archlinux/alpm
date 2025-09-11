@@ -418,6 +418,7 @@ class Architecture(Enum):
     def __str__(self) -> str: ...
     def __repr__(self) -> str: ...
     def __eq__(self, other: object) -> bool: ...
+    def __hash__(self): ...
 
 class Url:
     """Represents a URL.
@@ -1006,6 +1007,7 @@ class ElfArchitectureFormat(Enum):
         """
 
     def __eq__(self, other: object) -> bool: ...
+    def __hash__(self): ...
 
 class FullVersion:
     """A package version with mandatory PackageRelease.
@@ -1029,7 +1031,7 @@ class FullVersion:
         """
 
     @classmethod
-    def from_str(cls, version: str):
+    def from_str(cls, version: str) -> "FullVersion":
         """Create a FullVersion from a string representation.
 
         Args:
@@ -1097,7 +1099,7 @@ class Version:
         """
 
     @classmethod
-    def from_str(cls, version: str):
+    def from_str(cls, version: str) -> "Version":
         """Create a FullVersion from a string representation.
 
         Args:
