@@ -3,8 +3,8 @@ use std::str::FromStr;
 use pyo3::{prelude::*, types::PyType};
 use strum::Display;
 
-#[pyclass]
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[pyclass(frozen, eq, ord, hash)]
+#[derive(Clone, Copy, Debug, Display, Eq, Hash, Ord, PartialEq, PartialOrd)]
 // Uses Python's enum variant naming convention.
 #[allow(clippy::upper_case_acronyms)]
 #[allow(non_camel_case_types)]
@@ -80,8 +80,8 @@ impl From<alpm_types::Architecture> for Architecture {
     }
 }
 
-#[pyclass]
-#[derive(Clone, Copy, Debug, Display, Eq, Ord, PartialEq, PartialOrd)]
+#[pyclass(frozen, eq, ord, hash)]
+#[derive(Clone, Copy, Debug, Display, Eq, Hash, Ord, PartialEq, PartialOrd)]
 // Uses Python's enum variant naming convention.
 #[allow(clippy::upper_case_acronyms)]
 #[allow(non_camel_case_types)]

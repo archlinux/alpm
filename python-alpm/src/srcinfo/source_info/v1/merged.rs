@@ -1,14 +1,69 @@
 use alpm_srcinfo::source_info::v1::merged as alpm_srcinfo_merged;
 use pyo3::prelude::*;
 
-use crate::macros::impl_from;
+use crate::{
+    macros::impl_from,
+    srcinfo::source_info::v1::{package::Package, package_base::PackageBase},
+    types::{
+        checksum::{
+            SkippableBlake2b512Checksum,
+            SkippableMd5Checksum,
+            SkippableSha1Checksum,
+            SkippableSha224Checksum,
+            SkippableSha256Checksum,
+            SkippableSha384Checksum,
+            SkippableSha512Checksum,
+        },
+        env::MakepkgOption,
+        license::License,
+        openpgp::OpenPGPIdentifier,
+        path::RelativePath,
+        relation::{OptionalDependency, PackageRelation, RelationOrSoname},
+        source::Source,
+        system::Architecture,
+        url::Url,
+        version::FullVersion,
+    },
+};
 
-#[pyclass(frozen)]
+#[derive(Debug, FromPyObject, IntoPyObject)]
+// Price paid for Python (we can't `Box` a `Package` as it's passed from Python)
+#[allow(clippy::large_enum_variant)]
+pub enum PackageOrName {
+    Package(Package),
+    Name(String),
+}
+
+#[pyclass]
 #[derive(Clone, Debug)]
 pub struct MergedPackage(alpm_srcinfo_merged::MergedPackage);
 
 #[pymethods]
 impl MergedPackage {
+    #[new]
+    fn new(
+        architecture: Architecture,
+        base: PackageBase,
+        package_or_name: PackageOrName,
+    ) -> Result<Self, crate::types::Error> {
+        let inner = match package_or_name {
+            PackageOrName::Package(package) => {
+                alpm_srcinfo_merged::MergedPackage::from_base_and_package(
+                    architecture.into(),
+                    &base.into(),
+                    &package.into(),
+                )
+            }
+            PackageOrName::Name(name_string) => alpm_srcinfo_merged::MergedPackage::from_base(
+                &architecture.into(),
+                alpm_types::Name::new(name_string.as_str())?,
+                &base.into(),
+            ),
+        };
+
+        Ok(inner.into())
+    }
+
     #[getter]
     fn name(&self) -> String {
         self.0.name.to_string()
@@ -20,12 +75,12 @@ impl MergedPackage {
     }
 
     #[getter]
-    fn url(&self) -> Option<crate::types::url::Url> {
+    fn url(&self) -> Option<Url> {
         self.0.url.clone().map(From::from)
     }
 
     #[getter]
-    fn licenses(&self) -> Vec<crate::types::license::License> {
+    fn licenses(&self) -> Vec<License> {
         self.0
             .licenses
             .clone()
@@ -35,17 +90,17 @@ impl MergedPackage {
     }
 
     #[getter]
-    fn architecture(&self) -> crate::types::system::Architecture {
+    fn architecture(&self) -> Architecture {
         self.0.architecture.into()
     }
 
     #[getter]
-    fn changelog(&self) -> Option<crate::types::path::RelativePath> {
+    fn changelog(&self) -> Option<RelativePath> {
         self.0.changelog.clone().map(From::from)
     }
 
     #[getter]
-    fn install(&self) -> Option<crate::types::path::RelativePath> {
+    fn install(&self) -> Option<RelativePath> {
         self.0.install.clone().map(From::from)
     }
 
@@ -55,22 +110,22 @@ impl MergedPackage {
     }
 
     #[getter]
-    fn options(&self) -> Vec<crate::types::env::MakepkgOption> {
+    fn options(&self) -> Vec<MakepkgOption> {
         self.0.options.clone().into_iter().map(From::from).collect()
     }
 
     #[getter]
-    fn backups(&self) -> Vec<crate::types::path::RelativePath> {
+    fn backups(&self) -> Vec<RelativePath> {
         self.0.backups.clone().into_iter().map(From::from).collect()
     }
 
     #[getter]
-    fn version(&self) -> crate::types::version::FullVersion {
+    fn version(&self) -> FullVersion {
         self.0.version.clone().into()
     }
 
     #[getter]
-    fn pgp_fingerprints(&self) -> Vec<crate::types::openpgp::OpenPGPIdentifier> {
+    fn pgp_fingerprints(&self) -> Vec<OpenPGPIdentifier> {
         self.0
             .pgp_fingerprints
             .clone()
@@ -80,7 +135,7 @@ impl MergedPackage {
     }
 
     #[getter]
-    fn dependencies(&self) -> Vec<crate::types::relation::RelationOrSoname> {
+    fn dependencies(&self) -> Vec<RelationOrSoname> {
         self.0
             .dependencies
             .clone()
@@ -90,7 +145,7 @@ impl MergedPackage {
     }
 
     #[getter]
-    fn optional_dependencies(&self) -> Vec<crate::types::relation::OptionalDependency> {
+    fn optional_dependencies(&self) -> Vec<OptionalDependency> {
         self.0
             .optional_dependencies
             .clone()
@@ -100,7 +155,7 @@ impl MergedPackage {
     }
 
     #[getter]
-    fn provides(&self) -> Vec<crate::types::relation::RelationOrSoname> {
+    fn provides(&self) -> Vec<RelationOrSoname> {
         self.0
             .provides
             .clone()
@@ -110,7 +165,7 @@ impl MergedPackage {
     }
 
     #[getter]
-    fn conflicts(&self) -> Vec<crate::types::relation::PackageRelation> {
+    fn conflicts(&self) -> Vec<PackageRelation> {
         self.0
             .conflicts
             .clone()
@@ -120,7 +175,7 @@ impl MergedPackage {
     }
 
     #[getter]
-    fn replaces(&self) -> Vec<crate::types::relation::PackageRelation> {
+    fn replaces(&self) -> Vec<PackageRelation> {
         self.0
             .replaces
             .clone()
@@ -130,7 +185,7 @@ impl MergedPackage {
     }
 
     #[getter]
-    fn check_dependencies(&self) -> Vec<crate::types::relation::PackageRelation> {
+    fn check_dependencies(&self) -> Vec<PackageRelation> {
         self.0
             .check_dependencies
             .clone()
@@ -140,7 +195,7 @@ impl MergedPackage {
     }
 
     #[getter]
-    fn make_dependencies(&self) -> Vec<crate::types::relation::PackageRelation> {
+    fn make_dependencies(&self) -> Vec<PackageRelation> {
         self.0
             .make_dependencies
             .clone()
@@ -165,6 +220,49 @@ impl_from!(MergedPackage, alpm_srcinfo_merged::MergedPackage);
 #[pyclass(frozen)]
 #[derive(Clone, Debug)]
 pub struct MergedSource(alpm_srcinfo_merged::MergedSource);
+
+#[pymethods]
+impl MergedSource {
+    #[getter]
+    fn source(&self) -> Source {
+        self.0.source.clone().into()
+    }
+
+    #[getter]
+    fn b2_checksum(&self) -> Option<SkippableBlake2b512Checksum> {
+        self.0.b2_checksum.clone().map(From::from)
+    }
+
+    #[getter]
+    fn md5_checksum(&self) -> Option<SkippableMd5Checksum> {
+        self.0.md5_checksum.clone().map(From::from)
+    }
+
+    #[getter]
+    fn sha1_checksum(&self) -> Option<SkippableSha1Checksum> {
+        self.0.sha1_checksum.clone().map(From::from)
+    }
+
+    #[getter]
+    fn sha224_checksum(&self) -> Option<SkippableSha224Checksum> {
+        self.0.sha224_checksum.clone().map(From::from)
+    }
+
+    #[getter]
+    fn sha256_checksum(&self) -> Option<SkippableSha256Checksum> {
+        self.0.sha256_checksum.clone().map(From::from)
+    }
+
+    #[getter]
+    fn sha384_checksum(&self) -> Option<SkippableSha384Checksum> {
+        self.0.sha384_checksum.clone().map(From::from)
+    }
+
+    #[getter]
+    fn sha512_checksum(&self) -> Option<SkippableSha512Checksum> {
+        self.0.sha512_checksum.clone().map(From::from)
+    }
+}
 
 impl_from!(MergedSource, alpm_srcinfo_merged::MergedSource);
 

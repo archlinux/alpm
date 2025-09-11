@@ -1,7 +1,9 @@
 """Provides fully resolved package metadata derived from SRCINFO data."""
 
-from typing import Optional
+from typing import Optional, Union
 
+from alpm.alpm_srcinfo.source_info.v1.package import Package
+from alpm.alpm_srcinfo.source_info.v1.package_base import PackageBase
 from alpm.type_aliases import MakepkgOption, OpenPGPIdentifier, RelationOrSoname
 from alpm.alpm_types import (
     Url,
@@ -11,6 +13,14 @@ from alpm.alpm_types import (
     FullVersion,
     PackageRelation,
     OptionalDependency,
+    Source,
+    SkippableBlake2b512Checksum,
+    SkippableMd5Checksum,
+    SkippableSha1Checksum,
+    SkippableSha224Checksum,
+    SkippableSha256Checksum,
+    SkippableSha384Checksum,
+    SkippableSha512Checksum,
 )
 
 class MergedPackage:
@@ -19,6 +29,27 @@ class MergedPackage:
     This struct incorporates all PackageBase properties and the Package specific overrides in an architecture-specific
     representation of a package. It can be created using SourceInfoV1.packages_for_architecture.
     """
+
+    def __init__(
+        self,
+        architecture: "Architecture",
+        base: "PackageBase",
+        package_or_name: Union[Package | str],
+    ):
+        """Create architecture-specific metadata representation of a package.
+
+        Based on the provided parameters can either create a fully resolved or a basic (incomplete) MergedPackage.
+
+        Args:
+            architecture (Architecture): Defines the architecture for which to create the representation.
+            base (PackageBase): The package base which provides the initial data.
+            package_or_name (Union[Package, str]): Either the Package from which to derive the metadata for a fully
+                                                   resolved MergedPackage, or a name of the package for a basic,
+                                                   incomplete representation of a package.
+
+        Raises:
+            ALPMError: If the provided name is not valid.
+        """
 
     @property
     def name(self) -> str:
@@ -104,7 +135,44 @@ class MergedPackage:
     def no_extracts(self) -> list[str]:
         """The list of sources for the package that are not extracted."""
 
-class MergedSource: ...
+class MergedSource:
+    """A merged representation of source related information.
+
+    SRCINFO provides this info as separate lists. This struct resolves that list representation and provides
+    a convenient aggregated representation for a single source.
+    """
+
+    @property
+    def source(self) -> "Source":
+        """The source."""
+
+    @property
+    def b2_checksum(self) -> Optional[SkippableBlake2b512Checksum]:
+        """The optional Blake2 hash digest of source."""
+
+    @property
+    def md5_checksum(self) -> Optional[SkippableMd5Checksum]:
+        """The optional MD-5 hash digest of source."""
+
+    @property
+    def sha1_checksum(self) -> Optional[SkippableSha1Checksum]:
+        """The optional SHA-1 hash digest of source."""
+
+    @property
+    def sha224_checksum(self) -> Optional[SkippableSha224Checksum]:
+        """The optional SHA-224 hash digest of source."""
+
+    @property
+    def sha256_checksum(self) -> Optional[SkippableSha256Checksum]:
+        """The optional SHA-256 hash digest of source."""
+
+    @property
+    def sha384_checksum(self) -> Optional[SkippableSha384Checksum]:
+        """The optional SHA-384 hash digest of source."""
+
+    @property
+    def sha512_checksum(self) -> Optional[SkippableSha512Checksum]:
+        """The optional SHA-512 hash digest of source."""
 
 __all__ = [
     "MergedPackage",

@@ -5,7 +5,7 @@ use pyo3::prelude::*;
 use crate::macros::impl_from;
 
 // Union type `BuildEnvironmentOption | PackageOption`
-#[derive(FromPyObject, IntoPyObject)]
+#[derive(Clone, Debug, FromPyObject, IntoPyObject, PartialEq)]
 pub enum MakepkgOption {
     BuildEnvironment(BuildEnvironmentOption),
     Package(PackageOption),
@@ -18,6 +18,17 @@ impl From<alpm_types::MakepkgOption> for MakepkgOption {
                 MakepkgOption::BuildEnvironment(BuildEnvironmentOption(opt))
             }
             alpm_types::MakepkgOption::Package(opt) => MakepkgOption::Package(PackageOption(opt)),
+        }
+    }
+}
+
+impl From<MakepkgOption> for alpm_types::MakepkgOption {
+    fn from(value: MakepkgOption) -> Self {
+        match value {
+            MakepkgOption::BuildEnvironment(opt) => {
+                alpm_types::MakepkgOption::BuildEnvironment(opt.0)
+            }
+            MakepkgOption::Package(opt) => alpm_types::MakepkgOption::Package(opt.0),
         }
     }
 }
