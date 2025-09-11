@@ -13,6 +13,9 @@ version = "0.1.0"
 
 [dependencies]
 alpm-lint-config.workspace = true
+config = { version = "0.15", features = ["json", "toml"] }
+dirs.workspace = true
+serde.workspace = true
 thiserror.workspace = true
 toml.workspace = true
 

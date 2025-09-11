@@ -54,6 +54,7 @@ clap = { version = "4.5.19", features = [
     "wrap_help",
 ] }
 colored = { version = "3", features = ["no-color"] }
+dirs = "6"
 flate2 = "1"
 insta = "1.40.0"
 log = "0.4.27"

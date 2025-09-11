@@ -28,7 +28,15 @@ pub enum Error {
         source: std::io::Error,
     },
 
-    /// TOML de/serialization error
+    /// User home directory cannot be determined.
+    #[error("Could not determine home directory for current user")]
+    NoHomeDirectory,
+
+    /// TOML de/serialization error.
     #[error("Failed to deserialize configuration: {0}")]
     Deserialization(#[from] toml::de::Error),
+
+    /// config-rs error.
+    #[error("Failed to initialize configuration: {0}")]
+    Config(#[from] config::ConfigError),
 }
