@@ -8,9 +8,11 @@ def test_type_aliases_imports():
     """Test that all type aliases can be imported without errors."""
     from alpm.type_aliases import (  # noqa: F401
         Checksum,
+        SkippableChecksum,
         OpenPGPIdentifier,
         MakepkgOption,
         VersionOrSoname,
         RelationOrSoname,
         SourceInfo,
+        VcsInfo,
     )

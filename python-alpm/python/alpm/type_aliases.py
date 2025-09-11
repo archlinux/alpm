@@ -10,6 +10,13 @@ from alpm.alpm_types import (
     Sha256Checksum,
     Sha384Checksum,
     Sha512Checksum,
+    SkippableBlake2b512Checksum,
+    SkippableMd5Checksum,
+    SkippableSha1Checksum,
+    SkippableSha224Checksum,
+    SkippableSha256Checksum,
+    SkippableSha384Checksum,
+    SkippableSha512Checksum,
     OpenPGPKeyId,
     OpenPGPv4Fingerprint,
     BuildEnvironmentOption,
@@ -17,6 +24,11 @@ from alpm.alpm_types import (
     PackageVersion,
     SonameV1,
     PackageRelation,
+    BzrInfo,
+    FossilInfo,
+    GitInfo,
+    HgInfo,
+    SvnInfo,
 )
 
 from alpm.alpm_srcinfo import SourceInfoV1
@@ -31,6 +43,21 @@ Checksum: TypeAlias = Union[
     Sha512Checksum,
 ]
 """A checksum using a supported algorithm"""
+
+SkippableChecksum: TypeAlias = Union[
+    SkippableBlake2b512Checksum,
+    SkippableMd5Checksum,
+    SkippableSha1Checksum,
+    SkippableSha224Checksum,
+    SkippableSha256Checksum,
+    SkippableSha384Checksum,
+    SkippableSha512Checksum,
+]
+""" A skippable checksum using a supported algorithm.
+
+Strings representing checksums are used to verify the integrity of files.
+If the "SKIP" keyword is found, the integrity check is skipped.
+"""
 
 OpenPGPIdentifier: TypeAlias = Union[
     OpenPGPKeyId,
@@ -73,11 +100,27 @@ Tracks all available versions of the file format.
 This union includes Any to allow for future extensions without breaking changes.
 """
 
+VcsInfo: TypeAlias = Union[
+    BzrInfo,
+    FossilInfo,
+    GitInfo,
+    HgInfo,
+    SvnInfo,
+]
+"""Information on Version Control Systems (VCS) using a URL.
+
+Several different VCS systems can be used in the context of a SourceUrl.
+Each system supports addressing different types of objects and may optionally require signature verification for those
+objects.
+"""
+
 __all__ = [
     "Checksum",
+    "SkippableChecksum",
     "OpenPGPIdentifier",
     "MakepkgOption",
     "VersionOrSoname",
     "RelationOrSoname",
     "SourceInfo",
+    "VcsInfo",
 ]

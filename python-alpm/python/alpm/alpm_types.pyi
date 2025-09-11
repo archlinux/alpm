@@ -10,6 +10,7 @@ from .type_aliases import (
     MakepkgOption,
     RelationOrSoname,
     VersionOrSoname,
+    VcsInfo,
 )
 
 class ALPMError(Exception):
@@ -104,6 +105,89 @@ class Sha512Checksum:
     def __le__(self, other: "Sha512Checksum") -> bool: ...
     def __gt__(self, other: "Sha512Checksum") -> bool: ...
     def __ge__(self, other: "Sha512Checksum") -> bool: ...
+
+class SkippableBlake2b512Checksum:
+    """A checksum using the Blake2b512 algorithm."""
+
+    def __init__(self, value: str): ...
+    @property
+    def is_skipped(self) -> bool:
+        """True if the checksum is skipped."""
+
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+
+class SkippableMd5Checksum:
+    """A checksum using the Md5 algorithm.
+
+    WARNING: Use of this algorithm is highly discouraged, because it is cryptographically unsafe.
+    """
+
+    def __init__(self, value: str): ...
+    @property
+    def is_skipped(self) -> bool:
+        """True if the checksum is skipped."""
+
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+
+class SkippableSha1Checksum:
+    """A checksum using the Sha1 algorithm.
+
+    WARNING: Use of this algorithm is highly discouraged, because it is cryptographically unsafe.
+    """
+
+    def __init__(self, value: str): ...
+    @property
+    def is_skipped(self) -> bool:
+        """True if the checksum is skipped."""
+
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+
+class SkippableSha224Checksum:
+    """A checksum using the Sha224 algorithm."""
+
+    def __init__(self, value: str): ...
+    @property
+    def is_skipped(self) -> bool:
+        """True if the checksum is skipped."""
+
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+
+class SkippableSha256Checksum:
+    """A checksum using the Sha256 algorithm."""
+
+    def __init__(self, value: str): ...
+    @property
+    def is_skipped(self) -> bool:
+        """True if the checksum is skipped."""
+
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+
+class SkippableSha384Checksum:
+    """A checksum using the Sha384 algorithm."""
+
+    def __init__(self, value: str): ...
+    @property
+    def is_skipped(self) -> bool:
+        """True if the checksum is skipped."""
+
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+
+class SkippableSha512Checksum:
+    """A checksum using the Sha512 algorithm."""
+
+    def __init__(self, value: str): ...
+    @property
+    def is_skipped(self) -> bool:
+        """True if the checksum is skipped."""
+
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
 
 class BuildEnvironmentOption:
     """An option string used in a build environment.
@@ -343,7 +427,7 @@ class Url:
     """
 
     def __init__(self, url: str) -> None:
-        """Create a new URL from a string representation.
+        """Create a new Url from a string representation.
 
         Args:
             url (str): A string representing URL.
@@ -352,6 +436,119 @@ class Url:
             ALPMError: If the URL is invalid.
         """
         ...
+
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+    def __eq__(self, other: object) -> bool: ...
+
+class SourceUrl:
+    """A URL for package sources.
+
+    Wraps the Url type and provides optional information on VCS systems.
+    Can be created from custom URL strings, that in part resemble the default URL syntax, e.g.:
+    git+https://example.org/example-project.git#tag=v1.0.0?signed
+    """
+
+    def __init__(self, source_url: str) -> None:
+        """Create a new SourceUrl from a string representation.
+
+        Args:
+            source_url (str): A string representing SourceUrl.
+
+        Raises:
+            ALPMError: If the value of source_url is invalid.
+        """
+        ...
+
+    @property
+    def url(self) -> Url:
+        """The URL from where the sources are retrieved."""
+
+    @property
+    def vcs_info(self) -> VcsInfo:
+        """Optional data on VCS systems using the URL for the retrieval of sources."""
+
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+    def __eq__(self, other: object) -> bool: ...
+
+class BzrInfo:
+    """Bazaar (bzr) VCS information."""
+
+    @property
+    def fragment(self) -> dict[str, str]:
+        """Bzr fragment data."""
+
+    def __eq__(self, other: object) -> bool: ...
+
+class FossilInfo:
+    """Fossil VCS information."""
+
+    @property
+    def fragment(self) -> dict[str, str]:
+        """Fossil fragment data."""
+
+    def __eq__(self, other: object) -> bool: ...
+
+class GitInfo:
+    """Git VCS information."""
+
+    @property
+    def fragment(self) -> dict[str, str]:
+        """Git fragment data."""
+
+    @property
+    def signed(self) -> bool:
+        """True if the OpenPGP signature should be verified."""
+
+    def __eq__(self, other: object) -> bool: ...
+
+class HgInfo:
+    """Mercurial (hg) VCS information."""
+
+    @property
+    def fragment(self) -> dict[str, str]:
+        """Hg fragment data."""
+
+    def __eq__(self, other: object) -> bool: ...
+
+class SvnInfo:
+    """Subversion (svn) VCS information."""
+
+    @property
+    def fragment(self) -> dict[str, str]:
+        """Svn fragment data."""
+
+    def __eq__(self, other: object) -> bool: ...
+
+class Source:
+    """Represents the location that a source file should be retrieved from
+
+    It can be either a local file (next to the PKGBUILD) or a URL.
+    """
+
+    def __init__(self, source: str):
+        """Create a new Source from a string representation.
+
+        Args:
+            source (str): A string representing the source. It is either a filename (in the same directory as the
+                          PKGBUILD) or a url, optionally prefixed by a destination file name (separated by "::").
+
+        Raises:
+            ALPMError: If the source string is invalid.
+        """
+
+    @property
+    def filename(self) -> Optional[Path]:
+        """The filename of the source, if it is set."""
+
+    @property
+    def source_url(self) -> Optional[SourceUrl]:
+        """The source URL."""
+
+    @property
+    def location(self) -> Optional[Path]:
+        """The source file name."""
 
     def __str__(self) -> str: ...
     def __repr__(self) -> str: ...
@@ -956,6 +1153,13 @@ __all__ = [
     "Sha256Checksum",
     "Sha384Checksum",
     "Sha512Checksum",
+    "SkippableBlake2b512Checksum",
+    "SkippableMd5Checksum",
+    "SkippableSha1Checksum",
+    "SkippableSha224Checksum",
+    "SkippableSha256Checksum",
+    "SkippableSha384Checksum",
+    "SkippableSha512Checksum",
     "BuildEnvironmentOption",
     "PackageOption",
     "makepkg_option_from_str",
@@ -966,6 +1170,13 @@ __all__ = [
     "RelativePath",
     "Architecture",
     "Url",
+    "SourceUrl",
+    "BzrInfo",
+    "FossilInfo",
+    "GitInfo",
+    "HgInfo",
+    "SvnInfo",
+    "Source",
     "Epoch",
     "PackageRelease",
     "PackageVersion",
