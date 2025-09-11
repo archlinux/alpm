@@ -20,7 +20,7 @@ pub use checksum::{
 mod source;
 pub use source::Source;
 
-mod url;
+pub mod url;
 pub use url::{SourceUrl, Url};
 
 /// Public re-exports of common hash functions, for use with [`Checksum`].
