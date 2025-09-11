@@ -16,18 +16,30 @@ pub enum Checksum {
     Sha512(Sha512Checksum),
 }
 
+#[allow(dead_code)]
+#[derive(FromPyObject, IntoPyObject)]
+pub enum SkippableChecksum {
+    Blake2b512(SkippableBlake2b512Checksum),
+    Md5(SkippableMd5Checksum),
+    Sha1(SkippableSha1Checksum),
+    Sha224(SkippableSha224Checksum),
+    Sha256(SkippableSha256Checksum),
+    Sha384(SkippableSha384Checksum),
+    Sha512(SkippableSha512Checksum),
+}
+
 macro_rules! define_checksum {
-    ($name:ident, $type:ty) => {
+    ($checksum:ident, $skippable_checksum: ident, $digest:ty) => {
         #[pyclass(frozen, eq, ord)]
         #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
-        pub struct $name($type);
+        pub struct $checksum(alpm_types::Checksum<$digest>);
 
         #[pymethods]
-        impl $name {
+        impl $checksum {
             #[new]
             fn new(value: &str) -> Result<Self, crate::types::Error> {
-                let inner = <$type>::from_str(value)?;
-                Ok(Self(inner))
+                let inner = <alpm_types::Checksum<$digest>>::from_str(value)?;
+                Ok(inner.into())
             }
 
             fn __str__(&self) -> String {
@@ -35,18 +47,74 @@ macro_rules! define_checksum {
             }
 
             fn __repr__(&self) -> String {
-                format!("{}({})", stringify!($name), self.0)
+                format!("{}({})", stringify!($checksum), self.0)
             }
         }
 
-        impl_from!($name, $type);
+        impl_from!($checksum, alpm_types::Checksum<$digest>);
+
+        #[pyclass(frozen)]
+        #[derive(Clone, Debug)]
+        pub struct $skippable_checksum(alpm_types::SkippableChecksum<$digest>);
+
+        #[pymethods]
+        impl $skippable_checksum {
+            #[new]
+            #[pyo3(signature = (value=None))]
+            fn new(value: Option<&str>) -> Result<Self, crate::types::Error> {
+                let inner: alpm_types::SkippableChecksum<$digest> = match value {
+                    Some(v) => alpm_types::SkippableChecksum::from_str(v)?,
+                    None => alpm_types::SkippableChecksum::Skip,
+                };
+                Ok(inner.into())
+            }
+
+            #[getter]
+            fn is_skipped(&self) -> bool {
+                self.0.is_skipped()
+            }
+
+            fn __str__(&self) -> String {
+                self.0.to_string()
+            }
+
+            fn __repr__(&self) -> String {
+                format!("{}({})", stringify!($skippable_checksum), self.0)
+            }
+        }
+
+        impl_from!($skippable_checksum, alpm_types::SkippableChecksum<$digest>);
     };
 }
 
-define_checksum!(Blake2b512Checksum, alpm_types::Blake2b512Checksum);
-define_checksum!(Md5Checksum, alpm_types::Md5Checksum);
-define_checksum!(Sha1Checksum, alpm_types::Sha1Checksum);
-define_checksum!(Sha224Checksum, alpm_types::Sha224Checksum);
-define_checksum!(Sha256Checksum, alpm_types::Sha256Checksum);
-define_checksum!(Sha384Checksum, alpm_types::Sha384Checksum);
-define_checksum!(Sha512Checksum, alpm_types::Sha512Checksum);
+define_checksum!(
+    Blake2b512Checksum,
+    SkippableBlake2b512Checksum,
+    alpm_types::digests::Blake2b512
+);
+define_checksum!(Md5Checksum, SkippableMd5Checksum, alpm_types::digests::Md5);
+define_checksum!(
+    Sha1Checksum,
+    SkippableSha1Checksum,
+    alpm_types::digests::Sha1
+);
+define_checksum!(
+    Sha224Checksum,
+    SkippableSha224Checksum,
+    alpm_types::digests::Sha224
+);
+define_checksum!(
+    Sha256Checksum,
+    SkippableSha256Checksum,
+    alpm_types::digests::Sha256
+);
+define_checksum!(
+    Sha384Checksum,
+    SkippableSha384Checksum,
+    alpm_types::digests::Sha384
+);
+define_checksum!(
+    Sha512Checksum,
+    SkippableSha512Checksum,
+    alpm_types::digests::Sha512
+);
