@@ -3,6 +3,7 @@
 
 use pyo3::prelude::*;
 
+pub(crate) mod macros;
 mod srcinfo;
 mod types;
 

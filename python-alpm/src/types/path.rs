@@ -2,6 +2,8 @@ use std::path::PathBuf;
 
 use pyo3::prelude::*;
 
+use crate::macros::impl_from;
+
 #[pyclass(frozen, eq)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RelativePath(alpm_types::RelativePath);
@@ -24,8 +26,4 @@ impl RelativePath {
     }
 }
 
-impl From<alpm_types::RelativePath> for RelativePath {
-    fn from(inner: alpm_types::RelativePath) -> Self {
-        RelativePath(inner)
-    }
-}
+impl_from!(RelativePath, alpm_types::RelativePath);

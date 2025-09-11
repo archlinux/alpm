@@ -1,5 +1,7 @@
 use pyo3::{PyErr, create_exception};
 
+use crate::macros::impl_from;
+
 create_exception!(
     alpm_types,
     ALPMError,
@@ -11,11 +13,7 @@ create_exception!(
 #[derive(Debug)]
 pub struct Error(alpm_types::Error);
 
-impl From<alpm_types::Error> for Error {
-    fn from(err: alpm_types::Error) -> Self {
-        Error(err)
-    }
-}
+impl_from!(Error, alpm_types::Error);
 
 impl From<Error> for PyErr {
     fn from(err: Error) -> PyErr {

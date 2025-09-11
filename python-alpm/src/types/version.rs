@@ -2,6 +2,8 @@ use std::{num::NonZeroUsize, str::FromStr};
 
 use pyo3::{exceptions::PyValueError, prelude::*, types::PyType};
 
+use crate::macros::impl_from;
+
 #[pyclass(frozen, eq, ord)]
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub struct PackageVersion(alpm_types::PackageVersion);
@@ -22,26 +24,12 @@ impl PackageVersion {
     }
 }
 
-impl From<alpm_types::PackageVersion> for PackageVersion {
-    fn from(inner: alpm_types::PackageVersion) -> Self {
-        PackageVersion(inner)
-    }
-}
-
-impl From<PackageVersion> for alpm_types::PackageVersion {
-    fn from(value: PackageVersion) -> Self {
-        value.0
-    }
-}
+impl_from!(PackageVersion, alpm_types::PackageVersion);
 
 #[derive(Debug)]
 pub struct SemverError(semver::Error);
 
-impl From<semver::Error> for SemverError {
-    fn from(err: semver::Error) -> Self {
-        SemverError(err)
-    }
-}
+impl_from!(SemverError, semver::Error);
 
 impl From<SemverError> for PyErr {
     fn from(err: SemverError) -> PyErr {
@@ -71,7 +59,7 @@ impl SchemaVersion {
             pre: semver::Prerelease::new(pre)?,
             build: semver::BuildMetadata::new(build)?,
         };
-        Ok(Self(alpm_types::SchemaVersion::new(inner)))
+        Ok(alpm_types::SchemaVersion::new(inner).into())
     }
 
     #[classmethod]
@@ -121,6 +109,8 @@ impl SchemaVersion {
     }
 }
 
+impl_from!(SchemaVersion, alpm_types::SchemaVersion);
+
 #[pyclass(frozen, eq, ord)]
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub struct Epoch(alpm_types::Epoch);
@@ -157,17 +147,7 @@ impl Epoch {
     }
 }
 
-impl From<alpm_types::Epoch> for Epoch {
-    fn from(inner: alpm_types::Epoch) -> Self {
-        Epoch(inner)
-    }
-}
-
-impl From<Epoch> for alpm_types::Epoch {
-    fn from(outer: Epoch) -> Self {
-        outer.0
-    }
-}
+impl_from!(Epoch, alpm_types::Epoch);
 
 #[pyclass(frozen, eq)]
 #[derive(Clone, Debug, PartialEq)]
@@ -209,17 +189,7 @@ impl PackageRelease {
     }
 }
 
-impl From<alpm_types::PackageRelease> for PackageRelease {
-    fn from(inner: alpm_types::PackageRelease) -> Self {
-        PackageRelease(inner)
-    }
-}
-
-impl From<PackageRelease> for alpm_types::PackageRelease {
-    fn from(outer: PackageRelease) -> Self {
-        outer.0
-    }
-}
+impl_from!(PackageRelease, alpm_types::PackageRelease);
 
 #[pyclass(frozen, eq, ord)]
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
@@ -276,11 +246,7 @@ impl FullVersion {
     }
 }
 
-impl From<alpm_types::FullVersion> for FullVersion {
-    fn from(inner: alpm_types::FullVersion) -> Self {
-        FullVersion(inner)
-    }
-}
+impl_from!(FullVersion, alpm_types::FullVersion);
 
 #[pyclass(frozen, eq, ord)]
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
@@ -339,14 +305,4 @@ impl Version {
     }
 }
 
-impl From<alpm_types::Version> for Version {
-    fn from(inner: alpm_types::Version) -> Self {
-        Version(inner)
-    }
-}
-
-impl From<Version> for alpm_types::Version {
-    fn from(outer: Version) -> Self {
-        outer.0
-    }
-}
+impl_from!(Version, alpm_types::Version);

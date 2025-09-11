@@ -2,6 +2,8 @@ use std::str::FromStr;
 
 use pyo3::prelude::*;
 
+use crate::macros::impl_from;
+
 // Union type `OpenPGPKeyId | OpenPGPv4Fingerprint`
 #[derive(FromPyObject, IntoPyObject)]
 pub enum OpenPGPIdentifier {
@@ -53,6 +55,8 @@ impl OpenPGPKeyId {
     }
 }
 
+impl_from!(OpenPGPKeyId, alpm_types::OpenPGPKeyId);
+
 #[pyclass(frozen, eq)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct OpenPGPv4Fingerprint(alpm_types::OpenPGPv4Fingerprint);
@@ -73,3 +77,5 @@ impl OpenPGPv4Fingerprint {
         self.0.to_string()
     }
 }
+
+impl_from!(OpenPGPv4Fingerprint, alpm_types::OpenPGPv4Fingerprint);

@@ -1,5 +1,7 @@
 use pyo3::{create_exception, prelude::*};
 
+use crate::macros::impl_from;
+
 create_exception!(
     alpm_srcinfo,
     SourceInfoError,
@@ -11,11 +13,7 @@ create_exception!(
 #[derive(Debug)]
 pub struct Error(alpm_srcinfo::Error);
 
-impl From<alpm_srcinfo::Error> for Error {
-    fn from(err: alpm_srcinfo::Error) -> Error {
-        Error(err)
-    }
-}
+impl_from!(Error, alpm_srcinfo::Error);
 
 impl From<Error> for PyErr {
     fn from(value: Error) -> PyErr {

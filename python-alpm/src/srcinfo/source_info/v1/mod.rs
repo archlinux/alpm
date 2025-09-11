@@ -6,6 +6,8 @@ use std::path::PathBuf;
 
 use pyo3::{prelude::*, types::PyType};
 
+use crate::macros::impl_from;
+
 #[pyclass(frozen, eq)]
 #[derive(Clone, Debug, PartialEq)]
 pub struct SourceInfoV1(alpm_srcinfo::SourceInfoV1);
@@ -69,11 +71,7 @@ impl SourceInfoV1 {
     }
 }
 
-impl From<alpm_srcinfo::SourceInfoV1> for SourceInfoV1 {
-    fn from(v: alpm_srcinfo::SourceInfoV1) -> Self {
-        SourceInfoV1(v)
-    }
-}
+impl_from!(SourceInfoV1, alpm_srcinfo::SourceInfoV1);
 
 #[pymodule(gil_used = false, name = "v1", submodule)]
 pub mod py_v1 {

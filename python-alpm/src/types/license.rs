@@ -1,5 +1,7 @@
 use pyo3::{prelude::*, types::PyType};
 
+use crate::macros::impl_from;
+
 #[pyclass(frozen, eq)]
 #[derive(Clone, Debug, PartialEq)]
 pub struct License(alpm_types::License);
@@ -37,8 +39,4 @@ impl License {
     }
 }
 
-impl From<alpm_types::License> for License {
-    fn from(inner: alpm_types::License) -> Self {
-        License(inner)
-    }
-}
+impl_from!(License, alpm_types::License);
