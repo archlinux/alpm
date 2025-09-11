@@ -15,5 +15,8 @@ def test_imports():
         package_base,
     )
     from alpm.alpm_srcinfo.source_info.v1.merged import MergedPackage, MergedSource  # noqa: F401
-    from alpm.alpm_srcinfo.source_info.v1.package import Package  # noqa: F401
-    from alpm.alpm_srcinfo.source_info.v1.package_base import PackageBase  # noqa: F401
+    from alpm.alpm_srcinfo.source_info.v1.package import Package, PackageArchitecture  # noqa: F401
+    from alpm.alpm_srcinfo.source_info.v1.package_base import (  # noqa: F401
+        PackageBase,
+        PackageBaseArchitecture,
+    )

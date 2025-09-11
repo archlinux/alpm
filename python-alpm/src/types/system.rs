@@ -3,8 +3,8 @@ use std::str::FromStr;
 use pyo3::{prelude::*, types::PyType};
 use strum::Display;
 
-#[pyclass]
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[pyclass(frozen, eq, ord)]
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 // Uses Python's enum variant naming convention.
 #[allow(clippy::upper_case_acronyms)]
 #[allow(non_camel_case_types)]
