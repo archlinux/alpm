@@ -237,6 +237,14 @@ build-book:
     - just --justfile .gitlab/justfile section-end "build-book"
   stage: test
 
+build-python:
+  extends: .default-with-python
+  script:
+    - just --justfile .gitlab/justfile section-start "build-python" "Prepare Python sdist and build wheels"
+    - just build-python all
+    - just --justfile .gitlab/justfile section-end "build-python"
+  stage: test
+
 manpages-specs-completions:
   extends: .default-with-rust
   script:
@@ -251,10 +259,11 @@ manpages-specs-completions:
     - just --justfile .gitlab/justfile section-end "generate-completions"
   stage: test
 
-crates_publish:
+publish-to-registry:
   extends: .default-with-rust
   dependencies: []
   rules:
+    - if: '$UV_PUBLISH_TOKEN && $CI_COMMIT_TAG && $CI_PROJECT_PATH == "archlinux/alpm/alpm"'
     - if: '$CARGO_REGISTRY_TOKEN && $CI_COMMIT_TAG && $CI_PROJECT_PATH == "archlinux/alpm/alpm"'
   script:
     - just --justfile .gitlab/justfile section-start "install-alpm-packages" "Install ALPM package set 'publish'"
