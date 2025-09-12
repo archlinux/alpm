@@ -237,6 +237,17 @@ build-book:
     - just --justfile .gitlab/justfile section-end "build-book"
   stage: test
 
+build-python:
+  extends: .default-with-python
+  script:
+    - just --justfile .gitlab/justfile section-start "build-python" "Prepare Python sdist and build wheels"
+    - just build-python all
+    - just --justfile .gitlab/justfile section-end "build-python"
+  artifacts:
+    paths:
+      - python-alpm/dist/*
+  stage: test
+
 manpages-specs-completions:
   extends: .default-with-rust
   script:
@@ -266,6 +277,18 @@ crates_publish:
   stage: publish
   tags:
     - secure
+
+pypi_publish:
+  extends: .default-with-python
+  dependencies: []
+  rules:
+    - if: '$UV_PUBLISH_TOKEN && $CI_COMMIT_TAG && $CI_PROJECT_PATH == "archlinux/alpm/alpm"'
+  script:
+    - just release-python
+  stage: publish
+  tags:
+    - secure
+
 
 issue-bot:
   image: registry.gitlab.com/gitlab-org/distribution/issue-bot:latest

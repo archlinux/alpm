@@ -19,4 +19,9 @@ module-name = "alpm._native"
 python-source = "python"
 
 [dependency-groups]
-dev = ["mypy>=1.17,<2.0", "pytest>=8.4,<9.0", "ruff>=0.13,<0.14"]
+dev = [
+    "mypy>=1.17,<2.0",
+    "pdoc>=15.0,<16.0",
+    "pytest>=8.4,<9.0",
+    "ruff>=0.13,<0.14",
+]

@@ -236,6 +236,10 @@ build-book:
     cp -r "$target_dir/doc/"{search.desc,src,static.files,trait.impl,type.impl} "$rustdoc_dir"
     cp -r "$target_dir/doc/"*.{js,html} "$rustdoc_dir"
 
+    # build pdoc documentation for python-alpm
+    readonly pdoc_dir="../$output_dir/docs/pdoc/"
+    uv run --directory python-alpm pdoc -d google -o "$pdoc_dir" alpm
+
 # Build local documentation
 [group('build')]
 docs:
@@ -915,3 +919,44 @@ release package:
     git tag -s "$current_version" -m "$current_version"
     printf "Pushing tag %s...\n" "$current_version"
     git push origin refs/tags/"$current_version"
+
+# Builds the Python alpm package sdist and wheels for a given platform (`platform`). Supported platforms are `all` (builds for x86_64, aarch64 and riscv64), `sdist` (only source distribution), `current` (builds for current platform) or any valid `--target` value for maturin
+[group('build')]
+[working-directory('python-alpm')]
+build-python platform="current":
+    #!/usr/bin/env bash
+
+    readonly platform="{{ platform }}"
+
+    just ensure-command maturin
+
+    # always create sdist
+    maturin sdist -o dist
+
+    case "$platform" in
+        "all")
+            # We use zig cc to create manylinux compatible wheels
+            # this skips the need for running this in a manylinux container
+            just ensure-command zig rustup
+            rustup target add x86_64-unknown-linux-gnu aarch64-unknown-linux-gnu riscv64gc-unknown-linux-gnu
+            maturin build --release --zig --target=x86_64-unknown-linux-gnu -o dist
+            maturin build --release --zig --target=aarch64-unknown-linux-gnu -o dist
+            maturin build --release --zig --target=riscv64gc-unknown-linux-gnu -o dist
+            ;;
+        "sdist") exit 0 ;;
+        "current")
+            just ensure-command zig
+            maturin build --release --zig -o dist
+            ;;
+        *)
+            just ensure-command zig rustup
+            rustup target add "$platform"
+            maturin build --release --zig --target="$platform" -o dist
+    esac
+
+# Builds and publishes the Python alpm package to PyPI
+[group('release')]
+release-python:
+    just build-python all
+    just ensure-command uv
+    uv --directory python-alpm publish

@@ -9,6 +9,7 @@
 - [alpm-pkginfo](/rustdoc/alpm_pkginfo)
 - [alpm-srcinfo](/rustdoc/alpm_srcinfo)
 - [alpm-types](/rustdoc/alpm_types)
+- [alpm (Python)](/pdoc)
 - [dev-scripts](/rustdoc/dev_scripts)
 
 ## Local Dependency Graph
