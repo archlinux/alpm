@@ -916,3 +916,15 @@ release package:
     git tag -s "$current_version" -m "$current_version"
     printf "Pushing tag %s...\n" "$current_version"
     git push origin refs/tags/"$current_version"
+
+# builds sdist and wheel of Python alpm package
+[group('release')]
+build python:
+    cd python-alpm && maturin sdist -o dist
+    cd python-alpm && maturin build --release --target=x86_64-unknown-linux-gnu --zig -o dist
+
+# Builds and publishes the Python alpm package to PyPI
+[group('release')]
+publish python:
+    just build python
+    uv --directory python-alpm publish
