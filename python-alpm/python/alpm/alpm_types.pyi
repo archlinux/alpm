@@ -886,6 +886,7 @@ class SonameV1:
     def architecture(self) -> Optional["ElfArchitectureFormat"]:
         """The ELF architecture format of the shared object file. Not available for basic form."""
 
+    @property
     def form(self) -> "SonameV1Type":
         """The form of this SonameV1."""
 
