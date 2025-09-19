@@ -4,20 +4,45 @@ Python bindings for the **A**rch **L**inux **P**ackage **M**anagement (ALPM) pro
 
 ## Documentation
 
-TBD
+Latest documentation is available at <https://alpm.archlinux.page/pdoc>.
+
+## Installation
+
+```sh
+pip install alpm
+```
 
 ## Examples
 
-### `alpm.alpm_types`
+### Validating and comparing versions
 
 ```python
-from alpm import alpm_types
+from alpm.alpm_types import PackageVersion, SchemaVersion
 
-alpm_types.PackageVersion('1.0.0alpha')
+package_version = PackageVersion('1.0.0alpha')
 
-version_one = alpm_types.SchemaVersion.from_str('1.0.0')
-version_also_one = alpm_types.SchemaVersion.from_str('1')
+version_one = SchemaVersion.from_str('1.0.0')
+version_also_one = SchemaVersion.from_str('1')
 assert version_one == version_also_one
+```
+
+### Parsing SRCINFO
+
+```python
+from alpm.alpm_srcinfo import SourceInfoV1
+
+srcinfo = SourceInfoV1.from_file("test.srcinfo")
+print(srcinfo.base.name)
+print(srcinfo.packages)
+```
+
+### Working with package metadata
+
+```python
+from alpm.alpm_srcinfo.source_info.v1.package import Package, Override
+
+pkg = Package("testpkg")
+pkg.description = Override("A test package")
 ```
 
 ## Contributing
