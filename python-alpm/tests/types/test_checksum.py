@@ -32,7 +32,7 @@ from alpm.type_aliases import SkippableChecksum, Checksum
         ),
     ],
 )
-def test_checksum_valid(checksum_type: type[Checksum], valid_hash: str):
+def test_checksum_valid(checksum_type: type[Checksum], valid_hash: str) -> None:
     """Test creating a valid checksum."""
     checksum = checksum_type(valid_hash)
     assert str(checksum) == valid_hash
@@ -67,7 +67,7 @@ def test_checksum_valid(checksum_type: type[Checksum], valid_hash: str):
 )
 def test_skippable_checksum_valid(
     checksum_type: type[SkippableChecksum], valid_hash: str
-):
+) -> None:
     """Test creating a valid skippable checksum."""
     checksum = checksum_type(valid_hash)
     assert checksum.is_skipped is False
@@ -86,7 +86,7 @@ def test_skippable_checksum_valid(
         alpm_types.SkippableSha512Checksum,
     ],
 )
-def test_skippable_checksum_skip(checksum_type: type[SkippableChecksum]):
+def test_skippable_checksum_skip(checksum_type: type[SkippableChecksum]) -> None:
     """Test creating a valid skipped skippable checksum."""
     checksum = checksum_type("SKIP")
     assert checksum.is_skipped is True
@@ -105,13 +105,13 @@ def test_skippable_checksum_skip(checksum_type: type[SkippableChecksum]):
         alpm_types.Sha512Checksum,
     ],
 )
-def test_checksum_invalid(checksum_type: type[Checksum]):
+def test_checksum_invalid(checksum_type: type[Checksum]) -> None:
     """Test creating an invalid checksum raises error."""
     with pytest.raises(ALPMError):
         checksum_type("invalid_hash")
 
 
-def test_checksum_equality():
+def test_checksum_equality() -> None:
     """Test checksum equality comparison."""
     hash_value = "d41d8cd98f00b204e9800998ecf8427e"
     checksum1 = alpm_types.Md5Checksum(hash_value)
@@ -119,22 +119,22 @@ def test_checksum_equality():
     assert checksum1 == checksum2
 
 
-def test_checksum_inequality():
+def test_checksum_inequality() -> None:
     """Test checksum inequality comparison."""
     checksum1 = alpm_types.Md5Checksum("d41d8cd98f00b204e9800998ecf8427e")
     checksum2 = alpm_types.Md5Checksum("5d41402abc4b2a76b9719d911017c592")
     assert checksum1 != checksum2
 
 
-def test_checksum_ordering():
+def test_checksum_ordering() -> None:
     """Test checksum ordering comparison."""
     checksum1 = alpm_types.Md5Checksum("5d41402abc4b2a76b9719d911017c592")
     checksum2 = alpm_types.Md5Checksum("d41d8cd98f00b204e9800998ecf8427e")
     assert checksum1 < checksum2
 
 
-def test_checksum_frozen():
+def test_checksum_frozen() -> None:
     """Test that checksums are frozen (immutable)."""
     checksum = alpm_types.Md5Checksum("d41d8cd98f00b204e9800998ecf8427e")
     with pytest.raises(AttributeError):
-        checksum.new_attr = "test"
+        checksum.new_attr = "test"  # type: ignore[attr-defined]
