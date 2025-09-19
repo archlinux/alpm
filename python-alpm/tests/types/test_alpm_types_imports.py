@@ -1,4 +1,4 @@
-def test_imports():
+def test_imports() -> None:
     """Test that all items can be imported without errors."""
 
     from alpm.alpm_types import (  # noqa: F401

@@ -21,9 +21,10 @@ from alpm.alpm_types import (
     VersionComparison,
     relation_or_soname_from_str,
 )
+from alpm.type_aliases import RelationOrSoname
 
 
-def test_package_init_valid_name():
+def test_package_init_valid_name() -> None:
     """Test Package initialization with valid name."""
     package = Package("test-package")
     assert package.name == "test-package"
@@ -37,13 +38,13 @@ def test_package_init_valid_name():
         "-invalid",
     ],
 )
-def test_package_init_invalid_name(invalid_name):
+def test_package_init_invalid_name(invalid_name: str) -> None:
     """Test Package initialization with invalid names raises ALPMError."""
     with pytest.raises(ALPMError):
         Package(invalid_name)
 
 
-def test_package_name_getter_setter():
+def test_package_name_getter_setter() -> None:
     """Test Package name property getter and setter."""
     package = Package("original-name")
     assert package.name == "original-name"
@@ -52,14 +53,14 @@ def test_package_name_getter_setter():
     assert package.name == "new-name"
 
 
-def test_package_name_setter_invalid():
+def test_package_name_setter_invalid() -> None:
     """Test Package name setter with invalid name raises ALPMError."""
     package = Package("valid-name")
     with pytest.raises(ALPMError):
         package.name = "invalid name"
 
 
-def test_package_description_getter_setter():
+def test_package_description_getter_setter() -> None:
     """Test Package description property getter and setter."""
     package = Package("test-package")
 
@@ -79,7 +80,7 @@ def test_package_description_getter_setter():
     assert package.description.value is None
 
 
-def test_package_url_getter_setter():
+def test_package_url_getter_setter() -> None:
     """Test Package url property getter and setter."""
     package = Package("test-package")
 
@@ -100,7 +101,7 @@ def test_package_url_getter_setter():
     assert package.url.value is None
 
 
-def test_package_changelog_getter_setter():
+def test_package_changelog_getter_setter() -> None:
     """Test Package changelog property getter and setter."""
     package = Package("test-package")
 
@@ -121,7 +122,7 @@ def test_package_changelog_getter_setter():
     assert package.changelog.value is None
 
 
-def test_package_licenses_getter_setter():
+def test_package_licenses_getter_setter() -> None:
     """Test Package licenses property getter and setter."""
     package = Package("test-package")
 
@@ -142,7 +143,7 @@ def test_package_licenses_getter_setter():
     assert package.licenses.value is None
 
 
-def test_package_install_getter_setter():
+def test_package_install_getter_setter() -> None:
     """Test Package install property getter and setter."""
     package = Package("test-package")
 
@@ -163,7 +164,7 @@ def test_package_install_getter_setter():
     assert package.install.value is None
 
 
-def test_package_groups_getter_setter():
+def test_package_groups_getter_setter() -> None:
     """Test Package groups property getter and setter."""
     package = Package("test-package")
 
@@ -184,7 +185,7 @@ def test_package_groups_getter_setter():
     assert package.groups.value is None
 
 
-def test_package_options_getter_setter():
+def test_package_options_getter_setter() -> None:
     """Test Package options property getter and setter."""
     package = Package("test-package")
 
@@ -205,7 +206,7 @@ def test_package_options_getter_setter():
     assert package.options.value is None
 
 
-def test_package_backups_getter_setter():
+def test_package_backups_getter_setter() -> None:
     """Test Package backups property getter and setter."""
     package = Package("test-package")
 
@@ -226,7 +227,7 @@ def test_package_backups_getter_setter():
     assert package.backups.value is None
 
 
-def test_package_architectures_getter_setter():
+def test_package_architectures_getter_setter() -> None:
     """Test Package architectures property getter and setter."""
     package = Package("test-package")
 
@@ -242,7 +243,7 @@ def test_package_architectures_getter_setter():
     assert package.architectures is None
 
 
-def test_package_architecture_properties_getter_setter():
+def test_package_architecture_properties_getter_setter() -> None:
     """Test Package architecture_properties property getter and setter."""
     package = Package("test-package")
 
@@ -256,14 +257,14 @@ def test_package_architecture_properties_getter_setter():
     assert len(package.architecture_properties) == 2
 
 
-def test_package_dependencies_getter_setter():
+def test_package_dependencies_getter_setter() -> None:
     """Test Package dependencies property getter and setter."""
     package = Package("test-package")
 
     assert package.dependencies is None
 
     # Override
-    dependencies = [
+    dependencies: list[RelationOrSoname] = [
         SonameV1("foo.so"),
         PackageRelation(
             "bar",
@@ -272,8 +273,7 @@ def test_package_dependencies_getter_setter():
             ),
         ),
     ]
-    override_deps = Override(dependencies)
-    package.dependencies = override_deps
+    package.dependencies = Override(dependencies)
     assert package.dependencies.value == dependencies
 
     # No override
@@ -285,7 +285,7 @@ def test_package_dependencies_getter_setter():
     assert package.dependencies.value is None
 
 
-def test_package_optional_dependencies_getter_setter():
+def test_package_optional_dependencies_getter_setter() -> None:
     """Test Package optional_dependencies property getter and setter."""
     package = Package("test-package")
 
@@ -306,22 +306,21 @@ def test_package_optional_dependencies_getter_setter():
     assert package.optional_dependencies.value is None
 
 
-def test_package_provides_getter_setter():
+def test_package_provides_getter_setter() -> None:
     """Test Package provides property getter and setter."""
     package = Package("test-package")
 
     assert package.provides is None
 
     # Override
-    provides = [
+    provides: list[RelationOrSoname] = [
         SonameV1("foo.so"),
         PackageRelation(
             "bar",
             VersionRequirement(VersionComparison.EQUAL, Version.from_str("1.0.0")),
         ),
     ]
-    override_provides = Override(provides)
-    package.provides = override_provides
+    package.provides = Override(provides)
     assert package.provides.value == provides
 
     # No override
@@ -333,7 +332,7 @@ def test_package_provides_getter_setter():
     assert package.provides.value is None
 
 
-def test_package_conflicts_getter_setter():
+def test_package_conflicts_getter_setter() -> None:
     """Test Package conflicts property getter and setter."""
     package = Package("test-package")
 
@@ -358,7 +357,7 @@ def test_package_conflicts_getter_setter():
     assert package.conflicts.value is None
 
 
-def test_package_replaces_getter_setter():
+def test_package_replaces_getter_setter() -> None:
     """Test Package replaces property getter and setter."""
     package = Package("test-package")
 
@@ -383,14 +382,14 @@ def test_package_replaces_getter_setter():
     assert package.replaces.value is None
 
 
-def test_package_architecture_dependencies_getter_setter():
+def test_package_architecture_dependencies_getter_setter() -> None:
     """Test PackageArchitecture dependencies property getter and setter."""
     arch_props = PackageArchitecture()
 
     assert arch_props.dependencies is None
 
     # Override
-    dependencies = [
+    dependencies: list[RelationOrSoname] = [
         SonameV1("foo.so"),
         PackageRelation(
             "bar",
@@ -399,8 +398,7 @@ def test_package_architecture_dependencies_getter_setter():
             ),
         ),
     ]
-    override_deps = Override(dependencies)
-    arch_props.dependencies = override_deps
+    arch_props.dependencies = Override(dependencies)
     assert arch_props.dependencies.value == dependencies
 
     # No override
@@ -412,7 +410,7 @@ def test_package_architecture_dependencies_getter_setter():
     assert arch_props.dependencies.value is None
 
 
-def test_package_architecture_optional_dependencies_getter_setter():
+def test_package_architecture_optional_dependencies_getter_setter() -> None:
     """Test PackageArchitecture optional_dependencies property getter and setter."""
     arch_props = PackageArchitecture()
 
@@ -433,22 +431,21 @@ def test_package_architecture_optional_dependencies_getter_setter():
     assert arch_props.optional_dependencies.value is None
 
 
-def test_package_architecture_provides_getter_setter():
+def test_package_architecture_provides_getter_setter() -> None:
     """Test PackageArchitecture provides property getter and setter."""
     arch_props = PackageArchitecture()
 
     assert arch_props.provides is None
 
     # Override
-    provides = [
+    provides: list[RelationOrSoname] = [
         SonameV1("foo.so"),
         PackageRelation(
             "bar",
             VersionRequirement(VersionComparison.EQUAL, Version.from_str("1.0.0")),
         ),
     ]
-    override_provides = Override(provides)
-    arch_props.provides = override_provides
+    arch_props.provides = Override(provides)
     assert arch_props.provides.value == provides
 
     # No override
@@ -460,7 +457,7 @@ def test_package_architecture_provides_getter_setter():
     assert arch_props.provides.value is None
 
 
-def test_package_architecture_conflicts_getter_setter():
+def test_package_architecture_conflicts_getter_setter() -> None:
     """Test PackageArchitecture conflicts property getter and setter."""
     arch_props = PackageArchitecture()
 
@@ -485,7 +482,7 @@ def test_package_architecture_conflicts_getter_setter():
     assert arch_props.conflicts.value is None
 
 
-def test_package_architecture_replaces_getter_setter():
+def test_package_architecture_replaces_getter_setter() -> None:
     """Test PackageArchitecture replaces property getter and setter."""
     arch_props = PackageArchitecture()
 
@@ -510,21 +507,21 @@ def test_package_architecture_replaces_getter_setter():
     assert arch_props.replaces.value is None
 
 
-def test_override_init_with_value():
+def test_override_init_with_value() -> None:
     """Test Override initialization with a value."""
     override = Override("test value")
     assert override.value == "test value"
 
 
-def test_override_init_with_none():
+def test_override_init_with_none() -> None:
     """Test Override initialization with None (clear field)."""
-    override = Override(None)
+    override: Override[str] = Override(None)
     assert override.value is None
 
 
-def test_override_value_property():
+def test_override_value_property() -> None:
     """Test Override value property."""
-    override = Override("initial value")
+    override: Override[str] = Override("initial value")
     assert override.value == "initial value"
 
 
@@ -536,27 +533,27 @@ def test_override_value_property():
         None,
     ],
 )
-def test_override_with_valid_types(test_value):
+def test_override_with_valid_types(test_value: str | list[str] | None) -> None:
     """Test Override with valid value types."""
-    override = Override(test_value)
+    override: Override[str | list[str]] = Override(test_value)
     assert override.value == test_value
 
 
-def test_override_with_url():
+def test_override_with_url() -> None:
     """Test Override with Url type."""
     url = Url("https://example.com")
-    override = Override(url)
+    override: Override[Url] = Override(url)
     assert override.value == url
 
 
-def test_override_with_relative_path():
+def test_override_with_relative_path() -> None:
     """Test Override with RelativePath type."""
     path = RelativePath("path/to/file")
-    override = Override(path)
+    override: Override[RelativePath] = Override(path)
     assert override.value == path
 
 
-def test_override_clear_vs_none():
+def test_override_clear_vs_none() -> None:
     """Test difference between Override(None) (clear) and None (no override)."""
     package = Package("test-package")
 
@@ -568,7 +565,7 @@ def test_override_clear_vs_none():
     assert package.description.value is None
 
 
-def test_package_equality():
+def test_package_equality() -> None:
     """Test Package equality comparison."""
     package1 = Package("test-package")
     package2 = Package("test-package")
@@ -576,7 +573,7 @@ def test_package_equality():
 
     assert package1 == package2
     assert package1 != package3
-    assert package1 != "test-package"
+    assert package1 != "test-package"  # type: ignore[comparison-overlap]
 
 
 @pytest.mark.parametrize(
@@ -590,13 +587,13 @@ def test_package_equality():
         "123name",
     ],
 )
-def test_package_init_valid_names(valid_name):
+def test_package_init_valid_names(valid_name: str) -> None:
     """Test Package initialization with various valid name patterns."""
     package = Package(valid_name)
     assert package.name == valid_name
 
 
-def test_package_architecture_equality():
+def test_package_architecture_equality() -> None:
     """Test PackageArchitecture equality comparison."""
     arch1 = PackageArchitecture()
     arch2 = PackageArchitecture()
@@ -610,4 +607,4 @@ def test_package_architecture_equality():
     arch2.dependencies = Override([relation_or_soname_from_str("other-dep")])
     assert arch1 != arch2
 
-    assert arch1 != "not an architecture"
+    assert arch1 != "not an architecture"  # type: ignore[comparison-overlap]

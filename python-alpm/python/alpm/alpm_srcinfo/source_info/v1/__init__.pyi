@@ -19,6 +19,8 @@ class SourceInfoV1:
     create usable MergedPackages.
     """
 
+    __hash__ = None  # type: ignore
+
     def __init__(self, content: str):
         """Create SourceInfoV1 from a string representation.
 
@@ -34,7 +36,7 @@ class SourceInfoV1:
         """Reads the file at the specified path and convert it into a SourceInfoV1
 
         Args:
-            path (sPath | strtr): The path to the SRCINFO file.
+            path (Path | str): The path to the SRCINFO file.
 
         Returns:
             SourceInfoV1: The SourceInfoV1 instance created from the file content.
@@ -86,7 +88,6 @@ class SourceInfoV1:
 
     def __str__(self) -> str: ...
     def __repr__(self) -> str: ...
-    def __ge__(self, other: "SourceInfoV1") -> bool: ...
 
 __all__ = [
     "SourceInfoV1",
