@@ -418,7 +418,7 @@ class Architecture(Enum):
     def __str__(self) -> str: ...
     def __repr__(self) -> str: ...
     def __eq__(self, other: object) -> bool: ...
-    def __hash__(self): ...
+    def __hash__(self) -> int: ...
 
 class Url:
     """Represents a URL.
@@ -772,7 +772,7 @@ class OptionalDependency:
         """
 
     @classmethod
-    def from_str(cls, s: str):
+    def from_str(cls, s: str) -> "OptionalDependency":
         """Create a new OptionalDependency from a string representation.
 
         Args:
@@ -1008,7 +1008,7 @@ class ElfArchitectureFormat(Enum):
         """
 
     def __eq__(self, other: object) -> bool: ...
-    def __hash__(self): ...
+    def __hash__(self) -> int: ...
 
 class FullVersion:
     """A package version with mandatory PackageRelease.

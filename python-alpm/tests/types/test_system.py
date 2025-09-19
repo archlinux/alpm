@@ -11,7 +11,7 @@ from alpm import alpm_types
         "64",
     ],
 )
-def test_elf_architecture_format_from_str_valid(format_str):
+def test_elf_architecture_format_from_str_valid(format_str: str) -> None:
     """Test creating ElfArchitectureFormat from valid string."""
     arch_format = alpm_types.ElfArchitectureFormat.from_str(format_str)
     assert arch_format is not None
@@ -26,27 +26,27 @@ def test_elf_architecture_format_from_str_valid(format_str):
         "invalid",
     ],
 )
-def test_elf_architecture_format_from_str_invalid(invalid_format):
+def test_elf_architecture_format_from_str_invalid(invalid_format: str) -> None:
     """Test creating ElfArchitectureFormat from invalid string raises error."""
     with pytest.raises(ValueError):
         alpm_types.ElfArchitectureFormat.from_str(invalid_format)
 
 
-def test_elf_architecture_format_equality():
+def test_elf_architecture_format_equality() -> None:
     """Test ElfArchitectureFormat equality."""
     arch1 = alpm_types.ElfArchitectureFormat.BIT_64
     arch2 = alpm_types.ElfArchitectureFormat.BIT_64
     assert arch1 == arch2
 
 
-def test_elf_architecture_format_inequality():
+def test_elf_architecture_format_inequality() -> None:
     """Test ElfArchitectureFormat inequality."""
     arch1 = alpm_types.ElfArchitectureFormat.BIT_32
     arch2 = alpm_types.ElfArchitectureFormat.BIT_64
     assert arch1 != arch2
 
 
-def test_elf_architecture_format_enum_values():
+def test_elf_architecture_format_enum_values() -> None:
     """Test ElfArchitectureFormat enum values."""
     assert alpm_types.ElfArchitectureFormat.BIT_32 is not None
     assert alpm_types.ElfArchitectureFormat.BIT_64 is not None

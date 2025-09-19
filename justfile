@@ -468,7 +468,7 @@ check-rust-code:
 [group('check')]
 check-python-code:
     uv run --directory python-alpm ruff check
-    uv run --directory python-alpm mypy .
+    uv run --directory python-alpm mypy --strict .
 
 # Checks shell code using shellcheck.
 [group('check')]

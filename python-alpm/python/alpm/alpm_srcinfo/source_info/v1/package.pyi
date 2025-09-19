@@ -66,6 +66,8 @@ class Package:
     Only in combination with PackageBase data a full view on a package's metadata is possible.
     """
 
+    __hash__ = None  # type: ignore
+
     def __init__(self, name: str):
         """Initialize a new Package with the given name.
 
@@ -200,7 +202,9 @@ class PackageArchitecture:
     Package.architecture_properties.
     """
 
-    def __init__(self):
+    __hash__ = None  # type: ignore
+
+    def __init__(self) -> None:
         """Initialize an empty PackageArchitecture with all overrides set to None."""
 
     @property

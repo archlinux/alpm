@@ -29,7 +29,7 @@ class PackageBaseArchitecture:
     PackageBaseArchitecture is present in PackageBase.architecture_properties.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize a new PackageBaseArchitecture with default values."""
 
     def merge_package_properties(self, properties: "PackageArchitecture") -> None:
@@ -152,7 +152,7 @@ class PackageBase:
     A MergedPackage (a full view on a package's metadata) can be created using SourceInfoV1.packages_for_architecture.
     """
 
-    def __init__(self, name: str, version: "FullVersion"):
+    def __init__(self, name: str, version: "FullVersion") -> None:
         """Create a new PackageBase from a name and a FullVersion.
 
         Uses the name and version and initializes all remaining fields of PackageBase with default values.

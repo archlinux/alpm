@@ -6,7 +6,7 @@ from alpm import alpm_srcinfo
 
 
 @pytest.fixture
-def valid_srcinfo_content():
+def valid_srcinfo_content() -> str:
     """Fixture providing valid SRCINFO content."""
     return """
 pkgbase = example
@@ -59,7 +59,7 @@ pkgname = example
 
 
 @pytest.fixture
-def valid_pkgbuild_content():
+def valid_pkgbuild_content() -> str:
     """Fixture providing valid PKGBUILD content."""
     return """
 #!/bin/bash
@@ -103,19 +103,19 @@ package_example() {
 """
 
 
-def test_source_info_v1_from_string_valid(valid_srcinfo_content):
+def test_source_info_v1_from_string_valid(valid_srcinfo_content: str) -> None:
     """Test creating SourceInfoV1 from valid string content."""
     srcinfo = alpm_srcinfo.SourceInfoV1(valid_srcinfo_content)
     assert srcinfo is not None
 
 
-def test_source_info_v1_from_string_invalid():
+def test_source_info_v1_from_string_invalid() -> None:
     """Test creating SourceInfoV1 from invalid string content raises error."""
     with pytest.raises(alpm_srcinfo.SourceInfoError):
         alpm_srcinfo.SourceInfoV1("some invalid content")
 
 
-def test_source_info_v1_from_file_valid(valid_srcinfo_content):
+def test_source_info_v1_from_file_valid(valid_srcinfo_content: str) -> None:
     """Test creating SourceInfoV1 from valid file content."""
 
     with tempfile.NamedTemporaryFile("w+", delete=True) as tmp:
@@ -125,7 +125,7 @@ def test_source_info_v1_from_file_valid(valid_srcinfo_content):
         assert srcinfo is not None
 
 
-def test_source_info_v1_from_file_invalid():
+def test_source_info_v1_from_file_invalid() -> None:
     """Test creating SourceInfoV1 from invalid file content raises error."""
     with tempfile.NamedTemporaryFile("w+", delete=True) as tmp:
         tmp.write("some invalid content")
@@ -134,7 +134,7 @@ def test_source_info_v1_from_file_invalid():
             alpm_srcinfo.SourceInfoV1.from_file(tmp.name)
 
 
-def test_source_info_v1_from_pkgbuild_file_valid(valid_pkgbuild_content):
+def test_source_info_v1_from_pkgbuild_file_valid(valid_pkgbuild_content: str) -> None:
     """Test creating SourceInfoV1 from valid PKGBUILD file content."""
 
     with tempfile.NamedTemporaryFile("w+", delete=True) as tmp:
@@ -144,7 +144,7 @@ def test_source_info_v1_from_pkgbuild_file_valid(valid_pkgbuild_content):
         assert srcinfo is not None
 
 
-def test_source_info_v1_from_pkgbuild_file_invalid():
+def test_source_info_v1_from_pkgbuild_file_invalid() -> None:
     """Test creating SourceInfoV1 from invalid PKGBUILD file content raises error."""
     with tempfile.NamedTemporaryFile("w+", delete=True) as tmp:
         tmp.write("some invalid content")
