@@ -1,8 +1,8 @@
-"""Tests for checksum alpm_types: Md5Checksum, Sha1Checksum, Sha224Checksum, etc."""
+"""Tests for checksum alpm_types."""
 
 import pytest
-from alpm import alpm_types, ALPMError
-from alpm.type_aliases import SkippableChecksum, Checksum
+from alpm import ALPMError, alpm_types
+from alpm.type_aliases import Checksum, SkippableChecksum
 
 
 @pytest.mark.parametrize(

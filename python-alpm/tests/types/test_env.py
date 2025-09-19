@@ -1,7 +1,7 @@
-"""Tests for environment types: BuildEnvironmentOption, PackageOption, makepkg_option_from_str."""
+"""Tests for environment types."""
 
 import pytest
-from alpm import alpm_types, ALPMError
+from alpm import ALPMError, alpm_types
 
 
 @pytest.mark.parametrize(

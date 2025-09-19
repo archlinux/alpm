@@ -1,7 +1,7 @@
-"""Tests for OpenPGP-related alpm_types: OpenPGPKeyId, OpenPGPv4Fingerprint, openpgp_identifier_from_str."""
+"""Tests for OpenPGP-related alpm_types."""
 
 import pytest
-from alpm import alpm_types, ALPMError
+from alpm import ALPMError, alpm_types
 
 
 def test_openpgp_key_id_valid() -> None:

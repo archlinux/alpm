@@ -33,9 +33,15 @@ class PackageBaseArchitecture:
         """Initialize a new PackageBaseArchitecture with default values."""
 
     def merge_package_properties(self, properties: "PackageArchitecture") -> None:
-        """Merges in the architecture specific properties of a package.
+        """Merge in the architecture specific properties of a package.
 
-        Each existing field of properties overrides the architecture-independent pendant on self.
+        Each existing field of properties overrides the architecture-independent
+        pendant on self.
+
+        Args:
+            properties (PackageArchitecture): The architecture specific properties of a
+                package to merge in.
+
         """
 
     @property
@@ -147,15 +153,18 @@ class PackageBaseArchitecture:
 class PackageBase:
     """Package base metadata based on the pkgbase section in SRCINFO data.
 
-    All values in this struct act as default values for all Packages in the scope of specific SRCINFO data.
+    All values in this struct act as default values for all Packages in the scope of
+    specific SRCINFO data.
 
-    A MergedPackage (a full view on a package's metadata) can be created using SourceInfoV1.packages_for_architecture.
+    A MergedPackage (a full view on a package's metadata) can be created using
+    SourceInfoV1.packages_for_architecture.
     """
 
     def __init__(self, name: str, version: "FullVersion") -> None:
         """Create a new PackageBase from a name and a FullVersion.
 
-        Uses the name and version and initializes all remaining fields of PackageBase with default values.
+        Uses the name and version and initializes all remaining fields of PackageBase
+        with default values.
 
         Args:
             name (str): The name of the package base.
@@ -163,6 +172,7 @@ class PackageBase:
 
         Raises:
             ALPMError: If the provided name is not valid.
+
         """
 
     @property
@@ -197,13 +207,13 @@ class PackageBase:
     def licenses(self, licenses: list["License"]) -> None: ...
     @property
     def install(self) -> Optional["RelativePath"]:
-        """The optional relative path to an alpm-install-scriptlet of the package base."""
+        """Relative path to an alpm-install-scriptlet of the package base."""
 
     @install.setter
     def install(self, install: Optional["RelativePath"]) -> None: ...
     @property
     def groups(self) -> list[str]:
-        """The optional list of alpm-package-groups the package base is part of."""
+        """List of alpm-package-groups the package base is part of."""
 
     @groups.setter
     def groups(self, groups: list[str]) -> None: ...
@@ -215,7 +225,7 @@ class PackageBase:
     def options(self, options: list["MakepkgOption"]) -> None: ...
     @property
     def backups(self) -> list["RelativePath"]:
-        """The list of relative paths to files in a package that should be backed up."""
+        """Relative paths to files in a package that should be backed up."""
 
     @backups.setter
     def backups(self, backups: list["RelativePath"]) -> None: ...
@@ -227,19 +237,23 @@ class PackageBase:
     def version(self, version: "FullVersion") -> None: ...
     @property
     def pgp_fingerprints(self) -> list["OpenPGPIdentifier"]:
-        """The list of OpenPGP fingerprints of OpenPGP certificates used for the verification of upstream sources."""
+        """OpenPGPIdentifiers used for the verification of upstream sources."""
 
     @pgp_fingerprints.setter
     def pgp_fingerprints(self, pgp_fingerprints: list["OpenPGPIdentifier"]) -> None: ...
     @property
     def architectures(self) -> list["Architecture"]:
-        """Architectures and architecture specific properties"""
+        """Architectures and architecture specific properties."""
 
     @architectures.setter
     def architectures(self, architectures: list["Architecture"]) -> None: ...
     @property
     def architecture_properties(self) -> dict[Architecture, PackageBaseArchitecture]:
-        """Dict of alpm-architecture specific overrides for package relations of a package base."""
+        """Architecture specific properties.
+
+        Dict of alpm-architecture specific overrides for package relations of a
+        package base.
+        """
 
     @architecture_properties.setter
     def architecture_properties(

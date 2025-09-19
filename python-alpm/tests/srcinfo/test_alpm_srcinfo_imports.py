@@ -1,6 +1,15 @@
+"""Tests that all items in alpm_srcinfo module can be imported."""
+
+
 def test_shortcut_imports() -> None:
-    """Test that all items reexported from submodules can be imported from alpm.alpm_srcinfo."""
-    from alpm.alpm_srcinfo import SourceInfoError, SourceInfoV1, MergedPackage  # noqa: F401
+    """Test that all items reexported from submodule can be imported from
+    alpm.alpm_srcinfo.
+    """
+    from alpm.alpm_srcinfo import (  # noqa: F401
+        MergedPackage,
+        SourceInfoError,
+        SourceInfoV1,
+    )
 
 
 def test_imports() -> None:
@@ -14,11 +23,14 @@ def test_imports() -> None:
         package,
         package_base,
     )
-    from alpm.alpm_srcinfo.source_info.v1.merged import MergedPackage, MergedSource  # noqa: F401
+    from alpm.alpm_srcinfo.source_info.v1.merged import (  # noqa: F401
+        MergedPackage,
+        MergedSource,
+    )
     from alpm.alpm_srcinfo.source_info.v1.package import (  # noqa: F401
+        Override,
         Package,
         PackageArchitecture,
-        Override,
     )
     from alpm.alpm_srcinfo.source_info.v1.package_base import (  # noqa: F401
         PackageBase,

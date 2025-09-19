@@ -1,7 +1,7 @@
-"""Tests for version-related alpm_types: PackageVersion, SchemaVersion, Epoch, PackageRelease, VersionComparison, FullVersion, Version."""
+"""Tests for version-related alpm_types."""
 
 import pytest
-from alpm import alpm_types, ALPMError
+from alpm import ALPMError, alpm_types
 
 
 # PackageVersion tests
@@ -432,7 +432,7 @@ def test_version_repr() -> None:
 
 
 def test_package_version_error_handling() -> None:
-    """Test that PackageVersion raises ALPMError"""
+    """Test that PackageVersion raises ALPMError."""
     with pytest.raises(ALPMError):
         alpm_types.PackageVersion("")
 

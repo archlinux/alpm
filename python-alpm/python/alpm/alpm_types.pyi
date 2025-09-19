@@ -31,7 +31,8 @@ class Blake2b512Checksum:
 class Md5Checksum:
     """A checksum using the Md5 algorithm.
 
-    WARNING: Use of this algorithm is highly discouraged, because it is cryptographically unsafe.
+    WARNING: Use of this algorithm is highly discouraged, because it is
+    cryptographically unsafe.
     """
 
     def __init__(self, value: str): ...
@@ -46,7 +47,8 @@ class Md5Checksum:
 class Sha1Checksum:
     """A checksum using the Sha1 algorithm.
 
-    WARNING: Use of this algorithm is highly discouraged, because it is cryptographically unsafe.
+    WARNING: Use of this algorithm is highly discouraged, because it is
+    cryptographically unsafe.
     """
 
     def __init__(self, value: str): ...
@@ -120,7 +122,8 @@ class SkippableBlake2b512Checksum:
 class SkippableMd5Checksum:
     """A checksum using the Md5 algorithm.
 
-    WARNING: Use of this algorithm is highly discouraged, because it is cryptographically unsafe.
+    WARNING: Use of this algorithm is highly discouraged, because it is
+    cryptographically unsafe.
     """
 
     def __init__(self, value: str): ...
@@ -134,7 +137,8 @@ class SkippableMd5Checksum:
 class SkippableSha1Checksum:
     """A checksum using the Sha1 algorithm.
 
-    WARNING: Use of this algorithm is highly discouraged, because it is cryptographically unsafe.
+    WARNING: Use of this algorithm is highly discouraged, because it is
+    cryptographically unsafe.
     """
 
     def __init__(self, value: str): ...
@@ -192,8 +196,8 @@ class SkippableSha512Checksum:
 class BuildEnvironmentOption:
     """An option string used in a build environment.
 
-    The option string is identified by its name and whether it is on (not prefixed with "!") or off
-    (prefixed with "!").
+    The option string is identified by its name and whether it is on (not prefixed with
+    "!") or off (prefixed with "!").
     """
 
     def __init__(self, option: str) -> None:
@@ -204,6 +208,7 @@ class BuildEnvironmentOption:
 
         Raises:
             ALPMError: If the input doesn't match any known option.
+
         """
 
     @property
@@ -221,8 +226,8 @@ class BuildEnvironmentOption:
 class PackageOption:
     """An option string used in packaging.
 
-    The option string is identified by its name and whether it is on (not prefixed with "!") or off
-    (prefixed with "!").
+    The option string is identified by its name and whether it is on (not prefixed with
+    "!") or off (prefixed with "!").
     """
 
     def __init__(self, option: str) -> None:
@@ -233,6 +238,7 @@ class PackageOption:
 
         Raises:
             ALPMError: If the input doesn't match any known option.
+
         """
 
     @property
@@ -256,27 +262,31 @@ def makepkg_option_from_str(
         option (str): The option string to parse.
 
     Returns:
-        BuildEnvironmentOption | PackageOption: A valid option object.
+        MakepkgOption: A valid option object.
 
     Raises:
         ALPMError: If the input doesn't match any known option.
+
     """
     ...
 
 class License:
-    """A license expression that can be either a valid SPDX identifier or a non-standard one."""
+    """A license expression.
+
+    Can be either a valid SPDX identifier or a non-standard one.
+    """
 
     def __init__(self, identifier: str) -> None:
         """Create a new License from an SPDX identifier.
 
         Args:
             identifier (str): License expression.
+
         """
 
     @classmethod
     def from_valid_spdx(cls, identifier: str) -> "License":
-        """
-        Create a new License instance from a valid SPDX identifier string.
+        """Create a new License instance from a valid SPDX identifier string.
 
         Args:
             identifier (str): A valid SPDX license identifier.
@@ -286,6 +296,7 @@ class License:
 
         Raises:
             ALPMError: If the identifier is not a valid SPDX license identifier.
+
         """
 
     @property
@@ -299,8 +310,8 @@ class License:
 class OpenPGPKeyId:
     """An OpenPGP Key ID.
 
-    Wraps a string representing a valid OpenPGP Key ID, ensuring that it consists of exactly 16 uppercase hexadecimal
-    characters.
+    Wraps a string representing a valid OpenPGP Key ID, ensuring that it consists of
+    exactly 16 uppercase hexadecimal characters.
     """
 
     def __init__(self, key_id: str) -> None:
@@ -315,6 +326,7 @@ class OpenPGPKeyId:
 
         Raises:
             ALPMError: If the input string is not a valid OpenPGP Key ID.
+
         """
 
     def __str__(self) -> str: ...
@@ -324,8 +336,8 @@ class OpenPGPKeyId:
 class OpenPGPv4Fingerprint:
     """An OpenPGP v4 fingerprint.
 
-    Wraps a string representing a valid OpenPGP v4 fingerprint, ensuring that it consists of exactly 40 uppercase
-    hexadecimal characters.
+    Wraps a string representing a valid OpenPGP v4 fingerprint, ensuring that it
+    consists of exactly 40 uppercase hexadecimal characters.
     """
 
     def __init__(self, fingerprint: str) -> None:
@@ -333,13 +345,14 @@ class OpenPGPv4Fingerprint:
 
         Args:
             fingerprint (str): A string representing the OpenPGP v4 fingerprint,
-                               which must be exactly 40 uppercase hexadecimal characters.
+                which must be exactly 40 uppercase hexadecimal characters.
 
         Returns:
             OpenPGPv4Fingerprint: A new instance of OpenPGPv4Fingerprint.
 
         Raises:
             ALPMError: If the input string is not a valid OpenPGP v4 fingerprint.
+
         """
 
     def __str__(self) -> str: ...
@@ -349,23 +362,25 @@ class OpenPGPv4Fingerprint:
 def openpgp_identifier_from_str(
     identifier: str,
 ) -> OpenPGPIdentifier:
-    """
-    Create a valid OpenPGPKeyId or OpenPGPv4Fingerprint.
+    """Create a valid OpenPGPKeyId or OpenPGPv4Fingerprint.
 
     Args:
-        identifier (str): OpenPGP identifier string, which can be either a key ID or a v4 fingerprint.
+        identifier (str): OpenPGP identifier string, which can be either a key ID or a
+            v4 fingerprint.
 
     Returns:
         OpenPGPKeyId | OpenPGPv4Fingerprint: A valid OpenPGP identifier object.
 
     Raises:
         ALPMError: If the input string isn't a valid OpenPGP key ID or v4 fingerprint.
+
     """
 
 class RelativePath:
     """A representation of a relative file path.
 
-    Wraps a Path that is guaranteed to represent a relative file path (i.e. it does not end with a '/').
+    Wraps a Path that is guaranteed to represent a relative file path (i.e. it does not
+    end with a '/').
     """
 
     def __init__(self, path: Union[Path, str]) -> None:
@@ -376,6 +391,7 @@ class RelativePath:
 
         Raises:
             ALPMError: If the provided string is not a valid relative path.
+
         """
 
     def __str__(self) -> str: ...
@@ -413,6 +429,7 @@ class Architecture(Enum):
 
         Raises:
             ValueError: If the architecture string doesn't match any enum variant.
+
         """
 
     def __str__(self) -> str: ...
@@ -435,6 +452,7 @@ class Url:
 
         Raises:
             ALPMError: If the URL is invalid.
+
         """
         ...
 
@@ -446,8 +464,8 @@ class SourceUrl:
     """A URL for package sources.
 
     Wraps the Url type and provides optional information on VCS systems.
-    Can be created from custom URL strings, that in part resemble the default URL syntax, e.g.:
-    git+https://example.org/example-project.git#tag=v1.0.0?signed
+    Can be created from custom URL strings, that in part resemble the default URL
+    syntax, e.g.: git+https://example.org/example-project.git#tag=v1.0.0?signed
     """
 
     def __init__(self, source_url: str) -> None:
@@ -458,6 +476,7 @@ class SourceUrl:
 
         Raises:
             ALPMError: If the value of source_url is invalid.
+
         """
         ...
 
@@ -523,7 +542,7 @@ class SvnInfo:
     def __eq__(self, other: object) -> bool: ...
 
 class Source:
-    """Represents the location that a source file should be retrieved from
+    """Represents the location that a source file should be retrieved from.
 
     It can be either a local file (next to the PKGBUILD) or a URL.
     """
@@ -532,11 +551,13 @@ class Source:
         """Create a new Source from a string representation.
 
         Args:
-            source (str): A string representing the source. It is either a filename (in the same directory as the
-                          PKGBUILD) or a url, optionally prefixed by a destination file name (separated by "::").
+            source (str): A string representing the source. It is either a filename (in
+                the same directory as the PKGBUILD) or a url, optionally prefixed by a
+                destination file name (separated by "::").
 
         Raises:
             ALPMError: If the source string is invalid.
+
         """
 
     @property
@@ -558,8 +579,9 @@ class Source:
 class Epoch:
     """An epoch of a package.
 
-    Epoch is used to indicate the downgrade of a package and is prepended to a version, delimited by a ':' (e.g. '1:' is
-    added to '0.10.0-1' to form '1:0.10.0-1' which then orders newer than '1.0.0-1').
+    Epoch is used to indicate the downgrade of a package and is prepended to a version,
+    delimited by a ':' (e.g. '1:' is added to '0.10.0-1' to form '1:0.10.0-1' which
+    then orders newer than '1.0.0-1').
 
     An Epoch wraps an int that is guaranteed to be greater than 0.
     """
@@ -573,6 +595,7 @@ class Epoch:
         Raises:
             ValueError: If the epoch is not a positive integer.
             OverflowError: If the epoch is greater than the system's pointer size.
+
         """
 
     @classmethod
@@ -587,6 +610,7 @@ class Epoch:
 
         Raises:
             ALPMError: If the string cannot be parsed as a valid epoch.
+
         """
 
     @property
@@ -614,10 +638,13 @@ class PackageRelease:
 
         Args:
             major (int): The major version of the package release.
-            minor (Optional[int]): The minor version of the package release, defaults to None
+            minor (Optional[int]): The minor version of the package release, defaults
+                to None
 
         Raises:
-            OverflowError: If the major or minor version is negative or greater than the system's pointer size.
+            OverflowError: If the major or minor version is negative or greater than
+                the system's pointer size.
+
         """
 
     @classmethod
@@ -632,6 +659,7 @@ class PackageRelease:
 
         Raises:
             ALPMError: If the string cannot be parsed as a valid package release.
+
         """
 
     @property
@@ -647,15 +675,17 @@ class PackageRelease:
     def __eq__(self, other: object) -> bool: ...
 
 class PackageVersion:
-    """A pkgver of a package
+    """A pkgver of a package.
 
     Used to denote the upstream version of a package.
 
-    Wraps a string, which is guaranteed to only contain alphanumeric characters, '_', '+'` or '.', but to not start with
-    a '_', a '+' or a '.' character and to be at least one char long.
+    Wraps a string, which is guaranteed to only contain alphanumeric characters, '_',
+    '+'` or '.', but to not start with a '_', a '+' or a '.' character and to be at
+    least one char long.
 
-    NOTE: This implementation of PackageVersion is stricter than that of libalpm/pacman. It does not allow empty strings
-    '', or chars that are not in the allowed set, or '.' as the first character.
+    NOTE: This implementation of PackageVersion is stricter than that of
+    libalpm/pacman. It does not allow empty strings '', or chars that are not in the
+    allowed set, or '.' as the first character.
     """
 
     def __init__(self, pkgver: str) -> None:
@@ -666,6 +696,7 @@ class PackageVersion:
 
         Raises:
             ALPMError: If the pkgver is not a valid pkgver string.
+
         """
         ...
 
@@ -680,8 +711,9 @@ class PackageVersion:
 class SchemaVersion:
     """The schema version of a type.
 
-    Wraps a semver version. However, for backwards compatibility reasons it is possible to initialize a SchemaVersion
-    using a non-semver compatible string, if it can be parsed to a single 64-bit unsigned integer (e.g. '1').
+    Wraps a semver version. However, for backwards compatibility reasons it is possible
+    to initialize a SchemaVersion using a non-semver compatible string, if it can be
+    parsed to a single 64-bit unsigned integer (e.g. '1').
     """
 
     def __init__(
@@ -698,14 +730,16 @@ class SchemaVersion:
             major (int): The major version number.
             minor (int): The minor version number.
             patch (int): The patch version number.
-            pre (str): Optional pre-release identifier on a version string. This comes after '-' in a semver version,
-                       like '1.0.0-alpha.1'.
-            build (str): Optional build metadata identifier. This comes after '+' in a semver version, as in
-                         '0.8.1+zstd.1.5.0'.
+            pre (str): Optional pre-release identifier on a version string. This comes
+                after '-' in a semver version, like '1.0.0-alpha.1'.
+            build (str): Optional build metadata identifier. This comes after '+' in a
+                semver version, as in '0.8.1+zstd.1.5.0'.
 
         Raises:
             ALPMError: If the pre-release or build metadata cannot be parsed.
-            OverflowError: If the major, minor, or patch version is greater than 2^64 - 1 or negative.
+            OverflowError: If the major, minor, or patch version is greater than
+                2^64 - 1 or negative.
+
         """
 
     @classmethod
@@ -720,6 +754,7 @@ class SchemaVersion:
 
         Raises:
             ALPMError: If the string cannot be parsed as a valid schema version.
+
         """
 
     @property
@@ -753,12 +788,14 @@ class SchemaVersion:
 class OptionalDependency:
     """An optional dependency for a package.
 
-    This type is used for representing dependencies that are not essential for base functionality of a package, but may
-    be necessary to make use of certain features of a package.
+    This type is used for representing dependencies that are not essential for base
+    functionality of a package, but may be necessary to make use of certain features
+    of a package.
 
-    An OptionalDependency consists of a package relation and an optional description separated by a colon (':').
-    The package relation component must be a valid PackageRelation.
-    If a description is provided it must be at least one character long.
+    An OptionalDependency consists of a package relation and an optional description
+    separated by a colon (':'). The package relation component must be a valid
+    PackageRelation. If a description is provided it must be at least one character
+    long.
     """
 
     def __init__(
@@ -767,8 +804,10 @@ class OptionalDependency:
         """Create a new optional dependency.
 
         Args:
-            package_relation (PackageRelation): The package relation of the optional dependency.
+            package_relation (PackageRelation): The package relation of the optional
+                dependency.
             description (Optional[str]): An optional description of the dependency.
+
         """
 
     @classmethod
@@ -783,6 +822,7 @@ class OptionalDependency:
 
         Raises:
             ALPMError: If the string cannot be parsed as a valid optional dependency.
+
         """
 
     @property
@@ -805,7 +845,8 @@ class PackageRelation:
     """A package relation.
 
     Describes a relation to a component.
-    Package relations may either consist of only a name or of a name and a version_requirement.
+    Package relations may either consist of only a name or of a name and a
+    version_requirement.
     """
 
     def __init__(
@@ -815,10 +856,12 @@ class PackageRelation:
 
         Args:
             name (str): The name of the package.
-            version_requirement (Optional[VersionRequirement]): An optional version requirement for the package.
+            version_requirement (Optional[VersionRequirement]): An optional version
+                requirement for the package.
 
         Raises:
             ALPMError: If the name is invalid.
+
         """
 
     @property
@@ -841,11 +884,11 @@ class SonameV1Type(Enum):
     EXPLICIT = ("EXPLICIT",)
 
 class SonameV1:
-    """Representation of soname data of a shared object based on the alpm-sonamev1 specification.
+    """Soname data of a shared object based on the alpm-sonamev1 specification.
 
-    This type is deprecated and SonameV2 should be preferred instead! Due to the loose nature of the alpm-sonamev1
-    specification, the basic form overlaps with the specification of Name and the explicit form overlaps with that of
-    PackageRelation.
+    This type is deprecated and SonameV2 should be preferred instead! Due to the
+    loose nature of the alpm-sonamev1 specification, the basic form overlaps with the
+    specification of Name and the explicit form overlaps with that of PackageRelation.
     """
 
     def __init__(
@@ -863,11 +906,15 @@ class SonameV1:
 
         Args:
             name (str): The name of the shared object.
-            version_or_soname (Optional[PackageVersion | str]): The package version (for explicit form) or soname (for unversioned form) of the shared object.
-            architecture (Optional[ElfArchitectureFormat]): The architecture of the shared object, only for unversioned or explicit forms.
+            version_or_soname (Optional[VersionOrSoname]): The package version
+                (forexplicit form) or soname (for unversioned form) of the shared
+                object.
+            architecture (Optional[ElfArchitectureFormat]): The architecture of the
+                shared object, only for unversioned or explicit forms.
 
         Raises:
             ALPMError: If the input is invalid.
+
         """
 
     @property
@@ -876,15 +923,24 @@ class SonameV1:
 
     @property
     def soname(self) -> Optional[str]:
-        """The value of the shared object's SONAME field in its dynamic section. Available only for unversioned form."""
+        """The value of the shared object's SONAME field in its dynamic section.
+
+        Available only for unversioned form.
+        """
 
     @property
     def version(self) -> Optional["PackageVersion"]:
-        """The version of the shared object file (as exposed in its _soname_ data). Available only for explicit form."""
+        """The version of the shared object file (as exposed in its _soname_ data).
+
+        Available only for explicit form.
+        """
 
     @property
     def architecture(self) -> Optional["ElfArchitectureFormat"]:
-        """The ELF architecture format of the shared object file. Not available for basic form."""
+        """The ELF architecture format of the shared object file.
+
+        Not available for basic form.
+        """
 
     @property
     def form(self) -> "SonameV1Type":
@@ -901,10 +957,12 @@ def relation_or_soname_from_str(s: str) -> RelationOrSoname:
         s (str): The string representation of PackageRelation or SonameV1.
 
     Returns:
-        PackageRelation | SonameV1: A valid PackageRelation or SonameV1 object.
+        RelationOrSoname: A valid PackageRelation or SonameV1 object.
 
     Raises:
-        ALPMError: If the input string can't be parsed to a valid PackageRelation or SonameV1.
+        ALPMError: If the input string can't be parsed to a valid PackageRelation or
+                   SonameV1.
+
     """
 
 class VersionComparison(Enum):
@@ -930,13 +988,15 @@ class VersionComparison(Enum):
         """Parse a version comparison string into a VersionComparison enum variant.
 
         Args:
-            comparison (str): The version comparison string to parse. Must be one of '<', '<=', '=', '>=', '>'.
+            comparison (str): The version comparison string to parse. Must be one of
+                              '<', '<=', '=', '>=', '>'.
 
         Returns:
             VersionComparison: The corresponding VersionComparison enum variant.
 
         Raises:
             ALPMError: If the input string doesn't match any known comparison.
+
         """
 
     def __eq__(self, other: object) -> bool: ...
@@ -944,8 +1004,9 @@ class VersionComparison(Enum):
 class VersionRequirement:
     """A version requirement, e.g. for a dependency package.
 
-    It consists of a target version and a VersionComparison. A version requirement of '>=1.5' has a target version of
-    '1.5' and a comparison function of VersionComparison.GREATER_OR_EQUAL.
+    It consists of a target version and a VersionComparison. A version requirement of
+    '>=1.5' has a target version of '1.5' and a comparison function of
+    VersionComparison.GREATER_OR_EQUAL.
     """
 
     def __init__(self, comparison: "VersionComparison", version: "Version") -> None:
@@ -954,6 +1015,7 @@ class VersionRequirement:
         Args:
             comparison (VersionComparison): The comparison function.
             version (Version): The version.
+
         """
 
     @classmethod
@@ -968,16 +1030,18 @@ class VersionRequirement:
 
         Raises:
             ALPMError: If the string cannot be parsed as a valid version requirement.
+
         """
 
     def is_satisfied_by(self, ver: "Version") -> bool:
-        """Returns True if the requirement is satisfied by the given package version.
+        """Return True if the requirement is satisfied by the given package version.
 
         Args:
             ver (Version): The version to check.
 
         Returns:
             bool: True if the version satisfies the requirement, False otherwise.
+
         """
 
     def __str__(self) -> str: ...
@@ -995,16 +1059,18 @@ class ElfArchitectureFormat(Enum):
 
     @classmethod
     def from_str(cls, format: str) -> "ElfArchitectureFormat":
-        """Parse an ELF architecture format string into an ElfArchitectureFormat enum variant.
+        """Parse an ELF architecture format string into an ElfArchitectureFormat.
 
         Args:
-            format (str): The ELF architecture format string to parse. Must be one of '32' or '64'.
+            format (str): The ELF architecture format string to parse. Must be one of
+                          '32' or '64'.
 
         Returns:
             ElfArchitectureFormat: The corresponding ElfArchitectureFormat enum variant.
 
         Raises:
             ValueError: If the input string doesn't match any known format.
+
         """
 
     def __eq__(self, other: object) -> bool: ...
@@ -1013,8 +1079,8 @@ class ElfArchitectureFormat(Enum):
 class FullVersion:
     """A package version with mandatory PackageRelease.
 
-    Tracks an optional Epoch, a PackageVersion and a PackageRelease. This reflects the 'full' and 'full with epoch'
-    forms of alpm-package-version.
+    Tracks an optional Epoch, a PackageVersion and a PackageRelease. This reflects the
+    'full' and 'full with epoch' forms of alpm-package-version.
     """
 
     def __init__(
@@ -1029,6 +1095,7 @@ class FullVersion:
             pkgver (PackageVersion): The package version.
             pkgrel (PackageRelease): The package release.
             epoch (Optional[Epoch]): The epoch, if any.
+
         """
 
     @classmethod
@@ -1043,6 +1110,7 @@ class FullVersion:
 
         Raises:
             ALPMError: If the string cannot be parsed as a valid full version.
+
         """
 
     @property
@@ -1069,6 +1137,7 @@ class FullVersion:
             int: 1 if self is newer than other,
                  0 if they are equal,
                  -1 if self is older than other.
+
         """
 
     def __str__(self) -> str: ...
@@ -1082,7 +1151,8 @@ class FullVersion:
 class Version:
     """A version of a package.
 
-    A Version generically tracks an optional Epoch, a PackageVersion and an optional PackageRelease.
+    A Version generically tracks an optional Epoch, a PackageVersion and an optional
+    PackageRelease.
     """
 
     def __init__(
@@ -1097,6 +1167,7 @@ class Version:
             pkgver (PackageVersion): The package version.
             pkgrel (Optional[PackageRelease]): The package release, if any.
             epoch (Optional[Epoch]): The epoch, if any.
+
         """
 
     @classmethod
@@ -1111,6 +1182,7 @@ class Version:
 
         Raises:
             ALPMError: If the string cannot be parsed as a valid full version.
+
         """
 
     @property
@@ -1137,6 +1209,7 @@ class Version:
             int: 1 if self is newer than other,
                  0 if they are equal,
                  -1 if self is older than other.
+
         """
 
     def __str__(self) -> str: ...

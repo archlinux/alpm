@@ -1,7 +1,7 @@
 """Tests for URL type."""
 
 import pytest
-from alpm import alpm_types, ALPMError
+from alpm import ALPMError, alpm_types
 
 
 @pytest.mark.parametrize(

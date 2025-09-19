@@ -1,7 +1,7 @@
-"""Tests for path alpm_types: RelativePath."""
+"""Tests for path alpm_types."""
 
 import pytest
-from alpm import alpm_types, ALPMError
+from alpm import ALPMError, alpm_types
 
 
 def test_relative_path_valid() -> None:
