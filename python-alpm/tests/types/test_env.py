@@ -17,7 +17,7 @@ from alpm import alpm_types, ALPMError
     ],
 )
 @pytest.mark.parametrize("on", [True, False])
-def test_build_environment_options(option_str: str, on: bool):
+def test_build_environment_options(option_str: str, on: bool) -> None:
     """Test creating build environment option."""
     flag: str = f"{'!' if not on else ''}{option_str}"
     option = alpm_types.BuildEnvironmentOption(flag)
@@ -26,7 +26,7 @@ def test_build_environment_options(option_str: str, on: bool):
     assert option.on == on
 
 
-def test_build_environment_option_invalid():
+def test_build_environment_option_invalid() -> None:
     """Test creating an invalid build environment option raises error."""
     with pytest.raises(ALPMError):
         alpm_types.BuildEnvironmentOption("invalid")
@@ -48,7 +48,7 @@ def test_build_environment_option_invalid():
     ],
 )
 @pytest.mark.parametrize("on", [True, False])
-def test_package_option(option_str: str, on: bool):
+def test_package_option(option_str: str, on: bool) -> None:
     """Test creating a package option."""
     flag: str = f"{'!' if not on else ''}{option_str}"
     option = alpm_types.PackageOption(flag)
@@ -57,20 +57,20 @@ def test_package_option(option_str: str, on: bool):
     assert option.on == on
 
 
-def test_makepkg_option_from_str_invalid():
+def test_makepkg_option_from_str_invalid() -> None:
     """Test parsing an invalid makepkg option raises error."""
     with pytest.raises(ALPMError):
         alpm_types.makepkg_option_from_str("invalid")
 
 
-def test_build_environment_option_equality():
+def test_build_environment_option_equality() -> None:
     """Test build environment option equality."""
     option1 = alpm_types.BuildEnvironmentOption("ccache")
     option2 = alpm_types.BuildEnvironmentOption("ccache")
     assert option1 == option2
 
 
-def test_package_option_equality():
+def test_package_option_equality() -> None:
     """Test package option equality."""
     option1 = alpm_types.PackageOption("strip")
     option2 = alpm_types.PackageOption("strip")
@@ -100,7 +100,9 @@ def test_package_option_equality():
     ],
 )
 @pytest.mark.parametrize("on", [True, False])
-def test_makepkg_option_from_str(option_str: str, option_type, on: bool):
+def test_makepkg_option_from_str(
+    option_str: str, option_type: type[alpm_types.BuildEnvironmentOption], on: bool
+) -> None:
     """Test parsing a valid makepkg option."""
     flag: str = f"{'!' if not on else ''}{option_str}"
     option = alpm_types.makepkg_option_from_str(flag)
