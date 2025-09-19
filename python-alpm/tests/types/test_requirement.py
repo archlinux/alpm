@@ -1,7 +1,7 @@
-"""Tests for version requirement functionality: VersionRequirement."""
+"""Tests for version requirement functionality."""
 
 import pytest
-from alpm import alpm_types, ALPMError
+from alpm import ALPMError, alpm_types
 
 
 def test_version_requirement_init() -> None:

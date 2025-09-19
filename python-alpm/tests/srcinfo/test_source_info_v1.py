@@ -1,7 +1,8 @@
 """Tests for SourceInfoV1."""
 
-import pytest
 import tempfile
+
+import pytest
 from alpm import alpm_srcinfo
 
 
@@ -117,7 +118,6 @@ def test_source_info_v1_from_string_invalid() -> None:
 
 def test_source_info_v1_from_file_valid(valid_srcinfo_content: str) -> None:
     """Test creating SourceInfoV1 from valid file content."""
-
     with tempfile.NamedTemporaryFile("w+", delete=True) as tmp:
         tmp.write(valid_srcinfo_content)
         tmp.flush()
@@ -136,7 +136,6 @@ def test_source_info_v1_from_file_invalid() -> None:
 
 def test_source_info_v1_from_pkgbuild_file_valid(valid_pkgbuild_content: str) -> None:
     """Test creating SourceInfoV1 from valid PKGBUILD file content."""
-
     with tempfile.NamedTemporaryFile("w+", delete=True) as tmp:
         tmp.write(valid_pkgbuild_content)
         tmp.flush()

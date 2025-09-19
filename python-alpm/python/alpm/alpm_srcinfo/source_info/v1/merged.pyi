@@ -29,8 +29,9 @@ from alpm.alpm_types import (
 class MergedPackage:
     """Fully resolved metadata of a single package based on SRCINFO data.
 
-    This struct incorporates all PackageBase properties and the Package specific overrides in an architecture-specific
-    representation of a package. It can be created using SourceInfoV1.packages_for_architecture.
+    This struct incorporates all PackageBase properties and the Package specific
+    overrides in an architecture-specific representation of a package. It can be
+    created using SourceInfoV1.packages_for_architecture.
     """
 
     def __init__(
@@ -41,36 +42,42 @@ class MergedPackage:
     ):
         """Create architecture-specific metadata representation of a package.
 
-        Based on the provided parameters can either create a fully resolved or a basic (incomplete) MergedPackage.
+        Based on the provided parameters can either create a fully resolved or a basic
+        (incomplete) MergedPackage.
 
         Args:
-            architecture (Architecture): Defines the architecture for which to create the representation.
+            architecture (Architecture): Defines the architecture for which to create
+                the representation.
             base (PackageBase): The package base from which provides the initial data.
-            package_or_name (Union[Package, str]): Either the Package from which to derive the metadata for a fully
-                                                   resolved MergedPackage, or a name of the package for a basic,
-                                                   incomplete representation of a package.
+            package_or_name (Union[Package, str]): Either the Package from which to
+                derive the metadata for a fully resolved MergedPackage, or a name of
+                the package for a basic, incomplete representation of a package.
 
         Raises:
             ALPMError: If the provided name is not valid.
+
         """
 
     def merge_package(self, package: "Package") -> None:
-        """Merges the non-architecture specific fields of a Package into self.
+        """Merge the non-architecture specific fields of a Package into self.
 
         Args:
             package (Package): The package from which to merge the data.
+
         """
 
     def merge_architecture_properties(
         self, architecture: "PackageBaseArchitecture"
     ) -> None:
-        """Merges in architecture-specific overrides for fields.
+        """Merge in architecture-specific overrides for fields.
 
-        Takes a PackageBaseArchitecture and extends the non-architecture specific values with the architecture specific
-        ones. This is an accumulative and non-destructive operation.
+        Takes a PackageBaseArchitecture and extends the non-architecture specific
+        values with the architecture specific ones. This is an accumulative and
+        non-destructive operation.
 
         Args:
             architecture (Architecture): The architecture for which to merge the data.
+
         """
 
     @property
@@ -87,31 +94,31 @@ class MergedPackage:
 
     @property
     def licenses(self) -> list["License"]:
-        """The list of licenses that apply to the package."""
+        """Licenses that apply to the package."""
 
     @property
     def architecture(self) -> "Architecture":
-        """The alpm-architecture for the package."""
+        """Alpm-architecture for the package."""
 
     @property
     def changelog(self) -> Optional["RelativePath"]:
-        """The optional relative path to a changelog file for the package."""
+        """Path to a changelog file for the package."""
 
     @property
     def install(self) -> Optional["RelativePath"]:
-        """The optional relative path to an alpm-install-scriptlet for the package."""
+        """Path to an alpm-install-scriptlet for the package."""
 
     @property
     def groups(self) -> list[str]:
-        """The list of alpm-package-groups the package is part of."""
+        """Alpm-package-groups the package is part of."""
 
     @property
     def options(self) -> list["MakepkgOption"]:
-        """The list of build tool options used when building the package."""
+        """Build tool options used when building the package."""
 
     @property
     def backups(self) -> list["RelativePath"]:
-        """The list of relative paths to files in the package that should be backed up."""
+        """Paths to files in the package that should be backed up."""
 
     @property
     def version(self) -> "FullVersion":
@@ -119,7 +126,7 @@ class MergedPackage:
 
     @property
     def pgp_fingerprints(self) -> list["OpenPGPIdentifier"]:
-        """The list of OpenPGP fingerprints of OpenPGP certificates used for the verification of upstream sources."""
+        """OpenPGPIdentifiers used for theverification of upstream sources."""
 
     @property
     def dependencies(self) -> list["RelationOrSoname"]:
@@ -160,8 +167,9 @@ class MergedPackage:
 class MergedSource:
     """A merged representation of source related information.
 
-    SRCINFO provides this info as separate lists. This struct resolves that list representation and provides
-    a convenient aggregated representation for a single source.
+    SRCINFO provides this info as separate lists. This struct resolves that list
+    representation and provides a convenient aggregated representation for a single
+    source.
     """
 
     @property
