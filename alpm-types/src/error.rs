@@ -165,9 +165,7 @@ pub enum Error {
 impl From<std::num::ParseIntError> for crate::error::Error {
     /// Converts a [`std::num::ParseIntError`] into an [`Error::InvalidInteger`].
     fn from(e: std::num::ParseIntError) -> Self {
-        Self::InvalidInteger {
-            kind: e.kind().clone(),
-        }
+        Self::InvalidInteger { kind: *e.kind() }
     }
 }
 

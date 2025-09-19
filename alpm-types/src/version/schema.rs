@@ -58,9 +58,7 @@ impl FromStr for SchemaVersion {
         if !s.contains('.') {
             match s.parse() {
                 Ok(major) => Ok(SchemaVersion(SemverVersion::new(major, 0, 0))),
-                Err(e) => Err(Error::InvalidInteger {
-                    kind: e.kind().clone(),
-                }),
+                Err(e) => Err(Error::InvalidInteger { kind: *e.kind() }),
             }
         } else {
             match SemverVersion::parse(s) {
