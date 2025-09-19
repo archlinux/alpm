@@ -2,6 +2,7 @@ use std::str::FromStr;
 
 use pyo3::prelude::*;
 
+#[allow(dead_code)]
 #[derive(FromPyObject, IntoPyObject)]
 pub enum Checksum {
     Blake2b512(Blake2b512Checksum),
