@@ -1,19 +1,19 @@
 """Tests for PackageBase and PackageBaseArchitecture classes."""
 
 import pytest
+from alpm.alpm_srcinfo.source_info.v1.package import PackageArchitecture
 from alpm.alpm_srcinfo.source_info.v1.package_base import (
     PackageBase,
     PackageBaseArchitecture,
 )
-from alpm.alpm_srcinfo.source_info.v1.package import PackageArchitecture
 from alpm.alpm_types import (
+    ALPMError,
+    Architecture,
     FullVersion,
     License,
-    Url,
-    RelativePath,
     OptionalDependency,
     PackageRelation,
-    Source,
+    RelativePath,
     SkippableBlake2b512Checksum,
     SkippableMd5Checksum,
     SkippableSha1Checksum,
@@ -21,13 +21,13 @@ from alpm.alpm_types import (
     SkippableSha256Checksum,
     SkippableSha384Checksum,
     SkippableSha512Checksum,
-    ALPMError,
-    makepkg_option_from_str,
-    Architecture,
     SonameV1,
+    Source,
+    Url,
     Version,
-    VersionRequirement,
     VersionComparison,
+    VersionRequirement,
+    makepkg_option_from_str,
     openpgp_identifier_from_str,
 )
 from alpm.type_aliases import RelationOrSoname, SkippableChecksum

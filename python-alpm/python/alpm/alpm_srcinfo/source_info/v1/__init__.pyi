@@ -12,11 +12,11 @@ from alpm.alpm_types import Architecture
 class SourceInfoV1:
     """The representation of SRCINFO data.
 
-    Provides access to a PackageBase which tracks all data in a pkgbase section and a list of Package instances that
-    provide the accumulated data of all pkgname sections.
+    Provides access to a PackageBase which tracks all data in a pkgbase section and a
+    list of Package instances that provide the accumulated data of all pkgname sections.
 
-    This is the entry point for parsing SRCINFO files. Once created, packages_for_architecture method can be used to
-    create usable MergedPackages.
+    This is the entry point for parsing SRCINFO files. Once created,
+    packages_for_architecture method can be used to create usable MergedPackages.
     """
 
     __hash__ = None  # type: ignore
@@ -29,11 +29,12 @@ class SourceInfoV1:
 
         Raises:
             SourceInfoError: If the content is not a valid SRCINFO representation.
+
         """
 
     @classmethod
     def from_file(cls, path: Union[Path, str]) -> "SourceInfoV1":
-        """Reads the file at the specified path and convert it into a SourceInfoV1
+        """Read the file at the specified path and convert it into a SourceInfoV1.
 
         Args:
             path (Path | str): The path to the SRCINFO file.
@@ -43,6 +44,7 @@ class SourceInfoV1:
 
         Raises:
             SourceInfoError: If the file content is not a valid SRCINFO representation.
+
         """
 
     @classmethod
@@ -57,6 +59,7 @@ class SourceInfoV1:
 
         Raises:
             SourceInfoError: If the PKGBUILD file cannot be parsed or is invalid.
+
         """
 
     @property
@@ -68,10 +71,11 @@ class SourceInfoV1:
         """The information of the pkgname sections."""
 
     def as_srcinfo(self) -> str:
-        """Get a string representation of the SourceInfoV1 instance in valid SRCINFO format.
+        """Get a string representation in valid SRCINFO format.
 
         Returns:
             str: The string representation of the SourceInfoV1 instance.
+
         """
 
     def packages_for_architecture(
@@ -84,6 +88,7 @@ class SourceInfoV1:
 
         Returns:
             list[MergedPackage]: A list of all packages for the given architecture.
+
         """
 
     def __str__(self) -> str: ...

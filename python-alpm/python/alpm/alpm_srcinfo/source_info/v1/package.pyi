@@ -53,6 +53,7 @@ class Override(Generic[T]):
 
         Args:
             value (Optional[T]): The value of the override, or None to clear the field.
+
         """
 
     @property
@@ -63,7 +64,8 @@ class Package:
     """Package metadata based on a pkgname section in SRCINFO data.
 
     This class only contains package specific overrides.
-    Only in combination with PackageBase data a full view on a package's metadata is possible.
+    Only in combination with PackageBase data a full view on a package's metadata is
+    possible.
     """
 
     __hash__ = None  # type: ignore
@@ -76,6 +78,7 @@ class Package:
 
         Raises:
             ALPMError: If the name is not a valid alpm-package-name.
+
         """
 
     @property
@@ -86,59 +89,55 @@ class Package:
     def name(self, name: str) -> None: ...
     @property
     def description(self) -> Optional[Override[str]]:
-        """The (potentially overridden) description of the package."""
+        """Override of the package's description."""
 
     @description.setter
     def description(self, description: Optional[Override[str]]) -> None: ...
     @property
     def url(self) -> Optional[Override[Url]]:
-        """The (potentially overridden) upstream URL of the package."""
+        """Override of the package's upstream URL."""
 
     @url.setter
     def url(self, url: Optional[Override[Url]]) -> None: ...
     @property
     def changelog(self) -> Optional[Override[RelativePath]]:
-        """The (potentially overridden) relative path to a changelog file of the package."""
+        """Override of the package's path to a changelog file."""
 
     @changelog.setter
     def changelog(self, changelog: Optional[Override[RelativePath]]) -> None: ...
     @property
     def licenses(self) -> Optional[Override[list[License]]]:
-        """The (potentially overridden) list of licenses that apply to the package."""
+        """Override of licenses that apply to the package."""
 
     @licenses.setter
     def licenses(self, licenses: Optional[Override[list[License]]]) -> None: ...
     @property
     def install(self) -> Optional[Override[RelativePath]]:
-        """The (potentially overridden) relative path to an install script of the package."""
+        """Override of the package's install script path."""
 
     @install.setter
     def install(self, install: Optional[Override[RelativePath]]) -> None: ...
     @property
     def groups(self) -> Optional[Override[list[str]]]:
-        """The (potentially overridden) list of alpm-package-groups the package is part of."""
+        """Override of alpm-package-groups the package is part of."""
 
     @groups.setter
     def groups(self, groups: Optional[Override[list[str]]]) -> None: ...
     @property
     def options(self) -> Optional[Override[list[MakepkgOption]]]:
-        """The (potentially overridden) list of build tool options used when building the package."""
+        """Override of build tool options used when building the package."""
 
     @options.setter
     def options(self, options: Optional[Override[list[MakepkgOption]]]) -> None: ...
     @property
     def backups(self) -> Optional[Override[list[RelativePath]]]:
-        """The (potentially overridden) list of relative paths to files in the package that should be backed up."""
+        """Override of paths to files in the package that should be backed up."""
 
     @backups.setter
     def backups(self, backups: Optional[Override[list[RelativePath]]]) -> None: ...
     @property
     def architectures(self) -> Optional[list[Architecture]]:
-        """These are all override fields that may be architecture specific.
-
-        Despite being overridable, architectures field isn't of the Optional[Override[list[Architecture]]] type, as it
-        **cannot** be cleared.
-        """
+        """The architectures that are supported by this package."""
 
     @architectures.setter
     def architectures(self, architectures: Optional[list[Architecture]]) -> None: ...
@@ -146,8 +145,9 @@ class Package:
     def architecture_properties(self) -> dict[Architecture, "PackageArchitecture"]:
         """Architecture specific overrides for the package.
 
-        The keys of the dictionary are the architectures for which overrides are specified.
-        The values are PackageArchitecture instances containing the overrides.
+        The keys of the dictionary are the architectures for which overrides are
+        specified. The values are PackageArchitecture instances containing the
+        overrides.
 
         This field is only relevant if Package.architectures is set.
         """
@@ -198,8 +198,8 @@ class Package:
 class PackageArchitecture:
     """Architecture specific package properties for use in Package.
 
-    For each Architecture defined in Package.architectures, a PackageArchitecture is present in
-    Package.architecture_properties.
+    For each Architecture defined in Package.architectures, a PackageArchitecture is
+    present in Package.architecture_properties.
     """
 
     __hash__ = None  # type: ignore
