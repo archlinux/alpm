@@ -1,4 +1,4 @@
-"""Tests for system-related types: ElfArchitectureFormat."""
+"""Tests for system-related types."""
 
 import pytest
 from alpm import alpm_types

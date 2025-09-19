@@ -2,23 +2,23 @@
 
 import pytest
 from alpm.alpm_srcinfo.source_info.v1.package import (
+    Override,
     Package,
     PackageArchitecture,
-    Override,
 )
 from alpm.alpm_types import (
+    ALPMError,
+    Architecture,
     License,
-    Url,
-    RelativePath,
     OptionalDependency,
     PackageRelation,
-    ALPMError,
-    makepkg_option_from_str,
-    Architecture,
+    RelativePath,
     SonameV1,
+    Url,
     Version,
-    VersionRequirement,
     VersionComparison,
+    VersionRequirement,
+    makepkg_option_from_str,
     relation_or_soname_from_str,
 )
 from alpm.type_aliases import RelationOrSoname

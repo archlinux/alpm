@@ -1,7 +1,7 @@
-"""Tests for license alpm_types: License."""
+"""Tests for license alpm_types."""
 
 import pytest
-from alpm import alpm_types, ALPMError
+from alpm import ALPMError, alpm_types
 
 
 @pytest.mark.parametrize("license_str", ["MIT", "Apache-2.0", "Apache-2.0 OR MIT"])

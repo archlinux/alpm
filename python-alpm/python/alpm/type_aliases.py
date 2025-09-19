@@ -65,8 +65,8 @@ OpenPGPIdentifier: TypeAlias = Union[
 ]
 """An OpenPGP key identifier.
 
-The OpenPGPIdentifier type represents a valid OpenPGP identifier, which can be either an OpenPGP Key ID or an OpenPGP v4
-fingerprint.
+The OpenPGPIdentifier type represents a valid OpenPGP identifier, which can be either
+an OpenPGP Key ID or an OpenPGP v4 fingerprint.
 """
 
 MakepkgOption: TypeAlias = Union[
@@ -75,8 +75,8 @@ MakepkgOption: TypeAlias = Union[
 ]
 """Either PackageOption or BuildEnvironmentOption.
 
-This is necessary for metadata files such as SRCINFO or PKGBUILD package scripts that don't differentiate between
-the different types and scopes of options.
+This is necessary for metadata files such as SRCINFO or PKGBUILD package scripts that 
+don't differentiate between the different types and scopes of options.
 """
 
 VersionOrSoname: TypeAlias = Union[
@@ -110,8 +110,8 @@ VcsInfo: TypeAlias = Union[
 """Information on Version Control Systems (VCS) using a URL.
 
 Several different VCS systems can be used in the context of a SourceUrl.
-Each system supports addressing different types of objects and may optionally require signature verification for those
-objects.
+Each system supports addressing different types of objects and may optionally require 
+signature verification for those objects.
 """
 
 __all__ = [

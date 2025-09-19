@@ -1,7 +1,7 @@
-"""Tests for relation functionality: PackageRelation and OptionalDependency."""
+"""Tests for relation functionality."""
 
 import pytest
-from alpm import alpm_types, ALPMError
+from alpm import ALPMError, alpm_types
 
 
 def test_package_relation_init_name_only() -> None:
