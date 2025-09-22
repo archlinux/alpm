@@ -17,6 +17,7 @@ crate-type = ["cdylib"]
 name = "python_alpm"
 
 [dependencies]
+alpm-common.workspace = true
 alpm-srcinfo.workspace = true
 alpm-types.workspace = true
 pyo3 = { version = "0.26", features = ["abi3-py310", "extension-module"] }
