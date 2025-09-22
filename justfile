@@ -424,7 +424,7 @@ check-links:
 # Checks the Rust source code using cargo-clippy.
 [group('check')]
 check-rust-code:
-    just ensure-command cargo cargo-clippy mold
+    just ensure-command cargo cargo-clippy
     cargo clippy --all-features --all-targets --workspace -- -D warnings
 
 # Checks the Python source code using ruff and mypy.
@@ -715,7 +715,6 @@ test *options:
     commands=(
         cargo
         cargo-nextest
-        mold
     )
     read -r -a options <<< "{{ options }}"
 
@@ -825,7 +824,7 @@ ci-publish:
     readonly crate="${tag//\/*/}"
     readonly version="${tag#*/}"
 
-    just ensure-command cargo mold
+    just ensure-command cargo
 
     if [[ -z "$tag" ]]; then
         printf "There is no tag!\n" >&2

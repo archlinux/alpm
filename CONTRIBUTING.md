@@ -7,7 +7,6 @@ Development takes place at <https://gitlab.archlinux.org/archlinux/alpm/alpm>.
 ## Writing code
 
 This project is written in [Rust] and formatted using the nightly [`rustfmt`] version.
-The linking is performed via [`mold`].
 
 All contributions are linted using [`clippy`] and spell checked using [`codespell`].
 The dependencies are linted with [`cargo-deny`] and unused dependencies are detected using [`cargo-machete`].
@@ -145,7 +144,6 @@ Individual contributors are all summarized as _"ALPM Contributors"_.
 For a full list of individual contributors, refer to `git log --format="%an <%aE>" | sort -u`.
 
 [Rust]: https://www.rust-lang.org/
-[`mold`]: https://github.com/rui314/mold
 [`rustfmt`]: https://github.com/rust-lang/rustfmt
 [`clippy`]: https://github.com/rust-lang/rust-clippy
 [`codespell`]: https://github.com/codespell-project/codespell
