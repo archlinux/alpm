@@ -38,7 +38,7 @@ impl From<SemverError> for PyErr {
 }
 
 #[pyclass(frozen, eq, ord)]
-#[derive(Debug, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub struct SchemaVersion(alpm_types::SchemaVersion);
 
 #[pymethods]
