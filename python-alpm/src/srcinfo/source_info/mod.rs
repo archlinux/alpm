@@ -2,6 +2,7 @@ use pyo3::prelude::*;
 
 pub mod v1;
 
+#[allow(dead_code)]
 #[derive(FromPyObject, IntoPyObject)]
 pub enum SourceInfo {
     V1(v1::SourceInfoV1),
