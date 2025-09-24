@@ -1,8 +1,11 @@
 //! Comparison for [`PackageVersion`].
 //!
-//! This code is derived from the [rpmvercmp algorithm in RPM version 4.8.1].
-//! The current version, including its improvements over the original are described in detail in
-//! [alpm-pkgver].
+//! This module implements the behavior of the [rpmvercmp algorithm in RPM version 4.8.1].
+//! The current implementation is based on the [alpm-pkgver] specification and explicitly
+//! handles undefined and undocumented behavior observed from `rpmvercmp`.
+//!
+//! The current version, including its improvements over the reference implementation are described
+//! and specified in detail in [alpm-pkgver].
 //!
 //! [alpm-pkgver]: https://alpm.archlinux.page/specifications/alpm-pkgver.7.html
 //! [rpmvercmp algorithm in RPM version 4.8.1]: https://github.com/rpm-software-management/rpm/blob/rpm-4.8.1-release/lib/rpmvercmp.c
@@ -267,8 +270,8 @@ impl Ord for PackageVersion {
     /// This block implements the logic to determine which of two package versions is newer or
     /// whether they're considered equal.
     ///
-    /// This logic is surprisingly complex as it mirrors the current C-alpmlib implementation for
-    /// backwards compatibility reasons.
+    /// This logic is surprisingly complex as it mirrors the current C-alpmlib implementation's
+    /// behavior for backwards compatibility reasons.
     /// <https://gitlab.archlinux.org/pacman/pacman/-/blob/a2d029388c7c206f5576456f91bfbea2dca98c96/lib/libalpm/version.c#L83-217>
     fn cmp(&self, other: &Self) -> Ordering {
         // Equal strings are considered equal versions.
