@@ -144,9 +144,9 @@ pub struct Package {
     /// backed up.
     pub backups: Override<Vec<Backup>>,
 
-    /// These are all override fields that may be architecture specific.
-    /// Despite being overridable, `architectures` field isn't of the `Override` type, as it
-    /// **cannot** be cleared.
+    /// The architectures that are supported by this package.
+    // Despite being overridable, `architectures` field isn't of the `Override` type, as it
+    // **cannot** be cleared.
     pub architectures: Option<Vec<Architecture>>,
     /// The map of alpm-architecture specific overrides for package relations of a package.
     pub architecture_properties: BTreeMap<Architecture, PackageArchitecture>,
