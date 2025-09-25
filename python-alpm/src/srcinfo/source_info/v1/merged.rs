@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use alpm_srcinfo::source_info::v1::merged as alpm_srcinfo_merged;
 use pyo3::prelude::*;
 
@@ -17,7 +19,6 @@ use crate::{
         env::MakepkgOption,
         license::License,
         openpgp::OpenPGPIdentifier,
-        path::RelativePath,
         relation::{OptionalDependency, PackageRelation, RelationOrSoname},
         source::Source,
         system::Architecture,
@@ -95,13 +96,19 @@ impl MergedPackage {
     }
 
     #[getter]
-    fn changelog(&self) -> Option<RelativePath> {
-        self.0.changelog.clone().map(From::from)
+    fn changelog(&self) -> Option<PathBuf> {
+        self.0
+            .changelog
+            .clone()
+            .map(|rel_path| rel_path.inner().to_path_buf())
     }
 
     #[getter]
-    fn install(&self) -> Option<RelativePath> {
-        self.0.install.clone().map(From::from)
+    fn install(&self) -> Option<PathBuf> {
+        self.0
+            .install
+            .clone()
+            .map(|rel_path| rel_path.inner().to_path_buf())
     }
 
     #[getter]
@@ -115,8 +122,13 @@ impl MergedPackage {
     }
 
     #[getter]
-    fn backups(&self) -> Vec<RelativePath> {
-        self.0.backups.clone().into_iter().map(From::from).collect()
+    fn backups(&self) -> Vec<PathBuf> {
+        self.0
+            .backups
+            .clone()
+            .into_iter()
+            .map(|rel_path| rel_path.inner().to_path_buf())
+            .collect()
     }
 
     #[getter]

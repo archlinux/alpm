@@ -1,6 +1,7 @@
 """Provides fully resolved package metadata derived from SRCINFO data."""
 
 from typing import Optional, Union
+from pathlib import Path
 
 from alpm.alpm_srcinfo.source_info.v1.package import Package
 from alpm.alpm_srcinfo.source_info.v1.package_base import PackageBase
@@ -9,7 +10,6 @@ from alpm.alpm_types import (
     Url,
     License,
     Architecture,
-    RelativePath,
     FullVersion,
     PackageRelation,
     OptionalDependency,
@@ -76,11 +76,11 @@ class MergedPackage:
         """Alpm-architecture for the package."""
 
     @property
-    def changelog(self) -> Optional["RelativePath"]:
+    def changelog(self) -> Optional[Path]:
         """Path to a changelog file for the package."""
 
     @property
-    def install(self) -> Optional["RelativePath"]:
+    def install(self) -> Optional[Path]:
         """Path to an alpm-install-scriptlet for the package."""
 
     @property
@@ -92,7 +92,7 @@ class MergedPackage:
         """Build tool options used when building the package."""
 
     @property
-    def backups(self) -> list["RelativePath"]:
+    def backups(self) -> list[Path]:
         """Paths to files in the package that should be backed up."""
 
     @property
