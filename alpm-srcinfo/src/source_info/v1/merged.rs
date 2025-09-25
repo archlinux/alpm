@@ -187,14 +187,13 @@ impl MergedPackage {
     /// The metadata representation is created using the following steps:
     /// 1. [`MergedPackage::from_base`] is called to create a basic representation of a
     ///    [`MergedPackage`] based on the default values in [`PackageBase`].
-    /// 2. [`MergedPackage::merge_package`] is called to merge all architecture-agnostic fields of
-    ///    the [`Package`] into the [`MergedPackage`].
+    /// 2. All architecture-agnostic fields of the [`Package`] are merged into the
+    ///    [`MergedPackage`].
     /// 3. The architecture-specific properties of the [`PackageBase`] and [`Package`] are
     ///    extracted.
     /// 4. [`PackageBaseArchitecture::merge_package_properties`] is called to merge the
     ///    architecture-specific properties of the [`Package`] into those of the [`PackageBase`].
-    /// 5. [`MergedPackage::merge_architecture_properties`] is called to merge the combined
-    ///    architecture-specific properties into the [`MergedPackage`].
+    /// 5. The combined architecture-specific properties are merged into the [`MergedPackage`].
     pub fn from_base_and_package(
         architecture: Architecture,
         base: &PackageBase,
@@ -280,7 +279,7 @@ impl MergedPackage {
     /// Merges the non-architecture specific fields of a [`Package`] into `self`.
     ///
     /// Any field on `package` that is not [`Override::No`] overrides the pendant on `self`.
-    pub fn merge_package(&mut self, package: &Package) {
+    fn merge_package(&mut self, package: &Package) {
         let package = package.clone();
         package.description.merge_option(&mut self.description);
 
@@ -305,7 +304,7 @@ impl MergedPackage {
     /// Takes a [`PackageBaseArchitecture`] and extends the non-architecture specific values
     /// with the architecture specific ones.
     /// This is an accumulative and non-destructive operation.
-    pub fn merge_architecture_properties(&mut self, base_architecture: &PackageBaseArchitecture) {
+    fn merge_architecture_properties(&mut self, base_architecture: &PackageBaseArchitecture) {
         // Merge all source related info into aggregated structs.
         let merged_sources = MergedSourceIterator {
             sources: base_architecture.sources.iter(),
