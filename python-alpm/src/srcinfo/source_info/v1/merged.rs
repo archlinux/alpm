@@ -4,7 +4,7 @@ use alpm_srcinfo::source_info::v1::merged as alpm_srcinfo_merged;
 use pyo3::prelude::*;
 
 use crate::{
-    macros::impl_from,
+    macros::{impl_from, vec_convert},
     srcinfo::source_info::v1::{package::Package, package_base::PackageBase},
     types::{
         checksum::{
@@ -82,12 +82,7 @@ impl MergedPackage {
 
     #[getter]
     fn licenses(&self) -> Vec<License> {
-        self.0
-            .licenses
-            .clone()
-            .into_iter()
-            .map(From::from)
-            .collect()
+        vec_convert!(self.0.licenses.clone())
     }
 
     #[getter]
@@ -118,7 +113,7 @@ impl MergedPackage {
 
     #[getter]
     fn options(&self) -> Vec<MakepkgOption> {
-        self.0.options.clone().into_iter().map(From::from).collect()
+        vec_convert!(self.0.options.clone())
     }
 
     #[getter]
@@ -138,87 +133,47 @@ impl MergedPackage {
 
     #[getter]
     fn pgp_fingerprints(&self) -> Vec<OpenPGPIdentifier> {
-        self.0
-            .pgp_fingerprints
-            .clone()
-            .into_iter()
-            .map(From::from)
-            .collect()
+        vec_convert!(self.0.pgp_fingerprints.clone())
     }
 
     #[getter]
     fn dependencies(&self) -> Vec<RelationOrSoname> {
-        self.0
-            .dependencies
-            .clone()
-            .into_iter()
-            .map(From::from)
-            .collect()
+        vec_convert!(self.0.dependencies.clone())
     }
 
     #[getter]
     fn optional_dependencies(&self) -> Vec<OptionalDependency> {
-        self.0
-            .optional_dependencies
-            .clone()
-            .into_iter()
-            .map(From::from)
-            .collect()
+        vec_convert!(self.0.optional_dependencies.clone())
     }
 
     #[getter]
     fn provides(&self) -> Vec<RelationOrSoname> {
-        self.0
-            .provides
-            .clone()
-            .into_iter()
-            .map(From::from)
-            .collect()
+        vec_convert!(self.0.provides.clone())
     }
 
     #[getter]
     fn conflicts(&self) -> Vec<PackageRelation> {
-        self.0
-            .conflicts
-            .clone()
-            .into_iter()
-            .map(From::from)
-            .collect()
+        vec_convert!(self.0.conflicts.clone())
     }
 
     #[getter]
     fn replaces(&self) -> Vec<PackageRelation> {
-        self.0
-            .replaces
-            .clone()
-            .into_iter()
-            .map(From::from)
-            .collect()
+        vec_convert!(self.0.replaces.clone())
     }
 
     #[getter]
     fn check_dependencies(&self) -> Vec<PackageRelation> {
-        self.0
-            .check_dependencies
-            .clone()
-            .into_iter()
-            .map(From::from)
-            .collect()
+        vec_convert!(self.0.check_dependencies.clone())
     }
 
     #[getter]
     fn make_dependencies(&self) -> Vec<PackageRelation> {
-        self.0
-            .make_dependencies
-            .clone()
-            .into_iter()
-            .map(From::from)
-            .collect()
+        vec_convert!(self.0.make_dependencies.clone())
     }
 
     #[getter]
     fn sources(&self) -> Vec<MergedSource> {
-        self.0.sources.clone().into_iter().map(From::from).collect()
+        vec_convert!(self.0.sources.clone())
     }
 
     #[getter]
