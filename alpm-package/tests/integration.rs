@@ -8,9 +8,18 @@ use std::{
     time::SystemTime,
 };
 
+use alpm_compress::compression::{
+    CompressionSettings,
+    ZstdThreads,
+    level::{
+        Bzip2CompressionLevel,
+        GzipCompressionLevel,
+        XzCompressionLevel,
+        ZstdCompressionLevel,
+    },
+};
 use alpm_mtree::create_mtree_v2_from_input_dir;
 use alpm_package::{
-    CompressionSettings,
     Error,
     InputDir,
     MetadataEntry,
@@ -20,13 +29,6 @@ use alpm_package::{
     PackageEntry,
     PackageInput,
     PackageReader,
-    compression::{
-        Bzip2CompressionLevel,
-        GzipCompressionLevel,
-        XzCompressionLevel,
-        ZstdCompressionLevel,
-        ZstdThreads,
-    },
 };
 use alpm_types::{Blake2b512Checksum, INSTALL_SCRIPTLET_FILE_NAME, MetadataFileName};
 use filetime::{FileTime, set_symlink_file_times};

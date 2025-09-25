@@ -1,33 +1,32 @@
 [package]
 authors.workspace = true
-description = "Library and command line tool for the creation of ALPM based packages"
+description = "Library for compression operations in ALPM"
 edition.workspace = true
 homepage.workspace = true
 keywords.workspace = true
 license.workspace = true
-name = "alpm-package"
+name = "alpm-compress"
 readme = "README.md"
 repository.workspace = true
 rust-version.workspace = true
-version = "0.2.0"
+version = "0.1.0"
 
 [dependencies]
-alpm-buildinfo.workspace = true
-alpm-common.workspace = true
-alpm-compress.workspace = true
-alpm-mtree.workspace = true
-alpm-pkginfo.workspace = true
 alpm-types.workspace = true
+bzip2 = "0.6.0"
+flate2.workspace = true
+liblzma = { version = "0.4.1", features = ["parallel"] }
 log.workspace = true
-tar = "0.4.44"
+num_cpus = "1.17.0"
 thiserror.workspace = true
+zstd = { version = "0.13.3", features = ["zstdmt"] }
 
 [dev-dependencies]
-filetime = "0.2.25"
+proptest.workspace = true
 rstest.workspace = true
-simplelog.workspace = true
 tempfile.workspace = true
 testresult.workspace = true
+
 
 [lints]
 workspace = true

@@ -22,9 +22,9 @@ use std::fs::{File, Permissions, create_dir_all};
 use std::io::Write;
 use std::os::unix::fs::PermissionsExt;
 
+use alpm_compress::compression::CompressionSettings;
 use alpm_mtree::create_mtree_v2_from_input_dir;
 use alpm_package::{
-    CompressionSettings,
     InputDir,
     MetadataEntry,
     OutputDir,
