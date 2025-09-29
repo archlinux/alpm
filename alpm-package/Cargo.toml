@@ -18,23 +18,15 @@ alpm-compress.workspace = true
 alpm-mtree.workspace = true
 alpm-pkginfo.workspace = true
 alpm-types.workspace = true
-bzip2 = "0.6.0"
-flate2.workspace = true
-liblzma = { version = "0.4.1", features = ["parallel"] }
 log.workspace = true
-num_cpus = "1.17.0"
 tar = "0.4.44"
 thiserror.workspace = true
-zstd = { version = "0.13.3", features = ["zstdmt"] }
 
 [dev-dependencies]
 filetime = "0.2.25"
-insta.workspace = true
-proptest.workspace = true
 rstest.workspace = true
 simplelog.workspace = true
 tempfile.workspace = true
-testdir = "0.9.3"
 testresult.workspace = true
 
 [lints]
