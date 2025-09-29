@@ -1,5 +1,7 @@
 # API documentation
 
+## Rust
+
 - [alpm-buildinfo](/rustdoc/alpm_buildinfo)
 - [alpm-common](/rustdoc/alpm_common)
 - [alpm-lint-config](/rustdoc/alpm_lint_config)
@@ -10,6 +12,10 @@
 - [alpm-srcinfo](/rustdoc/alpm_srcinfo)
 - [alpm-types](/rustdoc/alpm_types)
 - [dev-scripts](/rustdoc/dev_scripts)
+
+## Python
+
+- [alpm](/pdoc)
 
 ## Local Dependency Graph
 
