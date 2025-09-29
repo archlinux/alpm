@@ -61,6 +61,20 @@ dependencies = [
 [[package]]
 name = "alpm-compress"
 version = "0.1.0"
+dependencies = [
+ "alpm-types",
+ "bzip2",
+ "flate2",
+ "liblzma",
+ "log",
+ "num_cpus",
+ "proptest",
+ "rstest",
+ "tempfile",
+ "testresult",
+ "thiserror 2.0.17",
+ "zstd",
+]
 
 [[package]]
 name = "alpm-db"
