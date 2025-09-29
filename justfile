@@ -240,6 +240,7 @@ build-book:
 [group('build')]
 docs:
     RUSTDOCFLAGS='-D warnings' cargo doc --document-private-items --no-deps
+    uv run --directory python-alpm pdoc -d google -o "../{{ output_dir }}/docs/pdoc/" alpm
 
 # Render `manpages`, `shell_completions` or `specifications` (`kind`) of a given package (`pkg`).
 [group('build')]
@@ -310,6 +311,39 @@ generate-manpages-and-specs:
     just generate specifications alpm-srcinfo
     just generate specifications alpm-state-repo
     just generate specifications alpm-types
+
+# Builds the Python alpm package sdist and wheels for a given platform (`platform`). Supported platforms are `all` (builds for x86_64, aarch64 and riscv64), `sdist` (only source distribution), `current` (builds for current platform) or any valid `--target` value for maturin
+[group('build')]
+[working-directory('python-alpm')]
+build-python platform="current":
+    #!/usr/bin/env bash
+
+    readonly platform="{{ platform }}"
+
+    just ensure-command maturin zig
+
+    # always create sdist
+    maturin sdist -o dist
+
+    case "$platform" in
+        "all")
+            # We use zig cc to create manylinux compatible wheels
+            # this skips the need for running this in a manylinux container
+            just ensure-command rustup
+            rustup target add x86_64-unknown-linux-gnu aarch64-unknown-linux-gnu riscv64gc-unknown-linux-gnu
+            maturin build --release --zig --target=x86_64-unknown-linux-gnu -o dist
+            maturin build --release --zig --target=aarch64-unknown-linux-gnu -o dist
+            maturin build --release --zig --target=riscv64gc-unknown-linux-gnu -o dist
+            ;;
+        "sdist") exit 0 ;;
+        "current")
+            maturin build --release --zig -o dist
+            ;;
+        *)
+            just ensure-command rustup
+            rustup target add "$platform"
+            maturin build --release --zig --target="$platform" -o dist
+    esac
 
 # Checks source code formatting
 [group('check')]
@@ -454,11 +488,17 @@ check-shell-code:
     just check-shell-recipe 'is-workspace-member alpm-buildinfo'
     just check-shell-recipe 'prepare-release alpm-buildinfo'
     just check-shell-recipe 'release alpm-buildinfo'
+    just check-shell-recipe 'release python-alpm'
     just check-shell-recipe flaky
     just check-shell-recipe test
     just check-shell-recipe test-docs
     just check-shell-recipe 'ensure-command test'
     just check-shell-recipe virtualized-integration-tests
+    just check-shell-recipe build-python
+    just check-shell-recipe 'build-python current'
+    just check-shell-recipe 'build-python all'
+    just check-shell-recipe 'build-python sdist'
+    just check-shell-recipe 'build-python x86_64-unknown-linux-gnu'
 
     just check-shell-script alpm-srcinfo/tests/generate_srcinfo.bash
     just check-shell-script .cargo/runner.sh
@@ -817,21 +857,27 @@ ci-publish:
     #!/usr/bin/env bash
     set -euo pipefail
 
-    # an auth token with publishing capabilities is expected to be set in GitLab project settings
-    readonly token="${CARGO_REGISTRY_TOKEN:-}"
+    # auth tokens with publishing capabilities are expected to be set in GitLab project settings
+    readonly cargo_token="${CARGO_REGISTRY_TOKEN:-}"
+    readonly uv_token="${UV_PUBLISH_TOKEN:-}"
+
     # rely on predefined variable to retrieve git tag: https://docs.gitlab.com/ee/ci/variables/predefined_variables.html
     readonly tag="${CI_COMMIT_TAG:-}"
     readonly crate="${tag//\/*/}"
     readonly version="${tag#*/}"
 
-    just ensure-command cargo
+    just ensure-command cargo uv
 
     if [[ -z "$tag" ]]; then
         printf "There is no tag!\n" >&2
         exit 1
     fi
-    if [[ -z "$token" ]]; then
+    if [[ -z "$cargo_token" ]]; then
         printf "There is no token for crates.io!\n" >&2
+        exit 1
+    fi
+    if [[ -z "$uv_token" ]]; then
+        printf "There is no token for PyPI!\n" >&2
         exit 1
     fi
     if ! just is-workspace-member "$crate" &>/dev/null; then
@@ -847,7 +893,13 @@ ci-publish:
     fi
 
     printf "Found tag %s (crate %s in version %s).\n" "$tag" "$crate" "$version"
-    cargo publish -p "$crate"
+    if [[ "$crate" == "python-alpm" ]]; then
+        printf "%s is a Python package.\n" "$crate"
+        just build-python all
+        uv --directory python-alpm publish
+    else
+        cargo publish -p "$crate"
+    fi
 
 # Prepares the release of a crate by updating dependencies, incrementing the crate version and creating a changelog entry (optionally, the version can be set explicitly)
 [group('release')]
