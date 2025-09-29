@@ -29,6 +29,7 @@
 //! tempfile = "3"
 //! testresult = "0.4"
 //! rstest = "0.17"
+//! alpm-compress = { path = "../../alpm-compress" }
 //! alpm-package = { path = "../../alpm-package" }
 //! alpm-mtree = { path = "../../alpm-mtree" }
 //! alpm-types = { path = "../../alpm-types" }
@@ -43,15 +44,9 @@ use std::{
     str::FromStr,
 };
 
+use alpm_compress::compression::CompressionSettings;
 use alpm_mtree::create_mtree_v2_from_input_dir;
-use alpm_package::{
-    CompressionSettings,
-    InputDir,
-    OutputDir,
-    Package,
-    PackageCreationConfig,
-    PackageInput,
-};
+use alpm_package::{InputDir, OutputDir, Package, PackageCreationConfig, PackageInput};
 use alpm_soname::{ElfSonames, extract_elf_sonames, find_dependencies, find_provisions};
 use alpm_types::{MetadataFileName, Soname, SonameLookupDirectory, SonameV2};
 use assert_cmd::{assert::OutputAssertExt, cargo::CommandCargoExt};

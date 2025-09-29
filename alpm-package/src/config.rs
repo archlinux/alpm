@@ -5,13 +5,14 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use alpm_compress::compression::CompressionSettings;
 #[cfg(doc)]
 use alpm_pkginfo::PackageInfo;
 use alpm_types::PackageFileName;
 
+use crate::input::PackageInput;
 #[cfg(doc)]
 use crate::package::Package;
-use crate::{compression::CompressionSettings, input::PackageInput};
 
 /// An output directory that is guaranteed to be an absolute, writable directory.
 #[derive(Clone, Debug)]
