@@ -4,30 +4,6 @@ use pyo3::prelude::*;
 
 use crate::macros::impl_from;
 
-#[allow(dead_code)]
-#[derive(FromPyObject, IntoPyObject)]
-pub enum Checksum {
-    Blake2b512(Blake2b512Checksum),
-    Md5(Md5Checksum),
-    Sha1(Sha1Checksum),
-    Sha224(Sha224Checksum),
-    Sha256(Sha256Checksum),
-    Sha384(Sha384Checksum),
-    Sha512(Sha512Checksum),
-}
-
-#[allow(dead_code)]
-#[derive(FromPyObject, IntoPyObject)]
-pub enum SkippableChecksum {
-    Blake2b512(SkippableBlake2b512Checksum),
-    Md5(SkippableMd5Checksum),
-    Sha1(SkippableSha1Checksum),
-    Sha224(SkippableSha224Checksum),
-    Sha256(SkippableSha256Checksum),
-    Sha384(SkippableSha384Checksum),
-    Sha512(SkippableSha512Checksum),
-}
-
 macro_rules! define_checksum {
     ($checksum:ident, $skippable_checksum: ident, $digest:ty) => {
         #[pyclass(frozen, eq, ord)]
