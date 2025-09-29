@@ -11,5 +11,21 @@ repository.workspace = true
 rust-version.workspace = true
 version = "0.1.0"
 
+[dependencies]
+alpm-types.workspace = true
+bzip2 = "0.6.0"
+flate2.workspace = true
+liblzma = { version = "0.4.1", features = ["parallel"] }
+log.workspace = true
+num_cpus = "1.17.0"
+thiserror.workspace = true
+zstd = { version = "0.13.3", features = ["zstdmt"] }
+
+[dev-dependencies]
+proptest.workspace = true
+rstest.workspace = true
+tempfile.workspace = true
+testresult.workspace = true
+
 [lints]
 workspace = true
