@@ -36,6 +36,7 @@ strum.workspace = true
 thiserror.workspace = true
 
 [dev-dependencies]
+alpm-compress.workspace = true
 alpm-mtree.workspace = true
 assert_cmd.workspace = true
 rstest.workspace = true

@@ -14,6 +14,7 @@ version = "0.2.1"
 [dependencies]
 alpm-buildinfo.workspace = true
 alpm-common.workspace = true
+alpm-compress.workspace = true
 alpm-mtree.workspace = true
 alpm-pkginfo.workspace = true
 alpm-types.workspace = true

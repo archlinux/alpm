@@ -124,6 +124,7 @@ version = "0.2.1"
 dependencies = [
  "alpm-buildinfo",
  "alpm-common",
+ "alpm-compress",
  "alpm-mtree",
  "alpm-pkginfo",
  "alpm-types",
@@ -209,6 +210,7 @@ version = "0.1.0"
 name = "alpm-soname"
 version = "0.1.0"
 dependencies = [
+ "alpm-compress",
  "alpm-mtree",
  "alpm-package",
  "alpm-pkginfo",

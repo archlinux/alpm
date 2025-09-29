@@ -12,6 +12,10 @@ use std::{
 
 use alpm_buildinfo::BuildInfo;
 use alpm_common::{InputPaths, MetadataFile};
+use alpm_compress::{
+    compression::CompressionEncoder,
+    decompression::{CompressionDecoder, DecompressionSettings},
+};
 use alpm_mtree::Mtree;
 use alpm_pkginfo::PackageInfo;
 use alpm_types::{
@@ -24,13 +28,7 @@ use alpm_types::{
 use log::debug;
 use tar::{Archive, Builder, Entries, Entry, EntryType};
 
-use crate::{
-    CompressionAlgorithm,
-    CompressionEncoder,
-    OutputDir,
-    PackageCreationConfig,
-    compression::CompressionDecoder,
-};
+use crate::{OutputDir, PackageCreationConfig};
 
 /// An error that can occur when handling [alpm-package] files.
 ///
@@ -705,12 +703,12 @@ impl Iterator for MetadataEntryIterator<'_, '_> {
 /// # use alpm_mtree::create_mtree_v2_from_input_dir;
 /// use alpm_package::{MetadataEntry, Package, PackageReader};
 /// # use alpm_package::{
-/// #     CompressionSettings,
 /// #     InputDir,
 /// #     OutputDir,
 /// #     PackageCreationConfig,
 /// #     PackageInput,
 /// # };
+/// # use alpm_compress::compression::CompressionSettings;
 /// use alpm_types::MetadataFileName;
 ///
 /// # fn main() -> testresult::TestResult {
@@ -1121,8 +1119,8 @@ impl TryFrom<Package> for PackageReader<'_> {
             source,
         })?;
         let extension = CompressionAlgorithmFileExtension::try_from(path.as_path())?;
-        let algorithm = CompressionAlgorithm::try_from(extension)?;
-        let decoder = CompressionDecoder::new(file, algorithm)?;
+        let settings = DecompressionSettings::try_from(extension)?;
+        let decoder = CompressionDecoder::new(file, settings)?;
         let archive = Archive::new(decoder);
         Ok(Self::new(archive))
     }
