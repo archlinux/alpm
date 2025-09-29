@@ -240,6 +240,7 @@ build-book:
 [group('build')]
 docs:
     RUSTDOCFLAGS='-D warnings' cargo doc --document-private-items --no-deps
+    uv run --directory python-alpm pdoc -d google -o "../{{ output_dir }}/docs/pdoc/" alpm
 
 # Render `manpages`, `shell_completions` or `specifications` (`kind`) of a given package (`pkg`).
 [group('build')]
@@ -310,6 +311,42 @@ generate-manpages-and-specs:
     just generate specifications alpm-srcinfo
     just generate specifications alpm-state-repo
     just generate specifications alpm-types
+
+[doc('Builds the Python alpm package for a given platform (`platform`).
+Supported platforms are `all` (prepares sdist and wheels for x86_64, aarch64 and riscv64),
+`sdist` (only source distribution), `current` (builds wheel for current platform) or any valid `--target` value for maturin')]
+[group('build')]
+[working-directory('python-alpm')]
+build-python platform="current":
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    readonly platform="{{ platform }}"
+
+    just ensure-command maturin zig
+
+    case "$platform" in
+        "all")
+            # We use zig cc to create manylinux compatible wheels
+            # this skips the need for running this in a manylinux container
+            just ensure-command rustup
+            rustup target add x86_64-unknown-linux-gnu aarch64-unknown-linux-gnu riscv64gc-unknown-linux-gnu
+            maturin sdist -o dist
+            maturin build --release --zig --target=x86_64-unknown-linux-gnu -o dist
+            maturin build --release --zig --target=aarch64-unknown-linux-gnu -o dist
+            maturin build --release --zig --target=riscv64gc-unknown-linux-gnu -o dist
+            ;;
+        "sdist")
+            maturin sdist -o dist
+            ;;
+        "current")
+            maturin build --release --zig -o dist
+            ;;
+        *)
+            just ensure-command rustup
+            rustup target add "$platform"
+            maturin build --release --zig --target="$platform" -o dist
+    esac
 
 # Checks source code formatting
 [group('check')]
@@ -454,11 +491,13 @@ check-shell-code:
     just check-shell-recipe 'is-workspace-member alpm-buildinfo'
     just check-shell-recipe 'prepare-release alpm-buildinfo'
     just check-shell-recipe 'release alpm-buildinfo'
+    just check-shell-recipe 'release python-alpm'
     just check-shell-recipe flaky
     just check-shell-recipe test
     just check-shell-recipe test-docs
     just check-shell-recipe 'ensure-command test'
     just check-shell-recipe virtualized-integration-tests
+    just check-shell-recipe build-python
 
     just check-shell-script alpm-srcinfo/tests/generate_srcinfo.bash
     just check-shell-script .cargo/runner.sh
@@ -817,21 +856,19 @@ ci-publish:
     #!/usr/bin/env bash
     set -euo pipefail
 
-    # an auth token with publishing capabilities is expected to be set in GitLab project settings
-    readonly token="${CARGO_REGISTRY_TOKEN:-}"
+    # auth tokens with publishing capabilities are expected to be set in GitLab project settings
+    readonly cargo_token="${CARGO_REGISTRY_TOKEN:-}"
+    readonly uv_token="${UV_PUBLISH_TOKEN:-}"
+
     # rely on predefined variable to retrieve git tag: https://docs.gitlab.com/ee/ci/variables/predefined_variables.html
     readonly tag="${CI_COMMIT_TAG:-}"
     readonly crate="${tag//\/*/}"
     readonly version="${tag#*/}"
 
-    just ensure-command cargo
+    just ensure-command cargo uv
 
     if [[ -z "$tag" ]]; then
         printf "There is no tag!\n" >&2
-        exit 1
-    fi
-    if [[ -z "$token" ]]; then
-        printf "There is no token for crates.io!\n" >&2
         exit 1
     fi
     if ! just is-workspace-member "$crate" &>/dev/null; then
@@ -847,7 +884,26 @@ ci-publish:
     fi
 
     printf "Found tag %s (crate %s in version %s).\n" "$tag" "$crate" "$version"
-    cargo publish -p "$crate"
+
+    case "$crate" in
+        "python-alpm")
+            if [[ -z "$uv_token" ]]; then
+                printf "There is no token for PyPI!\n" >&2
+                exit 1
+            fi
+
+            just build-python all
+            uv --directory "$crate" publish
+          ;;
+        *)
+            if [[ -z "$cargo_token" ]]; then
+                printf "There is no token for crates.io!\n" >&2
+                exit 1
+            fi
+
+            cargo publish -p "$crate"
+          ;;
+    esac
 
 # Prepares the release of a crate by updating dependencies, incrementing the crate version and creating a changelog entry (optionally, the version can be set explicitly)
 [group('release')]
