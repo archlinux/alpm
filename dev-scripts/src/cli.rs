@@ -136,6 +136,13 @@ pub enum DownloadCmd {
     /// - .SRCINFO
     PkgSrcRepositories {},
 
+    /// Download all AUR packages metadata.
+    ///
+    /// AUR uses a monorepo that holds each package in a separate branch.
+    /// This command first fetches a list of all packages from aurweb and clones aur.git mirror.
+    /// The `.SRCINFO` and `PKGBUILD` files are then extracted from the git branches.
+    Aur {},
+
     /// Create a copy of a mirror's pacman database.
     ///
     /// The database contains the following file types for each package.

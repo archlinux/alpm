@@ -11,6 +11,7 @@ use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use crate::{cli::TestFileType, sync::PackageRepositories, ui::get_progress_bar};
 
 static PKGSRC_DIR: &str = "pkgsrc";
+static AUR_DIR: &str = "aur";
 static PACKAGES_DIR: &str = "packages";
 static DATABASES_DIR: &str = "databases";
 
@@ -115,7 +116,10 @@ impl TestRunner {
                 .iter()
                 .map(|repo| self.test_data_dir.join(PACKAGES_DIR).join(repo.to_string()))
                 .collect(),
-            TestFileType::SrcInfo => vec![self.test_data_dir.join(PKGSRC_DIR)],
+            TestFileType::SrcInfo => vec![
+                self.test_data_dir.join(PKGSRC_DIR),
+                self.test_data_dir.join(AUR_DIR),
+            ],
             // The `desc` and `files` file types are nested in the subdirectories of the respective
             // package's package repository.
             TestFileType::RemoteDesc | TestFileType::RemoteFiles => self
@@ -131,9 +135,12 @@ impl TestRunner {
                 unimplemented!();
             }
         };
-
         for folder in type_folders {
             debug!("Looking for files in {folder:?}");
+            if !folder.exists() {
+                info!("The directory {folder:?} doesn't exist, skipping.");
+                continue;
+            }
             // Each top-level folder contains a number of sub-folders where each sub-folder
             // represents a single package. Check if the file we're interested in exists
             // for said package. If so, add it to the list

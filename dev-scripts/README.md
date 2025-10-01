@@ -20,6 +20,7 @@ Currently supported features:
     - `packages`: ~90GB
     - `databases`: ~1GB
     - `pkg-src-repositories`: ~3GB
+    - `aur`: ~1GB
 
 ## Workflow
 
@@ -79,6 +80,11 @@ The default destination is `~/.cache/alpm/testing/packages`. A dedicated folder 
 Calling `test-files download pkg-src-repositories` downloads the package source repositories for all active packages and extracts all package metadata files from them.
 The default destination is `~/.cache/alpm/testing/pkgsrc`.
 
+#### AUR
+
+Calling `test-files download aur` downloads the current AUR packages and extracts all package metadata files from them.
+The default destination is `~/.cache/alpm/testing/aur`.
+
 ### Testing
 
 To run the parser tests for a specific file type run `test-files test $FILE_TYPE`. For instance: `test-files test build-info`.
@@ -97,6 +103,12 @@ Depending on which file type you want to test, you need to download the respecti
 - `.MTREE`
 - `.PKGINFO`
 
-`test-files download pkg-src-repositories` will contain the following file type:
+`test-files download pkg-src-repositories` will contain the following file types:
 
 - `.SRCINFO`
+- `PKGBUILD`
+
+`test-files download aur` will contain the following file types:
+
+- `.SRCINFO`
+- `PKGBUILD`
