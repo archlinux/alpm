@@ -10,6 +10,7 @@ use anyhow::Result;
 use clap::ValueEnum;
 use strum::{Display, EnumIter};
 
+pub mod aur;
 pub mod mirror;
 pub mod pkgsrc;
 

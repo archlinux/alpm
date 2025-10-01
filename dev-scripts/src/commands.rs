@@ -9,7 +9,12 @@ use strum::IntoEnumIterator;
 
 use crate::{
     cli::{self, TestFilesCmd},
-    sync::{PackageRepositories, mirror::MirrorDownloader, pkgsrc::PkgSrcDownloader},
+    sync::{
+        PackageRepositories,
+        aur::AurDownloader,
+        mirror::MirrorDownloader,
+        pkgsrc::PkgSrcDownloader,
+    },
     testing::TestRunner,
 };
 
@@ -64,6 +69,10 @@ pub(crate) fn test_files(cmd: TestFilesCmd) -> Result<()> {
                 cli::DownloadCmd::PkgSrcRepositories {} => {
                     let downloader = PkgSrcDownloader { dest };
                     downloader.download_package_source_repositories()?;
+                }
+                cli::DownloadCmd::Aur {} => {
+                    let downloader = AurDownloader { dest };
+                    downloader.download_packages()?;
                 }
                 cli::DownloadCmd::Databases {
                     mirror,

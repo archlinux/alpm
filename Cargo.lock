@@ -733,6 +733,7 @@ dependencies = [
  "clap",
  "colored",
  "dirs",
+ "flate2",
  "indicatif",
  "log",
  "proptest",
