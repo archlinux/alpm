@@ -323,6 +323,14 @@ impl Package {
         impl_override_setter!(self.0.replaces, replaces);
         Ok(())
     }
+
+    fn __str__(&self) -> String {
+        self.0.name.to_string()
+    }
+
+    fn __repr__(&self) -> String {
+        format!("Package(name='{}')", self.0.name)
+    }
 }
 
 impl_from!(Package, alpm_srcinfo_package::Package);
@@ -458,6 +466,16 @@ impl Override {
     #[getter]
     fn value(&self) -> Option<Overridable> {
         self.0.clone()
+    }
+
+    fn __repr__<'a>(&self, py: Python<'a>) -> PyResult<String> {
+        match &self.0 {
+            Some(overridable) => Ok(format!(
+                "Override(value={})",
+                overridable.clone().into_pyobject(py)?.repr()?
+            )),
+            None => Ok("Override(value=None)".to_string()),
+        }
     }
 }
 

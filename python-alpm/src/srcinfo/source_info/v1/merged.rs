@@ -180,6 +180,19 @@ impl MergedPackage {
     fn no_extracts(&self) -> Vec<String> {
         self.0.no_extracts.clone()
     }
+
+    fn __str__(&self) -> String {
+        self.0.name.to_string()
+    }
+
+    fn __repr__(&self) -> String {
+        format!(
+            "MergedPackage(architecture='{}', name='{}', version={})",
+            self.architecture(),
+            self.0.name,
+            self.version().__repr__()
+        )
+    }
 }
 
 impl_from!(MergedPackage, alpm_srcinfo_merged::MergedPackage);

@@ -60,6 +60,8 @@ class Override(Generic[T]):
     def value(self) -> Optional[T]:
         """The value of the override."""
 
+    def __repr__(self) -> str: ...
+
 class Package:
     """Package metadata based on a pkgname section in SRCINFO data.
 
@@ -194,6 +196,8 @@ class Package:
 
     @replaces.setter
     def replaces(self, replaces: Optional[Override[list[PackageRelation]]]) -> None: ...
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
 
 class PackageArchitecture:
     """Architecture specific package properties for use in Package.
