@@ -824,8 +824,28 @@ test-readmes:
 
 # Run tests for Python bindings (accepts pytest `options`).
 [group('test')]
+[working-directory('python-alpm')]
 test-python *options:
-    uv run --directory python-alpm pytest {{ options }}
+    #!/usr/bin/env bash
+
+    readonly coverage="{{ coverage }}"
+    commands=(
+        uv
+    )
+
+    if [[ "$coverage" == "true" ]]; then
+        commands+=(
+            cargo-llvm-cov
+        )
+        just ensure-command "${commands[@]}"
+        # Use the environment prepared by `cargo llvm-cov show-env`
+        # shellcheck source=/dev/null
+        source <(cargo llvm-cov show-env --export-prefix)
+    else
+        just ensure-command "${commands[@]}"
+    fi
+
+    uv run pytest {{ options }}
 
 # Runs integration tests guarded by the `_virtualized-integration-test` feature (accepts `cargo nextest run` options via `options`).
 [group('test')]
