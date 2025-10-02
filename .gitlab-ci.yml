@@ -37,19 +37,6 @@ stages:
     - just install-rust-dev-tools
     - just --justfile .gitlab/justfile section-end "install-rust-dev-tools"
 
-# default setup with Python tools running on default branch and in MRs
-.default-with-python:
-  extends: .default-with-rust
-  before_script:
-    - pacman-key --init
-    - pacman -Sy --needed --noconfirm archlinux-keyring just
-    - just --justfile .gitlab/justfile section-start "install-alpm-packages" "Install ALPM package set 'python-dev'"
-    - just install-alpm-package-set python-dev
-    - just --justfile .gitlab/justfile section-end "install-alpm-packages"
-    - just --justfile .gitlab/justfile section-start "install-rust-dev-tools" "Install Rust development tools"
-    - just install-rust-dev-tools
-    - just --justfile .gitlab/justfile section-end "install-rust-dev-tools"
-
 commits:
   extends: .default
   rules:
@@ -80,7 +67,7 @@ spelling:
   stage: check
 
 formatting:
-  extends: .default-with-python
+  extends: .default-with-rust
   script:
     - just --justfile .gitlab/justfile section-start "install-alpm-packages" "Install ALPM package set 'formatting'"
     - just install-alpm-package-set formatting
@@ -113,10 +100,10 @@ rust-code:
   stage: check
 
 python-code:
-  extends: .default-with-python
+  extends: .default-with-rust
   script:
-    - just --justfile .gitlab/justfile section-start "install-alpm-packages" "Install ALPM package set 'rust'"
-    - just install-alpm-package-set rust
+    - just --justfile .gitlab/justfile section-start "install-alpm-packages" "Install ALPM package set 'python-dev'"
+    - just install-alpm-package-set python-dev
     - just --justfile .gitlab/justfile section-end "install-alpm-packages"
     - just --justfile .gitlab/justfile section-start "check-python-code" "Check Python code"
     - just check-python-code
@@ -188,20 +175,12 @@ test:
     - just --justfile .gitlab/justfile section-start "test-docs" "Run doc tests"
     - just test-docs
     - just --justfile .gitlab/justfile section-end "test-docs"
-    - just --justfile .gitlab/justfile section-start "create-coverage-report" "Create coverage report"
-    - just create-coverage-report with-docs Unit-test-coverage
-    - just --justfile .gitlab/justfile section-end "create-coverage-report"
-  stage: test
-
-test-python:
-  extends: .default-with-python
-  script:
-    - just --justfile .gitlab/justfile section-start "install-alpm-packages" "Install ALPM package set 'test'"
-    - just install-alpm-package-set test
-    - just --justfile .gitlab/justfile section-end "install-alpm-packages"
     - just --justfile .gitlab/justfile section-start "test-python" "Run Python tests"
     - just test-python
     - just --justfile .gitlab/justfile section-end "test-python"
+    - just --justfile .gitlab/justfile section-start "create-coverage-report" "Create coverage report"
+    - just create-coverage-report with-docs Unit-test-coverage
+    - just --justfile .gitlab/justfile section-end "create-coverage-report"
   stage: test
 
 docs:
@@ -238,8 +217,11 @@ build-book:
   stage: test
 
 build-python:
-  extends: .default-with-python
+  extends: .default-with-rust
   script:
+    - just --justfile .gitlab/justfile section-start "install-alpm-packages" "Install ALPM package set 'python-dev'"
+    - just install-alpm-package-set python-dev
+    - just --justfile .gitlab/justfile section-end "install-alpm-packages"
     - just --justfile .gitlab/justfile section-start "build-python" "Prepare Python sdist and build wheels"
     - just build-python all
     - just --justfile .gitlab/justfile section-end "build-python"
