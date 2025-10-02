@@ -336,6 +336,18 @@ impl PackageBase {
     fn set_sha512_checksums(&mut self, sha512_checksums: Vec<SkippableSha512Checksum>) {
         self.0.sha512_checksums = vec_convert!(sha512_checksums);
     }
+
+    fn __str__(&self) -> String {
+        self.0.name.to_string()
+    }
+
+    fn __repr__(&self) -> String {
+        format!(
+            "PackageBase(name='{}', version={})",
+            self.0.name,
+            self.get_version().__repr__()
+        )
+    }
 }
 
 impl_from!(

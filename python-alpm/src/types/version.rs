@@ -232,15 +232,18 @@ impl FullVersion {
         self.0.to_string()
     }
 
-    fn __repr__(&self) -> String {
+    pub fn __repr__(&self) -> String {
         match self.0.epoch {
             None => format!(
                 "FullVersion(pkgver={}, pkgrel={})",
-                self.0.pkgver, self.0.pkgrel
+                self.pkgver().__repr__(),
+                self.pkgrel().__repr__()
             ),
             Some(epoch) => format!(
                 "FullVersion(pkgver={}, pkgrel={}, epoch={})",
-                self.0.pkgver, self.0.pkgrel, epoch
+                self.pkgver().__repr__(),
+                self.pkgrel().__repr__(),
+                epoch
             ),
         }
     }
@@ -290,17 +293,19 @@ impl Version {
     }
 
     fn __repr__(&self) -> String {
-        let pkgrel_str = match self.0.pkgrel {
-            Some(ref pkgrel) => format!(", pkgrel={}", pkgrel),
+        let pkgrel_str = match self.pkgrel() {
+            Some(ref pkgrel) => format!(", pkgrel={}", pkgrel.__repr__()),
             None => "".to_string(),
         };
-        let epoch_str = match self.0.epoch {
-            Some(ref epoch) => format!(", epoch={}", epoch),
+        let epoch_str = match self.epoch() {
+            Some(ref epoch) => format!(", epoch={}", epoch.__repr__()),
             None => "".to_string(),
         };
         format!(
             "Version(pkgver={}{}{})",
-            self.0.pkgver, pkgrel_str, epoch_str
+            self.pkgver().__repr__(),
+            pkgrel_str,
+            epoch_str
         )
     }
 }

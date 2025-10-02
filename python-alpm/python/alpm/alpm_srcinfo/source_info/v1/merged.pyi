@@ -139,6 +139,9 @@ class MergedPackage:
     def no_extracts(self) -> list[str]:
         """The list of sources for the package that are not extracted."""
 
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+
 class MergedSource:
     """A merged representation of source related information.
 
