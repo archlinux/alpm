@@ -11,8 +11,8 @@ from alpm import ALPMError, alpm_types
         "http://example.com/",
         "https://example.com",
         "ftp://example.com",
-        "https://example.com/some/path"
-        "https://example.com/path?param=value"
+        "https://example.com/some/path",
+        "https://example.com/path?param=value",
         "https://example.com/path#section",
     ],
 )
