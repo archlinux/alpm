@@ -1,0 +1,6 @@
+pkgbase = any-arch
+	pkgver = 0.1.0
+	pkgrel = 1
+	arch = any
+
+pkgname = any-arch

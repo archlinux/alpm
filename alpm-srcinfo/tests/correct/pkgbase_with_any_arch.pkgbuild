@@ -1,0 +1,11 @@
+#!/bin/bash
+# Disable unused variable warnings:
+# shellcheck disable=2034
+pkgname=any-arch
+pkgver=0.1.0
+pkgrel=1
+arch=(any)
+
+package() {
+    echo "Building something"
+}

@@ -251,6 +251,15 @@ impl MergedPackage {
             sha512_checksums: base.sha512_checksums.iter(),
         };
 
+        // If the [`PackageBase`] is compatible with any architecture, then we set the architecture
+        // of the package to 'any' regardless of the requested architecture, as 'any' subsumes them
+        // all.
+        let architecture = if base.architectures.contains(&Architecture::Any) {
+            &Architecture::Any
+        } else {
+            architecture
+        };
+
         MergedPackage {
             name,
             description: base.description.clone(),
@@ -281,8 +290,17 @@ impl MergedPackage {
     /// Any field on `package` that is not [`Override::No`] overrides the pendant on `self`.
     fn merge_package(&mut self, package: &Package) {
         let package = package.clone();
-        package.description.merge_option(&mut self.description);
 
+        // If the [`Package`] is compatible with any architecture, then we set the architecture of
+        // the package to 'any' regardless of the requested architecture, as 'any' subsumes them
+        // all.
+        if let Some(value) = package.architectures {
+            if value.contains(&Architecture::Any) {
+                self.architecture = Architecture::Any
+            }
+        };
+
+        package.description.merge_option(&mut self.description);
         package.url.merge_option(&mut self.url);
         package.changelog.merge_option(&mut self.changelog);
         package.licenses.merge_vec(&mut self.licenses);

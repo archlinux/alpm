@@ -1,0 +1,38 @@
+---
+source: alpm-srcinfo/tests/correct.rs
+assertion_line: 91
+description: package_with_any_arch merged representation.
+expression: package_json
+---
+[
+  {
+    "name": "any-arch",
+    "description": null,
+    "url": null,
+    "licenses": [],
+    "architecture": "any",
+    "changelog": null,
+    "install": null,
+    "groups": [],
+    "options": [],
+    "backups": [],
+    "version": {
+      "pkgver": "0.1.0",
+      "pkgrel": {
+        "major": 1,
+        "minor": null
+      },
+      "epoch": null
+    },
+    "pgp_fingerprints": [],
+    "dependencies": [],
+    "optional_dependencies": [],
+    "provides": [],
+    "conflicts": [],
+    "replaces": [],
+    "check_dependencies": [],
+    "make_dependencies": [],
+    "sources": [],
+    "no_extracts": []
+  }
+]
