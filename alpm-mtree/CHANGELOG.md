@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.2] - 2025-10-07
+
+### Fixed
+
+- Update to rstest v0.26.1 and fix lints
+
+### Other
+
+- Fix badly fenced code blocks
+- Fix violations of MD040
+- Fix violations of MD022 and MD032
+- Hide winnow_debug feature flag
+
 ## [0.2.1] - 2025-07-24
 
 ### Other
