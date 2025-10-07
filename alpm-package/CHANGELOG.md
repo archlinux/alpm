@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2025-10-07
+
+### Fixed
+
+- Metadata files being reported as missing on error
+- Wrong lifetime on DataEntry::entry()
+- Return conventional types from getters
+
+### Other
+
+- Fix violations of MD034
+- Fix links to other man pages in `alpm-package` specification
+- Fix violations of MD029
+- Fix violations of MD022 and MD032
+
 ## [0.2.0] - 2025-07-24
 
 ### Added
