@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2025-10-07
+
+### Other
+
+- Fix violations of MD022 and MD032
+- Hide winnow_debug feature flag
+
 ## [0.1.0] - 2025-07-24
 
 ### Added
