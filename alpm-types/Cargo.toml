@@ -9,7 +9,7 @@ name = "alpm-types"
 readme = "README.md"
 repository.workspace = true
 rust-version.workspace = true
-version = "0.7.0"
+version = "0.8.0"
 
 [features]
 _winnow-debug = ["winnow/debug"]

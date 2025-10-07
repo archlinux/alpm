@@ -7,6 +7,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2025-10-07
+
+### Added
+
+- Make url module public
+- Implement Ord/PartialOrd for soname types
+- Implement De/Serialize for soname types
+- Add SonameLookupDirectory to alpm-types
+- Add CheckSumAlgorithm type
+- Add SkippableChecksum::is_skip helper
+
+### Fixed
+
+- Clippy lints
+- Duplicate makepkg option
+- *(deps)* Update Rust crate spdx to 0.12.0
+- *(deps)* Update Rust crate spdx to 0.11.1
+- Return specific error for deprecated SPDX license IDs
+- *(deps)* Update Rust crate spdx to 0.11.0
+
+### Other
+
+- Change version comparison to MIT/APACHE-2.0 and clarify
+- Make semver a workspace dependency
+- Rename mentions of `alpm-repo-database` to `alpm-repo-db`
+- Fix violations of MD034
+- Fix ASCII figures for correct rendering with `lowdown`
+- Add specification for alpm-source-repo
+- Expand test cases for deprecated SPDX licenses
+- Fix violations of MD001
+- Fix violations of MD033
+- Fix violations of MD007
+- Fix violations of MD040
+- Fix violations of MD029
+- Fix violations of MD022 and MD032
+- Hide winnow_debug feature flag
+- Fix clippy error regarding mismatched lifetime syntaxes
+- Fix typo in alpm-sonamev2.7.md
+- Fix copy-paste error in alpm-package-source specification
+
 ## [0.7.0] - 2025-07-24
 
 ### Added
