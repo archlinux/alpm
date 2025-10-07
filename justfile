@@ -233,14 +233,23 @@ build-book:
     for name in "${workspace_members[@]}"; do
         cp -r "$target_dir/doc/${name//-/_}" "$rustdoc_dir"
     done
+
+    # move python docs
+    cp -r "$target_dir/pdoc/" "$output_dir/docs/pdoc"
+
     cp -r "$target_dir/doc/"{search.desc,src,static.files,trait.impl,type.impl} "$rustdoc_dir"
     cp -r "$target_dir/doc/"*.{js,html} "$rustdoc_dir"
 
 # Build local documentation
 [group('build')]
 docs:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
     RUSTDOCFLAGS='-D warnings' cargo doc --document-private-items --no-deps
-    uv run --directory python-alpm pdoc -d google -o "../{{ output_dir }}/docs/pdoc/" alpm
+
+    target_dir="$(just get-cargo-target-directory)"
+    uv run --directory python-alpm pdoc -d google -o "$target_dir/pdoc/" alpm
 
 # Render `manpages`, `shell_completions` or `specifications` (`kind`) of a given package (`pkg`).
 [group('build')]
@@ -495,6 +504,7 @@ check-shell-code:
     just check-shell-recipe flaky
     just check-shell-recipe test
     just check-shell-recipe test-docs
+    just check-shell-recipe docs
     just check-shell-recipe 'ensure-command test'
     just check-shell-recipe virtualized-integration-tests
     just check-shell-recipe build-python
