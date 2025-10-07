@@ -25,6 +25,8 @@
     - [CHANGELOG](./alpm-srcinfo/CHANGELOG.md)
 - [alpm-types](./alpm-types/README.md)
     - [CHANGELOG](./alpm-types/CHANGELOG.md)
+- [python-alpm](./python-alpm/README.md)
+    - [CHANGELOG](./python-alpm/CHANGELOG.md)
 
 # Specifications
 
