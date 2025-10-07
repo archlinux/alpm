@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2025-10-07
+
+### Added
+
+- [**breaking**] Make `MergedPackage`'s merging methods private
+- Add constructors for Package and PackageBase
+- Remove srcinfo linting logic
+
+### Fixed
+
+- Correct architecture in the output of alpm-srcinfo
+- Remove unused snapshots
+- Remove trailing newline from the `alpm-srcinfo create` output
+- Update to rstest v0.26.1 and fix lints
+
+### Other
+
+- Fix mangled Package::architectures docstring
+- Fix comment in srcinfo
+- Fix violations of MD034
+- Remove alpm-srcinfo lint tests
+- Fix violations of MD012
+- Fix violations of MD007
+- Fix violations of MD029
+- Fix violations of MD022 and MD032
+- Hide winnow_debug feature flag
+
 ## [0.3.0] - 2025-07-24
 
 ### Added
