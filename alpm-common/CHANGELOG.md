@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2025-10-07
+
+### Added
+
+- Add localization for alpm-common's error module
+
+### Other
+
+- Fix violations of MD022 and MD032
+- Include ignored lychee links again
+
 ## [0.1.1] - 2025-06-16
 
 ### Added
