@@ -1,17 +1,16 @@
 [package]
-name = "alpm-soname"
-description = "Library and commandline toolkit for looking up soname data in an ALPM context"
-version = "0.1.0"
-
 authors.workspace = true
+default-run = "alpm-soname"
+description = "Library and commandline toolkit for looking up soname data in an ALPM context"
 edition.workspace = true
 homepage.workspace = true
 keywords.workspace = true
 license.workspace = true
-readme.workspace = true
+name = "alpm-soname"
+readme = "README.md"
 repository.workspace = true
 rust-version.workspace = true
-default-run = "alpm-soname"
+version = "0.1.0"
 
 [[bin]]
 name = "alpm-soname"
