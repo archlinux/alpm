@@ -6,7 +6,6 @@ homepage.workspace = true
 keywords.workspace = true
 license.workspace = true
 name = "python-alpm"
-publish = false
 readme = "README.md"
 repository.workspace = true
 rust-version.workspace = true
