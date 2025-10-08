@@ -1,6 +1,6 @@
 //! Settings for a compression decoder.
 
-use std::fmt::Debug;
+use std::{fmt::Debug, path::Path};
 
 use alpm_types::CompressionAlgorithmFileExtension;
 
@@ -17,6 +17,8 @@ pub enum DecompressionSettings {
     Xz,
     /// The zstandard compression algorithm.
     Zstd,
+    /// No compression.
+    None,
 }
 
 impl TryFrom<CompressionAlgorithmFileExtension> for DecompressionSettings {
@@ -36,6 +38,23 @@ impl TryFrom<CompressionAlgorithmFileExtension> for DecompressionSettings {
     }
 }
 
+impl TryFrom<&Path> for DecompressionSettings {
+    type Error = Error;
+
+    /// Converts a [`Path`] into a [`DecompressionSettings`] by extracting the file extension.
+    fn try_from(path: &Path) -> Result<Self, Self::Error> {
+        if let Some(ext) = path.extension()
+            && ext == "tar"
+        {
+            Ok(Self::None)
+        } else {
+            let ext = CompressionAlgorithmFileExtension::try_from(path)
+                .map_err(Error::UnknownCompressionAlgorithmFileExtension)?;
+            Ok(DecompressionSettings::try_from(ext)?)
+        }
+    }
+}
+
 impl From<&CompressionSettings> for DecompressionSettings {
     /// Converts a [`CompressionSettings`] into a [`DecompressionSettings`].
     fn from(value: &CompressionSettings) -> Self {
@@ -44,6 +63,7 @@ impl From<&CompressionSettings> for DecompressionSettings {
             CompressionSettings::Gzip { .. } => DecompressionSettings::Gzip,
             CompressionSettings::Xz { .. } => DecompressionSettings::Xz,
             CompressionSettings::Zstd { .. } => DecompressionSettings::Zstd,
+            CompressionSettings::None => DecompressionSettings::None,
         }
     }
 }

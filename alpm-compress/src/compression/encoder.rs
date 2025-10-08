@@ -88,6 +88,9 @@ pub enum CompressionEncoder<'a> {
 
     /// The zstd compression encoder.
     Zstd(Encoder<'a, File>),
+
+    /// No compression.
+    Uncompressed(File),
 }
 
 impl CompressionEncoder<'_> {
@@ -122,6 +125,7 @@ impl CompressionEncoder<'_> {
                 threads,
                 settings,
             )?),
+            CompressionSettings::None => Self::Uncompressed(file),
         })
     }
 
@@ -156,6 +160,7 @@ impl CompressionEncoder<'_> {
                     source,
                 })
             }
+            CompressionEncoder::Uncompressed(file) => Ok(file),
         }
     }
 }
@@ -170,6 +175,7 @@ impl Debug for CompressionEncoder<'_> {
                 CompressionEncoder::Gzip(_) => "Gzip",
                 CompressionEncoder::Xz(_) => "Xz",
                 CompressionEncoder::Zstd(_) => "Zstd",
+                &CompressionEncoder::Uncompressed(_) => "Uncompressed",
             }
         )
     }
@@ -182,6 +188,7 @@ impl Write for CompressionEncoder<'_> {
             CompressionEncoder::Gzip(encoder) => encoder.write(buf),
             CompressionEncoder::Xz(encoder) => encoder.write(buf),
             CompressionEncoder::Zstd(encoder) => encoder.write(buf),
+            CompressionEncoder::Uncompressed(file) => file.write(buf),
         }
     }
 
@@ -191,6 +198,7 @@ impl Write for CompressionEncoder<'_> {
             CompressionEncoder::Gzip(encoder) => encoder.write_vectored(bufs),
             CompressionEncoder::Xz(encoder) => encoder.write_vectored(bufs),
             CompressionEncoder::Zstd(encoder) => encoder.write_vectored(bufs),
+            CompressionEncoder::Uncompressed(file) => file.write_vectored(bufs),
         }
     }
 
@@ -200,6 +208,7 @@ impl Write for CompressionEncoder<'_> {
             CompressionEncoder::Gzip(encoder) => encoder.flush(),
             CompressionEncoder::Xz(encoder) => encoder.flush(),
             CompressionEncoder::Zstd(encoder) => encoder.flush(),
+            CompressionEncoder::Uncompressed(file) => file.flush(),
         }
     }
 
@@ -209,6 +218,7 @@ impl Write for CompressionEncoder<'_> {
             CompressionEncoder::Gzip(encoder) => encoder.write_all(buf),
             CompressionEncoder::Xz(encoder) => encoder.write_all(buf),
             CompressionEncoder::Zstd(encoder) => encoder.write_all(buf),
+            CompressionEncoder::Uncompressed(file) => file.write_all(buf),
         }
     }
 
@@ -218,6 +228,7 @@ impl Write for CompressionEncoder<'_> {
             CompressionEncoder::Gzip(encoder) => encoder.write_fmt(fmt),
             CompressionEncoder::Xz(encoder) => encoder.write_fmt(fmt),
             CompressionEncoder::Zstd(encoder) => encoder.write_fmt(fmt),
+            CompressionEncoder::Uncompressed(file) => file.write_fmt(fmt),
         }
     }
 

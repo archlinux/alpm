@@ -70,6 +70,7 @@ dependencies = [
  "num_cpus",
  "proptest",
  "rstest",
+ "tar",
  "tempfile",
  "testresult",
  "thiserror 2.0.17",

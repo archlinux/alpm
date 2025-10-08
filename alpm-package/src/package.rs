@@ -12,21 +12,12 @@ use std::{
 
 use alpm_buildinfo::BuildInfo;
 use alpm_common::{InputPaths, MetadataFile};
-use alpm_compress::{
-    compression::CompressionEncoder,
-    decompression::{CompressionDecoder, DecompressionSettings},
-};
+use alpm_compress::tarball::{TarballBuilder, TarballEntries, TarballEntry, TarballReader};
 use alpm_mtree::Mtree;
 use alpm_pkginfo::PackageInfo;
-use alpm_types::{
-    CompressionAlgorithmFileExtension,
-    INSTALL_SCRIPTLET_FILE_NAME,
-    MetadataFileName,
-    PackageError,
-    PackageFileName,
-};
+use alpm_types::{INSTALL_SCRIPTLET_FILE_NAME, MetadataFileName, PackageError, PackageFileName};
 use log::debug;
-use tar::{Archive, Builder, Entries, Entry, EntryType};
+use tar::Builder;
 
 use crate::{OutputDir, PackageCreationConfig};
 
@@ -167,10 +158,10 @@ impl TryFrom<&Path> for ExistingAbsoluteDir {
 /// - retrieving files relative to `input_dir` fails,
 /// - or adding one of the relative paths to the `builder` fails.
 fn append_relative_files<W>(
-    mut builder: Builder<W>,
+    builder: &mut Builder<W>,
     mtree: &Mtree,
     input_paths: &InputPaths,
-) -> Result<Builder<W>, crate::Error>
+) -> Result<(), crate::Error>
 where
     W: Write,
 {
@@ -206,7 +197,7 @@ where
             })?
     }
 
-    Ok(builder)
+    Ok(())
 }
 
 /// An entry in a package archive.
@@ -277,139 +268,6 @@ pub struct Metadata {
     pub mtree: Mtree,
 }
 
-/// A data file contained in the tar archive of an [alpm-package] file.
-///
-/// Wraps a [`PathBuf`] that indicates the location of the file in the tar archive
-/// and a tar [`Entry`] that provides access to the data of the entry in the tar archive.
-///
-/// [`Read`] is implemented to allow directly reading the contents of the tar archive entry.
-///
-/// # Notes
-///
-/// Uses two lifetimes for the `entry` field:
-///
-/// - `'a` for the reference to the [`Archive`] that the [`Entry`] belongs to
-/// - `'c` for the [`CompressionDecoder`]
-///
-/// [alpm-package]: https://alpm.archlinux.page/specifications/alpm-package.7.html
-pub struct DataEntry<'a, 'c> {
-    /// The path of the data entry in the package archive.
-    path: PathBuf,
-    /// The raw tar entry that contains the data of the entry.
-    entry: Entry<'a, CompressionDecoder<'c>>,
-}
-
-impl Debug for DataEntry<'_, '_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("DataEntry")
-            .field("path", &self.path)
-            .field("entry", &"tar::Entry<CompressionDecoder>")
-            .finish()
-    }
-}
-
-impl<'a, 'c> DataEntry<'a, 'c> {
-    /// Returns the path of the data entry in the tar archive of the package.
-    pub fn path(&self) -> &Path {
-        self.path.as_path()
-    }
-
-    /// Returns the content of the data entry.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if [`Entry::read_to_end`] fails.
-    pub fn content(&mut self) -> Result<Vec<u8>, crate::Error> {
-        let mut buffer = Vec::new();
-        self.entry
-            .read_to_end(&mut buffer)
-            .map_err(|source| crate::Error::IoRead {
-                context: "reading package archive entry content",
-                source,
-            })?;
-        Ok(buffer)
-    }
-
-    /// Checks whether the [`DataEntry`] represents a directory.
-    ///
-    /// Returns `true` if the [`DataEntry`] represents a directory, `false` otherwise.
-    ///
-    /// # Note
-    ///
-    /// This is a convenience method for comparing the [`EntryType`] of the [`Entry::header`]
-    /// contained in the [`DataEntry`] with [`EntryType::Directory`].
-    pub fn is_dir(&self) -> bool {
-        self.entry.header().entry_type() == EntryType::Directory
-    }
-
-    /// Checks whether the [`DataEntry`] represents a regular file.
-    ///
-    /// Returns `true` if the [`DataEntry`] represents a regular file, `false` otherwise.
-    ///
-    /// # Note
-    ///
-    /// This is a convenience method for comparing the [`EntryType`] of the [`Entry::header`]
-    /// contained in the [`DataEntry`] with [`EntryType::Regular`].
-    pub fn is_file(&self) -> bool {
-        self.entry.header().entry_type() == EntryType::Regular
-    }
-
-    /// Checks whether the [`DataEntry`] represents a symlink.
-    ///
-    /// Returns `true` if the [`DataEntry`] represents a symlink, `false` otherwise.
-    ///
-    /// # Note
-    ///
-    /// This is a convenience method for comparing the [`EntryType`] of the [`Entry::header`]
-    /// contained in the [`DataEntry`] with [`EntryType::Symlink`].
-    pub fn is_symlink(&self) -> bool {
-        self.entry.header().entry_type() == EntryType::Symlink
-    }
-
-    /// Returns the access permissions that apply for the [`DataEntry`].
-    ///
-    /// # Notes
-    ///
-    /// - This is a convenience method for retrieving the mode of the [`Entry::header`] contained in
-    ///   the [`DataEntry`].
-    /// - It returns the mode masked with `0o7777` to ensure only the permission bits are returned.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if retrieving the mode from the entry's header fails.
-    pub fn permissions(&self) -> Result<u32, crate::Error> {
-        Ok(self
-            .entry
-            .header()
-            .mode()
-            .map_err(|source| crate::Error::IoRead {
-                context: "retrieving permissions of package archive entry",
-                source,
-            })?
-            & 0o7777)
-    }
-
-    /// Returns a reference to the underlying tar [`Entry`].
-    ///
-    /// This is useful for accessing metadata of the entry, such as its header or path.
-    pub fn entry(&self) -> &Entry<'a, CompressionDecoder<'c>> {
-        &self.entry
-    }
-}
-
-impl Read for DataEntry<'_, '_> {
-    /// Reads data from the entry into the provided buffer.
-    ///
-    /// Delegates to [`Entry::read`].
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if reading from the entry fails.
-    fn read(&mut self, buf: &mut [u8]) -> Result<usize, std::io::Error> {
-        self.entry.read(buf)
-    }
-}
-
 /// An iterator over each [`PackageEntry`] of a package.
 ///
 /// Stops early once all package entry files have been found.
@@ -423,7 +281,7 @@ impl Read for DataEntry<'_, '_> {
 /// - `'c` for the [`CompressionDecoder`]
 pub struct PackageEntryIterator<'a, 'c> {
     /// The archive entries iterator that contains all of the archive's entries.
-    entries: Entries<'a, CompressionDecoder<'c>>,
+    entries: TarballEntries<'a, 'c>,
     /// Whether a `.BUILDINFO` file has been found.
     found_buildinfo: bool,
     /// Whether a `.MTREE` file has been found.
@@ -437,7 +295,7 @@ pub struct PackageEntryIterator<'a, 'c> {
 impl Debug for PackageEntryIterator<'_, '_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("PackageEntryIterator")
-            .field("entries", &"Entries<CompressionDecoder>")
+            .field("entries", &"TarballEntries")
             .field("found_buildinfo", &self.found_buildinfo)
             .field("found_mtree", &self.found_mtree)
             .field("found_pkginfo", &self.found_pkginfo)
@@ -448,7 +306,7 @@ impl Debug for PackageEntryIterator<'_, '_> {
 
 impl<'a, 'c> PackageEntryIterator<'a, 'c> {
     /// Creates a new [`PackageEntryIterator`] from [`Entries`].
-    pub fn new(entries: Entries<'a, CompressionDecoder<'c>>) -> Self {
+    pub fn new(entries: TarballEntries<'a, 'c>) -> Self {
         Self {
             entries,
             found_buildinfo: false,
@@ -458,8 +316,8 @@ impl<'a, 'c> PackageEntryIterator<'a, 'c> {
         }
     }
 
-    /// Return the inner [`Entries`] iterator at the current iteration position.
-    pub fn into_inner(self) -> Entries<'a, CompressionDecoder<'c>> {
+    /// Return the inner [`TarballEntries`] iterator at the current iteration position.
+    pub fn into_inner(self) -> TarballEntries<'a, 'c> {
         self.entries
     }
 
@@ -498,14 +356,8 @@ impl<'a, 'c> PackageEntryIterator<'a, 'c> {
     /// [BUILDINFO]: https://alpm.archlinux.page/specifications/BUILDINFO.5.html
     /// [PKGINFO]: https://alpm.archlinux.page/specifications/PKGINFO.5.html
     /// [alpm-install-scriptlet]: https://alpm.archlinux.page/specifications/alpm-install-scriptlet.5.html
-    fn get_package_entry(
-        mut entry: Entry<'_, CompressionDecoder>,
-    ) -> Result<Option<PackageEntry>, crate::Error> {
-        let path = entry.path().map_err(|source| crate::Error::IoRead {
-            context: "retrieving path of package archive entry",
-            source,
-        })?;
-        let path = path.to_string_lossy();
+    fn get_package_entry(mut entry: TarballEntry) -> Result<Option<PackageEntry>, crate::Error> {
+        let path = entry.path().to_string_lossy();
         match path.as_ref() {
             p if p == MetadataFileName::PackageInfo.as_ref() => {
                 let info = PackageInfo::from_reader(&mut entry)?;
@@ -553,12 +405,7 @@ impl Iterator for PackageEntryIterator<'_, '_> {
         for entry_result in &mut self.entries {
             let entry = match entry_result {
                 Ok(entry) => entry,
-                Err(e) => {
-                    return Some(Err(crate::Error::IoRead {
-                        context: "reading package archive entry",
-                        source: e,
-                    }));
-                }
+                Err(e) => return Some(Err(e.into())),
             };
 
             // Get the package entry and convert `Result<Option<PackageEntry>>` to a
@@ -771,7 +618,7 @@ impl Iterator for MetadataEntryIterator<'_, '_> {
 /// # let config = PackageCreationConfig::new(
 /// #     package_input,
 /// #     output_dir,
-/// #     Some(CompressionSettings::default()),
+/// #     CompressionSettings::default(),
 /// # )?;
 ///
 /// # // Create package file.
@@ -839,22 +686,32 @@ impl Iterator for MetadataEntryIterator<'_, '_> {
 /// and ease of use.
 ///
 /// The lifetimes `'c` is for the [`CompressionDecoder`] of the [`Archive`]
-pub struct PackageReader<'c> {
-    archive: Archive<CompressionDecoder<'c>>,
-}
-
-impl Debug for PackageReader<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("PackageReader")
-            .field("archive", &"Archive<CompressionDecoder>")
-            .finish()
-    }
-}
+#[derive(Debug)]
+pub struct PackageReader<'c>(TarballReader<'c>);
 
 impl<'c> PackageReader<'c> {
     /// Creates a new [`PackageReader`] from an [`Archive<CompressionDecoder>`].
-    pub fn new(archive: Archive<CompressionDecoder<'c>>) -> Self {
-        Self { archive }
+    pub fn new(tarball_reader: TarballReader<'c>) -> Self {
+        Self(tarball_reader)
+    }
+
+    fn is_scriplet_file(entry: &TarballEntry) -> bool {
+        let path = entry.path().to_string_lossy();
+        path.as_ref() == INSTALL_SCRIPTLET_FILE_NAME
+    }
+
+    fn is_metadata_file(entry: &TarballEntry) -> bool {
+        let metadata_file_names = [
+            MetadataFileName::PackageInfo.as_ref(),
+            MetadataFileName::BuildInfo.as_ref(),
+            MetadataFileName::Mtree.as_ref(),
+        ];
+        let path = entry.path().to_string_lossy();
+        metadata_file_names.contains(&path.as_ref())
+    }
+
+    fn is_data_file(entry: &TarballEntry) -> bool {
+        !Self::is_scriplet_file(entry) && !Self::is_metadata_file(entry)
     }
 
     /// Returns an iterator over the raw entries of the package's tar archive.
@@ -865,13 +722,8 @@ impl<'c> PackageReader<'c> {
     /// # Errors
     ///
     /// Returns an error if the [`Entries`] cannot be read from the package's tar archive.
-    pub fn raw_entries(&mut self) -> Result<Entries<'_, CompressionDecoder<'c>>, crate::Error> {
-        self.archive
-            .entries()
-            .map_err(|source| crate::Error::IoRead {
-                context: "reading package archive entries",
-                source,
-            })
+    pub fn raw_entries<'a>(&'a mut self) -> Result<TarballEntries<'a, 'c>, crate::Error> {
+        Ok(self.0.entries()?)
     }
 
     /// Returns an iterator over the known files in the [alpm-package] file.
@@ -960,32 +812,17 @@ impl<'c> PackageReader<'c> {
     /// [alpm-package]: https://alpm.archlinux.page/specifications/alpm-package.7.html
     pub fn data_entries<'a>(
         &'a mut self,
-    ) -> Result<impl Iterator<Item = Result<DataEntry<'a, 'c>, crate::Error>>, crate::Error> {
-        let non_data_file_names = [
-            MetadataFileName::PackageInfo.as_ref(),
-            MetadataFileName::BuildInfo.as_ref(),
-            MetadataFileName::Mtree.as_ref(),
-            INSTALL_SCRIPTLET_FILE_NAME,
-        ];
+    ) -> Result<impl Iterator<Item = Result<TarballEntry<'a, 'c>, crate::Error>>, crate::Error>
+    {
         let entries = self.raw_entries()?;
         Ok(entries.filter_map(move |entry| {
             let filter = (|| {
-                let entry = entry.map_err(|source| crate::Error::IoRead {
-                    context: "reading package archive entry",
-                    source,
-                })?;
-                let path = entry.path().map_err(|source| crate::Error::IoRead {
-                    context: "retrieving path of package archive entry",
-                    source,
-                })?;
+                let entry = entry?;
                 // Filter out known metadata files
-                if non_data_file_names.contains(&path.to_string_lossy().as_ref()) {
+                if !Self::is_data_file(&entry) {
                     return Ok(None);
                 }
-                Ok(Some(DataEntry {
-                    path: path.to_path_buf(),
-                    entry,
-                }))
+                Ok(Some(entry))
             })();
             filter.transpose()
         }))
@@ -1088,7 +925,7 @@ impl<'c> PackageReader<'c> {
     pub fn read_data_entry<'a, P: AsRef<Path>>(
         &'a mut self,
         path: P,
-    ) -> Result<Option<DataEntry<'a, 'c>>, crate::Error> {
+    ) -> Result<Option<TarballEntry<'a, 'c>>, crate::Error> {
         for entry in self.data_entries()? {
             let entry = entry?;
             if entry.path() == path.as_ref() {
@@ -1113,16 +950,7 @@ impl TryFrom<Package> for PackageReader<'_> {
     /// - or the compression decoder cannot be created from the file and its extension.
     fn try_from(package: Package) -> Result<Self, Self::Error> {
         let path = package.to_path_buf();
-        let file = File::open(&path).map_err(|source| crate::Error::IoPath {
-            path: path.clone(),
-            context: "opening package file",
-            source,
-        })?;
-        let extension = CompressionAlgorithmFileExtension::try_from(path.as_path())?;
-        let settings = DecompressionSettings::try_from(extension)?;
-        let decoder = CompressionDecoder::new(file, settings)?;
-        let archive = Archive::new(decoder);
-        Ok(Self::new(archive))
+        Ok(Self::new(TarballReader::try_from(path)?))
     }
 }
 
@@ -1345,43 +1173,14 @@ impl TryFrom<&PackageCreationConfig> for Package {
             source,
         })?;
 
-        // If compression is requested, create a dedicated compression encoder streaming to a file
-        // and a tar builder that streams to the compression encoder.
-        // Append all files and directories to it, then finish the tar builder and the compression
-        // encoder streams.
-        if let Some(compression) = value.compression() {
-            let encoder = CompressionEncoder::new(file, compression)?;
-            let mut builder = Builder::new(encoder);
-            // We do not want to follow symlinks but instead archive symlinks!
-            builder.follow_symlinks(false);
-            let builder = append_relative_files(
-                builder,
-                value.package_input().mtree()?,
-                &value.package_input().input_paths()?,
-            )?;
-            let encoder = builder
-                .into_inner()
-                .map_err(|source| Error::FinishArchive {
-                    package_path: output_path.clone(),
-                    source,
-                })?;
-            encoder.finish()?;
-        // If no compression is requested, only create a tar builder.
-        // Append all files and directories to it, then finish the tar builder stream.
-        } else {
-            let mut builder = Builder::new(file);
-            // We do not want to follow symlinks but instead archive symlinks!
-            builder.follow_symlinks(false);
-            let mut builder = append_relative_files(
-                builder,
-                value.package_input().mtree()?,
-                &value.package_input().input_paths()?,
-            )?;
-            builder.finish().map_err(|source| Error::FinishArchive {
-                package_path: output_path.clone(),
-                source,
-            })?;
-        }
+        let mut builder = TarballBuilder::new(file, value.compression())?;
+        builder.inner_mut().follow_symlinks(false);
+        append_relative_files(
+            builder.inner_mut(),
+            value.package_input().mtree()?,
+            &value.package_input().input_paths()?,
+        )?;
+        builder.finish()?;
 
         Self::new(filename, parent_dir)
     }
@@ -1556,12 +1355,12 @@ mod tests {
 
         assert_eq!(
             format!("{entry_iter:?}"),
-            "PackageEntryIterator { entries: \"Entries<CompressionDecoder>\", found_buildinfo: false, \
+            "PackageEntryIterator { entries: \"TarballEntries\", found_buildinfo: false, \
                 found_mtree: false, found_pkginfo: false, checked_install_scriptlet: false }"
         );
         assert_eq!(
             format!("{metadata_iter:?}"),
-            "MetadataEntryIterator { entries: PackageEntryIterator { entries: \"Entries<CompressionDecoder>\", \
+            "MetadataEntryIterator { entries: PackageEntryIterator { entries: \"TarballEntries\", \
                 found_buildinfo: false, found_mtree: false, found_pkginfo: false, checked_install_scriptlet: false }, \
                 found_buildinfo: false, found_mtree: false, found_pkginfo: false }"
         );
