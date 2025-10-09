@@ -242,7 +242,15 @@ impl SourceInfoContent {
 
         // Afterwards one or more `pkgname` declarations are to follow.
         let (packages, _eof): (Vec<RawPackage>, _) =
-            repeat_till(1.., RawPackage::parser, eof).parse_next(input)?;
+            repeat_till(0.., RawPackage::parser, eof).parse_next(input)?;
+
+        // Fail with a special error if there's no package section.
+        if packages.is_empty() {
+            fail.context(StrContext::Expected(StrContextValue::Description(
+                "a pkgname section",
+            )))
+            .parse_next(input)?;
+        }
 
         Ok(SourceInfoContent {
             preceding_lines,
