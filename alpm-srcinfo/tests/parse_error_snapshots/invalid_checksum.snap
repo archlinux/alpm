@@ -1,0 +1,11 @@
+---
+source: alpm-srcinfo/tests/parse_errors.rs
+description: "pkgbase = test\n\tpkgver = 1.0.0\n\tpkgrel = 1\n\tarch = x86_64\n\t# Sha256 checksum is way too long\n\tsha256sums = 123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890\n\npkgname = test\n"
+expression: "format!(\"{error}\")"
+---
+File parsing error:
+parse error at line 6, column 15
+  |
+6 | 	sha256sums = 123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+  |               ^
+expected end of checksum. Checksum is too long.
