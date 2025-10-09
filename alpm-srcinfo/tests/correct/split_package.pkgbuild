@@ -1,0 +1,16 @@
+#!/bin/bash
+# Disable unused variable warnings:
+# shellcheck disable=2034
+pkgbase=my-base
+pkgname=(one two)
+pkgver=0.1.0
+pkgrel=1
+arch=(any)
+
+package_one() {
+    echo "Building something"
+}
+
+package_two() {
+    echo "Building something"
+}

@@ -1,0 +1,137 @@
+---
+source: alpm-srcinfo/tests/correct.rs
+description: split_package SourceInfo representation.
+expression: source_info_json
+---
+{
+  "base": {
+    "name": "my-base",
+    "description": null,
+    "url": null,
+    "changelog": null,
+    "licenses": [],
+    "install": null,
+    "groups": [],
+    "options": [],
+    "backups": [],
+    "version": {
+      "pkgver": "0.1.0",
+      "pkgrel": {
+        "major": 1,
+        "minor": null
+      },
+      "epoch": null
+    },
+    "pgp_fingerprints": [],
+    "architectures": [
+      "any"
+    ],
+    "architecture_properties": {},
+    "dependencies": [],
+    "optional_dependencies": [],
+    "provides": [],
+    "conflicts": [],
+    "replaces": [],
+    "check_dependencies": [],
+    "make_dependencies": [],
+    "sources": [],
+    "no_extracts": [],
+    "b2_checksums": [],
+    "md5_checksums": [],
+    "sha1_checksums": [],
+    "sha224_checksums": [],
+    "sha256_checksums": [],
+    "sha384_checksums": [],
+    "sha512_checksums": []
+  },
+  "packages": [
+    {
+      "name": "one",
+      "description": {
+        "override": "No"
+      },
+      "url": {
+        "override": "No"
+      },
+      "changelog": {
+        "override": "No"
+      },
+      "licenses": {
+        "override": "No"
+      },
+      "install": {
+        "override": "No"
+      },
+      "groups": {
+        "override": "No"
+      },
+      "options": {
+        "override": "No"
+      },
+      "backups": {
+        "override": "No"
+      },
+      "architectures": null,
+      "architecture_properties": {},
+      "dependencies": {
+        "override": "No"
+      },
+      "optional_dependencies": {
+        "override": "No"
+      },
+      "provides": {
+        "override": "No"
+      },
+      "conflicts": {
+        "override": "No"
+      },
+      "replaces": {
+        "override": "No"
+      }
+    },
+    {
+      "name": "two",
+      "description": {
+        "override": "No"
+      },
+      "url": {
+        "override": "No"
+      },
+      "changelog": {
+        "override": "No"
+      },
+      "licenses": {
+        "override": "No"
+      },
+      "install": {
+        "override": "No"
+      },
+      "groups": {
+        "override": "No"
+      },
+      "options": {
+        "override": "No"
+      },
+      "backups": {
+        "override": "No"
+      },
+      "architectures": null,
+      "architecture_properties": {},
+      "dependencies": {
+        "override": "No"
+      },
+      "optional_dependencies": {
+        "override": "No"
+      },
+      "provides": {
+        "override": "No"
+      },
+      "conflicts": {
+        "override": "No"
+      },
+      "replaces": {
+        "override": "No"
+      }
+    }
+  ]
+}
