@@ -22,6 +22,7 @@ trap cleanup EXIT
 
 for file in "$@"; do
     [[ "$file" != *.pkgbuild ]] && continue
+    echo "Generating srcinfo file for $file"
     output="${file%.pkgbuild}.srcinfo"
     cp "$file" "$tmpdir/PKGBUILD"
 
