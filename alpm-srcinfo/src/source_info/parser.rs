@@ -71,8 +71,9 @@ fn till_line_end<'s>(input: &mut &'s str) -> ModalResult<&'s str> {
     // Get the content til the end of line.
     let out = till_line_ending.parse_next(input)?;
 
-    // Consume the newline.
-    line_ending.parse_next(input)?;
+    // Consume the newline. This is `opt` in case we hit `eof`, which is also handled by winnow's
+    // `till_line_ending`
+    opt(line_ending).parse_next(input)?;
 
     Ok(out)
 }
