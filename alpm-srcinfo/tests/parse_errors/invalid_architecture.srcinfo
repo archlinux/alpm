@@ -3,4 +3,4 @@ pkgbase = test
 	pkgrel = 1
 	arch = my_special_arch
 
-# Missing pkgname section.
+pkgname = test

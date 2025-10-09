@@ -10,7 +10,7 @@ use strum::{Display, EnumString, VariantArray, VariantNames};
 use winnow::{
     ModalResult,
     Parser,
-    combinator::{alt, eof, repeat, terminated},
+    combinator::{alt, cut_err, eof, repeat, terminated},
     error::{StrContext, StrContextValue},
     token::one_of,
 };
@@ -282,19 +282,22 @@ impl<D: Digest> Checksum<D> {
             // shift is infallible because hex_digit cannot return >0b00001111
             (first << 4) + second);
 
+        // Consume exactly the number of hex pairs that our Digest type expects
+        let digest = cut_err(repeat(<D as Digest>::output_size(), hex_pair))
+            .context(StrContext::Label("hash digest"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "a hex hash digest with the appropriate length for the given algorithm.",
+            )))
+            .parse_next(input)?;
+
+        cut_err(eof)
+            .context(StrContext::Expected(StrContextValue::Description(
+                "end of checksum. Checksum is too long.",
+            )))
+            .parse_next(input)?;
+
         Ok(Self {
-            digest: terminated(
-                repeat(
-                    // consume exactly the number of hex pairs that our Digest type expects
-                    <D as Digest>::output_size(),
-                    hex_pair,
-                )
-                .context(StrContext::Label("hash digest")),
-                eof.context(StrContext::Expected(StrContextValue::Description(
-                    "end of checksum",
-                ))),
-            )
-            .parse_next(input)?,
+            digest,
             _marker: PhantomData,
         })
     }
@@ -407,8 +410,8 @@ impl<D: Digest + Clone> SkippableChecksum<D> {
                 "SKIP".value(Self::Skip),
                 Checksum::parser.map(|digest| Self::Checksum { digest }),
             )),
-            eof.context(StrContext::Expected(StrContextValue::Description(
-                "end of checksum",
+            cut_err(eof).context(StrContext::Expected(StrContextValue::Description(
+                "end of checksum.",
             ))),
         )
         .parse_next(input)
