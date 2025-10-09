@@ -32,7 +32,7 @@ use strum::{EnumString, VariantNames};
 use winnow::{
     ModalResult,
     Parser,
-    ascii::{alpha1, alphanumeric1, line_ending, newline, space0, till_line_ending},
+    ascii::{alpha1, alphanumeric1, line_ending, multispace0, newline, space0, till_line_ending},
     combinator::{
         alt,
         cut_err,
@@ -240,9 +240,17 @@ impl SourceInfoContent {
         // base metadata and the default values for all packages to come.
         let package_base = RawPackageBase::parser.parse_next(input)?;
 
+        // Trim newlines or spaces between the pkgbase section and the following pkgname section.
+        let _ = multispace0.parse_next(input)?;
+
         // Afterwards one or more `pkgname` declarations are to follow.
+        //
+        // `RawPackage::parser` expects all newlines and leading whitespaces to be trimmed.
+        // This is explicitly done once at the start (see above) and implicitly via `terminated` in
+        // between the repeats.
+        multispace0.parse_next(input)?;
         let (packages, _eof): (Vec<RawPackage>, _) =
-            repeat_till(0.., RawPackage::parser, eof).parse_next(input)?;
+            repeat_till(0.., terminated(RawPackage::parser, multispace0), eof).parse_next(input)?;
 
         // Fail with a special error if there's no package section.
         if packages.is_empty() {
@@ -318,6 +326,11 @@ pub struct RawPackage {
 
 impl RawPackage {
     /// Recognizes an entire single `pkgname` section in SRCINFO data.
+    ///
+    /// # Note
+    ///
+    /// This parser expects the cursor to directly start at the `pkgname` keyword.
+    /// This means that the caller must trim any leading newlines or whitespaces.
     fn parser(input: &mut &str) -> ModalResult<RawPackage> {
         cut_err("pkgname")
             .context(StrContext::Label("pkgname section header"))
@@ -337,7 +350,12 @@ impl RawPackage {
             )))
             .parse_next(input)?;
 
+        // Trim any leading whitespaces before the first pass of the `PackageProperty::parser`.
+        space0.parse_next(input)?;
+
         // Go through the lines after the initial `pkgname` statement.
+        //
+        // # Usage of Backtracking
         //
         // We explicitly use `repeat` to allow backtracking from the inside.
         // The reason for this is that SRCINFO is no structured data format per se and we have no
@@ -347,8 +365,14 @@ impl RawPackage {
         // The only way to detect this is to look for the `pkgname` keyword while parsing lines in
         // `package_line`. If that keyword is detected, we trigger a backtracking error that
         // results in this `repeat` call to wrap up and return successfully.
+        //
+        // # Whitespace handling
+        //
+        // `PackageProperty::parser` expects leading whitespaces of a line to be trimmed.
+        // This is explicitly done once at the start (see above) and implicitly done via
+        // `terminated` in between the repeats.
         let properties: Vec<PackageProperty> =
-            repeat(0.., PackageProperty::parser).parse_next(input)?;
+            repeat(0.., terminated(PackageProperty::parser, space0)).parse_next(input)?;
 
         Ok(RawPackage { name, properties })
     }
@@ -426,7 +450,7 @@ impl PackageBaseProperty {
     /// properties.
     fn parser(input: &mut &str) -> ModalResult<PackageBaseProperty> {
         // Trim any leading spaces, which are allowed per spec.
-        let _ = space0.parse_next(input)?;
+        let _ = multispace0.parse_next(input)?;
 
         // Look for the `pkgbase` exit condition, which is the start of a `pkgname` section or the
         // EOL if the pkgname section is missing.
@@ -589,9 +613,6 @@ impl PackageProperty {
     /// This is a wrapper to separate the logic between comments/empty lines and actual package
     /// properties.
     fn parser(input: &mut &str) -> ModalResult<PackageProperty> {
-        // Trim any leading spaces, which are allowed per spec.
-        let _ = space0.parse_next(input)?;
-
         // Look for one of the `pkgname` exit conditions, which is the start of a new `pkgname`
         // section. Read the docs above where this function is called for more info.
         let pkgname = peek(opt("pkgname")).parse_next(input)?;
@@ -613,9 +634,8 @@ impl PackageProperty {
             alt((
                 // First of handle any empty lines or comments, which might also occur at the
                 // end of the file.
-                preceded(("#", take_until(0.., "\n")), alt((line_ending, eof)))
-                    .map(|s: &str| PackageProperty::Comment(s.to_string())),
-                preceded(space0, alt((line_ending, eof))).map(|_| PackageProperty::EmptyLine),
+                preceded("#", till_line_end).map(|s: &str| PackageProperty::Comment(s.to_string())),
+                line_ending.map(|_| PackageProperty::EmptyLine),
                 // In case we got text, start parsing properties
                 Self::property_parser,
             )),
