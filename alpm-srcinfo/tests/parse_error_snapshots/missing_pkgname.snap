@@ -1,6 +1,6 @@
 ---
 source: alpm-srcinfo/tests/parse_errors.rs
-description: "pkgbase = test\n    pkgver = 1.0.0\n\tpkgrel = 1\n\n# Miss the pkgname section.\n\n"
+description: "pkgbase = test\n\tpkgver = 1.0.0\n\tpkgrel = 1\n\n# Missing pkgname section.\n\n"
 expression: "format!(\"{error}\")"
 ---
 File parsing error:
@@ -8,4 +8,4 @@ parse error at line 6, column 2
   |
 6 | 
   |  ^
-invalid pkgname section header
+expected a pkgname section
