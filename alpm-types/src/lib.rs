@@ -56,6 +56,7 @@ pub use package::{
     contents::{INSTALL_SCRIPTLET_FILE_NAME, MetadataFileName},
     error::Error as PackageError,
     file_name::PackageFileName,
+    installation::PackageInstallReason,
     source::{PKGBUILD_FILE_NAME, SRCINFO_FILE_NAME},
 };
 
