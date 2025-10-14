@@ -46,6 +46,28 @@ pub enum Error {
     #[error("Error while trying to convert an integer:\n{0}")]
     IntegerConversion(#[source] TryFromIntError),
 
+    /// An I/O error occurred while reading.
+    #[error("I/O read error while {context}:\n{source}")]
+    IoRead {
+        /// The context in which the error occurred.
+        ///
+        /// This is meant to complete the sentence "I/O read error while ".
+        context: &'static str,
+        /// The source error.
+        source: std::io::Error,
+    },
+
+    /// An I/O error occurred while writing.
+    #[error("I/O write error while {context}:\n{source}")]
+    IoWrite {
+        /// The context in which the error occurred.
+        ///
+        /// This is meant to complete the sentence "I/O write error while ".
+        context: &'static str,
+        /// The source error.
+        source: std::io::Error,
+    },
+
     /// A compression level is not valid.
     #[error("Invalid compression level {level} (must be in the range {min} - {max})")]
     InvalidCompressionLevel {

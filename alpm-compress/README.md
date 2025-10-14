@@ -54,7 +54,7 @@ let _file = encoder.finish()?; // retrieve the inner File when done
 
 Compression settings default to zstd compression, but you can select other algorithms and levels.
 Since compression is optional via `None` variant, this library provides unified API to read and write both 
-compressed and uncompressed files.
+compressed and uncompressed files, including tar archives.
 
 ```rust
 use alpm_compress::compression::{
@@ -113,6 +113,87 @@ let mut decoder = CompressionDecoder::new(file, DecompressionSettings::Zstd)?;
 let mut buf = Vec::new();
 decoder.read_to_end(&mut buf)?;
 assert_eq!(buf, b"alpm-compress makes compression easy");
+# Ok(())
+# }
+```
+
+### Building a tarball
+
+```rust
+use alpm_compress::tarball::TarballBuilder;
+use alpm_compress::compression::{CompressionSettings, ZstdCompressionLevel, ZstdThreads};
+use tempfile::NamedTempFile;
+use std::io::Write;
+
+# fn main() -> testresult::TestResult {
+let mut tarball = NamedTempFile::with_suffix(".tar.zst")?;
+    
+let settings = CompressionSettings::Zstd {
+    compression_level: ZstdCompressionLevel::default(),
+    threads: ZstdThreads::default(),
+};
+    
+let mut builder = TarballBuilder::new(tarball.reopen()?, &settings)?;
+    
+// Create a temporary file to add to the tarball.
+let inner_file = NamedTempFile::new()?;
+{
+    let mut f = inner_file.reopen()?;
+    f.write_all(b"alpm4ever")?;
+    f.flush()?;
+}
+
+// Append the file to the tarball with a specific name.
+builder
+    .inner_mut()
+    .append_path_with_name(inner_file.path(), "some_file.txt")?;
+    
+builder.finish()?;
+# Ok(())
+# }
+```
+
+### Reading a tarball
+
+```rust
+use alpm_compress::tarball::TarballReader;
+use tempfile::NamedTempFile;
+# use std::io::Write;
+# use alpm_compress::tarball::TarballBuilder;
+# use alpm_compress::compression::{CompressionSettings, ZstdCompressionLevel, ZstdThreads};
+
+# fn main() -> testresult::TestResult {
+# let inner_file = NamedTempFile::new()?;
+# {
+#     let mut f = inner_file.reopen()?;
+#     f.write_all(b"alpm4ever")?;
+#     f.flush()?;
+# }
+let archive = NamedTempFile::with_suffix(".tar.zst")?;
+    
+// [..] Create a zstd-compressed tarball containing a file named "some_file.txt"
+# let settings = CompressionSettings::Zstd {
+#     compression_level: ZstdCompressionLevel::default(),
+#     threads: ZstdThreads::default(),
+# };
+# {
+#     let file = archive.reopen()?;
+#     let mut builder = TarballBuilder::new(file, &settings)?;
+#     builder
+#         .inner_mut()
+#         .append_path_with_name(inner_file.path(), "some_file.txt")?;
+#     builder.finish()?;
+# }
+
+// Read the compressed archive
+let mut reader = TarballReader::try_from(archive.path())?;
+let entry = reader.read_entry("some_file.txt")?;
+
+assert!(entry.is_some());
+    
+let content = entry.unwrap().content()?;
+
+assert_eq!(content, b"alpm4ever");
 # Ok(())
 # }
 ```
