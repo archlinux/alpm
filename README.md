@@ -109,12 +109,14 @@ Contributions to this project, unless noted otherwise, are automatically license
 [Sovereign Tech Agency]: https://www.sovereign.tech/tech/arch-linux-package-management
 [alpm-buildinfo]: alpm-buildinfo/
 [alpm-common]: alpm-common/
+[alpm-compress]: alpm-compress/
 [alpm-mtree]: alpm-mtree/
 [alpm-package]: alpm-package/
 [alpm-parsers]: alpm-parsers/
 [alpm-pkginfo]: alpm-pkginfo/
 [alpm-srcinfo]: alpm-srcinfo/
 [alpm-types]: alpm-types/
+[python-alpm]: python-alpm/
 [archlinux-keyring]: https://gitlab.archlinux.org/archlinux/archlinux-keyring
 [components]: #components
 [contribution guidelines]: CONTRIBUTING.md
