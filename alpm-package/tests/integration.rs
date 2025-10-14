@@ -887,9 +887,9 @@ fn read_package_contents(
         assert_eq!(0o644, entry.permissions()?);
 
         // Get the raw entry and assert various properties.
-        assert_eq!(26, entry.entry().header().size()?);
-        assert_eq!(0o100644, entry.entry().header().mode()?);
-        assert_eq!(EntryType::Regular, entry.entry().header().entry_type());
+        assert_eq!(26, entry.raw().header().size()?);
+        assert_eq!(0o100644, entry.raw().header().mode()?);
+        assert_eq!(EntryType::Regular, entry.raw().header().entry_type());
     } else {
         let mut reader: PackageReader = package.clone().try_into()?;
         assert_eq!(0, reader.data_entries()?.count());
