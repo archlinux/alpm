@@ -35,9 +35,9 @@ pub enum Error {
     #[error(transparent)]
     AlpmTypesPackage(#[from] alpm_types::PackageError),
 
-    /// A [`alpm_compress::Error`].
-    #[error("Compression error:\n{0}")]
-    Compression(#[from] alpm_compress::Error),
+    /// An [`alpm_compress::Error`].
+    #[error(transparent)]
+    AlpmCompress(#[from] alpm_compress::Error),
 
     /// An error with an [alpm-install-scriptlet].
     ///
