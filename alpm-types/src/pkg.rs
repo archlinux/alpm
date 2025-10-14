@@ -139,7 +139,7 @@ pub type PackageBaseName = Name;
 /// Extra data associated with a package
 ///
 /// This type wraps a key-value pair of data as String, which is separated by an equal sign (`=`).
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct ExtraData {
     key: String,
     value: String,

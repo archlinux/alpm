@@ -319,7 +319,7 @@ impl Display for OpenPGPv4Fingerprint {
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Packager {
     name: String,
     email: EmailAddress,
