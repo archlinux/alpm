@@ -95,7 +95,7 @@ let package_input: PackageInput = input_dir.try_into()?;
 let config = PackageCreationConfig::new(
     package_input,
     output_dir,
-    Some(CompressionSettings::default()),
+    CompressionSettings::default(),
 )?;
 // Create package file.
 let package = Package::try_from(&config)?;

@@ -99,7 +99,7 @@ impl AsRef<Path> for OutputDir {
 pub struct PackageCreationConfig {
     package_input: PackageInput,
     output_dir: OutputDir,
-    compression: Option<CompressionSettings>,
+    compression: CompressionSettings,
 }
 
 impl PackageCreationConfig {
@@ -115,7 +115,7 @@ impl PackageCreationConfig {
     pub fn new(
         package_input: PackageInput,
         output_dir: OutputDir,
-        compression: Option<CompressionSettings>,
+        compression: CompressionSettings,
     ) -> Result<Self, crate::Error> {
         if package_input.input_dir() == output_dir.as_path() {
             return Err(crate::Error::InputDirIsOutputDir {
@@ -153,8 +153,8 @@ impl PackageCreationConfig {
     }
 
     /// Returns a reference to the [`CompressionSettings`].
-    pub fn compression(&self) -> Option<&CompressionSettings> {
-        self.compression.as_ref()
+    pub fn compression(&self) -> &CompressionSettings {
+        &self.compression
     }
 }
 
@@ -174,7 +174,7 @@ impl From<&PackageCreationConfig> for PackageFileName {
                 alpm_pkginfo::PackageInfo::V1(package_info) => package_info.arch(),
                 alpm_pkginfo::PackageInfo::V2(package_info) => package_info.arch(),
             },
-            value.compression.as_ref().and_then(Option::from),
+            (&value.compression).into(),
         )
     }
 }

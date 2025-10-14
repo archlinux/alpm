@@ -287,7 +287,7 @@ fn package_digest(
     path: impl AsRef<Path>,
     input: &str,
     output: &str,
-    compression: Option<CompressionSettings>,
+    compression: CompressionSettings,
     input_dir_config: &InputDirConfig,
 ) -> TestResult<(PathBuf, Blake2b512Checksum)> {
     let path = path.as_ref();
@@ -324,67 +324,67 @@ fn package_digest(
 /// [alpm-package]: https://alpm.archlinux.page/specifications/alpm-package.7.html
 #[rstest]
 #[case::bzip2_compression_all_files(
-    Some(CompressionSettings::Bzip2 { compression_level: Bzip2CompressionLevel::default() }),
+    CompressionSettings::Bzip2 { compression_level: Bzip2CompressionLevel::default() },
     InputDirConfig { build_info: true, data_files: true, mtree: true, package_info: true, scriptlet: true },
 )]
 #[case::bzip2_compression_no_scriptlet(
-    Some(CompressionSettings::Bzip2 { compression_level: Bzip2CompressionLevel::default() }),
+    CompressionSettings::Bzip2 { compression_level: Bzip2CompressionLevel::default() },
     InputDirConfig { build_info: true, data_files: true, mtree: true, package_info: true, scriptlet: false },
 )]
 #[case::bzip2_compression_no_data_files(
-    Some(CompressionSettings::Bzip2 { compression_level: Bzip2CompressionLevel::default() }),
+    CompressionSettings::Bzip2 { compression_level: Bzip2CompressionLevel::default() },
     InputDirConfig { build_info: true, data_files: false, mtree: true, package_info: true, scriptlet: false },
 )]
 #[case::gzip_compression_all_files(
-    Some(CompressionSettings::Gzip { compression_level: GzipCompressionLevel::default() }),
+    CompressionSettings::Gzip { compression_level: GzipCompressionLevel::default() },
     InputDirConfig { build_info: true, data_files: true, mtree: true, package_info: true, scriptlet: true },
 )]
 #[case::gzip_compression_no_scriptlet(
-    Some(CompressionSettings::Gzip { compression_level: GzipCompressionLevel::default() }),
+    CompressionSettings::Gzip { compression_level: GzipCompressionLevel::default() },
     InputDirConfig { build_info: true, data_files: true, mtree: true, package_info: true, scriptlet: false },
 )]
 #[case::gzip_compression_no_data_files(
-    Some(CompressionSettings::Gzip { compression_level: GzipCompressionLevel::default() }),
+    CompressionSettings::Gzip { compression_level: GzipCompressionLevel::default() },
     InputDirConfig { build_info: true, data_files: false, mtree: true, package_info: true, scriptlet: false },
 )]
 #[case::xz_compression_all_files(
-    Some(CompressionSettings::Xz { compression_level: XzCompressionLevel::default() }),
+    CompressionSettings::Xz { compression_level: XzCompressionLevel::default() },
     InputDirConfig { build_info: true, data_files: true, mtree: true, package_info: true, scriptlet: true },
 )]
 #[case::xz_compression_no_scriptlet(
-    Some(CompressionSettings::Xz { compression_level: XzCompressionLevel::default() }),
+    CompressionSettings::Xz { compression_level: XzCompressionLevel::default() },
     InputDirConfig { build_info: true, data_files: true, mtree: true, package_info: true, scriptlet: false },
 )]
 #[case::xz_compression_no_data_files(
-    Some(CompressionSettings::Xz { compression_level: XzCompressionLevel::default() }),
+    CompressionSettings::Xz { compression_level: XzCompressionLevel::default() },
     InputDirConfig { build_info: true, data_files: false, mtree: true, package_info: true, scriptlet: false },
 )]
 #[case::zstd_compression_all_files(
-    Some(CompressionSettings::Zstd { compression_level: ZstdCompressionLevel::default(), threads: ZstdThreads::all() }),
+    CompressionSettings::Zstd { compression_level: ZstdCompressionLevel::default(), threads: ZstdThreads::all() },
     InputDirConfig { build_info: true, data_files: true, mtree: true, package_info: true, scriptlet: true },
 )]
 #[case::zstd_compression_no_scriptlet(
-    Some(CompressionSettings::Zstd { compression_level: ZstdCompressionLevel::default(), threads: ZstdThreads::all() }),
+    CompressionSettings::Zstd { compression_level: ZstdCompressionLevel::default(), threads: ZstdThreads::all() },
     InputDirConfig { build_info: true, data_files: true, mtree: true, package_info: true, scriptlet: false },
 )]
 #[case::zstd_compression_no_data_files(
-    Some(CompressionSettings::Zstd { compression_level: ZstdCompressionLevel::default(), threads: ZstdThreads::all() }),
+    CompressionSettings::Zstd { compression_level: ZstdCompressionLevel::default(), threads: ZstdThreads::all() },
     InputDirConfig { build_info: true, data_files: false, mtree: true, package_info: true, scriptlet: false },
 )]
 #[case::no_compression_all_files(
-    None,
+    CompressionSettings::None,
     InputDirConfig { build_info: true, data_files: true, mtree: true, package_info: true, scriptlet: true },
 )]
 #[case::no_compression_no_scriptlet(
-    None,
+    CompressionSettings::None,
     InputDirConfig { build_info: true, data_files: true, mtree: true, package_info: true, scriptlet: false },
 )]
 #[case::no_compression_no_data_files(
-    None,
+    CompressionSettings::None,
     InputDirConfig { build_info: true, data_files: false, mtree: true, package_info: true, scriptlet: false },
 )]
 fn create_package_from_input(
-    #[case] compression: Option<CompressionSettings>,
+    #[case] compression: CompressionSettings,
     #[case] input_dir_config: InputDirConfig,
 ) -> TestResult {
     init_logger();
@@ -531,7 +531,7 @@ fn package_creation_config_new_fails() -> TestResult {
 
     // Create an input and output at the same location.
     let output_dir = OutputDir::new(input_dir.to_path_buf())?;
-    match PackageCreationConfig::new(package_input.clone(), output_dir, None) {
+    match PackageCreationConfig::new(package_input.clone(), output_dir, CompressionSettings::None) {
         Err(error) => assert!(matches!(
             error,
             alpm_package::Error::InputDirIsOutputDir { path: _ }
@@ -541,7 +541,7 @@ fn package_creation_config_new_fails() -> TestResult {
 
     // Set the output to a sudirectory of the input directory.
     let output_dir = OutputDir::new(input_dir.join("output-in-input"))?;
-    match PackageCreationConfig::new(package_input.clone(), output_dir, None) {
+    match PackageCreationConfig::new(package_input.clone(), output_dir, CompressionSettings::None) {
         Err(error) => assert!(matches!(
             error,
             alpm_package::Error::OutputDirInInputDir {
@@ -554,7 +554,7 @@ fn package_creation_config_new_fails() -> TestResult {
 
     // Set the input to a subdirectory of the output directory.
     let output_dir = OutputDir::new(temp_dir.path().to_path_buf())?;
-    match PackageCreationConfig::new(package_input, output_dir, None) {
+    match PackageCreationConfig::new(package_input, output_dir, CompressionSettings::None) {
         Err(error) => assert!(matches!(
             error,
             alpm_package::Error::InputDirInOutputDir {
@@ -573,7 +573,7 @@ fn package_creation_config_new_fails() -> TestResult {
 fn create_package(
     temp_dir: &TempDir,
     config: &InputDirConfig,
-    compression: Option<CompressionSettings>,
+    compression: CompressionSettings,
 ) -> TestResult<Package> {
     let input_dir_path = temp_dir.path().join("input");
     let output_dir_path = temp_dir.path().join("output");
@@ -779,8 +779,7 @@ fn read_package_contents(
 
     // Create the package.
     let temp_dir = TempDir::new()?;
-    let package = create_package(&temp_dir, &config_flags, Some(compression))?;
-
+    let package = create_package(&temp_dir, &config_flags, compression)?;
     // Ensure that individually reading all metadata files works as expected.
     let pkginfo = package.read_pkginfo()?;
     let pkgname = match &pkginfo {
@@ -918,9 +917,9 @@ fn package_metadata_iterator() -> TestResult {
             package_info: true,
             scriptlet: true,
         },
-        Some(CompressionSettings::Xz {
+        CompressionSettings::Xz {
             compression_level: Default::default(),
-        }),
+        },
     )?;
 
     let mut reader: PackageReader = package.clone().try_into()?;
@@ -984,9 +983,9 @@ fn package_entry_iterator() -> TestResult {
             package_info: true,
             scriptlet: true,
         },
-        Some(CompressionSettings::Xz {
+        CompressionSettings::Xz {
             compression_level: Default::default(),
-        }),
+        },
     )?;
 
     let mut reader: PackageReader = package.clone().try_into()?;
@@ -1039,9 +1038,9 @@ fn package_entry_iterator_without_scriptlet() -> TestResult {
             package_info: true,
             scriptlet: false, // No install scriptlet
         },
-        Some(CompressionSettings::Xz {
+        CompressionSettings::Xz {
             compression_level: Default::default(),
-        }),
+        },
     )?;
 
     let mut reader: PackageReader = package.clone().try_into()?;

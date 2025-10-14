@@ -192,11 +192,8 @@ fn create_bin_package(path: &Path, config: &SotestConfig) -> TestResult<Package>
     create_mtree_v2_from_input_dir(&input_dir)?;
 
     let package_input: PackageInput = input_dir.try_into()?;
-    let config = PackageCreationConfig::new(
-        package_input,
-        output_dir,
-        Some(CompressionSettings::default()),
-    )?;
+    let config =
+        PackageCreationConfig::new(package_input, output_dir, CompressionSettings::default())?;
 
     Ok(Package::try_from(&config)?)
 }
@@ -226,11 +223,8 @@ fn create_lib_package(path: &Path, config: &SotestConfig) -> TestResult<Package>
     create_mtree_v2_from_input_dir(&input_dir)?;
 
     let package_input: PackageInput = input_dir.try_into()?;
-    let config = PackageCreationConfig::new(
-        package_input,
-        output_dir,
-        Some(CompressionSettings::default()),
-    )?;
+    let config =
+        PackageCreationConfig::new(package_input, output_dir, CompressionSettings::default())?;
 
     Ok(Package::try_from(&config)?)
 }

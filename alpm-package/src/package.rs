@@ -13,7 +13,7 @@ use std::{
 use alpm_buildinfo::BuildInfo;
 use alpm_common::{InputPaths, MetadataFile};
 use alpm_compress::{
-    compression::CompressionEncoder,
+    compression::{CompressionEncoder, CompressionSettings},
     decompression::{CompressionDecoder, DecompressionSettings},
 };
 use alpm_mtree::Mtree;
@@ -771,7 +771,7 @@ impl Iterator for MetadataEntryIterator<'_, '_> {
 /// # let config = PackageCreationConfig::new(
 /// #     package_input,
 /// #     output_dir,
-/// #     Some(CompressionSettings::default()),
+/// #     CompressionSettings::default(),
 /// # )?;
 ///
 /// # // Create package file.
@@ -1349,8 +1349,8 @@ impl TryFrom<&PackageCreationConfig> for Package {
         // and a tar builder that streams to the compression encoder.
         // Append all files and directories to it, then finish the tar builder and the compression
         // encoder streams.
-        if let Some(compression) = value.compression() {
-            let encoder = CompressionEncoder::new(file, compression)?;
+        if !matches!(value.compression(), CompressionSettings::None) {
+            let encoder = CompressionEncoder::new(file, value.compression())?;
             let mut builder = Builder::new(encoder);
             // We do not want to follow symlinks but instead archive symlinks!
             builder.follow_symlinks(false);
