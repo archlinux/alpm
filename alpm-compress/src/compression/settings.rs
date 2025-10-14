@@ -71,6 +71,9 @@ pub enum CompressionSettings {
         /// The amount of threads to use when compressing.
         threads: ZstdThreads,
     },
+
+    /// No compression.
+    None,
 }
 
 impl Default for CompressionSettings {
@@ -87,14 +90,16 @@ impl Default for CompressionSettings {
     }
 }
 
-impl From<&CompressionSettings> for CompressionAlgorithmFileExtension {
-    /// Creates a [`CompressionAlgorithmFileExtension`] from a [`CompressionSettings`].
+impl From<&CompressionSettings> for Option<CompressionAlgorithmFileExtension> {
+    /// Creates an [`Option<CompressionAlgorithmFileExtension>`] from a [`CompressionSettings`].
+    /// Returns [`None`] for [`CompressionSettings::None`].
     fn from(value: &CompressionSettings) -> Self {
         match value {
-            CompressionSettings::Bzip2 { .. } => CompressionAlgorithmFileExtension::Bzip2,
-            CompressionSettings::Gzip { .. } => CompressionAlgorithmFileExtension::Gzip,
-            CompressionSettings::Xz { .. } => CompressionAlgorithmFileExtension::Xz,
-            CompressionSettings::Zstd { .. } => CompressionAlgorithmFileExtension::Zstd,
+            CompressionSettings::Bzip2 { .. } => Some(CompressionAlgorithmFileExtension::Bzip2),
+            CompressionSettings::Gzip { .. } => Some(CompressionAlgorithmFileExtension::Gzip),
+            CompressionSettings::Xz { .. } => Some(CompressionAlgorithmFileExtension::Xz),
+            CompressionSettings::Zstd { .. } => Some(CompressionAlgorithmFileExtension::Zstd),
+            CompressionSettings::None => None,
         }
     }
 }

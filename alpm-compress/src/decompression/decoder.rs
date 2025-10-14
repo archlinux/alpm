@@ -29,6 +29,9 @@ pub enum CompressionDecoder<'a> {
 
     /// The zstd decompression decoder.
     Zstd(Decoder<'a, BufReader<File>>),
+
+    /// No compression.
+    None(BufReader<File>),
 }
 
 impl CompressionDecoder<'_> {
@@ -49,6 +52,7 @@ impl CompressionDecoder<'_> {
             DecompressionSettings::Zstd => Ok(Self::Zstd(
                 Decoder::new(file).map_err(Error::CreateZstandardDecoder)?,
             )),
+            DecompressionSettings::None => Ok(Self::None(BufReader::new(file))),
         }
     }
 }
@@ -63,6 +67,7 @@ impl Debug for CompressionDecoder<'_> {
                 CompressionDecoder::Gzip(_) => "Gzip",
                 CompressionDecoder::Xz(_) => "Xz",
                 CompressionDecoder::Zstd(_) => "Zstd",
+                CompressionDecoder::None(_) => "None",
             }
         )
     }
@@ -75,6 +80,7 @@ impl Read for CompressionDecoder<'_> {
             CompressionDecoder::Gzip(decoder) => decoder.read(buf),
             CompressionDecoder::Xz(decoder) => decoder.read(buf),
             CompressionDecoder::Zstd(decoder) => decoder.read(buf),
+            CompressionDecoder::None(reader) => reader.read(buf),
         }
     }
 
@@ -84,6 +90,7 @@ impl Read for CompressionDecoder<'_> {
             CompressionDecoder::Gzip(decoder) => decoder.read_to_end(buf),
             CompressionDecoder::Xz(decoder) => decoder.read_to_end(buf),
             CompressionDecoder::Zstd(decoder) => decoder.read_to_end(buf),
+            CompressionDecoder::None(reader) => reader.read_to_end(buf),
         }
     }
 }
@@ -123,6 +130,7 @@ mod tests {
         compression_level: ZstdCompressionLevel::default(),
         threads: ZstdThreads::new(0),
     })]
+    #[case::no_compression(DecompressionSettings::None, CompressionSettings::None)]
     fn test_compression_decoder_roundtrip(
         #[case] decompression_settings: DecompressionSettings,
         #[case] compression_settings: CompressionSettings,
@@ -157,6 +165,7 @@ mod tests {
     #[case::gzip(DecompressionSettings::Gzip)]
     #[case::xz(DecompressionSettings::Xz)]
     #[case::zstd(DecompressionSettings::Zstd)]
+    #[case::no_compression(DecompressionSettings::None)]
     fn test_compression_decoder_debug(#[case] settings: DecompressionSettings) -> TestResult {
         let file = tempfile()?;
         let decoder = CompressionDecoder::new(file, settings)?;

@@ -1,6 +1,6 @@
 //! Settings for a compression decoder.
 
-use std::fmt::Debug;
+use std::{fmt::Debug, path::Path};
 
 use alpm_types::CompressionAlgorithmFileExtension;
 
@@ -17,6 +17,8 @@ pub enum DecompressionSettings {
     Xz,
     /// The zstandard compression algorithm.
     Zstd,
+    /// No compression.
+    None,
 }
 
 impl TryFrom<CompressionAlgorithmFileExtension> for DecompressionSettings {
@@ -36,6 +38,25 @@ impl TryFrom<CompressionAlgorithmFileExtension> for DecompressionSettings {
     }
 }
 
+impl TryFrom<&Path> for DecompressionSettings {
+    type Error = Error;
+
+    /// Converts a [`Path`] into a [`DecompressionSettings`] by extracting the file extension.
+    ///
+    /// Delegates deducing the compression algorithm to
+    /// [`CompressionAlgorithmFileExtension::try_from`] and the final conversion to
+    /// [`TryFrom<CompressionAlgorithmFileExtension>`][`TryFrom::try_from`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the compression algorithm file extension is unknown or unsupported.
+    fn try_from(path: &Path) -> Result<Self, Self::Error> {
+        let ext = CompressionAlgorithmFileExtension::try_from(path)
+            .map_err(Error::UnknownCompressionAlgorithmFileExtension)?;
+        DecompressionSettings::try_from(ext)
+    }
+}
+
 impl From<&CompressionSettings> for DecompressionSettings {
     /// Converts a [`CompressionSettings`] into a [`DecompressionSettings`].
     fn from(value: &CompressionSettings) -> Self {
@@ -44,6 +65,7 @@ impl From<&CompressionSettings> for DecompressionSettings {
             CompressionSettings::Gzip { .. } => DecompressionSettings::Gzip,
             CompressionSettings::Xz { .. } => DecompressionSettings::Xz,
             CompressionSettings::Zstd { .. } => DecompressionSettings::Zstd,
+            CompressionSettings::None => DecompressionSettings::None,
         }
     }
 }
@@ -116,6 +138,7 @@ mod tests {
         compression_level: ZstdCompressionLevel::default(),
         threads: ZstdThreads::new(4),
     }, DecompressionSettings::Zstd)]
+    #[case(CompressionSettings::None, DecompressionSettings::None)]
     fn test_from_compression_settings_to_decompression_settings(
         #[case] settings: CompressionSettings,
         #[case] expected: DecompressionSettings,

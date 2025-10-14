@@ -88,6 +88,9 @@ pub enum CompressionEncoder<'a> {
 
     /// The zstd compression encoder.
     Zstd(Encoder<'a, File>),
+
+    /// No compression.
+    None(File),
 }
 
 impl CompressionEncoder<'_> {
@@ -122,6 +125,7 @@ impl CompressionEncoder<'_> {
                 threads,
                 settings,
             )?),
+            CompressionSettings::None => Self::None(file),
         })
     }
 
@@ -156,6 +160,7 @@ impl CompressionEncoder<'_> {
                     source,
                 })
             }
+            CompressionEncoder::None(file) => Ok(file),
         }
     }
 }
@@ -170,6 +175,7 @@ impl Debug for CompressionEncoder<'_> {
                 CompressionEncoder::Gzip(_) => "Gzip",
                 CompressionEncoder::Xz(_) => "Xz",
                 CompressionEncoder::Zstd(_) => "Zstd",
+                &CompressionEncoder::None(_) => "None",
             }
         )
     }
@@ -182,6 +188,7 @@ impl Write for CompressionEncoder<'_> {
             CompressionEncoder::Gzip(encoder) => encoder.write(buf),
             CompressionEncoder::Xz(encoder) => encoder.write(buf),
             CompressionEncoder::Zstd(encoder) => encoder.write(buf),
+            CompressionEncoder::None(file) => file.write(buf),
         }
     }
 
@@ -191,6 +198,7 @@ impl Write for CompressionEncoder<'_> {
             CompressionEncoder::Gzip(encoder) => encoder.write_vectored(bufs),
             CompressionEncoder::Xz(encoder) => encoder.write_vectored(bufs),
             CompressionEncoder::Zstd(encoder) => encoder.write_vectored(bufs),
+            CompressionEncoder::None(file) => file.write_vectored(bufs),
         }
     }
 
@@ -200,6 +208,7 @@ impl Write for CompressionEncoder<'_> {
             CompressionEncoder::Gzip(encoder) => encoder.flush(),
             CompressionEncoder::Xz(encoder) => encoder.flush(),
             CompressionEncoder::Zstd(encoder) => encoder.flush(),
+            CompressionEncoder::None(file) => file.flush(),
         }
     }
 
@@ -209,6 +218,7 @@ impl Write for CompressionEncoder<'_> {
             CompressionEncoder::Gzip(encoder) => encoder.write_all(buf),
             CompressionEncoder::Xz(encoder) => encoder.write_all(buf),
             CompressionEncoder::Zstd(encoder) => encoder.write_all(buf),
+            CompressionEncoder::None(file) => file.write_all(buf),
         }
     }
 
@@ -218,6 +228,7 @@ impl Write for CompressionEncoder<'_> {
             CompressionEncoder::Gzip(encoder) => encoder.write_fmt(fmt),
             CompressionEncoder::Xz(encoder) => encoder.write_fmt(fmt),
             CompressionEncoder::Zstd(encoder) => encoder.write_fmt(fmt),
+            CompressionEncoder::None(file) => file.write_fmt(fmt),
         }
     }
 
@@ -253,6 +264,7 @@ mod tests {
     #[case::zstd_all_threads(CompressionSettings::Zstd { compression_level: ZstdCompressionLevel::default(), threads: ZstdThreads::new(0) })]
     #[case::zstd_one_thread(CompressionSettings::Zstd { compression_level: ZstdCompressionLevel::default(), threads: ZstdThreads::new(1) })]
     #[case::zstd_crazy_threads(CompressionSettings::Zstd { compression_level: ZstdCompressionLevel::default(), threads: ZstdThreads::new(99999) })]
+    #[case::no_compression(CompressionSettings::None)]
     fn test_compression_encoder_write(#[case] settings: CompressionSettings) -> TestResult {
         let file = tempfile()?;
         let mut encoder = CompressionEncoder::new(file, &settings)?;
@@ -279,6 +291,7 @@ mod tests {
     #[case::zstd_all_threads(CompressionSettings::Zstd { compression_level: ZstdCompressionLevel::default(), threads: ZstdThreads::new(0) })]
     #[case::zstd_one_thread(CompressionSettings::Zstd { compression_level: ZstdCompressionLevel::default(), threads: ZstdThreads::new(1) })]
     #[case::zstd_crazy_threads(CompressionSettings::Zstd { compression_level: ZstdCompressionLevel::default(), threads: ZstdThreads::new(99999) })]
+    #[case::no_compression(CompressionSettings::None)]
     fn test_compression_encoder_write_vectored(
         #[case] settings: CompressionSettings,
     ) -> TestResult {
@@ -310,6 +323,7 @@ mod tests {
     #[case::zstd_all_threads(CompressionSettings::Zstd { compression_level: ZstdCompressionLevel::default(), threads: ZstdThreads::new(0) })]
     #[case::zstd_one_thread(CompressionSettings::Zstd { compression_level: ZstdCompressionLevel::default(), threads: ZstdThreads::new(1) })]
     #[case::zstd_crazy_threads(CompressionSettings::Zstd { compression_level: ZstdCompressionLevel::default(), threads: ZstdThreads::new(99999) })]
+    #[case::no_compression(CompressionSettings::None)]
     fn test_compression_encoder_write_all(#[case] settings: CompressionSettings) -> TestResult {
         let file = tempfile()?;
         let mut encoder = CompressionEncoder::new(file, &settings)?;
@@ -331,6 +345,7 @@ mod tests {
     #[case::zstd_all_threads(CompressionSettings::Zstd { compression_level: ZstdCompressionLevel::default(), threads: ZstdThreads::new(0) })]
     #[case::zstd_one_thread(CompressionSettings::Zstd { compression_level: ZstdCompressionLevel::default(), threads: ZstdThreads::new(1) })]
     #[case::zstd_crazy_threads(CompressionSettings::Zstd { compression_level: ZstdCompressionLevel::default(), threads: ZstdThreads::new(99999) })]
+    #[case::no_compression(CompressionSettings::None)]
     fn test_compression_encoder_write_fmt(#[case] settings: CompressionSettings) -> TestResult {
         let file = tempfile()?;
         let mut encoder = CompressionEncoder::new(file, &settings)?;

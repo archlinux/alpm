@@ -57,6 +57,10 @@ pub enum Error {
         max: u8,
     },
 
+    /// A compression algorithm file extension is not known.
+    #[error("Unknown compression algorithm file extension:\n{0}")]
+    UnknownCompressionAlgorithmFileExtension(#[source] alpm_types::Error),
+
     /// An unsupported compression algorithm was used.
     #[error("Unsupported compression algorithm: {value}")]
     UnsupportedCompressionAlgorithm {

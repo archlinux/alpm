@@ -9,6 +9,14 @@ A small library that provides streaming compression and decompression for multip
 
 It offers a unified encoder/decoder API with configurable compression levels and, for zstd, optional multithreading.
 
+In addition, it provides utilities to create and read tar archives:
+
+- uncompressed (`.tar`)
+- bzip2 (`.tar.bz2`)
+- gzip (`.tar.gz`)
+- xz (`.tar.xz`)
+- zstd (`.tar.zst`)
+
 ## Documentation
 
 - <https://alpm.archlinux.page/rustdoc/alpm_compress/> for development version of the crate
@@ -44,7 +52,9 @@ let _file = encoder.finish()?; // retrieve the inner File when done
 # }
 ```
 
-Compression settings default to zstd compression, but you can select other algorithms and levels:
+Compression settings default to zstd compression, but you can select other algorithms and levels.
+Since compression is optional via `None` variant, this library provides unified API to read and write both 
+compressed and uncompressed files.
 
 ```rust
 use alpm_compress::compression::{
@@ -65,6 +75,8 @@ let gzip = CompressionSettings::Gzip { compression_level: GzipCompressionLevel::
 let xz = CompressionSettings::Xz { compression_level: XzCompressionLevel::default() };
 // Zstd compression
 let zstd = CompressionSettings::Zstd { compression_level: ZstdCompressionLevel::default(), threads: ZstdThreads::default() };
+// No compression
+let no_compression = CompressionSettings::None;
 # }
 ```
 

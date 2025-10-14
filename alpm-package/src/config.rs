@@ -174,7 +174,7 @@ impl From<&PackageCreationConfig> for PackageFileName {
                 alpm_pkginfo::PackageInfo::V1(package_info) => package_info.arch(),
                 alpm_pkginfo::PackageInfo::V2(package_info) => package_info.arch(),
             },
-            value.compression.as_ref().map(|settings| settings.into()),
+            value.compression.as_ref().and_then(Option::from),
         )
     }
 }
