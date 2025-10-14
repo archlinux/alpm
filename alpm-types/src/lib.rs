@@ -58,6 +58,7 @@ pub use package::{
     file_name::PackageFileName,
     installation::PackageInstallReason,
     source::{PKGBUILD_FILE_NAME, SRCINFO_FILE_NAME},
+    validation::PackageValidation,
 };
 
 mod path;

@@ -5,3 +5,4 @@ pub mod error;
 pub mod file_name;
 pub mod installation;
 pub mod source;
+pub mod validation;
