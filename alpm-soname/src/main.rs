@@ -4,7 +4,7 @@ use std::process::ExitCode;
 
 use alpm_soname::{
     cli::{Cli, Command},
-    commands::{get_dependencies, get_provisions, get_raw_dependencies},
+    commands::{detect_sonames, get_dependencies, get_provisions, get_raw_dependencies},
 };
 use clap::Parser;
 use log::{debug, error};
@@ -25,6 +25,9 @@ fn main() -> ExitCode {
             get_dependencies(args, lookup_dir, &mut std::io::stdout())
         }
         Command::GetRawDependencies { args } => get_raw_dependencies(args, &mut std::io::stdout()),
+        Command::DetectSoname { args } => {
+            detect_sonames(args, cli.verbose.is_silent(), &mut std::io::stdout())
+        }
     };
 
     if let Err(error) = result {

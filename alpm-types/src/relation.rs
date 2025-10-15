@@ -635,7 +635,7 @@ impl FromStr for Soname {
 /// [soname]: https://en.wikipedia.org/wiki/Soname
 /// [`PackageInfoV1`]: https://docs.rs/alpm_pkginfo/latest/alpm_pkginfo/struct.PackageInfoV1.html
 /// [`PackageInfoV2`]: https://docs.rs/alpm_pkginfo/latest/alpm_pkginfo/struct.PackageInfoV2.html
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct SonameV2 {
     /// The directory prefix of the shared object file.
     pub prefix: SharedLibraryPrefix,

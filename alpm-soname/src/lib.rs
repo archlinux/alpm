@@ -11,3 +11,8 @@ pub use lookup::{ElfSonames, extract_elf_sonames, find_dependencies, find_provis
 
 mod error;
 pub use error::Error;
+
+pub(crate) mod elf;
+
+mod detection;
+pub use detection::{SonameDetection, SonameDetectionOptions};

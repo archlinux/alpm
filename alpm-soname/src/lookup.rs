@@ -1,14 +1,13 @@
 //! Package lookup handling
-use std::{io::Read, path::PathBuf, str::FromStr};
+use std::{path::PathBuf, str::FromStr};
 
 use alpm_package::Package;
 use alpm_pkginfo::{PackageInfo, RelationOrSoname};
 use alpm_types::{Soname, SonameLookupDirectory, SonameV2};
-use goblin::{Hint, Object};
 use log::{debug, trace};
 use serde::{Deserialize, Serialize};
 
-use crate::Error;
+use crate::{Error, elf::read_elf};
 
 /// Represents a shared library and its associated sonames.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -42,38 +41,7 @@ pub fn extract_elf_sonames(path: PathBuf) -> Result<Vec<ElfSonames>, Error> {
         let path_in_archive = entry.path().to_path_buf();
         debug!("Package entry: {path_in_archive:?}");
 
-        // Read 16 bytes for checking the header
-        let mut header = [0u8; 16];
-        if let Err(e) = entry.read_exact(&mut header) {
-            debug!("⤷ Could not read entry header ({e}), skipping...");
-            continue;
-        }
-
-        // Check the header for an ELF file
-        if let Ok(Hint::Elf(_)) = goblin::peek_bytes(&header) {
-            trace!("⤷ File header: {header:?}");
-            debug!("⤷ Found ELF file.");
-        } else {
-            trace!("⤷ Not an ELF file, skipping...");
-            continue;
-        };
-
-        // Read the entry into a buffer
-        // Also, take the header into account
-        let mut buffer = header.to_vec();
-        entry
-            .read_to_end(&mut buffer)
-            .map_err(|source| Error::IoReadError {
-                context: "reading entry from archive",
-                source,
-            })?;
-
-        // Parse the ELF file and collect the dependencies
-        let object = Object::parse(&buffer).map_err(|source| Error::ElfError {
-            context: "parsing ELF file",
-            source,
-        })?;
-        if let Object::Elf(elf) = object {
+        if let Some(elf) = read_elf(&mut entry, &mut Vec::new())? {
             debug!("⤷ Dependencies: {:?}", elf.libraries);
             let mut sonames = Vec::new();
             for library in elf.libraries.iter() {

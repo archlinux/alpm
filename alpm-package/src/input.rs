@@ -108,7 +108,7 @@ pub enum Error {
 }
 
 /// An input directory that is guaranteed to be an absolute directory.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct InputDir(PathBuf);
 
 impl InputDir {

@@ -28,12 +28,14 @@ alpm-types.workspace = true
 clap = { workspace = true, optional = true }
 clap-verbosity = "2.1.0"
 goblin = "0.10.0"
+lddtree = "0.3.7"
 log = { version = "0.4.27", optional = true }
 serde.workspace = true
 serde_json.workspace = true
 simplelog = "0.12.2"
 strum.workspace = true
 thiserror.workspace = true
+walkdir = "2.5.0"
 
 [dev-dependencies]
 alpm-compress.workspace = true

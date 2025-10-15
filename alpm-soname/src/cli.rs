@@ -51,6 +51,40 @@ pub enum Command {
         #[command(flatten)]
         args: PackageArgs,
     },
+
+    /// Generate depend and provide entries by reading shared libraries
+    DetectSoname {
+        /// Arguments for the detect-soname command
+        #[command(flatten)]
+        args: SonameDetectionArgs,
+    },
+}
+
+/// Command line arguments for the soname detection command.
+#[derive(Clone, Debug, Parser)]
+#[command(
+    about = "Generate dependency and provision entries by reading shared libraries",
+    author,
+    version
+)]
+pub struct SonameDetectionArgs {
+    /// Package arguments for the detect-soname command
+    #[command(flatten)]
+    pub package_args: PackageArgs,
+
+    /// The lookup directory for shared libraries in `<prefix>:<directory>` format
+    ///
+    /// Example: `lib:/usr/lib`
+    #[arg(short, long, default_value = "lib:/usr/lib", value_name = "LOOKUP_DIR")]
+    pub lookup_dir: SonameLookupDirectory,
+
+    /// Only print provisions.
+    #[arg(long, conflicts_with = "dependencies")]
+    pub provisions: bool,
+
+    /// Only print dependencies.
+    #[arg(long, conflicts_with = "provisions")]
+    pub dependencies: bool,
 }
 
 /// Common arguments for commands that inspect a package.

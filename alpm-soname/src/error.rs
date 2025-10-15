@@ -79,4 +79,14 @@ pub enum Error {
     /// JSON error
     #[error("JSON error: {0}")]
     Json(#[from] serde_json::Error),
+
+    /// Dependency detection error.
+    #[error("Failed to find dependencies for {path}:\n{source}")]
+    DependencyError {
+        /// The path of the library
+        path: PathBuf,
+
+        /// The source of the error.
+        source: lddtree::Error,
+    },
 }

@@ -2,11 +2,13 @@
 
 use std::io::Write;
 
+use alpm_package::InputDir;
 use alpm_types::{Soname, SonameLookupDirectory};
 
 use crate::{
     Error,
-    cli::{OutputFormat, PackageArgs},
+    cli::{OutputFormat, PackageArgs, SonameDetectionArgs},
+    detection::{SonameDetection, SonameDetectionOptions},
     find_dependencies,
     find_provisions,
     lookup::extract_elf_sonames,
@@ -128,6 +130,54 @@ pub fn get_raw_dependencies<W: Write>(args: PackageArgs, output: &mut W) -> Resu
             };
             writeln!(output, "{json}").map_err(|source| Error::IoWriteError {
                 context: "writing JSON to output",
+                source,
+            })?;
+        }
+    }
+
+    Ok(())
+}
+
+/// Detects soname-based provisions and dependencies of a package and prints them to the given
+/// output.
+///
+/// This function combines the functionality of [`find_provisions`] and [`find_dependencies`]
+/// by scanning ELF files under the package directory using [`SonameDetection`].
+///
+/// See the [`SonameDetection`] type for more details.
+///
+/// # Errors
+///
+/// Returns an error if [`SonameDetection::new`] returns an error or if the output stream
+/// can not be written to.
+pub fn detect_sonames<W: Write>(
+    args: SonameDetectionArgs,
+    quiet: bool,
+    output: &mut W,
+) -> Result<(), Error> {
+    let options =
+        SonameDetectionOptions::new(InputDir::new(args.package_args.package)?, args.lookup_dir)
+            .provides(!args.dependencies)
+            .depends(!args.provisions);
+
+    let soname_detection = SonameDetection::new(options)?;
+
+    if args.provisions {
+        let prefix = if quiet { "" } else { "provide = " };
+
+        for provide in soname_detection.provides {
+            writeln!(output, "{prefix}{provide}").map_err(|source| Error::IoWriteError {
+                context: "writing provide to output",
+                source,
+            })?;
+        }
+    }
+    if args.dependencies {
+        let prefix = if quiet { "" } else { "depends = " };
+
+        for dep in soname_detection.depends {
+            writeln!(output, "{prefix}{dep}").map_err(|source| Error::IoWriteError {
+                context: "writing dependency to output",
                 source,
             })?;
         }
