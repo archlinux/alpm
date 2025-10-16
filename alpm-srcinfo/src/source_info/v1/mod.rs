@@ -180,7 +180,7 @@ impl SourceInfoV1 {
 
         let mut packages = Vec::new();
         for package in content.packages {
-            let package = Package::from_parsed(package);
+            let package = Package::from_parsed(package)?;
             packages.push(package);
         }
 
@@ -191,7 +191,7 @@ impl SourceInfoV1 {
     ///
     /// ```
     /// use alpm_srcinfo::{MergedPackage, SourceInfoV1};
-    /// use alpm_types::{Architecture, Name, PackageDescription, PackageRelation};
+    /// use alpm_types::{Name, PackageDescription, PackageRelation, SystemArchitecture};
     ///
     /// # fn main() -> Result<(), alpm_srcinfo::Error> {
     /// let source_info_data = r#"
@@ -211,7 +211,7 @@ impl SourceInfoV1 {
     /// let source_info = SourceInfoV1::from_string(source_info_data)?;
     ///
     /// /// Get all merged package representations for the x86_64 architecture.
-    /// let mut packages = source_info.packages_for_architecture(Architecture::X86_64);
+    /// let mut packages = source_info.packages_for_architecture(SystemArchitecture::X86_64);
     ///
     /// let example = packages.next().unwrap();
     /// assert_eq!(
@@ -228,12 +228,12 @@ impl SourceInfoV1 {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn packages_for_architecture(
+    pub fn packages_for_architecture<A: Into<Architecture>>(
         &self,
-        architecture: Architecture,
+        architecture: A,
     ) -> MergedPackagesIterator<'_> {
         MergedPackagesIterator {
-            architecture,
+            architecture: architecture.into(),
             source_info: self,
             package_iterator: self.packages.iter(),
         }

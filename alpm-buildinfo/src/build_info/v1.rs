@@ -98,7 +98,7 @@ macro_rules! generate_buildinfo {
 
             /// Returns the package architecture
             pub fn pkgarch(&self) -> Architecture {
-                self.pkgarch
+                self.pkgarch.clone()
             }
 
             /// Returns the package build SHA-256 checksum

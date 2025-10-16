@@ -1,11 +1,11 @@
 ---
 source: alpm-srcinfo/tests/correct.rs
-description: pkgbase_with_any_arch SourceInfo representation.
+description: custom_architecture SourceInfo representation.
 expression: source_info_json
 ---
 {
   "base": {
-    "name": "any-arch",
+    "name": "test",
     "description": null,
     "url": null,
     "changelog": null,
@@ -15,7 +15,7 @@ expression: source_info_json
     "options": [],
     "backups": [],
     "version": {
-      "pkgver": "0.1.0",
+      "pkgver": "1.0.0",
       "pkgrel": {
         "major": 1,
         "minor": null
@@ -23,7 +23,9 @@ expression: source_info_json
       "epoch": null
     },
     "pgp_fingerprints": [],
-    "architectures": "any",
+    "architectures": [
+      "my_special_arch"
+    ],
     "architecture_properties": {},
     "dependencies": [],
     "optional_dependencies": [],
@@ -44,7 +46,7 @@ expression: source_info_json
   },
   "packages": [
     {
-      "name": "any-arch",
+      "name": "test",
       "description": {
         "override": "No"
       },

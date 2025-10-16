@@ -8,8 +8,9 @@ from alpm.alpm_srcinfo.source_info.v1.package_base import (
 )
 from alpm.alpm_types import (
     ALPMError,
-    Architecture,
+    Architectures,
     FullVersion,
+    KnownArchitecture,
     License,
     OptionalDependency,
     PackageRelation,
@@ -30,7 +31,7 @@ from alpm.alpm_types import (
     makepkg_option_from_str,
     openpgp_identifier_from_str,
 )
-from alpm.type_aliases import RelationOrSoname, SkippableChecksum
+from alpm.type_aliases import RelationOrSoname, SkippableChecksum, SystemArchitecture
 
 
 def test_package_base_init_valid() -> None:
@@ -206,9 +207,9 @@ def test_package_base_architectures_getter_setter() -> None:
     version = FullVersion.from_str("1.0.0-1")
     package_base = PackageBase("test-package", version)
 
-    assert package_base.architectures == []
+    assert len(package_base.architectures) == 0
 
-    architectures = [Architecture.X86_64, Architecture.AARCH64]
+    architectures = Architectures([KnownArchitecture.X86_64, KnownArchitecture.AARCH64])
     package_base.architectures = architectures
     assert package_base.architectures == architectures
 
@@ -220,9 +221,9 @@ def test_package_base_architecture_properties_getter_setter() -> None:
 
     assert package_base.architecture_properties == {}
 
-    arch_props = {
-        Architecture.X86_64: PackageBaseArchitecture(),
-        Architecture.AARCH64: PackageBaseArchitecture(),
+    arch_props: dict[SystemArchitecture, PackageBaseArchitecture] = {
+        KnownArchitecture.X86_64: PackageBaseArchitecture(),
+        KnownArchitecture.AARCH64: PackageBaseArchitecture(),
     }
     package_base.architecture_properties = arch_props
     assert len(package_base.architecture_properties) == 2

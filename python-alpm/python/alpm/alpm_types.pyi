@@ -3,7 +3,7 @@
 from enum import Enum
 from pathlib import Path
 
-from typing import Union, Optional
+from typing import Union, Optional, Sequence
 
 from .type_aliases import (
     OpenPGPIdentifier,
@@ -11,6 +11,7 @@ from .type_aliases import (
     RelationOrSoname,
     VersionOrSoname,
     VcsInfo,
+    SystemArchitecture,
 )
 
 class ALPMError(Exception):
@@ -398,11 +399,29 @@ class RelativePath:
     def __repr__(self) -> str: ...
     def __eq__(self, other: object) -> bool: ...
 
-class Architecture(Enum):
-    """CPU architecture."""
+class ArchitectureType(Enum):
+    """Type of alpm-architecture.
+
+    Either ANY, a specific known architecture or an unknown one described by a string.
+    """
+
+    ANY = ("ANY",)
+    KNOWN = ("KNOWN",)
+    UNKNOWN = ("UNKNOWN",)
+
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+    def __eq__(self, other: object) -> bool: ...
+    def __lt__(self, other: "ArchitectureType") -> bool: ...
+    def __le__(self, other: "ArchitectureType") -> bool: ...
+    def __gt__(self, other: "ArchitectureType") -> bool: ...
+    def __ge__(self, other: "ArchitectureType") -> bool: ...
+    def __hash__(self) -> int: ...
+
+class KnownArchitecture(Enum):
+    """A known, specific CPU architecture."""
 
     AARCH64 = ("aarch64",)
-    ANY = ("any",)
     ARM = ("arm",)
     ARMV6H = ("armv6h",)
     ARMV7H = ("armv7h",)
@@ -417,24 +436,90 @@ class Architecture(Enum):
     X86_64_V3 = ("x86_64_v3",)
     X86_64_V4 = ("x86_64_v4",)
 
-    @classmethod
-    def from_str(cls, arch: str) -> "Architecture":
-        """Create an Architecture from a string.
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+    def __eq__(self, other: object) -> bool: ...
+    def __lt__(self, other: "KnownArchitecture") -> bool: ...
+    def __le__(self, other: "KnownArchitecture") -> bool: ...
+    def __gt__(self, other: "KnownArchitecture") -> bool: ...
+    def __ge__(self, other: "KnownArchitecture") -> bool: ...
+    def __hash__(self) -> int: ...
+
+class Architecture:
+    """A valid alpm-architecture."""
+
+    def __init__(self, arch: Union[KnownArchitecture, str] = "any") -> None:
+        """Create a new Architecture.
 
         Args:
-            arch (str): A string representing CPU architecture.
-
-        Returns:
-            Architecture: The corresponding Architecture enum variant.
+            arch (KnownArchitecture | str): Either a known architecture or a string
+                consisting of ASCII alphanumeric characters and underscores.
+                Defaults to "any".
 
         Raises:
-            ValueError: If the architecture string doesn't match any enum variant.
+            ALPMError: If the provided string is not a valid alpm-architecture.
 
+        """
+
+    @property
+    def arch_type(self) -> "ArchitectureType":
+        """The type of this architecture."""
+
+    @property
+    def system_arch(self) -> Optional["SystemArchitecture"]:
+        """Optional system architecture, type depends on arch_type field.
+
+        - None if arch_type is ANY
+        - KnownArchitecture if arch_type is KNOWN
+        - str if arch_type is UNKNOWN
         """
 
     def __str__(self) -> str: ...
     def __repr__(self) -> str: ...
     def __eq__(self, other: object) -> bool: ...
+    def __lt__(self, other: "Architecture") -> bool: ...
+    def __le__(self, other: "Architecture") -> bool: ...
+    def __gt__(self, other: "Architecture") -> bool: ...
+    def __ge__(self, other: "Architecture") -> bool: ...
+    def __hash__(self) -> int: ...
+
+class Architectures:
+    """A valid array of compatible alpm-architectures.
+
+    Iterable over Architecture objects.
+    """
+
+    def __init__(
+        self, architectures: Optional[Sequence[Union[KnownArchitecture, str]]] = None
+    ) -> None:
+        """Create a new Architectures iterable.
+
+        Args:
+            architectures (Sequence[Union[KnownArchitecture, str]]): A sequence of
+                known architectures or strings consisting of ASCII alphanumeric
+                characters and underscores. Defaults to None, which is equivalent to
+                ["any"]. If the sequence contains an "any" architecture, it must be the
+                only element.
+
+        Raises:
+            ALPMError: If any of the provided strings is not a valid alpm-architecture
+                or if the sequence contains "any" with other architectures.
+
+        """
+
+    @property
+    def is_any(self) -> bool:
+        """True if the iterable represents any architecture."""
+
+    def __iter__(self) -> list[Architecture]: ...
+    def __len__(self) -> int: ...
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+    def __eq__(self, other: object) -> bool: ...
+    def __lt__(self, other: "Architecture") -> bool: ...
+    def __le__(self, other: "Architecture") -> bool: ...
+    def __gt__(self, other: "Architecture") -> bool: ...
+    def __ge__(self, other: "Architecture") -> bool: ...
     def __hash__(self) -> int: ...
 
 class Url:
@@ -1244,7 +1329,10 @@ __all__ = [
     "OpenPGPv4Fingerprint",
     "openpgp_identifier_from_str",
     "RelativePath",
+    "ArchitectureType",
+    "KnownArchitecture",
     "Architecture",
+    "Architectures",
     "Url",
     "SourceUrl",
     "BzrInfo",

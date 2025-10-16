@@ -1,6 +1,6 @@
 //! Write implementation for [`SourceInfo`].
 
-use alpm_types::Architecture;
+use alpm_types::{Architecture, Architectures};
 
 use super::{
     package::{Override, Package, PackageArchitecture},
@@ -77,7 +77,8 @@ pub(crate) fn pkgbase_section(base: &PackageBase, output: &mut String) {
     push_optional_value("url", &base.url, output);
     push_optional_value("install", &base.install, output);
     push_optional_value("changelog", &base.changelog, output);
-    push_value_list("arch", &base.architectures, output);
+    let architectures: Vec<Architecture> = (&base.architectures).into();
+    push_value_list("arch", &architectures, output);
 
     push_value_list("groups", &base.groups, output);
     push_value_list("license", &base.licenses, output);
@@ -104,8 +105,10 @@ pub(crate) fn pkgbase_section(base: &PackageBase, output: &mut String) {
     // Go through architecture specific values **in the same order** as in `pkgbase.arch`.
     // That's how `makepkg` does it.
     for architecture in &base.architectures {
-        if let Some(properties) = base.architecture_properties.get(architecture) {
-            pkgbase_architecture_properties(*architecture, properties, output);
+        if let Architecture::Some(system_arch) = &architecture
+            && let Some(properties) = base.architecture_properties.get(system_arch)
+        {
+            pkgbase_architecture_properties(architecture, properties, output);
         }
     }
 }
@@ -260,7 +263,7 @@ fn push_override_value_list<T: ToString>(
 /// [makepkg]: https://man.archlinux.org/man/makepkg.8
 pub(crate) fn pkgname_section(
     package: &Package,
-    base_architectures: &[Architecture],
+    base_architectures: &Architectures,
     output: &mut String,
 ) {
     push_section("pkgname", package.name.inner(), output);
@@ -271,7 +274,8 @@ pub(crate) fn pkgname_section(
     push_override_value("changelog", &package.changelog, output);
 
     if let Some(architectures) = &package.architectures {
-        push_value_list("arch", architectures, output);
+        let arch_vec: Vec<Architecture> = architectures.into();
+        push_value_list("arch", &arch_vec, output);
     }
 
     push_override_value_list("groups", &package.groups, output);
@@ -286,8 +290,10 @@ pub(crate) fn pkgname_section(
 
     // Go through architecture specific values **in the same order** as in `pkgbase.arch`.
     for architecture in base_architectures {
-        if let Some(properties) = package.architecture_properties.get(architecture) {
-            pkgname_architecture_properties(*architecture, properties, output);
+        if let Architecture::Some(system_arch) = &architecture
+            && let Some(properties) = package.architecture_properties.get(system_arch)
+        {
+            pkgname_architecture_properties(architecture, properties, output);
         }
     }
 }

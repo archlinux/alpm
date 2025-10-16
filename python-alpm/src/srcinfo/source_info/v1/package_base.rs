@@ -22,7 +22,7 @@ use crate::{
         path::RelativePath,
         relation::{OptionalDependency, PackageRelation, RelationOrSoname},
         source::Source,
-        system::Architecture,
+        system::{Architectures, SystemArchitecture},
         url::Url,
         version::FullVersion,
     },
@@ -155,24 +155,24 @@ impl PackageBase {
     }
 
     #[getter]
-    fn get_architectures(&self) -> Vec<Architecture> {
-        vec_convert!(self.0.architectures.clone())
+    fn get_architectures(&self) -> Architectures {
+        self.0.architectures.clone().into()
     }
 
     #[setter]
-    fn set_architectures(&mut self, architectures: Vec<Architecture>) {
-        self.0.architectures = vec_convert!(architectures);
+    fn set_architectures(&mut self, architectures: Architectures) {
+        self.0.architectures = architectures.into();
     }
 
     #[getter]
-    fn get_architecture_properties(&self) -> BTreeMap<Architecture, PackageBaseArchitecture> {
+    fn get_architecture_properties(&self) -> BTreeMap<SystemArchitecture, PackageBaseArchitecture> {
         btree_convert!(self.0.architecture_properties.clone())
     }
 
     #[setter]
     fn set_architecture_properties(
         &mut self,
-        architecture_properties: BTreeMap<Architecture, PackageBaseArchitecture>,
+        architecture_properties: BTreeMap<SystemArchitecture, PackageBaseArchitecture>,
     ) {
         self.0.architecture_properties = btree_convert!(architecture_properties);
     }

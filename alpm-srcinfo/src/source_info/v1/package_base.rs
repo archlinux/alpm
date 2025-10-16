@@ -3,6 +3,7 @@ use std::collections::BTreeMap;
 
 use alpm_types::{
     Architecture,
+    Architectures,
     Epoch,
     FullVersion,
     License,
@@ -18,6 +19,7 @@ use alpm_types::{
     RelativePath,
     SkippableChecksum,
     Source,
+    SystemArchitecture,
     Url,
     digests::{Blake2b512, Md5, Sha1, Sha224, Sha256, Sha384, Sha512},
 };
@@ -69,9 +71,9 @@ pub struct PackageBase {
     pub pgp_fingerprints: Vec<OpenPGPIdentifier>,
 
     /// Architectures and architecture specific properties
-    pub architectures: Vec<Architecture>,
+    pub architectures: Architectures,
     /// The map of alpm-architecture specific overrides for package relations of a package base.
-    pub architecture_properties: BTreeMap<Architecture, PackageBaseArchitecture>,
+    pub architecture_properties: BTreeMap<SystemArchitecture, PackageBaseArchitecture>,
 
     /// The list of run-time dependencies of the package base.
     pub dependencies: Vec<RelationOrSoname>,
@@ -182,10 +184,12 @@ macro_rules! package_base_arch_prop {
     ) => {
         // Check if the property is architecture specific.
         // If so, we have to perform some checks and preparation
-        if let Some(architecture) = $arch_property.architecture {
+        if let Some(architecture) = $arch_property.architecture
+            && let Architecture::Some(system_arch) = architecture
+        {
             // Make sure the architecture specific properties are initialized.
             let architecture_properties = $architecture_properties
-                .entry(architecture)
+                .entry(system_arch)
                 .or_insert(PackageBaseArchitecture::default());
 
             // Set the architecture specific value.
@@ -226,7 +230,7 @@ impl PackageBase {
             name,
             version,
             description: None,
-            architectures: Vec::new(),
+            architectures: Architectures::Some(Vec::new()),
             url: None,
             licenses: Vec::new(),
             groups: Vec::new(),
@@ -311,7 +315,7 @@ impl PackageBase {
             else {
                 continue;
             };
-            architectures.push(*architecture);
+            architectures.push(architecture);
         }
 
         // If no architecture is set, `makepkg` errors hard, however it happily creates .SRCINFO
@@ -319,6 +323,10 @@ impl PackageBase {
         if architectures.is_empty() {
             return Err(Error::MissingKeyword { keyword: "arch" });
         }
+
+        // Try to convert the list of architectures into an `Architectures` instance.
+        // This will fail if "any" is combined with any specific system architecture.
+        let architectures: Architectures = architectures.try_into()?;
 
         for prop in parsed.properties.into_iter() {
             match prop {

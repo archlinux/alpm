@@ -189,7 +189,7 @@ diff --ignore-trailing-space "$SRCINFO_OUT" "$SRCINFO_OUT.expected"
 
 ```rust
 use alpm_srcinfo::{SourceInfoV1, MergedPackage};
-use alpm_types::{Architecture, PackageRelation, Name};
+use alpm_types::{SystemArchitecture, PackageRelation, Name};
 
 # fn main() -> Result<(), alpm_srcinfo::Error> {
 let source_info_data = r#"
@@ -214,11 +214,11 @@ pkgname = example
 let source_info = SourceInfoV1::from_string(source_info_data)?;
 
 // Get all merged package representations for the x86_64 architecture.
-let mut packages: Vec<MergedPackage> = source_info.packages_for_architecture(Architecture::X86_64).collect();
+let mut packages: Vec<MergedPackage> = source_info.packages_for_architecture(SystemArchitecture::X86_64).collect();
 let package = packages.remove(0);
 
 assert_eq!(package.name, Name::new("example")?);
-assert_eq!(package.architecture, Architecture::X86_64);
+assert_eq!(package.architecture, SystemArchitecture::X86_64.into());
 assert_eq!(package.dependencies, vec![
     PackageRelation::new(Name::new("glibc")?, None),
     PackageRelation::new(Name::new("gcc-libs")?, None)

@@ -94,7 +94,7 @@ mod size;
 pub use size::{CompressedSize, InstalledSize};
 
 mod system;
-pub use system::{Architecture, ElfArchitectureFormat};
+pub use system::{Architecture, Architectures, ElfArchitectureFormat, SystemArchitecture};
 
 mod version;
 pub use version::{

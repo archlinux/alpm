@@ -1,7 +1,7 @@
 //! The error types used in the scope of `alpm-pkgbuild-bridge` output logic.
 
 use alpm_pkgbuild::bridge::Keyword;
-use alpm_types::{Architecture, Name};
+use alpm_types::{Name, SystemArchitecture};
 use thiserror::Error;
 use winnow::error::{ContextError, ParseError};
 
@@ -12,6 +12,10 @@ use crate::SourceInfo;
 /// [`SourceInfo`] format.
 #[derive(Debug, Error)]
 pub enum BridgeError {
+    /// ALPM type parse error
+    #[error(transparent)]
+    AlpmType(#[from] alpm_types::Error),
+
     /// No `pkgname` has been specified.
     #[error("No 'pkgname' has been specified. At least one must be given.")]
     NoName,
@@ -74,7 +78,7 @@ pub enum BridgeError {
         /// The keyword for which an unexpected architecture suffix is found.
         keyword: Keyword,
         /// The architecture that is found for the `keyword`.
-        suffix: Architecture,
+        suffix: SystemArchitecture,
     },
 
     /// A keyword that cannot be cleared is attempted to be cleared.

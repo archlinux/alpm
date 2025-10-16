@@ -50,13 +50,13 @@ impl MergedPackage {
         let inner = match package_or_name {
             PackageOrName::Package(package) => {
                 alpm_srcinfo_merged::MergedPackage::from_base_and_package(
-                    architecture.into(),
+                    architecture,
                     &base.into(),
                     &package.into(),
                 )
             }
             PackageOrName::Name(name_string) => alpm_srcinfo_merged::MergedPackage::from_base(
-                &architecture.into(),
+                architecture,
                 alpm_types::Name::new(name_string.as_str())?,
                 &base.into(),
             ),
@@ -87,7 +87,7 @@ impl MergedPackage {
 
     #[getter]
     fn architecture(&self) -> Architecture {
-        self.0.architecture.into()
+        self.0.architecture.clone().into()
     }
 
     #[getter]
@@ -187,8 +187,8 @@ impl MergedPackage {
 
     fn __repr__(&self) -> String {
         format!(
-            "MergedPackage(architecture='{}', name='{}', version={})",
-            self.architecture(),
+            "MergedPackage(architecture={}, name='{}', version={})",
+            self.architecture().__repr__(),
             self.0.name,
             self.version().__repr__()
         )

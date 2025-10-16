@@ -3,7 +3,7 @@
 use std::{fs::read_to_string, path::PathBuf};
 
 use alpm_srcinfo::{MergedPackage, SourceInfoV1};
-use alpm_types::Architecture;
+use alpm_types::SystemArchitecture;
 use insta::assert_snapshot;
 use rstest::rstest;
 use testresult::TestResult;
@@ -59,7 +59,7 @@ fn correct_files(#[files("tests/correct/*.srcinfo")] case: PathBuf) -> TestResul
     });
 
     let packages = source_info
-        .packages_for_architecture(Architecture::X86_64)
+        .packages_for_architecture(SystemArchitecture::X86_64)
         .collect::<Vec<MergedPackage>>();
 
     let package_json = serde_json::to_string_pretty(&packages)?;

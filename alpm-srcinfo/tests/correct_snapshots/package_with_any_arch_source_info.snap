@@ -71,9 +71,7 @@ expression: source_info_json
       "backups": {
         "override": "No"
       },
-      "architectures": [
-        "any"
-      ],
+      "architectures": "any",
       "architecture_properties": {},
       "dependencies": {
         "override": "No"

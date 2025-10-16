@@ -19,6 +19,7 @@ use alpm_types::{
     PackageDescription,
     PackageRelation,
     RelationOrSoname,
+    SystemArchitecture,
     Url,
 };
 use strum::VariantNames;
@@ -293,7 +294,8 @@ fn handle_package(
         // Parse the architecture suffix if it exists.
         let architecture = match &raw_keyword.suffix {
             Some(suffix) => {
-                let arch = Architecture::parser
+                // SystemArchitecture::parser forbids "any"
+                let arch = SystemArchitecture::parser
                     .parse(suffix)
                     .map_err(|err| (raw_keyword.clone(), err))?;
                 Some(arch)
@@ -383,7 +385,7 @@ fn handle_package(
                                 keyword: raw_keyword,
                             });
                         }
-                        Override::Yes { value } => Some(value.clone()),
+                        Override::Yes { value } => Some(value.try_into()?),
                     };
                 }
                 SharedMetaKeyword::Changelog => {

@@ -3,6 +3,7 @@ use std::collections::BTreeMap;
 
 use alpm_types::{
     Architecture,
+    Architectures,
     Backup,
     Changelog,
     Install,
@@ -13,16 +14,20 @@ use alpm_types::{
     PackageDescription,
     PackageRelation,
     RelationOrSoname,
+    SystemArchitecture,
     Url,
 };
 use serde::{Deserialize, Serialize};
 
-use crate::source_info::parser::{
-    ClearableProperty,
-    PackageProperty,
-    RawPackage,
-    RelationProperty,
-    SharedMetaProperty,
+use crate::{
+    Error,
+    source_info::parser::{
+        ClearableProperty,
+        PackageProperty,
+        RawPackage,
+        RelationProperty,
+        SharedMetaProperty,
+    },
 };
 #[cfg(doc)]
 use crate::{MergedPackage, SourceInfoV1, source_info::v1::package_base::PackageBase};
@@ -147,9 +152,9 @@ pub struct Package {
     /// The architectures that are supported by this package.
     // Despite being overridable, `architectures` field isn't of the `Override` type, as it
     // **cannot** be cleared.
-    pub architectures: Option<Vec<Architecture>>,
+    pub architectures: Option<Architectures>,
     /// The map of alpm-architecture specific overrides for package relations of a package.
-    pub architecture_properties: BTreeMap<Architecture, PackageArchitecture>,
+    pub architecture_properties: BTreeMap<SystemArchitecture, PackageArchitecture>,
 
     /// The (potentially overridden) list of run-time dependencies of the package.
     pub dependencies: Override<Vec<RelationOrSoname>>,
@@ -201,8 +206,12 @@ macro_rules! clearable_arch_vec {
     ) => {
         // Check if the property is architecture specific.
         // If so, we have to perform some checks and preparations
-        if let Some(architecture) = $architecture {
-            let properties = $architecture_properties.entry(*architecture).or_default();
+        if let Some(architecture) = $architecture
+            && let Architecture::Some(system_arch) = architecture
+        {
+            let properties = $architecture_properties
+                .entry(system_arch.clone())
+                .or_default();
             properties.$field_name = Override::Clear;
         } else {
             $field_name = Override::Clear;
@@ -223,10 +232,12 @@ macro_rules! package_arch_prop {
     ) => {
         // Check if the property is architecture specific.
         // If so, we have to perform some checks and preparations
-        if let Some(architecture) = $arch_property.architecture {
+        if let Some(architecture) = $arch_property.architecture
+            && let Architecture::Some(system_arch) = architecture
+        {
             // Make sure the architecture specific properties are initialized.
             let architecture_properties = $architecture_properties
-                .entry(architecture)
+                .entry(system_arch)
                 .or_insert(PackageArchitecture::default());
 
             // Set the architecture specific value.
@@ -289,13 +300,13 @@ impl Package {
     /// - `parsed`: The [`RawPackage`] representation of the SRCINFO data. The input guarantees that
     ///   the keyword assignments have been parsed correctly, but not yet that they represent valid
     ///   SRCINFO data as a whole.
-    pub fn from_parsed(parsed: RawPackage) -> Self {
+    pub fn from_parsed(parsed: RawPackage) -> Result<Self, Error> {
         let mut description = Override::No;
         let mut url = Override::No;
         let mut licenses = Override::No;
         let mut changelog = Override::No;
         let mut architectures = None;
-        let mut architecture_properties: BTreeMap<Architecture, PackageArchitecture> =
+        let mut architecture_properties: BTreeMap<SystemArchitecture, PackageArchitecture> =
             BTreeMap::new();
 
         // Build or package management related meta fields
@@ -319,8 +330,17 @@ impl Package {
                 continue;
             };
             let architectures = architectures.get_or_insert(Vec::new());
-            architectures.push(*architecture);
+            architectures.push(architecture);
         }
+
+        let architectures = if let Some(arch_vec) = architectures {
+            // Try to convert the list of architectures into an `Architectures` instance.
+            // This will fail if "any" is combined with any specific system architecture.
+            let architectures: Architectures = arch_vec.try_into()?;
+            Some(architectures)
+        } else {
+            None
+        };
 
         // Next, check if there are any ClearableProperty overrides.
         // These indicate that a value or a vector should be overridden and set to None or an empty
@@ -421,7 +441,7 @@ impl Package {
             }
         }
 
-        Package {
+        Ok(Package {
             name: parsed.name,
             description,
             url,
@@ -438,6 +458,6 @@ impl Package {
             provides,
             conflicts,
             replaces,
-        }
+        })
     }
 }

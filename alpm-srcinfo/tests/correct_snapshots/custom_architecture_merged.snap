@@ -1,0 +1,6 @@
+---
+source: alpm-srcinfo/tests/correct.rs
+description: custom_architecture merged representation.
+expression: package_json
+---
+[]
