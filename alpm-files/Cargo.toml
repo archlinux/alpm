@@ -1,6 +1,6 @@
 [package]
 authors.workspace = true
-description = "Library and CLI for the handling of the alpm-files format"
+description = "Library and command line interface for the handling of the alpm-files format"
 edition.workspace = true
 homepage.workspace = true
 keywords.workspace = true
@@ -12,6 +12,21 @@ rust-version.workspace = true
 version = "0.1.0"
 
 [dependencies]
+alpm-common.workspace = true
+alpm-types.workspace = true
+fluent-i18n.workspace = true
+strum.workspace = true
+thiserror.workspace = true
+winnow.workspace = true
+
+[dev-dependencies]
+insta.workspace = true
+rstest.workspace = true
+tempfile.workspace = true
+testresult.workspace = true
+
+[features]
+_winnow = ["winnow/debug"]
 
 [lints]
 workspace = true

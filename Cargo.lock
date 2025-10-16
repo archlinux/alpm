@@ -75,6 +75,18 @@ version = "0.1.0"
 [[package]]
 name = "alpm-files"
 version = "0.1.0"
+dependencies = [
+ "alpm-common",
+ "alpm-types",
+ "fluent-i18n",
+ "insta",
+ "rstest",
+ "strum",
+ "tempfile",
+ "testresult",
+ "thiserror",
+ "winnow",
+]
 
 [[package]]
 name = "alpm-lint"
