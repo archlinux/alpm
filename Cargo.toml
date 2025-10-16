@@ -17,6 +17,7 @@ members = [
     "alpm-common",
     "alpm-compress",
     "alpm-db",
+    "alpm-files",
     "alpm-lint-config",
     "alpm-mtree",
     "alpm-package",

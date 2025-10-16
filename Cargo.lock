@@ -82,6 +82,10 @@ name = "alpm-db"
 version = "0.1.0"
 
 [[package]]
+name = "alpm-files"
+version = "0.1.0"
+
+[[package]]
 name = "alpm-lint-config"
 version = "0.1.0"
 dependencies = [
