@@ -1,0 +1,1 @@
+../../../../python-alpm/ARCHITECTURE.md

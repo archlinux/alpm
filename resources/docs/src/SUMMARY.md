@@ -26,6 +26,7 @@
 - [alpm-types](./alpm-types/README.md)
     - [CHANGELOG](./alpm-types/CHANGELOG.md)
 - [python-alpm](./python-alpm/README.md)
+    - [ARCHITECTURE](./python-alpm/ARCHITECTURE.md)
     - [CHANGELOG](./python-alpm/CHANGELOG.md)
 
 # Specifications
