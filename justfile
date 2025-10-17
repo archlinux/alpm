@@ -777,6 +777,13 @@ test *options:
         cargo-nextest
     )
     read -r -a options <<< "{{ options }}"
+    # If no options are provided, run all targets, locked.
+    if (( ${#options[@]} == 0 )); then
+        options+=(
+            --locked
+            --all
+        )
+    fi
 
     if [[ "$coverage" == "true" ]]; then
         commands+=(cargo-llvm-cov)
@@ -788,7 +795,7 @@ test *options:
         just ensure-command "${commands[@]}"
     fi
 
-    cargo nextest run --locked --all "${options[@]}"
+    cargo nextest run "${options[@]}"
 
 # Runs all doc tests. Options to `cargo test` can be passed in using `options`.
 [group('test')]
