@@ -1,0 +1,88 @@
+---
+source: alpm-db/tests/integration.rs
+description: alpm-db-desc format --output-format json --pretty
+expression: json
+---
+{
+  "name": "foo",
+  "version": {
+    "pkgver": "1.0.0",
+    "epoch": null,
+    "pkgrel": {
+      "major": 1,
+      "minor": null
+    }
+  },
+  "base": "foo",
+  "description": "An example package",
+  "url": "https://example.org/",
+  "arch": "x86_64",
+  "builddate": 1733737242,
+  "installdate": 1733737243,
+  "packager": {
+    "name": "Foobar McFooface",
+    "email": "foobar@mcfooface.org"
+  },
+  "size": 123,
+  "groups": [
+    "utils",
+    "cli"
+  ],
+  "reason": "Depend",
+  "license": [
+    "MIT",
+    "Apache-2.0"
+  ],
+  "validation": [
+    "Pgp",
+    "Sha256"
+  ],
+  "replaces": [
+    "pkg-old",
+    "pkg-old2"
+  ],
+  "depends": [
+    {
+      "name": "glibc",
+      "version_requirement": null
+    },
+    {
+      "name": "glibc2",
+      "version_requirement": null
+    }
+  ],
+  "optdepends": [
+    {
+      "package_relation": {
+        "name": "optpkg",
+        "version_requirement": null
+      },
+      "description": null
+    },
+    {
+      "package_relation": {
+        "name": "optpkg2",
+        "version_requirement": null
+      },
+      "description": null
+    }
+  ],
+  "conflicts": [
+    "foo-old",
+    "foo-old2"
+  ],
+  "provides": [
+    "foo-virtual",
+    "foo-virtual2"
+  ],
+  "xdata": [
+    {
+      "key": "pkgtype",
+      "value": "pkg"
+    },
+    {
+      "key": "random",
+      "value": "value"
+    }
+  ]
+}

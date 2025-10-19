@@ -1,0 +1,6 @@
+---
+source: alpm-db/tests/parse_errors.rs
+description: ""
+expression: error
+---
+Missing section: %NAME%

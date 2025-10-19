@@ -1,0 +1,26 @@
+%NAME%
+foo bar!
+
+%VERSION%
+1.0.0-1
+
+%BASE%
+foo
+
+%DESC%
+Package with an invalid name
+
+%ARCH%
+x86_64
+
+%BUILDDATE%
+1733737242
+
+%INSTALLDATE%
+1733737243
+
+%PACKAGER%
+Foobar <foo@example.org>
+
+%SIZE%
+123

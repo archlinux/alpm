@@ -15,6 +15,7 @@ SPDX-FileCopyrightText = "ALPM Contributors"
 SPDX-License-Identifier = "CC0-1.0"
 path = [
     "**.bash",
+    "**.desc",
     "**.ftl",
     "**.json",
     "**.jsonc",

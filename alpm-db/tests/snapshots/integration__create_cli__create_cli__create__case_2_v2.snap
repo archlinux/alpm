@@ -1,0 +1,66 @@
+---
+source: alpm-db/tests/integration.rs
+description: "alpm-db-desc create v2 --name foo --version 1.0.0-1 --base foo --description An example package --url https://example.org --arch x86_64 --builddate 1733737242 --installdate 1733737243 --packager Foobar McFooface <foobar@mcfooface.org> --size 123 --groups utils --groups cli --reason 1 --license MIT --license Apache-2.0 --validation pgp --replaces pkg-old --depends glibc --optdepends optpkg --conflicts foo-old --provides foo-virtual --xdata pkgtype=pkg desc"
+expression: s
+---
+%NAME%
+foo
+
+%VERSION%
+1.0.0-1
+
+%BASE%
+foo
+
+%DESC%
+An example package
+
+%URL%
+https://example.org/
+
+%ARCH%
+x86_64
+
+%BUILDDATE%
+1733737242
+
+%INSTALLDATE%
+1733737243
+
+%PACKAGER%
+Foobar McFooface <foobar@mcfooface.org>
+
+%SIZE%
+123
+
+%GROUPS%
+utils
+cli
+
+%REASON%
+1
+
+%LICENSE%
+MIT
+Apache-2.0
+
+%VALIDATION%
+pgp
+
+%REPLACES%
+pkg-old
+
+%DEPENDS%
+glibc
+
+%OPTDEPENDS%
+optpkg
+
+%CONFLICTS%
+foo-old
+
+%PROVIDES%
+foo-virtual
+
+%XDATA%
+pkgtype=pkg
