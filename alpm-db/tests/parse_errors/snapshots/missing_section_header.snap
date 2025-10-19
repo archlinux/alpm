@@ -1,0 +1,12 @@
+---
+source: alpm-db/tests/parse_errors.rs
+description: "NAME\nfoo\n\n%VERSION%\n1.0.0-1\n"
+expression: error
+---
+Parser failed with the following error:
+parse error at line 1, column 1
+  |
+1 | NAME
+  | ^
+invalid section name
+expected expected a section name that is enclosed in `%` characters, `NAME`, `VERSION`, `BASE`, `DESC`, `URL`, `ARCH`, `BUILDDATE`, `INSTALLDATE`, `PACKAGER`, `SIZE`, `GROUPS`, `REASON`, `LICENSE`, `VALIDATION`, `REPLACES`, `DEPENDS`, `OPTDEPENDS`, `CONFLICTS`, `PROVIDES`, `XDATA`, expected a section in the database desc file

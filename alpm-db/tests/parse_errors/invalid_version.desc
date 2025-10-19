@@ -1,0 +1,26 @@
+%NAME%
+foo
+
+%VERSION%
+!
+
+%BASE%
+foo
+
+%DESC%
+Version must follow pkgver[-pkgrel] rules
+
+%ARCH%
+x86_64
+
+%BUILDDATE%
+1733737242
+
+%INSTALLDATE%
+1733737243
+
+%PACKAGER%
+Foobar <foo@example.org>
+
+%SIZE%
+123

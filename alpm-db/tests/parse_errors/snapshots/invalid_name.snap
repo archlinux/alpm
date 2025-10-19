@@ -1,0 +1,12 @@
+---
+source: alpm-db/tests/parse_errors.rs
+description: "%NAME%\nfoo bar!\n\n%VERSION%\n1.0.0-1\n\n%BASE%\nfoo\n\n%DESC%\nPackage with an invalid name\n\n%ARCH%\nx86_64\n\n%BUILDDATE%\n1733737242\n\n%INSTALLDATE%\n1733737243\n\n%PACKAGER%\nFoobar <foo@example.org>\n\n%SIZE%\n123\n"
+expression: error
+---
+Parser failed with the following error:
+parse error at line 2, column 1
+  |
+2 | foo bar!
+  | ^
+invalid sections
+expected expected a section in the database desc file

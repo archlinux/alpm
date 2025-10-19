@@ -1,0 +1,6 @@
+---
+source: alpm-db/tests/parse_errors.rs
+description: "%NAME%\nfoo\n\n%NAME%\nfoo\n\n%VERSION%\n1.0.0-1\n\n%BASE%\nfoo\n\n%DESC%\nAn example package\n\n%URL%\nhttps://example.org/\n\n%ARCH%\nx86_64\n\n%BUILDDATE%\n1733737242\n\n%INSTALLDATE%\n1733737243\n\n%PACKAGER%\nFoobar McFooface <foobar@mcfooface.org>\n\n%SIZE%\n123\n\n%GROUPS%\nutils\ncli\n\n%REASON%\n1\n\n%LICENSE%\nMIT\nApache-2.0\n\n%VALIDATION%\npgp\n\n%REPLACES%\npkg-old\n\n%DEPENDS%\nglibc\n\n%OPTDEPENDS%\noptpkg\n\n%CONFLICTS%\nfoo-old\n\n%PROVIDES%\nfoo-virtual\n"
+expression: error
+---
+Duplicate section: %NAME%
