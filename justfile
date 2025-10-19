@@ -490,6 +490,7 @@ check-shell-code:
     just check-shell-recipe 'test-readme alpm-buildinfo'
     just check-shell-recipe 'test-readme alpm-pkginfo'
     just check-shell-recipe 'test-readme alpm-srcinfo'
+    just check-shell-recipe 'test-readme alpm-db'
     just check-shell-recipe build-book
     just check-shell-recipe check-commits
     just check-shell-recipe check-unused-deps
@@ -831,6 +832,7 @@ test-readmes:
     just test-readme alpm-pkginfo
     just test-readme alpm-srcinfo
     just test-readme alpm-soname
+    just test-readme alpm-db
 
 # Run tests for Python bindings (accepts pytest `options`).
 [group('test')]
