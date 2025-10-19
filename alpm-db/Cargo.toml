@@ -11,7 +11,34 @@ repository.workspace = true
 rust-version.workspace = true
 version = "0.1.0"
 
+[[bin]]
+name = "alpm-db-desc"
+path = "src/bin/alpm-db-desc.rs"
+required-features = ["cli"]
+
+[features]
+_winnow-debug = ["winnow/debug"]
+cli = ["dep:clap", "dep:serde_json"]
+default = []
+
 [dependencies]
+alpm-common.workspace = true
+alpm-parsers.workspace = true
+alpm-types.workspace = true
+clap = { workspace = true, optional = true }
+serde.workspace = true
+serde_json = { workspace = true, optional = true }
+strum.workspace = true
+thiserror.workspace = true
+winnow.workspace = true
+
+[dev-dependencies]
+assert_cmd.workspace = true
+insta.workspace = true
+pretty_assertions.workspace = true
+rstest.workspace = true
+tempfile.workspace = true
+testresult.workspace = true
 
 [lints]
 workspace = true

@@ -71,6 +71,23 @@ dependencies = [
 [[package]]
 name = "alpm-db"
 version = "0.1.0"
+dependencies = [
+ "alpm-common",
+ "alpm-parsers",
+ "alpm-types",
+ "assert_cmd",
+ "clap",
+ "insta",
+ "pretty_assertions",
+ "rstest",
+ "serde",
+ "serde_json",
+ "strum",
+ "tempfile",
+ "testresult",
+ "thiserror",
+ "winnow",
+]
 
 [[package]]
 name = "alpm-files"
