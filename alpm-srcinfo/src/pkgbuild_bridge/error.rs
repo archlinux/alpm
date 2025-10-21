@@ -2,6 +2,7 @@
 
 use alpm_pkgbuild::bridge::Keyword;
 use alpm_types::{Name, SystemArchitecture};
+use fluent_i18n::t;
 use thiserror::Error;
 use winnow::error::{ContextError, ParseError};
 
@@ -17,11 +18,14 @@ pub enum BridgeError {
     AlpmType(#[from] alpm_types::Error),
 
     /// No `pkgname` has been specified.
-    #[error("No 'pkgname' has been specified. At least one must be given.")]
+    #[error("{msg}", msg = t!("error-bridge-no-name"))]
     NoName,
 
     /// A package name is not valid.
-    #[error("The package name '{name}' is not valid:\n{error}")]
+    #[error("{msg}", msg = t!("error-bridge-invalid-package-name", {
+        "name" => name,
+        "error" => error.to_string()
+    }))]
     InvalidPackageName {
         /// The invalid package name.
         name: String,
@@ -31,26 +35,27 @@ pub enum BridgeError {
 
     /// A `package` function has been declared for a split package, but it is not defined in
     /// `pkgname`.
-    #[error(
-        "The split package '{0}' is not declared in pkgname, but a package function is present for it."
-    )]
+    #[error("{msg}", msg = t!("error-bridge-undeclared-package", { "name" => .0 }))]
     UndeclaredPackageName(String),
 
     /// An unused package function exists for an undeclared [alpm-split-package].
     ///
     /// [alpm-split-package]: https://alpm.archlinux.page/specifications/alpm-split-package.7.html
-    #[error("An unused package function exists for undeclared split package: '{0}'")]
+    #[error("{msg}", msg = t!("error-bridge-unused-package-function", { "name" => .0.to_string() }))]
     UnusedPackageFunction(Name),
 
     /// A type parser fails on a certain keyword.
-    #[error("Missing keyword: '{keyword}'")]
+    #[error("{msg}", msg = t!("error-bridge-missing-required-keyword", { "keyword" => keyword.to_string() }))]
     MissingRequiredKeyword {
         /// The keyword that cannot be parsed.
         keyword: Keyword,
     },
 
     /// A type parser fails on a certain keyword.
-    #[error("Failed to parse input for keyword '{keyword}':\n{error}")]
+    #[error("{msg}", msg = t!("error-bridge-parse-error", {
+        "keyword" => keyword.to_string(),
+        "error" => error
+    }))]
     ParseError {
         /// The keyword that cannot be parsed.
         keyword: Keyword,
@@ -60,9 +65,11 @@ pub enum BridgeError {
 
     /// A variable is expected to be of a different type.
     /// E.g. `String` when an `Array` is expected.
-    #[error(
-        "Got wrong variable type for keyword '{keyword}'. Expected a {expected}, got a {actual}"
-    )]
+    #[error("{msg}", msg = t!("error-bridge-wrong-variable-type", {
+        "keyword" => keyword,
+        "expected" => expected,
+        "actual" => actual
+    }))]
     WrongVariableType {
         /// The name of the keyword for which a wrong variable type is used.
         keyword: String,
@@ -73,7 +80,10 @@ pub enum BridgeError {
     },
 
     /// A keyword has an architecture suffix even though it shouldn't have one.
-    #[error("Found unexpected architecture suffix '{suffix}' for keyword '{keyword}'")]
+    #[error("{msg}", msg = t!("error-bridge-unexpected-arch", {
+        "keyword" => keyword.to_string(),
+        "suffix" => suffix.to_string()
+    }))]
     UnexpectedArchitecture {
         /// The keyword for which an unexpected architecture suffix is found.
         keyword: Keyword,
@@ -82,17 +92,17 @@ pub enum BridgeError {
     },
 
     /// A keyword that cannot be cleared is attempted to be cleared.
-    #[error("Tried to clear value for keyword '{keyword}', which is not allowed.")]
+    #[error("{msg}", msg = t!("error-bridge-unclearable-value", { "keyword" => keyword.to_string() }))]
     UnclearableValue {
         /// The keyword that is attempted to be cleared.
         keyword: Keyword,
     },
 
     /// A keyword should have only a single value, but an array is found.
-    #[error(
-        "Found array of values for keyword '{keyword}' that expects a single value:\n{}",
-        values.iter().map(|s| format!("\"{s}\"")).collect::<Vec<String>>().join(", ")
-    )]
+    #[error("{msg}", msg = t!("error-bridge-unexpected-array", {
+        "keyword" => keyword.to_string(),
+        "values" => values.iter().map(|s| format!("\"{s}\"")).collect::<Vec<_>>().join(", ")
+    }))]
     UnexpectedArray {
         /// The keyword for which a single value should be used.
         keyword: Keyword,

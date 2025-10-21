@@ -2,13 +2,10 @@
 pub mod parser;
 pub mod v1;
 
-use std::{
-    fs::File,
-    path::{Path, PathBuf},
-    str::FromStr,
-};
+use std::{fs::File, path::Path, str::FromStr};
 
 use alpm_common::{FileFormatSchema, MetadataFile};
+use fluent_i18n::t;
 use serde::{Deserialize, Serialize};
 
 use crate::{Error, SourceInfoSchema, SourceInfoV1};
@@ -87,8 +84,10 @@ impl MetadataFile<SourceInfoSchema> for SourceInfo {
     ) -> Result<Self, Error> {
         let file = file.as_ref();
         Self::from_reader_with_schema(
-            File::open(file).map_err(|source| {
-                Error::IoPath(PathBuf::from(file), "opening the file for reading", source)
+            File::open(file).map_err(|source| Error::IoPath {
+                path: file.to_path_buf(),
+                context: t!("error-io-path-opening-file"),
+                source,
             })?,
             schema,
         )
@@ -154,7 +153,10 @@ impl MetadataFile<SourceInfoSchema> for SourceInfo {
         let mut buf = String::new();
         reader
             .read_to_string(&mut buf)
-            .map_err(|source| Error::Io("reading SRCINFO data", source))?;
+            .map_err(|source| Error::Io {
+                context: t!("error-io-read-srcinfo-data"),
+                source,
+            })?;
         Self::from_str_with_schema(&buf, schema)
     }
 

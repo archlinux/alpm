@@ -13,6 +13,7 @@ use alpm_srcinfo::{
     source_info::v1::merged::MergedPackage,
 };
 use alpm_types::Architecture;
+use fluent_i18n::t;
 use thiserror::Error;
 
 /// A high-level error wrapper around [`alpm_srcinfo::Error`] to add CLI error cases.
@@ -20,11 +21,11 @@ use thiserror::Error;
 #[non_exhaustive]
 pub enum Error {
     /// JSON error while creating JSON formatted output.
-    #[error("JSON error: {0}")]
+    #[error("{msg}", msg = t!("error-json", { "error" => .0.to_string() }))]
     Json(#[from] serde_json::Error),
 
     /// No input file given.
-    #[error("No input file given.")]
+    #[error("{msg}", msg = t!("error-no-input-file"))]
     NoInputFile,
 
     /// An [alpm_srcinfo::Error]

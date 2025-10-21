@@ -11,6 +11,7 @@ use std::{
 
 use alpm_pkgbuild::bridge::BridgeOutput;
 use alpm_types::Architecture;
+use fluent_i18n::t;
 use serde::{Deserialize, Serialize};
 use winnow::Parser;
 use writer::{pkgbase_section, pkgname_section};
@@ -84,12 +85,19 @@ impl SourceInfoV1 {
     /// Returns an [`Error`] if the file cannot be read or parsed.
     pub fn from_file(path: &Path) -> Result<SourceInfoV1, Error> {
         let mut buffer = Vec::new();
-        let file = File::open(path)
-            .map_err(|err| Error::IoPath(path.to_path_buf(), "opening file", err))?;
+        let file = File::open(path).map_err(|source| Error::IoPath {
+            path: path.to_path_buf(),
+            context: t!("error-io-path-opening-file"),
+            source,
+        })?;
         let mut buf_reader = BufReader::new(file);
         buf_reader
             .read_to_end(&mut buffer)
-            .map_err(|err| Error::IoPath(path.to_path_buf(), "reading file", err))?;
+            .map_err(|source| Error::IoPath {
+                path: path.to_path_buf(),
+                context: t!("error-io-path-reading-file"),
+                source,
+            })?;
 
         let content = String::from_utf8(buffer)?.to_string();
 

@@ -2,6 +2,7 @@
 use std::{path::PathBuf, string::FromUtf8Error};
 
 use alpm_pkgbuild::error::Error as PkgbuildError;
+use fluent_i18n::t;
 use thiserror::Error;
 
 use crate::pkgbuild_bridge::error::BridgeError;
@@ -17,47 +18,62 @@ use crate::{SourceInfoV1, source_info::parser::SourceInfoContent};
 #[non_exhaustive]
 pub enum Error {
     /// ALPM type error
-    #[error("ALPM type parse error: {0}")]
+    #[error("{msg}", msg = t!("error-alpm-type", { "error" => .0.to_string() }))]
     AlpmType(#[from] alpm_types::Error),
 
     /// IO error
-    #[error("I/O error while {0}:\n{1}")]
-    Io(&'static str, std::io::Error),
+    #[error("{msg}", msg = t!("error-io", { "context" => .context, "error" => .source.to_string() }))]
+    Io {
+        /// The context in which the IO error occurred.
+        context: String,
+        /// The underlying IO error.
+        source: std::io::Error,
+    },
 
     /// IO error with additional path info for more context.
-    #[error("I/O error at path {0:?} while {1}:\n{2}")]
-    IoPath(PathBuf, &'static str, std::io::Error),
+    #[error("{msg}", msg = t!("error-io-path", {
+        "path" => path,
+        "context" => context,
+        "error" => source.to_string()
+    }))]
+    IoPath {
+        /// The path related to the IO error.
+        path: PathBuf,
+        /// The context in which the IO error occurred.
+        context: String,
+        /// The underlying IO error.
+        source: std::io::Error,
+    },
 
     /// UTF-8 parse error when reading the input file.
-    #[error(transparent)]
+    #[error("{msg}", msg = t!("error-invalid-utf8", { "error" => .0.to_string() }))]
     InvalidUTF8(#[from] FromUtf8Error),
 
     /// A section or keyword is missing for a SRCINFO schema version.
-    #[error("The SRCINFO data misses the required keyword '{keyword}'")]
+    #[error("{msg}", msg = t!("error-missing-keyword", { "keyword" => keyword }))]
     MissingKeyword {
         /// The missing keyword.
         keyword: &'static str,
     },
 
     /// A parsing error that occurred during winnow file parsing.
-    #[error("File parsing error:\n{0}")]
+    #[error("{msg}", msg = t!("error-parse", { "error" => .0 }))]
     ParseError(String),
 
     /// Unsupported schema version
-    #[error("Unsupported schema version: {0}")]
+    #[error("{msg}", msg = t!("error-unsupported-schema-version", { "version" => .0 }))]
     UnsupportedSchemaVersion(String),
 
-    /// A alpm-pkgbuild bridge error that occurred when converting a PKGBUILD to a [`SourceInfoV1`]
-    /// struct.
+    /// A alpm-pkgbuild bridge error that occurred when converting a PKGBUILD to a [`SourceInfoV1`].
     ///
     /// See [`PkgbuildError`] for further details.
-    #[error(transparent)]
+    #[error("{msg}", msg = t!("error-bridge", { "error" => .0.to_string() }))]
     BridgeError(#[from] PkgbuildError),
 
     /// A logical error occurred when transforming `alpm-pkgbuild-bridge` script output to a
     /// [`SourceInfoV1`] struct.
     ///
     /// See [`BridgeError`] for further details.
-    #[error(transparent)]
+    #[error("{msg}", msg = t!("error-bridge-conversion", { "error" => .0.to_string() }))]
     BridgeConversionError(#[from] BridgeError),
 }

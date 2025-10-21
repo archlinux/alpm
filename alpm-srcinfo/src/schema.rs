@@ -3,12 +3,13 @@
 use std::{
     fmt::{Display, Formatter},
     fs::File,
-    path::{Path, PathBuf},
+    path::Path,
     str::FromStr,
 };
 
 use alpm_common::FileFormatSchema;
 use alpm_types::{SchemaVersion, semver_version::Version};
+use fluent_i18n::t;
 use winnow::Parser;
 
 use crate::{Error, source_info::parser::SourceInfoContent};
@@ -51,12 +52,10 @@ impl FileFormatSchema for SourceInfoSchema {
         Self: Sized,
     {
         let file = file.as_ref();
-        Self::derive_from_reader(File::open(file).map_err(|source| {
-            Error::IoPath(
-                PathBuf::from(file),
-                "deriving schema version from SRCINFO file",
-                source,
-            )
+        Self::derive_from_reader(File::open(file).map_err(|source| Error::IoPath {
+            path: file.to_path_buf(),
+            context: t!("error-io-deriving-schema-from-srcinfo-file"),
+            source,
         })?)
     }
 
@@ -77,7 +76,10 @@ impl FileFormatSchema for SourceInfoSchema {
         let mut reader = reader;
         reader
             .read_to_string(&mut buf)
-            .map_err(|source| Error::Io("deriving schema version from SRCINFO data", source))?;
+            .map_err(|source| Error::Io {
+                context: t!("error-io-deriving-schema-from-srcinfo-data"),
+                source,
+            })?;
         Self::derive_from_str(&buf)
     }
 

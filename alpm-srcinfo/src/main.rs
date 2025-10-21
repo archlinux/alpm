@@ -7,6 +7,8 @@ use clap::Parser;
 
 mod commands;
 
+fluent_i18n::i18n!("locales");
+
 use crate::commands::{create, format_packages, format_source_info, validate};
 
 /// The entry point for the `alpm-srcinfo` binary.

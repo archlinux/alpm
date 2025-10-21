@@ -15,3 +15,5 @@ pub use source_info::{
 
 mod schema;
 pub use schema::SourceInfoSchema;
+
+fluent_i18n::i18n!("locales");
