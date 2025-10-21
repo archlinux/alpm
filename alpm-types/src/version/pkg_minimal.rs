@@ -8,6 +8,7 @@ use std::{
     str::FromStr,
 };
 
+use fluent_i18n::t;
 use serde::{Deserialize, Serialize};
 use winnow::{
     ModalResult,
@@ -264,7 +265,7 @@ impl TryFrom<Version> for MinimalVersion {
         if value.pkgrel.is_some() {
             Err(Error::InvalidComponent {
                 component: "pkgrel",
-                context: "converting a full alpm-package-version to a minimal alpm-package-version",
+                context: t!("error-context-convert-full-to-minimal"),
             })
         } else {
             Ok(Self {
@@ -422,8 +423,8 @@ mod tests {
     #[rstest]
     #[case::minimal_with_epoch(Version::from_str("1:1.0.0")?, Ok(MinimalVersion::from_str("1:1.0.0")?))]
     #[case::minimal(Version::from_str("1.0.0")?, Ok(MinimalVersion::from_str("1.0.0")?))]
-    #[case::full_with_epoch(Version::from_str("1:1.0.0-1")?, Err(Error::InvalidComponent{component: "pkgrel", context: "converting a full alpm-package-version to a minimal alpm-package-version"}))]
-    #[case::full(Version::from_str("1.0.0-1")?, Err(Error::InvalidComponent{component: "pkgrel", context: "converting a full alpm-package-version to a minimal alpm-package-version"}))]
+    #[case::full_with_epoch(Version::from_str("1:1.0.0-1")?, Err(Error::InvalidComponent{component: "pkgrel", context: t!("error-context-convert-full-to-minimal")}))]
+    #[case::full(Version::from_str("1.0.0-1")?, Err(Error::InvalidComponent{component: "pkgrel", context: t!("error-context-convert-full-to-minimal")}))]
     fn minimal_version_try_from_version(
         #[case] version: Version,
         #[case] expected: Result<MinimalVersion, Error>,

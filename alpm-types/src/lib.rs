@@ -122,3 +122,5 @@ pub use version::{
 pub mod semver_version {
     pub use semver::Version;
 }
+
+fluent_i18n::i18n!("locales");

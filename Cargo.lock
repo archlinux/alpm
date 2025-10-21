@@ -361,6 +361,7 @@ dependencies = [
  "crc-fast",
  "digest",
  "email_address",
+ "fluent-i18n",
  "insta",
  "log",
  "md-5",

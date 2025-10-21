@@ -7,4 +7,4 @@ example-1.0.0-1-x86_64.pkg.tar.foo
                                ^
 invalid file extension for compression
 expected `Z`, `bz2`, `gz`, `lrz`, `lz`, `lz4`, `lzo`, `xz`, `zst`
-Unknown compression algorithm file extension: "foo"
+Unknown compression algorithm file extension: foo

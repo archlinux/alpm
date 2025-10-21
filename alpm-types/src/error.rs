@@ -1,5 +1,7 @@
 use std::path::PathBuf;
 
+use fluent_i18n::t;
+
 use crate::Architecture;
 
 /// The library's error type
@@ -14,7 +16,10 @@ use crate::Architecture;
 #[derive(Debug, thiserror::Error, PartialEq)]
 pub enum Error {
     /// Combination of architectures that is invalid.
-    #[error("The architecture combination is invalid: {architectures:?}. {context}")]
+    #[error("{msg}", msg = t!("error-invalid-architectures", {
+        "architectures" => format!("{architectures:?}"),
+        "context" => context
+    }))]
     InvalidArchitectures {
         /// The invalid architectures combination.
         architectures: Vec<Architecture>,
@@ -23,50 +28,50 @@ pub enum Error {
     },
 
     /// An invalid integer
-    #[error("Invalid integer (caused by {kind:?})")]
+    #[error("{msg}", msg = t!("error-invalid-integer", { "kind" => format!("{kind:?}") }))]
     InvalidInteger {
         /// The reason for the invalid integer.
         kind: std::num::IntErrorKind,
     },
 
     /// An invalid enum variant
-    #[error("Invalid variant ({0})")]
+    #[error("{msg}", msg = t!("error-invalid-variant", { "error" => .0.to_string() }))]
     InvalidVariant(#[from] strum::ParseError),
 
     /// An invalid email address
-    #[error("Invalid e-mail ({0})")]
+    #[error("{msg}", msg = t!("error-invalid-email", { "error" => .0.to_string() }))]
     InvalidEmail(#[from] email_address::Error),
 
     /// An invalid URL
-    #[error("Invalid URL ({0})")]
+    #[error("{msg}", msg = t!("error-invalid-url", { "error" => .0.to_string() }))]
     InvalidUrl(#[from] url::ParseError),
 
     /// An invalid license
-    #[error("Invalid license ({0})")]
+    #[error("{msg}", msg = t!("error-invalid-license", { "error" => .0.to_string() }))]
     InvalidLicense(#[from] spdx::ParseError),
 
     /// An invalid semantic version string
     ///
-    /// This error occurs when a semantic version cannot be parsed from a string
+    /// This error occurs when a semantic version cannot be parsed from a string.
     /// We cannot use `#[source] semver::Error` here because it does not implement `PartialEq`.
     /// See: <https://github.com/dtolnay/semver/issues/326>
     ///
     /// TODO: Use the error source when the issue above is resolved.
-    #[error("Invalid semver ({kind})")]
+    #[error("{msg}", msg = t!("error-invalid-semver", { "kind" => kind }))]
     InvalidSemver {
         /// The reason for the invalid semantic version.
         kind: String,
     },
 
-    /// Value contains an invalid character
-    #[error("Value contains invalid characters: {invalid_char:?}")]
+    /// Value contains invalid characters
+    #[error("{msg}", msg = t!("error-invalid-chars", { "invalid_char" => invalid_char.to_string() }))]
     ValueContainsInvalidChars {
         /// The invalid character
         invalid_char: char,
     },
 
     /// Value length is incorrect
-    #[error("Incorrect length, got {length} expected {expected}")]
+    #[error("{msg}", msg = t!("error-incorrect-length", { "length" => length, "expected" => expected }))]
     IncorrectLength {
         /// The incorrect length.
         length: usize,
@@ -75,21 +80,27 @@ pub enum Error {
     },
 
     /// Value is missing a delimiter character
-    #[error("Value is missing the required delimiter: {delimiter}")]
+    #[error("{msg}", msg = t!("error-delimiter-not-found", { "delimiter" => delimiter.to_string() }))]
     DelimiterNotFound {
         /// The required delimiter.
         delimiter: char,
     },
 
     /// Value does not match the restrictions
-    #[error("Does not match the restrictions ({restrictions:?})")]
+    #[error("{msg}", msg = t!("error-restrictions-not-met", {
+        "restrictions" => format!("{restrictions:?}")
+    }))]
     ValueDoesNotMatchRestrictions {
         /// The list of restrictions that cannot be met.
         restrictions: Vec<String>,
     },
 
     /// A validation regex does not match the value
-    #[error("Value '{value}' does not match the '{regex_type}' regex: {regex}")]
+    #[error("{msg}", msg = t!("error-regex-mismatch", {
+        "value" => value,
+        "regex_type" => regex_type,
+        "regex" => regex
+    }))]
     RegexDoesNotMatch {
         /// The value that does not match.
         value: String,
@@ -100,82 +111,85 @@ pub enum Error {
     },
 
     /// A winnow parser for a type didn't work and produced an error.
-    #[error("Parser failed with the following error:\n{0}")]
+    #[error("{msg}", msg = t!("error-parse", { "error" => .0 }))]
     ParseError(String),
 
     /// Missing field in a value
-    #[error("Missing component: {component}")]
+    #[error("{msg}", msg = t!("error-missing-component", { "component" => component }))]
     MissingComponent {
         /// The component that is missing.
         component: &'static str,
     },
 
     /// An invalid absolute path (i.e. does not start with a `/`)
-    #[error("The path is not absolute: {0}")]
+    #[error("{msg}", msg = t!("error-path-not-absolute", { "path" => .0 }))]
     PathNotAbsolute(PathBuf),
 
     /// An invalid relative path (i.e. starts with a `/`)
-    #[error("The path is not relative: {0}")]
+    #[error("{msg}", msg = t!("error-path-not-relative", { "path" => .0 }))]
     PathNotRelative(PathBuf),
 
     /// Expected a file, but got a directory
-    #[error("The path is not a file: {0}")]
+    #[error("{msg}", msg = t!("error-path-not-file", { "path" => .0 }))]
     PathIsNotAFile(PathBuf),
 
     /// File name contains invalid characters
-    #[error("File name ({0}) contains invalid characters: {1:?}")]
+    #[error("{msg}", msg = t!("error-filename-invalid-chars", {
+        "path" => .0,
+        "invalid_char" => .1.to_string()
+    }))]
     FileNameContainsInvalidChars(PathBuf, char),
 
     /// File name is empty
-    #[error("File name is empty")]
+    #[error("{msg}", msg = t!("error-filename-empty"))]
     FileNameIsEmpty,
 
     /// A deprecated license
-    #[error("Deprecated license: {0}")]
+    #[error("{msg}", msg = t!("error-deprecated-license", { "license" => .0 }))]
     DeprecatedLicense(String),
 
     /// A component is invalid and cannot be used.
-    #[error("Invalid component {component} encountered while {context}")]
+    #[error("{msg}", msg = t!("error-invalid-component", {
+        "component" => component,
+        "context" => context
+    }))]
     InvalidComponent {
-        /// The invalid component
+        /// The invalid component.
         component: &'static str,
         /// The context in which the error occurs.
         ///
-        /// This is meant to complete the sentence "Invalid component {component} encountered
-        /// while ".
-        context: &'static str,
+        /// This is meant to complete the sentence
+        /// "Invalid component {component} encountered while ".
+        context: String,
     },
 
     /// An invalid OpenPGP v4 fingerprint
-    #[error(
-        "Invalid OpenPGP v4 fingerprint, only 40 uppercase hexadecimal characters and optional \
-        whitespace separators are allowed"
-    )]
+    #[error("{msg}", msg = t!("error-invalid-pgp-fingerprint"))]
     InvalidOpenPGPv4Fingerprint,
 
     /// An invalid OpenPGP key ID
-    #[error("The string is not a valid OpenPGP key ID: {0}, must be 16 hexadecimal characters")]
+    #[error("{msg}", msg = t!("error-invalid-pgp-keyid", { "keyid" => .0 }))]
     InvalidOpenPGPKeyId(String),
 
     /// An invalid shared object name (v1)
-    #[error("Invalid shared object name (v1): {0}")]
+    #[error("{msg}", msg = t!("error-invalid-soname-v1", { "name" => .0 }))]
     InvalidSonameV1(&'static str),
 
     /// A package data error.
-    #[error("Package error: {0}")]
+    #[error("{msg}", msg = t!("error-package", { "error" => .0.to_string() }))]
     Package(#[from] crate::PackageError),
 
     /// A string represents an unknown compression algorithm file extension.
-    #[error("Unknown compression algorithm file extension: {value:?}")]
+    #[error("{msg}", msg = t!("error-unknown-compression", { "value" => value }))]
     UnknownCompressionAlgorithmFileExtension {
-        /// A String representing an unknown compression algorithm file extension.
+        /// A string representing an unknown compression algorithm file extension.
         value: String,
     },
 
     /// A string represents an unknown file type identifier.
-    #[error("Unknown file type identifier: {value:?}")]
+    #[error("{msg}", msg = t!("error-unknown-filetype", { "value" => value }))]
     UnknownFileTypeIdentifier {
-        /// A String representing an unknown file type identifier.
+        /// A string representing an unknown file type identifier.
         value: String,
     },
 }
