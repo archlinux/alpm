@@ -10,6 +10,8 @@ mod commands;
 
 use commands::{create_file, format, validate};
 
+fluent_i18n::i18n!("locales");
+
 fn main() -> ExitCode {
     let cli = Cli::parse();
     let result = match cli.command {

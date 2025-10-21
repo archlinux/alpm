@@ -10,6 +10,7 @@ use std::{
 };
 
 use alpm_common::{FileFormatSchema, MetadataFile};
+use fluent_i18n::t;
 
 use crate::{Error, PackageInfoSchema, PackageInfoV1, PackageInfoV2};
 
@@ -95,8 +96,10 @@ impl MetadataFile<PackageInfoSchema> for PackageInfo {
     ) -> Result<Self, Error> {
         let file = file.as_ref();
         Self::from_reader_with_schema(
-            File::open(file).map_err(|source| {
-                Error::IoPathError(PathBuf::from(file), "opening the file for reading", source)
+            File::open(file).map_err(|source| Error::IoPathError {
+                path: PathBuf::from(file),
+                context: t!("error-io-open-file"),
+                source,
             })?,
             schema,
         )
@@ -166,7 +169,7 @@ impl MetadataFile<PackageInfoSchema> for PackageInfo {
         reader
             .read_to_string(&mut buf)
             .map_err(|source| Error::IoReadError {
-                context: "reading PackageInfo data",
+                context: t!("error-io-read-pkginfo-data"),
                 source,
             })?;
         Self::from_str_with_schema(&buf, schema)
