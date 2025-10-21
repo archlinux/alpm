@@ -257,6 +257,7 @@ dependencies = [
  "blake2",
  "digest",
  "email_address",
+ "fluent-i18n",
  "insta",
  "log",
  "md-5",
