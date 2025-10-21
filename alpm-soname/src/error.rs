@@ -2,12 +2,18 @@
 
 use std::path::PathBuf;
 
+use fluent_i18n::t;
+
 /// The error that can occur when working with the library.
 #[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
 pub enum Error {
-    /// IO path error
-    #[error("I/O error at path {path} while {context}:\n{source}")]
+    /// I/O path error
+    #[error("{msg}", msg = t!("error-io-path-error", {
+        "path" => path,
+        "context" => context,
+        "source" => source.to_string()
+    }))]
     IoPathError {
         /// The path at which the error occurred.
         path: PathBuf,
@@ -22,7 +28,10 @@ pub enum Error {
     },
 
     /// I/O error while writing.
-    #[error("I/O write error while {context}:\n{source}")]
+    #[error("{msg}", msg = t!("error-io-write-error", {
+        "context" => context,
+        "source" => source.to_string()
+    }))]
     IoWriteError {
         /// The context in which the error occurred.
         ///
@@ -34,7 +43,10 @@ pub enum Error {
     },
 
     /// I/O error while reading.
-    #[error("I/O read error while {context}:\n{source}")]
+    #[error("{msg}", msg = t!("error-io-read-error", {
+        "context" => context,
+        "source" => source.to_string()
+    }))]
     IoReadError {
         /// The context in which the error occurred.
         ///
@@ -58,7 +70,10 @@ pub enum Error {
     AlpmPackage(#[from] alpm_package::Error),
 
     /// ELF format handling error
-    #[error("ELF format error while {context}:\n{source}")]
+    #[error("{msg}", msg = t!("error-elf-error", {
+        "context" => context,
+        "source" => source.to_string()
+    }))]
     ElfError {
         /// The context in which the error occurred.
         ///
@@ -70,13 +85,13 @@ pub enum Error {
     },
 
     /// Input directory not supported
-    #[error("Using input directories is not supported: {path}")]
+    #[error("{msg}", msg = t!("error-input-dir-not-supported", { "path" => path }))]
     InputDirectoryNotSupported {
         /// The path of the input directory.
         path: PathBuf,
     },
 
     /// JSON error
-    #[error("JSON error: {0}")]
+    #[error("{msg}", msg = t!("error-json", { "source" => .0.to_string() }))]
     Json(#[from] serde_json::Error),
 }
