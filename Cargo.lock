@@ -260,6 +260,7 @@ dependencies = [
  "alpm-parsers",
  "alpm-types",
  "assert_cmd",
+ "fluent-i18n",
  "insta",
  "log",
  "rstest",

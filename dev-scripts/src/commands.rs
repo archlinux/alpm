@@ -167,13 +167,13 @@ pub fn compare_source_info(pkgbuild_path: PathBuf, srcinfo_path: PathBuf) -> Res
         let pkgbuild_json_path = PathBuf::from("pkgbuild.json");
         write("pkgbuild.json", pkgbuild_source_info).map_err(|source| Error::IoPath {
             path: pkgbuild_json_path,
-            context: "writing pkgbuild.json to file".to_string(),
+            context: "writing pkgbuild.json file".to_string(),
             source,
         })?;
         let srcinfo_json_path = PathBuf::from("srcinfo.json");
         write("srcinfo.json", source_info).map_err(|source| Error::IoPath {
             path: srcinfo_json_path,
-            context: "writing srcinfo.json to file".to_string(),
+            context: "writing srcinfo.json file".to_string(),
             source,
         })?;
 
