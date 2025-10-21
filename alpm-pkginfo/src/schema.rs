@@ -11,6 +11,7 @@ use std::{
 use alpm_common::FileFormatSchema;
 use alpm_parsers::custom_ini::parser::Item;
 use alpm_types::{SchemaVersion, semver_version::Version};
+use fluent_i18n::t;
 
 use crate::Error;
 
@@ -55,12 +56,10 @@ impl FileFormatSchema for PackageInfoSchema {
         Self: Sized,
     {
         let file = file.as_ref();
-        Self::derive_from_reader(File::open(file).map_err(|source| {
-            Error::IoPathError(
-                PathBuf::from(file),
-                "deriving schema version from PKGINFO file",
-                source,
-            )
+        Self::derive_from_reader(File::open(file).map_err(|source| Error::IoPathError {
+            path: PathBuf::from(file),
+            context: t!("error-io-derive-schema-from-pkginfo"),
+            source,
         })?)
     }
 
@@ -82,7 +81,7 @@ impl FileFormatSchema for PackageInfoSchema {
         reader
             .read_to_string(&mut buf)
             .map_err(|source| Error::IoReadError {
-                context: "deriving schema version from PKGINFO data",
+                context: t!("error-io-derive-schema-from-pkginfo"),
                 source,
             })?;
         Self::derive_from_str(&buf)

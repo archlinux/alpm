@@ -16,3 +16,5 @@ pub use crate::utils::RelationOrSoname;
 
 mod schema;
 pub use schema::PackageInfoSchema;
+
+fluent_i18n::i18n!("locales");
