@@ -27,6 +27,7 @@ alpm-pkginfo.workspace = true
 alpm-types.workspace = true
 clap = { workspace = true, optional = true }
 clap-verbosity = "2.1.0"
+fluent-i18n.workspace = true
 goblin = "0.10.0"
 log = { version = "0.4.27", optional = true }
 serde.workspace = true

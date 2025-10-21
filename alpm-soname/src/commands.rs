@@ -3,6 +3,7 @@
 use std::io::Write;
 
 use alpm_types::{Soname, SonameLookupDirectory};
+use fluent_i18n::t;
 
 use crate::{
     Error,
@@ -31,7 +32,7 @@ pub fn get_provisions<W: Write>(
         OutputFormat::Plain => {
             for provision in provisions {
                 writeln!(output, "{provision}").map_err(|source| Error::IoWriteError {
-                    context: "writing provision to output",
+                    context: t!("error-io-write-provision-output"),
                     source,
                 })?;
             }
@@ -43,7 +44,7 @@ pub fn get_provisions<W: Write>(
                 serde_json::to_string(&provisions)?
             };
             writeln!(output, "{json}").map_err(|source| Error::IoWriteError {
-                context: "writing JSON to output",
+                context: t!("error-io-write-json"),
                 source,
             })?;
             return Ok(());
@@ -72,7 +73,7 @@ pub fn get_dependencies<W: Write>(
         OutputFormat::Plain => {
             for dependency in &dependencies {
                 writeln!(output, "{dependency}").map_err(|source| Error::IoWriteError {
-                    context: "writing dependency to output",
+                    context: t!("error-io-write-dependency-output"),
                     source,
                 })?;
             }
@@ -81,7 +82,7 @@ pub fn get_dependencies<W: Write>(
         OutputFormat::Json => {
             let json = serde_json::to_string_pretty(&dependencies)?;
             writeln!(output, "{json}").map_err(|source| Error::IoWriteError {
-                context: "writing JSON to output",
+                context: t!("error-io-write-json"),
                 source,
             })?;
         }
@@ -115,7 +116,7 @@ pub fn get_raw_dependencies<W: Write>(args: PackageArgs, output: &mut W) -> Resu
         OutputFormat::Plain => {
             for elf_soname in elf_sonames {
                 writeln!(output, "{elf_soname}").map_err(|source| Error::IoWriteError {
-                    context: "writing ELF soname to output",
+                    context: t!("error-io-write-elf-soname-output"),
                     source,
                 })?;
             }
@@ -127,7 +128,7 @@ pub fn get_raw_dependencies<W: Write>(args: PackageArgs, output: &mut W) -> Resu
                 serde_json::to_string(&elf_sonames)?
             };
             writeln!(output, "{json}").map_err(|source| Error::IoWriteError {
-                context: "writing JSON to output",
+                context: t!("error-io-write-json"),
                 source,
             })?;
         }

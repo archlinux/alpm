@@ -211,6 +211,7 @@ dependencies = [
  "assert_cmd",
  "clap",
  "clap-verbosity",
+ "fluent-i18n",
  "goblin",
  "log",
  "rstest",
