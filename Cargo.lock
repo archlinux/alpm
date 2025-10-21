@@ -233,6 +233,7 @@ dependencies = [
  "alpm-pkginfo",
  "alpm-types",
  "filetime",
+ "fluent-i18n",
  "log",
  "rstest",
  "simplelog",

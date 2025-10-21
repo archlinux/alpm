@@ -19,6 +19,7 @@ use alpm_types::{
     Packager,
     Sha256Checksum,
 };
+use fluent_i18n::t;
 use log::{debug, trace};
 
 #[cfg(doc)]
@@ -201,7 +202,7 @@ fn compare_digests(
     // Read the file to a buffer.
     let buf = read(path.as_path()).map_err(|source| crate::Error::IoPath {
         path: path.clone(),
-        context: "reading the file",
+        context: t!("error-io-read-file"),
         source,
     })?;
 
@@ -333,7 +334,7 @@ fn get_mtree(input_dir: &InputDir) -> Result<(Mtree, Sha256Checksum), crate::Err
     // Read the file to a buffer.
     let buf = read(path.as_path()).map_err(|source| crate::Error::IoPath {
         path,
-        context: "reading the ALPM-MTREE file",
+        context: t!("error-io-read-mtree"),
         source,
     })?;
     // Validate the metadata.
@@ -555,7 +556,7 @@ impl PackageInput {
         let path = self.input_dir.join(file_name.as_path());
         let buf = read(path.as_path()).map_err(|source| crate::Error::IoPath {
             path: path.clone(),
-            context: "reading the ALPM-MTREE file",
+            context: t!("error-io-read-mtree"),
             source,
         })?;
         let current_digest = Sha256Checksum::calculate_from(buf);
