@@ -1026,11 +1026,12 @@ test-python *options:
         source <(cargo llvm-cov show-env --export-prefix)
         uv sync
         maturin develop
+        # No reinstall arg as this would remove coverage instrumentation added by maturin
+        uv run pytest {{ options }}
     else
         just ensure-command "${commands[@]}"
+        uv run --reinstall-package python-alpm pytest {{ options }}
     fi
-
-    uv run pytest {{ options }}
 
 # Runs integration tests guarded by the `_virtualized-integration-test` feature (accepts `cargo nextest run` options via `options`).
 [group('test')]
