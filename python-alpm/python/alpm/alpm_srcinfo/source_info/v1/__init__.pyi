@@ -32,8 +32,8 @@ class SourceInfoV1:
 
         """
 
-    @classmethod
-    def from_file(cls, path: Union[Path, str]) -> "SourceInfoV1":
+    @staticmethod
+    def from_file(path: Union[Path, str]) -> "SourceInfoV1":
         """Read the file at the specified path and convert it into a SourceInfoV1.
 
         Args:
@@ -47,8 +47,8 @@ class SourceInfoV1:
 
         """
 
-    @classmethod
-    def from_pkgbuild(cls, path: Union[Path, str]) -> "SourceInfoV1":
+    @staticmethod
+    def from_pkgbuild(path: Union[Path, str]) -> "SourceInfoV1":
         """Create a SourceInfoV1 from a PKGBUILD file.
 
         Args:

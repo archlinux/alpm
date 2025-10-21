@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use pyo3::{prelude::*, types::PyType};
+use pyo3::prelude::*;
 
 use crate::macros::impl_from;
 
@@ -15,8 +15,8 @@ impl VersionRequirement {
         alpm_types::VersionRequirement::new(comparison.into(), version.into()).into()
     }
 
-    #[classmethod]
-    fn from_str(_cls: &Bound<'_, PyType>, req: &str) -> Result<Self, crate::types::Error> {
+    #[staticmethod]
+    fn from_str(req: &str) -> Result<Self, crate::types::Error> {
         let inner = alpm_types::VersionRequirement::from_str(req)?;
         Ok(inner.into())
     }
@@ -54,8 +54,8 @@ pub enum VersionComparison {
 
 #[pymethods]
 impl VersionComparison {
-    #[classmethod]
-    fn from_str(_cls: &Bound<'_, PyType>, comparison: &str) -> PyResult<VersionComparison> {
+    #[staticmethod]
+    fn from_str(comparison: &str) -> PyResult<VersionComparison> {
         alpm_types::VersionComparison::from_str(comparison)
             .map(VersionComparison::from)
             .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))

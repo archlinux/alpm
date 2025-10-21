@@ -1,4 +1,4 @@
-use pyo3::{prelude::*, types::PyType};
+use pyo3::prelude::*;
 
 use crate::macros::impl_from;
 
@@ -16,11 +16,8 @@ impl License {
         Ok(inner.into())
     }
 
-    #[classmethod]
-    fn from_valid_spdx(
-        _cls: &Bound<'_, PyType>,
-        identifier: &str,
-    ) -> Result<Self, crate::types::Error> {
+    #[staticmethod]
+    fn from_valid_spdx(identifier: &str) -> Result<Self, crate::types::Error> {
         let inner = alpm_types::License::from_valid_spdx(identifier.into())?;
         Ok(Self(inner))
     }

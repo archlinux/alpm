@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use pyo3::{prelude::*, types::PyType};
+use pyo3::prelude::*;
 use strum::Display;
 
 #[pyclass(frozen, eq, ord, hash)]
@@ -28,8 +28,8 @@ pub enum Architecture {
 
 #[pymethods]
 impl Architecture {
-    #[classmethod]
-    fn from_str(_cls: &Bound<'_, PyType>, arch: &str) -> PyResult<Architecture> {
+    #[staticmethod]
+    fn from_str(arch: &str) -> PyResult<Architecture> {
         alpm_types::Architecture::from_str(arch)
             .map(Architecture::from)
             .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))
@@ -94,8 +94,8 @@ pub enum ElfArchitectureFormat {
 
 #[pymethods]
 impl ElfArchitectureFormat {
-    #[classmethod]
-    fn from_str(_cls: &Bound<'_, PyType>, format: &str) -> PyResult<ElfArchitectureFormat> {
+    #[staticmethod]
+    fn from_str(format: &str) -> PyResult<ElfArchitectureFormat> {
         alpm_types::ElfArchitectureFormat::from_str(format)
             .map(ElfArchitectureFormat::from)
             .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))

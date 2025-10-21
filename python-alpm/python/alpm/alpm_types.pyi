@@ -284,8 +284,8 @@ class License:
 
         """
 
-    @classmethod
-    def from_valid_spdx(cls, identifier: str) -> "License":
+    @staticmethod
+    def from_valid_spdx(identifier: str) -> "License":
         """Create a new License instance from a valid SPDX identifier string.
 
         Args:
@@ -417,8 +417,8 @@ class Architecture(Enum):
     X86_64_V3 = ("x86_64_v3",)
     X86_64_V4 = ("x86_64_v4",)
 
-    @classmethod
-    def from_str(cls, arch: str) -> "Architecture":
+    @staticmethod
+    def from_str(arch: str) -> "Architecture":
         """Create an Architecture from a string.
 
         Args:
@@ -598,8 +598,8 @@ class Epoch:
 
         """
 
-    @classmethod
-    def from_str(cls, epoch: str) -> "Epoch":
+    @staticmethod
+    def from_str(epoch: str) -> "Epoch":
         """Create a new Epoch from a string representation.
 
         Args:
@@ -647,8 +647,8 @@ class PackageRelease:
 
         """
 
-    @classmethod
-    def from_str(cls, version: str) -> "PackageRelease":
+    @staticmethod
+    def from_str(version: str) -> "PackageRelease":
         """Create a PackageRelease from a string representation.
 
         Args:
@@ -742,8 +742,8 @@ class SchemaVersion:
 
         """
 
-    @classmethod
-    def from_str(cls, version: str) -> "SchemaVersion":
+    @staticmethod
+    def from_str(version: str) -> "SchemaVersion":
         """Create a SchemaVersion from a string representation.
 
         Args:
@@ -810,8 +810,8 @@ class OptionalDependency:
 
         """
 
-    @classmethod
-    def from_str(cls, s: str) -> "OptionalDependency":
+    @staticmethod
+    def from_str(s: str) -> "OptionalDependency":
         """Create a new OptionalDependency from a string representation.
 
         Args:
@@ -983,8 +983,8 @@ class VersionComparison(Enum):
     LESS = ("<",)
     GREATER = (">",)
 
-    @classmethod
-    def from_str(cls, comparison: str) -> "VersionComparison":
+    @staticmethod
+    def from_str(comparison: str) -> "VersionComparison":
         """Parse a version comparison string into a VersionComparison enum variant.
 
         Args:
@@ -1018,8 +1018,8 @@ class VersionRequirement:
 
         """
 
-    @classmethod
-    def from_str(cls, s: str) -> "VersionRequirement":
+    @staticmethod
+    def from_str(s: str) -> "VersionRequirement":
         """Create a new VersionRequirement from a string representation.
 
         Args:
@@ -1057,8 +1057,8 @@ class ElfArchitectureFormat(Enum):
     BIT_32 = ("32",)
     BIT_64 = ("64",)
 
-    @classmethod
-    def from_str(cls, format: str) -> "ElfArchitectureFormat":
+    @staticmethod
+    def from_str(format: str) -> "ElfArchitectureFormat":
         """Parse an ELF architecture format string into an ElfArchitectureFormat.
 
         Args:
@@ -1098,8 +1098,8 @@ class FullVersion:
 
         """
 
-    @classmethod
-    def from_str(cls, version: str) -> "FullVersion":
+    @staticmethod
+    def from_str(version: str) -> "FullVersion":
         """Create a FullVersion from a string representation.
 
         Args:
@@ -1170,8 +1170,8 @@ class Version:
 
         """
 
-    @classmethod
-    def from_str(cls, version: str) -> "Version":
+    @staticmethod
+    def from_str(version: str) -> "Version":
         """Create a FullVersion from a string representation.
 
         Args:

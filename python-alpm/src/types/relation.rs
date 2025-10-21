@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use pyo3::{exceptions::PyTypeError, prelude::*, types::PyType};
+use pyo3::{exceptions::PyTypeError, prelude::*};
 use strum::Display;
 
 use crate::macros::impl_from;
@@ -217,8 +217,8 @@ impl PackageRelation {
         Ok(inner.into())
     }
 
-    #[classmethod]
-    fn from_str(_cls: &Bound<'_, PyType>, s: &str) -> Result<PackageRelation, crate::types::Error> {
+    #[staticmethod]
+    fn from_str(s: &str) -> Result<PackageRelation, crate::types::Error> {
         let inner = alpm_types::PackageRelation::from_str(s)?;
         Ok(inner.into())
     }
@@ -263,11 +263,8 @@ impl OptionalDependency {
         alpm_types::OptionalDependency::new(package_relation.into(), description).into()
     }
 
-    #[classmethod]
-    fn from_str(
-        _cls: &Bound<'_, PyType>,
-        s: &str,
-    ) -> Result<OptionalDependency, crate::types::Error> {
+    #[staticmethod]
+    fn from_str(s: &str) -> Result<OptionalDependency, crate::types::Error> {
         let inner = alpm_types::OptionalDependency::from_str(s)?;
         Ok(inner.into())
     }
