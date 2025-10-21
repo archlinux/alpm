@@ -8,6 +8,7 @@ use std::{
     process::{Command, Stdio},
 };
 
+use fluent_i18n::t;
 use log::debug;
 pub use parser::{BridgeOutput, ClearableValue, Keyword, RawPackageName, Value};
 use which::which;
@@ -61,7 +62,7 @@ pub fn run_bridge_script(pkgbuild_path: &Path) -> Result<String, Error> {
         let source = std::io::Error::new(ErrorKind::NotFound, "No such file or directory.");
         return Err(Error::IoPath {
             path: pkgbuild_path.to_path_buf(),
-            context: "checking for PKGBUILD",
+            context: t!("error-io-path-check-pkgbuild"),
             source,
         });
     }
@@ -70,20 +71,20 @@ pub fn run_bridge_script(pkgbuild_path: &Path) -> Result<String, Error> {
     let Some(filename) = pkgbuild_path.file_name() else {
         return Err(Error::InvalidFile {
             path: pkgbuild_path.to_owned(),
-            context: "No filename provided in path",
+            context: t!("error-no-filename"),
         });
     };
 
     // Make sure the PKGBUILD path actually points to a file.
     let metadata = pkgbuild_path.metadata().map_err(|source| Error::IoPath {
         path: pkgbuild_path.to_owned(),
-        context: "getting metadata of file",
+        context: t!("error-io-get-metadata"),
         source,
     })?;
     if !metadata.file_type().is_file() {
         return Err(Error::InvalidFile {
             path: pkgbuild_path.to_owned(),
-            context: "Path doesn't point to a file.",
+            context: t!("error-not-a-file"),
         });
     };
 
@@ -112,7 +113,7 @@ pub fn run_bridge_script(pkgbuild_path: &Path) -> Result<String, Error> {
         parameters.join(" ")
     );
     let child = command.spawn().map_err(|source| Error::ScriptError {
-        context: "spawn",
+        context: t!("error-script-spawn"),
         parameters: parameters.clone(),
         source,
     })?;
@@ -121,7 +122,7 @@ pub fn run_bridge_script(pkgbuild_path: &Path) -> Result<String, Error> {
     let output = child
         .wait_with_output()
         .map_err(|source| Error::ScriptError {
-            context: "finish",
+            context: t!("error-script-finish"),
             parameters: parameters.clone(),
             source,
         })?;
@@ -169,7 +170,7 @@ mod tests {
         };
 
         assert_eq!(temp_path, path);
-        assert_eq!(context, "Path doesn't point to a file.");
+        assert_eq!(context, "Path doesn't point to a file");
 
         Ok(())
     }

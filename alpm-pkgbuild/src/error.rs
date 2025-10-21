@@ -2,6 +2,7 @@
 
 use std::{path::PathBuf, string::FromUtf8Error};
 
+use fluent_i18n::t;
 use thiserror::Error;
 
 /// The high-level error that can occur when using this crate.
@@ -15,71 +16,84 @@ pub enum Error {
     #[error(transparent)]
     InvalidUTF8(#[from] FromUtf8Error),
 
-    /// IO error
-    #[error("I/O error while {context}:\n{source}")]
+    /// IO error.
+    #[error("{msg}", msg = t!("error-io", {
+        "context" => context,
+        "source" => source.to_string()
+    }))]
     Io {
         /// The context in which the error occurred.
         ///
         /// This is meant to complete the sentence "I/O error while ...".
-        context: &'static str,
+        context: String,
         /// The error source.
         source: std::io::Error,
     },
 
     /// IO error with additional path info for more context.
-    #[error("I/O error at path {path:?} while {context}:\n{source}")]
+    #[error("{msg}", msg = t!("error-io-path", {
+        "path" => path,
+        "context" => context,
+        "source" => source.to_string()
+    }))]
     IoPath {
         /// The path at which the error occurred.
         path: PathBuf,
         /// The context in which the error occurred.
         ///
         /// This is meant to complete the sentence "I/O error at path $path while ...".
-        context: &'static str,
-        /// The error source
+        context: String,
+        /// The error source.
         source: std::io::Error,
     },
 
-    /// Invalid file encountered
-    #[error("Encountered invalid file for path {path:?}:\n{context}")]
+    /// Invalid file encountered.
+    #[error("{msg}", msg = t!("error-invalid-file", {
+        "path" => path,
+        "context" => context
+    }))]
     InvalidFile {
-        /// The path of the file that's invalid
+        /// The path of the invalid file.
         path: PathBuf,
         /// The context in which the error occurred.
-        ///
-        /// This is meant to complete the sentence "Encountered invalid file for path ...".
-        context: &'static str,
+        context: String,
     },
 
     /// The alpm-pkgbuild-bridge script could not be found in `$PATH`.
-    #[error("Could not find '{script_name}' script in $PATH:\n{source}")]
+    #[error("{msg}", msg = t!("error-script-not-found", {
+        "script_name" => script_name,
+        "source" => source.to_string()
+    }))]
     ScriptNotFound {
         /// The name of the script that couldn't be found.
         script_name: String,
-        /// The error source
+        /// The error source.
         source: which::Error,
     },
 
     /// The pkgbuild bridge script failed to be started.
-    #[error(
-        "Failed to {context} process to extract PKGBUILD:\nCommand: alpm-pkgbuild-bridge {parameters:?}\n{source}"
-    )]
+    #[error("{msg}", msg = t!("error-script-failed-start", {
+        "context" => context,
+        "parameters" => format!("{parameters:?}"),
+        "source" => source.to_string()
+    }))]
     ScriptError {
         /// The context in which the error occurred.
-        ///
-        /// This is meant to complete the sentence "Failed to ...".
-        context: &'static str,
-        /// The parameters that were supplied to the script.
+        context: String,
+        /// The parameters supplied to the script.
         parameters: Vec<String>,
-        /// The error source
+        /// The error source.
         source: std::io::Error,
     },
 
     /// The pkgbuild bridge script errored with some log output.
-    #[error(
-        "Error during pkgbuild bridge execution:\nCommand: alpm-pkgbuild-bridge {parameters:?}\nstdout:{stdout}\n\nstderr:{stderr}"
-    )]
+    #[error("{msg}", msg = t!("error-script-execution", {
+        "parameters" => format!("{parameters:?}"),
+        "stdout" => stdout,
+        "stderr" => stderr
+    }))]
     ScriptExecutionError {
-        /// The parameters that were supplied to the script.
+        /// The parameters supplied to the script.
         parameters: Vec<String>,
         /// The stdout of the failed command.
         stdout: String,
@@ -88,14 +102,10 @@ pub enum Error {
     },
 
     /// A parsing error that occurred during winnow file parsing.
-    #[error(
-        "An unexpected error occurred in the output parser for the 'alpm-pkgbuild-bridge' script:\n{0}\n\nPlease report this as a bug at https://gitlab.archlinux.org/archlinux/alpm/alpm/-/issues"
-    )]
+    #[error("{msg}", msg = t!("error-bridge-parse", { "error" => .0 }))]
     BridgeParseError(String),
 
     /// JSON error while creating JSON formatted output.
-    ///
-    /// This error only occurs when running the `commands` functions.
-    #[error("JSON error: {0}")]
+    #[error("{msg}", msg = t!("error-json", { "source" => .0.to_string() }))]
     Json(#[from] serde_json::Error),
 }
