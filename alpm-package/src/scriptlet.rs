@@ -4,6 +4,8 @@
 
 use std::{fs::File, io::Read, path::Path};
 
+use fluent_i18n::t;
+
 use crate::Error;
 
 /// Function signatures of which at least one must be present in an [alpm-install-scriptlet]
@@ -39,14 +41,14 @@ pub fn check_scriptlet(path: impl AsRef<Path>) -> Result<(), Error> {
     let path = path.as_ref();
     let mut file = File::open(path).map_err(|source| Error::IoPath {
         path: path.to_path_buf(),
-        context: "opening an alpm-install-scriptlet file for reading",
+        context: t!("error-io-open-scriptlet"),
         source,
     })?;
     let mut buf = String::new();
     file.read_to_string(&mut buf)
         .map_err(|source| Error::IoPath {
             path: path.to_path_buf(),
-            context: "reading the contents to string",
+            context: t!("error-io-read-to-string"),
             source,
         })?;
 

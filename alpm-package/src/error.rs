@@ -3,6 +3,7 @@
 use std::{path::PathBuf, string::FromUtf8Error};
 
 use alpm_types::MetadataFileName;
+use fluent_i18n::t;
 
 /// An error that can occur when dealing with alpm-package.
 #[derive(Debug, thiserror::Error)]
@@ -42,7 +43,10 @@ pub enum Error {
     /// An error with an [alpm-install-scriptlet].
     ///
     /// [alpm-install-scriptlet]: https://alpm.archlinux.page/specifications/alpm-install-scriptlet.5.html
-    #[error("The alpm-install-scriptlet at {path} is invalid because {context}")]
+    #[error("{msg}", msg = t!("error-install-scriptlet", {
+        "path" => path,
+        "context" => context
+    }))]
     InstallScriptlet {
         /// The path to the alpm-install-scriptlet.
         path: PathBuf,
@@ -54,20 +58,21 @@ pub enum Error {
     },
 
     /// A package input error.
-    #[error("Package input error:\n{0}")]
+    #[error("{msg}", msg = t!("error-package-input", { "source" => 0.to_string() }))]
     Input(#[from] crate::input::Error),
 
     /// A package input directory is also used as the package output directory.
-    #[error("The package input directory is also used as the output directory: {path:?}")]
+    #[error("{msg}", msg = t!("error-input-dir-is-output-dir", { "path" => path }))]
     InputDirIsOutputDir {
-        /// The path to the directory that is used as both input and output.
+        /// The path used as both input and output.
         path: PathBuf,
     },
 
     /// A package output directory is located inside of a package input directory.
-    #[error(
-        "The package output directory ({output_path:?}) is located inside of the package input directory ({input_path:?})"
-    )]
+    #[error("{msg}", msg = t!("error-input-dir-in-output-dir", {
+        "input_path" => input_path,
+        "output_path" => output_path,
+    }))]
     InputDirInOutputDir {
         /// The input directory path.
         input_path: PathBuf,
@@ -76,55 +81,66 @@ pub enum Error {
     },
 
     /// An I/O error occurred at a path.
-    #[error("I/O error at path {path} while {context}:\n{source}")]
+    #[error("{msg}", msg = t!("error-io-path", {
+        "path" => path,
+        "context" => context,
+        "source" => source.to_string()
+    }))]
     IoPath {
         /// The path at which the error occurred.
         path: PathBuf,
         /// The context in which the error occurred.
         ///
         /// This is meant to complete the sentence "I/O error at path while ".
-        context: &'static str,
+        context: String,
         /// The source error.
         source: std::io::Error,
     },
 
     /// An I/O error occurred while reading.
-    #[error("I/O read error while {context}:\n{source}")]
+    #[error("{msg}", msg = t!("error-io-read", {
+        "context" => context,
+        "source" => source.to_string()
+    }))]
     IoRead {
         /// The context in which the error occurred.
         ///
         /// This is meant to complete the sentence "I/O read error while ".
-        context: &'static str,
+        context: String,
         /// The source error.
         source: std::io::Error,
     },
 
     /// UTF-8 parse error.
-    #[error("Invalid UTF-8 while {context}:\n{source}")]
+    #[error("{msg}", msg = t!("error-invalid-utf8", {
+        "context" => context,
+        "source" => source.to_string()
+    }))]
     InvalidUTF8 {
         /// The context in which the error occurred.
         ///
         /// This is meant to complete the sentence "Invalid UTF-8 while {context}".
-        context: &'static str,
+        context: String,
         /// The source error.
         source: FromUtf8Error,
     },
 
     /// Metadata file not found in package.
-    #[error("Metadata file {name} not found in package")]
+    #[error("{msg}", msg = t!("error-metadata-not-found", { "name" => name.to_string() }))]
     MetadataFileNotFound {
         /// The metadata file that was not found.
         name: MetadataFileName,
     },
 
     /// Reached the end of known entries while reading a package.
-    #[error("Reached the end of known entries while reading a package")]
+    #[error("{msg}", msg = t!("error-end-of-entries"))]
     EndOfPackageEntries,
 
     /// A package input directory is located inside of a package output directory.
-    #[error(
-        "The package input directory ({input_path:?}) is located inside of the output directory ({output_path:?})"
-    )]
+    #[error("{msg}", msg = t!("error-output-dir-in-input-dir", {
+        "input_path" => input_path,
+        "output_path" => output_path
+    }))]
     OutputDirInInputDir {
         /// The input directory path.
         input_path: PathBuf,
@@ -133,32 +149,32 @@ pub enum Error {
     },
 
     /// A [`crate::package::Error`].
-    #[error("Package error:\n{0}")]
+    #[error("{msg}", msg = t!("error-package", { "source" => .0.to_string() }))]
     Package(#[from] crate::package::Error),
 
     /// A path does not exist.
-    #[error("The path {path:?} does not exist")]
+    #[error("{msg}", msg = t!("error-path-not-exist", { "path" => path }))]
     PathDoesNotExist {
         /// The path that should exist.
         path: PathBuf,
     },
 
     /// A path does not have a parent.
-    #[error("The path {path:?} has no parent")]
+    #[error("{msg}", msg = t!("error-path-no-parent", { "path" => path }))]
     PathHasNoParent {
         /// The path that should have a parent.
         path: PathBuf,
     },
 
     /// A path is not a file.
-    #[error("The path {path:?} is not a file")]
+    #[error("{msg}", msg = t!("error-path-not-file", { "path" => path }))]
     PathIsNotAFile {
         /// The path that is not a file.
         path: PathBuf,
     },
 
     /// A path is read only.
-    #[error("The path {path:?} is read-only")]
+    #[error("{msg}", msg = t!("error-path-read-only", { "path" => path }))]
     PathIsReadOnly {
         /// The path that is read only.
         path: PathBuf,

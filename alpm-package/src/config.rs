@@ -9,6 +9,7 @@ use alpm_compress::compression::CompressionSettings;
 #[cfg(doc)]
 use alpm_pkginfo::PackageInfo;
 use alpm_types::PackageFileName;
+use fluent_i18n::t;
 
 use crate::input::PackageInput;
 #[cfg(doc)]
@@ -44,14 +45,14 @@ impl OutputDir {
         if !path.exists() {
             create_dir_all(&path).map_err(|source| crate::Error::IoPath {
                 path: path.clone(),
-                context: "creating output directory",
+                context: t!("error-io-create-output-dir"),
                 source,
             })?;
         }
 
         let metadata = path.metadata().map_err(|source| crate::Error::IoPath {
             path: path.clone(),
-            context: "retrieving metadata",
+            context: t!("error-io-get-metadata"),
             source,
         })?;
 

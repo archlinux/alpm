@@ -16,6 +16,7 @@ use alpm_compress::tarball::{TarballBuilder, TarballEntries, TarballEntry, Tarba
 use alpm_mtree::Mtree;
 use alpm_pkginfo::PackageInfo;
 use alpm_types::{INSTALL_SCRIPTLET_FILE_NAME, MetadataFileName, PackageError, PackageFileName};
+use fluent_i18n::t;
 use log::debug;
 
 use crate::{OutputDir, PackageCreationConfig};
@@ -74,14 +75,14 @@ impl ExistingAbsoluteDir {
         if !path.exists() {
             create_dir_all(&path).map_err(|source| crate::Error::IoPath {
                 path: path.clone(),
-                context: "creating absolute directory",
+                context: t!("error-io-create-abs-dir"),
                 source,
             })?;
         }
 
         let metadata = path.metadata().map_err(|source| crate::Error::IoPath {
             path: path.clone(),
-            context: "retrieving metadata",
+            context: t!("error-io-get-metadata"),
             source,
         })?;
 
@@ -375,7 +376,7 @@ impl<'a, 'c> PackageEntryIterator<'a, 'c> {
                 entry
                     .read_to_string(&mut scriptlet)
                     .map_err(|source| crate::Error::IoRead {
-                        context: "reading install scriptlet",
+                        context: t!("error-io-read-install-scriptlet"),
                         source,
                     })?;
                 Ok(Some(PackageEntry::InstallScriptlet(scriptlet)))
@@ -1158,7 +1159,7 @@ impl TryFrom<&PackageCreationConfig> for Package {
         // Create the output file.
         let file = File::create(output_path.as_path()).map_err(|source| crate::Error::IoPath {
             path: output_path.clone(),
-            context: "creating a package file",
+            context: t!("error-io-create-package-file"),
             source,
         })?;
 
