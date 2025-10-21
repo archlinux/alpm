@@ -9,3 +9,5 @@ pub use lookup::{ElfSonames, extract_elf_sonames, find_dependencies, find_provis
 
 mod error;
 pub use error::Error;
+
+fluent_i18n::i18n!("locales");

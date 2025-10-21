@@ -4,6 +4,7 @@ use std::{io::Read, path::PathBuf, str::FromStr};
 use alpm_package::Package;
 use alpm_pkginfo::{PackageInfo, RelationOrSoname};
 use alpm_types::{Soname, SonameLookupDirectory, SonameV2};
+use fluent_i18n::t;
 use goblin::{Hint, Object};
 use log::{debug, trace};
 use serde::{Deserialize, Serialize};
@@ -64,13 +65,13 @@ pub fn extract_elf_sonames(path: PathBuf) -> Result<Vec<ElfSonames>, Error> {
         entry
             .read_to_end(&mut buffer)
             .map_err(|source| Error::IoReadError {
-                context: "reading entry from archive",
+                context: t!("error-io-read-archive-entry"),
                 source,
             })?;
 
         // Parse the ELF file and collect the dependencies
         let object = Object::parse(&buffer).map_err(|source| Error::ElfError {
-            context: "parsing ELF file",
+            context: t!("error-parse-elf"),
             source,
         })?;
         if let Object::Elf(elf) = object {

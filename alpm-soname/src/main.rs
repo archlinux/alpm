@@ -11,6 +11,8 @@ mod commands;
 
 use commands::{get_dependencies, get_provisions, get_raw_dependencies};
 
+fluent_i18n::i18n!("locales");
+
 fn main() -> ExitCode {
     let cli = Cli::parse();
 

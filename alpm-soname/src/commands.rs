@@ -9,14 +9,15 @@ use alpm_soname::{
     find_provisions,
 };
 use alpm_types::{Soname, SonameLookupDirectory};
+use fluent_i18n::t;
 use thiserror::Error;
 
 /// A high-level error wrapper around [`alpm_soname::Error`] to add CLI error cases.
 #[derive(Debug, Error)]
 #[non_exhaustive]
 pub enum Error {
-    /// JSON error while creating JSON formatted output.
-    #[error("JSON error: {0}")]
+    /// JSON error
+    #[error("{msg}", msg = t!("error-json", { "source" => .0.to_string() }))]
     Json(#[from] serde_json::Error),
 
     /// An [alpm_soname::Error]
@@ -44,7 +45,7 @@ pub fn get_provisions<W: Write>(
             for provision in provisions {
                 writeln!(output, "{provision}").map_err(|source| {
                     alpm_soname::Error::IoWriteError {
-                        context: "writing provision to output",
+                        context: t!("error-io-write-provision-output"),
                         source,
                     }
                 })?;
@@ -57,7 +58,7 @@ pub fn get_provisions<W: Write>(
                 serde_json::to_string(&provisions)?
             };
             writeln!(output, "{json}").map_err(|source| alpm_soname::Error::IoWriteError {
-                context: "writing JSON to output",
+                context: t!("error-io-write-json"),
                 source,
             })?;
             return Ok(());
@@ -87,7 +88,7 @@ pub fn get_dependencies<W: Write>(
             for dependency in &dependencies {
                 writeln!(output, "{dependency}").map_err(|source| {
                     alpm_soname::Error::IoWriteError {
-                        context: "writing dependency to output",
+                        context: t!("error-io-write-dependency-output"),
                         source,
                     }
                 })?;
@@ -97,7 +98,7 @@ pub fn get_dependencies<W: Write>(
         OutputFormat::Json => {
             let json = serde_json::to_string_pretty(&dependencies)?;
             writeln!(output, "{json}").map_err(|source| alpm_soname::Error::IoWriteError {
-                context: "writing JSON to output",
+                context: t!("error-io-write-json"),
                 source,
             })?;
         }
@@ -132,7 +133,7 @@ pub fn get_raw_dependencies<W: Write>(args: PackageArgs, output: &mut W) -> Resu
             for elf_soname in elf_sonames {
                 writeln!(output, "{elf_soname}").map_err(|source| {
                     alpm_soname::Error::IoWriteError {
-                        context: "writing ELF soname to output",
+                        context: t!("error-io-write-elf-soname-output"),
                         source,
                     }
                 })?;
@@ -145,7 +146,7 @@ pub fn get_raw_dependencies<W: Write>(args: PackageArgs, output: &mut W) -> Resu
                 serde_json::to_string(&elf_sonames)?
             };
             writeln!(output, "{json}").map_err(|source| alpm_soname::Error::IoWriteError {
-                context: "writing JSON to output",
+                context: t!("error-io-write-json"),
                 source,
             })?;
         }

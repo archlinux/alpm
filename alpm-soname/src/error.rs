@@ -2,12 +2,18 @@
 
 use std::path::PathBuf;
 
+use fluent_i18n::t;
+
 /// The error that can occur when working with the library.
 #[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
 pub enum Error {
-    /// IO path error
-    #[error("I/O error at path {path} while {context}:\n{source}")]
+    /// I/O path error
+    #[error("{msg}", msg = t!("error-io-path-error", {
+        "path" => path,
+        "context" => context,
+        "source" => source.to_string()
+    }))]
     IoPathError {
         /// The path at which the error occurred.
         path: PathBuf,
@@ -15,31 +21,37 @@ pub enum Error {
         /// The context in which the error occurred at `path`.
         ///
         /// This is meant to complete the sentence "I/O error at path {path} while ".
-        context: &'static str,
+        context: String,
 
         /// The source of the error.
         source: std::io::Error,
     },
 
     /// I/O error while writing.
-    #[error("I/O write error while {context}:\n{source}")]
+    #[error("{msg}", msg = t!("error-io-write-error", {
+        "context" => context,
+        "source" => source.to_string()
+    }))]
     IoWriteError {
         /// The context in which the error occurred.
         ///
         /// This is meant to complete the sentence "I/O write error while ".
-        context: &'static str,
+        context: String,
 
         /// The source of the error.
         source: std::io::Error,
     },
 
     /// I/O error while reading.
-    #[error("I/O read error while {context}:\n{source}")]
+    #[error("{msg}", msg = t!("error-io-read-error", {
+        "context" => context,
+        "source" => source.to_string()
+    }))]
     IoReadError {
         /// The context in which the error occurred.
         ///
         /// This is meant to complete the sentence "I/O read error while ".
-        context: &'static str,
+        context: String,
 
         /// The source of the error.
         source: std::io::Error,
@@ -58,19 +70,22 @@ pub enum Error {
     AlpmPackage(#[from] alpm_package::Error),
 
     /// ELF format handling error
-    #[error("ELF format error while {context}:\n{source}")]
+    #[error("{msg}", msg = t!("error-elf-error", {
+        "context" => context,
+        "source" => source.to_string()
+    }))]
     ElfError {
         /// The context in which the error occurred.
         ///
         /// This is meant to complete the sentence "ELF format error while ".
-        context: &'static str,
+        context: String,
 
         /// The source of the error.
         source: goblin::error::Error,
     },
 
     /// Input directory not supported
-    #[error("Using input directories is not supported: {path}")]
+    #[error("{msg}", msg = t!("error-input-dir-not-supported", { "path" => path }))]
     InputDirectoryNotSupported {
         /// The path of the input directory.
         path: PathBuf,
