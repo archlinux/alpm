@@ -859,7 +859,7 @@ test-python *options:
         just ensure-command "${commands[@]}"
     fi
 
-    uv run pytest {{ options }}
+    uv run --reinstall-package alpm pytest {{ options }}
 
 # Runs integration tests guarded by the `_virtualized-integration-test` feature (accepts `cargo nextest run` options via `options`).
 [group('test')]
