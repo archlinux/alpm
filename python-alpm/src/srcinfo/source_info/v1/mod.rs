@@ -4,7 +4,7 @@ pub mod package_base;
 
 use std::path::PathBuf;
 
-use pyo3::{prelude::*, types::PyType};
+use pyo3::prelude::*;
 
 use crate::macros::impl_from;
 
@@ -20,20 +20,14 @@ impl SourceInfoV1 {
         Ok(inner.into())
     }
 
-    #[classmethod]
-    fn from_file(
-        _cls: &Bound<'_, PyType>,
-        path: PathBuf,
-    ) -> Result<Self, crate::srcinfo::error::Error> {
+    #[staticmethod]
+    fn from_file(path: PathBuf) -> Result<Self, crate::srcinfo::error::Error> {
         let inner = alpm_srcinfo::SourceInfoV1::from_file(&path)?;
         Ok(inner.into())
     }
 
-    #[classmethod]
-    fn from_pkgbuild(
-        _cls: &Bound<'_, PyType>,
-        path: PathBuf,
-    ) -> Result<Self, crate::srcinfo::error::Error> {
+    #[staticmethod]
+    fn from_pkgbuild(path: PathBuf) -> Result<Self, crate::srcinfo::error::Error> {
         let inner = alpm_srcinfo::SourceInfoV1::from_pkgbuild(&path)?;
         Ok(inner.into())
     }

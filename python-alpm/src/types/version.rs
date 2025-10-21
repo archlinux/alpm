@@ -1,6 +1,6 @@
 use std::{num::NonZeroUsize, str::FromStr};
 
-use pyo3::{exceptions::PyValueError, prelude::*, types::PyType};
+use pyo3::{exceptions::PyValueError, prelude::*};
 
 use crate::macros::impl_from;
 
@@ -62,8 +62,8 @@ impl SchemaVersion {
         Ok(alpm_types::SchemaVersion::new(inner).into())
     }
 
-    #[classmethod]
-    fn from_str(_cls: &Bound<'_, PyType>, version: &str) -> Result<Self, crate::types::Error> {
+    #[staticmethod]
+    fn from_str(version: &str) -> Result<Self, crate::types::Error> {
         let inner = alpm_types::SchemaVersion::from_str(version);
         Ok(Self(inner?))
     }
@@ -126,8 +126,8 @@ impl Epoch {
         Ok(alpm_types::Epoch::new(non_zero).into())
     }
 
-    #[classmethod]
-    fn from_str(_cls: &Bound<'_, PyType>, epoch: &str) -> Result<Self, crate::types::Error> {
+    #[staticmethod]
+    fn from_str(epoch: &str) -> Result<Self, crate::types::Error> {
         let inner = alpm_types::Epoch::from_str(epoch)?;
         Ok(inner.into())
     }
@@ -161,8 +161,8 @@ impl PackageRelease {
         alpm_types::PackageRelease::new(major, minor).into()
     }
 
-    #[classmethod]
-    fn from_str(_cls: &Bound<'_, PyType>, version: &str) -> Result<Self, crate::types::Error> {
+    #[staticmethod]
+    fn from_str(version: &str) -> Result<Self, crate::types::Error> {
         let inner = alpm_types::PackageRelease::from_str(version)?;
         Ok(inner.into())
     }
@@ -203,8 +203,8 @@ impl FullVersion {
         alpm_types::FullVersion::new(pkgver.0, pkgrel.0, epoch.map(From::from)).into()
     }
 
-    #[classmethod]
-    fn from_str(_cls: &Bound<'_, PyType>, version: &str) -> Result<Self, crate::types::Error> {
+    #[staticmethod]
+    fn from_str(version: &str) -> Result<Self, crate::types::Error> {
         let inner = alpm_types::FullVersion::from_str(version)?;
         Ok(inner.into())
     }
@@ -263,8 +263,8 @@ impl Version {
         alpm_types::Version::new(pkgver.0, epoch.map(From::from), pkgrel.map(From::from)).into()
     }
 
-    #[classmethod]
-    fn from_str(_cls: &Bound<'_, PyType>, version: &str) -> Result<Self, crate::types::Error> {
+    #[staticmethod]
+    fn from_str(version: &str) -> Result<Self, crate::types::Error> {
         let inner = alpm_types::Version::from_str(version)?;
         Ok(inner.into())
     }
