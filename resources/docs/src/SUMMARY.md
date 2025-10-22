@@ -10,6 +10,8 @@
     - [CHANGELOG](./alpm-common/CHANGELOG.md)
 - [alpm-compress](./alpm-compress/README.md)
     - [CHANGELOG](./alpm-compress/CHANGELOG.md)
+- [alpm-files](./alpm-files/README.md)
+    - [CHANGELOG](./alpm-files/CHANGELOG.md)
 - [alpm-lint](./alpm-lint/README.md)
     - [ARCHITECTURE](./alpm-lint/ARCHITECTURE.md)
     - [CHANGELOG](./alpm-lint/CHANGELOG.md)

@@ -5,6 +5,7 @@
 - [alpm-buildinfo](/rustdoc/alpm_buildinfo)
 - [alpm-compress](/rustdoc/alpm_compress)
 - [alpm-common](/rustdoc/alpm_common)
+- [alpm-files](/rustdoc/alpm_files)
 - [alpm-lint](/rustdoc/alpm_lint)
 - [alpm-lint-config](/rustdoc/alpm_lint_config)
 - [alpm-mtree](/rustdoc/alpm_mtree)
