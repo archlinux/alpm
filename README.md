@@ -69,6 +69,7 @@ Currently the following components are available:
 - [alpm-buildinfo]: a library and commandline interface to work with [BUILDINFO] files
 - [alpm-common]: a library for common traits and functionality
 - [alpm-compress]: a library for compression operations in ALPM
+- [alpm-files]: library and command line tool for the handling of [alpm-files][spec:alpm-files] files
 - [alpm-mtree]: a library and commandline interface to work with [ALPM-MTREE] files
 - [alpm-package]: a library for the creation of [alpm-package][spec:alpm-package] files
 - [alpm-parsers]: a library for providing various custom parsers/deserializers for file types used in ALPM
@@ -110,6 +111,7 @@ Contributions to this project, unless noted otherwise, are automatically license
 [alpm-buildinfo]: alpm-buildinfo/
 [alpm-common]: alpm-common/
 [alpm-compress]: alpm-compress/
+[alpm-files]: alpm-files/
 [alpm-mtree]: alpm-mtree/
 [alpm-package]: alpm-package/
 [alpm-parsers]: alpm-parsers/
@@ -125,3 +127,4 @@ Contributions to this project, unless noted otherwise, are automatically license
 [official announcement]: https://lists.archlinux.org/archives/list/arch-dev-public@lists.archlinux.org/thread/MZLH43574GGP7QQ7RKAAIRFT5LJPCEB4/
 [pacman]: https://gitlab.archlinux.org/pacman/pacman
 [spec:alpm-package]: https://alpm.archlinux.page/specifications/alpm-package.7.html
+[spec:alpm-files]: https://alpm.archlinux.page/specifications/alpm-files.5.html
