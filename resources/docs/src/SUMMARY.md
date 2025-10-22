@@ -10,6 +10,8 @@
     - [CHANGELOG](./alpm-common/CHANGELOG.md)
 - [alpm-compress](./alpm-compress/README.md)
     - [CHANGELOG](./alpm-compress/CHANGELOG.md)
+- [alpm-files](./alpm-files/README.md)
+    - [CHANGELOG](./alpm-files/CHANGELOG.md)
 - [alpm-mtree](./alpm-mtree/README.md)
     - [CHANGELOG](./alpm-mtree/CHANGELOG.md)
 - [alpm-pkgbuild](./alpm-pkgbuild/README.md)
