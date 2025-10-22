@@ -1,0 +1,45 @@
+[changelog]
+header = """
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+"""
+
+body = """
+{%- if not version %}
+## [Unreleased]
+{% else -%}
+## [{{ version | trim_start_matches(pat="python-alpm/") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
+{% endif -%}
+{% for group, commits in commits | group_by(attribute="group") %}
+### {{ group | upper_first }}
+
+{% for commit in commits %}
+{%- if commit.scope -%}
+- *({{commit.scope}})* {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message }}{%- if commit.links %} ({% for link in commit.links %}[{{link.text}}]({{link.href}}) {% endfor -%}){% endif %}
+{% else -%}
+- {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message }}
+{% endif -%}
+{% endfor -%}
+{% endfor %}
+
+"""
+
+protect_breaking_commits = true
+trim = true
+
+[git]
+commit_parsers = [
+    { message = "^feat", group = "added" },
+    { message = "^changed", group = "changed" },
+    { message = "^deprecated", group = "deprecated" },
+    { message = "^removed", group = "removed" },
+    { message = "^fix", group = "fixed" },
+    { message = "^security", group = "security" },
+    { message = ".*", group = "other" },
+]
+tag_pattern = "python-alpm/[0-9].*"

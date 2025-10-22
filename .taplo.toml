@@ -18,3 +18,10 @@ include = ["alpm-lint-website/config.toml"]
 
 [rule.formatting]
 reorder_arrays = false
+
+[[rule]]
+include = ["**/cliff.toml"]
+keys = ["git"]
+
+[rule.formatting]
+reorder_arrays = false
