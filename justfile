@@ -965,7 +965,35 @@ prepare-release package version="":
 
     just ensure-command git release-plz
 
-    release-plz update -u -p "$package_name"
+    # We use git-cliff directly for python-alpm as release-plz does version checks against crates.io
+    # and we don't publish bindings to crates.io so it fails to determine the next version.
+    # Additionally release-plz uses cargo-semver-checks to detect breaking changes,
+    # but since our API is in Python, this would produce false positives.
+    # git-cliff calculates version bumps solely based on commit messages.
+    case "$package_name" in
+        "python-alpm")
+            just ensure-command git-cliff
+
+            readonly cliff_common_options=(
+                --include-path "${package_name}/"  # <https://github.com/orhun/git-cliff/issues/1292>
+                --workdir "$package_name"
+            )
+            readonly cliff_bump_options=(
+                "${cliff_common_options[@]}"
+                --bump
+                --prepend CHANGELOG.md
+                --unreleased
+            )
+            git-cliff "${cliff_bump_options[@]}"
+            bumped_version="$(git-cliff "${cliff_common_options[@]}" --bumped-version)"
+
+            # git-cliff returns "package/version", but release-plz expects "package@version"
+            release-plz set-version "${bumped_version%/*}@${bumped_version##*/}"
+            ;;
+        *)
+            release-plz update --update-deps --package "$package_name"
+            ;;
+    esac
 
     # NOTE: When setting the version specifically, we are likely in a situation where `release-plz` did not detect a version change (e.g. when only changes to top-level files took place since last release).
     # In this case we are fine to potentially have no changes in the CHANGELOG.md or having to adjust it manually afterwards.
