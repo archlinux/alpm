@@ -1,5 +1,8 @@
 #![doc = include_str!("../README.md")]
 
+#[cfg(feature = "cli")]
+#[doc(hidden)]
+pub mod cli;
 mod error;
 mod files;
 mod schema;
