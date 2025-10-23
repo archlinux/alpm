@@ -2,6 +2,7 @@
 
 use std::{fmt, fmt::Debug, fs::File};
 
+use fluent_i18n::t;
 use tar::Builder;
 
 use crate::{
@@ -67,7 +68,7 @@ impl<'c> TarballBuilder<'c> {
         self.inner
             .into_inner()
             .map_err(|source| Error::IoWrite {
-                context: "writing the archive",
+                context: t!("error-io-write-archive"),
                 source,
             })?
             .finish()?;

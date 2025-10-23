@@ -5,6 +5,7 @@ use std::{fmt::Debug, fs::File, io::Write};
 use alpm_types::CompressionAlgorithmFileExtension;
 use bzip2::write::BzEncoder;
 use flate2::write::GzEncoder;
+use fluent_i18n::t;
 use liblzma::write::XzEncoder;
 use zstd::Encoder;
 
@@ -35,16 +36,17 @@ fn create_zstd_encoder(
 ) -> Result<Encoder<'static, File>, Error> {
     let mut encoder = Encoder::new(file, compression_level.into()).map_err(|source| {
         Error::CreateZstandardEncoder {
-            context: "initializing",
+            context: t!("error-create-zstd-encoder-init"),
             compression_settings: settings.clone(),
             source,
         }
     })?;
+
     // Include a context checksum at the end of each frame.
     encoder
         .include_checksum(true)
         .map_err(|source| Error::CreateZstandardEncoder {
-            context: "setting checksums to be added",
+            context: t!("error-create-zstd-encoder-set-checksum"),
             compression_settings: settings.clone(),
             source,
         })?;
@@ -64,7 +66,7 @@ fn create_zstd_encoder(
     encoder
         .multithread(threads)
         .map_err(|source| Error::CreateZstandardEncoder {
-            context: "setting checksums to be added",
+            context: t!("error-create-zstd-encoder-set-threads"),
             compression_settings: settings.clone(),
             source,
         })?;

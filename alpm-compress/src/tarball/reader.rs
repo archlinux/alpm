@@ -8,6 +8,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use fluent_i18n::t;
 use tar::{Archive, Entries, Entry, EntryType};
 
 use crate::{
@@ -51,7 +52,7 @@ impl<'c> TarballReader<'c> {
     /// Returns an error if [`Archive::entries`] fails.
     pub fn entries<'a>(&'a mut self) -> Result<TarballEntries<'a, 'c>, Error> {
         let raw_entries = self.archive.entries().map_err(|source| Error::IoRead {
-            context: "reading archive entries",
+            context: t!("error-io-read-archive-entries"),
             source,
         })?;
         Ok(raw_entries.into())
@@ -93,7 +94,7 @@ impl TryFrom<&Path> for TarballReader<'_> {
     /// - a [`CompressionDecoder`] cannot be created from the file and [`DecompressionSettings`].
     fn try_from(path: &Path) -> Result<Self, Self::Error> {
         let file = File::open(path).map_err(|source| Error::IoRead {
-            context: "opening archive for reading",
+            context: t!("error-io-open-archive"),
             source,
         })?;
         let settings = match DecompressionSettings::try_from(path) {
@@ -162,7 +163,7 @@ impl<'a, 'c> TarballEntry<'a, 'c> {
         self.entry
             .read_to_end(&mut buffer)
             .map_err(|source| crate::Error::IoRead {
-                context: "reading archive entry content",
+                context: t!("error-io-read-archive-entry-content"),
                 source,
             })?;
         Ok(buffer)
@@ -217,7 +218,7 @@ impl<'a, 'c> TarballEntry<'a, 'c> {
     /// Returns an error if retrieving the mode from the entry's header fails.
     pub fn permissions(&self) -> Result<u32, Error> {
         Ok(self.entry.header().mode().map_err(|source| Error::IoRead {
-            context: "retrieving permissions of archive entry",
+            context: t!("error-io-read-archive-entry-mode"),
             source,
         })? & 0o7777)
     }
@@ -269,14 +270,14 @@ impl<'a, 'c> Iterator for TarballEntries<'a, 'c> {
     fn next(&mut self) -> Option<Self::Item> {
         self.inner.next().map(|entry| {
             let entry = entry.map_err(|source| Error::IoRead {
-                context: "reading archive entry",
+                context: t!("error-io-read-archive-entry"),
                 source,
             })?;
 
             let path = entry
                 .path()
                 .map_err(|source| Error::IoRead {
-                    context: "retrieving path of archive entry",
+                    context: t!("error-io-read-archive-entry-path"),
                     source,
                 })?
                 .to_path_buf();
