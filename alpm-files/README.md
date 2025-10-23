@@ -39,6 +39,70 @@ assert_eq!(files_from_str.as_ref(), files_from_paths.as_ref());
 # }
 ```
 
+### Command line interface
+
+<!--
+```bash
+# Create a temporary directory for test files.
+test_tempdir="$(mktemp --directory --suffix '.alpm-files-test')"
+
+# Create input dir for `alpm-files create`.
+ALPM_FILES_CREATE_INPUT_DIR="${test_tempdir}/input_dir/"
+mkdir --parents "${ALPM_FILES_CREATE_INPUT_DIR}usr/bin/"
+touch "${ALPM_FILES_CREATE_INPUT_DIR}usr/bin/foo"
+export ALPM_FILES_CREATE_INPUT_DIR
+
+# Create input file for `alpm-files format` and `alpm-files validate`.
+input_file="${test_tempdir}/input.files"
+printf "%%FILES%%\nusr/\nusr/bin/\nusr/bin/foo\n\n" > "$input_file"
+export ALPM_FILES_FORMAT_INPUT_FILE="$input_file"
+export ALPM_FILES_VALIDATE_INPUT_FILE="$input_file"
+
+# Create comparison file for `alpm-files format`.
+alpm_files_format_output_compare="${test_tempdir}/format-output-compare.json"
+printf '[\n  "usr/",\n  "usr/bin/",\n  "usr/bin/foo"\n]\n' > "$alpm_files_format_output_compare"
+
+# Assign output files for `alpm-files create` and `alpm-files format`.
+export ALPM_FILES_CREATE_OUTPUT="${test_tempdir}/create-output.files"
+export ALPM_FILES_FORMAT_OUTPUT="${test_tempdir}/format-output.json"
+```
+-->
+
+```bash
+# Create an alpm-files file from an input directory.
+alpm-files create "$ALPM_FILES_CREATE_INPUT_DIR"
+```
+
+<!--
+```bash
+cat "$ALPM_FILES_CREATE_OUTPUT"
+diff "$input_file" "$ALPM_FILES_CREATE_OUTPUT"
+```
+-->
+
+```bash
+# Format an alpm-files file as JSON.
+alpm-files format --input-file "$ALPM_FILES_FORMAT_INPUT_FILE" --pretty
+```
+
+<!--
+```bash
+cat "$ALPM_FILES_FORMAT_OUTPUT"
+diff "$alpm_files_format_output_compare" "$ALPM_FILES_FORMAT_OUTPUT"
+```
+-->
+
+```bash
+# Validate an alpm-files file.
+alpm-files validate --input-file "$ALPM_FILES_VALIDATE_INPUT_FILE"
+```
+
+<!--
+```bash
+rm -r -- "$test_tempdir"
+```
+-->
+
 ## Contributing
 
 Please refer to the [contribution guidelines] to learn how to contribute to this project.
