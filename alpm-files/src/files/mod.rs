@@ -21,25 +21,28 @@ use crate::{Error, FilesSchema, FilesV1};
 /// [alpm-files]: https://alpm.archlinux.page/specifications/alpm-files.5.html
 #[derive(Clone, Copy, Debug, strum::Display, strum::EnumString)]
 #[strum(serialize_all = "lowercase")]
+#[cfg_attr(feature = "cli", derive(clap::ValueEnum))]
 pub enum FilesStyle {
-    /// The alpm-db-files style.
+    /// The [alpm-db-files] style of the format.
     ///
-    /// The [alpm-db-files] style of the format
+    /// This style
     ///
     /// - always produces an empty file, if no paths are tracked,
     /// - and always has a trailing empty line, if paths are tracked.
     ///
     /// [alpm-db-files]: https://alpm.archlinux.page/specifications/alpm-db-files.5.html
+    #[cfg_attr(feature = "cli", value(help = t!("cli-style-db-help")))]
     Db,
 
-    /// The alpm-repo-files style.
+    /// The [alpm-repo-files] style of the format.
     ///
-    /// The [alpm-repo-files] style of the format
+    /// This style
     ///
     /// - always produces the section header, if no paths are tracked,
     /// - and never has a trailing empty line.
     ///
     /// [alpm-repo-files]: https://alpm.archlinux.page/specifications/alpm-repo-files.5.html
+    #[cfg_attr(feature = "cli", value(help = t!("cli-style-repo-help")))]
     Repo,
 }
 
@@ -55,6 +58,8 @@ pub trait FilesStyleToString {
 ///
 /// [alpm-files]: https://alpm.archlinux.page/specifications/alpm-files.5.html
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(untagged))]
 pub enum Files {
     /// Version 1 of the [alpm-files] specification.
     ///

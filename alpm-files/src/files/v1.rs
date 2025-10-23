@@ -204,6 +204,7 @@ impl Display for FilesV1PathErrors {
 ///
 /// [alpm-files]: https://alpm.archlinux.page/specifications/alpm-files.5.html
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
 pub struct FilesV1(Vec<PathBuf>);
 
 impl AsRef<[PathBuf]> for FilesV1 {
