@@ -10,6 +10,7 @@ use std::{
 
 use alpm_common::FileFormatSchema;
 use alpm_types::{SchemaVersion, semver_version::Version};
+use fluent_i18n::t;
 
 use crate::{Error, mtree_buffer_to_string};
 
@@ -54,12 +55,10 @@ impl FileFormatSchema for MtreeSchema {
         Self: Sized,
     {
         let file = file.as_ref();
-        Self::derive_from_reader(File::open(file).map_err(|source| {
-            Error::IoPath(
-                PathBuf::from(file),
-                "deriving schema version from ALPM-MTREE file",
-                source,
-            )
+        Self::derive_from_reader(File::open(file).map_err(|source| Error::IoPath {
+            path: PathBuf::from(file),
+            context: t!("error-io-derive-schema"),
+            source,
         })?)
     }
 
@@ -80,7 +79,10 @@ impl FileFormatSchema for MtreeSchema {
         let mut buf_reader = BufReader::new(reader);
         buf_reader
             .read_to_end(&mut buffer)
-            .map_err(|source| Error::Io("reading ALPM-MTREE data", source))?;
+            .map_err(|source| Error::Io {
+                context: t!("error-io-read-mtree-data"),
+                source,
+            })?;
         Self::derive_from_str(&mtree_buffer_to_string(buffer)?)
     }
 
