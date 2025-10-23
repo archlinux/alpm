@@ -14,22 +14,23 @@ use alpm_buildinfo::{
 };
 use alpm_common::MetadataFile;
 use alpm_types::Sha256Checksum;
+use fluent_i18n::t;
 use thiserror::Error;
 
 /// A high-level error wrapper around [`alpm_buildinfo::Error`] to add CLI error cases.
 #[derive(Debug, Error)]
 #[non_exhaustive]
 pub enum Error {
-    /// ALPM type error
-    #[error("ALPM type parse error: {0}")]
+    /// ALPM type error.
+    #[error("{msg}", msg = t!("error-alpm-type", { "source" => .0.to_string() }))]
     AlpmType(#[from] alpm_types::Error),
 
-    /// No input file given
-    #[error("No input file given.")]
+    /// No input file given.
+    #[error("{msg}", msg = t!("error-no-input-file"))]
     NoInputFile,
 
-    /// JSON error while creating JSON formatted output.
-    #[error("JSON error: {0}")]
+    /// JSON error.
+    #[error("{msg}", msg = t!("error-json", { "source" => .0.to_string() }))]
     Json(#[from] serde_json::Error),
 
     /// An [alpm_buildinfo::Error]
@@ -86,22 +87,26 @@ pub fn create_file(command: CreateCommand) -> Result<(), Error> {
 
     // create any parent directories if necessary
     if let Some(output_dir) = output.0.parent() {
-        create_dir_all(output_dir).map_err(|e| {
-            alpm_buildinfo::Error::IoPathError(
-                output_dir.to_path_buf(),
-                "creating output directory",
-                e,
-            )
+        create_dir_all(output_dir).map_err(|source| alpm_buildinfo::Error::IoPathError {
+            path: output_dir.to_path_buf(),
+            context: t!("error-io-create-output-dir"),
+            source,
         })?;
     }
 
-    let mut out = File::create(&output.0).map_err(|e| {
-        alpm_buildinfo::Error::IoPathError(output.0.clone(), "creating output file", e)
+    let mut out = File::create(&output.0).map_err(|source| alpm_buildinfo::Error::IoPathError {
+        path: output.0.clone(),
+        context: t!("error-io-create-output-file"),
+        source,
     })?;
 
     let _ = out
         .write(data.as_bytes())
-        .map_err(|e| alpm_buildinfo::Error::IoPathError(output.0, "writing to output file", e))?;
+        .map_err(|source| alpm_buildinfo::Error::IoPathError {
+            path: output.0,
+            context: t!("error-io-write-output-file"),
+            source,
+        })?;
 
     Ok(())
 }

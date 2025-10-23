@@ -13,3 +13,5 @@ pub use error::Error;
 
 mod schema;
 pub use schema::BuildInfoSchema;
+
+fluent_i18n::i18n!("locales");

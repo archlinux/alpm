@@ -9,6 +9,8 @@ mod commands;
 
 use commands::{create_file, format, validate};
 
+fluent_i18n::i18n!("locales");
+
 /// The main entrypoint for the `alpm-buildinfo` executable.
 ///
 /// Returns an [`ExitCode::SUCCESS`] if the chosen command succeeded.

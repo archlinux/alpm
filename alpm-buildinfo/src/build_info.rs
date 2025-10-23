@@ -12,6 +12,7 @@ use std::{
 };
 
 use alpm_common::{FileFormatSchema, MetadataFile};
+use fluent_i18n::t;
 
 use crate::{BuildInfoSchema, BuildInfoV1, BuildInfoV2, Error};
 
@@ -101,8 +102,10 @@ impl MetadataFile<BuildInfoSchema> for BuildInfo {
     ) -> Result<Self, Error> {
         let file = file.as_ref();
         Self::from_reader_with_schema(
-            File::open(file).map_err(|source| {
-                Error::IoPathError(PathBuf::from(file), "opening the file for reading", source)
+            File::open(file).map_err(|source| Error::IoPathError {
+                path: PathBuf::from(file),
+                context: t!("error-io-open-file"),
+                source,
             })?,
             schema,
         )
@@ -176,7 +179,7 @@ impl MetadataFile<BuildInfoSchema> for BuildInfo {
         reader
             .read_to_string(&mut buf)
             .map_err(|source| Error::IoReadError {
-                context: "reading BuildInfo data",
+                context: t!("error-io-read-buildinfo"),
                 source,
             })?;
         Self::from_str_with_schema(&buf, schema)

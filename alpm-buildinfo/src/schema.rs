@@ -9,6 +9,7 @@ use std::{
 use alpm_common::FileFormatSchema;
 use alpm_parsers::custom_ini::parser::Item;
 use alpm_types::{SchemaVersion, semver_version::Version};
+use fluent_i18n::t;
 
 use crate::Error;
 
@@ -50,12 +51,10 @@ impl FileFormatSchema for BuildInfoSchema {
         Self: Sized,
     {
         let file = file.as_ref();
-        Self::derive_from_reader(File::open(file).map_err(|source| {
-            Error::IoPathError(
-                PathBuf::from(file),
-                "deriving schema version from BUILDINFO file",
-                source,
-            )
+        Self::derive_from_reader(File::open(file).map_err(|source| Error::IoPathError {
+            path: PathBuf::from(file),
+            context: t!("error-io-derive-schema-file"),
+            source,
         })?)
     }
 
@@ -77,7 +76,7 @@ impl FileFormatSchema for BuildInfoSchema {
         reader
             .read_to_string(&mut buf)
             .map_err(|source| Error::IoReadError {
-                context: "deriving schema version from BUILDINFO data",
+                context: t!("error-io-derive-schema-data"),
                 source,
             })?;
         Self::derive_from_str(&buf)
