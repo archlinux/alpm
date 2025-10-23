@@ -189,6 +189,7 @@ name = "alpm-lint-config"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "fluent-i18n",
  "serde",
  "strum",
  "tempfile",

@@ -1,5 +1,6 @@
 use std::{fs::File, io::Read, path::Path};
 
+use fluent_i18n::t;
 use serde::{Deserialize, Serialize};
 
 use crate::{Error, LintGroup, LintRuleConfiguration};
@@ -63,14 +64,15 @@ impl LintConfiguration {
     pub fn from_path(path: &Path) -> Result<Self, Error> {
         let mut file = File::open(path).map_err(|source| Error::IoPath {
             path: path.to_path_buf(),
-            context: "opening the config for reading",
+            context: t!("error-io-open-config"),
             source,
         })?;
+
         let mut buf = String::new();
         file.read_to_string(&mut buf)
             .map_err(|source| Error::IoPath {
                 path: path.to_path_buf(),
-                context: "reading config data",
+                context: t!("error-io-read-config"),
                 source,
             })?;
 

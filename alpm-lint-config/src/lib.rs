@@ -13,3 +13,5 @@ pub use lint_rule_config::{
     LintRuleConfigurationOption,
     LintRuleConfigurationOptionName,
 };
+
+fluent_i18n::i18n!("locales");
