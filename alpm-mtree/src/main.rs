@@ -9,6 +9,8 @@ mod commands;
 
 use commands::{format, validate};
 
+fluent_i18n::i18n!("locales");
+
 /// The entry point for the `alpm-mtree` binary.
 ///
 /// Parse the cli arguments and call the respective alpm-mtree library functions

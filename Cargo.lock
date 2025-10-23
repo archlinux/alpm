@@ -208,6 +208,7 @@ dependencies = [
  "clap",
  "filetime",
  "flate2",
+ "fluent-i18n",
  "insta",
  "log",
  "rstest",

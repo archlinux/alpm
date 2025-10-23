@@ -12,6 +12,7 @@ use std::{
 use alpm_common::{MetadataFile, relative_files};
 use alpm_types::{MetadataFileName, SchemaVersion, semver_version::Version};
 use flate2::{Compression, GzBuilder};
+use fluent_i18n::t;
 use log::debug;
 use which::which;
 
@@ -165,22 +166,25 @@ fn create_mtree_file_in_dir(
     let _ = Mtree::from_reader_with_schema(mtree_data, Some(schema))?;
 
     // Create the target file
-    let mtree = File::create(mtree_file.as_path())
-        .map_err(|source| Error::IoPath(mtree_file.clone(), "creating the file", source))?;
+    let mtree = File::create(mtree_file.as_path()).map_err(|source| Error::IoPath {
+        path: mtree_file.clone(),
+        context: t!("error-io-create-file"),
+        source,
+    })?;
 
     let mut gz = GzBuilder::new()
         // Add "Unix" as operating system to the file header.
         .operating_system(3)
         .write(mtree, Compression::best());
-    gz.write_all(mtree_data).map_err(|source| {
-        Error::IoPath(
-            mtree_file.clone(),
-            "writing data to gzip compressed file",
-            source,
-        )
+    gz.write_all(mtree_data).map_err(|source| Error::IoPath {
+        path: mtree_file.clone(),
+        context: t!("error-io-write-gzip"),
+        source,
     })?;
-    gz.finish().map_err(|source| {
-        Error::IoPath(mtree_file.clone(), "finishing gzip compressed file", source)
+    gz.finish().map_err(|source| Error::IoPath {
+        path: mtree_file.clone(),
+        context: t!("error-io-finish-gzip"),
+        source,
     })?;
 
     Ok(mtree_file)

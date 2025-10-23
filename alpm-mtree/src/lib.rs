@@ -28,3 +28,5 @@ pub(crate) use utils::mtree_buffer_to_string;
 
 mod schema;
 pub use schema::MtreeSchema;
+
+fluent_i18n::i18n!("locales");

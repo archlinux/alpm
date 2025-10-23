@@ -7,18 +7,19 @@ use std::{
 
 use alpm_common::MetadataFile;
 use alpm_mtree::{Mtree, MtreeSchema, cli::OutputFormat};
+use fluent_i18n::t;
 use thiserror::Error;
 
 /// A high-level error wrapper around [`alpm_soname::Error`] to add CLI error cases.
 #[derive(Debug, Error)]
 #[non_exhaustive]
 pub enum Error {
-    /// No input file given
-    #[error("No input file given.")]
+    /// No input file given.
+    #[error("{msg}", msg = t!("error-no-input-file"))]
     NoInputFile,
 
-    /// JSON error while creating JSON formatted output.
-    #[error("JSON error: {0}")]
+    /// JSON error.
+    #[error("{msg}", msg = t!("error-json", { "source" => .0.to_string() }))]
     Json(#[from] serde_json::Error),
 
     /// An [alpm_pkginfo::Error]

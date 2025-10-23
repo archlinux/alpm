@@ -12,6 +12,7 @@ use std::{
 };
 
 use alpm_common::{FileFormatSchema, InputPath, InputPaths, MetadataFile};
+use fluent_i18n::t;
 use path_validation_error::{PathValidationError, PathValidationErrors};
 #[cfg(doc)]
 use v2::MTREE_PATH_PREFIX;
@@ -205,8 +206,10 @@ impl MetadataFile<MtreeSchema> for Mtree {
     ) -> Result<Self, Error> {
         let file = file.as_ref();
         Self::from_reader_with_schema(
-            File::open(file).map_err(|source| {
-                Error::IoPath(PathBuf::from(file), "opening the file for reading", source)
+            File::open(file).map_err(|source| Error::IoPath {
+                path: PathBuf::from(file),
+                context: t!("error-io-open-file-read"),
+                source,
             })?,
             schema,
         )
@@ -274,7 +277,10 @@ impl MetadataFile<MtreeSchema> for Mtree {
         let mut buf_reader = BufReader::new(reader);
         buf_reader
             .read_to_end(&mut buffer)
-            .map_err(|source| Error::Io("reading ALPM-MTREE data", source))?;
+            .map_err(|source| Error::Io {
+                context: t!("error-io-read-mtree-data"),
+                source,
+            })?;
         Self::from_str_with_schema(&mtree_buffer_to_string(buffer)?, schema)
     }
 
