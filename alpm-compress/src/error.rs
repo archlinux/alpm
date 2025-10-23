@@ -3,6 +3,7 @@
 use std::{fmt::Debug, num::TryFromIntError};
 
 use alpm_types::CompressionAlgorithmFileExtension;
+use fluent_i18n::t;
 
 use crate::compression::CompressionSettings;
 
@@ -10,15 +11,17 @@ use crate::compression::CompressionSettings;
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     /// An error occurred while creating a Zstandard encoder.
-    #[error(
-        "Error creating a Zstandard encoder while {context} with {compression_settings:?}:\n{source}"
-    )]
+    #[error("{msg}", msg = t!("error-create-zstd-encoder", {
+        "context" => context,
+        "compression_settings" => format!("{compression_settings:?}"),
+        "source" => source.to_string()
+    }))]
     CreateZstandardEncoder {
         /// The context in which the error occurred.
         ///
         /// This is meant to complete the sentence "Error creating a Zstandard encoder while
         /// {context} with {compression_settings}".
-        context: &'static str,
+        context: String,
         /// The compression settings chosen for the encoder.
         compression_settings: CompressionSettings,
         /// The source error.
@@ -26,11 +29,14 @@ pub enum Error {
     },
 
     /// An error occurred while creating a Zstandard decoder.
-    #[error("Error creating a Zstandard decoder:\n{0}")]
+    #[error("{msg}", msg = t!("error-create-zstd-decoder", { "source" => .0.to_string() }))]
     CreateZstandardDecoder(#[source] std::io::Error),
 
     /// An error occurred while finishing a compression encoder.
-    #[error("Error while finishing {compression_type} compression encoder:\n{source}")]
+    #[error("{msg}", msg = t!("error-finish-encoder", {
+        "compression_type" => compression_type.to_string(),
+        "source" => source.to_string()
+    }))]
     FinishEncoder {
         /// The compression chosen for the encoder.
         compression_type: CompressionAlgorithmFileExtension,
@@ -39,37 +45,47 @@ pub enum Error {
     },
 
     /// An error occurred while trying to get the available parallelism.
-    #[error("Error while trying to get available parallelism:\n{0}")]
+    #[error("{msg}", msg = t!("error-get-parallelism", { "source" => .0.to_string() }))]
     GetParallelism(#[source] std::io::Error),
 
     /// An error occurred while trying to convert an integer.
-    #[error("Error while trying to convert an integer:\n{0}")]
+    #[error("{msg}", msg = t!("error-integer-conversion", { "source" => .0.to_string() }))]
     IntegerConversion(#[source] TryFromIntError),
 
     /// An I/O error occurred while reading.
-    #[error("I/O read error while {context}:\n{source}")]
+    #[error("{msg}", msg = t!("error-io-read", {
+        "context" => context,
+        "source" => source.to_string()
+    }))]
     IoRead {
         /// The context in which the error occurred.
         ///
         /// This is meant to complete the sentence "I/O read error while ".
-        context: &'static str,
+        context: String,
         /// The source error.
         source: std::io::Error,
     },
 
     /// An I/O error occurred while writing.
-    #[error("I/O write error while {context}:\n{source}")]
+    #[error("{msg}", msg = t!("error-io-write", {
+        "context" => context,
+        "source" => source.to_string()
+    }))]
     IoWrite {
         /// The context in which the error occurred.
         ///
         /// This is meant to complete the sentence "I/O write error while ".
-        context: &'static str,
+        context: String,
         /// The source error.
         source: std::io::Error,
     },
 
     /// A compression level is not valid.
-    #[error("Invalid compression level {level} (must be in the range {min} - {max})")]
+    #[error("{msg}", msg = t!("error-invalid-compression-level", {
+        "level" => level.to_string(),
+        "min" => min.to_string(),
+        "max" => max.to_string()
+    }))]
     InvalidCompressionLevel {
         /// The invalid compression level.
         level: u8,
@@ -80,11 +96,11 @@ pub enum Error {
     },
 
     /// A compression algorithm file extension is not known.
-    #[error("Unknown compression algorithm file extension:\n{0}")]
+    #[error("{msg}", msg = t!("error-unknown-compression-extension", { "source" => .0.to_string() }))]
     UnknownCompressionAlgorithmFileExtension(#[source] alpm_types::Error),
 
     /// An unsupported compression algorithm was used.
-    #[error("Unsupported compression algorithm: {value}")]
+    #[error("{msg}", msg = t!("error-unsupported-compression", { "value" => value }))]
     UnsupportedCompressionAlgorithm {
         /// The unsupported compression algorithm.
         value: String,

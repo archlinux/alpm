@@ -102,6 +102,7 @@ dependencies = [
  "alpm-types",
  "bzip2",
  "flate2",
+ "fluent-i18n",
  "liblzma",
  "log",
  "num_cpus",
