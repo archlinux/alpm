@@ -6,6 +6,7 @@ use std::{
 
 use alpm_common::MetadataFile;
 use alpm_types::{SchemaVersion, Sha256Checksum};
+use fluent_i18n::t;
 
 use crate::{
     BuildInfo,
@@ -66,17 +67,26 @@ pub fn create_file(command: CreateCommand) -> Result<(), Error> {
 
     // create any parent directories if necessary
     if let Some(output_dir) = output.0.parent() {
-        create_dir_all(output_dir).map_err(|e| {
-            Error::IoPathError(output_dir.to_path_buf(), "creating output directory", e)
+        create_dir_all(output_dir).map_err(|source| Error::IoPathError {
+            path: output_dir.to_path_buf(),
+            context: t!("error-io-create-output-dir"),
+            source,
         })?;
     }
 
-    let mut out = File::create(&output.0)
-        .map_err(|e| Error::IoPathError(output.0.clone(), "creating output file", e))?;
+    let mut out = File::create(&output.0).map_err(|source| Error::IoPathError {
+        path: output.0.clone(),
+        context: t!("error-io-create-output-file"),
+        source,
+    })?;
 
     let _ = out
         .write(data.as_bytes())
-        .map_err(|e| Error::IoPathError(output.0, "writing to output file", e))?;
+        .map_err(|source| Error::IoPathError {
+            path: output.0,
+            context: t!("error-io-write-output-file"),
+            source,
+        })?;
 
     Ok(())
 }
