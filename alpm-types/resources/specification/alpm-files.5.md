@@ -13,11 +13,15 @@ Package management software (e.g. **pacman**) uses them to list and query the pa
 ## General Format
 
 An **alpm-files** file is a UTF-8 encoded, newline-delimited file.
-It contains a single section header and zero or more section entries.
+It exists in two different styles (one for **alpm-db** and one for **alpm-repo-db**), which vary slightly.
+
+The file usually contains a single section header and zero or more section entries.
 Empty lines are ignored.
 Comments are not supported.
 
 The first line must be the string literal `%FILES%`, which represents the section header.
+Note that, when used in the context of an **alpm-db**, the file may be entirely empty, if it tracks no paths.
+This may be the case e.g. when targeting an **alpm-meta-package**.
 
 All subsequent lines are interpreted as section entries, one per line, sorted in lexical order.
 Each section entry represents either a single file or directory path.
@@ -25,6 +29,8 @@ The following formatting rules apply to the paths:
 
 - Directories are always listed with a trailing slash (`/`).
 - All paths are relative to the system root (i.e., `/usr/bin/foo` is represented as `usr/bin/foo`).
+
+Note that, when used in the context of an **alpm-db**, the file usually contains a trailing empty line, if it tracks at least one path.
 
 # EXAMPLES
 
@@ -57,7 +63,7 @@ The installed package will contain a binary (`usr/bin/foo`), a README file (`usr
 
 # SEE ALSO
 
-**libalpm**(3), **alpm-package**(7), **alpm-repo-db**(7), **pacman**(8)
+**libalpm**(3), **alpm-db**(7), **alpm-meta-package**(7), **alpm-package**(7), **alpm-repo-db**(7), **pacman**(8)
 
 # NOTES
 
