@@ -10,7 +10,7 @@
 
 use std::{
     fs::read_dir,
-    path::{Path, PathBuf},
+    path::{MAIN_SEPARATOR_STR, Path, PathBuf},
 };
 
 use alpm_types::{INSTALL_SCRIPTLET_FILE_NAME, MetadataFileName};
@@ -217,8 +217,8 @@ pub fn relative_files(
                 continue;
             }
 
-            paths.push(
-                entry
+            paths.push({
+                let mut path = entry
                     .path()
                     .strip_prefix(init_path)
                     .map_err(|source| crate::Error::PathStripPrefix {
@@ -226,8 +226,20 @@ pub fn relative_files(
                         path: entry.path(),
                         source,
                     })?
-                    .to_path_buf(),
-            );
+                    .to_path_buf();
+
+                // Add a trailing "/" to directory paths, if there isn't one already.
+                if meta.is_dir()
+                    && path
+                        .as_os_str()
+                        .to_str()
+                        .is_some_and(|path| !path.ends_with(MAIN_SEPARATOR_STR))
+                {
+                    path.as_mut_os_string().push(MAIN_SEPARATOR_STR);
+                }
+
+                path
+            });
 
             // Call `collect_files` on each directory, retaining the initial `init_path` and
             // `filter`.
