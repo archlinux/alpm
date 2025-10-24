@@ -33,10 +33,6 @@ pub enum Error {
     #[error("Failed to deserialize BUILDINFO file:\n{0}")]
     DeserializeError(#[from] alpm_parsers::custom_ini::Error),
 
-    /// No input file given
-    #[error("No input file given.")]
-    NoInputFile,
-
     /// Unsupported schema version
     #[error("Unsupported schema version: {0}")]
     UnsupportedSchemaVersion(String),
@@ -48,8 +44,4 @@ pub enum Error {
     /// BuildInfo file is missing the format field
     #[error("Missing format field")]
     MissingFormatField,
-
-    /// JSON error
-    #[error("JSON error: {0}")]
-    Json(#[from] serde_json::Error),
 }

@@ -1,4 +1,7 @@
-//! Integration tests for `alpm-buildinfo`.
+//! Binary integration tests for `alpm-buildinfo`.
+//!
+//! These tests are only executed when the `cli` feature flag is enabled.
+#![cfg(feature = "cli")]
 
 use std::{str::FromStr, thread};
 
