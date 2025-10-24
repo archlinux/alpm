@@ -1,11 +1,30 @@
+//! Commandline functions, that're called by the `alpm-mtree` executable.
+
 use std::{
     io::{self, IsTerminal},
     path::PathBuf,
 };
 
 use alpm_common::MetadataFile;
+use alpm_mtree::{Mtree, MtreeSchema, cli::OutputFormat};
+use thiserror::Error;
 
-use crate::{Error, Mtree, MtreeSchema, cli::OutputFormat};
+/// A high-level error wrapper around [`alpm_soname::Error`] to add CLI error cases.
+#[derive(Debug, Error)]
+#[non_exhaustive]
+pub enum Error {
+    /// No input file given
+    #[error("No input file given.")]
+    NoInputFile,
+
+    /// JSON error while creating JSON formatted output.
+    #[error("JSON error: {0}")]
+    Json(#[from] serde_json::Error),
+
+    /// An [alpm_pkginfo::Error]
+    #[error(transparent)]
+    Mtree(#[from] alpm_mtree::Error),
+}
 
 /// A small wrapper around the parsing of an MTREE file that simply ensures that there were no
 /// errors.
@@ -66,11 +85,13 @@ pub fn format(
 /// - [Error::ParseError] if a malformed MTREE file is encountered.
 /// - [Error::InterpreterError] if expected properties for a given type aren't set.
 pub fn parse(file: Option<&PathBuf>, schema: Option<MtreeSchema>) -> Result<Mtree, Error> {
-    if let Some(file) = file {
-        Mtree::from_file_with_schema(file, schema)
+    let mtree = if let Some(file) = file {
+        Mtree::from_file_with_schema(file, schema)?
     } else if !io::stdin().is_terminal() {
-        Mtree::from_stdin_with_schema(schema)
+        Mtree::from_stdin_with_schema(schema)?
     } else {
-        Err(Error::NoInputFile)
-    }
+        Err(Error::NoInputFile)?
+    };
+
+    Ok(mtree)
 }
