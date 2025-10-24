@@ -172,6 +172,9 @@ test:
     - just --justfile .gitlab/justfile section-start "test" "Run unit tests"
     - just test
     - just --justfile .gitlab/justfile section-end "test"
+    - just --justfile .gitlab/justfile section-start "test" "Run unit tests with cli"
+    - just test --features cli
+    - just --justfile .gitlab/justfile section-end "test"
     - just --justfile .gitlab/justfile section-start "test-docs" "Run doc tests"
     - just test-docs
     - just --justfile .gitlab/justfile section-end "test-docs"
