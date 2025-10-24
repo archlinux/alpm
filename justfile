@@ -202,7 +202,8 @@ is-workspace-member package:
 
 # Runs checks and tests before creating a commit.
 [private]
-run-pre-commit-hook: check docs test test-docs
+run-pre-commit-hook: check docs test-docs
+    just test --features cli
 
 # Runs checks before pushing commits to remote repository.
 [private]
