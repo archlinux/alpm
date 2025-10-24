@@ -18,8 +18,8 @@ required-features = ["cli"]
 
 [features]
 _winnow-debug = ["winnow/debug"]
-cli = ["dep:clap"]
-default = ["cli"]
+cli = ["dep:clap", "dep:serde_json"]
+default = []
 
 [dependencies]
 alpm-common.workspace = true
@@ -28,7 +28,7 @@ alpm-pkgbuild.workspace = true
 alpm-types.workspace = true
 clap = { workspace = true, optional = true }
 serde.workspace = true
-serde_json.workspace = true
+serde_json = { workspace = true, optional = true }
 strum.workspace = true
 thiserror.workspace = true
 winnow.workspace = true
@@ -38,6 +38,7 @@ assert_cmd.workspace = true
 insta.workspace = true
 pretty_assertions.workspace = true
 rstest.workspace = true
+serde_json.workspace = true
 tempfile.workspace = true
 testresult.workspace = true
 

@@ -5,16 +5,32 @@ use std::{
 };
 
 use alpm_common::MetadataFile;
-use alpm_types::Architecture;
-
-use crate::{
+use alpm_srcinfo::{
     SourceInfo,
     SourceInfoSchema,
     SourceInfoV1,
     cli::{PackagesOutputFormat, SourceInfoOutputFormat},
-    error::Error,
     source_info::v1::merged::MergedPackage,
 };
+use alpm_types::Architecture;
+use thiserror::Error;
+
+/// A high-level error wrapper around [`alpm_srcinfo::Error`] to add CLI error cases.
+#[derive(Debug, Error)]
+#[non_exhaustive]
+pub enum Error {
+    /// JSON error while creating JSON formatted output.
+    #[error("JSON error: {0}")]
+    Json(#[from] serde_json::Error),
+
+    /// No input file given.
+    #[error("No input file given.")]
+    NoInputFile,
+
+    /// An [alpm_srcinfo::Error]
+    #[error(transparent)]
+    Srcinfo(#[from] alpm_srcinfo::Error),
+}
 
 /// Take a [PKGBUILD], create [SRCINFO] data from it and print it.
 ///
@@ -148,11 +164,13 @@ pub fn parse(
     file: Option<&PathBuf>,
     schema: Option<SourceInfoSchema>,
 ) -> Result<SourceInfo, Error> {
-    if let Some(file) = file {
-        SourceInfo::from_file_with_schema(file, schema)
+    let source_info = if let Some(file) = file {
+        SourceInfo::from_file_with_schema(file, schema)?
     } else if !io::stdin().is_terminal() {
-        SourceInfo::from_stdin_with_schema(schema)
+        SourceInfo::from_stdin_with_schema(schema)?
     } else {
-        Err(Error::NoInputFile)
-    }
+        Err(Error::NoInputFile)?
+    };
+
+    Ok(source_info)
 }

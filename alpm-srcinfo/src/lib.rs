@@ -2,8 +2,6 @@
 
 #[cfg(feature = "cli")]
 pub mod cli;
-#[cfg(feature = "cli")]
-pub mod commands;
 pub mod error;
 pub mod pkgbuild_bridge;
 pub mod source_info;

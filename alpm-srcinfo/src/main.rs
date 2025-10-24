@@ -2,11 +2,12 @@
 
 use std::process::ExitCode;
 
-use alpm_srcinfo::{
-    cli::{Cli, Command},
-    commands::{create, format_packages, format_source_info, validate},
-};
+use alpm_srcinfo::cli::{Cli, Command};
 use clap::Parser;
+
+mod commands;
+
+use crate::commands::{create, format_packages, format_source_info, validate};
 
 /// The entry point for the `alpm-srcinfo` binary.
 ///
