@@ -39,21 +39,9 @@ pub enum Error {
         keyword: &'static str,
     },
 
-    /// No input file given.
-    ///
-    /// This error only occurs when running the [`crate::commands`] functions.
-    #[error("No input file given.")]
-    NoInputFile,
-
     /// A parsing error that occurred during winnow file parsing.
     #[error("File parsing error:\n{0}")]
     ParseError(String),
-
-    /// JSON error while creating JSON formatted output.
-    ///
-    /// This error only occurs when running the [`crate::commands`] functions.
-    #[error("JSON error: {0}")]
-    Json(#[from] serde_json::Error),
 
     /// Unsupported schema version
     #[error("Unsupported schema version: {0}")]

@@ -1,4 +1,8 @@
 //! This test file contains basic tests to ensure that the alpm-srcinfo CLI behaves as expected.
+//!
+//! These tests are only executed when the `cli` feature flag is enabled.
+#![cfg(feature = "cli")]
+
 use std::{fs::File, io::Write};
 
 use alpm_srcinfo::SourceInfoV1;
