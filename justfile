@@ -814,7 +814,7 @@ test-readme project:
 
     install_executables() {
         printf "Installing executables of %s...\n" "{{ project }}"
-        cargo install --locked --path {{ project }}
+        cargo install --locked --path {{ project }} --features cli
     }
 
     install_executables
