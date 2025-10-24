@@ -7,15 +7,31 @@ use std::{
 };
 
 use alpm_common::MetadataFile;
-
-use crate::{
-    Error,
+use alpm_pkginfo::{
     PackageInfo,
     PackageInfoSchema,
     PackageInfoV1,
     PackageInfoV2,
     cli::{CreateCommand, OutputFormat},
 };
+use thiserror::Error;
+
+/// A high-level error wrapper around [`alpm_soname::Error`] to add CLI error cases.
+#[derive(Debug, Error)]
+#[non_exhaustive]
+pub enum Error {
+    /// No input file given
+    #[error("No input file given.")]
+    NoInputFile,
+
+    /// JSON error while creating JSON formatted output.
+    #[error("JSON error: {0}")]
+    Json(#[from] serde_json::Error),
+
+    /// An [alpm_pkginfo::Error]
+    #[error(transparent)]
+    PkgInfo(#[from] alpm_pkginfo::Error),
+}
 
 /// Create a file according to a PKGINFO schema
 ///
@@ -81,16 +97,21 @@ pub fn create_file(command: CreateCommand) -> Result<(), Error> {
     // create any parent directories if necessary
     if let Some(output_dir) = output.0.parent() {
         create_dir_all(output_dir).map_err(|e| {
-            Error::IoPathError(output_dir.to_path_buf(), "creating output directory", e)
+            alpm_pkginfo::Error::IoPathError(
+                output_dir.to_path_buf(),
+                "creating output directory",
+                e,
+            )
         })?;
     }
 
-    let mut out = File::create(&output.0)
-        .map_err(|e| Error::IoPathError(output.0.clone(), "creating output file", e))?;
+    let mut out = File::create(&output.0).map_err(|e| {
+        alpm_pkginfo::Error::IoPathError(output.0.clone(), "creating output file", e)
+    })?;
 
     let _ = out
         .write(data.as_bytes())
-        .map_err(|e| Error::IoPathError(output.0, "writing to output file", e))?;
+        .map_err(|e| alpm_pkginfo::Error::IoPathError(output.0, "writing to output file", e))?;
 
     Ok(())
 }
@@ -112,13 +133,15 @@ pub fn parse(
     file: Option<PathBuf>,
     schema: Option<PackageInfoSchema>,
 ) -> Result<PackageInfo, Error> {
-    if let Some(file) = file {
-        PackageInfo::from_file_with_schema(file, schema)
+    let package_info = if let Some(file) = file {
+        PackageInfo::from_file_with_schema(file, schema)?
     } else if !io::stdin().is_terminal() {
-        PackageInfo::from_stdin_with_schema(schema)
+        PackageInfo::from_stdin_with_schema(schema)?
     } else {
-        Err(Error::NoInputFile)
-    }
+        Err(Error::NoInputFile)?
+    };
+
+    Ok(package_info)
 }
 
 /// Validate a file according to a PKGINFO schema.
