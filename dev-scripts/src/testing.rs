@@ -2,7 +2,11 @@
 
 use std::path::PathBuf;
 
-use alpm_buildinfo::cli::ValidateArgs;
+use alpm_buildinfo::BuildInfo;
+use alpm_common::MetadataFile;
+use alpm_mtree::Mtree;
+use alpm_pkginfo::PackageInfo;
+use alpm_srcinfo::SourceInfo;
 use anyhow::{Context, Result};
 use colored::Colorize;
 use log::{debug, info};
@@ -47,20 +51,18 @@ impl TestRunner {
             .into_par_iter()
             .map(|file| {
                 let result = match self.file_type {
-                    TestFileType::BuildInfo => alpm_buildinfo::commands::validate(ValidateArgs {
-                        file: Some(file.clone()),
-                        schema: None,
-                    })
-                    .map_err(|err| err.into()),
-                    TestFileType::SrcInfo => alpm_srcinfo::commands::validate(Some(&file), None)
+                    TestFileType::BuildInfo => BuildInfo::from_file_with_schema(&file, None)
+                        .map(|_| ())
                         .map_err(|err| err.into()),
-                    TestFileType::MTree => {
-                        alpm_mtree::commands::validate(Some(&file), None).map_err(|err| err.into())
-                    }
-                    TestFileType::PackageInfo => {
-                        alpm_pkginfo::commands::validate(Some(file.clone()), None)
-                            .map_err(|err| err.into())
-                    }
+                    TestFileType::SrcInfo => SourceInfo::from_file_with_schema(&file, None)
+                        .map(|_| ())
+                        .map_err(|err| err.into()),
+                    TestFileType::MTree => Mtree::from_file_with_schema(&file, None)
+                        .map(|_| ())
+                        .map_err(|err| err.into()),
+                    TestFileType::PackageInfo => PackageInfo::from_file_with_schema(&file, None)
+                        .map(|_| ())
+                        .map_err(|err| err.into()),
                     TestFileType::RemoteDesc => unimplemented!(),
                     TestFileType::RemoteFiles => unimplemented!(),
                     TestFileType::LocalDesc => unimplemented!(),
