@@ -34,7 +34,7 @@ export OUTPUT_DIR
 
 # generate the test files
 cd tests/
-script_output="$(rust-script integration.rs)"
+script_output="$(rust-script tester.rs)"
 
 # extract and export vars
 export LIB_PACKAGE_PATH="$(jq -r '.lib_package_path' <<<"$script_output")"
