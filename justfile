@@ -572,6 +572,7 @@ install-workspace-binaries:
     # Workspace members without a binary
     ignored_members=(
         alpm-common
+        alpm-compress
         alpm-db
         alpm-lint-config
         alpm-package
@@ -599,7 +600,7 @@ install-workspace-binaries:
         fi
 
         echo "Installing $name"
-        cargo install --locked --path "$name"
+        cargo install --locked --path "$name" --features cli
     done
 
 # Fixes common issues. Files need to be git add'ed

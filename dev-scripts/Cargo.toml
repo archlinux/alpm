@@ -15,6 +15,10 @@ version = "0.0.0"
 
 [features]
 _winnow-debug = ["winnow/debug"]
+# The cli feature flag only exists to be consistent with all other
+# workspace binary crates. This makes installing binaries more generic.
+# It's a convenience hack.
+cli = []
 
 [dependencies]
 alpm-buildinfo.workspace = true
