@@ -20,11 +20,7 @@ Please refer to the [contribution guidelines] to learn how to contribute to this
 This project can be used under the terms of the [Apache-2.0] or [MIT].
 Contributions to this project, unless noted otherwise, are automatically licensed under the terms of both of those licenses.
 
-Please note that parts of the code are licensed under terms of the the [LGPL-2.0-or-later].
-Refer to the [reuse configuration] to learn more.
-
 [contribution guidelines]: ../CONTRIBUTING.md
 [reuse configuration]: ../REUSE.toml
 [Apache-2.0]: ../LICENSES/Apache-2.0.txt
-[LGPL-2.0-or-later]: ../LICENSES/LGPL-2.0-or-later.txt
 [MIT]: ../LICENSES/MIT.txt
