@@ -4,7 +4,6 @@
 
 use std::{fs::read_to_string, path::PathBuf};
 
-use alpm_mtree::commands::parse;
 use insta::assert_snapshot;
 use rstest::rstest;
 use testresult::TestResult;
@@ -16,8 +15,11 @@ use testresult::TestResult;
 fn ensure_correct_syntax(#[files("tests/correct_syntax_inputs/*")] case: PathBuf) -> TestResult {
     // Read the input file and parse it.
 
+    use alpm_common::MetadataFile;
+    use alpm_mtree::Mtree;
+
     let input = read_to_string(&case)?;
-    let result = parse(Some(&case), None);
+    let result = Mtree::from_file_with_schema(&case, None);
 
     // Make sure the parsing succeeded.
     let files = match result {

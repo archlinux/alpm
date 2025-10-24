@@ -2,11 +2,12 @@
 
 use std::process::ExitCode;
 
-use alpm_mtree::{
-    cli::{Cli, Command},
-    commands::{format, validate},
-};
+use alpm_mtree::cli::{Cli, Command};
 use clap::Parser;
+
+mod commands;
+
+use commands::{format, validate};
 
 /// The entry point for the `alpm-mtree` binary.
 ///
