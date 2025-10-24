@@ -2,11 +2,12 @@
 
 use std::process::ExitCode;
 
-use alpm_buildinfo::{
-    cli::{Cli, Command},
-    commands::{create_file, format, validate},
-};
+use alpm_buildinfo::cli::{Cli, Command};
 use clap::Parser;
+
+mod commands;
+
+use commands::{create_file, format, validate};
 
 /// The main entrypoint for the `alpm-buildinfo` executable.
 ///

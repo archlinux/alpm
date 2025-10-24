@@ -1,19 +1,41 @@
+//! Commandline functions, that're called by the `alpm-buildinfo` executable.
+
 use std::{
     fs::{File, create_dir_all},
     io::{self, IsTerminal, Write},
     str::FromStr,
 };
 
-use alpm_common::MetadataFile;
-use alpm_types::{SchemaVersion, Sha256Checksum};
-
-use crate::{
+use alpm_buildinfo::{
     BuildInfo,
     BuildInfoV1,
     BuildInfoV2,
     cli::{CreateCommand, OutputFormat, ValidateArgs},
-    error::Error,
 };
+use alpm_common::MetadataFile;
+use alpm_types::{SchemaVersion, Sha256Checksum};
+use thiserror::Error;
+
+/// A high-level error wrapper around [`alpm_buildinfo::Error`] to add CLI error cases.
+#[derive(Debug, Error)]
+#[non_exhaustive]
+pub enum Error {
+    /// ALPM type error
+    #[error("ALPM type parse error: {0}")]
+    AlpmType(#[from] alpm_types::Error),
+
+    /// No input file given
+    #[error("No input file given.")]
+    NoInputFile,
+
+    /// JSON error while creating JSON formatted output.
+    #[error("JSON error: {0}")]
+    Json(#[from] serde_json::Error),
+
+    /// An [alpm_buildinfo::Error]
+    #[error(transparent)]
+    BuildInfo(#[from] alpm_buildinfo::Error),
+}
 
 /// Create a file according to a BUILDINFO schema
 pub fn create_file(command: CreateCommand) -> Result<(), Error> {
@@ -67,16 +89,21 @@ pub fn create_file(command: CreateCommand) -> Result<(), Error> {
     // create any parent directories if necessary
     if let Some(output_dir) = output.0.parent() {
         create_dir_all(output_dir).map_err(|e| {
-            Error::IoPathError(output_dir.to_path_buf(), "creating output directory", e)
+            alpm_buildinfo::Error::IoPathError(
+                output_dir.to_path_buf(),
+                "creating output directory",
+                e,
+            )
         })?;
     }
 
-    let mut out = File::create(&output.0)
-        .map_err(|e| Error::IoPathError(output.0.clone(), "creating output file", e))?;
+    let mut out = File::create(&output.0).map_err(|e| {
+        alpm_buildinfo::Error::IoPathError(output.0.clone(), "creating output file", e)
+    })?;
 
     let _ = out
         .write(data.as_bytes())
-        .map_err(|e| Error::IoPathError(output.0, "writing to output file", e))?;
+        .map_err(|e| alpm_buildinfo::Error::IoPathError(output.0, "writing to output file", e))?;
 
     Ok(())
 }
@@ -90,13 +117,15 @@ pub fn create_file(command: CreateCommand) -> Result<(), Error> {
 ///
 /// [`IsTerminal`]: https://doc.rust-lang.org/stable/std/io/trait.IsTerminal.html
 pub fn parse(args: ValidateArgs) -> Result<BuildInfo, Error> {
-    if let Some(file) = &args.file {
-        BuildInfo::from_file_with_schema(file, args.schema)
+    let build_info = if let Some(file) = &args.file {
+        BuildInfo::from_file_with_schema(file, args.schema)?
     } else if !io::stdin().is_terminal() {
-        BuildInfo::from_stdin_with_schema(args.schema)
+        BuildInfo::from_stdin_with_schema(args.schema)?
     } else {
-        Err(Error::NoInputFile)
-    }
+        Err(Error::NoInputFile)?
+    };
+
+    Ok(build_info)
 }
 
 /// Validate a file according to a BUILDINFO schema.

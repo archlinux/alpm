@@ -21,7 +21,7 @@ use alpm_types::{
 use clap::{Args, Parser, Subcommand, ValueEnum};
 use strum::Display;
 
-use crate::{Error, schema::BuildInfoSchema};
+use crate::{BuildInfoSchema, Error};
 
 /// A type wrapping a PathBuf with a default value
 ///
@@ -221,7 +221,6 @@ pub enum CreateCommand {
 
 /// Output format for the format command
 #[derive(Clone, Debug, Default, Display, ValueEnum)]
-#[non_exhaustive]
 pub enum OutputFormat {
     /// The JSON output format.
     #[default]
