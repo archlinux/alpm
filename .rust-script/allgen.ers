@@ -2,7 +2,7 @@
 
 //! ```cargo
 //! [dependencies]
-//! pkg = { path = "PATH", package = "PKG" }
+//! pkg = { path = "PATH", package = "PKG", features = ["cli"] }
 //! clap_allgen = "0.2.1"
 //! testresult = "0.4.1"
 //! ```
