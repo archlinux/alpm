@@ -75,8 +75,4 @@ pub enum Error {
         /// The path of the input directory.
         path: PathBuf,
     },
-
-    /// JSON error
-    #[error("JSON error: {0}")]
-    Json(#[from] serde_json::Error),
 }

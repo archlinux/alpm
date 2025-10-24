@@ -18,20 +18,20 @@ path = "src/main.rs"
 required-features = ["cli"]
 
 [features]
-cli = ["dep:clap", "dep:log"]
-default = ["cli"]
+cli = ["dep:clap", "dep:clap-verbosity", "dep:serde_json"]
+default = []
 
 [dependencies]
 alpm-package.workspace = true
 alpm-pkginfo.workspace = true
 alpm-types.workspace = true
 clap = { workspace = true, optional = true }
-clap-verbosity.workspace = true
+clap-verbosity = { workspace = true, optional = true }
 goblin = "0.10.0"
-log = { version = "0.4.27", optional = true }
+log.workspace = true
 serde.workspace = true
-serde_json.workspace = true
-simplelog = "0.12.2"
+serde_json = { workspace = true, optional = true }
+simplelog.workspace = true
 strum.workspace = true
 thiserror.workspace = true
 
@@ -40,6 +40,7 @@ alpm-compress.workspace = true
 alpm-mtree.workspace = true
 assert_cmd.workspace = true
 rstest.workspace = true
+serde_json.workspace = true
 tempfile.workspace = true
 testresult.workspace = true
 

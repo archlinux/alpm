@@ -35,6 +35,9 @@
 //! alpm-types = { path = "../../alpm-types" }
 //! alpm-soname = { path = "../../alpm-soname" }
 //! ```
+//!
+//! These tests are only executed when the `cli` feature flag is enabled.
+#![cfg(feature = "cli")]
 
 use std::{
     env,
