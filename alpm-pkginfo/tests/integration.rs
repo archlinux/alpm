@@ -1,4 +1,7 @@
 //! Integration tests for the `alpm-pkginfo` CLI tool.
+//!
+//! These tests are only executed when the `cli` feature flag is enabled.
+#![cfg(feature = "cli")]
 
 use std::{str::FromStr, thread};
 

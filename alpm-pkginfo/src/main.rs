@@ -2,11 +2,13 @@
 
 use std::process::ExitCode;
 
-use alpm_pkginfo::{
-    cli::{Cli, Command},
-    commands::{create_file, format, validate},
-};
+use alpm_pkginfo::cli::{Cli, Command};
 use clap::Parser;
+
+/// Commandline functions, that're called by the `alpm-pkginfo` executable.
+mod commands;
+
+use commands::{create_file, format, validate};
 
 fn main() -> ExitCode {
     let cli = Cli::parse();

@@ -39,14 +39,6 @@ pub enum Error {
     #[error("The first extra data definition does not specify \"pkgtype\"")]
     FirstExtraDataNotPkgType,
 
-    /// No input file given
-    #[error("No input file given.")]
-    NoInputFile,
-
-    /// JSON error
-    #[error("JSON error: {0}")]
-    Json(#[from] serde_json::Error),
-
     /// An invalid enum variant
     #[error("Invalid variant ({0})")]
     InvalidVariant(#[from] strum::ParseError),

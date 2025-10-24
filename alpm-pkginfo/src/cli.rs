@@ -314,7 +314,6 @@ pub enum CreateCommand {
 
 /// Output format for the format command
 #[derive(Clone, Debug, Default, Display, ValueEnum)]
-#[non_exhaustive]
 pub enum OutputFormat {
     /// The JSON output format.
     #[default]
