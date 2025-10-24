@@ -2,13 +2,14 @@
 
 use std::process::ExitCode;
 
-use alpm_soname::{
-    cli::{Cli, Command},
-    commands::{get_dependencies, get_provisions, get_raw_dependencies},
-};
+use alpm_soname::cli::{Cli, Command};
 use clap::Parser;
 use log::{debug, error};
 use simplelog::{Config, SimpleLogger};
+
+mod commands;
+
+use commands::{get_dependencies, get_provisions, get_raw_dependencies};
 
 fn main() -> ExitCode {
     let cli = Cli::parse();
