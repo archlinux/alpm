@@ -21,7 +21,7 @@ python-source = "python"
 [dependency-groups]
 dev = [
     "mypy>=1.17,<2.0",
-    "pdoc>=15.0,<16.0",
+    "pdoc>=16,<16.1",
     "pytest>=8.4,<9.0",
     "ruff>=0.14,<0.15",
 ]
