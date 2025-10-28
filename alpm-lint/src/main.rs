@@ -2,11 +2,11 @@
 
 use std::process::ExitCode;
 
-mod commands;
-
 use alpm_lint::cli::{Cli, Command};
 use clap::Parser;
 use simplelog::{ColorChoice, Config, TermLogger};
+
+mod commands;
 
 use crate::commands::{check, meta, options, rules};
 
