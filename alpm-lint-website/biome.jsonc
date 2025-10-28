@@ -1,0 +1,47 @@
+{
+    "formatter": {
+        "enabled": true,
+        "indentStyle": "space",
+        "lineWidth": 140,
+        "indentWidth": 4
+    },
+    "linter": {
+        "enabled": true
+    },
+    "html": {
+        "parser": {
+            // Allow "interpolation"
+            // That way the parser at least manages to read the HTML template files.
+            // We explicitly disable linting on the templates files. See overrides.
+            "interpolation": true
+        }
+    },
+    "css": {
+        "parser": {
+            "tailwindDirectives": true
+        }
+    },
+    "files": {
+        "includes": [
+            "**",
+            // Don't lint the generated json files
+            "!static/*.json",
+            // Don't lint generated minified css
+            "!**/*.min.css",
+            // Don't lint the built distribution files.
+            "!public",
+            // Don't lint the linkita theme
+            "!themes"
+        ]
+    },
+    "overrides": [
+        {
+            // Ignore linting on the templates.
+            // Biome cannot handle the tera/jinja2 syntax.
+            "includes": ["templates/**/*.html"],
+            "linter": {
+                "enabled": false
+            }
+        }
+    ]
+}

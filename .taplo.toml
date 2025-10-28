@@ -1,3 +1,6 @@
+# Ignore toml files in the linkita git submodule
+exclude = ["alpm-lint-website/themes/**/*.toml"]
+
 [formatting]
 indent_string = "    "
 reorder_arrays = true
@@ -9,3 +12,9 @@ keys = ["package"]
 
 [rule.formatting]
 reorder_keys = false
+
+[[rule]]
+include = ["alpm-lint-website/config.toml"]
+
+[rule.formatting]
+reorder_arrays = false

@@ -16,6 +16,8 @@ SPDX-License-Identifier = "CC0-1.0"
 path = [
     "**.bash",
     "**.ftl",
+    "**.json",
+    "**.jsonc",
     "**.lock",
     "**.mtree",
     "**.pkgbuild",
@@ -24,14 +26,14 @@ path = [
     "**.srcinfo",
     "**.stub",
     "**.toml",
+    "**/.gitignore",
     "**justfile",
-    "*.json",
     "*.yml",
     ".cargo/runner.sh",
     ".codespellrc",
     ".env",
-    ".gitignore",
     ".gitlab/CODEOWNERS",
+    ".gitmodules",
     ".lycheeignore",
     ".shellcheckrc",
     "alpm-soname/tests/test_files/*",
@@ -42,5 +44,13 @@ precedence = "aggregate"
 [[annotations]]
 SPDX-FileCopyrightText = "ALPM Contributors"
 SPDX-License-Identifier = "CC-BY-SA-4.0"
-path = ["**.md"]
+path = [
+    "**.md",
+    "alpm-lint-website/**/*.css",
+    "alpm-lint-website/**/*.html",
+    "alpm-lint-website/**/*.js",
+    "alpm-lint-website/**/*.scss",
+    "alpm-lint-website/static/icons/*.ico",
+    "alpm-lint-website/static/icons/*.png",
+]
 precedence = "aggregate"

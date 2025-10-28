@@ -1,5 +1,11 @@
 [lint]
-exclude = []
+exclude = [
+    # These markdown files have special format to encode metadata that is
+    # used by zola to generate meta info for website pages.
+    # Mado cannot handle that metadata format and always produces errors.
+    "./alpm-lint-website/content/*.md",
+    "./alpm-lint-website/themes/**/*.md",
+]
 output-format = "concise"
 quiet = false
 respect-gitignore = true

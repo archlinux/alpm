@@ -1,0 +1,89 @@
+# Run the `alpm-lint` project to generate the newest lint rule set and export it
+# to be used in zola.
+[group('build')]
+update-lint-definition:
+    #!/bin/env bash
+    manifest_path=$(cargo metadata \
+        --format-version 1 \
+        --no-deps \
+        | jq -r '.packages[] | select(.name == "alpm-lint") | .manifest_path'
+    )
+    workspace_root=$(
+        cargo metadata \
+            --format-version 1 \
+            --no-deps \
+            | jq -r '.workspace_root'
+    )
+    static_dir="$workspace_root/alpm-lint-website/static/"
+
+    types=( "rules" "meta" "options"  )
+    for type in "${types[@]}"; do
+        echo "Generating lint $type"
+        cargo run --manifest-path $manifest_path \
+            -- $type \
+            --format json \
+            --output "$static_dir/lint-$type.json" \
+            --pretty
+    done
+
+# Use linkita's project setup and build process to bake tailwind
+# that's used in our own templates into the final css.
+[group('build')]
+build-tailwind:
+    #!/bin/env bash
+    just ensure-command pnpm
+    if [[ ! "${CI:-}" ]]; then
+        # Only initialize the submodule locally in case the developer has not done so yet.
+        # GitLab CI does this automatically for us and doesn't have `git` installed.
+        git submodule init
+    fi
+
+    cd themes/linkita
+    pnpm install
+    pnpm tailwindcss -i ./src/app.css -o ../../static/main.min.css --minify
+
+# Build the website. Output is placed in `./public`.
+[group('build')]
+build: update-lint-definition build-tailwind
+    zola build
+
+# Start a local hot-reloading development server.
+[group('dev')]
+serve:
+    just ensure-command zola
+
+    zola serve
+
+# Lint and check formatting
+[group('dev')]
+lint:
+    just ensure-command biome
+
+    biome lint
+
+# Formatting files in-place
+[group('dev')]
+format:
+    just ensure-command biome
+
+    biome format --write
+
+# Remove all temporary artifacts.
+[group('dev')]
+clean:
+    rm -fr static/{lint-{meta,options,rules}.json,main.min.css} public/
+
+# Ensures that one or more required commands are installed
+[private]
+ensure-command +command:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    read -r -a commands <<< "{{ command }}"
+
+    for cmd in "${commands[@]}"; do
+        if ! command -v "$cmd" > /dev/null 2>&1 ; then
+            printf "Couldn't find required executable '%s'\n" "$cmd" >&2
+            exit 1
+        fi
+    done

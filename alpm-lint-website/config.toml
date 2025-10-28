@@ -1,0 +1,26 @@
+# For all config options refer to https://www.getzola.org/documentation/getting-started/configuration/
+author = "ALPM Contributors"
+base_url = "https://alpm.archlinux.page/lints/"
+compile_sass = true
+description = "ALPM Lint Documentation"
+theme = "linkita"
+title = "ALPM Lint Documentation"
+
+[link_checker]
+skip_prefixes = ["https://alpm.archlinux.page/lints/"]
+
+[markdown]
+highlight_code = true
+
+# For all theme config options refer to https://www.getzola.org/themes/linkita/
+[extra]
+disable_default_favicon = true
+header_menu_name = "misc_header"
+mermaid = true
+
+[extra.menus]
+misc_header = [
+    { url = "https://gitlab.archlinux.org/archlinux/alpm/alpm/-/tree/main/alpm-lint", name = "ALPM-lint" },
+    { url = "https://gitlab.archlinux.org/archlinux/alpm/alpm/-/tree/main/alpm-lint-website", name = "Source" },
+    { url = "$BASE_URL/about/", name = "About" },
+]

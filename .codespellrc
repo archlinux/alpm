@@ -1,3 +1,3 @@
 [codespell]
 ignore-words-list = crate, ser
-skip = Cargo.lock,.cargo,.git,target,*.5,output,*.js
+skip = Cargo.lock,.cargo,.git,target,*.5,output,*.js,./alpm-lint-website/themes,./alpm-lint-website/public

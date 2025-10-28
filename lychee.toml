@@ -14,3 +14,8 @@ max_cache_age = "2d"
 
 # only check 5 URLs at a time
 max_concurrency = 5
+
+# Ignore
+# - relative links the lint website templates
+# - links in the linkita git submodule
+exclude_path = ["alpm-lint-website/templates", "alpm-lint-website/themes"]
