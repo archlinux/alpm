@@ -577,8 +577,8 @@ install-workspace-binaries:
         alpm-db
         alpm-lint-config
         alpm-package
-        alpm-pkgbuild
         alpm-parsers
+        alpm-pkgbuild
         alpm-state-repo
         alpm-repo
         alpm-repo-db
