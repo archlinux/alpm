@@ -4,14 +4,14 @@ use alpm_lint::{
     lint_rules::source_info::no_architecture::NoArchitecture,
 };
 use alpm_srcinfo::SourceInfo;
-use alpm_types::Architecture;
+use alpm_types::{Architectures, SystemArchitecture};
 
 use crate::fixtures::default_source_info_v1;
 
 #[test]
 fn no_architecture_passes() -> testresult::TestResult {
     let mut source_info = default_source_info_v1()?;
-    source_info.base.architectures = vec![Architecture::X86_64];
+    source_info.base.architectures = Architectures::Some(vec![SystemArchitecture::X86_64]);
 
     let resources = Resources::SourceInfo(SourceInfo::V1(source_info));
     let config = LintRuleConfiguration::default();
@@ -27,7 +27,7 @@ fn no_architecture_passes() -> testresult::TestResult {
 #[test]
 fn no_architecture_fails() -> testresult::TestResult {
     let mut source_info = default_source_info_v1()?;
-    source_info.base.architectures = vec![];
+    source_info.base.architectures = Architectures::Some(vec![]);
 
     let resources = Resources::SourceInfo(SourceInfo::V1(source_info));
     let config = LintRuleConfiguration::default();

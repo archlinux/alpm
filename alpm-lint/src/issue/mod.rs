@@ -2,7 +2,7 @@
 
 use std::{collections::BTreeMap, fmt};
 
-use alpm_types::Architecture;
+use alpm_types::SystemArchitecture;
 use colored::{ColoredString, Colorize};
 use serde::{Deserialize, Serialize};
 
@@ -180,7 +180,7 @@ pub enum SourceInfoIssue {
         ///
         /// If this is set, it'll be used as [`LintIssueDisplay::message`] in the form of:
         /// `"{context}: {value} for architecture {arch}"`
-        architecture: Option<Architecture>,
+        architecture: Option<SystemArchitecture>,
     },
 
     /// A lint issue on a field that belongs to a specific package.
@@ -213,7 +213,7 @@ pub enum SourceInfoIssue {
         ///
         /// If this is set, it'll be used as [`LintIssueDisplay::message`] in the form of:
         /// `"{context}: {value} for architecture {arch}"`
-        architecture: Option<Architecture>,
+        architecture: Option<SystemArchitecture>,
     },
 
     /// A required field is missing from the package base.
@@ -228,7 +228,7 @@ impl SourceInfoIssue {
     /// [SRCINFO] formatting as bold text.
     ///
     /// [SRCINFO]: https://alpm.archlinux.page/specifications/SRCINFO.5.html
-    pub fn field_fmt(field_name: &str, architecture: Option<Architecture>) -> ColoredString {
+    pub fn field_fmt(field_name: &str, architecture: Option<SystemArchitecture>) -> ColoredString {
         match architecture {
             Some(arch) => format!("{field_name}_{arch}").bold(),
             None => field_name.bold(),

@@ -3,7 +3,7 @@
 //! [SRCINFO]: https://alpm.archlinux.page/specifications/SRCINFO.5.html
 //! [alpm-package-source-checksum]: https://alpm.archlinux.page/specifications/alpm-package-source-checksum.7.html
 
-use alpm_types::{Architecture, ChecksumAlgorithm};
+use alpm_types::{ChecksumAlgorithm, SystemArchitecture};
 use documented::Documented;
 use strum::VariantArray;
 
@@ -73,7 +73,7 @@ impl UnsafeChecksum {
         &self,
         field_name: &str,
         value: &str,
-        architecture: Option<Architecture>,
+        architecture: Option<SystemArchitecture>,
     ) -> LintIssue {
         LintIssue::from_rule(
             self,
@@ -158,7 +158,7 @@ Instead, use one of the following algorithms: {}
                     issues.push(self.create_checksum_issue(
                         "sha1sums",
                         &checksum.to_string(),
-                        Some(*architecture),
+                        Some(architecture.clone()),
                     ));
                 }
             }
@@ -173,7 +173,7 @@ Instead, use one of the following algorithms: {}
                     issues.push(self.create_checksum_issue(
                         "md5sums",
                         &checksum.to_string(),
-                        Some(*architecture),
+                        Some(architecture.clone()),
                     ));
                 }
             }

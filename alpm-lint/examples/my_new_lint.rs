@@ -24,7 +24,7 @@ use alpm_lint::{
 };
 use alpm_lint_config::{LintGroup, LintRuleConfiguration, LintRuleConfigurationOptionName};
 use alpm_srcinfo::{SourceInfo, source_info::v1::package_base::PackageBase};
-use alpm_types::{Architecture, FullVersion, Name};
+use alpm_types::{Architectures, FullVersion, Name, SystemArchitecture};
 use documented::Documented;
 use testresult::TestResult;
 
@@ -241,7 +241,7 @@ fn main() -> TestResult {
         Name::from_str("test-package")?,
         FullVersion::from_str("1:1.0.0-1")?,
     );
-    base.architectures = vec![Architecture::X86_64];
+    base.architectures = Architectures::Some(vec![SystemArchitecture::X86_64]);
 
     // Add the non-SPDX license
     base.licenses

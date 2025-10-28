@@ -5,6 +5,7 @@
 
 use std::collections::BTreeMap;
 
+use alpm_types::{Architectures, SystemArchitecture};
 use colored::Colorize;
 use documented::Documented;
 
@@ -62,6 +63,16 @@ impl UndefinedArchitecture {
     }
 }
 
+/// Check if a system architecture is contained by a (set) of [Architectures].
+fn contains_architecture(left: &Architectures, right: &SystemArchitecture) -> bool {
+    // If left is `Any`, all architectures are valid.
+    let Architectures::Some(left) = left else {
+        return true;
+    };
+
+    left.contains(right)
+}
+
 impl LintRule for UndefinedArchitecture {
     fn name(&self) -> &'static str {
         "undefined_architecture"
@@ -87,13 +98,11 @@ Make sure all architecture-specific fields correspond to architectures declared 
         // Extract the SourceInfo from the given resources.
         let source_info = source_info_from_resource(resources, self.scoped_name())?;
 
-        // Get the set of declared architectures
-        let declared_architectures: std::collections::HashSet<_> =
-            source_info.base.architectures.iter().collect();
+        let base_archs = &source_info.base.architectures;
 
         // Check package base architecture properties
         for arch in source_info.base.architecture_properties.keys() {
-            if !declared_architectures.contains(arch) {
+            if !contains_architecture(base_archs, arch) {
                 issues.push(LintIssue {
                     lint_rule: self.scoped_name(),
                     level: self.level(),
@@ -115,8 +124,14 @@ Make sure all architecture-specific fields correspond to architectures declared 
 
         // Check package architecture properties
         for package in &source_info.packages {
+            let package_archs = if let Some(archs) = &package.architectures {
+                archs
+            } else {
+                base_archs
+            };
+
             for arch in package.architecture_properties.keys() {
-                if !declared_architectures.contains(arch) {
+                if !contains_architecture(package_archs, arch) {
                     issues.push(LintIssue::from_rule(self,
                         SourceInfoIssue::Generic {
                                 summary: "found variable for an undefined architecture".to_string(),

@@ -19,6 +19,7 @@ use alpm_srcinfo::{
 };
 use alpm_types::{
     Architecture,
+    Architectures,
     BuildDate,
     BuildDirectory,
     BuildTool,
@@ -44,7 +45,7 @@ use testresult::TestResult;
 pub fn default_source_info_v1() -> TestResult<SourceInfoV1> {
     Ok(SourceInfoV1 {
         base: PackageBase {
-            architectures: vec![Architecture::Any],
+            architectures: Architectures::Any,
             ..PackageBase::new_with_defaults(
                 Name::from_str("test-package")?,
                 FullVersion::from_str("1:1.0.0-1")?,

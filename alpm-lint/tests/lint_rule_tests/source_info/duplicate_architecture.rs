@@ -4,17 +4,17 @@ use alpm_lint::{
     lint_rules::source_info::duplicate_architecture::DuplicateArchitecture,
 };
 use alpm_srcinfo::SourceInfo;
-use alpm_types::Architecture;
+use alpm_types::{Architectures, SystemArchitecture};
 use rstest::rstest;
 
 use crate::fixtures::default_source_info_v1;
 
 #[rstest]
-#[case::x86_64_and_aarch64(vec![Architecture::X86_64, Architecture::Aarch64])]
-#[case::single_architecture(vec![Architecture::Any])]
-fn duplicate_architecture_passes(
-    #[case] architectures: Vec<Architecture>,
-) -> testresult::TestResult {
+#[case::x86_64_and_aarch64(
+    Architectures::Some(vec![SystemArchitecture::X86_64, SystemArchitecture::Aarch64]),
+)]
+#[case::single_architecture(Architectures::Any)]
+fn duplicate_architecture_passes(#[case] architectures: Architectures) -> testresult::TestResult {
     let mut source_info = default_source_info_v1()?;
     source_info.base.architectures = architectures;
 
@@ -30,11 +30,13 @@ fn duplicate_architecture_passes(
 }
 
 #[rstest]
-#[case::duplicate_x86_64(vec![Architecture::X86_64, Architecture::X86_64])]
-#[case::duplicate_with_others(vec![Architecture::Aarch64, Architecture::X86_64, Architecture::X86_64])]
-fn duplicate_architecture_fails(
-    #[case] architectures: Vec<Architecture>,
-) -> testresult::TestResult {
+#[case::x86_64_and_aarch64(
+    Architectures::Some(vec![SystemArchitecture::X86_64, SystemArchitecture::X86_64]),
+)]
+#[case::x86_64_and_aarch64(
+    Architectures::Some(vec![SystemArchitecture::X86_64, SystemArchitecture::X86_64, SystemArchitecture::Aarch64]),
+)]
+fn duplicate_architecture_fails(#[case] architectures: Architectures) -> testresult::TestResult {
     let mut source_info = default_source_info_v1()?;
     source_info.base.architectures = architectures;
 

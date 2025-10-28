@@ -7,9 +7,9 @@ use alpm_lint::{
 };
 use alpm_srcinfo::{SourceInfo, source_info::v1::package_base::PackageBaseArchitecture};
 use alpm_types::{
-    Architecture,
     SkippableChecksum,
     Source,
+    SystemArchitecture,
     digests::{Md5, Sha1},
 };
 
@@ -73,7 +73,7 @@ fn architecture_specific_unsafe_checksum_fails() -> testresult::TestResult {
     source_info
         .base
         .architecture_properties
-        .insert(Architecture::X86_64, architecture);
+        .insert(SystemArchitecture::X86_64, architecture);
 
     let resources = Resources::SourceInfo(SourceInfo::V1(source_info));
     let config = LintRuleConfiguration::default();
