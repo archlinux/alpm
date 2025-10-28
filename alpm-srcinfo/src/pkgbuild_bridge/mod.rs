@@ -7,12 +7,12 @@ mod package_base;
 use std::collections::HashMap;
 
 use alpm_pkgbuild::bridge::{BridgeOutput, Keyword, Value};
-use alpm_types::{Architecture, Name};
+use alpm_types::{Architectures, Name, SystemArchitecture};
 use package::handle_packages;
 use package_base::handle_package_base;
 use winnow::{
     Parser,
-    error::{ContextError, ErrMode, ParseError},
+    error::{ContextError, ErrMode, ParseError, StrContext, StrContextValue},
 };
 
 use crate::{SourceInfoV1, pkgbuild_bridge::error::BridgeError};
@@ -91,15 +91,15 @@ fn ensure_keyword_exists(
     }
 }
 
-/// Ensures that a combination of a [`Keyword`] and an optional [`Architecture`] does not use an
-/// [`Architecture`].
+/// Ensures that a combination of a [`Keyword`] and an optional [`SystemArchitecture`] does not use
+/// an [`SystemArchitecture`].
 ///
 /// # Errors
 ///
-/// Returns an error, if `architecture` provides an [`Architecture`].
+/// Returns an error, if `architecture` provides an [`SystemArchitecture`].
 fn ensure_no_suffix(
     keyword: &Keyword,
-    architecture: Option<Architecture>,
+    architecture: Option<SystemArchitecture>,
 ) -> Result<(), BridgeError> {
     if let Some(arch) = architecture {
         return Err(BridgeError::UnexpectedArchitecture {
@@ -188,6 +188,39 @@ fn parse_value_array<'a, O, P: Parser<&'a str, O, ErrMode<ContextError>>>(
         .into_iter()
         .map(|item| parser.parse(item).map_err(|err| (keyword.clone(), err)))
         .collect::<Result<Vec<O>, (Keyword, ParseError<&'a str, ContextError>)>>()?)
+}
+
+/// Parses a [`Value`] as [`Architectures`].
+///
+/// # Errors
+///
+/// Returns an error for `keyword` if `value` cannot be parsed as either a stand-alone "any" or a
+/// list of [`SystemArchitecture`].
+fn parse_arch_array<'a>(keyword: &Keyword, value: &'a Value) -> Result<Architectures, BridgeError> {
+    // `arch` may be a list or a single value (for backward compatibility).
+    let input = value.as_vec();
+
+    // First check if the entry is a single "any".
+    // `arch = "any"`
+    // or
+    // `arch = ("any")`
+    if input.len() == 1 && input[0] == "any" {
+        return Ok(Architectures::Any);
+    }
+
+    let architectures = input
+        .into_iter()
+        .map(|item| {
+            SystemArchitecture::parser
+                .context(StrContext::Expected(StrContextValue::Description(
+                    "either a single 'any' or an array of one or more specific system architectures."
+                )))
+                .parse(item)
+                .map_err(|err| (keyword.clone(), err))
+        })
+        .collect::<Result<Vec<SystemArchitecture>, (Keyword, ParseError<&'a str, ContextError>)>>()?;
+
+    Ok(Architectures::Some(architectures))
 }
 
 #[cfg(test)]

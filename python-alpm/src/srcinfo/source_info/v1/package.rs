@@ -10,7 +10,7 @@ use crate::{
         license::License,
         path::RelativePath,
         relation::{OptionalDependency, PackageRelation, RelationOrSoname},
-        system::Architecture,
+        system::{Architectures, SystemArchitecture},
         url::Url,
     },
 };
@@ -224,25 +224,25 @@ impl Package {
 
     // No `Override` type here, as this field can't be cleared.
     #[getter]
-    fn get_architectures(&self) -> Option<Vec<Architecture>> {
-        self.0.architectures.clone().map(vec_convert!())
+    fn get_architectures(&self) -> Option<Architectures> {
+        self.0.architectures.clone().map(From::from)
     }
 
     // No `Override` type here, as this field can't be cleared.
     #[setter]
-    fn set_architectures(&mut self, architectures: Option<Vec<Architecture>>) {
-        self.0.architectures = architectures.map(vec_convert!());
+    fn set_architectures(&mut self, architectures: Option<Architectures>) {
+        self.0.architectures = architectures.map(From::from);
     }
 
     #[getter]
-    fn get_architecture_properties(&self) -> BTreeMap<Architecture, PackageArchitecture> {
+    fn get_architecture_properties(&self) -> BTreeMap<SystemArchitecture, PackageArchitecture> {
         btree_convert!(self.0.architecture_properties.clone())
     }
 
     #[setter]
     fn set_architecture_properties(
         &mut self,
-        architecture_properties: BTreeMap<Architecture, PackageArchitecture>,
+        architecture_properties: BTreeMap<SystemArchitecture, PackageArchitecture>,
     ) {
         self.0.architecture_properties = btree_convert!(architecture_properties);
     }
@@ -444,7 +444,6 @@ pub enum Overridable {
     Licenses(Vec<License>),
     RelationsOrSonames(Vec<RelationOrSoname>),
     OptionalDependencies(Vec<OptionalDependency>),
-    Architectures(Vec<Architecture>),
 }
 
 // Python           | Rust

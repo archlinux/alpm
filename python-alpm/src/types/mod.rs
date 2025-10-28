@@ -82,7 +82,13 @@ pub mod py_types {
     #[pymodule_export]
     use system::Architecture;
     #[pymodule_export]
+    use system::Architectures;
+    #[pymodule_export]
     use system::ElfArchitectureFormat;
+    #[pymodule_export]
+    use system::KnownArchitecture;
+    #[pymodule_export]
+    use system::UnknownArchitecture;
     #[pymodule_export]
     use url::BzrInfo;
     #[pymodule_export]

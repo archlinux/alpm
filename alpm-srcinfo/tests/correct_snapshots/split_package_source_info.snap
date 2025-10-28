@@ -23,9 +23,7 @@ expression: source_info_json
       "epoch": null
     },
     "pgp_fingerprints": [],
-    "architectures": [
-      "any"
-    ],
+    "architectures": "any",
     "architecture_properties": {},
     "dependencies": [],
     "optional_dependencies": [],

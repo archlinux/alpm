@@ -150,8 +150,8 @@ macro_rules! generate_pkginfo {
             }
 
             /// Returns the architecture of the package
-            pub fn arch(&self) -> Architecture {
-                self.arch
+            pub fn arch(&self) -> &Architecture {
+                &self.arch
             }
 
             /// Returns the licenses of the package

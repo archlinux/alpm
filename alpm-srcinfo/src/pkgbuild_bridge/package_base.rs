@@ -10,7 +10,7 @@ use alpm_parsers::iter_str_context;
 use alpm_pkgbuild::bridge::BridgeOutput;
 use alpm_pkgbuild::bridge::{Keyword, Value};
 use alpm_types::{
-    Architecture,
+    Architectures,
     Backup,
     Changelog,
     Epoch,
@@ -28,6 +28,7 @@ use alpm_types::{
     RelationOrSoname,
     SkippableChecksum,
     Source,
+    SystemArchitecture,
     Url,
 };
 use strum::VariantNames;
@@ -44,6 +45,7 @@ use crate::{
         ensure_keyword_exists,
         ensure_no_suffix,
         error::BridgeError,
+        parse_arch_array,
         parse_optional_value,
         parse_value,
         parse_value_array,
@@ -150,7 +152,7 @@ pub fn handle_package_base(
     let mut url = None;
     let mut licenses = Vec::new();
     let mut changelog = None;
-    let mut architectures = Vec::new();
+    let mut architectures = Architectures::Some(Vec::new());
     let mut architecture_properties = BTreeMap::new();
 
     // Build or package management related meta fields
@@ -193,7 +195,8 @@ pub fn handle_package_base(
         // Parse the architecture suffix if it exists.
         let architecture = match &raw_keyword.suffix {
             Some(suffix) => {
-                let arch = Architecture::parser
+                // SystemArchitecture::parser forbids "any"
+                let arch = SystemArchitecture::parser
                     .parse(suffix)
                     .map_err(|err| (raw_keyword.clone(), err))?;
                 Some(arch)
@@ -271,7 +274,7 @@ pub fn handle_package_base(
                 }
                 SharedMetaKeyword::Arch => {
                     ensure_no_suffix(raw_keyword, architecture)?;
-                    architectures = parse_value_array(raw_keyword, value, Architecture::parser)?;
+                    architectures = parse_arch_array(raw_keyword, value)?;
                 }
                 SharedMetaKeyword::Changelog => {
                     ensure_no_suffix(raw_keyword, architecture)?;

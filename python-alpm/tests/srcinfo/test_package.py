@@ -8,7 +8,8 @@ from alpm.alpm_srcinfo.source_info.v1.package import (
 )
 from alpm.alpm_types import (
     ALPMError,
-    Architecture,
+    Architectures,
+    KnownArchitecture,
     License,
     OptionalDependency,
     PackageRelation,
@@ -21,7 +22,7 @@ from alpm.alpm_types import (
     makepkg_option_from_str,
     relation_or_soname_from_str,
 )
-from alpm.type_aliases import RelationOrSoname
+from alpm.type_aliases import RelationOrSoname, SystemArchitecture
 
 
 def test_package_init_valid_name() -> None:
@@ -234,7 +235,7 @@ def test_package_architectures_getter_setter() -> None:
     assert package.architectures is None
 
     # Override
-    architectures = [Architecture.X86_64, Architecture.AARCH64]
+    architectures = Architectures([KnownArchitecture.X86_64, KnownArchitecture.AARCH64])
     package.architectures = architectures
     assert package.architectures == architectures
 
@@ -249,9 +250,9 @@ def test_package_architecture_properties_getter_setter() -> None:
 
     assert package.architecture_properties == {}
 
-    arch_props = {
-        Architecture.X86_64: PackageArchitecture(),
-        Architecture.AARCH64: PackageArchitecture(),
+    arch_props: dict[SystemArchitecture, PackageArchitecture] = {
+        KnownArchitecture.X86_64: PackageArchitecture(),
+        KnownArchitecture.AARCH64: PackageArchitecture(),
     }
     package.architecture_properties = arch_props
     assert len(package.architecture_properties) == 2

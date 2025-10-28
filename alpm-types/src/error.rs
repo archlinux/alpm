@@ -1,5 +1,7 @@
 use std::path::PathBuf;
 
+use crate::Architecture;
+
 /// The library's error type
 ///
 /// These errors are usually parsing errors and they each contain a context
@@ -11,6 +13,15 @@ use std::path::PathBuf;
 /// more information.
 #[derive(Debug, thiserror::Error, PartialEq)]
 pub enum Error {
+    /// Combination of architectures that is invalid.
+    #[error("The architecture combination is invalid: {architectures:?}. {context}")]
+    InvalidArchitectures {
+        /// The invalid architectures combination.
+        architectures: Vec<Architecture>,
+        /// The reason why the architectures are invalid.
+        context: &'static str,
+    },
+
     /// An invalid integer
     #[error("Invalid integer (caused by {kind:?})")]
     InvalidInteger {

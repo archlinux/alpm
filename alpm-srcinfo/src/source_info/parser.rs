@@ -98,7 +98,7 @@ fn till_line_end<'s>(input: &mut &'s str) -> ModalResult<&'s str> {
 /// use std::str::FromStr;
 ///
 /// use alpm_srcinfo::source_info::parser::ArchProperty;
-/// use alpm_types::{Architecture, Sha256Checksum};
+/// use alpm_types::{Sha256Checksum, SystemArchitecture};
 ///
 /// # fn main() -> Result<(), alpm_srcinfo::Error> {
 /// let without_architecture = ArchProperty {
@@ -109,7 +109,7 @@ fn till_line_end<'s>(input: &mut &'s str) -> ModalResult<&'s str> {
 /// };
 ///
 /// let with_architecture = ArchProperty {
-///     architecture: Some(Architecture::X86_64),
+///     architecture: Some(SystemArchitecture::X86_64.into()),
 ///     value: Sha256Checksum::from_str(
 ///         "0db1b39fd70097c6733cdcce56b1559ece5521ec1aad9ee1d520dda73eff03d0",
 ///     )?,
@@ -931,7 +931,7 @@ impl RelationProperty {
                     .and_then(OptionalDependency::parser)
                     .map(|value| {
                         RelationProperty::OptionalDependency(ArchProperty {
-                            architecture,
+                            architecture: architecture.clone(),
                             value,
                         })
                     }),
@@ -945,14 +945,15 @@ impl RelationProperty {
     /// Returns the [`Architecture`] of the current variant.
     ///
     /// Can be used to extract the architecture without knowing which variant this is.
-    pub fn architecture(&self) -> Option<Architecture> {
+    pub fn architecture(&self) -> Option<&Architecture> {
         match self {
-            RelationProperty::Dependency(arch_property) => arch_property.architecture,
-            RelationProperty::OptionalDependency(arch_property) => arch_property.architecture,
-            RelationProperty::Provides(arch_property) => arch_property.architecture,
-            RelationProperty::Conflicts(arch_property) => arch_property.architecture,
-            RelationProperty::Replaces(arch_property) => arch_property.architecture,
+            RelationProperty::Dependency(arch_property) => &arch_property.architecture,
+            RelationProperty::OptionalDependency(arch_property) => &arch_property.architecture,
+            RelationProperty::Provides(arch_property) => &arch_property.architecture,
+            RelationProperty::Conflicts(arch_property) => &arch_property.architecture,
+            RelationProperty::Replaces(arch_property) => &arch_property.architecture,
         }
+        .as_ref()
     }
 }
 
@@ -1060,7 +1061,7 @@ impl SourceProperty {
                     SourceKeyword::Source => {
                         cut_err(till_line_end.try_map(Source::from_str).map(|value| {
                             SourceProperty::Source(ArchProperty {
-                                architecture,
+                                architecture: architecture.clone(),
                                 value,
                             })
                         }))

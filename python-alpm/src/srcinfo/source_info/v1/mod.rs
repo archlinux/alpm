@@ -47,7 +47,7 @@ impl SourceInfoV1 {
         architecture: crate::types::system::Architecture,
     ) -> Vec<merged::MergedPackage> {
         self.0
-            .packages_for_architecture(architecture.into())
+            .packages_for_architecture(architecture)
             .map(From::from)
             .collect()
     }

@@ -548,18 +548,18 @@ impl InstalledPackage {
     /// ```
     /// use std::str::FromStr;
     ///
-    /// use alpm_types::{Architecture, InstalledPackage};
+    /// use alpm_types::{InstalledPackage, SystemArchitecture};
     ///
     /// # fn main() -> Result<(), alpm_types::Error> {
     /// let file_name =
     ///     InstalledPackage::new("example".parse()?, "1:1.0.0-1".parse()?, "x86_64".parse()?);
     ///
-    /// assert_eq!(file_name.architecture(), Architecture::X86_64);
+    /// assert_eq!(file_name.architecture(), &SystemArchitecture::X86_64.into());
     /// # Ok(())
     /// # }
     /// ```
-    pub fn architecture(&self) -> Architecture {
-        self.architecture
+    pub fn architecture(&self) -> &Architecture {
+        &self.architecture
     }
 
     /// Recognizes an [`InstalledPackage`] in a string slice.
@@ -726,6 +726,7 @@ mod tests {
     use testresult::TestResult;
 
     use super::*;
+    use crate::SystemArchitecture;
 
     #[rstest]
     #[case(
@@ -861,7 +862,7 @@ mod tests {
         InstalledPackage {
             name: Name::new("foobar")?,
             version: FullVersion::from_str("1.0.0-1")?,
-            architecture: Architecture::X86_64,
+            architecture: SystemArchitecture::X86_64.into(),
         },
     )]
     fn installed_from_str(#[case] s: &str, #[case] result: InstalledPackage) -> TestResult {
@@ -877,7 +878,10 @@ mod tests {
     )]
     #[case("packagename-30-0.1oops-any", "expected end of package release value")]
     #[case("package$with$dollars-30-0.1-any", "invalid character in package name")]
-    #[case("packagename-30-0.1-any*asdf", "invalid architecture")]
+    #[case(
+        "packagename-30-0.1-any*asdf",
+        "invalid character in system architecture"
+    )]
     fn installed_new_parse_error(#[case] input: &str, #[case] error_snippet: &str) {
         let result = InstalledPackage::from_str(input);
         assert!(result.is_err(), "Expected InstalledPackage parsing to fail");

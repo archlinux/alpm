@@ -6,6 +6,7 @@ def test_imports() -> None:
     from alpm.alpm_types import (  # noqa: F401
         ALPMError,
         Architecture,
+        Architectures,
         Blake2b512Checksum,
         BuildEnvironmentOption,
         BzrInfo,
@@ -15,6 +16,7 @@ def test_imports() -> None:
         FullVersion,
         GitInfo,
         HgInfo,
+        KnownArchitecture,
         License,
         Md5Checksum,
         OpenPGPKeyId,
@@ -43,6 +45,7 @@ def test_imports() -> None:
         Source,
         SourceUrl,
         SvnInfo,
+        UnknownArchitecture,
         Url,
         Version,
         VersionComparison,

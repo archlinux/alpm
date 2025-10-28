@@ -29,6 +29,8 @@ from alpm.alpm_types import (
     GitInfo,
     HgInfo,
     SvnInfo,
+    KnownArchitecture,
+    UnknownArchitecture,
 )
 
 from alpm.alpm_srcinfo import SourceInfoV1
@@ -92,6 +94,12 @@ RelationOrSoname: TypeAlias = Union[
 ]
 """Either a SonameV1 or a PackageRelation."""
 
+SystemArchitecture: TypeAlias = Union[KnownArchitecture, UnknownArchitecture]
+"""A specific system architecture.
+
+Either KnownArchitecture or UnknownArchitecture.
+"""
+
 SourceInfo: TypeAlias = Union[SourceInfoV1, Any]
 """The representation of SRCINFO data.
 
@@ -121,6 +129,7 @@ __all__ = [
     "MakepkgOption",
     "VersionOrSoname",
     "RelationOrSoname",
+    "SystemArchitecture",
     "SourceInfo",
     "VcsInfo",
 ]

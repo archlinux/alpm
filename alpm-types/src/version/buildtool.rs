@@ -91,7 +91,7 @@ impl BuildToolVersion {
             architecture,
         } = self
         {
-            Some(*architecture)
+            Some(architecture.clone())
         } else {
             None
         }
@@ -181,7 +181,6 @@ mod tests {
             "1:1.0.0\n  ^\nexpected alpm-pkgver string, followed by a '-' and an alpm-pkgrel string".to_string()
         ))
     )]
-    #[case::full_version_with_bogus_architecture("1.0.0-1-foo", Err(strum::ParseError::VariantNotFound.into()))]
     fn valid_buildtoolver_new(
         #[case] input: &str,
         #[case] expected: Result<BuildToolVersion, Error>,
@@ -204,13 +203,12 @@ mod tests {
             "1.0.0\n^\nexpected alpm-pkgver string, followed by a '-' and an alpm-pkgrel string".to_string()
         )
     )]
-    #[case::minimal_version_with_invalid_architecture(
+    #[case::minimal_version_with_unknown_architecture(
         "1.0.0-foo",
         Error::ParseError(
             "1.0.0\n^\nexpected alpm-pkgver string, followed by a '-' and an alpm-pkgrel string".to_string()
         )
     )]
-    #[case::full_version_with_invalid_architecture("1.0.0-1-foo", strum::ParseError::VariantNotFound.into())]
     fn invalid_buildtoolver_new(#[case] buildtoolver: &str, #[case] expected: Error) {
         assert_eq!(
             BuildToolVersion::from_str(buildtoolver),

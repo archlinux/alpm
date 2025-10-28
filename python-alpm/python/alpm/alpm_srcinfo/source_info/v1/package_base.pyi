@@ -8,7 +8,7 @@ from alpm.alpm_types import (
     Url,
     RelativePath,
     License,
-    Architecture,
+    Architectures,
     OptionalDependency,
     PackageRelation,
     Source,
@@ -20,7 +20,12 @@ from alpm.alpm_types import (
     SkippableSha384Checksum,
     SkippableSha512Checksum,
 )
-from alpm.type_aliases import MakepkgOption, OpenPGPIdentifier, RelationOrSoname
+from alpm.type_aliases import (
+    MakepkgOption,
+    OpenPGPIdentifier,
+    RelationOrSoname,
+    SystemArchitecture,
+)
 
 class PackageBaseArchitecture:
     """Architecture specific package base properties for use in PackageBase.
@@ -242,13 +247,15 @@ class PackageBase:
     @pgp_fingerprints.setter
     def pgp_fingerprints(self, pgp_fingerprints: list["OpenPGPIdentifier"]) -> None: ...
     @property
-    def architectures(self) -> list["Architecture"]:
-        """Architectures and architecture specific properties."""
+    def architectures(self) -> Architectures:
+        """Architectures of the package base."""
 
     @architectures.setter
-    def architectures(self, architectures: list["Architecture"]) -> None: ...
+    def architectures(self, architectures: Architectures) -> None: ...
     @property
-    def architecture_properties(self) -> dict[Architecture, PackageBaseArchitecture]:
+    def architecture_properties(
+        self,
+    ) -> dict[SystemArchitecture, PackageBaseArchitecture]:
         """Architecture specific properties.
 
         Dict of alpm-architecture specific overrides for package relations of a
@@ -257,7 +264,7 @@ class PackageBase:
 
     @architecture_properties.setter
     def architecture_properties(
-        self, architecture_properties: dict[Architecture, PackageBaseArchitecture]
+        self, architecture_properties: dict[SystemArchitecture, PackageBaseArchitecture]
     ) -> None: ...
     @property
     def dependencies(self) -> list["RelationOrSoname"]:

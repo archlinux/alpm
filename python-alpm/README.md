@@ -51,13 +51,13 @@ True
 PackageBase(name='example', version=FullVersion(pkgver=PackageVersion('0.1.0'), pkgrel=PackageRelease(major=1), epoch=1))
 
 >>> srcinfo.base.architectures
-[Architecture.X86_64, Architecture.AARCH64]
+Architectures([Architecture('x86_64'), Architecture('aarch64')])
 
 >>> srcinfo.packages
 [Package(name='example')]
 
->>> srcinfo.packages_for_architecture(Architecture.AARCH64)
-[MergedPackage(architecture='AARCH64', name='example', version=FullVersion(pkgver=PackageVersion('0.1.0'), pkgrel=PackageRelease(major=1), epoch=1))]
+>>> srcinfo.packages_for_architecture(Architecture('aarch64'))
+[MergedPackage(architecture=Architecture('aarch64'), name='example', version=FullVersion(pkgver=PackageVersion('0.1.0'), pkgrel=PackageRelease(major=1), epoch=1))]
 
 ```
 

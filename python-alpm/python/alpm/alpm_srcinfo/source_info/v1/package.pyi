@@ -8,9 +8,9 @@ from alpm.alpm_types import (
     License,
     OptionalDependency,
     PackageRelation,
-    Architecture,
+    Architectures,
 )
-from alpm.type_aliases import RelationOrSoname, MakepkgOption
+from alpm.type_aliases import RelationOrSoname, MakepkgOption, SystemArchitecture
 
 Overridable: TypeAlias = Union[
     str,
@@ -23,8 +23,6 @@ Overridable: TypeAlias = Union[
     list[RelationOrSoname],
     list[OptionalDependency],
     list[PackageRelation],
-    list[Architecture],
-    dict[Architecture, "PackageArchitecture"],
 ]
 
 T = TypeVar("T", bound=Optional[Overridable])
@@ -138,13 +136,15 @@ class Package:
     @backups.setter
     def backups(self, backups: Optional[Override[list[RelativePath]]]) -> None: ...
     @property
-    def architectures(self) -> Optional[list[Architecture]]:
+    def architectures(self) -> Optional[Architectures]:
         """The architectures that are supported by this package."""
 
     @architectures.setter
-    def architectures(self, architectures: Optional[list[Architecture]]) -> None: ...
+    def architectures(self, architectures: Optional[Architectures]) -> None: ...
     @property
-    def architecture_properties(self) -> dict[Architecture, "PackageArchitecture"]:
+    def architecture_properties(
+        self,
+    ) -> dict[SystemArchitecture, "PackageArchitecture"]:
         """Architecture specific overrides for the package.
 
         The keys of the dictionary are the architectures for which overrides are
@@ -156,7 +156,7 @@ class Package:
 
     @architecture_properties.setter
     def architecture_properties(
-        self, architecture_properties: dict[Architecture, "PackageArchitecture"]
+        self, architecture_properties: dict[SystemArchitecture, "PackageArchitecture"]
     ) -> None: ...
     @property
     def dependencies(self) -> Optional[Override[list[RelationOrSoname]]]:

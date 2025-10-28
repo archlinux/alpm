@@ -16,6 +16,7 @@ def test_type_aliases_imports() -> None:
         RelationOrSoname,
         SkippableChecksum,
         SourceInfo,
+        SystemArchitecture,
         VcsInfo,
         VersionOrSoname,
     )

@@ -1,6 +1,7 @@
 //! Provides fully resolved package metadata derived from SRCINFO data.
 use alpm_types::{
     Architecture,
+    Architectures,
     FullVersion,
     License,
     MakepkgOption,
@@ -99,18 +100,28 @@ impl Iterator for MergedPackagesIterator<'_> {
     fn next(&mut self) -> Option<MergedPackage> {
         // Search for the next package that is valid for the the architecture we're looping over.
         let package = self.package_iterator.find(|package| {
-            // If the package provides target architecture overrides, use those, otherwise fallback
-            // to package base architectures.
+            // If the package provides target architecture overrides, use those, otherwise
+            // fallback to package base architectures.
             let architectures = match &package.architectures {
                 Some(value) => value,
                 None => &self.source_info.base.architectures,
             };
 
-            architectures.contains(&self.architecture) || architectures.contains(&Architecture::Any)
+            match &self.architecture {
+                // If the packages are filtered by `any`, make sure that the package also has `any`.
+                Architecture::Any => *architectures == Architectures::Any,
+                // A specific architecture has been requested.
+                // The package must have that architecture in its list or be viable for `any`
+                // architecture.
+                Architecture::Some(iterator_arch) => match architectures {
+                    Architectures::Any => true,
+                    Architectures::Some(arch_vec) => arch_vec.contains(iterator_arch),
+                },
+            }
         })?;
 
         Some(MergedPackage::from_base_and_package(
-            self.architecture,
+            self.architecture.clone(),
             &self.source_info.base,
             package,
         ))
@@ -194,29 +205,35 @@ impl MergedPackage {
     /// 4. [`PackageBaseArchitecture::merge_package_properties`] is called to merge the
     ///    architecture-specific properties of the [`Package`] into those of the [`PackageBase`].
     /// 5. The combined architecture-specific properties are merged into the [`MergedPackage`].
-    pub fn from_base_and_package(
-        architecture: Architecture,
+    pub fn from_base_and_package<A: Into<Architecture>>(
+        architecture: A,
         base: &PackageBase,
         package: &Package,
     ) -> MergedPackage {
         let name = package.name.clone();
+        let architecture = &architecture.into();
+
         // Step 1
-        let mut merged_package = Self::from_base(&architecture, name, base);
+        let mut merged_package = Self::from_base(architecture.clone(), name, base);
 
         // Step 2
         merged_package.merge_package(package);
 
         // Get the architecture specific properties from the PackageBase.
-        // Use an empty default without any properties as default if none are found.
-        let mut architecture_properties =
-            if let Some(properties) = base.architecture_properties.get(&architecture) {
-                properties.clone()
-            } else {
-                PackageBaseArchitecture::default()
-            };
+        // Use an empty default without any properties as default if none are found,
+        // or when the architecture is 'any'.
+        let mut architecture_properties = if let Architecture::Some(system_arch) = &architecture
+            && let Some(properties) = base.architecture_properties.get(system_arch)
+        {
+            properties.clone()
+        } else {
+            PackageBaseArchitecture::default()
+        };
 
         // Apply package specific overrides for architecture specific properties.
-        if let Some(package_properties) = package.architecture_properties.get(&architecture) {
+        if let Architecture::Some(system_arch) = architecture
+            && let Some(package_properties) = package.architecture_properties.get(system_arch)
+        {
             architecture_properties.merge_package_properties(package_properties.clone());
         }
 
@@ -238,7 +255,11 @@ impl MergedPackage {
     /// architecture-specific overrides for its fields.
     /// Use [`from_base_and_package`](MergedPackage::from_base_and_package) to create a fully
     /// resolved representation of a package.
-    pub fn from_base(architecture: &Architecture, name: Name, base: &PackageBase) -> MergedPackage {
+    pub fn from_base<A: Into<Architecture>>(
+        architecture: A,
+        name: Name,
+        base: &PackageBase,
+    ) -> MergedPackage {
         // Merge all source related info into aggregated structs.
         let merged_sources = MergedSourceIterator {
             sources: base.sources.iter(),
@@ -254,10 +275,9 @@ impl MergedPackage {
         // If the [`PackageBase`] is compatible with any architecture, then we set the architecture
         // of the package to 'any' regardless of the requested architecture, as 'any' subsumes them
         // all.
-        let architecture = if base.architectures.contains(&Architecture::Any) {
-            &Architecture::Any
-        } else {
-            architecture
+        let architecture = match &base.architectures {
+            Architectures::Any => &Architecture::Any,
+            Architectures::Some(_) => &architecture.into(),
         };
 
         MergedPackage {
@@ -265,7 +285,7 @@ impl MergedPackage {
             description: base.description.clone(),
             url: base.url.clone(),
             licenses: base.licenses.clone(),
-            architecture: *architecture,
+            architecture: architecture.clone(),
             changelog: base.changelog.clone(),
             install: base.install.clone(),
             groups: base.groups.clone(),
@@ -295,7 +315,7 @@ impl MergedPackage {
         // the package to 'any' regardless of the requested architecture, as 'any' subsumes them
         // all.
         if let Some(value) = package.architectures {
-            if value.contains(&Architecture::Any) {
+            if matches!(value, Architectures::Any) {
                 self.architecture = Architecture::Any
             }
         };

@@ -363,7 +363,7 @@ pub struct MetadataComparison<'a> {
     /// The [alpm-architecture] encoded in the metadata file.
     ///
     /// [alpm-architecture]: https://alpm.archlinux.page/specifications/alpm-architecture.7.html
-    pub architecture: Architecture,
+    pub architecture: &'a Architecture,
     /// The packager encoded in the metadata file.
     pub packager: &'a Packager,
     /// The date in seconds since the epoch when the package has been built as encoded in the

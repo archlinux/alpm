@@ -141,7 +141,7 @@ impl PackageFileName {
     /// ```
     /// use std::str::FromStr;
     ///
-    /// use alpm_types::{Architecture, PackageFileName};
+    /// use alpm_types::{PackageFileName, SystemArchitecture};
     ///
     /// # fn main() -> Result<(), alpm_types::Error> {
     /// let file_name = PackageFileName::new(
@@ -151,12 +151,12 @@ impl PackageFileName {
     ///     Some("zst".parse()?),
     /// );
     ///
-    /// assert_eq!(file_name.architecture(), Architecture::X86_64);
+    /// assert_eq!(file_name.architecture(), &SystemArchitecture::X86_64.into());
     /// # Ok(())
     /// # }
     /// ```
-    pub fn architecture(&self) -> Architecture {
-        self.architecture
+    pub fn architecture(&self) -> &Architecture {
+        &self.architecture
     }
 
     /// Returns the optional [`CompressionAlgorithmFileExtension`].
@@ -563,6 +563,7 @@ mod test {
     use testresult::TestResult;
 
     use super::*;
+    use crate::system::SystemArchitecture;
 
     fn init_logger() -> TestResult {
         if TermLogger::init(
@@ -581,8 +582,8 @@ mod test {
 
     /// Ensures that common and uncommon cases of package filenames can be created.
     #[rstest]
-    #[case::name_with_dashes(Name::new("example-package")?, FullVersion::from_str("1.0.0-1")?, Architecture::X86_64, Some(CompressionAlgorithmFileExtension::Zstd))]
-    #[case::name_with_dashes_version_with_epoch_no_compression(Name::new("example-package")?, FullVersion::from_str("1:1.0.0-1")?, Architecture::X86_64, None)]
+    #[case::name_with_dashes(Name::new("example-package")?, FullVersion::from_str("1.0.0-1")?, SystemArchitecture::X86_64.into(), Some(CompressionAlgorithmFileExtension::Zstd))]
+    #[case::name_with_dashes_version_with_epoch_no_compression(Name::new("example-package")?, FullVersion::from_str("1:1.0.0-1")?, SystemArchitecture::X86_64.into(), None)]
     fn succeed_to_create_package_file_name(
         #[case] name: Name,
         #[case] version: FullVersion,
@@ -686,15 +687,15 @@ mod test {
     /// Tests that a matching [`Architecture`] can be derived from a [`PackageFileName`].
     #[test]
     fn package_file_name_architecture() -> TestResult {
-        let architecture = Architecture::X86_64;
+        let architecture: Architecture = SystemArchitecture::X86_64.into();
         let file_name = PackageFileName::new(
             Name::new("example")?,
             "1:1.0.0-1".parse()?,
-            architecture,
+            architecture.clone(),
             Some("zst".parse()?),
         );
 
-        assert_eq!(file_name.architecture(), architecture);
+        assert_eq!(file_name.architecture(), &architecture);
 
         Ok(())
     }

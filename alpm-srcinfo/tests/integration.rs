@@ -129,7 +129,7 @@ mod validate {
 
 mod format_packages {
     use alpm_srcinfo::MergedPackage;
-    use alpm_types::Architecture;
+    use alpm_types::SystemArchitecture;
 
     use super::*;
 
@@ -148,10 +148,16 @@ mod format_packages {
 
         let merged_packages: Vec<MergedPackage> = serde_json::from_slice(&output.stdout)?;
         assert_eq!(merged_packages[0].name.to_string(), "example");
-        assert_eq!(merged_packages[0].architecture, Architecture::X86_64);
+        assert_eq!(
+            merged_packages[0].architecture,
+            SystemArchitecture::X86_64.into()
+        );
 
         assert_eq!(merged_packages[1].name.to_string(), "example_2");
-        assert_eq!(merged_packages[1].architecture, Architecture::X86_64);
+        assert_eq!(
+            merged_packages[1].architecture,
+            SystemArchitecture::X86_64.into()
+        );
 
         Ok(())
     }
@@ -168,7 +174,10 @@ mod format_packages {
 
         let merged_packages: Vec<MergedPackage> = serde_json::from_slice(&output.stdout)?;
         assert_eq!(merged_packages[0].name.to_string(), "example_aarch64");
-        assert_eq!(merged_packages[0].architecture, Architecture::Aarch64);
+        assert_eq!(
+            merged_packages[0].architecture,
+            SystemArchitecture::Aarch64.into()
+        );
 
         Ok(())
     }
