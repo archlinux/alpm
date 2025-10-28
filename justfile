@@ -123,6 +123,9 @@ install-alpm-package-set set:
         licenses)
             packages="${CHECK_LICENSES_PACKAGES}"
             ;;
+        lint-website)
+            packages="${LINT_WEBSITE_PACKAGES}"
+            ;;
         links)
             packages="${CHECK_LINKS_PACKAGES}"
             ;;

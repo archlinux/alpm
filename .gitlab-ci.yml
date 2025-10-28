@@ -6,6 +6,9 @@ variables:
   # Enable timestamps in Gitlab's job logs.
   FF_TIMESTAMPS: true
   RUST_BACKTRACE: full
+  # Pull git submodules. Needed for
+  # - The lint-website linkita theme.
+  GIT_SUBMODULE_STRATEGY: normal
 
 stages:
   - check
@@ -137,6 +140,9 @@ licenses:
   script:
     - just --justfile .gitlab/justfile section-start "install-alpm-packages" "Install ALPM package set 'licenses'"
     - just install-alpm-package-set licenses
+    # We have to explicitly init the git submodule again as otherwise REUSE won't detect it for some reason.
+    # GitLab seems to do some weird submodule initialization.
+    - git submodule update --init
     - just --justfile .gitlab/justfile section-end "install-alpm-packages"
     - just --justfile .gitlab/justfile section-start "check-licenses" "Check licenses"
     - just check-licenses
@@ -218,6 +224,17 @@ build-book:
     - just build-book
     - just --justfile .gitlab/justfile section-end "build-book"
   stage: test
+
+alpm-lint-website:
+  extends: .default-with-rust
+  script:
+    - just --justfile .gitlab/justfile section-start "install-alpm-packages" "Install ALPM package set 'lint-website'"
+    - just install-alpm-package-set lint-website
+    - just --justfile .gitlab/justfile section-end "install-alpm-packages"
+    - just --justfile .gitlab/justfile section-start "lint-website" "Lint website"
+    - just --justfile alpm-lint-website/justfile lint
+    - just --justfile .gitlab/justfile section-end "lint-website"
+  stage: check
 
 build-python:
   extends: .default-with-rust
