@@ -241,6 +241,9 @@ build-book:
     cp -r "$target_dir/doc/"{search.desc,src,static.files,trait.impl,type.impl} "$rustdoc_dir"
     cp -r "$target_dir/doc/"*.{js,html} "$rustdoc_dir"
 
+    just --justfile alpm-lint-website/justfile build
+    cp -r alpm-lint-website/public "$output_dir/docs/lints"
+
 # Build local documentation
 [group('build')]
 docs:
