@@ -2,6 +2,7 @@
 
 /// Commandline argument handling. This is most likely not interesting for you.
 #[cfg(feature = "cli")]
+#[doc(hidden)]
 pub mod cli;
 mod error;
 pub use error::Error;
