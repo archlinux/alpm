@@ -5,7 +5,6 @@
 
 use std::collections::BTreeMap;
 
-use alpm_lint_config::LintRuleConfigurationOptionName;
 use alpm_srcinfo::source_info::v1::package::Override;
 use documented::Documented;
 
@@ -134,10 +133,6 @@ SPDX license identifiers provide a standardized way to identify licenses.
         }
 
         Ok(())
-    }
-
-    fn configuration_options(&self) -> &[LintRuleConfigurationOptionName] {
-        &[LintRuleConfigurationOptionName::test_option]
     }
 
     /// Return the associated links for this lint rule.

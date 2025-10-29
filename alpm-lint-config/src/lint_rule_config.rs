@@ -152,6 +152,6 @@ pub struct LintRuleConfigurationOption {
 }
 
 create_lint_rule_config! {
-    /// This is a test option
-    test_option: String = "This is an option",
+    /// This is an example option
+    example_option: String = "Remove this as soon as the first proper option is added :)",
 }
