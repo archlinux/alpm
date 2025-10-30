@@ -20,6 +20,9 @@ stages:
 # default setup running on default branch and in MRs
 .default:
   before_script:
+    - cat /etc/pacman.d/mirrorlist
+    - echo 'Server = https://mirror.pkgbuild.com/$repo/os/$arch' > /etc/pacman.d/mirrorlist
+    - cat /etc/pacman.d/mirrorlist
     - pacman-key --init
     - pacman -Sy --needed --noconfirm archlinux-keyring just
   interruptible: true
@@ -31,6 +34,9 @@ stages:
 .default-with-rust:
   extends: .default
   before_script:
+    - cat /etc/pacman.d/mirrorlist
+    - echo 'Server = https://mirror.pkgbuild.com/$repo/os/$arch' > /etc/pacman.d/mirrorlist
+    - cat /etc/pacman.d/mirrorlist
     - pacman-key --init
     - pacman -Sy --needed --noconfirm archlinux-keyring just
     - just --justfile .gitlab/justfile section-start "install-alpm-packages" "Install ALPM package set 'rust-dev'"
