@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.0] - 2025-10-30
+
+### Added
+
+- [**breaking**] Reimplement `Architecture`
+
+### Fixed
+
+- Better error message for too long checksums
+
+### Other
+
+- Remove link to non-existent/unused license file
+- Remove redundant lint attributes
+
 ## [0.8.0] - 2025-10-07
 
 ### Added
