@@ -6,7 +6,7 @@
 use std::{str::FromStr, thread};
 
 use alpm_pkginfo::{PackageInfoV1, PackageInfoV2};
-use assert_cmd::Command;
+use assert_cmd::{Command, cargo::cargo_bin_cmd};
 use insta::assert_snapshot;
 use rstest::rstest;
 use tempfile::tempdir;
@@ -138,7 +138,7 @@ pub struct PackageInfoInput {
 /// The version is automatically determined from the file
 #[test]
 fn validate_valid_pkginfov1() -> TestResult {
-    let mut cmd = Command::cargo_bin("alpm-pkginfo")?;
+    let mut cmd = cargo_bin_cmd!("alpm-pkginfo");
     cmd.arg("validate");
     cmd.write_stdin(VALID_PKGINFO_V1_DATA);
     cmd.assert().success();
@@ -149,7 +149,7 @@ fn validate_valid_pkginfov1() -> TestResult {
 /// The version is automatically determined from the file
 #[test]
 fn validate_valid_pkginfov2() -> TestResult {
-    let mut cmd = Command::cargo_bin("alpm-pkginfo")?;
+    let mut cmd = cargo_bin_cmd!("alpm-pkginfo");
     cmd.arg("validate");
     cmd.write_stdin(VALID_PKGINFO_V2_DATA);
     cmd.assert().success();
@@ -160,7 +160,7 @@ fn validate_valid_pkginfov2() -> TestResult {
 /// This is expected to fail due to missing xdata information.
 #[test]
 fn wrong_schema_pkginfov1_as_v2() -> TestResult {
-    let mut cmd = Command::cargo_bin("alpm-pkginfo")?;
+    let mut cmd = cargo_bin_cmd!("alpm-pkginfo");
     cmd.args(["validate", "--schema", "2"]);
     cmd.write_stdin(VALID_PKGINFO_V1_DATA);
     cmd.assert().failure();
@@ -171,7 +171,7 @@ fn wrong_schema_pkginfov1_as_v2() -> TestResult {
 /// This is expected to fail due to unexpected xdata information.
 #[test]
 fn wrong_schema_pkginfov2_as_v1() -> TestResult {
-    let mut cmd = Command::cargo_bin("alpm-pkginfo")?;
+    let mut cmd = cargo_bin_cmd!("alpm-pkginfo");
     cmd.args(["validate", "--schema", "1"]);
     cmd.write_stdin(VALID_PKGINFO_V2_DATA);
     cmd.assert().failure();
@@ -183,7 +183,7 @@ fn wrong_schema_pkginfov2_as_v1() -> TestResult {
 #[case::pkginfov1_as_json(VALID_PKGINFO_V1_DATA)]
 #[case::pkginfov2_as_json(VALID_PKGINFO_V2_DATA)]
 fn format_pkginfo_and_serialize_as_json(#[case] data: &str) -> TestResult {
-    let mut cmd = Command::cargo_bin("alpm-pkginfo")?;
+    let mut cmd = cargo_bin_cmd!("alpm-pkginfo");
     cmd.args(["format", "-p"]);
     cmd.write_stdin(data);
     let cmd = cmd.unwrap();
@@ -316,7 +316,7 @@ fn test_write_pkginfo(pkginfo_input: PackageInfoInput, write_mode: WriteMode) ->
     let dir = tempdir()?;
 
     // Write the PKGINFO file
-    let mut cmd = Command::cargo_bin("alpm-pkginfo")?;
+    let mut cmd = cargo_bin_cmd!("alpm-pkginfo");
     cmd.args([
         "create".to_string(),
         format!("v{}", if pkginfo_input.xdata.is_some() { 2 } else { 1 }),
@@ -342,7 +342,7 @@ fn test_write_pkginfo(pkginfo_input: PackageInfoInput, write_mode: WriteMode) ->
     assert_snapshot!(test_name, pkg_info.to_string());
 
     // Validate the PKGINFO file
-    let mut cmd = Command::cargo_bin("alpm-pkginfo")?;
+    let mut cmd = cargo_bin_cmd!("alpm-pkginfo");
     cmd.args(["validate".to_string(), file.to_string_lossy().to_string()]);
     cmd.assert().success();
 

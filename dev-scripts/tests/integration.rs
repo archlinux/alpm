@@ -1,7 +1,7 @@
 //! This test file contains basic tests to ensure that the dev-tools CLI behaves as expected.
 use std::{fs::File, io::Write};
 
-use assert_cmd::Command;
+use assert_cmd::cargo::cargo_bin_cmd;
 use testresult::TestResult;
 
 const TEST_PKGBUILD: &str = include_str!("test_files/normal.pkgbuild");
@@ -28,7 +28,7 @@ mod srcinfo_compare {
         file.write_all(TEST_SRCINFO.as_bytes())?;
 
         // Call the bridge on the that PKGBUILD file.
-        let mut cmd = Command::cargo_bin("dev-scripts")?;
+        let mut cmd = cargo_bin_cmd!("dev-scripts");
         cmd.args(vec![
             "compare-srcinfo",
             "--pkgbuild",

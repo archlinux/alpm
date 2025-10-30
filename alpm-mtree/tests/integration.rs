@@ -5,7 +5,7 @@
 
 use std::{fs::File, io::Write};
 
-use assert_cmd::Command;
+use assert_cmd::cargo::cargo_bin_cmd;
 use rstest::rstest;
 use testresult::TestResult;
 
@@ -25,7 +25,7 @@ pub const VALID_MTREE: &str = r#"
 #[case("1")]
 #[case("2")]
 fn validate_stdin(#[case] schema: &str) -> TestResult {
-    let mut cmd = Command::cargo_bin("alpm-mtree")?;
+    let mut cmd = cargo_bin_cmd!("alpm-mtree");
     cmd.args(vec!["validate", "--schema", schema]);
     cmd.write_stdin(VALID_MTREE);
 
@@ -44,7 +44,7 @@ fn validate_file(#[case] schema: &str) -> TestResult {
     let mut file = File::create(&file_path)?;
     file.write_all(VALID_MTREE.as_bytes())?;
 
-    let mut cmd = Command::cargo_bin("alpm-mtree")?;
+    let mut cmd = cargo_bin_cmd!("alpm-mtree");
     cmd.args(vec!["validate", "--schema", schema]);
     cmd.arg(file_path.to_string_lossy().to_string());
 
@@ -59,7 +59,7 @@ fn validate_file(#[case] schema: &str) -> TestResult {
 #[case("1")]
 #[case("2")]
 fn validate_wrong_stdin(#[case] schema: &str) -> TestResult {
-    let mut cmd = Command::cargo_bin("alpm-mtree")?;
+    let mut cmd = cargo_bin_cmd!("alpm-mtree");
     cmd.args(vec!["validate", "--schema", schema]);
     cmd.write_stdin(format!(
         "{VALID_MTREE}\ngiberish doesnt_exist=1235 sha256digest=thisisatest"
@@ -82,7 +82,7 @@ fn validate_wrong_file(#[case] schema: &str) -> TestResult {
     file.write_all(VALID_MTREE.as_bytes())?;
     file.write_all(b"giberish doesnt_exist=1235 sha256digest=thisisatest")?;
 
-    let mut cmd = Command::cargo_bin("alpm-mtree")?;
+    let mut cmd = cargo_bin_cmd!("alpm-mtree");
     cmd.args(vec!["validate", "--schema", schema]);
     cmd.arg(file_path.to_string_lossy().to_string());
 

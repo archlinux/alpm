@@ -6,7 +6,7 @@
 use std::{fs::File, io::Write};
 
 use alpm_srcinfo::SourceInfoV1;
-use assert_cmd::Command;
+use assert_cmd::cargo::cargo_bin_cmd;
 use tempfile::tempdir;
 use testresult::TestResult;
 
@@ -45,7 +45,7 @@ mod create {
         file.write_all(TEST_PKGBUILD.as_bytes())?;
 
         // Generate the .SRCINFO file from the that PKGBUILD file.
-        let mut cmd = Command::cargo_bin("alpm-srcinfo")?;
+        let mut cmd = cargo_bin_cmd!("alpm-srcinfo");
         cmd.args(vec!["create".into(), path.to_string_lossy().to_string()]);
 
         // Make sure the command was successful and get the output.
@@ -66,7 +66,7 @@ mod validate {
     /// Validate a valid SRCINFO file input from stdin
     #[test]
     fn validate_stdin() -> TestResult {
-        let mut cmd = Command::cargo_bin("alpm-srcinfo")?;
+        let mut cmd = cargo_bin_cmd!("alpm-srcinfo");
         cmd.args(vec!["validate"]);
         cmd.write_stdin(VALID_SRCINFO);
 
@@ -84,7 +84,7 @@ mod validate {
         let mut file = File::create(&file_path)?;
         file.write_all(VALID_SRCINFO.as_bytes())?;
 
-        let mut cmd = Command::cargo_bin("alpm-srcinfo")?;
+        let mut cmd = cargo_bin_cmd!("alpm-srcinfo");
         cmd.args(vec!["validate"]);
         cmd.arg(file_path.to_string_lossy().to_string());
 
@@ -97,7 +97,7 @@ mod validate {
     /// Validate an invalid SRCINFO file input from stdin
     #[test]
     fn validate_wrong_stdin() -> TestResult {
-        let mut cmd = Command::cargo_bin("alpm-srcinfo")?;
+        let mut cmd = cargo_bin_cmd!("alpm-srcinfo");
         cmd.args(vec!["validate"]);
         cmd.write_stdin(format!("{VALID_SRCINFO}\ngiberish_key=this is a test"));
 
@@ -116,7 +116,7 @@ mod validate {
         file.write_all(VALID_SRCINFO.as_bytes())?;
         file.write_all(b"\ngiberish_key=this is a test")?;
 
-        let mut cmd = Command::cargo_bin("alpm-srcinfo")?;
+        let mut cmd = cargo_bin_cmd!("alpm-srcinfo");
         cmd.args(vec!["validate"]);
         cmd.arg(file_path.to_string_lossy().to_string());
 
@@ -139,7 +139,7 @@ mod format_packages {
     /// Run a basic format-package test for the x86_64 architecture.
     #[test]
     fn format_package_x86_64() -> TestResult {
-        let mut cmd = Command::cargo_bin("alpm-srcinfo")?;
+        let mut cmd = cargo_bin_cmd!("alpm-srcinfo");
         cmd.args(vec!["format-packages", "--architecture", "x86_64"]);
         cmd.write_stdin(VALID_SRCINFO);
 
@@ -165,7 +165,7 @@ mod format_packages {
     /// Run a basic format-package test and explicitly specify the aarch64 architecture.
     #[test]
     fn format_package_aarch64() -> TestResult {
-        let mut cmd = Command::cargo_bin("alpm-srcinfo")?;
+        let mut cmd = cargo_bin_cmd!("alpm-srcinfo");
         cmd.args(vec!["format-packages", "--architecture", "aarch64"]);
         cmd.write_stdin(VALID_SRCINFO);
 
@@ -194,7 +194,7 @@ mod format {
     #[case::pretty(true)]
     #[case::not_pretty(false)]
     fn format(#[case] pretty: bool) -> TestResult {
-        let mut cmd = Command::cargo_bin("alpm-srcinfo")?;
+        let mut cmd = cargo_bin_cmd!("alpm-srcinfo");
         cmd.args(vec!["format", "--output-format", "json"]);
         if pretty {
             cmd.arg("--pretty");

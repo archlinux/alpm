@@ -17,7 +17,7 @@ use std::{
 
 use alpm_soname::{ElfSonames, extract_elf_sonames, find_dependencies, find_provisions};
 use alpm_types::{Soname, SonameLookupDirectory, SonameV2};
-use assert_cmd::Command;
+use assert_cmd::cargo::cargo_bin_cmd;
 use rstest::rstest;
 use tempfile::TempDir;
 use testresult::TestResult;
@@ -30,7 +30,7 @@ const MESON_FILES_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/test_f
 
 /// Invoke the CLI to get provisions.
 fn get_provisions_via_cli(pkg: &Path, lookup: &SonameLookupDirectory) -> TestResult<Vec<SonameV2>> {
-    let mut cmd = Command::cargo_bin("alpm-soname")?;
+    let mut cmd = cargo_bin_cmd!("alpm-soname");
     let output = cmd
         .args([
             "get-provisions",
@@ -53,7 +53,7 @@ fn get_dependencies_via_cli(
     pkg: &Path,
     lookup: &SonameLookupDirectory,
 ) -> TestResult<Vec<SonameV2>> {
-    let mut cmd = Command::cargo_bin("alpm-soname")?;
+    let mut cmd = cargo_bin_cmd!("alpm-soname");
     let output = cmd
         .args([
             "get-dependencies",
@@ -73,7 +73,7 @@ fn get_dependencies_via_cli(
 
 /// Invoke the CLI to get raw dependencies.
 fn get_raw_dependencies_via_cli(pkg: &Path) -> TestResult<Vec<Soname>> {
-    let mut cmd = Command::cargo_bin("alpm-soname")?;
+    let mut cmd = cargo_bin_cmd!("alpm-soname");
     let output = cmd
         .args([
             "get-raw-dependencies",

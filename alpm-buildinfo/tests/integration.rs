@@ -7,7 +7,7 @@ use std::{str::FromStr, thread};
 
 use alpm_buildinfo::{BuildInfoSchema, BuildInfoV1, BuildInfoV2};
 use alpm_types::{SchemaVersion, semver_version::Version};
-use assert_cmd::Command;
+use assert_cmd::{Command, cargo::cargo_bin_cmd};
 use insta::assert_snapshot;
 use rstest::rstest;
 use strum::Display;
@@ -112,7 +112,7 @@ pub struct BuildInfoInput {
 /// The version is automatically determined from the file
 #[test]
 fn validate_valid_buildinfov1() -> TestResult {
-    let mut cmd = Command::cargo_bin("alpm-buildinfo")?;
+    let mut cmd = cargo_bin_cmd!("alpm-buildinfo");
     cmd.arg("validate");
     cmd.write_stdin(VALID_BUILDINFO_V1_DATA);
     cmd.assert().success();
@@ -123,7 +123,7 @@ fn validate_valid_buildinfov1() -> TestResult {
 /// The version is automatically determined from the file
 #[test]
 fn validate_valid_buildinfov2() -> TestResult {
-    let mut cmd = Command::cargo_bin("alpm-buildinfo")?;
+    let mut cmd = cargo_bin_cmd!("alpm-buildinfo");
     cmd.arg("validate");
     cmd.write_stdin(VALID_BUILDINFO_V2_DATA);
     cmd.assert().success();
@@ -133,7 +133,7 @@ fn validate_valid_buildinfov2() -> TestResult {
 /// Force a v2 validation on a v1 buildinfo
 #[test]
 fn wrong_schema_buildinfov1_as_v2() -> TestResult {
-    let mut cmd = Command::cargo_bin("alpm-buildinfo")?;
+    let mut cmd = cargo_bin_cmd!("alpm-buildinfo");
     cmd.args(["validate", "-s", "2"]);
     cmd.write_stdin(VALID_BUILDINFO_V1_DATA);
     cmd.assert().failure().code(1);
@@ -143,7 +143,7 @@ fn wrong_schema_buildinfov1_as_v2() -> TestResult {
 /// Force a v1 validation on a v2 buildinfo
 #[test]
 fn wrong_schema_buildinfov2_as_v1() -> TestResult {
-    let mut cmd = Command::cargo_bin("alpm-buildinfo")?;
+    let mut cmd = cargo_bin_cmd!("alpm-buildinfo");
     cmd.args(["validate", "-s", "1"]);
     cmd.write_stdin(VALID_BUILDINFO_V2_DATA);
     cmd.assert().failure().code(1);
@@ -155,7 +155,7 @@ fn wrong_schema_buildinfov2_as_v1() -> TestResult {
 #[case::buildinfov1_as_json(VALID_BUILDINFO_V1_DATA)]
 #[case::buildinfov2_as_json(VALID_BUILDINFO_V2_DATA)]
 fn format_buildinfo_and_serialize_as_json(#[case] data: &str) -> TestResult {
-    let mut cmd = Command::cargo_bin("alpm-buildinfo")?;
+    let mut cmd = cargo_bin_cmd!("alpm-buildinfo");
     cmd.args(["format", "-p"]);
     cmd.write_stdin(data);
     let cmd = cmd.unwrap();
@@ -274,7 +274,7 @@ fn test_write_buildinfo(buildinfo_input: BuildInfoInput, write_mode: WriteMode) 
         .replace("::", "__");
     test_name.push_str(&format!("_via_{write_mode}"));
 
-    let mut cmd = Command::cargo_bin("alpm-buildinfo")?;
+    let mut cmd = cargo_bin_cmd!("alpm-buildinfo");
     cmd.args(["create".to_string(), format!("v{}", buildinfo_input.format)])
         .current_dir(dir.path());
 
@@ -294,7 +294,7 @@ fn test_write_buildinfo(buildinfo_input: BuildInfoInput, write_mode: WriteMode) 
     };
     assert_snapshot!(test_name, build_info.to_string());
 
-    let mut cmd = Command::cargo_bin("alpm-buildinfo")?;
+    let mut cmd = cargo_bin_cmd!("alpm-buildinfo");
     cmd.args([
         "validate".to_string(),
         "-s".to_string(),

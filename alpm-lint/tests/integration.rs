@@ -5,7 +5,7 @@
 use std::{fs::File, io::Write, str::FromStr};
 
 use alpm_types::{SkippableChecksum, Source, digests::Md5};
-use assert_cmd::Command;
+use assert_cmd::cargo::cargo_bin_cmd;
 use tempfile::{TempDir, tempdir};
 use testresult::TestResult;
 
@@ -61,7 +61,7 @@ mod check {
         let tempdir = setup_faulty_srcinfo()?;
 
         // Run the check command on the faulty .SRCINFO file
-        let mut cmd = Command::cargo_bin("alpm-lint")?;
+        let mut cmd = cargo_bin_cmd!("alpm-lint");
         cmd.args(vec![
             "check",
             &tempdir.path().join(".SRCINFO").to_string_lossy(),
@@ -80,7 +80,7 @@ mod check {
         let tempdir = setup_valid_srcinfo()?;
 
         // Run the check command on the valid .SRCINFO file
-        let mut cmd = Command::cargo_bin("alpm-lint")?;
+        let mut cmd = cargo_bin_cmd!("alpm-lint");
         cmd.args(vec![
             "check",
             &tempdir.path().join(".SRCINFO").to_string_lossy(),
@@ -97,7 +97,7 @@ mod check {
         let tempdir = setup_faulty_srcinfo()?;
 
         // Run the check command with JSON output format
-        let mut cmd = Command::cargo_bin("alpm-lint")?;
+        let mut cmd = cargo_bin_cmd!("alpm-lint");
         cmd.args(vec![
             "check",
             "--format",
@@ -124,7 +124,7 @@ mod check {
         let tempdir = setup_faulty_srcinfo()?;
 
         // Run the check command with pretty-printed JSON output
-        let mut cmd = Command::cargo_bin("alpm-lint")?;
+        let mut cmd = cargo_bin_cmd!("alpm-lint");
         cmd.args(vec![
             "check",
             "--format",
@@ -144,7 +144,7 @@ mod rules {
     /// Test the rules command with JSON output.
     #[test]
     fn json_output() -> TestResult {
-        let mut cmd = Command::cargo_bin("alpm-lint")?;
+        let mut cmd = cargo_bin_cmd!("alpm-lint");
         cmd.args(vec!["rules", "--format", "json"]);
 
         let output = cmd.assert().success().get_output().clone();
@@ -162,7 +162,7 @@ mod rules {
         let tempdir = tempdir()?;
         let output_path = tempdir.path().join("rules.json");
 
-        let mut cmd = Command::cargo_bin("alpm-lint")?;
+        let mut cmd = cargo_bin_cmd!("alpm-lint");
         cmd.args(vec![
             "rules",
             "--format",
@@ -188,7 +188,7 @@ mod options {
     /// Test the options command with JSON output.
     #[test]
     fn json_output() -> TestResult {
-        let mut cmd = Command::cargo_bin("alpm-lint")?;
+        let mut cmd = cargo_bin_cmd!("alpm-lint");
         cmd.args(vec!["options", "--format", "json"]);
 
         let output = cmd.assert().success().get_output().clone();
@@ -206,7 +206,7 @@ mod options {
         let tempdir = tempdir()?;
         let output_path = tempdir.path().join("options.json");
 
-        let mut cmd = Command::cargo_bin("alpm-lint")?;
+        let mut cmd = cargo_bin_cmd!("alpm-lint");
         cmd.args(vec![
             "options",
             "--format",
@@ -230,7 +230,7 @@ mod meta {
     /// Test the meta command with JSON output.
     #[test]
     fn json_output() -> TestResult {
-        let mut cmd = Command::cargo_bin("alpm-lint")?;
+        let mut cmd = cargo_bin_cmd!("alpm-lint");
         cmd.args(vec!["meta", "--format", "json"]);
 
         let output = cmd.assert().success().get_output().clone();
@@ -248,7 +248,7 @@ mod meta {
         let tempdir = tempdir()?;
         let output_path = tempdir.path().join("meta.json");
 
-        let mut cmd = Command::cargo_bin("alpm-lint")?;
+        let mut cmd = cargo_bin_cmd!("alpm-lint");
         cmd.args(vec![
             "meta",
             "--format",
