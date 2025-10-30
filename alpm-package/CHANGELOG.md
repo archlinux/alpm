@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2025-10-30
+
+### Added
+
+- [**breaking**] Reimplement `Architecture`
+- [**breaking**] Use `alpm-compress::tarball` for building and reading packages
+- [**breaking**] Rename `Error::Compression` to `Error::AlpmCompress`
+- [**breaking**] Replace `Option<CompressionSettings>` with `CompressionSettings`
+- [**breaking**] Add `None` variant to encoder, decoder and settings
+- [**breaking**] Remove `compression` module from `alpm-package`
+- [**breaking**] Replace usages of `alpm_package::compression` with `alpm-compress`
+
 ## [0.2.1] - 2025-10-07
 
 ### Fixed
