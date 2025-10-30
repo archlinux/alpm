@@ -29,7 +29,12 @@ pub enum OutputFormat {
 
 /// The command-line interface handling for `alpm-lint`.
 #[derive(Debug, Parser)]
-#[clap(name = "ALPM linting", about = "Linting for ALPM related files.")]
+#[clap(
+    about = "Linting for ALPM related files.",
+    author,
+    name = "alpm-lint",
+    version
+)]
 pub struct Cli {
     /// Log verbosity level
     #[command(flatten)]
