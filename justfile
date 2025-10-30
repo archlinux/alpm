@@ -241,7 +241,7 @@ build-book:
     # move python docs
     cp -r "$target_dir/pdoc/" "$output_dir/docs/pdoc"
 
-    cp -r "$target_dir/doc/"{search.desc,src,static.files,trait.impl,type.impl} "$rustdoc_dir"
+    cp -r "$target_dir/doc/"{search.*,src,static.files,trait.impl,type.impl} "$rustdoc_dir"
     cp -r "$target_dir/doc/"*.{js,html} "$rustdoc_dir"
 
     just --justfile alpm-lint-website/justfile build
