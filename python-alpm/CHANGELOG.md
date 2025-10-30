@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2025-10-30
+
+### Added
+
+- [**breaking**] Reimplement `Architecture`
+
+### Fixed
+
+- *(deps)* Update Rust crate pyo3 to 0.27
+
+### Other
+
+- *(deps)* Update dependency ruff to >=0.14,<0.15
+- Add ARCHITECTURE.md
+- Use staticmethod instead of classmethod
+- *(deps)* Update dependency pdoc to v16
+- Add cliff.toml
+- *(changelog)* Remove empty `unreleased` section
+- Rename `alpm` Python package to `python-alpm`
+- *(readme)* Add information about PyPI name conflict
+
 ## [0.1.0-alpha.0] - 2025-10-07
 
 ### Added
