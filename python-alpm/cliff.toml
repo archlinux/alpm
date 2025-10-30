@@ -1,3 +1,6 @@
+[bump]
+breaking_always_bump_major = false
+
 [changelog]
 header = """
 # Changelog
