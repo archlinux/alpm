@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2025-10-30
+
+### Added
+
+- [**breaking**] Reimplement `Architecture`
+- Better debug output for generate_srcinfo.bash helper script
+
+### Fixed
+
+- Better error message for too long checksums
+- Trailing whitespace handling
+- Error when file ends without newline
+
+### Other
+
+- *(deps)* Update Rust crate assert_cmd to v2.1.1
+- Hide cli module documentation
+- Cleanup srcinfo modules, dependencies and feature flags
+- Split package srcinfo parsing logic
+- Better error for missing pkgname section
+- (non)-trailing whitespaces scenarios
+
 ## [0.4.0] - 2025-10-07
 
 ### Added
