@@ -2,6 +2,10 @@
 
 Python bindings for the **A**rch **L**inux **P**ackage **M**anagement (ALPM) project.
 
+We are currently awaiting decision from PyPI maintainers to allow us to publish this package under the name `alpm`.
+Until then, we are using the name `python-alpm`.
+You can view the support ticket [here](https://github.com/pypi/support/issues/7813).
+
 ## Documentation
 
 Latest documentation is available at <https://alpm.archlinux.page/pdoc>.
