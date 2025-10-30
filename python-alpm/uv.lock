@@ -3,7 +3,7 @@ revision = 3
 requires-python = ">=3.10"
 
 [[package]]
-name = "alpm"
+name = "python-alpm"
 source = { editable = "." }
 
 [package.dev-dependencies]

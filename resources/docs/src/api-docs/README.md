@@ -17,7 +17,7 @@
 
 ## Python
 
-- [alpm](/pdoc)
+- [python-alpm](/pdoc)
 
 ## Local Dependency Graph
 

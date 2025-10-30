@@ -9,7 +9,7 @@ Latest documentation is available at <https://alpm.archlinux.page/pdoc>.
 ## Installation
 
 ```sh
-pip install alpm
+pip install python-alpm
 ```
 
 ## Examples

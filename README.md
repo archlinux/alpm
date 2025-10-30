@@ -75,7 +75,7 @@ Currently the following components are available:
 - [alpm-pkginfo]: a library and commandline interface to work with [PKGINFO] files
 - [alpm-srcinfo]: a library and commandline interface to work with [SRCINFO] files
 - [alpm-types]: a central library for types used by other ALPM libraries and tools
-- [python-alpm]: Python bindings for ALPM crates and the alpm Python library
+- [python-alpm]: Python bindings for ALPM crates and the python-alpm Python library
 
 ## Contributing
 
