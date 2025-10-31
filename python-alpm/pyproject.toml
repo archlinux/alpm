@@ -13,6 +13,7 @@ classifiers = [
 dynamic = ["version"]
 license = "Apache-2.0 OR MIT"
 name = "python-alpm"
+readme = "README.md"
 requires-python = ">=3.10"
 
 [tool.maturin]
