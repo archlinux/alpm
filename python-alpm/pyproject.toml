@@ -11,6 +11,7 @@ classifiers = [
     "Programming Language :: Rust",
 ]
 dynamic = ["version"]
+keywords = ["alpm", "archlinux", "packaging", "srcinfo"]
 license = "Apache-2.0 OR MIT"
 name = "python-alpm"
 readme = "README.md"
