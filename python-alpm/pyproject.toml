@@ -10,6 +10,7 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: PyPy",
     "Programming Language :: Rust",
 ]
+description = "Python bindings for the Rust-based ALPM project"
 dynamic = ["version"]
 keywords = ["alpm", "archlinux", "packaging", "srcinfo"]
 license = "Apache-2.0 OR MIT"
