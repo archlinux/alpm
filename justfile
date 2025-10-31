@@ -306,6 +306,7 @@ generate kind pkg:
 [group('build')]
 generate-completions:
     just generate shell_completions alpm-buildinfo
+    just generate shell_completions alpm-lint
     just generate shell_completions alpm-mtree
     just generate shell_completions alpm-pkginfo
     just generate shell_completions alpm-srcinfo
@@ -314,6 +315,7 @@ generate-completions:
 [group('build')]
 generate-manpages-and-specs:
     just generate manpages alpm-buildinfo
+    just generate manpages alpm-lint
     just generate manpages alpm-mtree
     just generate manpages alpm-pkginfo
     just generate manpages alpm-srcinfo
