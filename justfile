@@ -1014,8 +1014,7 @@ prepare-release package version="":
     fi
     git checkout -b "$branch_name"
 
-    shopt -s globstar
-    git add ./**/Cargo.* ./**/CHANGELOG.md
+    git add Cargo.* $package_name
     git commit --gpg-sign --signoff --message "chore: Upgrade $package_name crate to $updated_package_version"
     git push --set-upstream origin "$branch_name"
 
