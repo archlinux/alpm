@@ -16,6 +16,13 @@ name = "python-alpm"
 readme = "README.md"
 requires-python = ">=3.10"
 
+[project.urls]
+Changelog = "https://alpm.archlinux.page/python-alpm/CHANGELOG.html"
+Documentation = "https://alpm.archlinux.page/pdoc/"
+Homepage = "https://alpm.archlinux.page/python-alpm/"
+Issues = "https://gitlab.archlinux.org/archlinux/alpm/alpm/-/issues"
+Repository = "https://gitlab.archlinux.org/archlinux/alpm/alpm"
+
 [tool.maturin]
 features = ["pyo3/extension-module"]
 module-name = "alpm._native"
