@@ -4,6 +4,8 @@ requires = ["maturin>=1.8,<2.0"]
 
 [project]
 classifiers = [
+    "Intended Audience :: Developers",
+    "Operating System :: POSIX :: Linux",
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: Implementation :: PyPy",
     "Programming Language :: Rust",
