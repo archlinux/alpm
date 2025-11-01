@@ -4,7 +4,7 @@ SRCINFO - Information on sources of ALPM based packages.
 
 # DESCRIPTION
 
-The **SCRINFO** format is a textual format that describes package source metadata.
+The **SRCINFO** format is a textual format that describes package source metadata.
 Such files are named **.SRCINFO** and located at the root of source repositories from which ALPM based packages are built.
 They are created from **PKGBUILD** files to allow safe metadata parsing in scenarios where using **bash** is not an option.
 The **SRCINFO** format is used by applications such as repository management software and custom web frontends to evaluate and present the source information of packages.
