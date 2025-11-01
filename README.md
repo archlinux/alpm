@@ -69,6 +69,8 @@ Currently the following components are available:
 - [alpm-buildinfo]: a library and commandline interface to work with [BUILDINFO] files
 - [alpm-common]: a library for common traits and functionality
 - [alpm-compress]: a library for compression operations in ALPM
+- [alpm-lint]: a linting tool for everything around Arch Linux packaging.
+- [alpm-lint-website]: a website for easily accessible documentation of lints.
 - [alpm-mtree]: a library and commandline interface to work with [ALPM-MTREE] files
 - [alpm-package]: a library for the creation of [alpm-package][spec:alpm-package] files
 - [alpm-parsers]: a library for providing various custom parsers/deserializers for file types used in ALPM
@@ -110,6 +112,8 @@ Contributions to this project, unless noted otherwise, are automatically license
 [alpm-buildinfo]: alpm-buildinfo/
 [alpm-common]: alpm-common/
 [alpm-compress]: alpm-compress/
+[alpm-lint]: alpm-lint/
+[alpm-lint-website]: /lints
 [alpm-mtree]: alpm-mtree/
 [alpm-package]: alpm-package/
 [alpm-parsers]: alpm-parsers/
