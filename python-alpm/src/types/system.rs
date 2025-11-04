@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use pyo3::prelude::*;
+use pyo3::{exceptions::PyStopIteration, prelude::*};
 use strum::Display;
 
 use crate::macros::{impl_from, vec_convert};
@@ -245,6 +245,24 @@ impl TryFrom<Vec<Architecture>> for Architectures {
     }
 }
 
+#[pyclass]
+#[derive(Clone, Debug)]
+pub struct ArchitecturesIterator(std::vec::IntoIter<alpm_types::Architecture>);
+
+#[pymethods]
+impl ArchitecturesIterator {
+    fn __iter__(&self) -> Self {
+        self.clone()
+    }
+
+    fn __next__(&mut self) -> PyResult<Architecture> {
+        self.0
+            .next()
+            .map(From::from)
+            .ok_or(PyStopIteration::new_err(()))
+    }
+}
+
 #[pymethods]
 impl Architectures {
     #[new]
@@ -269,8 +287,9 @@ impl Architectures {
         matches!(self.0, alpm_types::Architectures::Any)
     }
 
-    fn __iter__(&self) -> Vec<Architecture> {
-        vec_convert!(self.0.clone())
+    fn __iter__(&self) -> ArchitecturesIterator {
+        let inner: alpm_types::Architectures = self.clone().into();
+        ArchitecturesIterator(inner.into_iter())
     }
 
     fn __len__(&self) -> usize {
@@ -284,9 +303,9 @@ impl Architectures {
     fn __repr__(&self) -> String {
         format!(
             "Architectures([{}])",
-            self.__iter__()
-                .iter()
-                .map(|arch| arch.__repr__())
+            self.0
+                .into_iter()
+                .map(|arch| Architecture::from(arch).__repr__())
                 .collect::<Vec<_>>()
                 .join(", ")
         )

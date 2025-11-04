@@ -288,9 +288,11 @@ def test_architectures_invalid_arch_raises(invalid_arch: str) -> None:
 def test_architectures_iteration() -> None:
     """Test iterating over Architectures."""
     archs = alpm_types.Architectures(["x86_64", "aarch64"])
-    arch_list = archs.__iter__()
-    assert len(arch_list) == 2
-    assert all(isinstance(arch, alpm_types.Architecture) for arch in arch_list)
+    items = 0
+    for arch in archs:
+        items += 1
+        assert isinstance(arch, alpm_types.Architecture)
+    assert items == 2
 
 
 def test_architectures_eq_ord_hash() -> None:

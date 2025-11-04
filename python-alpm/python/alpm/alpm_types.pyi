@@ -3,7 +3,7 @@
 from enum import Enum
 from pathlib import Path
 
-from typing import Union, Optional, Sequence
+from typing import Union, Optional, Sequence, Iterator
 
 from .type_aliases import (
     OpenPGPIdentifier,
@@ -510,7 +510,7 @@ class Architectures:
     def is_any(self) -> bool:
         """True if the iterable represents any architecture."""
 
-    def __iter__(self) -> list[Architecture]: ...
+    def __iter__(self) -> Iterator[Architecture]: ...
     def __len__(self) -> int: ...
     def __str__(self) -> str: ...
     def __repr__(self) -> str: ...
