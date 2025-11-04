@@ -10,6 +10,7 @@ pub mod lint_rules;
 mod resources;
 mod rule;
 mod scope;
+mod utils;
 
 pub use crate::{
     error::Error,
