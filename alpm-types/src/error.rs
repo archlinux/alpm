@@ -143,7 +143,10 @@ pub enum Error {
     },
 
     /// An invalid OpenPGP v4 fingerprint
-    #[error("Invalid OpenPGP v4 fingerprint, only 40 uppercase hexadecimal characters are allowed")]
+    #[error(
+        "Invalid OpenPGP v4 fingerprint, only 40 uppercase hexadecimal characters and optional \
+        whitespace separators are allowed"
+    )]
     InvalidOpenPGPv4Fingerprint,
 
     /// An invalid OpenPGP key ID

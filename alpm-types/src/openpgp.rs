@@ -188,14 +188,19 @@ impl Display for OpenPGPKeyId {
 /// An OpenPGP v4 fingerprint.
 ///
 /// The `OpenPGPv4Fingerprint` type wraps a `String` representing an [OpenPGP v4 fingerprint],
-/// ensuring that it consists of exactly 40 uppercase hexadecimal characters.
+/// ensuring that it consists of 40 uppercase hexadecimal characters with optional whitespace
+/// separators.
 ///
 /// [OpenPGP v4 fingerprint]: https://openpgp.dev/book/certificates.html#fingerprint
 ///
 /// ## Note
 ///
-/// This type supports constructing from both uppercase and lowercase hexadecimal characters but
-/// guarantees to return the fingerprint in uppercase.
+/// - This type supports constructing from both uppercase and lowercase hexadecimal characters, with
+///   and without whitespace separators, but guarantees to return the fingerprint in uppercase and
+///   with no whitespaces.
+///
+/// - Whitespaces are only allowed between hexadecimal characters, not at the start or end of the
+///   fingerprint.
 ///
 /// ## Examples
 ///
@@ -207,6 +212,10 @@ impl Display for OpenPGPKeyId {
 /// # fn main() -> Result<(), alpm_types::Error> {
 /// // Create OpenPGPv4Fingerprint from a valid OpenPGP v4 fingerprint
 /// let key = OpenPGPv4Fingerprint::from_str("4A0C4DFFC02E1A7ED969ED231C2358A25A10D94E")?;
+/// assert_eq!(key.as_str(), "4A0C4DFFC02E1A7ED969ED231C2358A25A10D94E");
+///
+/// // Space separated fingerprint is also valid
+/// let key = OpenPGPv4Fingerprint::from_str("4A0C 4DFF C02E 1A7E D969 ED23 1C23 58A2 5A10 D94E")?;
 /// assert_eq!(key.as_str(), "4A0C4DFFC02E1A7ED969ED231C2358A25A10D94E");
 ///
 /// // Attempting to create a OpenPGPv4Fingerprint from an invalid fingerprint will fail
@@ -249,15 +258,21 @@ impl FromStr for OpenPGPv4Fingerprint {
     /// Creates a new `OpenPGPv4Fingerprint` instance after validating that it follows the correct
     /// format.
     ///
-    /// A valid OpenPGP v4 fingerprint should be exactly 40 characters long and consist only
-    /// of digits (`0-9`) and hexadecimal letters (`A-F`).
+    /// A valid OpenPGP v4 fingerprint should be a 40 characters long string of digits (`0-9`)
+    /// and hexadecimal letters (`A-F`) optionally separated by whitespaces.
     ///
     /// # Errors
     ///
     /// Returns an error if the OpenPGP v4 fingerprint is not valid.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s.len() == 40 && s.chars().all(|c| c.is_ascii_hexdigit()) {
-            Ok(Self(s.to_ascii_uppercase()))
+        let normalized = s.to_ascii_uppercase().replace(" ", "");
+
+        if !s.starts_with(' ')
+            && !s.ends_with(' ')
+            && normalized.len() == 40
+            && normalized.chars().all(|c| c.is_ascii_hexdigit())
+        {
+            Ok(Self(normalized))
         } else {
             Err(Error::InvalidOpenPGPv4Fingerprint)
         }
@@ -382,7 +397,9 @@ mod tests {
 
     #[rstest]
     #[case("4A0C4DFFC02E1A7ED969ED231C2358A25A10D94E")]
+    #[case("4A0C 4DFF C02E 1A7E D969 ED23 1C23 58A2 5A10 D94E")]
     #[case("1234567890abcdef1234567890abcdef12345678")]
+    #[case("1234 5678 90ab cdef 1234 5678 90ab cdef 1234 5678")]
     fn test_parse_openpgp_fingerprint(#[case] input: &str) -> Result<(), Error> {
         input.parse::<OpenPGPv4Fingerprint>()?;
         Ok(())
@@ -402,6 +419,16 @@ mod tests {
     // More than 40 characters
     #[case(
         "1234567890ABCDEF1234567890ABCDEF1234567890",
+        Err(Error::InvalidOpenPGPv4Fingerprint)
+    )]
+    // Starts with whitespace
+    #[case(
+        " 4A0C 4DFF C02E 1A7E D969 ED23 1C23 58A2 5A10 D94E",
+        Err(Error::InvalidOpenPGPv4Fingerprint)
+    )]
+    // Ends with whitespace
+    #[case(
+        "4A0C 4DFF C02E 1A7E D969 ED23 1C23 58A2 5A10 D94E ",
         Err(Error::InvalidOpenPGPv4Fingerprint)
     )]
     // Just invalid
@@ -431,14 +458,22 @@ mod tests {
         Ok(())
     }
 
-    #[test]
-    fn test_serialize_openpgp_v4_fingerprint() -> TestResult {
-        let print = "1234567890abcdef1234567890abcdef12345678".parse::<OpenPGPv4Fingerprint>()?;
+    #[rstest]
+    #[case(
+        "1234567890abcdef1234567890abcdef12345678",
+        "1234567890ABCDEF1234567890ABCDEF12345678"
+    )]
+    #[case(
+        "1234 5678 90ab cdef 1234 5678 90ab cdef 1234 5678",
+        "1234567890ABCDEF1234567890ABCDEF12345678"
+    )]
+    fn test_serialize_openpgp_v4_fingerprint(
+        #[case] input: &str,
+        #[case] output: &str,
+    ) -> TestResult {
+        let print = input.parse::<OpenPGPv4Fingerprint>()?;
         let json = serde_json::to_string(&OpenPGPIdentifier::OpenPGPv4Fingerprint(print))?;
-        assert_eq!(
-            r#"{"openpgp_v4_fingerprint":"1234567890ABCDEF1234567890ABCDEF12345678"}"#,
-            json
-        );
+        assert_eq!(format!("{{\"openpgp_v4_fingerprint\":\"{output}\"}}"), json);
 
         Ok(())
     }

@@ -338,7 +338,8 @@ class OpenPGPv4Fingerprint:
     """An OpenPGP v4 fingerprint.
 
     Wraps a string representing a valid OpenPGP v4 fingerprint, ensuring that it
-    consists of exactly 40 uppercase hexadecimal characters.
+    consists of exactly 40 uppercase hexadecimal characters and optional whitespace
+    separators.
     """
 
     def __init__(self, fingerprint: str) -> None:
@@ -346,7 +347,9 @@ class OpenPGPv4Fingerprint:
 
         Args:
             fingerprint (str): A string representing the OpenPGP v4 fingerprint,
-                which must be exactly 40 uppercase hexadecimal characters.
+                which must be 40 uppercase hexadecimal characters and optional
+                whitespace separators. Whitespaces are not allowed at beginning
+                and the end of the fingerprint.
 
         Returns:
             OpenPGPv4Fingerprint: A new instance of OpenPGPv4Fingerprint.
