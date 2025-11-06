@@ -118,6 +118,10 @@ pub enum Error {
     #[error("The path is not relative: {0}")]
     PathNotRelative(PathBuf),
 
+    /// Expected a file, but got a directory
+    #[error("The path is not a file: {0}")]
+    PathIsNotAFile(PathBuf),
+
     /// File name contains invalid characters
     #[error("File name ({0}) contains invalid characters: {1:?}")]
     FileNameContainsInvalidChars(PathBuf, char),

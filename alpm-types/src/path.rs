@@ -158,14 +158,16 @@ pub struct RelativePath(PathBuf);
 impl RelativePath {
     /// Create a new `RelativePath`
     pub fn new(path: PathBuf) -> Result<RelativePath, Error> {
-        match path.is_relative()
-            && !path
-                .to_string_lossy()
-                .ends_with(std::path::MAIN_SEPARATOR_STR)
+        if path
+            .to_string_lossy()
+            .ends_with(std::path::MAIN_SEPARATOR_STR)
         {
-            true => Ok(RelativePath(path)),
-            false => Err(Error::PathNotRelative(path)),
+            return Err(Error::PathIsNotAFile(path));
         }
+        if !path.is_relative() {
+            return Err(Error::PathNotRelative(path));
+        }
+        Ok(RelativePath(path))
     }
 
     /// Return a reference to the inner type
@@ -389,7 +391,7 @@ mod tests {
         "/etc/test.conf",
         Err(Error::PathNotRelative(PathBuf::from("/etc/test.conf")))
     )]
-    #[case("etc/", Err(Error::PathNotRelative(PathBuf::from("etc/"))))]
+    #[case("etc/", Err(Error::PathIsNotAFile(PathBuf::from("etc/"))))]
     #[case("etc", RelativePath::new(PathBuf::from("etc")))]
     #[case(
         "../etc/test.conf",
