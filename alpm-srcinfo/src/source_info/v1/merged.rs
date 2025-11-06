@@ -15,7 +15,7 @@ use alpm_types::{
     SkippableChecksum,
     Source,
     Url,
-    digests::{Blake2b512, Md5, Sha1, Sha224, Sha256, Sha384, Sha512},
+    digests::{Blake2b512, Crc32Cksum, Md5, Sha1, Sha224, Sha256, Sha384, Sha512},
 };
 use serde::{Deserialize, Serialize};
 
@@ -150,6 +150,8 @@ pub struct MergedSource {
     pub sha384_checksum: Option<SkippableChecksum<Sha384>>,
     /// The optional SHA-512 hash digest of `source`.
     pub sha512_checksum: Option<SkippableChecksum<Sha512>>,
+    /// The optional CRC-32/CKSUM hash digest of `source`.
+    pub crc_checksum: Option<SkippableChecksum<Crc32Cksum>>,
 }
 
 /// A convenience iterator to build a list of [`MergedSource`] from the disjoint vectors of sources
@@ -167,6 +169,7 @@ pub struct MergedSourceIterator<'a> {
     sha256_checksums: std::slice::Iter<'a, SkippableChecksum<Sha256>>,
     sha384_checksums: std::slice::Iter<'a, SkippableChecksum<Sha384>>,
     sha512_checksums: std::slice::Iter<'a, SkippableChecksum<Sha512>>,
+    crc_checksums: std::slice::Iter<'a, SkippableChecksum<Crc32Cksum>>,
 }
 
 impl Iterator for MergedSourceIterator<'_> {
@@ -184,6 +187,7 @@ impl Iterator for MergedSourceIterator<'_> {
             sha256_checksum: self.sha256_checksums.next().cloned(),
             sha384_checksum: self.sha384_checksums.next().cloned(),
             sha512_checksum: self.sha512_checksums.next().cloned(),
+            crc_checksum: self.crc_checksums.next().cloned(),
         })
     }
 }
@@ -270,6 +274,7 @@ impl MergedPackage {
             sha256_checksums: base.sha256_checksums.iter(),
             sha384_checksums: base.sha384_checksums.iter(),
             sha512_checksums: base.sha512_checksums.iter(),
+            crc_checksums: base.crc_checksums.iter(),
         };
 
         // If the [`PackageBase`] is compatible with any architecture, then we set the architecture
@@ -353,6 +358,7 @@ impl MergedPackage {
             sha256_checksums: base_architecture.sha256_checksums.iter(),
             sha384_checksums: base_architecture.sha384_checksums.iter(),
             sha512_checksums: base_architecture.sha512_checksums.iter(),
+            crc_checksums: base_architecture.crc_checksums.iter(),
         };
 
         self.dependencies

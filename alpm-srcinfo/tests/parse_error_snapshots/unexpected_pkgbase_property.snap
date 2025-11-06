@@ -9,4 +9,4 @@ parse error at line 4, column 2
 4 | 	bogus_field = lol
   |  ^
 invalid package base property type
-expected one of the allowed pkgbase section properties:, `checkdepends`, `makedepends`, `pkgver`, `pkgrel`, `epoch`, `validpgpkeys`, `depends`, `optdepends`, `provides`, `conflicts`, `replaces`, `pkgdesc`, `url`, `license`, `arch`, `changelog`, `install`, `groups`, `options`, `backup`, `source`, `noextract`, `b2sums`, `md5sums`, `sha1sums`, `sha224sums`, `sha256sums`, `sha384sums`, `sha512sums`
+expected one of the allowed pkgbase section properties:, `checkdepends`, `makedepends`, `pkgver`, `pkgrel`, `epoch`, `validpgpkeys`, `depends`, `optdepends`, `provides`, `conflicts`, `replaces`, `pkgdesc`, `url`, `license`, `arch`, `changelog`, `install`, `groups`, `options`, `backup`, `source`, `noextract`, `b2sums`, `md5sums`, `sha1sums`, `sha224sums`, `sha256sums`, `sha384sums`, `sha512sums`, `cksums`

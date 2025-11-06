@@ -184,6 +184,7 @@ pub fn handle_package_base(
     let mut sha256_checksums = Vec::new();
     let mut sha384_checksums = Vec::new();
     let mut sha512_checksums = Vec::new();
+    let mut crc_checksums = Vec::new();
 
     // Go through all keywords and handle them.
     for (raw_keyword, value) in &raw {
@@ -415,6 +416,14 @@ pub fn handle_package_base(
                     architecture_properties,
                     SkippableChecksum::parser,
                 ),
+                SourceKeyword::Cksums => package_base_value_array!(
+                    raw_keyword,
+                    value,
+                    crc_checksums,
+                    architecture,
+                    architecture_properties,
+                    SkippableChecksum::parser,
+                ),
             },
         }
     }
@@ -451,5 +460,6 @@ pub fn handle_package_base(
         sha256_checksums,
         sha384_checksums,
         sha512_checksums,
+        crc_checksums,
     })
 }

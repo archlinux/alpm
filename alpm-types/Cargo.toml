@@ -27,6 +27,7 @@ md-5 = "0.10.5"
 semver.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+crc-fast = "1.6.0"
 sha1 = "0.10.5"
 sha2 = "0.10.7"
 spdx = "0.12.0"

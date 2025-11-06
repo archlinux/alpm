@@ -10,6 +10,7 @@ from alpm.alpm_types import (
     Sha256Checksum,
     Sha384Checksum,
     Sha512Checksum,
+    Crc32CksumChecksum,
     SkippableBlake2b512Checksum,
     SkippableMd5Checksum,
     SkippableSha1Checksum,
@@ -17,6 +18,7 @@ from alpm.alpm_types import (
     SkippableSha256Checksum,
     SkippableSha384Checksum,
     SkippableSha512Checksum,
+    SkippableCrc32CksumChecksum,
     OpenPGPKeyId,
     OpenPGPv4Fingerprint,
     BuildEnvironmentOption,
@@ -43,6 +45,7 @@ Checksum: TypeAlias = Union[
     Sha256Checksum,
     Sha384Checksum,
     Sha512Checksum,
+    Crc32CksumChecksum,
 ]
 """A checksum using a supported algorithm"""
 
@@ -54,6 +57,7 @@ SkippableChecksum: TypeAlias = Union[
     SkippableSha256Checksum,
     SkippableSha384Checksum,
     SkippableSha512Checksum,
+    SkippableCrc32CksumChecksum,
 ]
 """ A skippable checksum using a supported algorithm.
 

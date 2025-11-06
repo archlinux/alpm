@@ -1,15 +1,17 @@
 use std::{
     fmt::{Debug, Display, Formatter},
     marker::PhantomData,
+    ops::DerefMut,
     str::FromStr,
 };
 
-pub use digest::Digest;
+use digest::{Digest, FixedOutput, HashMarker, Output, OutputSizeUser, Update};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use strum::{Display, EnumString, VariantArray, VariantNames};
 use winnow::{
     ModalResult,
     Parser,
+    ascii::dec_uint,
     combinator::{alt, cut_err, eof, repeat, terminated},
     error::{StrContext, StrContextValue},
     token::one_of,
@@ -19,6 +21,54 @@ use crate::{
     Error,
     digests::{Blake2b512, Md5, Sha1, Sha224, Sha256, Sha384, Sha512},
 };
+
+/// Defines the string representation format of a checksum digest.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum DigestEncoding {
+    /// Checksum digest represented by a hexadecimal string.
+    Hex,
+    /// Checksum digest represented by a decimal string.
+    Dec,
+}
+
+/// [`Digest`] extension providing a [`Self::ENCODING`] constant defining the string representation
+/// of the digest used for parsing and formatting.
+pub trait DigestString: Digest {
+    /// The format used for string representation of the digest.
+    const ENCODING: DigestEncoding;
+}
+
+impl DigestString for Blake2b512 {
+    const ENCODING: DigestEncoding = DigestEncoding::Hex;
+}
+
+impl DigestString for Md5 {
+    const ENCODING: DigestEncoding = DigestEncoding::Hex;
+}
+
+impl DigestString for Sha1 {
+    const ENCODING: DigestEncoding = DigestEncoding::Hex;
+}
+
+impl DigestString for Sha224 {
+    const ENCODING: DigestEncoding = DigestEncoding::Hex;
+}
+
+impl DigestString for Sha256 {
+    const ENCODING: DigestEncoding = DigestEncoding::Hex;
+}
+
+impl DigestString for Sha384 {
+    const ENCODING: DigestEncoding = DigestEncoding::Hex;
+}
+
+impl DigestString for Sha512 {
+    const ENCODING: DigestEncoding = DigestEncoding::Hex;
+}
+
+impl DigestString for Crc32Cksum {
+    const ENCODING: DigestEncoding = DigestEncoding::Dec;
+}
 
 // Convenience type aliases for the supported checksums
 
@@ -42,6 +92,9 @@ pub type Sha384Checksum = Checksum<Sha384>;
 
 /// A checksum using the Sha512 algorithm
 pub type Sha512Checksum = Checksum<Sha512>;
+
+/// A checksum using CRC-32/CKSUM algorithm
+pub type Crc32CksumChecksum = Checksum<Crc32Cksum>;
 
 /// This enum represents all accepted checksum algorithms used in the Arch Linux distribution.
 #[derive(
@@ -75,6 +128,8 @@ pub enum ChecksumAlgorithm {
     Sha384,
     /// Sha512 hash algorithm
     Sha512,
+    /// CRC-32/CKSUM hash algorithm
+    Crc32Cksum,
 }
 
 impl ChecksumAlgorithm {
@@ -104,7 +159,9 @@ impl ChecksumAlgorithm {
     /// ```
     pub fn is_deprecated(&self) -> bool {
         match self {
-            ChecksumAlgorithm::Md5 | ChecksumAlgorithm::Sha1 => true,
+            ChecksumAlgorithm::Md5 | ChecksumAlgorithm::Sha1 | ChecksumAlgorithm::Crc32Cksum => {
+                true
+            }
             ChecksumAlgorithm::Blake2b512
             | ChecksumAlgorithm::Sha224
             | ChecksumAlgorithm::Sha256
@@ -136,9 +193,8 @@ impl ChecksumAlgorithm {
 /// - `Sha256`
 /// - `Sha384`
 /// - `Sha512`
-///
-/// Contrary to makepkg/pacman, this crate *does not* support using cksum-style CRC-32 as it
-/// is non-standard (different implementations throughout libraries) and cryptographically unsafe.
+/// - `Crc32Cksum` (**WARNING**: Use of this algorithm is highly discouraged, because it is
+///   cryptographically unsafe)
 ///
 /// ## Note
 ///
@@ -201,7 +257,7 @@ pub struct Checksum<D: Digest> {
     _marker: PhantomData<D>,
 }
 
-impl<D: Digest> Serialize for Checksum<D> {
+impl<D: DigestString> Serialize for Checksum<D> {
     /// Serialize a [`Checksum`] into a hex `String` representation.
     ///
     /// We chose hex as byte vectors are imperformant and considered bad practice for non-binary
@@ -214,7 +270,7 @@ impl<D: Digest> Serialize for Checksum<D> {
     }
 }
 
-impl<'de, D: Digest> Deserialize<'de> for Checksum<D> {
+impl<'de, D: DigestString> Deserialize<'de> for Checksum<D> {
     fn deserialize<De>(deserializer: De) -> Result<Self, De::Error>
     where
         De: Deserializer<'de>,
@@ -224,7 +280,7 @@ impl<'de, D: Digest> Deserialize<'de> for Checksum<D> {
     }
 }
 
-impl<D: Digest> Checksum<D> {
+impl<D: DigestString> Checksum<D> {
     /// Calculate a new Checksum for data that may be represented as a list of bytes
     ///
     /// ## Examples
@@ -259,7 +315,7 @@ impl<D: Digest> Checksum<D> {
     /// # Errors
     ///
     /// Returns an error if `input` is not the output of a _hash function_
-    /// in hexadecimal form.
+    /// in hexadecimal (or decimal in case of CRC-32/CKSUM) form.
     pub fn parser(input: &mut &str) -> ModalResult<Self> {
         /// Consume 1 hex digit and return its hex value.
         ///
@@ -282,19 +338,61 @@ impl<D: Digest> Checksum<D> {
             // shift is infallible because hex_digit cannot return >0b00001111
             (first << 4) + second);
 
-        // Consume exactly the number of hex pairs that our Digest type expects
-        let digest = cut_err(repeat(<D as Digest>::output_size(), hex_pair))
-            .context(StrContext::Label("hash digest"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "a hex hash digest with the appropriate length for the given algorithm.",
-            )))
-            .parse_next(input)?;
+        // output size in bytes
+        let digest_bytes = <D as Digest>::output_size();
 
-        cut_err(eof)
-            .context(StrContext::Expected(StrContextValue::Description(
-                "end of checksum. Checksum is too long.",
-            )))
-            .parse_next(input)?;
+        let digest = match D::ENCODING {
+            DigestEncoding::Hex => {
+                // Consume exactly the number of hex pairs that our Digest type expects
+                let digest = cut_err(repeat(digest_bytes, hex_pair))
+                    .context(StrContext::Label("hash digest"))
+                    .context(StrContext::Expected(StrContextValue::Description(
+                        "a hex hash digest with the appropriate length for the given algorithm.",
+                    )))
+                    .parse_next(input)?;
+
+                cut_err(eof)
+                    .context(StrContext::Expected(StrContextValue::Description(
+                        "end of checksum. Checksum is too long.",
+                    )))
+                    .parse_next(input)?;
+
+                digest
+            }
+            DigestEncoding::Dec => {
+                // output size in bits
+                let digest_bits = digest_bytes * 8;
+
+                // The following logic parses a decimal integer for consumption by a digest.
+                // We chose to use a [`u128::MAX`] as this is the currently largest number type in
+                // the rust std library. In reality we only use this for CRC-32/CKSUM which is
+                // 4 bytes, but it's nice to keep this a bit more generic.
+
+                // Determine the maximum allowed value based on the number of allowed
+                // `digest_bytes`.
+                let max_value: u128 = if digest_bits >= 128 {
+                    // Since we're parsing into a `u128`, we don't allow digests that use more bytes
+                    // than that. If we ever were to add such a digest, this
+                    // logic needs to be adjusted.
+                    u128::MAX
+                } else {
+                    (1u128 << digest_bits) - 1
+                };
+
+                // Parse into the u128 decimal and verify that the resulting value fits into our
+                // requested digest length. E.g. CRC-32 is restricted to a u32.
+                cut_err(dec_uint::<_, u128, _>)
+                    .verify(move |&v| v <= max_value)
+                    // Convert the u128 into a big endian byte array.
+                    // Then cut the array at the highest significant byte we allow for this digest.
+                    .map(move |v | v.to_be_bytes()[16 - digest_bytes..].to_vec())
+                    .context(StrContext::Label("hash digest"))
+                    .context(StrContext::Expected(StrContextValue::Description(
+                        "a decimal hash digest with the appropriate length for the given algorithm.",
+                    )))
+                    .parse_next(input)?
+            }
+        };
 
         Ok(Self {
             digest,
@@ -303,7 +401,7 @@ impl<D: Digest> Checksum<D> {
     }
 }
 
-impl<D: Digest> FromStr for Checksum<D> {
+impl<D: DigestString> FromStr for Checksum<D> {
     type Err = Error;
     /// Create a new Checksum from a hex string and return it in a Result
     ///
@@ -328,23 +426,37 @@ impl<D: Digest> FromStr for Checksum<D> {
     }
 }
 
-impl<D: Digest> Display for Checksum<D> {
+impl<D: DigestString> Display for Checksum<D> {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
-        write!(
-            fmt,
-            "{}",
-            self.digest
-                .iter()
-                .map(|x| format!("{x:02x?}"))
-                .collect::<Vec<String>>()
-                .join("")
-        )
+        match D::ENCODING {
+            DigestEncoding::Hex => {
+                write!(
+                    fmt,
+                    "{}",
+                    self.digest
+                        .iter()
+                        .map(|x| format!("{x:02x?}"))
+                        .collect::<Vec<String>>()
+                        .join("")
+                )
+            }
+            DigestEncoding::Dec => {
+                // Convert a big-endian byte array into an u128.
+                // The parser already assumes that the digest fits into a u128,
+                // so this should be infallible.
+                let value = self
+                    .digest
+                    .iter()
+                    .fold(0u128, |acc, &byte| (acc << 8) | byte as u128);
+                write!(fmt, "{}", value)
+            }
+        }
     }
 }
 
 /// Use [Display] as [Debug] impl, since the byte representation and [PhantomData] field aren't
 /// relevant for debugging purposes.
-impl<D: Digest> Debug for Checksum<D> {
+impl<D: DigestString> Debug for Checksum<D> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         Display::fmt(&self, f)
     }
@@ -376,7 +488,7 @@ impl<D: Digest> PartialOrd for Checksum<D> {
 /// If the `"SKIP"` keyword is found, the integrity check is skipped.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(tag = "type")]
-pub enum SkippableChecksum<D: Digest + Clone> {
+pub enum SkippableChecksum<D: DigestString + Clone> {
     /// Sourcefile checksum validation may be skipped, which is expressed with this variant.
     Skip,
     /// The related source file should be validated via the provided checksum.
@@ -387,7 +499,7 @@ pub enum SkippableChecksum<D: Digest + Clone> {
     },
 }
 
-impl<D: Digest + Clone> SkippableChecksum<D> {
+impl<D: DigestString + Clone> SkippableChecksum<D> {
     /// Determines whether the [`SkippableChecksum`] is skipped.
     ///
     /// Checksums are considered skipped if they are of the variant [`SkippableChecksum::Skip`].
@@ -403,7 +515,7 @@ impl<D: Digest + Clone> SkippableChecksum<D> {
     /// # Errors
     ///
     /// Returns an error if `input` is not the output of a _hash function_
-    /// in hexadecimal form.
+    /// in hexadecimal (or decimal in case of CRC32/CKSUM) form.
     pub fn parser(input: &mut &str) -> ModalResult<Self> {
         terminated(
             alt((
@@ -418,7 +530,7 @@ impl<D: Digest + Clone> SkippableChecksum<D> {
     }
 }
 
-impl<D: Digest + Clone> FromStr for SkippableChecksum<D> {
+impl<D: DigestString + Clone> FromStr for SkippableChecksum<D> {
     type Err = Error;
     /// Create a new [`SkippableChecksum`] from a string slice and return it in a Result.
     ///
@@ -445,7 +557,7 @@ impl<D: Digest + Clone> FromStr for SkippableChecksum<D> {
     }
 }
 
-impl<D: Digest + Clone> Display for SkippableChecksum<D> {
+impl<D: DigestString + Clone> Display for SkippableChecksum<D> {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
         let output = match self {
             SkippableChecksum::Skip => "SKIP".to_string(),
@@ -455,7 +567,7 @@ impl<D: Digest + Clone> Display for SkippableChecksum<D> {
     }
 }
 
-impl<D: Digest + Clone> PartialEq for SkippableChecksum<D> {
+impl<D: DigestString + Clone> PartialEq for SkippableChecksum<D> {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (SkippableChecksum::Skip, SkippableChecksum::Skip) => true,
@@ -468,6 +580,53 @@ impl<D: Digest + Clone> PartialEq for SkippableChecksum<D> {
                 },
             ) => digest == digest_other,
         }
+    }
+}
+
+/// CRC-32/CKSUM hasher state.
+///
+/// This implementation tracks the length of the input data and appends it to the checksum
+/// calculation similarly to the Unix `cksum` utility.
+#[derive(Clone, Debug)]
+pub struct Crc32Cksum {
+    digest: crc_fast::Digest,
+    len: u64,
+}
+
+impl HashMarker for Crc32Cksum {}
+
+impl Default for Crc32Cksum {
+    fn default() -> Self {
+        Self {
+            digest: crc_fast::Digest::new(crc_fast::CrcAlgorithm::Crc32Cksum),
+            len: 0,
+        }
+    }
+}
+
+impl Update for Crc32Cksum {
+    fn update(&mut self, data: &[u8]) {
+        self.digest.update(data);
+        self.len += data.len() as u64;
+    }
+}
+
+impl OutputSizeUser for Crc32Cksum {
+    type OutputSize = digest::consts::U4;
+}
+
+impl FixedOutput for Crc32Cksum {
+    fn finalize_into(mut self, out: &mut Output<Self>) {
+        if self.len != 0 {
+            let len_bytes = self.len.to_be_bytes();
+
+            // Skip leading zero bytes and append the length to the digest...
+            let start = len_bytes.iter().position(|&b| b != 0).unwrap_or(7);
+            self.digest.update(&len_bytes[start..]);
+        }
+
+        let crc = self.digest.finalize() as u32;
+        out.deref_mut().clone_from_slice(&crc.to_be_bytes());
     }
 }
 
@@ -600,6 +759,31 @@ mod tests {
         fn invalid_checksum_sha512_from_string_wrong_chars(string in r"[e-z0-9]{128}") {
             assert!(Sha512Checksum::from_str(&string).is_err());
         }
+
+        #[test]
+        fn valid_checksum_crc32cksum(sum in 0u32..=u32::MAX) {
+            let decimal_str = format!("{sum}");
+            prop_assert_eq!(
+                &decimal_str,
+                &format!("{}", Crc32CksumChecksum::from_str(decimal_str.as_str()).unwrap())
+            );
+        }
+
+        #[test]
+        fn invalid_checksum_crc32cksum_bigger_size(sum in (u32::MAX as u128)..=u128::MAX) {
+            let decimal_str = format!("{sum}");
+            assert!(Crc32CksumChecksum::from_str(decimal_str.as_str()).is_err());
+        }
+
+        #[test]
+        fn invalid_checksum_crc32cksum_wrong_chars(string in r"[a-f]{9}") {
+            assert!(Crc32CksumChecksum::from_str(&string).is_err());
+        }
+
+        #[test]
+        fn invalid_checksum_crc32cksum_negative(string in r"-[1-9]{9}") {
+            assert!(Crc32CksumChecksum::from_str(&string).is_err());
+        }
     }
 
     #[rstest]
@@ -713,6 +897,21 @@ mod tests {
         let checksum = Sha512Checksum::from_str(hex_digest).unwrap();
         assert_eq!(digest, checksum.inner());
         assert_eq!(format!("{}", &checksum), hex_digest);
+    }
+
+    #[rstest]
+    fn checksum_crc32cksum() {
+        let data = "foo\n";
+        let digest = 3915528286u32;
+        let digest_string = format!("{digest}");
+
+        let checksum = Crc32CksumChecksum::calculate_from(data);
+        assert_eq!(digest.to_be_bytes(), checksum.inner());
+        assert_eq!(format!("{}", &checksum), digest_string);
+
+        let checksum = Crc32CksumChecksum::from_str(digest_string.as_str()).unwrap();
+        assert_eq!(digest.to_be_bytes(), checksum.inner());
+        assert_eq!(format!("{}", &checksum), digest_string);
     }
 
     #[rstest]

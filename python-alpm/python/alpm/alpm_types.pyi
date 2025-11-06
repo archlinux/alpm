@@ -109,6 +109,18 @@ class Sha512Checksum:
     def __gt__(self, other: "Sha512Checksum") -> bool: ...
     def __ge__(self, other: "Sha512Checksum") -> bool: ...
 
+class Crc32CksumChecksum:
+    """A checksum using the CRC-32/CKSUM algorithm."""
+
+    def __init__(self, value: str): ...
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+    def __eq__(self, other: object) -> bool: ...
+    def __lt__(self, other: "Crc32CksumChecksum") -> bool: ...
+    def __le__(self, other: "Crc32CksumChecksum") -> bool: ...
+    def __gt__(self, other: "Crc32CksumChecksum") -> bool: ...
+    def __ge__(self, other: "Crc32CksumChecksum") -> bool: ...
+
 class SkippableBlake2b512Checksum:
     """A checksum using the Blake2b512 algorithm."""
 
@@ -185,6 +197,17 @@ class SkippableSha384Checksum:
 
 class SkippableSha512Checksum:
     """A checksum using the Sha512 algorithm."""
+
+    def __init__(self, value: str): ...
+    @property
+    def is_skipped(self) -> bool:
+        """True if the checksum is skipped."""
+
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+
+class SkippableCrc32CksumChecksum:
+    """A checksum using the CRC-32/CKSUM algorithm."""
 
     def __init__(self, value: str): ...
     @property
@@ -1316,6 +1339,7 @@ __all__ = [
     "Sha256Checksum",
     "Sha384Checksum",
     "Sha512Checksum",
+    "Crc32CksumChecksum",
     "SkippableBlake2b512Checksum",
     "SkippableMd5Checksum",
     "SkippableSha1Checksum",
@@ -1323,6 +1347,7 @@ __all__ = [
     "SkippableSha256Checksum",
     "SkippableSha384Checksum",
     "SkippableSha512Checksum",
+    "SkippableCrc32CksumChecksum",
     "BuildEnvironmentOption",
     "PackageOption",
     "makepkg_option_from_str",

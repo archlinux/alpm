@@ -16,6 +16,7 @@ from alpm.alpm_types import (
     PackageRelation,
     RelativePath,
     SkippableBlake2b512Checksum,
+    SkippableCrc32CksumChecksum,
     SkippableMd5Checksum,
     SkippableSha1Checksum,
     SkippableSha224Checksum,
@@ -390,6 +391,11 @@ def test_package_base_no_extracts_getter_setter() -> None:
             SkippableSha512Checksum,
             "abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
         ),
+        (
+            "crc_checksums",
+            SkippableCrc32CksumChecksum,
+            "4294967295",
+        ),
     ],
 )
 def test_package_base_checksums_getter_setter(
@@ -568,6 +574,11 @@ def test_package_base_architecture_sources_getter_setter() -> None:
             "sha512_checksums",
             SkippableSha512Checksum,
             "abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+        ),
+        (
+            "crc_checksums",
+            SkippableCrc32CksumChecksum,
+            "4294967295",
         ),
     ],
 )

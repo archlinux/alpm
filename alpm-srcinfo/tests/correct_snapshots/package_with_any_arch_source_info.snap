@@ -42,7 +42,8 @@ expression: source_info_json
     "sha224_checksums": [],
     "sha256_checksums": [],
     "sha384_checksums": [],
-    "sha512_checksums": []
+    "sha512_checksums": [],
+    "crc_checksums": []
   },
   "packages": [
     {

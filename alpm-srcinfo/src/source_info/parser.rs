@@ -26,7 +26,7 @@ use alpm_types::{
     SkippableChecksum,
     Source,
     Url,
-    digests::{Blake2b512, Md5, Sha1, Sha224, Sha256, Sha384, Sha512},
+    digests::{Blake2b512, Crc32Cksum, Md5, Sha1, Sha224, Sha256, Sha384, Sha512},
 };
 use strum::{EnumString, VariantNames};
 use winnow::{
@@ -979,6 +979,8 @@ pub enum SourceKeyword {
     Sha384sums,
     /// An SHA-512 hash digest.
     Sha512sums,
+    /// An CRC-32/CKSUM hash digest.
+    Cksums,
 }
 
 impl SourceKeyword {
@@ -1022,6 +1024,8 @@ pub enum SourceProperty {
     Sha384Checksum(ArchProperty<SkippableChecksum<Sha384>>),
     /// An [`ArchProperty<SkippableChecksum<Sha512>>`] for a SHA-512 hash digest.
     Sha512Checksum(ArchProperty<SkippableChecksum<Sha512>>),
+    /// An [`ArchProperty<SkippableChecksum<Crc32Cksum>>`] for a CRC-32/CKSUM hash digest.
+    CrcChecksum(ArchProperty<SkippableChecksum<Crc32Cksum>>),
 }
 
 impl SourceProperty {
@@ -1049,7 +1053,8 @@ impl SourceProperty {
             | SourceKeyword::Sha224sums
             | SourceKeyword::Sha256sums
             | SourceKeyword::Sha384sums
-            | SourceKeyword::Sha512sums => {
+            | SourceKeyword::Sha512sums
+            | SourceKeyword::Cksums => {
                 // All other properties may be architecture specific and thereby have an
                 // architecture suffix.
                 let architecture = architecture_suffix.parse_next(input)?;
@@ -1105,6 +1110,12 @@ impl SourceProperty {
                             .parse_next(input)?,
                     }),
                     SourceKeyword::Sha512sums => SourceProperty::Sha512Checksum(ArchProperty {
+                        architecture,
+                        value: till_line_end
+                            .and_then(SkippableChecksum::parser)
+                            .parse_next(input)?,
+                    }),
+                    SourceKeyword::Cksums => SourceProperty::CrcChecksum(ArchProperty {
                         architecture,
                         value: till_line_end
                             .and_then(SkippableChecksum::parser)

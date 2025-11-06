@@ -101,6 +101,7 @@ pub(crate) fn pkgbase_section(base: &PackageBase, output: &mut String) {
     push_value_list("sha384sums", &base.sha384_checksums, output);
     push_value_list("sha512sums", &base.sha512_checksums, output);
     push_value_list("b2sums", &base.b2_checksums, output);
+    push_value_list("cksums", &base.crc_checksums, output);
 
     // Go through architecture specific values **in the same order** as in `pkgbase.arch`.
     // That's how `makepkg` does it.
@@ -201,6 +202,11 @@ fn pkgbase_architecture_properties(
         &properties.b2_checksums,
         output,
     );
+    push_value_list(
+        &format!("cksums_{architecture}"),
+        &properties.crc_checksums,
+        output,
+    )
 }
 
 /// Pushes an override key-value pair in [SRCINFO] format to a [`String`].

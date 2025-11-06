@@ -19,6 +19,7 @@ from alpm.alpm_types import (
     SkippableSha256Checksum,
     SkippableSha384Checksum,
     SkippableSha512Checksum,
+    SkippableCrc32CksumChecksum,
 )
 from alpm.type_aliases import (
     MakepkgOption,
@@ -152,6 +153,14 @@ class PackageBaseArchitecture:
     @sha512_checksums.setter
     def sha512_checksums(
         self, sha512_checksums: list["SkippableSha512Checksum"]
+    ) -> None: ...
+    @property
+    def crc_checksums(self) -> list["SkippableCrc32CksumChecksum"]:
+        """The list of CRC-32/CKSUM hash digests for sources of the package base."""
+
+    @crc_checksums.setter
+    def crc_checksums(
+        self, crc_checksums: list["SkippableCrc32CksumChecksum"]
     ) -> None: ...
     def __eq__(self, other: object) -> bool: ...
 
@@ -375,6 +384,14 @@ class PackageBase:
     @sha512_checksums.setter
     def sha512_checksums(
         self, sha512_checksums: list["SkippableSha512Checksum"]
+    ) -> None: ...
+    @property
+    def crc_checksums(self) -> list["SkippableCrc32CksumChecksum"]:
+        """The list of CRC-32/CKSUM hash digests for sources of the package base."""
+
+    @crc_checksums.setter
+    def crc_checksums(
+        self, crc_checksums: list["SkippableCrc32CksumChecksum"]
     ) -> None: ...
     def __eq__(self, other: object) -> bool: ...
     def __str__(self) -> str: ...

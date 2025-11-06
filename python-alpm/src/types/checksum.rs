@@ -94,3 +94,8 @@ define_checksum!(
     SkippableSha512Checksum,
     alpm_types::digests::Sha512
 );
+define_checksum!(
+    Crc32CksumChecksum,
+    SkippableCrc32CksumChecksum,
+    alpm_types::digests::Crc32Cksum
+);

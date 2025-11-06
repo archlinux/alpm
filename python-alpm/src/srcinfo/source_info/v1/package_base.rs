@@ -9,6 +9,7 @@ use crate::{
     types::{
         checksum::{
             SkippableBlake2b512Checksum,
+            SkippableCrc32CksumChecksum,
             SkippableMd5Checksum,
             SkippableSha1Checksum,
             SkippableSha224Checksum,
@@ -337,6 +338,16 @@ impl PackageBase {
         self.0.sha512_checksums = vec_convert!(sha512_checksums);
     }
 
+    #[getter]
+    fn get_crc_checksums(&self) -> Vec<SkippableCrc32CksumChecksum> {
+        vec_convert!(self.0.crc_checksums.clone())
+    }
+
+    #[setter]
+    fn set_crc_checksums(&mut self, crc_checksums: Vec<SkippableCrc32CksumChecksum>) {
+        self.0.crc_checksums = vec_convert!(crc_checksums);
+    }
+
     fn __str__(&self) -> String {
         self.0.name.to_string()
     }
@@ -520,6 +531,16 @@ impl PackageBaseArchitecture {
     #[setter]
     fn set_sha512_checksums(&mut self, sha512_checksums: Vec<SkippableSha512Checksum>) {
         self.0.sha512_checksums = vec_convert!(sha512_checksums);
+    }
+
+    #[getter]
+    fn get_crc_checksums(&self) -> Vec<SkippableCrc32CksumChecksum> {
+        vec_convert!(self.0.crc_checksums.clone())
+    }
+
+    #[setter]
+    fn set_crc_checksums(&mut self, crc_checksums: Vec<SkippableCrc32CksumChecksum>) {
+        self.0.crc_checksums = vec_convert!(crc_checksums);
     }
 }
 

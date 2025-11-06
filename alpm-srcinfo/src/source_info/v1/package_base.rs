@@ -21,7 +21,7 @@ use alpm_types::{
     Source,
     SystemArchitecture,
     Url,
-    digests::{Blake2b512, Md5, Sha1, Sha224, Sha256, Sha384, Sha512},
+    digests::{Blake2b512, Crc32Cksum, Md5, Sha1, Sha224, Sha256, Sha384, Sha512},
 };
 use serde::{Deserialize, Serialize};
 
@@ -111,6 +111,8 @@ pub struct PackageBase {
     pub sha384_checksums: Vec<SkippableChecksum<Sha384>>,
     /// The list of SHA-512 hash digests for `sources` of the package base.
     pub sha512_checksums: Vec<SkippableChecksum<Sha512>>,
+    /// The list of CRC-32/CKSUM hash digests for `sources` of the package base.
+    pub crc_checksums: Vec<SkippableChecksum<Crc32Cksum>>,
 }
 
 /// Architecture specific package base properties for use in [`PackageBase`].
@@ -153,6 +155,8 @@ pub struct PackageBaseArchitecture {
     pub sha384_checksums: Vec<SkippableChecksum<Sha384>>,
     /// The list of SHA-512 hash digests for `sources` of the package base.
     pub sha512_checksums: Vec<SkippableChecksum<Sha512>>,
+    /// The list of CRC-32/CKSUM hash digests for `sources` of the package base.
+    pub crc_checksums: Vec<SkippableChecksum<Crc32Cksum>>,
 }
 
 impl PackageBaseArchitecture {
@@ -254,6 +258,7 @@ impl PackageBase {
             sha384_checksums: Vec::new(),
             sha512_checksums: Vec::new(),
             b2_checksums: Vec::new(),
+            crc_checksums: Vec::new(),
             pgp_fingerprints: Vec::new(),
             architecture_properties: BTreeMap::new(),
         }
@@ -306,6 +311,7 @@ impl PackageBase {
         let mut sha256_checksums = Vec::new();
         let mut sha384_checksums = Vec::new();
         let mut sha512_checksums = Vec::new();
+        let mut crc_checksums = Vec::new();
 
         // First up check all input for potential architecture declarations.
         for prop in parsed.properties.iter() {
@@ -442,6 +448,13 @@ impl PackageBase {
                             sha512_checksums,
                         )
                     }
+                    parser::SourceProperty::CrcChecksum(arch_property) => {
+                        package_base_arch_prop!(
+                            architecture_properties,
+                            arch_property,
+                            crc_checksums,
+                        )
+                    }
                 },
             }
         }
@@ -493,6 +506,7 @@ impl PackageBase {
             sha256_checksums,
             sha384_checksums,
             sha512_checksums,
+            crc_checksums,
         })
     }
 }

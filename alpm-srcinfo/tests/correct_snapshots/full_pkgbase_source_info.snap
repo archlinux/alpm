@@ -136,7 +136,8 @@ expression: source_info_json
             "type": "Checksum",
             "digest": "beefc0ffeebf31eb7c57a66bfb0f0ee5cef9398b5e4cc303468e08dae2702da55978402da94673e444f8c02754e94dedef4d12450319383c3a481d1c5cd90c82"
           }
-        ]
+        ],
+        "crc_checksums": []
       },
       "x86_64": {
         "dependencies": [
@@ -322,7 +323,8 @@ expression: source_info_json
           {
             "type": "Skip"
           }
-        ]
+        ],
+        "crc_checksums": []
       }
     },
     "dependencies": [
@@ -561,7 +563,8 @@ expression: source_info_json
       {
         "type": "Skip"
       }
-    ]
+    ],
+    "crc_checksums": []
   },
   "packages": [
     {

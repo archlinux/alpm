@@ -22,6 +22,8 @@ pub mod py_types {
     #[pymodule_export]
     use checksum::Blake2b512Checksum;
     #[pymodule_export]
+    use checksum::Crc32CksumChecksum;
+    #[pymodule_export]
     use checksum::Md5Checksum;
     #[pymodule_export]
     use checksum::Sha1Checksum;
@@ -35,6 +37,8 @@ pub mod py_types {
     use checksum::Sha512Checksum;
     #[pymodule_export]
     use checksum::SkippableBlake2b512Checksum;
+    #[pymodule_export]
+    use checksum::SkippableCrc32CksumChecksum;
     #[pymodule_export]
     use checksum::SkippableMd5Checksum;
     #[pymodule_export]
