@@ -237,7 +237,7 @@ It must be used at least once if
 - or if there is one **alpm-package-source** ending with `.sig`, that equals another without that file ending
 - or if there is one **alpm-package-source** ending with `.sign`, that matches another without that file ending and all compression algorithm specific file endings (e.g. `.xz` or `.zst`) removed
 
-The value is a 40 char long hexadecimal string (e.g `0123456789abcdef0123456789abcdef01234567`).
+The value is a 40 char long hexadecimal string (e.g `0123456789abcdef0123456789abcdef01234567`) optionally separated by whitespaces (e.g. `0123 4567 89ab cdef 0123 4567 89ab cdef 0123 4567`).
 Although possible, it is strongly discouraged to use the non-unique, legacy **OpenPGP Key ID**[4] representation, a 16 char long hexadecimal string (e.g. `89abcdef01234567`)
 
 ### md5sums
