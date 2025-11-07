@@ -57,7 +57,7 @@ Further rules may apply depending on keyword.
 All keyword assignments are defined as a key from the following list immediately followed by a whitespace, an '=' sign, another whitespace and a value.
 
 By default, exactly one keyword assignment may be present per keyword in a **SRCINFO**.
-As exception to this rule, the keywords **arch**, **backup**, **checkdepends**, **conflicts**, **depends**, **groups**, **license**, **makedepends**, **optdepends**, **options**, **provides**, **replaces**, as well as the source related keywords **noextract**, **source**, **validpgpkeys**, **b2sums**, **md5sums**, **sha1sums**, **sha224sums**, **sha256sums**, **sha384sums** and **sha512sums** may be provided zero or more times.
+As exception to this rule, the keywords **arch**, **backup**, **checkdepends**, **conflicts**, **depends**, **groups**, **license**, **makedepends**, **optdepends**, **options**, **provides**, **replaces**, as well as the source related keywords **noextract**, **source**, **validpgpkeys**, **b2sums**, **md5sums**, **sha1sums**, **sha224sums**, **sha256sums**, **sha384sums**, **sha512sums** and **cksums** may be provided zero or more times.
 
 By default keyword assignments apply to all targeted **alpm-architectures**.
 Some keywords may also be provided in architecture-specific ways by appending an '_' sign, directly followed by an **alpm-architecture** (all except `any`) - see each keyword section for details.

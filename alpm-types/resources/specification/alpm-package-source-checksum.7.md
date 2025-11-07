@@ -19,6 +19,7 @@ The following **hash functions**[1] are supported:
 - **SHA-384** (part of the **SHA-2** [4] family)
 - **SHA-512** (part of the **SHA-2** [4] family)
 - **BLAKE2**[5]
+- **CRC-32/CKSUM** (**cksum**[6] variant of the 32-bit **cyclic redundancy check (CRC)** [7])
 
 If several **package source checksums** exist for a **package source**, they must use distinct **hash functions** (e.g. **SHA-512** and **BLAKE2**).
 The number of **package source checksums** in each **hash function** category must always match the number of available **package sources**.
@@ -32,6 +33,7 @@ In **PKGBUILD** files a **package source checksum** is defined by adding a value
 - sha384sums (**hash function**: **SHA-384**)
 - sha512sums (**hash function**: **SHA-512**)
 - b2sums (**hash function**: **BLAKE2**)
+- cksums (**hash function**: **CRC-32/CKSUM**)
 
 Each array exclusively accepts output of the respective **hash function** or the special string 'SKIP' as value.
 
@@ -46,6 +48,7 @@ In **SRCINFO** files a package source checksum is defined by assigning one of th
 - sha384sums (**hash function**: **SHA-384**)
 - sha512sums (**hash function**: **SHA-512**)
 - b2sums (**hash function**: **BLAKE2**)
+- cksums (**hash function**: **CRC-32/CKSUM**)
 
 Each keyword assignment exclusively accepts output of the respective **hash function** or the special string 'SKIP' as value.
 
@@ -209,3 +212,9 @@ pkgname = example
 1. **BLAKE2**
    
    <https://en.wikipedia.org/wiki/BLAKE_(hash_function)#BLAKE2>
+1. **cksum**
+   
+   <https://en.wikipedia.org/wiki/Cksum>
+1. **CRC**
+   
+   <https://en.wikipedia.org/wiki/Cyclic_redundancy_check>
