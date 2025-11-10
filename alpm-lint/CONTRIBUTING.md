@@ -160,7 +160,7 @@ Also, check out the `tests/fixtures.rs` module in case you need stub data for te
 [`LintIssueType`]: https://alpm.archlinux.page/rustdoc/alpm_lint/issue/enum.LintIssueType.html
 [`SourceInfoIssue`]: https://alpm.archlinux.page/rustdoc/alpm_lint/issue/enum.SourceInfoIssue.html
 [`LintIssueDisplay`]: https://alpm.archlinux.page/rustdoc/alpm_lint/issue/display/struct.LintIssueDisplay.html
-[`LintRule`]: https://alpm.archlinux.page/rustdoc/alpm_lint/lint_rules/trait.LintRule.html
+[`LintRule`]: https://alpm.archlinux.page/rustdoc/alpm_lint/trait.LintRule.html
 [`LintRule implementations`]: https://alpm.archlinux.page/rustdoc/alpm_lint/lint_rules/index.html
 [`LintScope`]: https://alpm.archlinux.page/rustdoc/alpm_lint/scope/enum.LintScope.html
 [`LintStore`]: https://alpm.archlinux.page/rustdoc/alpm_lint/lint_rules/store/struct.LintStore.html
