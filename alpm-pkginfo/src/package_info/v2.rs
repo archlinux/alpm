@@ -26,121 +26,154 @@ use alpm_types::{
 };
 use serde_with::{DisplayFromStr, TryFromInto, serde_as};
 
-use crate::{Error, RelationOrSoname, package_info::v1::generate_pkginfo};
+use crate::{Error, RelationOrSoname};
 
-generate_pkginfo! {
-    /// PKGINFO version 2
-    ///
-    /// `PackageInfoV2` is (exclusively) compatible with data following the v2 specification of the
-    /// PKGINFO file.
-    ///
-    /// ## Examples
-    ///
-    /// ```
-    /// use std::str::FromStr;
-    ///
-    /// use alpm_pkginfo::PackageInfoV2;
-    ///
-    /// # fn main() -> Result<(), alpm_pkginfo::Error> {
-    /// let pkginfo_data = r#"pkgname = example
-    /// pkgbase = example
-    /// xdata = pkgtype=pkg
-    /// pkgver = 1:1.0.0-1
-    /// pkgdesc = A project that does something
-    /// url = https://example.org/
-    /// builddate = 1729181726
-    /// packager = John Doe <john@example.org>
-    /// size = 181849963
-    /// arch = any
-    /// license = GPL-3.0-or-later
-    /// license = LGPL-3.0-or-later
-    /// replaces = other-package>0.9.0-3
-    /// group = package-group
-    /// group = other-package-group
-    /// conflict = conflicting-package<1.0.0
-    /// conflict = other-conflicting-package<1.0.0
-    /// provides = some-component
-    /// provides = some-other-component=1:1.0.0-1
-    /// provides = libexample.so=1-64
-    /// provides = libunversionedexample.so=libunversionedexample.so-64
-    /// provides = lib:libexample.so.1
-    /// backup = etc/example/config.toml
-    /// backup = etc/example/other-config.txt
-    /// depend = glibc
-    /// depend = gcc-libs
-    /// depend = libother.so=0-64
-    /// depend = libunversioned.so=libunversioned.so-64
-    /// depend = lib:libother.so.0
-    /// optdepend = python: for special-python-script.py
-    /// optdepend = ruby: for special-ruby-script.rb
-    /// makedepend = cmake
-    /// makedepend = python-sphinx
-    /// checkdepend = extra-test-tool
-    /// checkdepend = other-extra-test-tool"#;
-    /// let pkginfo = PackageInfoV2::from_str(pkginfo_data)?;
-    /// assert_eq!(pkginfo.to_string(), pkginfo_data);
-    /// # Ok(())
-    /// # }
-    /// ```
-    PackageInfoV2 {
-        #[serde_as(as = "TryFromInto<Vec<ExtraDataEntry>>")]
-        xdata: ExtraData,
-    }
-}
+/// PKGINFO version 2
+///
+/// `PackageInfoV2` is (exclusively) compatible with data following the v2 specification of the
+/// PKGINFO file.
+///
+/// ## Examples
+///
+/// ```
+/// use std::str::FromStr;
+///
+/// use alpm_pkginfo::PackageInfoV2;
+///
+/// # fn main() -> Result<(), alpm_pkginfo::Error> {
+/// let pkginfo_data = r#"pkgname = example
+/// pkgbase = example
+/// xdata = pkgtype=pkg
+/// pkgver = 1:1.0.0-1
+/// pkgdesc = A project that does something
+/// url = https://example.org/
+/// builddate = 1729181726
+/// packager = John Doe <john@example.org>
+/// size = 181849963
+/// arch = any
+/// license = GPL-3.0-or-later
+/// license = LGPL-3.0-or-later
+/// replaces = other-package>0.9.0-3
+/// group = package-group
+/// group = other-package-group
+/// conflict = conflicting-package<1.0.0
+/// conflict = other-conflicting-package<1.0.0
+/// provides = some-component
+/// provides = some-other-component=1:1.0.0-1
+/// provides = libexample.so=1-64
+/// provides = libunversionedexample.so=libunversionedexample.so-64
+/// provides = lib:libexample.so.1
+/// backup = etc/example/config.toml
+/// backup = etc/example/other-config.txt
+/// depend = glibc
+/// depend = gcc-libs
+/// depend = libother.so=0-64
+/// depend = libunversioned.so=libunversioned.so-64
+/// depend = lib:libother.so.0
+/// optdepend = python: for special-python-script.py
+/// optdepend = ruby: for special-ruby-script.rb
+/// makedepend = cmake
+/// makedepend = python-sphinx
+/// checkdepend = extra-test-tool
+/// checkdepend = other-extra-test-tool"#;
+/// let pkginfo = PackageInfoV2::from_str(pkginfo_data)?;
+/// assert_eq!(pkginfo.to_string(), pkginfo_data);
+/// # Ok(())
+/// # }
+/// ```
+#[serde_as]
+#[derive(Clone, Debug, serde::Deserialize, PartialEq, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct PackageInfoV2 {
+    /// The name of the package.
+    #[serde_as(as = "DisplayFromStr")]
+    pub pkgname: Name,
 
-impl PackageInfoV2 {
-    /// Create a new PackageInfoV2 from all required components
-    #[allow(clippy::too_many_arguments)]
-    pub fn new(
-        pkgname: Name,
-        pkgbase: Name,
-        pkgver: FullVersion,
-        pkgdesc: PackageDescription,
-        url: Url,
-        builddate: BuildDate,
-        packager: Packager,
-        size: InstalledSize,
-        arch: Architecture,
-        license: Vec<License>,
-        replaces: Vec<PackageRelation>,
-        group: Vec<Group>,
-        conflict: Vec<PackageRelation>,
-        provides: Vec<RelationOrSoname>,
-        backup: Vec<Backup>,
-        depend: Vec<RelationOrSoname>,
-        optdepend: Vec<OptionalDependency>,
-        makedepend: Vec<PackageRelation>,
-        checkdepend: Vec<PackageRelation>,
-        xdata: ExtraData,
-    ) -> Self {
-        Self {
-            pkgname,
-            pkgbase,
-            pkgver,
-            pkgdesc,
-            url,
-            builddate,
-            packager,
-            size,
-            arch,
-            license,
-            replaces,
-            group,
-            conflict,
-            provides,
-            backup,
-            depend,
-            optdepend,
-            makedepend,
-            checkdepend,
-            xdata,
-        }
-    }
+    /// The base name of the package.
+    #[serde_as(as = "DisplayFromStr")]
+    pub pkgbase: Name,
 
-    /// Get the extra data
-    pub fn xdata(&self) -> &ExtraData {
-        &self.xdata
-    }
+    /// The version of the package.
+    #[serde_as(as = "DisplayFromStr")]
+    pub pkgver: FullVersion,
+
+    /// The description of the package.
+    #[serde_as(as = "DisplayFromStr")]
+    pub pkgdesc: PackageDescription,
+
+    /// The URL of the package.
+    #[serde_as(as = "DisplayFromStr")]
+    pub url: Url,
+
+    /// The build date of the package.
+    #[serde_as(as = "DisplayFromStr")]
+    pub builddate: BuildDate,
+
+    /// The packager of the package.
+    #[serde_as(as = "DisplayFromStr")]
+    pub packager: Packager,
+
+    /// The size of the package.
+    #[serde_as(as = "DisplayFromStr")]
+    pub size: InstalledSize,
+
+    /// The architecture of the package.
+    #[serde_as(as = "DisplayFromStr")]
+    pub arch: Architecture,
+
+    /// The licenses of the package.
+    #[serde_as(as = "Vec<DisplayFromStr>")]
+    #[serde(default)]
+    pub license: Vec<License>,
+
+    /// The packages this package replaces.
+    #[serde_as(as = "Vec<DisplayFromStr>")]
+    #[serde(default)]
+    pub replaces: Vec<PackageRelation>,
+
+    /// The groups this package belongs to.
+    #[serde_as(as = "Vec<DisplayFromStr>")]
+    #[serde(default)]
+    pub group: Vec<Group>,
+
+    /// The packages this package conflicts with.
+    #[serde_as(as = "Vec<DisplayFromStr>")]
+    #[serde(default)]
+    pub conflict: Vec<PackageRelation>,
+
+    /// The packages this package provides.
+    #[serde_as(as = "Vec<DisplayFromStr>")]
+    #[serde(default)]
+    pub provides: Vec<RelationOrSoname>,
+
+    /// The backup files of the package.
+    #[serde_as(as = "Vec<DisplayFromStr>")]
+    #[serde(default)]
+    pub backup: Vec<Backup>,
+
+    /// The dependencies of the package.
+    #[serde_as(as = "Vec<DisplayFromStr>")]
+    #[serde(default)]
+    pub depend: Vec<RelationOrSoname>,
+
+    /// The optional dependencies of the package.
+    #[serde_as(as = "Vec<DisplayFromStr>")]
+    #[serde(default)]
+    pub optdepend: Vec<OptionalDependency>,
+
+    /// The packages required to build this package.
+    #[serde_as(as = "Vec<DisplayFromStr>")]
+    #[serde(default)]
+    pub makedepend: Vec<PackageRelation>,
+
+    /// The packages this package is checked with.
+    #[serde_as(as = "Vec<DisplayFromStr>")]
+    #[serde(default)]
+    pub checkdepend: Vec<PackageRelation>,
+
+    /// Extra data of the package.
+    #[serde_as(as = "TryFromInto<Vec<ExtraDataEntry>>")]
+    pub xdata: ExtraData,
 }
 
 impl FromStr for PackageInfoV2 {
@@ -200,25 +233,25 @@ impl Display for PackageInfoV2 {
             {}\
             {}\
             {}{}",
-            self.pkgname(),
-            self.pkgbase(),
-            self.pkgver(),
-            self.pkgdesc(),
-            self.url(),
-            self.builddate(),
-            self.packager(),
-            self.size(),
-            self.arch(),
-            format_list("license", self.license()),
-            format_list("replaces", self.replaces()),
-            format_list("group", self.group()),
-            format_list("conflict", self.conflict()),
-            format_list("provides", self.provides()),
-            format_list("backup", self.backup()),
-            format_list("depend", self.depend()),
-            format_list("optdepend", self.optdepend()),
-            format_list("makedepend", self.makedepend()),
-            format_list("checkdepend", self.checkdepend()).trim_end_matches('\n'),
+            self.pkgname,
+            self.pkgbase,
+            self.pkgver,
+            self.pkgdesc,
+            self.url,
+            self.builddate,
+            self.packager,
+            self.size,
+            self.arch,
+            format_list("license", &self.license),
+            format_list("replaces", &self.replaces),
+            format_list("group", &self.group),
+            format_list("conflict", &self.conflict),
+            format_list("provides", &self.provides),
+            format_list("backup", &self.backup),
+            format_list("depend", &self.depend),
+            format_list("optdepend", &self.optdepend),
+            format_list("makedepend", &self.makedepend),
+            format_list("checkdepend", &self.checkdepend).trim_end_matches('\n'),
             if other_xdata.is_empty() {
                 String::new()
             } else {
@@ -314,61 +347,61 @@ checkdepend = extra-test-tool
     }
 
     fn pkg_info() -> TestResult<PackageInfoV2> {
-        let pkg_info = PackageInfoV2::new(
-            Name::new("example")?,
-            Name::new("example")?,
-            FullVersion::from_str("1:1.0.0-1")?,
-            PackageDescription::from("A project that does something"),
-            Url::from_str("https://example.org")?,
-            BuildDate::from_str("1729181726")?,
-            Packager::from_str("John Doe <john@example.org>")?,
-            InstalledSize::from_str("181849963")?,
-            Architecture::Any,
-            vec![
+        let pkg_info = PackageInfoV2 {
+            pkgname: Name::new("example")?,
+            pkgbase: Name::new("example")?,
+            pkgver: FullVersion::from_str("1:1.0.0-1")?,
+            pkgdesc: PackageDescription::from("A project that does something"),
+            url: Url::from_str("https://example.org")?,
+            builddate: BuildDate::from_str("1729181726")?,
+            packager: Packager::from_str("John Doe <john@example.org>")?,
+            size: InstalledSize::from_str("181849963")?,
+            arch: Architecture::Any,
+            license: vec![
                 License::from_str("GPL-3.0-or-later")?,
                 License::from_str("LGPL-3.0-or-later")?,
             ],
-            vec![PackageRelation::from_str("other-package>0.9.0-3")?],
-            vec![
+            replaces: vec![PackageRelation::from_str("other-package>0.9.0-3")?],
+            group: vec![
                 Group::from_str("package-group")?,
                 Group::from_str("other-package-group")?,
             ],
-            vec![
+            conflict: vec![
                 PackageRelation::from_str("conflicting-package<1.0.0")?,
                 PackageRelation::from_str("other-conflicting-package<1.0.0")?,
             ],
-            vec![
+            provides: vec![
                 RelationOrSoname::from_str("some-component")?,
                 RelationOrSoname::from_str("some-other-component=1:1.0.0-1")?,
                 RelationOrSoname::from_str("libexample.so=1-64")?,
                 RelationOrSoname::from_str("libunversionedexample.so=libunversionedexample.so-64")?,
                 RelationOrSoname::from_str("lib:libexample.so.1")?,
             ],
-            vec![
+            backup: vec![
                 Backup::from_str("etc/example/config.toml")?,
                 Backup::from_str("etc/example/other-config.txt")?,
             ],
-            vec![
+            depend: vec![
                 RelationOrSoname::from_str("glibc")?,
                 RelationOrSoname::from_str("gcc-libs")?,
                 RelationOrSoname::from_str("libother.so=0-64")?,
                 RelationOrSoname::from_str("libunversioned.so=libunversioned.so-64")?,
                 RelationOrSoname::from_str("lib:libother.so.0")?,
             ],
-            vec![
+            optdepend: vec![
                 OptionalDependency::from_str("python: for special-python-script.py")?,
                 OptionalDependency::from_str("ruby: for special-ruby-script.rb")?,
             ],
-            vec![
+            makedepend: vec![
                 PackageRelation::from_str("cmake")?,
                 PackageRelation::from_str("python-sphinx")?,
             ],
-            vec![
+            checkdepend: vec![
                 PackageRelation::from_str("extra-test-tool")?,
                 PackageRelation::from_str("other-extra-test-tool")?,
             ],
-            ExtraDataEntry::from_str("pkgtype=pkg")?.try_into()?,
-        );
+            xdata: ExtraDataEntry::from_str("pkgtype=pkg")?.try_into()?,
+        };
         assert_eq!(PackageType::Package, pkg_info.xdata.pkg_type());
         Ok(pkg_info)
     }

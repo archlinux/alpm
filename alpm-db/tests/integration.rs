@@ -557,7 +557,6 @@ mod format {
             DbDescSchema::V2(_) => {
                 let parsed: DbDescFileV2 = serde_json::from_slice(&output.stdout)?;
                 assert_eq!(parsed.name.to_string(), "foo");
-                assert!(!parsed.xdata.is_empty());
             }
         }
         Ok(())

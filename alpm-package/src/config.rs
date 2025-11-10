@@ -163,16 +163,16 @@ impl From<&PackageCreationConfig> for PackageFileName {
     fn from(value: &PackageCreationConfig) -> Self {
         Self::new(
             match value.package_input.package_info() {
-                alpm_pkginfo::PackageInfo::V1(package_info) => package_info.pkgname().clone(),
-                alpm_pkginfo::PackageInfo::V2(package_info) => package_info.pkgname().clone(),
+                alpm_pkginfo::PackageInfo::V1(package_info) => package_info.pkgname.clone(),
+                alpm_pkginfo::PackageInfo::V2(package_info) => package_info.pkgname.clone(),
             },
             match value.package_input.package_info() {
-                alpm_pkginfo::PackageInfo::V1(package_info) => package_info.pkgver().clone(),
-                alpm_pkginfo::PackageInfo::V2(package_info) => package_info.pkgver().clone(),
+                alpm_pkginfo::PackageInfo::V1(package_info) => package_info.pkgver.clone(),
+                alpm_pkginfo::PackageInfo::V2(package_info) => package_info.pkgver.clone(),
             },
             match value.package_input.package_info() {
-                alpm_pkginfo::PackageInfo::V1(package_info) => package_info.arch().clone(),
-                alpm_pkginfo::PackageInfo::V2(package_info) => package_info.arch().clone(),
+                alpm_pkginfo::PackageInfo::V1(package_info) => package_info.arch.clone(),
+                alpm_pkginfo::PackageInfo::V2(package_info) => package_info.arch.clone(),
             },
             (&value.compression).into(),
         )

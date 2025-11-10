@@ -783,8 +783,8 @@ fn read_package_contents(
     // Ensure that individually reading all metadata files works as expected.
     let pkginfo = package.read_pkginfo()?;
     let pkgname = match &pkginfo {
-        alpm_pkginfo::PackageInfo::V1(v) => v.pkgname(),
-        alpm_pkginfo::PackageInfo::V2(v) => v.pkgname(),
+        alpm_pkginfo::PackageInfo::V1(v) => &v.pkgname,
+        alpm_pkginfo::PackageInfo::V2(v) => &v.pkgname,
     };
     assert_eq!(pkgname.to_string(), "example");
 

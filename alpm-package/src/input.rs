@@ -400,20 +400,20 @@ impl<'a> From<&'a PackageInfo> for MetadataComparison<'a> {
     fn from(value: &'a PackageInfo) -> Self {
         match value {
             PackageInfo::V1(inner) => MetadataComparison {
-                package_name: inner.pkgname(),
-                package_base: inner.pkgbase(),
-                version: inner.pkgver(),
-                architecture: inner.arch(),
-                packager: inner.packager(),
-                build_date: inner.builddate(),
+                package_name: &inner.pkgname,
+                package_base: &inner.pkgbase,
+                version: &inner.pkgver,
+                architecture: &inner.arch,
+                packager: &inner.packager,
+                build_date: inner.builddate,
             },
             PackageInfo::V2(inner) => MetadataComparison {
-                package_name: inner.pkgname(),
-                package_base: inner.pkgbase(),
-                version: inner.pkgver(),
-                architecture: inner.arch(),
-                packager: inner.packager(),
-                build_date: inner.builddate(),
+                package_name: &inner.pkgname,
+                package_base: &inner.pkgbase,
+                version: &inner.pkgver,
+                architecture: &inner.arch,
+                packager: &inner.packager,
+                build_date: inner.builddate,
             },
         }
     }

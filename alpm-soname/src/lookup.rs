@@ -114,8 +114,8 @@ pub fn find_provisions(
     let package = Package::try_from(path.as_path())?;
     let package_info = package.read_pkginfo()?;
     let provides = match package_info {
-        PackageInfo::V1(package_info_v1) => package_info_v1.provides().to_vec(),
-        PackageInfo::V2(package_info_v2) => package_info_v2.provides().to_vec(),
+        PackageInfo::V1(package_info_v1) => package_info_v1.provides.to_vec(),
+        PackageInfo::V2(package_info_v2) => package_info_v2.provides.to_vec(),
     };
     debug!("Package provisions: {provides:?}");
 
@@ -171,8 +171,8 @@ pub fn find_dependencies(
     let package = Package::try_from(path.as_path())?;
     let package_info = package.read_pkginfo()?;
     let depends = match package_info {
-        PackageInfo::V1(package_info_v1) => package_info_v1.depend().to_vec(),
-        PackageInfo::V2(package_info_v2) => package_info_v2.depend().to_vec(),
+        PackageInfo::V1(package_info_v1) => package_info_v1.depend.to_vec(),
+        PackageInfo::V2(package_info_v2) => package_info_v2.depend.to_vec(),
     };
     debug!(
         "Package dependencies according to PKGINFO data: {}",

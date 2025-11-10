@@ -78,26 +78,26 @@ pub fn default_build_info_v2() -> TestResult<BuildInfoV2> {
 
 /// Creates a default [`PackageInfoV2`] instance for testing.
 pub fn default_package_info_v2() -> TestResult<PackageInfoV2> {
-    Ok(PackageInfoV2::new(
-        Name::new("test-package")?,
-        Name::new("test-package")?,
-        FullVersion::from_str("1:1.0.0-1")?,
-        PackageDescription::from("A test package for lint rule testing"),
-        Url::from_str("https://example.com")?,
-        BuildDate::from_str("1729181726")?,
-        Packager::from_str("Test User <test@example.org>")?,
-        InstalledSize::from_str("1000000")?,
-        Architecture::Any,
-        vec![License::from_str("GPL-3.0-or-later")?],
-        vec![],
-        vec![],
-        vec![],
-        vec![],
-        vec![],
-        vec![RelationOrSoname::from_str("glibc")?],
-        vec![],
-        vec![],
-        vec![],
-        ExtraDataEntry::from_str("pkgtype=pkg")?.try_into()?,
-    ))
+    Ok(PackageInfoV2 {
+        pkgname: Name::new("test-package")?,
+        pkgbase: Name::new("test-package")?,
+        pkgver: FullVersion::from_str("1:1.0.0-1")?,
+        pkgdesc: PackageDescription::from("A test package for lint rule testing"),
+        url: Url::from_str("https://example.com")?,
+        builddate: BuildDate::from_str("1729181726")?,
+        packager: Packager::from_str("Test User <test@example.org>")?,
+        size: InstalledSize::from_str("1000000")?,
+        arch: Architecture::Any,
+        license: vec![License::from_str("GPL-3.0-or-later")?],
+        replaces: vec![],
+        group: vec![],
+        conflict: vec![],
+        provides: vec![],
+        backup: vec![],
+        depend: vec![RelationOrSoname::from_str("glibc")?],
+        optdepend: vec![],
+        makedepend: vec![],
+        checkdepend: vec![],
+        xdata: ExtraDataEntry::from_str("pkgtype=pkg")?.try_into()?,
+    })
 }
