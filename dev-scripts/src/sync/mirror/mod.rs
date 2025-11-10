@@ -187,6 +187,10 @@ impl MirrorDownloader {
             let progress_bar = get_progress_bar(packages.len() as u64);
             packages
                 .into_par_iter()
+                .filter(|file| {
+                    file.extension()
+                        .is_none_or(|ext| ext.to_str().is_none_or(|ext| ext != "sig"))
+                })
                 .map(|pkg| {
                     // Extract all files that we're interested in.
                     let result = extract_pkg_files(&pkg, &target_dir, &repo_name);
@@ -202,6 +206,7 @@ impl MirrorDownloader {
         for repo in self.repositories.iter() {
             let mirror_packages = filenames_in_dir(&download_dir.join(repo.to_string()))?
                 .into_iter()
+                .filter(|file| !file.ends_with(".sig"))
                 .map(remove_tarball_suffix)
                 .collect::<Result<HashSet<String>>>()?;
 
@@ -228,7 +233,7 @@ impl MirrorDownloader {
         Ok(())
     }
 
-    /// Download all packages of a given arch package repository into the download directory.
+    /// Downloads all packages and signatures of a package repository to a local directory.
     fn download_packages(
         &self,
         repo_name: &str,
@@ -253,20 +258,24 @@ impl MirrorDownloader {
             "--delay-updates",
             // Print structured change information to be parsed
             "--itemize-changes",
-            // Exclude package signatures
-            "--exclude=*.sig",
         ]);
 
-        // Don't download any files related to repository sync databases (signatures are generally
-        // excluded by the rsync call).
+        // Don't download any files related to repository sync databases.
         for variation in [
             ".db",
-            ".db.tar.gz",
-            ".db.tar.gz.old",
-            ".links.tar.gz",
+            ".db.sig",
+            ".db.tar.*",
+            ".db.tar.*.sig",
+            ".db.tar.*.old",
+            ".db.tar.*.old.sig",
+            ".links.tar.*",
+            ".links.tar.*.sig",
             ".files",
-            ".files.tar.gz",
-            ".files.tar.gz.old",
+            ".files.sig",
+            ".files.tar.*",
+            ".files.tar.*.sig",
+            ".files.tar.*.old",
+            ".files.tar.*.old.sig",
         ] {
             cmd.arg(format!("--exclude={repo_name}{variation}"));
         }
@@ -277,11 +286,11 @@ impl MirrorDownloader {
             .arg(download_dest)
             .output()
             .context(format!(
-                "Failed to start package rsync for pacman db {repo_name}"
+                "Failed to start package rsync for repository {repo_name}"
             ))?;
 
         if !output.status.success() {
-            bail!("Package rsync failed for pacman db {repo_name}");
+            bail!("Package rsync failed for repository {repo_name}");
         }
 
         let mut changed_files = Vec::new();
