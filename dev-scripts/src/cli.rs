@@ -69,9 +69,9 @@ pub enum TestFileType {
 
 #[derive(Debug, Parser)]
 pub enum TestFilesCmd {
-    /// Download/synchronize files for testing to this machine.
+    /// Run tests against a specific file type.
     ///
-    /// Each type of file can be downloaded individually.
+    /// The required data needs to be downloaded up front using "dev-scripts test-files download".
     Test {
         // Where the local testing data is located.
         // Defaults to `~/.cache/alpm/testing`
