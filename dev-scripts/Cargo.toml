@@ -30,6 +30,7 @@ alpm-srcinfo.workspace = true
 alpm-types.workspace = true
 anyhow = "1"
 clap.workspace = true
+clap-verbosity-flag.workspace = true
 colored.workspace = true
 dirs = "6"
 flate2.workspace = true

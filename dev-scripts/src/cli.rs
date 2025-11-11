@@ -1,16 +1,16 @@
 use std::{fmt::Display, path::PathBuf};
 
 use alpm_types::{MetadataFileName, PKGBUILD_FILE_NAME, SRCINFO_FILE_NAME};
-use clap::{ArgAction, Parser, ValueEnum};
+use clap::{Parser, ValueEnum};
 
 use crate::sync::PackageRepositories;
 
 #[derive(Debug, Parser)]
 #[clap(name = "ALPM Dev Scripts", about = "Dev scripts for the ALPM project")]
 pub struct Cli {
-    /// Verbose mode (-v, -vv)
-    #[clap(short, long, action = ArgAction::Count)]
-    pub verbose: u8,
+    /// Log verbosity level
+    #[command(flatten)]
+    pub verbose: clap_verbosity_flag::Verbosity,
 
     #[clap(subcommand)]
     pub cmd: Command,

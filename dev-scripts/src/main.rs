@@ -3,7 +3,6 @@
 use anyhow::{Context, Result};
 use clap::Parser;
 use cli::Cli;
-use log::LevelFilter;
 use simplelog::{Config, SimpleLogger};
 
 use crate::commands::{compare_source_info, test_files};
@@ -20,13 +19,8 @@ fn main() -> Result<()> {
     // Parse commandline options.
     let args = Cli::parse();
 
-    // Init and set the verbosity level of the logger.
-    let level = match args.verbose {
-        0 => LevelFilter::Info,
-        1 => LevelFilter::Debug,
-        _ => LevelFilter::Trace,
-    };
-    SimpleLogger::init(level, Config::default()).context("Failed to initialize simple logger")?;
+    SimpleLogger::init(args.verbose.log_level_filter(), Config::default())
+        .context("Failed to initialize simple logger")?;
 
     match args.cmd {
         cli::Command::TestFiles { cmd } => test_files(cmd)?,

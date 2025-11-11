@@ -811,6 +811,7 @@ dependencies = [
  "anyhow",
  "assert_cmd",
  "clap",
+ "clap-verbosity-flag",
  "colored",
  "dirs",
  "flate2",
