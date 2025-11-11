@@ -11,6 +11,7 @@ use crate::commands::{compare_source_info, test_files};
 mod cli;
 mod cmd;
 mod commands;
+mod consts;
 pub mod sync;
 pub mod testing;
 mod ui;

@@ -16,7 +16,11 @@ use rayon::prelude::*;
 use strum::Display;
 
 use super::filenames_in_dir;
-use crate::{cmd::ensure_success, ui::get_progress_bar};
+use crate::{
+    cmd::ensure_success,
+    consts::{DOWNLOAD_DIR, PKGSRC_DIR},
+    ui::get_progress_bar,
+};
 
 const PKGBASE_MAINTAINER_URL: &str = "https://archlinux.org/packages/pkgbase-maintainer";
 const SSH_HOST: &str = "git@gitlab.archlinux.org";
@@ -54,7 +58,7 @@ impl PkgSrcDownloader {
         let all_repo_names: Vec<String> = repos.keys().map(String::from).collect();
         info!("Found {} official packages.", all_repo_names.len());
 
-        let download_dir = self.dest.join("download/pkgsrc");
+        let download_dir = self.dest.join(DOWNLOAD_DIR).join(PKGSRC_DIR);
 
         // Remove all old repos before trying to update them.
         self.remove_old_repos(&all_repo_names, &download_dir)?;
@@ -67,7 +71,7 @@ impl PkgSrcDownloader {
             let download_path = download_dir.join(&repo);
             for file in [".SRCINFO", "PKGBUILD"] {
                 if download_path.join(file).exists() {
-                    let target_dir = self.dest.join("pkgsrc").join(&repo);
+                    let target_dir = self.dest.join(PKGSRC_DIR).join(&repo);
                     std::fs::create_dir_all(&target_dir)?;
                     std::fs::copy(download_path.join(file), target_dir.join(file))?;
                 }

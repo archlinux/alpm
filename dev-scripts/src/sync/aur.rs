@@ -14,7 +14,11 @@ use flate2::read::GzDecoder;
 use log::{error, info};
 use rayon::prelude::*;
 
-use crate::{cmd::ensure_success, ui::get_progress_bar};
+use crate::{
+    cmd::ensure_success,
+    consts::{AUR_DIR, DOWNLOAD_DIR},
+    ui::get_progress_bar,
+};
 
 const AUR_PKGBASE_URL: &str = "https://aur.archlinux.org/pkgbase.gz";
 const AUR_GIT_MIRROR_URL: &str = "https://github.com/archlinux/aur.git";
@@ -115,15 +119,15 @@ impl AurDownloader {
     }
 
     fn download_dir(&self) -> PathBuf {
-        self.dest.join("download")
+        self.dest.join(DOWNLOAD_DIR)
     }
 
     fn repo_dir(&self) -> PathBuf {
-        self.download_dir().join("aur")
+        self.download_dir().join(AUR_DIR)
     }
 
     fn target_dir(&self) -> PathBuf {
-        self.dest.join("aur")
+        self.dest.join(AUR_DIR)
     }
 }
 

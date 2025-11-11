@@ -12,12 +12,12 @@ use colored::Colorize;
 use log::{debug, info};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
-use crate::{cli::TestFileType, sync::PackageRepositories, ui::get_progress_bar};
-
-static PKGSRC_DIR: &str = "pkgsrc";
-static AUR_DIR: &str = "aur";
-static PACKAGES_DIR: &str = "packages";
-static DATABASES_DIR: &str = "databases";
+use crate::{
+    cli::TestFileType,
+    consts::{AUR_DIR, DATABASES_DIR, PACKAGES_DIR, PKGSRC_DIR},
+    sync::PackageRepositories,
+    ui::get_progress_bar,
+};
 
 /// This is the entry point for running validation tests of parsers on ALPM metadata files.
 #[derive(Clone, Debug)]

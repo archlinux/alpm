@@ -9,6 +9,7 @@ use strum::IntoEnumIterator;
 
 use crate::{
     cli::{self, TestFilesCmd},
+    consts::{DATABASES_DIR, DOWNLOAD_DIR, PACKAGES_DIR, PKGSRC_DIR, PROJECT_NAME, TESTING_DIR},
     sync::{
         PackageRepositories,
         aur::AurDownloader,
@@ -37,7 +38,8 @@ pub(crate) fn test_files(cmd: TestFilesCmd) -> Result<()> {
                 Some(test_data_dir) => test_data_dir,
                 None => dirs::cache_dir()
                     .context("Failed to determine home user cache directory.")?
-                    .join("alpm/testing"),
+                    .join(PROJECT_NAME)
+                    .join(TESTING_DIR),
             };
             let repositories = PackageRepositories::iter()
                 .filter(|v| repositories.clone().is_none_or(|r| r.contains(v)))
@@ -59,7 +61,8 @@ pub(crate) fn test_files(cmd: TestFilesCmd) -> Result<()> {
                 Some(dest) => dest,
                 None => dirs::cache_dir()
                     .context("Failed to determine home user cache directory.")?
-                    .join("alpm/testing"),
+                    .join(PROJECT_NAME)
+                    .join(TESTING_DIR),
             };
             let repositories = PackageRepositories::iter()
                 .filter(|v| repositories.clone().is_none_or(|r| r.contains(v)))
@@ -115,21 +118,22 @@ pub(crate) fn test_files(cmd: TestFilesCmd) -> Result<()> {
                 Some(dest) => dest,
                 None => dirs::cache_dir()
                     .context("Failed to determine home user cache directory.")?
-                    .join("alpm/testing"),
+                    .join(PROJECT_NAME)
+                    .join(TESTING_DIR),
             };
 
             match source {
                 cli::CleanCmd::PkgSrcRepositories => {
-                    remove_dir_all(dest.join("download").join("pkgsrc"))?;
-                    remove_dir_all(dest.join("pkgsrc"))?;
+                    remove_dir_all(dest.join(DOWNLOAD_DIR).join(PKGSRC_DIR))?;
+                    remove_dir_all(dest.join(PKGSRC_DIR))?;
                 }
                 cli::CleanCmd::Databases => {
-                    remove_dir_all(dest.join("download").join("databases"))?;
-                    remove_dir_all(dest.join("databases"))?;
+                    remove_dir_all(dest.join(DOWNLOAD_DIR).join(DATABASES_DIR))?;
+                    remove_dir_all(dest.join(DATABASES_DIR))?;
                 }
                 cli::CleanCmd::Packages => {
-                    remove_dir_all(dest.join("download").join("packages"))?;
-                    remove_dir_all(dest.join("packages"))?;
+                    remove_dir_all(dest.join(DOWNLOAD_DIR).join(PACKAGES_DIR))?;
+                    remove_dir_all(dest.join(PACKAGES_DIR))?;
                 }
             };
         }

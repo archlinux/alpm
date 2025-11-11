@@ -16,7 +16,11 @@ use log::{debug, info, trace};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 use super::{PackageRepositories, filenames_in_dir};
-use crate::{cmd::ensure_success, ui::get_progress_bar};
+use crate::{
+    cmd::ensure_success,
+    consts::{DATABASES_DIR, DOWNLOAD_DIR, PACKAGES_DIR},
+    ui::get_progress_bar,
+};
 
 /// The entry point for downloading any data from package mirrors.
 #[derive(Clone, Debug)]
@@ -38,8 +42,8 @@ impl MirrorDownloader {
     /// - `desc`
     /// - `files`
     pub fn sync_remote_databases(&self) -> Result<()> {
-        let download_dir = self.dest.join("download/databases/");
-        let target_dir = self.dest.join("databases");
+        let download_dir = self.dest.join(DOWNLOAD_DIR).join(DATABASES_DIR);
+        let target_dir = self.dest.join(DATABASES_DIR);
 
         if !download_dir.exists() {
             create_dir_all(&download_dir).context("Failed to create download directory")?;
@@ -138,8 +142,8 @@ impl MirrorDownloader {
     ///  - `.PKGINFO`
     ///  - `.INSTALL` (Optional)
     pub fn sync_remote_packages(&self) -> Result<()> {
-        let download_dir = self.dest.join("download/packages");
-        let target_dir = self.dest.join("packages");
+        let download_dir = self.dest.join(DOWNLOAD_DIR).join(PACKAGES_DIR);
+        let target_dir = self.dest.join(PACKAGES_DIR);
 
         if !download_dir.exists() {
             create_dir_all(&download_dir).context("Failed to create download directory")?;
