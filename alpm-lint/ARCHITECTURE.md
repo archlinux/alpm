@@ -172,7 +172,7 @@ Users of the linter should get well-formatted and expressive error messages, at 
 [`LintConfiguration`]: https://alpm.archlinux.page/rustdoc/alpm_lint_config/struct.LintConfiguration.html
 [`LintGroup`]: https://alpm.archlinux.page/rustdoc/alpm_lint_config/enum.LintGroup.html
 [`LintIssue`]: https://alpm.archlinux.page/rustdoc/alpm_lint/issue/struct.LintIssue.html
-[`LintRule`]: https://alpm.archlinux.page/rustdoc/alpm_lint/lint_rules/trait.LintRule.html
+[`LintRule`]: https://alpm.archlinux.page/rustdoc/alpm_lint/trait.LintRule.html
 [`LintRuleConfiguration`]: https://alpm.archlinux.page/rustdoc/alpm_lint_config/struct.LintRuleConfiguration.html
 [`LintRuleConfigurationOptionName`]: https://alpm.archlinux.page/rustdoc/alpm_lint_config/enum.LintRuleConfigurationOptionName.html
 [`LintScope`]: https://alpm.archlinux.page/rustdoc/alpm_lint/scope/enum.LintScope.html
