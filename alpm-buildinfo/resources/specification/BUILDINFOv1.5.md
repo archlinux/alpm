@@ -30,6 +30,7 @@ As exception to this rule, the keywords **buildenv**, **options** and **installe
 ### format
 
 The **BUILDINFO** file format version.
+Should be the first keyword in the **BUILDINFO** file.
 The value must be a plain positive integer.
 This must be **1** for **BUILDINFO** version 1.
 
