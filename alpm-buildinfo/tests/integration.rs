@@ -18,11 +18,11 @@ use testresult::TestResult;
 ///
 /// [BUILDINFOv1]: https://alpm.archlinux.page/specifications/BUILDINFOv1.5.html
 pub const VALID_BUILDINFO_V1_DATA: &str = r#"
+format = 1
 builddate = 1
 builddir = /build
 buildenv = ccache
 buildenv = color
-format = 1
 installed = bar-1.2.3-1-any
 installed = beh-2.2.3-4-any
 options = lto
@@ -39,6 +39,7 @@ pkgver = 1:1.0.0-1
 ///
 /// [BUILDINFOv2]: https://alpm.archlinux.page/specifications/BUILDINFOv2.5.html
 pub const VALID_BUILDINFO_V2_DATA: &str = r#"
+format = 2
 builddate = 1
 builddir = /build
 startdir = /startdir/
@@ -46,7 +47,6 @@ buildtool = devtools
 buildtoolver = 1:1.2.1-1-any
 buildenv = ccache
 buildenv = color
-format = 2
 installed = bar-1.2.3-1-any
 installed = beh-2.2.3-4-any
 options = lto

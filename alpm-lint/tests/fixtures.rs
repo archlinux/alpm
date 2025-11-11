@@ -32,7 +32,6 @@ use alpm_types::{
     Name,
     PackageDescription,
     Packager,
-    SchemaVersion,
     StartDirectory,
     Url,
     digests::Sha256,
@@ -57,23 +56,22 @@ pub fn default_source_info_v1() -> TestResult<SourceInfoV1> {
 
 /// Creates a default [`BuildInfoV2`] instance for testing.
 pub fn default_build_info_v2() -> TestResult<BuildInfoV2> {
-    Ok(BuildInfoV2::new(
-        BuildDate::from_str("1")?,
-        BuildDirectory::from_str("/build")?,
-        StartDirectory::from_str("/startdir/")?,
-        BuildTool::from_str("devtools")?,
-        BuildToolVersion::from_str("1:1.2.1-1-any")?,
-        vec![],
-        SchemaVersion::from_str("2")?,
-        vec![],
-        vec![],
-        Packager::from_str("Test User <test@example.org>")?,
-        Architecture::Any,
-        Name::new("test-package")?,
-        Checksum::<Sha256>::calculate_from("test-content"),
-        Name::new("test-package")?,
-        FullVersion::from_str("1:1.0.0-1")?,
-    )?)
+    Ok(BuildInfoV2 {
+        builddate: BuildDate::from_str("1")?,
+        builddir: BuildDirectory::from_str("/build")?,
+        startdir: StartDirectory::from_str("/startdir/")?,
+        buildtool: BuildTool::from_str("devtools")?,
+        buildtoolver: BuildToolVersion::from_str("1:1.2.1-1-any")?,
+        buildenv: vec![],
+        options: vec![],
+        installed: vec![],
+        packager: Packager::from_str("Test User <test@example.org>")?,
+        pkgarch: Architecture::Any,
+        pkgbase: Name::new("test-package")?,
+        pkgbuild_sha256sum: Checksum::<Sha256>::calculate_from("test-content"),
+        pkgname: Name::new("test-package")?,
+        pkgver: FullVersion::from_str("1:1.0.0-1")?,
+    })
 }
 
 /// Creates a default [`PackageInfoV2`] instance for testing.

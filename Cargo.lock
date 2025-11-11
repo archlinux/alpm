@@ -30,6 +30,7 @@ dependencies = [
  "rstest",
  "serde",
  "serde_json",
+ "serde_more",
  "serde_with",
  "strum",
  "tempfile",
@@ -2623,6 +2624,27 @@ dependencies = [
  "ryu",
  "serde",
  "serde_core",
+]
+
+[[package]]
+name = "serde_more"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f8d8966b293ec6b30e99c13f6b70e9ac8b0ee6e2f9ad073e819f47af943217aa"
+dependencies = [
+ "serde",
+ "serde_more_derive",
+]
+
+[[package]]
+name = "serde_more_derive"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0751bc649e9e61ce87bb5a3771e1f33a84c88b6f66fdc5c9fcbd91a5c0997a91"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]

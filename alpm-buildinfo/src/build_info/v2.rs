@@ -3,7 +3,6 @@ use std::{
     str::FromStr,
 };
 
-use alpm_common::FileFormatSchema;
 use alpm_types::{
     Architecture,
     BuildDate,
@@ -20,117 +19,118 @@ use alpm_types::{
     SchemaVersion,
     StartDirectory,
     digests::Sha256,
+    semver_version::Version as SemverVersion,
 };
 use serde_with::{DisplayFromStr, serde_as};
 
-use crate::{BuildInfoSchema, Error, build_info::v1::generate_buildinfo};
+use crate::{BuildInfoSchema, Error, build_info::format::BuildInfoFormat};
 
-generate_buildinfo! {
-    /// BUILDINFO version 2
-    ///
-    /// `BuildInfoV2` is (exclusively) compatible with data following the v2 specification of the
-    /// BUILDINFO file.
-    ///
-    /// ## Examples
-    ///
-    /// ```
-    /// use std::str::FromStr;
-    ///
-    /// use alpm_buildinfo::BuildInfoV2;
-    ///
-    /// # fn main() -> Result<(), alpm_buildinfo::Error> {
-    /// let buildinfo_data = r#"format = 2
-    /// pkgname = foo
-    /// pkgbase = foo
-    /// pkgver = 1:1.0.0-1
-    /// pkgarch = any
-    /// pkgbuild_sha256sum = b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c
-    /// packager = Foobar McFooface <foobar@mcfooface.org>
-    /// builddate = 1
-    /// builddir = /build
-    /// startdir = /startdir/
-    /// buildtool = devtools
-    /// buildtoolver = 1:1.2.1-1-any
-    /// buildenv = ccache
-    /// buildenv = color
-    /// options = lto
-    /// options = !strip
-    /// installed = bar-1.2.3-1-any
-    /// installed = beh-2.2.3-4-any
-    /// "#;
-    ///
-    /// let buildinfo = BuildInfoV2::from_str(buildinfo_data)?;
-    /// assert_eq!(buildinfo.to_string(), buildinfo_data);
-    /// # Ok(())
-    /// # }
-    /// ```
-    BuildInfoV2 {
-        #[serde_as(as = "DisplayFromStr")]
-        startdir: StartDirectory,
+/// BUILDINFO version 2
+///
+/// `BuildInfoV2` is (exclusively) compatible with data following the v2 specification of the
+/// BUILDINFO file.
+///
+/// ## Examples
+///
+/// ```
+/// use std::str::FromStr;
+///
+/// use alpm_buildinfo::BuildInfoV2;
+///
+/// # fn main() -> Result<(), alpm_buildinfo::Error> {
+/// let buildinfo_data = r#"format = 2
+/// pkgname = foo
+/// pkgbase = foo
+/// pkgver = 1:1.0.0-1
+/// pkgarch = any
+/// pkgbuild_sha256sum = b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c
+/// packager = Foobar McFooface <foobar@mcfooface.org>
+/// builddate = 1
+/// builddir = /build
+/// startdir = /startdir/
+/// buildtool = devtools
+/// buildtoolver = 1:1.2.1-1-any
+/// buildenv = ccache
+/// buildenv = color
+/// options = lto
+/// options = !strip
+/// installed = bar-1.2.3-1-any
+/// installed = beh-2.2.3-4-any
+/// "#;
+///
+/// let buildinfo = BuildInfoV2::from_str(buildinfo_data)?;
+/// assert_eq!(buildinfo.to_string(), buildinfo_data);
+/// # Ok(())
+/// # }
+/// ```
+#[serde_as]
+#[derive(Clone, Debug, serde::Deserialize, PartialEq, serde_more::SerializeMore)]
+#[more(key = "format", position = "front")]
+pub struct BuildInfoV2 {
+    /// The package name
+    #[serde_as(as = "DisplayFromStr")]
+    pub pkgname: Name,
 
-        #[serde_as(as = "DisplayFromStr")]
-        buildtool: BuildTool,
+    /// The package base name
+    #[serde_as(as = "DisplayFromStr")]
+    pub pkgbase: Name,
 
-        #[serde_as(as = "DisplayFromStr")]
-        buildtoolver: BuildToolVersion,
-    }
+    /// The package version
+    #[serde_as(as = "DisplayFromStr")]
+    pub pkgver: FullVersion,
+
+    /// The package architecture
+    #[serde_as(as = "DisplayFromStr")]
+    pub pkgarch: Architecture,
+
+    /// The package build SHA-256 checksum
+    #[serde_as(as = "DisplayFromStr")]
+    pub pkgbuild_sha256sum: Checksum<Sha256>,
+
+    /// The packager
+    #[serde_as(as = "DisplayFromStr")]
+    pub packager: Packager,
+
+    /// The build date
+    #[serde_as(as = "DisplayFromStr")]
+    pub builddate: BuildDate,
+
+    /// The build directory
+    #[serde_as(as = "DisplayFromStr")]
+    pub builddir: BuildDirectory,
+
+    /// The build environment
+    #[serde_as(as = "Vec<DisplayFromStr>")]
+    #[serde(default)]
+    pub buildenv: Vec<BuildEnvironmentOption>,
+
+    /// The package options
+    #[serde_as(as = "Vec<DisplayFromStr>")]
+    #[serde(default)]
+    pub options: Vec<PackageOption>,
+
+    /// The installed packages
+    #[serde_as(as = "Vec<DisplayFromStr>")]
+    #[serde(default)]
+    pub installed: Vec<InstalledPackage>,
+
+    /// The start directory of the build process
+    #[serde_as(as = "DisplayFromStr")]
+    pub startdir: StartDirectory,
+
+    /// The tool used for building the package
+    #[serde_as(as = "DisplayFromStr")]
+    pub buildtool: BuildTool,
+
+    /// The version of the build tool
+    #[serde_as(as = "DisplayFromStr")]
+    pub buildtoolver: BuildToolVersion,
 }
 
 impl BuildInfoV2 {
-    /// Create a new BuildInfoV2 from all required components
-    #[allow(clippy::too_many_arguments)]
-    pub fn new(
-        builddate: BuildDate,
-        builddir: BuildDirectory,
-        startdir: StartDirectory,
-        buildtool: BuildTool,
-        buildtoolver: BuildToolVersion,
-        buildenv: Vec<BuildEnvironmentOption>,
-        format: SchemaVersion,
-        installed: Vec<InstalledPackage>,
-        options: Vec<PackageOption>,
-        packager: Packager,
-        pkgarch: Architecture,
-        pkgbase: Name,
-        pkgbuild_sha256sum: Checksum<Sha256>,
-        pkgname: Name,
-        pkgver: FullVersion,
-    ) -> Result<Self, Error> {
-        if format.inner().major != 2 {
-            return Err(Error::WrongSchemaVersion(format));
-        }
-        Ok(BuildInfoV2 {
-            builddate,
-            builddir,
-            buildenv,
-            format: format.try_into()?,
-            installed,
-            options,
-            packager,
-            pkgarch,
-            pkgbase,
-            pkgbuild_sha256sum,
-            pkgname,
-            pkgver,
-            startdir,
-            buildtool,
-            buildtoolver,
-        })
-    }
-
-    /// Returns the start directory of the build process.
-    pub fn startdir(&self) -> &StartDirectory {
-        &self.startdir
-    }
-
-    /// Returns the tool used for building the package.
-    pub fn buildtool(&self) -> &BuildTool {
-        &self.buildtool
-    }
-
-    /// Returns the version of the build tool.
-    pub fn buildtoolver(&self) -> &BuildToolVersion {
-        &self.buildtoolver
+    /// Used by serde_more to serialize the additional `format` field.
+    fn format(&self) -> String {
+        BuildInfoSchema::V2(SchemaVersion::new(SemverVersion::new(2, 0, 0))).to_string()
     }
 }
 
@@ -143,10 +143,13 @@ impl FromStr for BuildInfoV2 {
     /// Returns an `Error` if any of the fields in `input` can not be validated according to
     /// `BuildInfoV2` or their respective own specification.
     fn from_str(input: &str) -> Result<BuildInfoV2, Self::Err> {
-        let buildinfo: BuildInfoV2 = alpm_parsers::custom_ini::from_str(input)?;
-        if buildinfo.format().inner().major != 2 {
-            return Err(Error::WrongSchemaVersion(buildinfo.format().clone()));
+        let build_info_format: BuildInfoFormat = alpm_parsers::custom_ini::from_str(input)?;
+        let schema_version: SchemaVersion = build_info_format.into();
+        if schema_version.inner().major != 2 {
+            return Err(Error::WrongSchemaVersion(schema_version));
         }
+
+        let buildinfo: BuildInfoV2 = alpm_parsers::custom_ini::from_str(input)?;
         Ok(buildinfo)
     }
 }
@@ -171,29 +174,29 @@ impl Display for BuildInfoV2 {
             {}\n\
             {}\n\
             ",
-            self.format().inner().major,
-            self.pkgname(),
-            self.pkgbase(),
-            self.pkgver(),
-            self.pkgarch(),
-            self.pkgbuild_sha256sum(),
-            self.packager(),
-            self.builddate(),
-            self.builddir(),
-            self.startdir(),
-            self.buildtool(),
-            self.buildtoolver(),
-            self.buildenv()
+            self.format(),
+            self.pkgname,
+            self.pkgbase,
+            self.pkgver,
+            self.pkgarch,
+            self.pkgbuild_sha256sum,
+            self.packager,
+            self.builddate,
+            self.builddir,
+            self.startdir,
+            self.buildtool,
+            self.buildtoolver,
+            self.buildenv
                 .iter()
                 .map(|v| format!("buildenv = {v}"))
                 .collect::<Vec<String>>()
                 .join("\n"),
-            self.options()
+            self.options
                 .iter()
                 .map(|v| format!("options = {v}"))
                 .collect::<Vec<String>>()
                 .join("\n"),
-            self.installed()
+            self.installed
                 .iter()
                 .map(|v| format!("installed = {v}"))
                 .collect::<Vec<String>>()
@@ -211,6 +214,7 @@ mod tests {
 
     // Test data
     const VALID_BUILDINFOV2_CASE1: &str = r#"
+format = 2
 builddate = 1
 builddir = /build
 startdir = /startdir/
@@ -218,7 +222,6 @@ buildtool = devtools
 buildtoolver = 1:1.2.1-1-any
 buildenv = ccache
 buildenv = color
-format = 2
 installed = bar-1.2.3-1-any
 installed = beh-2.2.3-4-any
 options = lto
@@ -233,15 +236,37 @@ pkgver = 1:1.0.0-1
 
     // Test data without multiple values
     const VALID_BUILDINFOV2_CASE2: &str = r#"
+format = 2
 builddate = 1
 builddir = /build
 startdir = /startdir/
 buildtool = devtools
 buildtoolver = 1:1.2.1-1-any
 buildenv = ccache
-format = 2
 installed = bar-1.2.3-1-any
 options = lto
+packager = Foobar McFooface <foobar@mcfooface.org>
+pkgarch = any
+pkgbase = foo
+pkgbuild_sha256sum = b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c
+pkgname = foo
+pkgver = 1:1.0.0-1
+"#;
+
+    // Wrong format version
+    const INVALID_BUILDINFOV2: &str = r#"
+format = 1
+builddate = 1
+builddir = /build
+startdir = /startdir/
+buildtool = devtools
+buildtoolver = 1:1.2.1-1-any
+buildenv = ccache
+buildenv = color
+installed = bar-1.2.3-1-any
+installed = beh-2.2.3-4-any
+options = lto
+options = !strip
 packager = Foobar McFooface <foobar@mcfooface.org>
 pkgarch = any
 pkgbase = foo
@@ -260,48 +285,28 @@ pkgver = 1:1.0.0-1
 
     #[rstest]
     fn buildinfov2() -> TestResult {
-        BuildInfoV2::new(
-            1,
-            BuildDirectory::from_str("/build")?,
-            StartDirectory::from_str("/startdir/")?,
-            BuildTool::from_str("devtools")?,
-            BuildToolVersion::from_str("1:1.2.1-1-any")?,
-            vec![BuildEnvironmentOption::new("check")?],
-            SchemaVersion::from_str("2")?,
-            vec![InstalledPackage::from_str("bar-1:1.0.0-2-any")?],
-            vec![PackageOption::new("lto")?],
-            Packager::from_str("Foobar McFooface <foobar@mcfooface.org>")?,
-            Architecture::Any,
-            Name::new("foo")?,
-            Checksum::<Sha256>::calculate_from("foo"),
-            Name::new("foo")?,
-            FullVersion::from_str("1:1.0.0-1")?,
-        )?;
+        BuildInfoV2 {
+            builddate: 1,
+            builddir: BuildDirectory::from_str("/build")?,
+            startdir: StartDirectory::from_str("/startdir/")?,
+            buildtool: BuildTool::from_str("devtools")?,
+            buildtoolver: BuildToolVersion::from_str("1:1.2.1-1-any")?,
+            buildenv: vec![BuildEnvironmentOption::new("check")?],
+            installed: vec![InstalledPackage::from_str("bar-1:1.0.0-2-any")?],
+            options: vec![PackageOption::new("lto")?],
+            packager: Packager::from_str("Foobar McFooface <foobar@mcfooface.org>")?,
+            pkgarch: Architecture::Any,
+            pkgbase: Name::new("foo")?,
+            pkgbuild_sha256sum: Checksum::<Sha256>::calculate_from("foo"),
+            pkgname: Name::new("foo")?,
+            pkgver: FullVersion::from_str("1:1.0.0-1")?,
+        };
         Ok(())
     }
 
     #[rstest]
     fn buildinfov2_invalid_schemaversion() -> TestResult {
-        assert!(
-            BuildInfoV2::new(
-                1,
-                BuildDirectory::from_str("/build")?,
-                StartDirectory::from_str("/startdir/")?,
-                BuildTool::from_str("devtools")?,
-                BuildToolVersion::from_str("1:1.2.1-1-any")?,
-                vec![BuildEnvironmentOption::new("check")?],
-                SchemaVersion::from_str("1")?,
-                vec![InstalledPackage::from_str("bar-1:1.0.0-2-any")?],
-                vec![PackageOption::new("lto")?],
-                Packager::from_str("Foobar McFooface <foobar@mcfooface.org>")?,
-                Architecture::Any,
-                Name::new("foo")?,
-                Checksum::<Sha256>::calculate_from("foo"),
-                Name::new("foo")?,
-                FullVersion::from_str("1:1.0.0-1")?,
-            )
-            .is_err()
-        );
+        assert!(BuildInfoV2::from_str(INVALID_BUILDINFOV2).is_err());
         Ok(())
     }
 

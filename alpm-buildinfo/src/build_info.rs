@@ -1,7 +1,9 @@
 //! Handling of BuildInfo versions.
 
+mod format;
 pub mod v1;
 pub mod v2;
+
 use std::{
     fmt::Display,
     fs::File,

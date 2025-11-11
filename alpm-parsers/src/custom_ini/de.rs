@@ -364,11 +364,11 @@ mod tests {
     }
 
     const TEST_INPUT: &str = "
+        format = 1
         builddate = 1
         builddir = /build
         buildenv = ccache
         buildenv = color
-        format = 1
         installed = bar-1.2.3-1-any
         installed = beh-2.2.3-4-any
         options = lto

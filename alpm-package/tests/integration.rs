@@ -38,6 +38,7 @@ use tempfile::TempDir;
 use testresult::{TestError, TestResult};
 
 const VALID_BUILDINFO_V2_DATA: &str = r#"
+format = 2
 builddate = 1
 builddir = /build
 startdir = /startdir/
@@ -45,7 +46,6 @@ buildtool = devtools
 buildtoolver = 1:1.2.1-1-any
 buildenv = ccache
 buildenv = color
-format = 2
 installed = bar-1.2.3-1-any
 installed = beh-2.2.3-4-any
 options = lto
@@ -790,8 +790,8 @@ fn read_package_contents(
 
     let buildinfo = package.read_buildinfo()?;
     let pkgbase = match &buildinfo {
-        alpm_buildinfo::BuildInfo::V1(v) => v.pkgbase(),
-        alpm_buildinfo::BuildInfo::V2(v) => v.pkgbase(),
+        alpm_buildinfo::BuildInfo::V1(v) => &v.pkgbase,
+        alpm_buildinfo::BuildInfo::V2(v) => &v.pkgbase,
     };
     assert_eq!(pkgbase.to_string(), "example");
 

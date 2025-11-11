@@ -14,12 +14,12 @@ use serde::{Deserialize, Serialize};
 use testresult::{TestError, TestResult};
 
 const BUILDINFO_BIN: &str = r#"
+format = 2
 builddate = 1
 builddir = /build
 startdir = /startdir/
 buildtool = devtools
 buildtoolver = 1:1.2.1-1-any
-format = 2
 packager = John Doe <john@example.org>
 pkgarch = any
 pkgbase = bin
@@ -29,12 +29,12 @@ pkgver = 1:1.0.0-1
 "#;
 
 const BUILDINFO_LIB: &str = r#"
+format = 2
 builddate = 1
 builddir = /build
 startdir = /startdir/
 buildtool = devtools
 buildtoolver = 1:1.2.1-1-any
-format = 2
 packager = John Doe <john@example.org>
 pkgarch = any
 pkgbase = lib

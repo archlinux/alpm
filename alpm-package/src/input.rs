@@ -376,20 +376,20 @@ impl<'a> From<&'a BuildInfo> for MetadataComparison<'a> {
     fn from(value: &'a BuildInfo) -> Self {
         match value {
             BuildInfo::V1(inner) => MetadataComparison {
-                package_name: inner.pkgname(),
-                package_base: inner.pkgbase(),
-                version: inner.pkgver(),
-                architecture: inner.pkgarch(),
-                packager: inner.packager(),
-                build_date: inner.builddate(),
+                package_name: &inner.pkgname,
+                package_base: &inner.pkgbase,
+                version: &inner.pkgver,
+                architecture: &inner.pkgarch,
+                packager: &inner.packager,
+                build_date: inner.builddate,
             },
             BuildInfo::V2(inner) => MetadataComparison {
-                package_name: inner.pkgname(),
-                package_base: inner.pkgbase(),
-                version: inner.pkgver(),
-                architecture: inner.pkgarch(),
-                packager: inner.packager(),
-                build_date: inner.builddate(),
+                package_name: &inner.pkgname,
+                package_base: &inner.pkgbase,
+                version: &inner.pkgver,
+                architecture: &inner.pkgarch,
+                packager: &inner.packager,
+                build_date: inner.builddate,
             },
         }
     }
@@ -741,12 +741,12 @@ mod tests {
 
     const PKGNAME_MISMATCH: &[&str; 2] = &[
         r#"
+format = 2
 builddate = 1
 builddir = /build
 startdir = /startdir/
 buildtool = devtools
 buildtoolver = 1:1.2.1-1-any
-format = 2
 packager = John Doe <john@example.org>
 pkgarch = any
 pkgbase = example
@@ -770,12 +770,12 @@ arch = any
 
     const PKGBASE_MISMATCH: &[&str; 2] = &[
         r#"
+format = 2
 builddate = 1
 builddir = /build
 startdir = /startdir/
 buildtool = devtools
 buildtoolver = 1:1.2.1-1-any
-format = 2
 packager = John Doe <john@example.org>
 pkgarch = any
 pkgbase = example
@@ -799,12 +799,12 @@ arch = any
 
     const VERSION_MISMATCH: &[&str; 2] = &[
         r#"
+format = 2
 builddate = 1
 builddir = /build
 startdir = /startdir/
 buildtool = devtools
 buildtoolver = 1:1.2.1-1-any
-format = 2
 packager = John Doe <john@example.org>
 pkgarch = any
 pkgbase = example
@@ -828,12 +828,12 @@ arch = any
 
     const ARCHITECTURE_MISMATCH: &[&str; 2] = &[
         r#"
+format = 2
 builddate = 1
 builddir = /build
 startdir = /startdir/
 buildtool = devtools
 buildtoolver = 1:1.2.1-1-any
-format = 2
 packager = John Doe <john@example.org>
 pkgarch = any
 pkgbase = example
@@ -857,12 +857,12 @@ arch = x86_64
 
     const PACKAGER_MISMATCH: &[&str; 2] = &[
         r#"
+format = 2
 builddate = 1
 builddir = /build
 startdir = /startdir/
 buildtool = devtools
 buildtoolver = 1:1.2.1-1-any
-format = 2
 packager = John Doe <john@example.org>
 pkgarch = any
 pkgbase = example
@@ -886,12 +886,12 @@ arch = any
 
     const BUILD_DATE_MISMATCH: &[&str; 2] = &[
         r#"
+format = 2
 builddate = 1
 builddir = /build
 startdir = /startdir/
 buildtool = devtools
 buildtoolver = 1:1.2.1-1-any
-format = 2
 packager = John Doe <john@example.org>
 pkgarch = any
 pkgbase = example

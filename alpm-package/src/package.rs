@@ -560,12 +560,12 @@ impl Iterator for MetadataEntryIterator<'_, '_> {
 /// # // Create a valid, but minimal BUILDINFOv2 file.
 /// # let mut file = File::create(&input_dir.join(MetadataFileName::BuildInfo.as_ref()))?;
 /// # write!(file, r#"
+/// # format = 2
 /// # builddate = 1
 /// # builddir = /build
 /// # startdir = /startdir/
 /// # buildtool = devtools
 /// # buildtoolver = 1:1.2.1-1-any
-/// # format = 2
 /// # installed = other-example-1.2.3-1-any
 /// # packager = John Doe <john@example.org>
 /// # pkgarch = any

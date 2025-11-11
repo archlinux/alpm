@@ -13,7 +13,7 @@ use alpm_buildinfo::{
     cli::{CreateCommand, OutputFormat, ValidateArgs},
 };
 use alpm_common::MetadataFile;
-use alpm_types::{SchemaVersion, Sha256Checksum};
+use alpm_types::Sha256Checksum;
 use thiserror::Error;
 
 /// A high-level error wrapper around [`alpm_buildinfo::Error`] to add CLI error cases.
@@ -41,20 +41,19 @@ pub enum Error {
 pub fn create_file(command: CreateCommand) -> Result<(), Error> {
     let (data, output) = match command {
         CreateCommand::V1 { args } => (
-            BuildInfoV1::new(
-                args.builddate,
-                args.builddir,
-                args.buildenv,
-                SchemaVersion::from_str("1")?,
-                args.installed,
-                args.options,
-                args.packager,
-                args.pkgarch,
-                args.pkgbase,
-                Sha256Checksum::from_str(&args.pkgbuild_sha256sum)?,
-                args.pkgname,
-                args.pkgver,
-            )?
+            BuildInfoV1 {
+                builddate: args.builddate,
+                builddir: args.builddir,
+                buildenv: args.buildenv,
+                installed: args.installed,
+                options: args.options,
+                packager: args.packager,
+                pkgarch: args.pkgarch,
+                pkgbase: args.pkgbase,
+                pkgbuild_sha256sum: Sha256Checksum::from_str(&args.pkgbuild_sha256sum)?,
+                pkgname: args.pkgname,
+                pkgver: args.pkgver,
+            }
             .to_string(),
             args.output,
         ),
@@ -64,23 +63,22 @@ pub fn create_file(command: CreateCommand) -> Result<(), Error> {
             buildtool,
             buildtoolver,
         } => (
-            BuildInfoV2::new(
-                args.builddate,
-                args.builddir,
+            BuildInfoV2 {
+                builddate: args.builddate,
+                builddir: args.builddir,
                 startdir,
                 buildtool,
                 buildtoolver,
-                args.buildenv,
-                SchemaVersion::from_str("2")?,
-                args.installed,
-                args.options,
-                args.packager,
-                args.pkgarch,
-                args.pkgbase,
-                Sha256Checksum::from_str(&args.pkgbuild_sha256sum)?,
-                args.pkgname,
-                args.pkgver,
-            )?
+                buildenv: args.buildenv,
+                installed: args.installed,
+                options: args.options,
+                packager: args.packager,
+                pkgarch: args.pkgarch,
+                pkgbase: args.pkgbase,
+                pkgbuild_sha256sum: Sha256Checksum::from_str(&args.pkgbuild_sha256sum)?,
+                pkgname: args.pkgname,
+                pkgver: args.pkgver,
+            }
             .to_string(),
             args.output,
         ),

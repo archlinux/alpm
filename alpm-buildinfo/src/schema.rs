@@ -96,13 +96,13 @@ impl FileFormatSchema for BuildInfoSchema {
     /// use alpm_types::{SchemaVersion, semver_version::Version};
     ///
     /// # fn main() -> Result<(), alpm_buildinfo::Error> {
-    /// let buildinfo_v2 = r#"builddate = 1
+    /// let buildinfo_v2 = r#"format = 2
+    /// builddate = 1
     /// builddir = /build
     /// startdir = /startdir
     /// buildtool = devtools
     /// buildtoolver = 1:1.2.1-1-any
     /// buildenv = ccache
-    /// format = 2
     /// installed = bar-1.2.3-1-any
     /// options = lto
     /// packager = Foobar McFooface <foobar@mcfooface.org>
@@ -117,11 +117,11 @@ impl FileFormatSchema for BuildInfoSchema {
     ///     BuildInfoSchema::derive_from_str(buildinfo_v2)?
     /// );
     ///
-    /// let buildinfo_v1 = r#"builddate = 1
+    /// let buildinfo_v1 = r#"format = 1
+    /// builddate = 1
     /// builddir = /build
     /// startdir = /startdir
     /// buildenv = ccache
-    /// format = 1
     /// installed = bar-1.2.3-1-any
     /// options = lto
     /// packager = Foobar McFooface <foobar@mcfooface.org>
