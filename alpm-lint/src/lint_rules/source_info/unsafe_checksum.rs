@@ -22,9 +22,9 @@ use crate::{
 /// Upstream artifacts are validated against hash digests (see [alpm-package-source-checksum]) set
 /// in [PKGBUILD] and [SRCINFO] files.
 ///
-/// Some [hash functions] (e.g. [MD-5] and [SHA-1]) used for creating these hash digests are unsafe
-/// to use from a cryptographic perspective. These algorithms should be avoided to prevent hash
-/// collisions and potential abuse.
+/// Some [hash functions] (e.g. [MD-5], [SHA-1] and [CRC-32/CKSUM]) used for creating these hash
+/// digests are unsafe to use from a cryptographic perspective. These algorithms should be avoided
+/// to prevent hash collisions and potential abuse.
 ///
 /// Using unsafe hash algorithms allows attackers to craft malicious artifacts that pass the
 /// checksum check. Further, attackers could swap existing artifacts with these malicious artifacts
@@ -52,6 +52,7 @@ use crate::{
 ///     sha512sums = 1816c57b4abf31eb7c57a66bfb0f0ee5cef9398b5e4cc303468e08dae2702da55978402da94673e444f8c02754e94dedef4d12450319383c3a481d1c5cd90c82
 /// ```
 ///
+/// [CRC-32/CKSUM]: https://en.wikipedia.org/wiki/Cyclic_redundancy_check
 /// [MD-5]: https://en.wikipedia.org/wiki/MD-5
 /// [PKGBUILD]: https://man.archlinux.org/man/PKGBUILD.5
 /// [RFC 0046]: https://rfc.archlinux.page/0046-upstream-package-sources/
@@ -146,6 +147,13 @@ Instead, use one of the following algorithms: {}
             }
         }
 
+        // Check for CRC checksums - these are unsafe
+        for (_source, checksum) in base.sources.iter().zip(base.crc_checksums.iter()) {
+            if !checksum.is_skipped() {
+                issues.push(self.create_checksum_issue("cksums", &checksum.to_string(), None));
+            }
+        }
+
         // Also check architecture-specific checksums
         for (architecture, arch_props) in &base.architecture_properties {
             // Check SHA1 checksums in architecture-specific properties
@@ -172,6 +180,21 @@ Instead, use one of the following algorithms: {}
                 if !checksum.is_skipped() {
                     issues.push(self.create_checksum_issue(
                         "md5sums",
+                        &checksum.to_string(),
+                        Some(architecture.clone()),
+                    ));
+                }
+            }
+
+            // Check CRC checksums in architecture-specific properties
+            for (_source, checksum) in arch_props
+                .sources
+                .iter()
+                .zip(arch_props.crc_checksums.iter())
+            {
+                if !checksum.is_skipped() {
+                    issues.push(self.create_checksum_issue(
+                        "cksums",
                         &checksum.to_string(),
                         Some(architecture.clone()),
                     ));

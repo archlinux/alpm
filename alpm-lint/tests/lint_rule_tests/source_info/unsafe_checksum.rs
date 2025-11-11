@@ -10,7 +10,7 @@ use alpm_types::{
     SkippableChecksum,
     Source,
     SystemArchitecture,
-    digests::{Md5, Sha1},
+    digests::{Crc32Cksum, Md5, Sha1},
 };
 
 use crate::fixtures::default_source_info_v1;
@@ -41,6 +41,7 @@ fn unsafe_checksum_fails() -> testresult::TestResult {
     source_info.base.sha1_checksums = vec![SkippableChecksum::<Sha1>::from_str(
         "1111111111111111111111111111111111111111",
     )?];
+    source_info.base.crc_checksums = vec![SkippableChecksum::<Crc32Cksum>::from_str("4294967295")?];
 
     let resources = Resources::SourceInfo(SourceInfo::V1(source_info));
     let config = LintRuleConfiguration::default();
@@ -52,6 +53,7 @@ fn unsafe_checksum_fails() -> testresult::TestResult {
     assert!(!issues.is_empty(), "A lint error should've been found.");
     assert_eq!(issues[0].lint_rule, "source_info::unsafe_checksum");
     assert_eq!(issues[1].lint_rule, "source_info::unsafe_checksum");
+    assert_eq!(issues[2].lint_rule, "source_info::unsafe_checksum");
     Ok(())
 }
 
@@ -67,6 +69,7 @@ fn architecture_specific_unsafe_checksum_fails() -> testresult::TestResult {
         sha1_checksums: vec![SkippableChecksum::<Sha1>::from_str(
             "1111111111111111111111111111111111111111",
         )?],
+        crc_checksums: vec![SkippableChecksum::<Crc32Cksum>::from_str("4294967295")?],
         ..PackageBaseArchitecture::default()
     };
 
@@ -85,5 +88,6 @@ fn architecture_specific_unsafe_checksum_fails() -> testresult::TestResult {
     assert!(!issues.is_empty(), "A lint error should've been found.");
     assert_eq!(issues[0].lint_rule, "source_info::unsafe_checksum");
     assert_eq!(issues[1].lint_rule, "source_info::unsafe_checksum");
+    assert_eq!(issues[2].lint_rule, "source_info::unsafe_checksum");
     Ok(())
 }
