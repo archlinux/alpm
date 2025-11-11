@@ -11,6 +11,7 @@ use std::{
     process::Command,
 };
 
+use alpm_types::{INSTALL_SCRIPTLET_FILE_NAME, MetadataFileName};
 use anyhow::{Context, Result, anyhow, bail};
 use log::{debug, info, trace};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
@@ -370,7 +371,12 @@ fn extract_pkg_files(pkg: &Path, target_dir: &Path, repo_name: &str) -> Result<(
 
     // Check for each of the known filetypes, whether it exists in the package.
     // If it does, add it to the tar command for extraction.
-    for filetype in [".MTREE", ".BUILDINFO", ".PKGINFO", ".INSTALL"] {
+    for filetype in [
+        MetadataFileName::Mtree.as_ref(),
+        MetadataFileName::BuildInfo.as_ref(),
+        MetadataFileName::PackageInfo.as_ref(),
+        INSTALL_SCRIPTLET_FILE_NAME,
+    ] {
         if files.contains(filetype) {
             cmd_args.push(filetype.to_string());
         }

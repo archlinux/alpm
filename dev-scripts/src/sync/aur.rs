@@ -9,6 +9,7 @@ use std::{
     process::{Command, Stdio},
 };
 
+use alpm_types::{PKGBUILD_FILE_NAME, SRCINFO_FILE_NAME};
 use anyhow::{Context, Result};
 use flate2::read::GzDecoder;
 use log::{error, info};
@@ -88,7 +89,7 @@ impl AurDownloader {
                 create_dir_all(&pkg_dir)
                     .context(format!("Failed to create package directory {pkg_dir:?}."))?;
 
-                for file_type in [".SRCINFO", "PKGBUILD"] {
+                for file_type in [SRCINFO_FILE_NAME, PKGBUILD_FILE_NAME] {
                     let out_file = File::create(pkg_dir.join(file_type))?;
                     let output = Command::new("git")
                         .arg("show")

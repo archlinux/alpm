@@ -1,7 +1,7 @@
-use std::path::PathBuf;
+use std::{fmt::Display, path::PathBuf};
 
+use alpm_types::{MetadataFileName, PKGBUILD_FILE_NAME, SRCINFO_FILE_NAME};
 use clap::{ArgAction, Parser, ValueEnum};
-use strum::Display;
 
 use crate::sync::PackageRepositories;
 
@@ -32,7 +32,7 @@ pub enum Command {
             short,
             long = "pkgbuild",
             value_name = "PKGBUILD_PATH",
-            default_value = "./PKGBUILD"
+            default_value = format!("./{PKGBUILD_FILE_NAME}")
         )]
         pkgbuild_path: PathBuf,
 
@@ -41,30 +41,39 @@ pub enum Command {
             short,
             long = "srcinfo",
             value_name = "SRCINFO_PATH",
-            default_value = "./.SRCINFO"
+            default_value = format!("./{SRCINFO_FILE_NAME}")
         )]
         srcinfo_path: PathBuf,
     },
 }
 
-#[derive(Clone, Copy, Debug, Display, Eq, Parser, PartialEq, ValueEnum)]
+#[derive(Clone, Copy, Debug, Eq, Parser, PartialEq, ValueEnum)]
 pub enum TestFileType {
-    #[strum(to_string = ".BUILDINFO")]
     BuildInfo,
-    #[strum(to_string = ".SRCINFO")]
     SrcInfo,
-    #[strum(to_string = ".PKGINFO")]
     PackageInfo,
-    #[strum(to_string = ".MTREE")]
     MTree,
-    #[strum(to_string = "desc")]
     RemoteDesc,
-    #[strum(to_string = "files")]
     RemoteFiles,
-    #[strum(to_string = "desc")]
     LocalDesc,
-    #[strum(to_string = "files")]
     LocalFiles,
+}
+
+impl Display for TestFileType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Self::BuildInfo => MetadataFileName::BuildInfo.as_ref(),
+                Self::PackageInfo => MetadataFileName::PackageInfo.as_ref(),
+                Self::SrcInfo => SRCINFO_FILE_NAME,
+                Self::MTree => MetadataFileName::Mtree.as_ref(),
+                Self::RemoteDesc | Self::LocalDesc => "desc",
+                Self::RemoteFiles | Self::LocalFiles => "files",
+            }
+        )
+    }
 }
 
 #[derive(Debug, Parser)]

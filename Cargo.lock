@@ -808,6 +808,7 @@ dependencies = [
  "alpm-pkgbuild",
  "alpm-pkginfo",
  "alpm-srcinfo",
+ "alpm-types",
  "anyhow",
  "assert_cmd",
  "clap",

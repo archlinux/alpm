@@ -10,6 +10,7 @@ use std::{
     process::Command,
 };
 
+use alpm_types::{PKGBUILD_FILE_NAME, SRCINFO_FILE_NAME};
 use anyhow::{Context, Result};
 use log::{error, info, trace};
 use rayon::prelude::*;
@@ -69,7 +70,7 @@ impl PkgSrcDownloader {
         // Copy .SRCINFO and PKGBUILD files to the target directory
         for repo in all_repo_names {
             let download_path = download_dir.join(&repo);
-            for file in [".SRCINFO", "PKGBUILD"] {
+            for file in [SRCINFO_FILE_NAME, PKGBUILD_FILE_NAME] {
                 if download_path.join(file).exists() {
                     let target_dir = self.dest.join(PKGSRC_DIR).join(&repo);
                     std::fs::create_dir_all(&target_dir)?;
