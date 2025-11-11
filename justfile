@@ -699,7 +699,7 @@ containerized-integration-tests *options:
     fi
 
     cargo build --examples --bins
-    cargo nextest run --features _containerized-integration-test --filterset 'kind(test) and binary_id(/::containerized$/)' "${options[@]}"
+    cargo nextest run --features _containerized-integration-test,cli --filterset 'kind(test) and binary_id(/::containerized$/)' "${options[@]}"
 
 [doc('Creates code coverage report for all projects from all available sources.
 When providing `with-docs` to the `mode` parameter, this also includes doc test coverage in the report (requires nightly).
@@ -777,11 +777,12 @@ test *options:
         cargo-nextest
     )
     read -r -a options <<< "{{ options }}"
-    # If no options are provided, run all targets, locked.
+    # If no options are provided, run all targets, locked, with cli checks.
     if (( ${#options[@]} == 0 )); then
         options+=(
             --locked
             --all
+            --features cli
         )
     fi
 
@@ -901,7 +902,7 @@ virtualized-integration-tests *options:
     fi
 
     cargo build --examples --bins
-    cargo nextest run --features _virtualized-integration-test --filterset 'kind(test) and binary_id(/::virtualized$/)' "${options[@]}"
+    cargo nextest run --features _virtualized-integration-test,cli --filterset 'kind(test) and binary_id(/::virtualized$/)' "${options[@]}"
 
 # Publishes a crate in the workspace from GitLab CI in a pipeline for tags
 [group('release')]
