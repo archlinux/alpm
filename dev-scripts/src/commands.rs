@@ -1,14 +1,20 @@
-use std::{fs::remove_dir_all, path::PathBuf};
+use std::{
+    fs::{remove_dir_all, write},
+    path::PathBuf,
+    process::exit,
+};
 
 use alpm_common::MetadataFile;
 use alpm_pkgbuild::Error;
 use alpm_srcinfo::{SourceInfo, SourceInfoV1};
 use anyhow::{Context, Result};
+use dirs::cache_dir;
 use log::warn;
+use serde_json::to_string_pretty;
 use strum::IntoEnumIterator;
 
 use crate::{
-    cli::{self, TestFilesCmd},
+    cli::{CleanCmd, DownloadCmd, TestFilesCmd},
     consts::{DATABASES_DIR, DOWNLOAD_DIR, PACKAGES_DIR, PKGSRC_DIR, PROJECT_NAME, TESTING_DIR},
     sync::{
         PackageRepositories,
@@ -28,7 +34,7 @@ use crate::{
 /// - Clean up downloaded files.
 pub(crate) fn test_files(cmd: TestFilesCmd) -> Result<()> {
     match cmd {
-        cli::TestFilesCmd::Test {
+        TestFilesCmd::Test {
             test_data_dir,
             repositories,
             file_type,
@@ -36,7 +42,7 @@ pub(crate) fn test_files(cmd: TestFilesCmd) -> Result<()> {
             // Set a default download destination.
             let test_data_dir = match test_data_dir {
                 Some(test_data_dir) => test_data_dir,
-                None => dirs::cache_dir()
+                None => cache_dir()
                     .context("Failed to determine home user cache directory.")?
                     .join(PROJECT_NAME)
                     .join(TESTING_DIR),
@@ -51,7 +57,7 @@ pub(crate) fn test_files(cmd: TestFilesCmd) -> Result<()> {
             };
             runner.run_tests()?;
         }
-        cli::TestFilesCmd::Download {
+        TestFilesCmd::Download {
             destination,
             repositories,
             source,
@@ -59,7 +65,7 @@ pub(crate) fn test_files(cmd: TestFilesCmd) -> Result<()> {
             // Set a default download destination.
             let dest = match destination {
                 Some(dest) => dest,
-                None => dirs::cache_dir()
+                None => cache_dir()
                     .context("Failed to determine home user cache directory.")?
                     .join(PROJECT_NAME)
                     .join(TESTING_DIR),
@@ -69,15 +75,15 @@ pub(crate) fn test_files(cmd: TestFilesCmd) -> Result<()> {
                 .collect();
 
             match source {
-                cli::DownloadCmd::PkgSrcRepositories {} => {
+                DownloadCmd::PkgSrcRepositories {} => {
                     let downloader = PkgSrcDownloader { dest };
                     downloader.download_package_source_repositories()?;
                 }
-                cli::DownloadCmd::Aur {} => {
+                DownloadCmd::Aur {} => {
                     let downloader = AurDownloader { dest };
                     downloader.download_packages()?;
                 }
-                cli::DownloadCmd::Databases {
+                DownloadCmd::Databases {
                     mirror,
                     force_extract,
                 } => {
@@ -92,7 +98,7 @@ pub(crate) fn test_files(cmd: TestFilesCmd) -> Result<()> {
                     );
                     downloader.sync_remote_databases()?;
                 }
-                cli::DownloadCmd::Packages {
+                DownloadCmd::Packages {
                     mirror,
                     force_extract,
                 } => {
@@ -109,29 +115,29 @@ pub(crate) fn test_files(cmd: TestFilesCmd) -> Result<()> {
                 }
             };
         }
-        cli::TestFilesCmd::Clean {
+        TestFilesCmd::Clean {
             destination,
             source,
         } => {
             // Set a default download destination.
             let dest = match destination {
                 Some(dest) => dest,
-                None => dirs::cache_dir()
+                None => cache_dir()
                     .context("Failed to determine home user cache directory.")?
                     .join(PROJECT_NAME)
                     .join(TESTING_DIR),
             };
 
             match source {
-                cli::CleanCmd::PkgSrcRepositories => {
+                CleanCmd::PkgSrcRepositories => {
                     remove_dir_all(dest.join(DOWNLOAD_DIR).join(PKGSRC_DIR))?;
                     remove_dir_all(dest.join(PKGSRC_DIR))?;
                 }
-                cli::CleanCmd::Databases => {
+                CleanCmd::Databases => {
                     remove_dir_all(dest.join(DOWNLOAD_DIR).join(DATABASES_DIR))?;
                     remove_dir_all(dest.join(DATABASES_DIR))?;
                 }
-                cli::CleanCmd::Packages => {
+                CleanCmd::Packages => {
                     remove_dir_all(dest.join(DOWNLOAD_DIR).join(PACKAGES_DIR))?;
                     remove_dir_all(dest.join(PACKAGES_DIR))?;
                 }
@@ -171,17 +177,17 @@ pub fn compare_source_info(pkgbuild_path: PathBuf, srcinfo_path: PathBuf) -> Res
     let SourceInfo::V1(source_info) = source_info;
 
     if source_info != pkgbuild_source_info {
-        let pkgbuild_source_info = serde_json::to_string_pretty(&pkgbuild_source_info)?;
-        let source_info = serde_json::to_string_pretty(&source_info)?;
+        let pkgbuild_source_info = to_string_pretty(&pkgbuild_source_info)?;
+        let source_info = to_string_pretty(&source_info)?;
 
         let pkgbuild_json_path = PathBuf::from("pkgbuild.json");
-        std::fs::write("pkgbuild.json", pkgbuild_source_info).map_err(|source| Error::IoPath {
+        write("pkgbuild.json", pkgbuild_source_info).map_err(|source| Error::IoPath {
             path: pkgbuild_json_path,
             context: "writing pkgbuild.json file",
             source,
         })?;
         let srcinfo_json_path = PathBuf::from("srcinfo.json");
-        std::fs::write("srcinfo.json", source_info).map_err(|source| Error::IoPath {
+        write("srcinfo.json", source_info).map_err(|source| Error::IoPath {
             path: srcinfo_json_path,
             context: "writing srcinfo.json file",
             source,
@@ -191,7 +197,7 @@ pub fn compare_source_info(pkgbuild_path: PathBuf, srcinfo_path: PathBuf) -> Res
             "SRCINFO data generated from PKGBUILD file differs from the .SRCINFO file read from disk.\n\
             Compare the two generated files pkgbuild.json and srcinfo.json for details."
         );
-        std::process::exit(1);
+        exit(1);
     } else {
         println!("The generated content matches that read from disk.");
     }

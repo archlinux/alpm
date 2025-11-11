@@ -14,6 +14,7 @@ use anyhow::{Context, Result};
 use flate2::read::GzDecoder;
 use log::{error, info};
 use rayon::prelude::*;
+use reqwest::blocking::get;
 
 use crate::{
     cmd::ensure_success,
@@ -134,7 +135,7 @@ impl AurDownloader {
 
 /// Downloads pkgbase.gz from aurweb and extracts the package names.
 fn get_packages_list() -> Result<Vec<String>> {
-    let resp = reqwest::blocking::get(AUR_PKGBASE_URL)?.error_for_status()?;
+    let resp = get(AUR_PKGBASE_URL)?.error_for_status()?;
     let bytes = resp.bytes()?;
     let mut decoder = GzDecoder::new(&bytes[..]);
     let mut aur_packages_raw = String::new();

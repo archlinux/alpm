@@ -5,7 +5,7 @@
 
 use std::{
     collections::{HashMap, HashSet},
-    fs::remove_dir_all,
+    fs::{copy, create_dir_all, remove_dir_all},
     path::{Path, PathBuf},
     process::Command,
 };
@@ -14,6 +14,7 @@ use alpm_types::{PKGBUILD_FILE_NAME, SRCINFO_FILE_NAME};
 use anyhow::{Context, Result};
 use log::{error, info, trace};
 use rayon::prelude::*;
+use reqwest::blocking::get;
 use strum::Display;
 
 use super::filenames_in_dir;
@@ -51,7 +52,7 @@ impl PkgSrcDownloader {
         // Query the arch web API to get a list all official active repositories
         // The returned json is a map where the keys are the package names
         // and the value is a list of maintainer names.
-        let repos = reqwest::blocking::get(PKGBASE_MAINTAINER_URL)
+        let repos = get(PKGBASE_MAINTAINER_URL)
             .context("Failed to query pkgbase url.")?
             .json::<HashMap<String, Vec<String>>>()
             .context("Failed to deserialize archweb pkglist.")?;
@@ -73,8 +74,8 @@ impl PkgSrcDownloader {
             for file in [SRCINFO_FILE_NAME, PKGBUILD_FILE_NAME] {
                 if download_path.join(file).exists() {
                     let target_dir = self.dest.join(PKGSRC_DIR).join(&repo);
-                    std::fs::create_dir_all(&target_dir)?;
-                    std::fs::copy(download_path.join(file), target_dir.join(file))?;
+                    create_dir_all(&target_dir)?;
+                    copy(download_path.join(file), target_dir.join(file))?;
                 }
             }
         }

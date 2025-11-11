@@ -6,7 +6,7 @@ mod rsync_changes;
 
 use std::{
     collections::HashSet,
-    fs::{create_dir_all, remove_dir_all},
+    fs::{create_dir_all, read_dir, remove_dir_all},
     path::{Path, PathBuf},
     process::Command,
 };
@@ -20,6 +20,7 @@ use super::{PackageRepositories, filenames_in_dir};
 use crate::{
     cmd::ensure_success,
     consts::{DATABASES_DIR, DOWNLOAD_DIR, PACKAGES_DIR},
+    sync::mirror::rsync_changes::Report,
     ui::get_progress_bar,
 };
 
@@ -98,7 +99,7 @@ impl MirrorDownloader {
             let repo_target_dir = target_dir.join(&name);
             if repo_target_dir.exists() {
                 if !self.extract_all
-                    && rsync_changes::Report::parser(&output.stdout)
+                    && Report::parser(&output.stdout)
                         .map_err(|e| anyhow!("{e}"))?
                         .file_content_updated()?
                         .is_none()
@@ -165,7 +166,7 @@ impl MirrorDownloader {
 
             let packages: Vec<PathBuf> = if self.extract_all {
                 let files: Vec<_> =
-                    std::fs::read_dir(&download_dest)?.collect::<Result<_, std::io::Error>>()?;
+                    read_dir(&download_dest)?.collect::<Result<_, std::io::Error>>()?;
                 files
                     .into_iter()
                     .map(|entry| entry.path().to_owned())
@@ -301,7 +302,7 @@ impl MirrorDownloader {
         let mut changed_files = Vec::new();
 
         for line in output.stdout.split(|&b| b == b'\n') {
-            if let Some(path) = rsync_changes::Report::parser(line)
+            if let Some(path) = Report::parser(line)
                 .map_err(|e| anyhow!("{e}"))?
                 .file_content_updated()?
             {

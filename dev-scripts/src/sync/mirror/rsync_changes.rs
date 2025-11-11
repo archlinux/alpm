@@ -1,7 +1,9 @@
 use std::{ffi::OsStr, os::unix::ffi::OsStrExt, path::Path};
 
 use anyhow::{Result, anyhow};
+use log::warn;
 use winnow::{
+    ModalResult,
     Parser,
     combinator::{alt, eof, preceded, repeat, seq},
     token::{one_of, rest},
@@ -80,7 +82,7 @@ impl<'a> Report<'a> {
     /// # Errors
     ///
     /// Throws an error if `input` is of an unknown format
-    pub(crate) fn parser(mut line: &'a [u8]) -> winnow::ModalResult<Self> {
+    pub(crate) fn parser(mut line: &'a [u8]) -> ModalResult<Self> {
         let line = &mut line;
         let mut change_kind = alt((
             b'>'.value(ChangeKind::Received),
@@ -164,7 +166,7 @@ impl<'a> Report<'a> {
                 path,
                 ..
             } => {
-                log::warn!(
+                warn!(
                     "Path '{path:?}' reported as changed on the remote host, this should not happen",
                 );
                 Ok(None)

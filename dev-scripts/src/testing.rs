@@ -1,6 +1,6 @@
 //! Tests against downloaded artifacts.
 
-use std::path::PathBuf;
+use std::{fs::read_dir, path::PathBuf};
 
 use alpm_buildinfo::BuildInfo;
 use alpm_common::MetadataFile;
@@ -147,7 +147,7 @@ impl TestRunner {
             // represents a single package. Check if the file we're interested in exists
             // for said package. If so, add it to the list
             for pkg_folder in
-                std::fs::read_dir(&folder).context(format!("Failed to read folder {folder:?}"))?
+                read_dir(&folder).context(format!("Failed to read folder {folder:?}"))?
             {
                 let pkg_folder = pkg_folder?;
                 let file_path = pkg_folder.path().join(self.file_type.to_string());
