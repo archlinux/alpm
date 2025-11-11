@@ -7,12 +7,12 @@ use alpm_common::MetadataFile;
 use alpm_mtree::Mtree;
 use alpm_pkginfo::PackageInfo;
 use alpm_srcinfo::SourceInfo;
-use anyhow::{Context, Result};
 use colored::Colorize;
 use log::{debug, info};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 use crate::{
+    Error,
     cli::TestFileType,
     consts::{AUR_DIR, DATABASES_DIR, PACKAGES_DIR, PKGSRC_DIR},
     sync::PackageRepositories,
@@ -33,11 +33,8 @@ pub struct TestRunner {
 impl TestRunner {
     /// Run validation on all local test files that have been downloaded via the
     /// `test-files download` command.
-    pub fn run_tests(&self) -> Result<()> {
-        let test_files = self.find_files_of_type().context(format!(
-            "Failed to detect files for type {}",
-            self.file_type
-        ))?;
+    pub fn run_tests(&self) -> Result<(), Error> {
+        let test_files = self.find_files_of_type()?;
         info!(
             "Found {} {} files for testing",
             test_files.len(),
@@ -47,7 +44,7 @@ impl TestRunner {
         let progress_bar = get_progress_bar(test_files.len() as u64);
 
         // Run the validate subcommand for all files in parallel.
-        let asserts: Vec<(PathBuf, Result<()>)> = test_files
+        let asserts: Vec<(PathBuf, Result<(), Error>)> = test_files
             .into_par_iter()
             .map(|file| {
                 let result = match self.file_type {
@@ -78,7 +75,7 @@ impl TestRunner {
         progress_bar.finish_with_message("Validation run finished.");
 
         // Get all files and the respective error for which validation failed.
-        let failures: Vec<(PathBuf, anyhow::Error)> = asserts
+        let failures: Vec<(PathBuf, Error)> = asserts
             .into_iter()
             .filter_map(|(path, result)| {
                 if let Err(err) = result {
@@ -106,7 +103,9 @@ impl TestRunner {
     /// Searches the download directory for all files of the given type.
     ///
     /// Returns a list of Paths that were found in the process.
-    pub fn find_files_of_type(&self) -> Result<Vec<PathBuf>> {
+    pub fn find_files_of_type(&self) -> Result<Vec<PathBuf>, Error> {
+        debug!("Searching for files of type {}", self.file_type);
+
         let mut files = Vec::new();
 
         // First up, determine which folders we should look at while searching for files.
@@ -146,10 +145,16 @@ impl TestRunner {
             // Each top-level folder contains a number of sub-folders where each sub-folder
             // represents a single package. Check if the file we're interested in exists
             // for said package. If so, add it to the list
-            for pkg_folder in
-                read_dir(&folder).context(format!("Failed to read folder {folder:?}"))?
-            {
-                let pkg_folder = pkg_folder?;
+            for pkg_folder in read_dir(&folder).map_err(|source| Error::IoPath {
+                path: folder.clone(),
+                context: "reading entries in directory".to_string(),
+                source,
+            })? {
+                let pkg_folder = pkg_folder.map_err(|source| Error::IoPath {
+                    path: folder.clone(),
+                    context: "reading an entry of the directory".to_string(),
+                    source,
+                })?;
                 let file_path = pkg_folder.path().join(self.file_type.to_string());
                 if file_path.exists() {
                     files.push(file_path);
@@ -170,6 +175,7 @@ mod tests {
 
     use rstest::rstest;
     use strum::IntoEnumIterator;
+    use testresult::TestResult;
 
     use super::*;
 
@@ -187,7 +193,7 @@ mod tests {
     #[case(TestFileType::BuildInfo)]
     #[case(TestFileType::PackageInfo)]
     #[case(TestFileType::MTree)]
-    fn test_find_files_for_packages(#[case] file_type: TestFileType) -> Result<()> {
+    fn test_find_files_for_packages(#[case] file_type: TestFileType) -> TestResult {
         // Create a temporary directory for testing.
         let tmp_dir = tempfile::tempdir()?;
         let packages_dir = tmp_dir.path().join(PACKAGES_DIR);
@@ -239,7 +245,7 @@ mod tests {
     #[rstest]
     #[case(TestFileType::RemoteFiles)]
     #[case(TestFileType::RemoteDesc)]
-    fn test_find_files_for_databases(#[case] file_type: TestFileType) -> Result<()> {
+    fn test_find_files_for_databases(#[case] file_type: TestFileType) -> TestResult {
         // Create a temporary directory for testing.
         let tmp_dir = tempfile::tempdir()?;
         let databases_dir = tmp_dir.path().join(DATABASES_DIR);
@@ -290,7 +296,7 @@ mod tests {
     /// `target-dir/pkgsrc/${package-name}`
     #[rstest]
     #[case(TestFileType::SrcInfo)]
-    fn test_find_files_for_pkgsrc(#[case] file_type: TestFileType) -> Result<()> {
+    fn test_find_files_for_pkgsrc(#[case] file_type: TestFileType) -> TestResult {
         // Create a temporary directory for testing.
         let tmp_dir = tempfile::tempdir()?;
         let pkgsrc_dir = tmp_dir.path().join(PKGSRC_DIR);

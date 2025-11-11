@@ -24,11 +24,9 @@ cli = []
 alpm-buildinfo.workspace = true
 alpm-common.workspace = true
 alpm-mtree.workspace = true
-alpm-pkgbuild.workspace = true
 alpm-pkginfo.workspace = true
 alpm-srcinfo.workspace = true
 alpm-types.workspace = true
-anyhow = "1"
 clap.workspace = true
 clap-verbosity-flag.workspace = true
 colored.workspace = true
@@ -47,6 +45,7 @@ reqwest = { version = "0.12", default-features = false, features = [
 serde_json.workspace = true
 simplelog.workspace = true
 strum.workspace = true
+thiserror.workspace = true
 winnow.workspace = true
 
 [dev-dependencies]

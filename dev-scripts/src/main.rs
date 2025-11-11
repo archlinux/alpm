@@ -1,34 +1,44 @@
 //! The `dev-scripts` CLI tool.
 
-use anyhow::{Context, Result};
+use std::process::ExitCode;
+
 use clap::Parser;
 use cli::Cli;
 use simplelog::{Config, SimpleLogger};
 
-use crate::commands::{compare_source_info, test_files};
+use crate::{
+    commands::{compare_source_info, test_files},
+    error::Error,
+};
 
 mod cli;
 mod cmd;
 mod commands;
 mod consts;
+mod error;
 pub mod sync;
 pub mod testing;
 mod ui;
 
-fn main() -> Result<()> {
-    // Parse commandline options.
-    let args = Cli::parse();
+/// Runs a command of the `dev-scripts` executable.
+fn run_command() -> Result<(), Error> {
+    let cli = Cli::parse();
+    SimpleLogger::init(cli.verbose.log_level_filter(), Config::default())?;
 
-    SimpleLogger::init(args.verbose.log_level_filter(), Config::default())
-        .context("Failed to initialize simple logger")?;
-
-    match args.cmd {
-        cli::Command::TestFiles { cmd } => test_files(cmd)?,
+    match cli.cmd {
+        cli::Command::TestFiles { cmd } => test_files(cmd),
         cli::Command::CompareSrcinfo {
             pkgbuild_path,
             srcinfo_path,
-        } => compare_source_info(pkgbuild_path, srcinfo_path)?,
+        } => compare_source_info(pkgbuild_path, srcinfo_path),
     }
+}
 
-    Ok(())
+fn main() -> ExitCode {
+    if let Err(error) = run_command() {
+        eprintln!("{error}");
+        ExitCode::FAILURE
+    } else {
+        ExitCode::SUCCESS
+    }
 }

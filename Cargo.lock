@@ -422,12 +422,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "anyhow"
-version = "1.0.100"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a23eb6b1614318a8071c9b2521f36b424b2c83db5eb3a0fead4a6c0809af6e61"
-
-[[package]]
 name = "assert_cmd"
 version = "2.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -804,11 +798,9 @@ dependencies = [
  "alpm-buildinfo",
  "alpm-common",
  "alpm-mtree",
- "alpm-pkgbuild",
  "alpm-pkginfo",
  "alpm-srcinfo",
  "alpm-types",
- "anyhow",
  "assert_cmd",
  "clap",
  "clap-verbosity-flag",
@@ -826,6 +818,7 @@ dependencies = [
  "strum",
  "tempfile",
  "testresult",
+ "thiserror",
  "winnow",
 ]
 

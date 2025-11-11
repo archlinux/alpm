@@ -5,15 +5,14 @@ use std::{
 };
 
 use alpm_common::MetadataFile;
-use alpm_pkgbuild::Error;
 use alpm_srcinfo::{SourceInfo, SourceInfoV1};
-use anyhow::{Context, Result};
 use dirs::cache_dir;
 use log::warn;
 use serde_json::to_string_pretty;
 use strum::IntoEnumIterator;
 
 use crate::{
+    Error,
     cli::{CleanCmd, DownloadCmd, TestFilesCmd},
     consts::{DATABASES_DIR, DOWNLOAD_DIR, PACKAGES_DIR, PKGSRC_DIR, PROJECT_NAME, TESTING_DIR},
     sync::{
@@ -32,7 +31,7 @@ use crate::{
 /// - Download packages.
 /// - Test file parsers on all files.
 /// - Clean up downloaded files.
-pub(crate) fn test_files(cmd: TestFilesCmd) -> Result<()> {
+pub(crate) fn test_files(cmd: TestFilesCmd) -> Result<(), Error> {
     match cmd {
         TestFilesCmd::Test {
             test_data_dir,
@@ -43,7 +42,7 @@ pub(crate) fn test_files(cmd: TestFilesCmd) -> Result<()> {
             let test_data_dir = match test_data_dir {
                 Some(test_data_dir) => test_data_dir,
                 None => cache_dir()
-                    .context("Failed to determine home user cache directory.")?
+                    .ok_or(Error::CannotGetCacheDir)?
                     .join(PROJECT_NAME)
                     .join(TESTING_DIR),
             };
@@ -66,7 +65,7 @@ pub(crate) fn test_files(cmd: TestFilesCmd) -> Result<()> {
             let dest = match destination {
                 Some(dest) => dest,
                 None => cache_dir()
-                    .context("Failed to determine home user cache directory.")?
+                    .ok_or(Error::CannotGetCacheDir)?
                     .join(PROJECT_NAME)
                     .join(TESTING_DIR),
             };
@@ -123,25 +122,33 @@ pub(crate) fn test_files(cmd: TestFilesCmd) -> Result<()> {
             let dest = match destination {
                 Some(dest) => dest,
                 None => cache_dir()
-                    .context("Failed to determine home user cache directory.")?
+                    .ok_or(Error::CannotGetCacheDir)?
                     .join(PROJECT_NAME)
                     .join(TESTING_DIR),
             };
 
-            match source {
-                CleanCmd::PkgSrcRepositories => {
-                    remove_dir_all(dest.join(DOWNLOAD_DIR).join(PKGSRC_DIR))?;
-                    remove_dir_all(dest.join(PKGSRC_DIR))?;
-                }
-                CleanCmd::Databases => {
-                    remove_dir_all(dest.join(DOWNLOAD_DIR).join(DATABASES_DIR))?;
-                    remove_dir_all(dest.join(DATABASES_DIR))?;
-                }
-                CleanCmd::Packages => {
-                    remove_dir_all(dest.join(DOWNLOAD_DIR).join(PACKAGES_DIR))?;
-                    remove_dir_all(dest.join(PACKAGES_DIR))?;
-                }
+            let dirs = match source {
+                CleanCmd::PkgSrcRepositories => [
+                    dest.join(DOWNLOAD_DIR).join(PKGSRC_DIR),
+                    dest.join(PKGSRC_DIR),
+                ],
+                CleanCmd::Databases => [
+                    dest.join(DOWNLOAD_DIR).join(DATABASES_DIR),
+                    dest.join(DATABASES_DIR),
+                ],
+                CleanCmd::Packages => [
+                    dest.join(DOWNLOAD_DIR).join(PACKAGES_DIR),
+                    dest.join(PACKAGES_DIR),
+                ],
             };
+
+            for dir in dirs {
+                remove_dir_all(&dir).map_err(|source| Error::IoPath {
+                    path: dir,
+                    context: "recursively deleting the directory".to_string(),
+                    source,
+                })?;
+            }
         }
     }
 
@@ -170,26 +177,33 @@ pub(crate) fn test_files(cmd: TestFilesCmd) -> Result<()> {
 /// [`PKGBUILD`]: https://man.archlinux.org/man/PKGBUILD.5
 /// [`SRCINFO`]: https://alpm.archlinux.page/specifications/SRCINFO.5.html
 /// [`alpm-pkgbuild-bridge`]: https://gitlab.archlinux.org/archlinux/alpm/alpm-pkgbuild-bridge
-pub fn compare_source_info(pkgbuild_path: PathBuf, srcinfo_path: PathBuf) -> Result<()> {
+pub fn compare_source_info(pkgbuild_path: PathBuf, srcinfo_path: PathBuf) -> Result<(), Error> {
     let pkgbuild_source_info: SourceInfoV1 = SourceInfoV1::from_pkgbuild(&pkgbuild_path)?;
 
     let source_info = SourceInfo::from_file_with_schema(srcinfo_path, None)?;
     let SourceInfo::V1(source_info) = source_info;
 
     if source_info != pkgbuild_source_info {
-        let pkgbuild_source_info = to_string_pretty(&pkgbuild_source_info)?;
-        let source_info = to_string_pretty(&source_info)?;
+        let pkgbuild_source_info =
+            to_string_pretty(&pkgbuild_source_info).map_err(|source| Error::Json {
+                context: "deserializing a PKGBUILD  based SRCINFO as pretty JSON".to_string(),
+                source,
+            })?;
+        let source_info = to_string_pretty(&source_info).map_err(|source| Error::Json {
+            context: "deserializing a SRCINFO as pretty JSON".to_string(),
+            source,
+        })?;
 
         let pkgbuild_json_path = PathBuf::from("pkgbuild.json");
         write("pkgbuild.json", pkgbuild_source_info).map_err(|source| Error::IoPath {
             path: pkgbuild_json_path,
-            context: "writing pkgbuild.json file",
+            context: "writing pkgbuild.json to file".to_string(),
             source,
         })?;
         let srcinfo_json_path = PathBuf::from("srcinfo.json");
         write("srcinfo.json", source_info).map_err(|source| Error::IoPath {
             path: srcinfo_json_path,
-            context: "writing srcinfo.json file",
+            context: "writing srcinfo.json to file".to_string(),
             source,
         })?;
 

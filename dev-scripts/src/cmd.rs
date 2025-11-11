@@ -1,14 +1,18 @@
 use std::process::Output;
 
-use anyhow::{Result, bail};
+use crate::Error;
 
 /// Make sure a command finished successfully, otherwise throw an error.
-pub fn ensure_success(output: &Output) -> Result<()> {
-    let stderr = String::from_utf8_lossy(&output.stderr);
-    let stdout = String::from_utf8_lossy(&output.stdout);
+pub fn ensure_success(output: &Output, message: String) -> Result<(), Error> {
+    let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+    let stdout = String::from_utf8_lossy(&output.stdout).to_string();
 
     if !output.status.success() {
-        bail!("Failed to run command:\nstdout:\n{stdout}\nstderr:\n{stderr}");
+        return Err(Error::CommandFailed {
+            message,
+            stdout,
+            stderr,
+        });
     }
 
     Ok(())

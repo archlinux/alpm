@@ -1,6 +1,5 @@
 use std::{ffi::OsStr, os::unix::ffi::OsStrExt, path::Path};
 
-use anyhow::{Result, anyhow};
 use log::warn;
 use winnow::{
     ModalResult,
@@ -8,6 +7,8 @@ use winnow::{
     combinator::{alt, eof, preceded, repeat, seq},
     token::{one_of, rest},
 };
+
+use crate::Error;
 
 /// Kind of change that was made to a path.
 ///
@@ -142,7 +143,7 @@ impl<'a> Report<'a> {
     /// Returns an error if `self`:
     /// - Holds a non-deletion message from rsync.
     /// - Reports a change to a non-file object. See [`PathKind`].
-    pub(crate) fn file_content_updated(&self) -> Result<Option<&Path>> {
+    pub(crate) fn file_content_updated(&self) -> Result<Option<&Path>, Error> {
         use Report::*;
 
         match self {
@@ -157,9 +158,11 @@ impl<'a> Report<'a> {
                 change_kind: ChangeKind::Received | ChangeKind::Hardlink,
                 path_kind,
                 path,
-            } => Err(anyhow!(
-                "Got unexpected path kind {path_kind:?} in rsync change list for '{path:?}'"
-            )),
+            } => Err(Error::RsyncReport {
+                message: format!(
+                    "Unexpected path kind {path_kind:?} in rsync change list for {path:?}"
+                ),
+            }),
             // something was sent to the remote
             PathChange {
                 change_kind: ChangeKind::Sent,
@@ -172,10 +175,12 @@ impl<'a> Report<'a> {
                 Ok(None)
             }
             // a message other than deletion was returned
-            Message(msg) if !msg.as_bytes().starts_with(b"deleting") => Err(anyhow!(
-                "rsync message found while looking for changes: '{}'",
-                msg.to_string_lossy()
-            )),
+            Message(msg) if !msg.as_bytes().starts_with(b"deleting") => Err(Error::RsyncReport {
+                message: format!(
+                    "Message found while looking for changes:\n{}",
+                    msg.to_string_lossy()
+                ),
+            }),
             // all other cases are considered "unchanged"
             _ => Ok(None),
         }

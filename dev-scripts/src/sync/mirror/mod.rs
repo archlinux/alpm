@@ -9,15 +9,16 @@ use std::{
     fs::{create_dir_all, read_dir, remove_dir_all},
     path::{Path, PathBuf},
     process::Command,
+    str::FromStr,
 };
 
-use alpm_types::{INSTALL_SCRIPTLET_FILE_NAME, MetadataFileName};
-use anyhow::{Context, Result, anyhow, bail};
+use alpm_types::{INSTALL_SCRIPTLET_FILE_NAME, MetadataFileName, PackageFileName};
 use log::{debug, info, trace};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 use super::{PackageRepositories, filenames_in_dir};
 use crate::{
+    Error,
     cmd::ensure_success,
     consts::{DATABASES_DIR, DOWNLOAD_DIR, PACKAGES_DIR},
     sync::mirror::rsync_changes::Report,
@@ -43,18 +44,21 @@ impl MirrorDownloader {
     ///
     /// - `desc`
     /// - `files`
-    pub fn sync_remote_databases(&self) -> Result<()> {
+    pub fn sync_remote_databases(&self) -> Result<(), Error> {
         let download_dir = self.dest.join(DOWNLOAD_DIR).join(DATABASES_DIR);
         let target_dir = self.dest.join(DATABASES_DIR);
 
-        if !download_dir.exists() {
-            create_dir_all(&download_dir).context("Failed to create download directory")?;
-        }
+        create_dir_all(&download_dir).map_err(|source| Error::IoPath {
+            path: download_dir.clone(),
+            context: "recursively creating the directory".to_string(),
+            source,
+        })?;
 
-        if !target_dir.exists() {
-            create_dir_all(&target_dir)
-                .context("Failed to create pacman cache target directory")?;
-        }
+        create_dir_all(&target_dir).map_err(|source| Error::IoPath {
+            path: target_dir.clone(),
+            context: "recursively creating the directory".to_string(),
+            source,
+        })?;
 
         for repo in self.repositories.iter() {
             let name = repo.to_string();
@@ -83,13 +87,15 @@ impl MirrorDownloader {
                 .arg(&download_dest);
 
             trace!("Running command: {db_sync_command:?}");
-            let output = db_sync_command
-                .output()
-                .context(format!("Failed to run rsync for pacman db {name}"))?;
+            let output = db_sync_command.output().map_err(|source| Error::Io {
+                context: format!("synchronizing repository database for {name}"),
+                source,
+            })?;
 
-            if !output.status.success() {
-                bail!("rsync failed for pacman db {name}");
-            }
+            ensure_success(
+                &output,
+                format!("synchronizing repository database for {name}"),
+            )?;
 
             trace!(
                 "Rsync reports: {}",
@@ -100,7 +106,7 @@ impl MirrorDownloader {
             if repo_target_dir.exists() {
                 if !self.extract_all
                     && Report::parser(&output.stdout)
-                        .map_err(|e| anyhow!("{e}"))?
+                        .map_err(|source| Error::Parser(source.to_string()))?
                         .file_content_updated()?
                         .is_none()
                 {
@@ -108,12 +114,18 @@ impl MirrorDownloader {
                     continue;
                 } else {
                     // There are old versions of the files, remove them.
-                    remove_dir_all(&repo_target_dir).context(format!(
-                        "Failed to remove old repository: {repo_target_dir:?}"
-                    ))?;
+                    remove_dir_all(&repo_target_dir).map_err(|source| Error::IoPath {
+                        path: repo_target_dir.clone(),
+                        context: "recursively removing the directory".to_string(),
+                        source,
+                    })?;
                 }
             }
-            create_dir_all(&repo_target_dir)?;
+            create_dir_all(&repo_target_dir).map_err(|source| Error::IoPath {
+                path: repo_target_dir.clone(),
+                context: "recursively creating the directory".to_string(),
+                source,
+            })?;
 
             debug!("Extracting db to {repo_target_dir:?}");
 
@@ -127,10 +139,14 @@ impl MirrorDownloader {
                 .arg(&repo_target_dir);
 
             trace!("Running command: {tar_command:?}");
-            let output = tar_command
-                .output()
-                .context(format!("Failed to start tar to extract pacman dbs {name}"))?;
-            ensure_success(&output)?;
+            let output = tar_command.output().map_err(|source| Error::Io {
+                context: format!("extracting the repository database for {name}"),
+                source,
+            })?;
+            ensure_success(
+                &output,
+                format!("Extracting the repository database for {name}"),
+            )?;
         }
 
         Ok(())
@@ -143,18 +159,21 @@ impl MirrorDownloader {
     ///  - `.MTREE`
     ///  - `.PKGINFO`
     ///  - `.INSTALL` (Optional)
-    pub fn sync_remote_packages(&self) -> Result<()> {
+    pub fn sync_remote_packages(&self) -> Result<(), Error> {
         let download_dir = self.dest.join(DOWNLOAD_DIR).join(PACKAGES_DIR);
         let target_dir = self.dest.join(PACKAGES_DIR);
 
-        if !download_dir.exists() {
-            create_dir_all(&download_dir).context("Failed to create download directory")?;
-        }
+        create_dir_all(&download_dir).map_err(|source| Error::IoPath {
+            path: download_dir.clone(),
+            context: "recursively creating the directory".to_string(),
+            source,
+        })?;
 
-        if !target_dir.exists() {
-            create_dir_all(&target_dir)
-                .context("Failed to create pacman cache target directory")?;
-        }
+        create_dir_all(&target_dir).map_err(|source| Error::IoPath {
+            path: target_dir.clone(),
+            context: "recursively creating the directory".to_string(),
+            source,
+        })?;
 
         for repo in self.repositories.iter() {
             let repo_name = repo.to_string();
@@ -165,8 +184,20 @@ impl MirrorDownloader {
             let changed = self.download_packages(&repo_name, file_source, &download_dest)?;
 
             let packages: Vec<PathBuf> = if self.extract_all {
-                let files: Vec<_> =
-                    read_dir(&download_dest)?.collect::<Result<_, std::io::Error>>()?;
+                let files: Vec<_> = read_dir(&download_dest)
+                    .map_err(|source| Error::IoPath {
+                        path: download_dest.to_path_buf(),
+                        context: "reading entries in directory".to_string(),
+                        source,
+                    })?
+                    .map(|result| {
+                        result.map_err(|source| Error::IoPath {
+                            path: download_dest.to_path_buf(),
+                            context: "reading a directory entry".to_string(),
+                            source,
+                        })
+                    })
+                    .collect::<Result<_, Error>>()?;
                 files
                     .into_iter()
                     .map(|entry| entry.path().to_owned())
@@ -203,7 +234,7 @@ impl MirrorDownloader {
                     progress_bar.inc(1);
                     result
                 })
-                .collect::<Result<Vec<()>>>()?;
+                .collect::<Result<Vec<()>, Error>>()?;
             // Finish the progress_bar
             progress_bar.finish_with_message("Finished extracting files for repository {repo}.");
         }
@@ -214,7 +245,7 @@ impl MirrorDownloader {
                 .into_iter()
                 .filter(|file| !file.ends_with(".sig"))
                 .map(remove_tarball_suffix)
-                .collect::<Result<HashSet<String>>>()?;
+                .collect::<Result<HashSet<String>, Error>>()?;
 
             let local_packages = filenames_in_dir(&target_dir.join(repo.to_string()))?;
 
@@ -226,11 +257,12 @@ impl MirrorDownloader {
                 info!("Found {} packages for cleanup:", removed_pkgs.len());
                 for removed in removed_pkgs {
                     debug!("Removing local package: {removed}");
-                    remove_dir_all(target_dir.join(repo.to_string()).join(removed)).context(
-                        format!(
-                            "Failed to remove local package {:?}",
-                            target_dir.join(repo.to_string()).join(removed)
-                        ),
+                    remove_dir_all(target_dir.join(repo.to_string()).join(removed)).map_err(
+                        |source| Error::IoPath {
+                            path: target_dir.join(repo.to_string()).join(removed),
+                            context: "recursively removing the directory".to_string(),
+                            source,
+                        },
                     )?;
                 }
             }
@@ -245,7 +277,7 @@ impl MirrorDownloader {
         repo_name: &str,
         file_source: String,
         download_dest: &PathBuf,
-    ) -> Result<Vec<PathBuf>> {
+    ) -> Result<Vec<PathBuf>, Error> {
         let mut cmd = Command::new("rsync");
         cmd.args([
             "--recursive",
@@ -291,19 +323,23 @@ impl MirrorDownloader {
             .arg(file_source)
             .arg(download_dest)
             .output()
-            .context(format!(
-                "Failed to start package rsync for repository {repo_name}"
-            ))?;
+            .map_err(|source| Error::Io {
+                context: format!(
+                    "syncing all package and signature files for repository {repo_name}"
+                ),
+                source,
+            })?;
 
-        if !output.status.success() {
-            bail!("Package rsync failed for repository {repo_name}");
-        }
+        ensure_success(
+            &output,
+            format!("Syncing all package and signature files for repository {repo_name}"),
+        )?;
 
         let mut changed_files = Vec::new();
 
         for line in output.stdout.split(|&b| b == b'\n') {
             if let Some(path) = Report::parser(line)
-                .map_err(|e| anyhow!("{e}"))?
+                .map_err(|source| Error::Parser(source.to_string()))?
                 .file_content_updated()?
             {
                 trace!("File at {path:?} changed, marking for extraction");
@@ -319,14 +355,18 @@ impl MirrorDownloader {
 ///
 /// This function provides data which is necessary to determine which subset of files should be
 /// extracted.
-fn get_tar_file_list(pkg: &Path) -> Result<HashSet<String>> {
+fn get_tar_file_list(pkg: &Path) -> Result<HashSet<String>, Error> {
     let mut tar_command = Command::new("tar");
     tar_command.arg("-tf").arg(pkg);
     trace!("Running command: {tar_command:?}");
-    let peek_output = tar_command
-        .output()
-        .context(format!("Failed to peek into pkg {pkg:?}"))?;
-    ensure_success(&peek_output).context("Error while peeking into package")?;
+    let peek_output = tar_command.output().map_err(|source| Error::Io {
+        context: format!("list contents of tar file {pkg:?}"),
+        source,
+    })?;
+    ensure_success(
+        &peek_output,
+        format!("Listing contents of tar file {pkg:?}"),
+    )?;
 
     Ok(String::from_utf8_lossy(&peek_output.stdout)
         .lines()
@@ -348,7 +388,7 @@ fn get_tar_file_list(pkg: &Path) -> Result<HashSet<String>> {
 /// # Panics
 ///
 /// Panics if `pkg` points to a directory.
-fn extract_pkg_files(pkg: &Path, target_dir: &Path, repo_name: &str) -> Result<()> {
+fn extract_pkg_files(pkg: &Path, target_dir: &Path, repo_name: &str) -> Result<(), Error> {
     let pkg_file_name = pkg
         .file_name()
         .expect("got directory when expecting file")
@@ -361,7 +401,11 @@ fn extract_pkg_files(pkg: &Path, target_dir: &Path, repo_name: &str) -> Result<(
 
     // Create the target directory where all the files should be extracted to.
     let pkg_target_dir = target_dir.join(repo_name).join(pkg_name);
-    create_dir_all(&pkg_target_dir)?;
+    create_dir_all(&pkg_target_dir).map_err(|source| Error::IoPath {
+        path: pkg_target_dir.clone(),
+        context: "recursively creating the directory".to_string(),
+        source,
+    })?;
 
     let mut cmd_args = vec![
         "-C".to_string(),
@@ -388,24 +432,25 @@ fn extract_pkg_files(pkg: &Path, target_dir: &Path, repo_name: &str) -> Result<(
     tar_command.args(cmd_args);
 
     trace!("Running command: {tar_command:?}");
-    let output = tar_command
-        .output()
-        .context(format!("Failed to extract files from pkg {pkg:?}"))?;
-    ensure_success(&output).context("Error while downloading packages via rsync")?;
+    let output = tar_command.output().map_err(|source| Error::IoPath {
+        path: pkg.to_path_buf(),
+        context: "extracting files".to_string(),
+        source,
+    })?;
+    ensure_success(&output, format!("Extracting files from tar file {pkg:?}"))?;
 
     Ok(())
 }
 
 /// A small helper function that removes the `.pkg.tar.*` suffix of a tarball.
 /// This is necessary to get the actual package name from a packages full file name.
-pub fn remove_tarball_suffix(pkg_name: String) -> Result<String> {
-    let pkg_name = if let Some(pkg_name) = pkg_name.strip_suffix(".pkg.tar.zst") {
-        pkg_name
-    } else if let Some(pkg_name) = pkg_name.strip_suffix(".pkg.tar.xz") {
-        pkg_name
-    } else {
-        bail!("Found package with unknown tarball compression: {pkg_name:?}");
-    };
+pub fn remove_tarball_suffix(pkg_name: String) -> Result<String, Error> {
+    let package_file_name = PackageFileName::from_str(&pkg_name)?;
 
-    Ok(pkg_name.to_string())
+    Ok(format!(
+        "{}-{}-{}",
+        package_file_name.name(),
+        package_file_name.version(),
+        package_file_name.architecture()
+    ))
 }

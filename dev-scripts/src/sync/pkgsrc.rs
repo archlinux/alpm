@@ -11,14 +11,13 @@ use std::{
 };
 
 use alpm_types::{PKGBUILD_FILE_NAME, SRCINFO_FILE_NAME};
-use anyhow::{Context, Result};
 use log::{error, info, trace};
 use rayon::prelude::*;
 use reqwest::blocking::get;
-use strum::Display;
 
 use super::filenames_in_dir;
 use crate::{
+    Error,
     cmd::ensure_success,
     consts::{DOWNLOAD_DIR, PKGSRC_DIR},
     ui::get_progress_bar,
@@ -48,14 +47,20 @@ pub struct PkgSrcDownloader {
 
 impl PkgSrcDownloader {
     /// Download all official package source git repositories.
-    pub fn download_package_source_repositories(&self) -> Result<()> {
+    pub fn download_package_source_repositories(&self) -> Result<(), Error> {
         // Query the arch web API to get a list all official active repositories
         // The returned json is a map where the keys are the package names
         // and the value is a list of maintainer names.
         let repos = get(PKGBASE_MAINTAINER_URL)
-            .context("Failed to query pkgbase url.")?
+            .map_err(|source| Error::HttpQueryFailed {
+                context: "retrieving the list of pkgbases".to_string(),
+                source,
+            })?
             .json::<HashMap<String, Vec<String>>>()
-            .context("Failed to deserialize archweb pkglist.")?;
+            .map_err(|source| Error::HttpQueryFailed {
+                context: "deserializing the response as JSON".to_string(),
+                source,
+            })?;
 
         let all_repo_names: Vec<String> = repos.keys().map(String::from).collect();
         info!("Found {} official packages.", all_repo_names.len());
@@ -74,8 +79,18 @@ impl PkgSrcDownloader {
             for file in [SRCINFO_FILE_NAME, PKGBUILD_FILE_NAME] {
                 if download_path.join(file).exists() {
                     let target_dir = self.dest.join(PKGSRC_DIR).join(&repo);
-                    create_dir_all(&target_dir)?;
-                    copy(download_path.join(file), target_dir.join(file))?;
+                    create_dir_all(&target_dir).map_err(|source| Error::IoPath {
+                        path: target_dir.to_path_buf(),
+                        context: "recursively creating a directory".to_string(),
+                        source,
+                    })?;
+                    copy(download_path.join(file), target_dir.join(file)).map_err(|source| {
+                        Error::IoPath {
+                            path: download_path.join(file),
+                            context: "copying the file to the target directory".to_string(),
+                            source,
+                        }
+                    })?;
                 }
             }
         }
@@ -88,7 +103,7 @@ impl PkgSrcDownloader {
     ///
     /// Get the list of all locally available pkgsrc repositories.
     /// If we find any that are not in the list of official packages, we remove them.
-    fn remove_old_repos(&self, repos: &[String], download_dir: &Path) -> Result<()> {
+    fn remove_old_repos(&self, repos: &[String], download_dir: &Path) -> Result<(), Error> {
         // First up, read the names of all repositories in the local download folder.
         let local_repositories = filenames_in_dir(download_dir)?;
 
@@ -103,8 +118,11 @@ impl PkgSrcDownloader {
         if !removed_pkgs.is_empty() {
             info!("Found {} repositories for cleanup:", removed_pkgs.len());
             for removed in removed_pkgs {
-                remove_dir_all(download_dir.join(removed))
-                    .context("Failed to remove local repository {removed}")?;
+                remove_dir_all(download_dir.join(removed)).map_err(|source| Error::IoPath {
+                    path: download_dir.join(removed),
+                    context: "removing the file".to_string(),
+                    source,
+                })?;
             }
         }
 
@@ -114,14 +132,14 @@ impl PkgSrcDownloader {
     /// Update/clone all git repositories in parallel with rayon.
     ///
     /// A progress bar is added for progress indication.
-    fn parallel_update_or_clone(&self, repos: &[String], download_dir: &Path) -> Result<()> {
+    fn parallel_update_or_clone(&self, repos: &[String], download_dir: &Path) -> Result<(), Error> {
         let progress_bar = get_progress_bar(repos.len() as u64);
 
         // Prepare a ssh session for better performance.
         warmup_ssh_session()?;
 
         // Clone/update all repositories in parallel
-        let results: Vec<Result<(), RepoUpdateError>> = repos
+        let results: Vec<Result<(), Error>> = repos
             .par_iter()
             .map(|repo| {
                 let target_dir = download_dir.join(repo);
@@ -148,10 +166,7 @@ impl PkgSrcDownloader {
         if error_iter.peek().is_some() {
             error!("The command failed for the following repositories:");
             for error in error_iter {
-                error!(
-                    "{} failed for repo {} with error:\n{:?}",
-                    error.operation, error.repo, error.inner
-                );
+                error!("{error}");
             }
         }
 
@@ -165,68 +180,53 @@ impl PkgSrcDownloader {
 ///
 /// This is especially necessary for users that have their SSH key on a physical device, such as a
 /// NitroKey, as authentications with such devices are sequential and take quite some time.
-pub fn warmup_ssh_session() -> Result<()> {
+pub fn warmup_ssh_session() -> Result<(), Error> {
     let mut ssh_command = Command::new("ssh");
     ssh_command.args(vec!["-T", SSH_HOST]);
     trace!("Running command: {ssh_command:?}");
-    let output = &ssh_command
-        .output()
-        .context("Failed to start ssh warmup command")?;
+    let output = &ssh_command.output().map_err(|source| Error::Io {
+        context: "running the SSH warmup command".to_string(),
+        source,
+    })?;
 
-    ensure_success(output).context("Failed to run ssh warmup command:")
-}
-
-#[derive(Display)]
-enum RepoUpdateOperation {
-    Clone,
-    Update,
-}
-
-struct RepoUpdateError {
-    repo: String,
-    operation: RepoUpdateOperation,
-    inner: anyhow::Error,
+    ensure_success(output, "Failed to run ssh warmup command".to_string())
 }
 
 /// Update a local git repository to the newest state.
 /// Resets any local changes in case in each repository beforehand to prevent any conflicts.
-fn update_repo(repo: &str, target_dir: &Path) -> Result<(), RepoUpdateError> {
+fn update_repo(repo: &str, target_dir: &Path) -> Result<(), Error> {
     // Reset any possible local changes.
     let output = Command::new("git")
         .current_dir(target_dir)
         .args(vec!["reset", "--hard"])
         .output()
-        .map_err(|err| RepoUpdateError {
-            repo: repo.to_string(),
-            operation: RepoUpdateOperation::Update,
-            inner: err.into(),
+        .map_err(|source| Error::Io {
+            context: format!("resetting the package source repository \"{repo}\""),
+            source,
         })?;
 
-    ensure_success(&output).map_err(|err| RepoUpdateError {
-        repo: repo.to_string(),
-        operation: RepoUpdateOperation::Update,
-        inner: err,
-    })?;
+    ensure_success(
+        &output,
+        format!("Resetting the package source repository \"{repo}\""),
+    )?;
 
     let output = &Command::new("git")
         .current_dir(target_dir)
         .args(["pull", "--force"])
         .output()
-        .map_err(|err| RepoUpdateError {
-            repo: repo.to_string(),
-            operation: RepoUpdateOperation::Update,
-            inner: err.into(),
+        .map_err(|source| Error::Io {
+            context: format!("pulling the package source repository \"{repo}\""),
+            source,
         })?;
 
-    ensure_success(output).map_err(|err| RepoUpdateError {
-        repo: repo.to_string(),
-        operation: RepoUpdateOperation::Update,
-        inner: err,
-    })
+    ensure_success(
+        output,
+        format!("Pulling the package source repository \"{repo}\""),
+    )
 }
 
 /// Clone a git repository into a target directory.
-fn clone_repo(mut repo: String, target_dir: &Path) -> Result<(), RepoUpdateError> {
+fn clone_repo(mut repo: String, target_dir: &Path) -> Result<(), Error> {
     // Check if this is one of the few packages that needs to be replaced.
     for (to_replace, replace_with) in PACKAGE_REPO_RENAMES {
         if repo == to_replace {
@@ -245,15 +245,13 @@ fn clone_repo(mut repo: String, target_dir: &Path) -> Result<(), RepoUpdateError
         .arg(&ssh_url)
         .arg(target_dir)
         .output()
-        .map_err(|err| RepoUpdateError {
-            repo: repo.to_string(),
-            operation: RepoUpdateOperation::Clone,
-            inner: err.into(),
+        .map_err(|source| Error::Io {
+            context: format!("cloning the package source repository \"{repo}\""),
+            source,
         })?;
 
-    ensure_success(output).map_err(|err| RepoUpdateError {
-        repo: repo.to_string(),
-        operation: RepoUpdateOperation::Clone,
-        inner: err,
-    })
+    ensure_success(
+        output,
+        format!("Cloning the package source repository \"{repo}\""),
+    )
 }

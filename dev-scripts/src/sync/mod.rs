@@ -1,18 +1,15 @@
 //! Syncing of source and binary repositories.
 
-use std::{
-    collections::HashSet,
-    fs::{DirEntry, read_dir},
-    path::Path,
-};
+use std::{collections::HashSet, fs::read_dir, path::Path};
 
-use anyhow::Result;
 use clap::ValueEnum;
 use strum::{Display, EnumIter};
 
 pub mod aur;
 pub mod mirror;
 pub mod pkgsrc;
+
+use crate::Error;
 
 /// All Arch Linux package repositories we may want to test.
 #[derive(Clone, Debug, Display, EnumIter, PartialEq, ValueEnum)]
@@ -37,13 +34,21 @@ pub enum PackageRepositories {
 }
 
 /// A small helper function that returns a list of unique file names in a directory.
-pub fn filenames_in_dir(path: &Path) -> Result<HashSet<String>> {
-    let entries = read_dir(path)?;
-    let entries: Vec<DirEntry> = entries.collect::<Result<Vec<DirEntry>, std::io::Error>>()?;
-    let files: HashSet<String> = entries
-        .iter()
-        .map(|entry| entry.file_name().to_string_lossy().to_string())
-        .collect();
+pub fn filenames_in_dir(path: &Path) -> Result<HashSet<String>, Error> {
+    let entries = read_dir(path).map_err(|source| Error::IoPath {
+        path: path.to_path_buf(),
+        context: "retrieving the entries of the directory".to_string(),
+        source,
+    })?;
+    let mut files: HashSet<String> = HashSet::new();
+    for entry in entries {
+        let entry = entry.map_err(|source| Error::IoPath {
+            path: path.to_path_buf(),
+            context: "retrieving an entry in the directory".to_string(),
+            source,
+        })?;
+        files.insert(entry.file_name().to_string_lossy().to_string());
+    }
 
     Ok(files)
 }
