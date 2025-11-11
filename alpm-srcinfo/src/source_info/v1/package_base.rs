@@ -16,7 +16,7 @@ use alpm_types::{
     PackageRelease,
     PackageVersion,
     RelationOrSoname,
-    RelativePath,
+    RelativeFilePath,
     SkippableChecksum,
     Source,
     SystemArchitecture,
@@ -49,19 +49,19 @@ pub struct PackageBase {
     /// The optional upstream URL of the package base.
     pub url: Option<Url>,
     /// The optional relative path to a changelog file of the package base.
-    pub changelog: Option<RelativePath>,
+    pub changelog: Option<RelativeFilePath>,
     /// The list of licenses that apply to the package base.
     pub licenses: Vec<License>,
 
     // Build or package management related meta fields
     /// The optional relative path to an alpm-install-scriptlet of the package base.
-    pub install: Option<RelativePath>,
+    pub install: Option<RelativeFilePath>,
     /// The optional list of alpm-package-groups the package base is part of.
     pub groups: Vec<String>,
     /// The list of build tool options used when building.
     pub options: Vec<MakepkgOption>,
     /// The list of relative paths to files in a package that should be backed up.
-    pub backups: Vec<RelativePath>,
+    pub backups: Vec<RelativeFilePath>,
 
     // These metadata fields are PackageBase specific
     /// The full version of the `pkgbase`.

@@ -4,7 +4,7 @@ from typing import TypeVar, Generic, Optional, TypeAlias, Union
 
 from alpm.alpm_types import (
     Url,
-    RelativePath,
+    RelativeFilePath,
     License,
     OptionalDependency,
     PackageRelation,
@@ -17,8 +17,8 @@ Overridable: TypeAlias = Union[
     list[str],
     Url,
     list[MakepkgOption],
-    RelativePath,
-    list[RelativePath],
+    RelativeFilePath,
+    list[RelativeFilePath],
     list[License],
     list[RelationOrSoname],
     list[OptionalDependency],
@@ -100,11 +100,11 @@ class Package:
     @url.setter
     def url(self, url: Optional[Override[Url]]) -> None: ...
     @property
-    def changelog(self) -> Optional[Override[RelativePath]]:
+    def changelog(self) -> Optional[Override[RelativeFilePath]]:
         """Override of the package's path to a changelog file."""
 
     @changelog.setter
-    def changelog(self, changelog: Optional[Override[RelativePath]]) -> None: ...
+    def changelog(self, changelog: Optional[Override[RelativeFilePath]]) -> None: ...
     @property
     def licenses(self) -> Optional[Override[list[License]]]:
         """Override of licenses that apply to the package."""
@@ -112,11 +112,11 @@ class Package:
     @licenses.setter
     def licenses(self, licenses: Optional[Override[list[License]]]) -> None: ...
     @property
-    def install(self) -> Optional[Override[RelativePath]]:
+    def install(self) -> Optional[Override[RelativeFilePath]]:
         """Override of the package's install script path."""
 
     @install.setter
-    def install(self, install: Optional[Override[RelativePath]]) -> None: ...
+    def install(self, install: Optional[Override[RelativeFilePath]]) -> None: ...
     @property
     def groups(self) -> Optional[Override[list[str]]]:
         """Override of alpm-package-groups the package is part of."""
@@ -130,11 +130,11 @@ class Package:
     @options.setter
     def options(self, options: Optional[Override[list[MakepkgOption]]]) -> None: ...
     @property
-    def backups(self) -> Optional[Override[list[RelativePath]]]:
+    def backups(self) -> Optional[Override[list[RelativeFilePath]]]:
         """Override of paths to files in the package that should be backed up."""
 
     @backups.setter
-    def backups(self, backups: Optional[Override[list[RelativePath]]]) -> None: ...
+    def backups(self, backups: Optional[Override[list[RelativeFilePath]]]) -> None: ...
     @property
     def architectures(self) -> Optional[Architectures]:
         """The architectures that are supported by this package."""

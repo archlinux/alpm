@@ -70,7 +70,7 @@ pub use path::{
     BuildDirectory,
     Changelog,
     Install,
-    RelativePath,
+    RelativeFilePath,
     SonameLookupDirectory,
     StartDirectory,
 };

@@ -27,7 +27,7 @@ def test_imports() -> None:
         PackageRelation,
         PackageRelease,
         PackageVersion,
-        RelativePath,
+        RelativeFilePath,
         SchemaVersion,
         Sha1Checksum,
         Sha224Checksum,

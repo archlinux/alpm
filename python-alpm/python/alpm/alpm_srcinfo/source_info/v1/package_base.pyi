@@ -6,7 +6,7 @@ from alpm.alpm_srcinfo.source_info.v1.package import PackageArchitecture
 from alpm.alpm_types import (
     FullVersion,
     Url,
-    RelativePath,
+    RelativeFilePath,
     License,
     Architectures,
     OptionalDependency,
@@ -208,11 +208,11 @@ class PackageBase:
     @url.setter
     def url(self, url: Optional["Url"]) -> None: ...
     @property
-    def changelog(self) -> Optional["RelativePath"]:
+    def changelog(self) -> Optional["RelativeFilePath"]:
         """The optional changelog path of the package base."""
 
     @changelog.setter
-    def changelog(self, changelog: Optional["RelativePath"]) -> None: ...
+    def changelog(self, changelog: Optional["RelativeFilePath"]) -> None: ...
     @property
     def licenses(self) -> list["License"]:
         """The list of licenses that apply to the package base."""
@@ -220,11 +220,11 @@ class PackageBase:
     @licenses.setter
     def licenses(self, licenses: list["License"]) -> None: ...
     @property
-    def install(self) -> Optional["RelativePath"]:
+    def install(self) -> Optional["RelativeFilePath"]:
         """Relative path to an alpm-install-scriptlet of the package base."""
 
     @install.setter
-    def install(self, install: Optional["RelativePath"]) -> None: ...
+    def install(self, install: Optional["RelativeFilePath"]) -> None: ...
     @property
     def groups(self) -> list[str]:
         """List of alpm-package-groups the package base is part of."""
@@ -238,11 +238,11 @@ class PackageBase:
     @options.setter
     def options(self, options: list["MakepkgOption"]) -> None: ...
     @property
-    def backups(self) -> list["RelativePath"]:
+    def backups(self) -> list["RelativeFilePath"]:
         """Relative paths to files in a package that should be backed up."""
 
     @backups.setter
-    def backups(self, backups: list["RelativePath"]) -> None: ...
+    def backups(self, backups: list["RelativeFilePath"]) -> None: ...
     @property
     def version(self) -> "FullVersion":
         """The FullVersion of the package base."""

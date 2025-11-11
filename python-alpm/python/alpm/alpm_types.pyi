@@ -403,7 +403,7 @@ def openpgp_identifier_from_str(
 
     """
 
-class RelativePath:
+class RelativeFilePath:
     """A representation of a relative file path.
 
     Wraps a Path that is guaranteed to represent a relative file path (i.e. it does not
@@ -1355,7 +1355,7 @@ __all__ = [
     "OpenPGPKeyId",
     "OpenPGPv4Fingerprint",
     "openpgp_identifier_from_str",
-    "RelativePath",
+    "RelativeFilePath",
     "UnknownArchitecture",
     "KnownArchitecture",
     "Architecture",

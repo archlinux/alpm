@@ -14,7 +14,7 @@ from alpm.alpm_types import (
     License,
     OptionalDependency,
     PackageRelation,
-    RelativePath,
+    RelativeFilePath,
     SkippableBlake2b512Checksum,
     SkippableCrc32CksumChecksum,
     SkippableMd5Checksum,
@@ -121,7 +121,7 @@ def test_package_base_changelog_getter_setter() -> None:
 
     assert package_base.changelog is None
 
-    changelog = RelativePath("CHANGELOG.md")
+    changelog = RelativeFilePath("CHANGELOG.md")
     package_base.changelog = changelog
     assert package_base.changelog == changelog
 
@@ -145,7 +145,7 @@ def test_package_base_install_getter_setter() -> None:
 
     assert package_base.install is None
 
-    install = RelativePath("install.sh")
+    install = RelativeFilePath("install.sh")
     package_base.install = install
     assert package_base.install == install
 
@@ -181,7 +181,7 @@ def test_package_base_backups_getter_setter() -> None:
 
     assert package_base.backups == []
 
-    backups = [RelativePath("etc/config.conf"), RelativePath("etc/other.conf")]
+    backups = [RelativeFilePath("etc/config.conf"), RelativeFilePath("etc/other.conf")]
     package_base.backups = backups
     assert package_base.backups == backups
 

@@ -13,7 +13,7 @@ from alpm.alpm_types import (
     License,
     OptionalDependency,
     PackageRelation,
-    RelativePath,
+    RelativeFilePath,
     SonameV1,
     Url,
     Version,
@@ -109,7 +109,7 @@ def test_package_changelog_getter_setter() -> None:
     assert package.changelog is None
 
     # Override
-    changelog = RelativePath("CHANGELOG.md")
+    changelog = RelativeFilePath("CHANGELOG.md")
     override_changelog = Override(changelog)
     package.changelog = override_changelog
     assert package.changelog.value == changelog
@@ -151,7 +151,7 @@ def test_package_install_getter_setter() -> None:
     assert package.install is None
 
     # Override
-    install = RelativePath("install.sh")
+    install = RelativeFilePath("install.sh")
     override_install = Override(install)
     package.install = override_install
     assert package.install.value == install
@@ -214,7 +214,7 @@ def test_package_backups_getter_setter() -> None:
     assert package.backups is None
 
     # Override
-    backups = [RelativePath("etc/config.conf"), RelativePath("etc/other.conf")]
+    backups = [RelativeFilePath("etc/config.conf"), RelativeFilePath("etc/other.conf")]
     override_backups = Override(backups)
     package.backups = override_backups
     assert package.backups.value == backups
@@ -548,9 +548,9 @@ def test_override_with_url() -> None:
 
 
 def test_override_with_relative_path() -> None:
-    """Test Override with RelativePath type."""
-    path = RelativePath("path/to/file")
-    override: Override[RelativePath] = Override(path)
+    """Test Override with RelativeFilePath type."""
+    path = RelativeFilePath("path/to/file")
+    override: Override[RelativeFilePath] = Override(path)
     assert override.value == path
 
 

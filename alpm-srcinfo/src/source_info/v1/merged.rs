@@ -11,7 +11,7 @@ use alpm_types::{
     PackageDescription,
     PackageRelation,
     RelationOrSoname,
-    RelativePath,
+    RelativeFilePath,
     SkippableChecksum,
     Source,
     Url,
@@ -47,17 +47,17 @@ pub struct MergedPackage {
     /// The alpm-architecture for the package.
     pub architecture: Architecture,
     /// The optional relative path to a changelog file for the package.
-    pub changelog: Option<RelativePath>,
+    pub changelog: Option<RelativeFilePath>,
 
     // Build or package management related meta fields
     /// The optional relative path to an alpm-install-scriptlet for the package.
-    pub install: Option<RelativePath>,
+    pub install: Option<RelativeFilePath>,
     /// The list of alpm-package-groups the package is part of.
     pub groups: Vec<String>,
     /// The list of build tool options used when builidng the package.
     pub options: Vec<MakepkgOption>,
     /// The list of relative paths to files in the package that should be backed up.
-    pub backups: Vec<RelativePath>,
+    pub backups: Vec<RelativeFilePath>,
 
     /// The full version of the package.
     pub version: FullVersion,

@@ -8,7 +8,7 @@ use crate::{
     types::{
         env::MakepkgOption,
         license::License,
-        path::RelativePath,
+        path::RelativeFilePath,
         relation::{OptionalDependency, PackageRelation, RelationOrSoname},
         system::{Architectures, SystemArchitecture},
         url::Url,
@@ -147,7 +147,7 @@ impl Package {
     #[getter]
     fn get_changelog(&self) -> Option<Override> {
         into_pyoverride!(self.0.changelog.clone(),
-            alpm_srcinfo_package::Override::Yes { value } => Overridable::RelativePath(value.into())
+            alpm_srcinfo_package::Override::Yes { value } => Overridable::RelativeFilePath(value.into())
         )
     }
 
@@ -173,7 +173,7 @@ impl Package {
     #[getter]
     fn get_install(&self) -> Option<Override> {
         into_pyoverride!(self.0.install.clone(),
-            alpm_srcinfo_package::Override::Yes { value } => Overridable::RelativePath(value.into())
+            alpm_srcinfo_package::Override::Yes { value } => Overridable::RelativeFilePath(value.into())
         )
     }
 
@@ -212,7 +212,7 @@ impl Package {
     #[getter]
     fn get_backups(&self) -> Option<Override> {
         into_pyoverride!(self.0.backups.clone(),
-            alpm_srcinfo_package::Override::Yes { value } => Overridable::RelativePaths(vec_convert!(value))
+            alpm_srcinfo_package::Override::Yes { value } => Overridable::RelativeFilePaths(vec_convert!(value))
         )
     }
 
@@ -439,8 +439,8 @@ pub enum Overridable {
     Strings(Vec<String>),
     Url(Url),
     MakepkgOptions(Vec<MakepkgOption>),
-    RelativePath(RelativePath),
-    RelativePaths(Vec<RelativePath>),
+    RelativeFilePath(RelativeFilePath),
+    RelativeFilePaths(Vec<RelativeFilePath>),
     Licenses(Vec<License>),
     RelationsOrSonames(Vec<RelationOrSoname>),
     OptionalDependencies(Vec<OptionalDependency>),
@@ -538,8 +538,8 @@ impl_tryfrom_override!(String, "str", Overridable::String(s) => s.as_str());
 impl_tryfrom_override!(Vec<String>, "list[str]", Overridable::Strings(s) => s);
 impl_tryfrom_override!(alpm_types::PackageDescription, "str", Overridable::String(s) => s.as_str());
 impl_tryfrom_override!(alpm_types::Url, "Url", Overridable::Url(u) => u);
-impl_tryfrom_override!(alpm_types::RelativePath, "RelativePath", Overridable::RelativePath(p) => p);
-impl_tryfrom_override!(Vec<alpm_types::RelativePath>, "list[RelativePath]", Overridable::RelativePaths(p) => vec_convert!(p));
+impl_tryfrom_override!(alpm_types::RelativeFilePath, "RelativeFilePath", Overridable::RelativeFilePath(p) => p);
+impl_tryfrom_override!(Vec<alpm_types::RelativeFilePath>, "list[RelativeFilePath]", Overridable::RelativeFilePaths(p) => vec_convert!(p));
 impl_tryfrom_override!(Vec<alpm_types::License>, "list[License]",
     Overridable::Licenses(l) => vec_convert!(l)
 );

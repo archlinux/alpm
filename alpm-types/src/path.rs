@@ -123,7 +123,7 @@ pub type StartDirectory = AbsolutePath;
 
 /// A representation of a relative file path
 ///
-/// `RelativePath` wraps a `PathBuf` that is guaranteed to represent a
+/// `RelativeFilePath` wraps a `PathBuf` that is guaranteed to represent a
 /// relative file path (i.e. it does not end with a `/`).
 ///
 /// ## Examples
@@ -131,33 +131,33 @@ pub type StartDirectory = AbsolutePath;
 /// ```
 /// use std::{path::PathBuf, str::FromStr};
 ///
-/// use alpm_types::{Error, RelativePath};
+/// use alpm_types::{Error, RelativeFilePath};
 ///
 /// # fn main() -> Result<(), alpm_types::Error> {
-/// // Create RelativePath from &str
+/// // Create RelativeFilePath from &str
 /// assert_eq!(
-///     RelativePath::from_str("etc/test.conf"),
-///     RelativePath::new(PathBuf::from("etc/test.conf"))
+///     RelativeFilePath::from_str("etc/test.conf"),
+///     RelativeFilePath::new(PathBuf::from("etc/test.conf"))
 /// );
 /// assert_eq!(
-///     RelativePath::from_str("/etc/test.conf"),
+///     RelativeFilePath::from_str("/etc/test.conf"),
 ///     Err(Error::PathNotRelative(PathBuf::from("/etc/test.conf")))
 /// );
 ///
 /// // Format as String
 /// assert_eq!(
 ///     "test/test.txt",
-///     RelativePath::from_str("test/test.txt")?.to_string()
+///     RelativeFilePath::from_str("test/test.txt")?.to_string()
 /// );
 /// # Ok(())
 /// # }
 /// ```
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-pub struct RelativePath(PathBuf);
+pub struct RelativeFilePath(PathBuf);
 
-impl RelativePath {
-    /// Create a new `RelativePath`
-    pub fn new(path: PathBuf) -> Result<RelativePath, Error> {
+impl RelativeFilePath {
+    /// Create a new `RelativeFilePath`
+    pub fn new(path: PathBuf) -> Result<RelativeFilePath, Error> {
         if path
             .to_string_lossy()
             .ends_with(std::path::MAIN_SEPARATOR_STR)
@@ -167,7 +167,7 @@ impl RelativePath {
         if !path.is_relative() {
             return Err(Error::PathNotRelative(path));
         }
-        Ok(RelativePath(path))
+        Ok(RelativeFilePath(path))
     }
 
     /// Return a reference to the inner type
@@ -176,7 +176,7 @@ impl RelativePath {
     }
 }
 
-impl FromStr for RelativePath {
+impl FromStr for RelativeFilePath {
     type Err = Error;
 
     /// Parses a relative path from a string
@@ -184,12 +184,12 @@ impl FromStr for RelativePath {
     /// # Errors
     ///
     /// Returns an error if the path is not relative
-    fn from_str(s: &str) -> Result<RelativePath, Self::Err> {
+    fn from_str(s: &str) -> Result<RelativeFilePath, Self::Err> {
         Self::new(PathBuf::from(s))
     }
 }
 
-impl Display for RelativePath {
+impl Display for RelativeFilePath {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
         write!(fmt, "{}", self.inner().display())
     }
@@ -197,7 +197,7 @@ impl Display for RelativePath {
 
 /// The path of a packaged file that should be preserved during package operations
 ///
-/// This is a type alias for [`RelativePath`]
+/// This is a type alias for [`RelativeFilePath`]
 ///
 /// ## Examples
 /// ```
@@ -213,11 +213,11 @@ impl Display for RelativePath {
 /// );
 /// # Ok(())
 /// # }
-pub type Backup = RelativePath;
+pub type Backup = RelativeFilePath;
 
 /// A special install script that is to be included in the package
 ///
-/// This is a type alias for [RelativePath`]
+/// This is a type alias for [RelativeFilePath`]
 ///
 /// ## Examples
 /// ```
@@ -233,11 +233,11 @@ pub type Backup = RelativePath;
 /// );
 /// # Ok(())
 /// # }
-pub type Install = RelativePath;
+pub type Install = RelativeFilePath;
 
 /// The relative path to a changelog file that may be included in a package
 ///
-/// This is a type alias for [`RelativePath`]
+/// This is a type alias for [`RelativeFilePath`]
 ///
 /// ## Examples
 /// ```
@@ -253,7 +253,7 @@ pub type Install = RelativePath;
 /// );
 /// # Ok(())
 /// # }
-pub type Changelog = RelativePath;
+pub type Changelog = RelativeFilePath;
 
 /// A lookup directory for shared object files.
 ///
@@ -386,19 +386,19 @@ mod tests {
     }
 
     #[rstest]
-    #[case("etc/test.conf", RelativePath::new(PathBuf::from("etc/test.conf")))]
+    #[case("etc/test.conf", RelativeFilePath::new(PathBuf::from("etc/test.conf")))]
     #[case(
         "/etc/test.conf",
         Err(Error::PathNotRelative(PathBuf::from("/etc/test.conf")))
     )]
     #[case("etc/", Err(Error::PathIsNotAFile(PathBuf::from("etc/"))))]
-    #[case("etc", RelativePath::new(PathBuf::from("etc")))]
+    #[case("etc", RelativeFilePath::new(PathBuf::from("etc")))]
     #[case(
         "../etc/test.conf",
-        RelativePath::new(PathBuf::from("../etc/test.conf"))
+        RelativeFilePath::new(PathBuf::from("../etc/test.conf"))
     )]
-    fn relative_path_from_str(#[case] s: &str, #[case] result: Result<RelativePath, Error>) {
-        assert_eq!(RelativePath::from_str(s), result);
+    fn relative_path_from_str(#[case] s: &str, #[case] result: Result<RelativeFilePath, Error>) {
+        assert_eq!(RelativeFilePath::from_str(s), result);
     }
 
     #[rstest]

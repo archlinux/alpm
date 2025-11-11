@@ -22,7 +22,7 @@ use alpm_types::{
     PackageRelease,
     PackageVersion,
     RelationOrSoname,
-    RelativePath,
+    RelativeFilePath,
     SkippableChecksum,
     Source,
     Url,
@@ -738,16 +738,16 @@ pub enum SharedMetaProperty {
     License(License),
     /// An [`Architecture`].
     Architecture(Architecture),
-    /// A [`RelativePath`] for a changelog file of a package.
-    Changelog(RelativePath),
-    /// A [`RelativePath`] for an alpm-install-scriptlet file of a package.
-    Install(RelativePath),
+    /// A [`RelativeFilePath`] for a changelog of a package.
+    Changelog(RelativeFilePath),
+    /// A [`RelativeFilePath`] for an alpm-install-scriptlet of a package.
+    Install(RelativeFilePath),
     /// An alpm-package-group of a package.
     Group(String),
     /// A [`MakepkgOption`] used for building a package.
     Option(MakepkgOption),
-    /// A [`RelativePath`] for file in a package that should be backed up.
-    Backup(RelativePath),
+    /// A [`RelativeFilePath`] for file in a package that should be backed up.
+    Backup(RelativeFilePath),
 }
 
 impl SharedMetaProperty {

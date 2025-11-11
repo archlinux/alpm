@@ -66,7 +66,7 @@ pub mod py_types {
     #[pymodule_export]
     use openpgp::openpgp_identifier_from_str;
     #[pymodule_export]
-    use path::RelativePath;
+    use path::RelativeFilePath;
     #[pymodule_export]
     use relation::OptionalDependency;
     #[pymodule_export]

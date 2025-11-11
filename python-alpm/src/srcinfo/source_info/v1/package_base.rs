@@ -20,7 +20,7 @@ use crate::{
         env::MakepkgOption,
         license::License,
         openpgp::OpenPGPIdentifier,
-        path::RelativePath,
+        path::RelativeFilePath,
         relation::{OptionalDependency, PackageRelation, RelationOrSoname},
         source::Source,
         system::{Architectures, SystemArchitecture},
@@ -76,12 +76,12 @@ impl PackageBase {
     }
 
     #[getter]
-    fn get_changelog(&self) -> Option<RelativePath> {
+    fn get_changelog(&self) -> Option<RelativeFilePath> {
         self.0.changelog.to_owned().map(From::from)
     }
 
     #[setter]
-    fn set_changelog(&mut self, changelog: Option<RelativePath>) {
+    fn set_changelog(&mut self, changelog: Option<RelativeFilePath>) {
         self.0.changelog = changelog.map(From::from);
     }
 
@@ -96,12 +96,12 @@ impl PackageBase {
     }
 
     #[getter]
-    fn get_install(&self) -> Option<RelativePath> {
+    fn get_install(&self) -> Option<RelativeFilePath> {
         self.0.install.clone().map(From::from)
     }
 
     #[setter]
-    fn set_install(&mut self, install: Option<RelativePath>) {
+    fn set_install(&mut self, install: Option<RelativeFilePath>) {
         self.0.install = install.map(From::from);
     }
 
@@ -126,12 +126,12 @@ impl PackageBase {
     }
 
     #[getter]
-    fn get_backups(&self) -> Vec<RelativePath> {
+    fn get_backups(&self) -> Vec<RelativeFilePath> {
         vec_convert!(self.0.backups.clone())
     }
 
     #[setter]
-    fn set_backups(&mut self, backups: Vec<RelativePath>) {
+    fn set_backups(&mut self, backups: Vec<RelativeFilePath>) {
         self.0.backups = vec_convert!(backups);
     }
 
