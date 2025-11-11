@@ -18,7 +18,7 @@ path = "src/main.rs"
 required-features = ["cli"]
 
 [features]
-cli = ["dep:clap", "dep:clap-verbosity", "dep:serde_json"]
+cli = ["dep:clap", "dep:clap-verbosity-flag", "dep:serde_json"]
 default = []
 
 [dependencies]
@@ -26,7 +26,7 @@ alpm-package.workspace = true
 alpm-pkginfo.workspace = true
 alpm-types.workspace = true
 clap = { workspace = true, optional = true }
-clap-verbosity = { workspace = true, optional = true }
+clap-verbosity-flag = { workspace = true, optional = true }
 goblin = "0.10.0"
 log.workspace = true
 serde.workspace = true

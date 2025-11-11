@@ -11,7 +11,7 @@ use clap::{Parser, Subcommand, ValueEnum};
 pub struct Cli {
     /// Log verbosity level
     #[command(flatten)]
-    pub verbose: clap_verbosity::Verbosity,
+    pub verbose: clap_verbosity_flag::Verbosity,
 
     /// Available subcommands
     #[command(subcommand)]

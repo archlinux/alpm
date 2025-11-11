@@ -38,7 +38,7 @@ pub enum OutputFormat {
 pub struct Cli {
     /// Log verbosity level
     #[command(flatten)]
-    pub verbose: clap_verbosity::Verbosity,
+    pub verbose: clap_verbosity_flag::Verbosity,
 
     /// The `alpm-lint` commands.
     ///

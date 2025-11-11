@@ -124,7 +124,7 @@ dependencies = [
  "alpm-types",
  "assert_cmd",
  "clap",
- "clap-verbosity",
+ "clap-verbosity-flag",
  "colored",
  "documented",
  "insta",
@@ -268,7 +268,7 @@ dependencies = [
  "alpm-types",
  "assert_cmd",
  "clap",
- "clap-verbosity",
+ "clap-verbosity-flag",
  "goblin",
  "log",
  "rstest",
@@ -578,14 +578,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "clap-verbosity"
-version = "2.1.0"
+name = "clap-verbosity-flag"
+version = "3.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3d7bf75a8e0407a558bd7e8e7919baa352e21fb0c1c7702a63c853f2277c4c63"
+checksum = "9d92b1fab272fe943881b77cc6e920d6543e5b1bfadbd5ed81c7c5a755742394"
 dependencies = [
  "clap",
  "log",
- "serde",
 ]
 
 [[package]]
