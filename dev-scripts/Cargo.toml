@@ -26,7 +26,7 @@ alpm-common.workspace = true
 alpm-mtree.workspace = true
 alpm-pkgbuild.workspace = true
 alpm-pkginfo.workspace = true
-alpm-srcinfo = { path = "../alpm-srcinfo" }
+alpm-srcinfo.workspace = true
 anyhow = "1"
 clap.workspace = true
 colored.workspace = true
