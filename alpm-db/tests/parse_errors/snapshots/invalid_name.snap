@@ -9,4 +9,4 @@ parse error at line 2, column 1
 2 | foo bar!
   | ^
 invalid sections
-expected expected a section in the database desc file
+expected a section in the database desc file

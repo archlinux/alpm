@@ -220,7 +220,7 @@ where
     repeat_till(0.., value, alt((next_section, blank_line, eof.map(|_| ()))))
         .context(StrContext::Label("values"))
         .context(StrContext::Expected(StrContextValue::Description(
-            "expected a list of values in the database desc file",
+            "a list of values in the database desc file",
         )))
         .parse_next(input)
         .map(|(outs, _)| outs)
@@ -240,7 +240,7 @@ fn section(input: &mut &str) -> ModalResult<Section> {
     let section_keyword = cut_err(SectionKeyword::parser)
         .context(StrContext::Label("section name"))
         .context(StrContext::Expected(StrContextValue::Description(
-            "expected a section name that is enclosed in `%` characters",
+            "a section name that is enclosed in `%` characters",
         )))
         .context_with(iter_str_context!([SectionKeyword::VARIANTS]))
         .parse_next(input)?;
@@ -297,7 +297,7 @@ pub(crate) fn sections(input: &mut &str) -> ModalResult<Vec<Section>> {
     ))
     .context(StrContext::Label("sections"))
     .context(StrContext::Expected(StrContextValue::Description(
-        "expected a section in the database desc file",
+        "a section in the database desc file",
     )))
     .parse_next(input)
     .map(|(sections, _)| sections)

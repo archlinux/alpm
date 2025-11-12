@@ -9,5 +9,5 @@ parse error at line 1, column 1
 1 | %name%
   | ^
 invalid section name
-expected expected a section name that is enclosed in `%` characters, `NAME`, `VERSION`, `BASE`, `DESC`, `URL`, `ARCH`, `BUILDDATE`, `INSTALLDATE`, `PACKAGER`, `SIZE`, `GROUPS`, `REASON`, `LICENSE`, `VALIDATION`, `REPLACES`, `DEPENDS`, `OPTDEPENDS`, `CONFLICTS`, `PROVIDES`, `XDATA`, expected a section in the database desc file
+expected a section name that is enclosed in `%` characters, `NAME`, `VERSION`, `BASE`, `DESC`, `URL`, `ARCH`, `BUILDDATE`, `INSTALLDATE`, `PACKAGER`, `SIZE`, `GROUPS`, `REASON`, `LICENSE`, `VALIDATION`, `REPLACES`, `DEPENDS`, `OPTDEPENDS`, `CONFLICTS`, `PROVIDES`, `XDATA`, a section in the database desc file
 Matching variant not found
