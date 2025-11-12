@@ -18,6 +18,7 @@ use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 use super::{PackageRepositories, filenames_in_dir};
 use crate::{
+    CacheDir,
     Error,
     cmd::ensure_success,
     consts::{DATABASES_DIR, DOWNLOAD_DIR, PACKAGES_DIR},
@@ -29,7 +30,7 @@ use crate::{
 #[derive(Clone, Debug)]
 pub struct MirrorDownloader {
     /// The destination folder into which files should be downloaded.
-    pub dest: PathBuf,
+    pub cache_dir: CacheDir,
     /// The mirror url from which files will be downloaded.
     pub mirror: String,
     /// The repositories that should be downloaded.
@@ -45,8 +46,12 @@ impl MirrorDownloader {
     /// - `desc`
     /// - `files`
     pub fn sync_remote_databases(&self) -> Result<(), Error> {
-        let download_dir = self.dest.join(DOWNLOAD_DIR).join(DATABASES_DIR);
-        let target_dir = self.dest.join(DATABASES_DIR);
+        let download_dir = self
+            .cache_dir
+            .as_ref()
+            .join(DOWNLOAD_DIR)
+            .join(DATABASES_DIR);
+        let target_dir = self.cache_dir.as_ref().join(DATABASES_DIR);
 
         create_dir_all(&download_dir).map_err(|source| Error::IoPath {
             path: download_dir.clone(),
@@ -160,8 +165,12 @@ impl MirrorDownloader {
     ///  - `.PKGINFO`
     ///  - `.INSTALL` (Optional)
     pub fn sync_remote_packages(&self) -> Result<(), Error> {
-        let download_dir = self.dest.join(DOWNLOAD_DIR).join(PACKAGES_DIR);
-        let target_dir = self.dest.join(PACKAGES_DIR);
+        let download_dir = self
+            .cache_dir
+            .as_ref()
+            .join(DOWNLOAD_DIR)
+            .join(PACKAGES_DIR);
+        let target_dir = self.cache_dir.as_ref().join(PACKAGES_DIR);
 
         create_dir_all(&download_dir).map_err(|source| Error::IoPath {
             path: download_dir.clone(),

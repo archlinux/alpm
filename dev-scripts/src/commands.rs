@@ -6,15 +6,15 @@ use std::{
 
 use alpm_common::MetadataFile;
 use alpm_srcinfo::{SourceInfo, SourceInfoV1};
-use dirs::cache_dir;
 use log::warn;
 use serde_json::to_string_pretty;
 use strum::IntoEnumIterator;
 
 use crate::{
+    CacheDir,
     Error,
     cli::{CleanCmd, DownloadCmd, TestFilesCmd},
-    consts::{DATABASES_DIR, DOWNLOAD_DIR, PACKAGES_DIR, PKGSRC_DIR, PROJECT_NAME, TESTING_DIR},
+    consts::{DATABASES_DIR, DOWNLOAD_DIR, PACKAGES_DIR, PKGSRC_DIR},
     sync::{
         PackageRepositories,
         aur::AurDownloader,
@@ -31,55 +31,37 @@ use crate::{
 /// - Download packages.
 /// - Test file parsers on all files.
 /// - Clean up downloaded files.
-pub(crate) fn test_files(cmd: TestFilesCmd) -> Result<(), Error> {
+pub(crate) fn test_files(cmd: TestFilesCmd, cache_dir: CacheDir) -> Result<(), Error> {
     match cmd {
         TestFilesCmd::Test {
-            test_data_dir,
             repositories,
             file_type,
         } => {
-            // Set a default download destination.
-            let test_data_dir = match test_data_dir {
-                Some(test_data_dir) => test_data_dir,
-                None => cache_dir()
-                    .ok_or(Error::CannotGetCacheDir)?
-                    .join(PROJECT_NAME)
-                    .join(TESTING_DIR),
-            };
             let repositories = PackageRepositories::iter()
                 .filter(|v| repositories.clone().is_none_or(|r| r.contains(v)))
                 .collect();
             let runner = TestRunner {
-                test_data_dir,
+                cache_dir,
                 file_type,
                 repositories,
             };
             runner.run_tests()?;
         }
         TestFilesCmd::Download {
-            destination,
             repositories,
             source,
         } => {
-            // Set a default download destination.
-            let dest = match destination {
-                Some(dest) => dest,
-                None => cache_dir()
-                    .ok_or(Error::CannotGetCacheDir)?
-                    .join(PROJECT_NAME)
-                    .join(TESTING_DIR),
-            };
             let repositories = PackageRepositories::iter()
                 .filter(|v| repositories.clone().is_none_or(|r| r.contains(v)))
                 .collect();
 
             match source {
                 DownloadCmd::PkgSrcRepositories {} => {
-                    let downloader = PkgSrcDownloader { dest };
+                    let downloader = PkgSrcDownloader { cache_dir };
                     downloader.download_package_source_repositories()?;
                 }
                 DownloadCmd::Aur {} => {
-                    let downloader = AurDownloader { dest };
+                    let downloader = AurDownloader { cache_dir };
                     downloader.download_packages()?;
                 }
                 DownloadCmd::Databases {
@@ -87,7 +69,7 @@ pub(crate) fn test_files(cmd: TestFilesCmd) -> Result<(), Error> {
                     force_extract,
                 } => {
                     let downloader = MirrorDownloader {
-                        dest,
+                        cache_dir,
                         mirror,
                         repositories,
                         extract_all: force_extract,
@@ -102,7 +84,7 @@ pub(crate) fn test_files(cmd: TestFilesCmd) -> Result<(), Error> {
                     force_extract,
                 } => {
                     let downloader = MirrorDownloader {
-                        dest,
+                        cache_dir,
                         mirror,
                         repositories,
                         extract_all: force_extract,
@@ -114,31 +96,19 @@ pub(crate) fn test_files(cmd: TestFilesCmd) -> Result<(), Error> {
                 }
             };
         }
-        TestFilesCmd::Clean {
-            destination,
-            source,
-        } => {
-            // Set a default download destination.
-            let dest = match destination {
-                Some(dest) => dest,
-                None => cache_dir()
-                    .ok_or(Error::CannotGetCacheDir)?
-                    .join(PROJECT_NAME)
-                    .join(TESTING_DIR),
-            };
-
+        TestFilesCmd::Clean { source } => {
             let dirs = match source {
                 CleanCmd::PkgSrcRepositories => [
-                    dest.join(DOWNLOAD_DIR).join(PKGSRC_DIR),
-                    dest.join(PKGSRC_DIR),
+                    cache_dir.as_ref().join(DOWNLOAD_DIR).join(PKGSRC_DIR),
+                    cache_dir.as_ref().join(PKGSRC_DIR),
                 ],
                 CleanCmd::Databases => [
-                    dest.join(DOWNLOAD_DIR).join(DATABASES_DIR),
-                    dest.join(DATABASES_DIR),
+                    cache_dir.as_ref().join(DOWNLOAD_DIR).join(DATABASES_DIR),
+                    cache_dir.as_ref().join(DATABASES_DIR),
                 ],
                 CleanCmd::Packages => [
-                    dest.join(DOWNLOAD_DIR).join(PACKAGES_DIR),
-                    dest.join(PACKAGES_DIR),
+                    cache_dir.as_ref().join(DOWNLOAD_DIR).join(PACKAGES_DIR),
+                    cache_dir.as_ref().join(PACKAGES_DIR),
                 ],
             };
 

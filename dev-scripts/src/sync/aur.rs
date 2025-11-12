@@ -16,6 +16,7 @@ use rayon::prelude::*;
 use reqwest::blocking::get;
 
 use crate::{
+    CacheDir,
     Error,
     cmd::ensure_success,
     consts::{AUR_DIR, DOWNLOAD_DIR},
@@ -31,7 +32,7 @@ const AUR_GIT_MIRROR_URL: &str = "https://github.com/archlinux/aur.git";
 #[derive(Clone, Debug)]
 pub struct AurDownloader {
     /// The destination folder into which files should be downloaded.
-    pub dest: PathBuf,
+    pub cache_dir: CacheDir,
 }
 
 impl AurDownloader {
@@ -145,7 +146,7 @@ impl AurDownloader {
     }
 
     fn download_dir(&self) -> PathBuf {
-        self.dest.join(DOWNLOAD_DIR)
+        self.cache_dir.as_ref().join(DOWNLOAD_DIR)
     }
 
     fn repo_dir(&self) -> PathBuf {
@@ -153,7 +154,7 @@ impl AurDownloader {
     }
 
     fn target_dir(&self) -> PathBuf {
-        self.dest.join(AUR_DIR)
+        self.cache_dir.as_ref().join(AUR_DIR)
     }
 }
 

@@ -7,10 +7,12 @@ use cli::Cli;
 use simplelog::{Config, SimpleLogger};
 
 use crate::{
+    cache::CacheDir,
     commands::{compare_source_info, test_files},
     error::Error,
 };
 
+mod cache;
 mod cli;
 mod cmd;
 mod commands;
@@ -26,7 +28,15 @@ fn run_command() -> Result<(), Error> {
     SimpleLogger::init(cli.verbose.log_level_filter(), Config::default())?;
 
     match cli.cmd {
-        cli::Command::TestFiles { cmd } => test_files(cmd),
+        cli::Command::TestFiles { cmd, cache_dir } => {
+            let cache_dir = if let Some(path) = cache_dir {
+                CacheDir::from(path)
+            } else {
+                CacheDir::from_xdg()?
+            };
+
+            test_files(cmd, cache_dir)
+        }
         cli::Command::CompareSrcinfo {
             pkgbuild_path,
             srcinfo_path,

@@ -12,6 +12,7 @@ use log::{debug, info};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 use crate::{
+    CacheDir,
     Error,
     cli::TestFileType,
     consts::{AUR_DIR, DATABASES_DIR, PACKAGES_DIR, PKGSRC_DIR},
@@ -23,7 +24,7 @@ use crate::{
 #[derive(Clone, Debug)]
 pub struct TestRunner {
     /// The directory in which test data is stored.
-    pub test_data_dir: PathBuf,
+    pub cache_dir: CacheDir,
     /// The type of file that is targeted in the test.
     pub file_type: TestFileType,
     /// The list of repositories against which the test runs.
@@ -115,11 +116,16 @@ impl TestRunner {
             TestFileType::BuildInfo | TestFileType::PackageInfo | TestFileType::MTree => self
                 .repositories
                 .iter()
-                .map(|repo| self.test_data_dir.join(PACKAGES_DIR).join(repo.to_string()))
+                .map(|repo| {
+                    self.cache_dir
+                        .as_ref()
+                        .join(PACKAGES_DIR)
+                        .join(repo.to_string())
+                })
                 .collect(),
             TestFileType::SrcInfo => vec![
-                self.test_data_dir.join(PKGSRC_DIR),
-                self.test_data_dir.join(AUR_DIR),
+                self.cache_dir.as_ref().join(PKGSRC_DIR),
+                self.cache_dir.as_ref().join(AUR_DIR),
             ],
             // The `desc` and `files` file types are nested in the subdirectories of the respective
             // package's package repository.
@@ -127,7 +133,8 @@ impl TestRunner {
                 .repositories
                 .iter()
                 .map(|repo| {
-                    self.test_data_dir
+                    self.cache_dir
+                        .as_ref()
                         .join(DATABASES_DIR)
                         .join(repo.to_string())
                 })
@@ -225,7 +232,7 @@ mod tests {
 
         // Run the logic to find the files in question.
         let runner = TestRunner {
-            test_data_dir: tmp_dir.path().to_owned(),
+            cache_dir: CacheDir::from(tmp_dir.path().to_owned()),
             file_type,
             repositories: PackageRepositories::iter().collect(),
         };
@@ -277,7 +284,7 @@ mod tests {
 
         // Run the logic to find the files in question.
         let runner = TestRunner {
-            test_data_dir: tmp_dir.path().to_owned(),
+            cache_dir: CacheDir::from(tmp_dir.path().to_owned()),
             file_type,
             repositories: PackageRepositories::iter().collect(),
         };
@@ -323,7 +330,7 @@ mod tests {
 
         // Run the logic to find the files in question.
         let runner = TestRunner {
-            test_data_dir: tmp_dir.path().to_owned(),
+            cache_dir: CacheDir::from(tmp_dir.path().to_owned()),
             file_type,
             repositories: PackageRepositories::iter().collect(),
         };

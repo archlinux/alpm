@@ -6,7 +6,7 @@
 use std::{
     collections::{HashMap, HashSet},
     fs::{copy, create_dir_all, remove_dir_all},
-    path::{Path, PathBuf},
+    path::Path,
     process::Command,
 };
 
@@ -17,6 +17,7 @@ use reqwest::blocking::get;
 
 use super::filenames_in_dir;
 use crate::{
+    CacheDir,
     Error,
     cmd::ensure_success,
     consts::{DOWNLOAD_DIR, PKGSRC_DIR},
@@ -42,7 +43,7 @@ const PACKAGE_REPO_RENAMES: [(&str, &str); 3] = [
 #[derive(Clone, Debug)]
 pub struct PkgSrcDownloader {
     /// The destination folder into which files should be downloaded.
-    pub dest: PathBuf,
+    pub cache_dir: CacheDir,
 }
 
 impl PkgSrcDownloader {
@@ -65,7 +66,7 @@ impl PkgSrcDownloader {
         let all_repo_names: Vec<String> = repos.keys().map(String::from).collect();
         info!("Found {} official packages.", all_repo_names.len());
 
-        let download_dir = self.dest.join(DOWNLOAD_DIR).join(PKGSRC_DIR);
+        let download_dir = self.cache_dir.as_ref().join(DOWNLOAD_DIR).join(PKGSRC_DIR);
 
         // Remove all old repos before trying to update them.
         self.remove_old_repos(&all_repo_names, &download_dir)?;
@@ -78,7 +79,7 @@ impl PkgSrcDownloader {
             let download_path = download_dir.join(&repo);
             for file in [SRCINFO_FILE_NAME, PKGBUILD_FILE_NAME] {
                 if download_path.join(file).exists() {
-                    let target_dir = self.dest.join(PKGSRC_DIR).join(&repo);
+                    let target_dir = self.cache_dir.as_ref().join(PKGSRC_DIR).join(&repo);
                     create_dir_all(&target_dir).map_err(|source| Error::IoPath {
                         path: target_dir.to_path_buf(),
                         context: "recursively creating a directory".to_string(),

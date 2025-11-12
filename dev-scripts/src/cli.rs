@@ -22,6 +22,18 @@ pub enum Command {
     TestFiles {
         #[clap(subcommand)]
         cmd: TestFilesCmd,
+
+        #[arg(
+            help = "The directory to use for download and test artifacts",
+            long,
+            long_help = r#"The directory to use for download and test artifacts.
+
+If unset, defaults to "$XDG_CACHE_HOME/alpm/testing/".
+If "$XDG_CACHE_HOME" is unset, falls back to "~/.cache/alpm/testing/"."#,
+            short,
+            value_name = "DIR"
+        )]
+        cache_dir: Option<PathBuf>,
     },
 
     /// Run the `alpm-pkgbuild srcinfo format` command on a PKGBUILD and compare its output with a
@@ -82,11 +94,6 @@ pub enum TestFilesCmd {
     ///
     /// The required data needs to be downloaded up front using "dev-scripts test-files download".
     Test {
-        // Where the local testing data is located.
-        // Defaults to `~/.cache/alpm/testing`
-        #[arg(short, long)]
-        test_data_dir: Option<PathBuf>,
-
         /// Package repositories to test.
         ///
         /// If not set, all official repositories are tested.
@@ -101,13 +108,6 @@ pub enum TestFilesCmd {
     ///
     /// Each type of file can be downloaded individually.
     Download {
-        // Where the testing data should be downloaded to.
-        //
-        // Defaults to `$XDG_CACHE_HOME/alpm/testing`.
-        // if `$XDG_CACHE_HOME` isn't set, it falls back to to `~/.cache/alpm/testing`.
-        #[arg(short, long)]
-        destination: Option<PathBuf>,
-
         /// Package repositories to download.
         ///
         /// If not set, all official repositories are downloaded.
@@ -120,11 +120,6 @@ pub enum TestFilesCmd {
 
     /// Remove or clean downloaded local testing files.
     Clean {
-        // Where the testing data has been downloaded to.
-        // Defaults to `~/.cache/alpm/testing`
-        #[arg(short, long)]
-        destination: Option<PathBuf>,
-
         #[clap(subcommand)]
         source: CleanCmd,
     },
