@@ -46,6 +46,7 @@ serde_json.workspace = true
 simplelog.workspace = true
 strum.workspace = true
 thiserror.workspace = true
+voa = { version = "0.4.1", default-features = false }
 winnow.workspace = true
 
 [dev-dependencies]

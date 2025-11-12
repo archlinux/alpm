@@ -1,6 +1,6 @@
 //! Tests against downloaded artifacts.
 
-use std::{fs::read_dir, path::PathBuf};
+use std::{collections::HashSet, fs::read_dir, path::PathBuf, str::FromStr};
 
 use alpm_buildinfo::BuildInfo;
 use alpm_common::MetadataFile;
@@ -8,17 +8,66 @@ use alpm_mtree::Mtree;
 use alpm_pkginfo::PackageInfo;
 use alpm_srcinfo::SourceInfo;
 use colored::Colorize;
-use log::{debug, info};
+use log::{debug, info, warn};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
+use voa::{
+    commands::{openpgp_verify, read_openpgp_signatures, read_openpgp_verifiers},
+    core::{Context, Os, Purpose},
+    openpgp::OpenpgpCert,
+    utils::RegularFile,
+};
 
 use crate::{
     CacheDir,
     Error,
     cli::TestFileType,
-    consts::{AUR_DIR, DATABASES_DIR, PACKAGES_DIR, PKGSRC_DIR},
+    consts::{AUR_DIR, DATABASES_DIR, DOWNLOAD_DIR, PACKAGES_DIR, PKGSRC_DIR},
     sync::PackageRepositories,
     ui::get_progress_bar,
 };
+
+/// Verifies a `file` using a `signature` and a set of `certs`.
+///
+/// The success or failure of the verification is transmitted through logging.
+///
+/// # Errors
+///
+/// Returns an error if
+///
+/// - the `signature` cannot be read as an OpenPGP signature
+/// - the `file` cannot be read
+fn openpgp_verify_file(
+    file: PathBuf,
+    signature: PathBuf,
+    certs: &[OpenpgpCert],
+) -> Result<(), Error> {
+    debug!("Verifying {file:?} with {signature:?}");
+
+    let signatures = read_openpgp_signatures(&HashSet::from_iter([RegularFile::try_from(
+        signature.clone(),
+    )?]))?;
+
+    let check_results = openpgp_verify(certs, &signatures, &RegularFile::try_from(file.clone())?)?;
+
+    // Look at the signer info of all check results and return an error if there is none.
+    for check_result in check_results {
+        if let Some(signer_info) = check_result.signer_info() {
+            debug!(
+                "Successfully verified using {} {}",
+                signer_info.certificate().fingerprint(),
+                signer_info.component_fingerprint()
+            )
+        } else {
+            return Err(Error::VoaVerificationFailed {
+                file,
+                signature,
+                context: "".to_string(),
+            });
+        }
+    }
+
+    Ok(())
+}
 
 /// This is the entry point for running validation tests of parsers on ALPM metadata files.
 #[derive(Clone, Debug)]
@@ -41,6 +90,19 @@ impl TestRunner {
             test_files.len(),
             self.file_type
         );
+
+        // Cache the certificates used for VOA-based verification as that significantly increases
+        // speed.
+        let certs = if matches!(self.file_type, TestFileType::Signatures) {
+            read_openpgp_verifiers(
+                Os::from_str("arch").map_err(|source| Error::Voa(voa::Error::VoaCore(source)))?,
+                Purpose::from_str("package")
+                    .map_err(|source| Error::Voa(voa::Error::VoaCore(source)))?,
+                Context::Default,
+            )
+        } else {
+            Vec::new()
+        };
 
         let progress_bar = get_progress_bar(test_files.len() as u64);
 
@@ -65,6 +127,15 @@ impl TestRunner {
                     TestFileType::RemoteFiles => unimplemented!(),
                     TestFileType::LocalDesc => unimplemented!(),
                     TestFileType::LocalFiles => unimplemented!(),
+                    TestFileType::Signatures => {
+                        let data = {
+                            let mut data = file.clone();
+                            data.set_extension("");
+                            data
+                        };
+
+                        openpgp_verify_file(data, file.clone(), &certs)
+                    }
                 };
 
                 progress_bar.inc(1);
@@ -90,7 +161,7 @@ impl TestRunner {
         if !failures.is_empty() {
             for (index, failure) in failures.into_iter().enumerate() {
                 let index = format!("[{index}]").bold().red();
-                info!(
+                warn!(
                     "{index} {} with error:\n {}\n",
                     failure.0.to_string_lossy().bold(),
                     failure.1
@@ -139,10 +210,30 @@ impl TestRunner {
                         .join(repo.to_string())
                 })
                 .collect(),
+            TestFileType::Signatures => {
+                let dirs: Vec<PathBuf> = self
+                    .repositories
+                    .iter()
+                    .map(|repo| {
+                        self.cache_dir
+                            .as_ref()
+                            .join(DOWNLOAD_DIR)
+                            .join(PACKAGES_DIR)
+                            .join(repo.to_string())
+                    })
+                    .collect();
+
+                // We return early because we are collecting files based on extension.
+                return files_in_dirs_by_extension(
+                    dirs.as_slice(),
+                    &TestFileType::Signatures.to_string(),
+                );
+            }
             TestFileType::LocalDesc | TestFileType::LocalFiles => {
                 unimplemented!();
             }
         };
+
         for folder in type_folders {
             debug!("Looking for files in {folder:?}");
             if !folder.exists() {
@@ -171,6 +262,52 @@ impl TestRunner {
 
         Ok(files)
     }
+}
+
+/// Collects all regular files in a list of directories and filters them by extension.
+///
+/// Skips non-existent paths in `dirs`.
+/// Only considers regular files, that have a matching `extension`.
+///
+/// # Errors
+///
+/// Returns an error if
+///
+/// - the entries in a directory in one of the paths in `dirs` cannot be read
+/// - one of the entries in a directory cannot be read
+fn files_in_dirs_by_extension(dirs: &[PathBuf], extension: &str) -> Result<Vec<PathBuf>, Error> {
+    let mut files = Vec::new();
+
+    for dir in dirs {
+        debug!("Looking for files in {dir:?}");
+        if !dir.exists() {
+            info!("Skipping directory {dir:?} as it does not exist.");
+            continue;
+        }
+
+        for entry in read_dir(dir).map_err(|source| Error::IoPath {
+            path: dir.clone(),
+            context: "reading entries in directory".to_string(),
+            source,
+        })? {
+            let entry = entry.map_err(|source| Error::IoPath {
+                path: dir.clone(),
+                context: "reading an entry of the directory".to_string(),
+                source,
+            })?;
+
+            let file_path = entry.path();
+            if file_path.is_file()
+                && file_path
+                    .extension()
+                    .is_some_and(|ext| ext.to_str() == Some(extension))
+            {
+                files.push(file_path);
+            }
+        }
+    }
+
+    Ok(files)
 }
 
 #[cfg(test)]

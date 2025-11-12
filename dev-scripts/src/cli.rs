@@ -69,6 +69,7 @@ pub enum TestFileType {
     RemoteFiles,
     LocalDesc,
     LocalFiles,
+    Signatures,
 }
 
 impl Display for TestFileType {
@@ -83,6 +84,7 @@ impl Display for TestFileType {
                 Self::MTree => MetadataFileName::Mtree.as_ref(),
                 Self::RemoteDesc | Self::LocalDesc => "desc",
                 Self::RemoteFiles | Self::LocalFiles => "files",
+                Self::Signatures => "sig",
             }
         )
     }

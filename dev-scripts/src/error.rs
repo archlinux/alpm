@@ -97,6 +97,20 @@ pub enum Error {
 
     #[error("Rsync report error:\n{message}")]
     RsyncReport { message: String },
+
+    /// A `voa::Error` occurred.
+    #[error(transparent)]
+    Voa(#[from] voa::Error),
+
+    #[error("Verifying the file {file:?} with signature {signature:?} failed:\n{context}")]
+    VoaVerificationFailed {
+        /// The path of the data file that failed verification.
+        file: PathBuf,
+        /// The path of the signature file that failed verification.
+        signature: PathBuf,
+        /// Additional context.
+        context: String,
+    },
 }
 
 impl<'a> From<winnow::error::ParseError<&'a str, winnow::error::ContextError>>
