@@ -28,6 +28,7 @@ alpm-types.workspace = true
 clap = { workspace = true, optional = true }
 serde.workspace = true
 serde_json = { workspace = true, optional = true }
+serde_with.workspace = true
 strum.workspace = true
 thiserror.workspace = true
 winnow.workspace = true

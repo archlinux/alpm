@@ -470,7 +470,14 @@ mod create_env {
         env_join_list!("ALPM_DB_DESC_PROVIDES", inner.provides);
 
         if let Some(v2) = inner_v2 {
-            env_join_list!("ALPM_DB_DESC_XDATA", v2.xdata);
+            let value = v2
+                .xdata
+                .clone()
+                .into_iter()
+                .map(|entry| entry.to_string())
+                .collect::<Vec<_>>()
+                .join(" ");
+            envs.insert("ALPM_DB_DESC_XDATA", value);
         }
 
         // Add all arguments to the command and create a debug `env_string`, which will be

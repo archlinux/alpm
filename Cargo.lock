@@ -82,6 +82,7 @@ dependencies = [
  "rstest",
  "serde",
  "serde_json",
+ "serde_with",
  "strum",
  "tempfile",
  "testresult",

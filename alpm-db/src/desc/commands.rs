@@ -80,7 +80,7 @@ pub fn create_file(command: CreateCommand) -> Result<(), Error> {
                 optdepends: args.optdepends,
                 conflicts: args.conflicts,
                 provides: args.provides,
-                xdata,
+                xdata: xdata.try_into()?,
             };
             (v2.to_string(), args.output)
         }

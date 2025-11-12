@@ -8,6 +8,10 @@ use crate::desc::SectionKeyword;
 #[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
 pub enum Error {
+    /// An [`alpm_types::Error`].
+    #[error(transparent)]
+    AlpmTypes(#[from] alpm_types::Error),
+
     /// IO error.
     #[error("I/O error while {0}:\n{1}")]
     Io(&'static str, std::io::Error),

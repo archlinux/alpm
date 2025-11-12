@@ -9,6 +9,7 @@ use alpm_types::{
     Architecture,
     BuildDate,
     ExtraData,
+    ExtraDataEntry,
     Group,
     InstalledSize,
     License,
@@ -40,7 +41,7 @@ use winnow::{
         repeat_till,
         terminated,
     },
-    error::{StrContext, StrContextValue},
+    error::{ContextError, ErrMode, FromExternalError, StrContext, StrContextValue},
     token::take_while,
 };
 
@@ -166,7 +167,7 @@ pub enum Section {
     /// %PROVIDES%
     Provides(Vec<Name>),
     /// %XDATA%
-    XData(Vec<ExtraData>),
+    XData(ExtraData),
 }
 
 /// One or multiple newlines.
@@ -265,7 +266,13 @@ fn section(input: &mut &str) -> ModalResult<Section> {
         SectionKeyword::OptDepends => Section::OptDepends(values(input)?),
         SectionKeyword::Conflicts => Section::Conflicts(values(input)?),
         SectionKeyword::Provides => Section::Provides(values(input)?),
-        SectionKeyword::XData => Section::XData(values(input)?),
+        SectionKeyword::XData => {
+            let entries: Vec<ExtraDataEntry> = values(input)?;
+            let xdata = entries
+                .try_into()
+                .map_err(|e| ErrMode::Cut(ContextError::from_external_error(input, e)))?;
+            Section::XData(xdata)
+        }
     };
 
     Ok(section)

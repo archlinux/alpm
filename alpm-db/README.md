@@ -95,7 +95,7 @@ Foobar McFooface <foobar@mcfooface.org>
 123
 
 %XDATA%
-key1 = value1
+pkgtype = pkg
 key2 = value2
 "#;
 

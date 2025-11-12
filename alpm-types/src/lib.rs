@@ -79,7 +79,7 @@ mod openpgp;
 pub use openpgp::{OpenPGPIdentifier, OpenPGPKeyId, OpenPGPv4Fingerprint, Packager};
 
 mod pkg;
-pub use pkg::{ExtraData, PackageBaseName, PackageDescription, PackageType};
+pub use pkg::{ExtraData, ExtraDataEntry, PackageBaseName, PackageDescription, PackageType};
 
 mod relation;
 pub use relation::{

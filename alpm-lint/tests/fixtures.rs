@@ -25,7 +25,7 @@ use alpm_types::{
     BuildTool,
     BuildToolVersion,
     Checksum,
-    ExtraData,
+    ExtraDataEntry,
     FullVersion,
     InstalledSize,
     License,
@@ -98,6 +98,6 @@ pub fn default_package_info_v2() -> TestResult<PackageInfoV2> {
         vec![],
         vec![],
         vec![],
-        vec![ExtraData::from_str("pkgtype=pkg")?],
-    )?)
+        ExtraDataEntry::from_str("pkgtype=pkg")?.try_into()?,
+    ))
 }

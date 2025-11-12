@@ -1,6 +1,7 @@
 use std::{convert::Infallible, fmt::Display, str::FromStr};
 
 use serde::{Deserialize, Serialize};
+use serde_with::{DeserializeFromStr, SerializeDisplay};
 use strum::{Display, EnumString};
 
 use crate::{Error, Name};
@@ -136,16 +137,16 @@ impl Display for PackageDescription {
 /// ```
 pub type PackageBaseName = Name;
 
-/// Extra data associated with a package
+/// Extra data entry associated with a package
 ///
 /// This type wraps a key-value pair of data as String, which is separated by an equal sign (`=`).
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-pub struct ExtraData {
+#[derive(Clone, Debug, DeserializeFromStr, PartialEq, SerializeDisplay)]
+pub struct ExtraDataEntry {
     key: String,
     value: String,
 }
 
-impl ExtraData {
+impl ExtraDataEntry {
     /// Create a new extra_data
     pub fn new(key: String, value: String) -> Self {
         Self { key, value }
@@ -162,7 +163,7 @@ impl ExtraData {
     }
 }
 
-impl FromStr for ExtraData {
+impl FromStr for ExtraDataEntry {
     type Err = Error;
 
     /// Parses an `extra_data` from string.
@@ -178,11 +179,11 @@ impl FromStr for ExtraData {
     /// ```
     /// use std::str::FromStr;
     ///
-    /// use alpm_types::{Error, ExtraData, PackageType};
+    /// use alpm_types::{ExtraDataEntry, PackageType};
     ///
     /// # fn main() -> Result<(), alpm_types::Error> {
-    /// // create ExtraData from str
-    /// let extra_data: ExtraData = ExtraData::from_str("pkgtype=debug")?;
+    /// // create ExtraDataEntry from str
+    /// let extra_data: ExtraDataEntry = ExtraDataEntry::from_str("pkgtype=debug")?;
     /// assert_eq!(extra_data.key(), "pkgtype");
     /// assert_eq!(extra_data.value(), "debug");
     /// # Ok(())
@@ -205,9 +206,104 @@ impl FromStr for ExtraData {
     }
 }
 
-impl Display for ExtraData {
+impl Display for ExtraDataEntry {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}={}", self.key, self.value)
+    }
+}
+
+/// Extra data associated with a package.
+///
+/// This type wraps a vector of [`ExtraDataEntry`] items enforcing that it includes a valid
+/// `pkgtype` entry.
+///
+/// Can be created from a [`Vec<ExtraDataEntry>`] or [`ExtraDataEntry`] using [`TryFrom::try_from`].
+#[derive(Clone, Debug, PartialEq, Serialize)]
+pub struct ExtraData(Vec<ExtraDataEntry>);
+
+impl ExtraData {
+    /// Returns the package type.
+    pub fn pkg_type(&self) -> PackageType {
+        self.0
+            .iter()
+            .find(|v| v.key() == "pkgtype")
+            .map(|v| PackageType::from_str(v.value()).expect("Invalid package type"))
+            .unwrap_or_else(|| unreachable!("Valid xdata should always contain a pkgtype entry."))
+    }
+
+    /// Returns the number of extra data entries.
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    /// Returns true if there are no extra data entries.
+    ///
+    /// Due to the invariant enforced in [`TryFrom`], this will always return `false` and is only
+    /// included for consistency with [`Vec::is_empty`] in the standard library.
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+}
+
+impl TryFrom<Vec<ExtraDataEntry>> for ExtraData {
+    type Error = Error;
+
+    /// Creates an [`ExtraData`] from a vector of [`ExtraDataEntry`].
+    ///
+    /// ## Errors
+    ///
+    /// Returns an error in the following cases:
+    ///
+    /// - if the `value` does not contain a `pkgtype` key.
+    /// - if the `pkgtype` entry does not contain a valid package type.
+    fn try_from(value: Vec<ExtraDataEntry>) -> Result<Self, Self::Error> {
+        if let Some(pkg_type) = value.iter().find(|v| v.key() == "pkgtype") {
+            let _ = PackageType::from_str(pkg_type.value())?;
+            Ok(Self(value))
+        } else {
+            Err(Error::MissingComponent {
+                component: "extra_data with a valid \"pkgtype\" entry",
+            })
+        }
+    }
+}
+
+impl TryFrom<ExtraDataEntry> for ExtraData {
+    type Error = Error;
+
+    /// Creates an [`ExtraData`] from a single [`ExtraDataEntry`].
+    ///
+    /// Delegates to [`TryFrom::try_from`] for [`Vec<ExtraDataEntry>`].
+    ///
+    /// ## Errors
+    ///
+    /// If the [`TryFrom::try_from`] for [`Vec<ExtraDataEntry>`] returns an error.
+    fn try_from(value: ExtraDataEntry) -> Result<Self, Self::Error> {
+        Self::try_from(vec![value])
+    }
+}
+
+impl From<ExtraData> for Vec<ExtraDataEntry> {
+    /// Converts the [`ExtraData`] into a [`Vec<ExtraDataEntry>`].
+    fn from(value: ExtraData) -> Self {
+        value.0
+    }
+}
+
+impl IntoIterator for ExtraData {
+    type Item = ExtraDataEntry;
+    type IntoIter = std::vec::IntoIter<ExtraDataEntry>;
+
+    /// Consumes the [`ExtraData`] and returns an iterator over [`ExtraDataEntry`] items.
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}
+
+impl AsRef<[ExtraDataEntry]> for ExtraData {
+    /// Returns a reference to the inner [`Vec<ExtraDataEntry>`].
+    fn as_ref(&self) -> &[ExtraDataEntry] {
+        &self.0
     }
 }
 
@@ -216,6 +312,7 @@ mod tests {
     use std::str::FromStr;
 
     use rstest::rstest;
+    use testresult::TestResult;
 
     use super::*;
 
@@ -245,12 +342,12 @@ mod tests {
     #[case("key=value", "key", "value")]
     #[case("pkgtype=debug", "pkgtype", "debug")]
     #[case("test-123@.foo_+=1000", "test-123@.foo_+", "1000")]
-    fn extra_data_from_str(
+    fn extra_data_entry_from_str(
         #[case] data: &str,
         #[case] key: &str,
         #[case] value: &str,
-    ) -> testresult::TestResult<()> {
-        let extra_data: ExtraData = ExtraData::from_str(data)?;
+    ) -> TestResult {
+        let extra_data = ExtraDataEntry::from_str(data)?;
         assert_eq!(extra_data.key(), key);
         assert_eq!(extra_data.value(), value);
         assert_eq!(extra_data.to_string(), data);
@@ -261,11 +358,28 @@ mod tests {
     #[case("key", Err(Error::MissingComponent { component: "value" }))]
     #[case("key=", Err(Error::MissingComponent { component: "value" }))]
     #[case("=value", Err(Error::MissingComponent { component: "key" }))]
-    fn extra_data_from_str_error(
+    fn extra_data_entry_from_str_error(
         #[case] extra_data: &str,
-        #[case] result: Result<ExtraData, Error>,
+        #[case] result: Result<ExtraDataEntry, Error>,
     ) {
-        assert_eq!(ExtraData::from_str(extra_data), result);
+        assert_eq!(ExtraDataEntry::from_str(extra_data), result);
+    }
+
+    #[rstest]
+    #[case::empty_list(vec![])]
+    #[case::invalid_pkgtype(vec![ExtraDataEntry::from_str("pkgtype=foo")?])]
+    fn extra_data_invalid(#[case] xdata: Vec<ExtraDataEntry>) -> TestResult {
+        assert!(ExtraData::try_from(xdata).is_err());
+        Ok(())
+    }
+
+    #[rstest]
+    #[case::only_pkgtype(vec![ExtraDataEntry::from_str("pkgtype=pkg")?])]
+    #[case::with_additional_xdata_entry(vec![ExtraDataEntry::from_str("pkgtype=pkg")?, ExtraDataEntry::from_str("foo=bar")?])]
+    fn extra_data_valid(#[case] xdata: Vec<ExtraDataEntry>) -> TestResult {
+        let xdata = ExtraData::try_from(xdata)?;
+        assert_eq!(xdata.pkg_type(), PackageType::Package);
+        Ok(())
     }
 
     #[rstest]

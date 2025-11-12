@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use alpm_types::{
     Architecture,
     BuildDate,
-    ExtraData,
+    ExtraDataEntry,
     Group,
     InstalledSize,
     License,
@@ -202,7 +202,7 @@ pub enum CreateCommand {
             value_delimiter = ' ',
             required = true
         )]
-        xdata: Vec<ExtraData>,
+        xdata: Vec<ExtraDataEntry>,
     },
 }
 

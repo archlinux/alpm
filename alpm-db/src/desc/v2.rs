@@ -11,6 +11,7 @@ use alpm_types::{
     Architecture,
     BuildDate,
     ExtraData,
+    ExtraDataEntry,
     Group,
     InstalledSize,
     License,
@@ -25,6 +26,7 @@ use alpm_types::{
     Url,
     Version,
 };
+use serde_with::{TryFromInto, serde_as};
 use winnow::Parser;
 
 use crate::{
@@ -123,6 +125,7 @@ use crate::{
 /// ```
 ///
 /// [alpm-db-desc]: https://alpm.archlinux.page/specifications/alpm-db-desc.5.html
+#[serde_as]
 #[derive(Clone, Debug, serde::Deserialize, PartialEq, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 #[serde(rename_all = "lowercase")]
@@ -185,7 +188,8 @@ pub struct DbDescFileV2 {
     pub provides: Vec<Name>,
 
     /// Structured extra metadata, implementation-defined.
-    pub xdata: Vec<ExtraData>,
+    #[serde_as(as = "TryFromInto<Vec<ExtraDataEntry>>")]
+    pub xdata: ExtraData,
 }
 
 impl Display for DbDescFileV2 {
@@ -196,7 +200,7 @@ impl Display for DbDescFileV2 {
 
         // Write xdata section
         writeln!(f, "%XDATA%")?;
-        for v in &self.xdata {
+        for v in self.xdata.clone() {
             writeln!(f, "{v}")?;
         }
 
@@ -419,7 +423,7 @@ pkgtype=pkg
             optdepends: vec![OptionalDependency::from_str("optpkg")?],
             conflicts: vec![Name::new("foo-old")?],
             provides: vec![Name::new("foo-virtual")?],
-            xdata: vec![ExtraData::from_str("pkgtype=pkg")?],
+            xdata: ExtraDataEntry::from_str("pkgtype=pkg")?.try_into()?,
         };
         assert_eq!(actual, expected);
         assert_eq!(VALID_DESC_FILE, actual.to_string());

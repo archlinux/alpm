@@ -12,6 +12,7 @@ use alpm_types::{
     Backup,
     BuildDate,
     ExtraData,
+    ExtraDataEntry,
     FullVersion,
     Group,
     InstalledSize,
@@ -20,11 +21,10 @@ use alpm_types::{
     OptionalDependency,
     PackageDescription,
     PackageRelation,
-    PackageType,
     Packager,
     Url,
 };
-use serde_with::{DisplayFromStr, serde_as};
+use serde_with::{DisplayFromStr, TryFromInto, serde_as};
 
 use crate::{Error, RelationOrSoname, package_info::v1::generate_pkginfo};
 
@@ -83,8 +83,8 @@ generate_pkginfo! {
     /// # }
     /// ```
     PackageInfoV2 {
-        #[serde_as(as = "Vec<DisplayFromStr>")]
-        xdata: Vec<ExtraData>,
+        #[serde_as(as = "TryFromInto<Vec<ExtraDataEntry>>")]
+        xdata: ExtraData,
     }
 }
 
@@ -111,9 +111,9 @@ impl PackageInfoV2 {
         optdepend: Vec<OptionalDependency>,
         makedepend: Vec<PackageRelation>,
         checkdepend: Vec<PackageRelation>,
-        xdata: Vec<ExtraData>,
-    ) -> Result<Self, Error> {
-        let pkg_info = Self {
+        xdata: ExtraData,
+    ) -> Self {
+        Self {
             pkgname,
             pkgbase,
             pkgver,
@@ -134,44 +134,12 @@ impl PackageInfoV2 {
             makedepend,
             checkdepend,
             xdata,
-        };
-        pkg_info.check_pkg_type()?;
-        Ok(pkg_info)
+        }
     }
 
     /// Get the extra data
-    pub fn xdata(&self) -> &Vec<ExtraData> {
+    pub fn xdata(&self) -> &ExtraData {
         &self.xdata
-    }
-
-    /// Returns the package type.
-    ///
-    /// # Panics
-    ///
-    /// This function panics if the `xdata` field does not contain a `pkgtype` key.
-    pub fn pkg_type(&self) -> PackageType {
-        self.xdata
-            .iter()
-            .find(|v| v.key() == "pkgtype")
-            .map(|v| PackageType::from_str(v.value()).expect("Invalid package type"))
-            .unwrap_or_else(|| panic!("Missing extra data"))
-    }
-
-    /// Checks if the package type exists.
-    ///
-    /// # Errors
-    ///
-    /// This function returns an error in the following cases:
-    ///
-    /// - if the `xdata` field does not contain a `pkgtype` key.
-    /// - if the `pkgtype` key does not contain a valid package type.
-    fn check_pkg_type(&self) -> Result<(), Error> {
-        if let Some(pkg_type) = self.xdata.iter().find(|v| v.key() == "pkgtype") {
-            let _ = PackageType::from_str(pkg_type.value())?;
-            Ok(())
-        } else {
-            Err(Error::MissingExtraData)
-        }
     }
 }
 
@@ -185,7 +153,6 @@ impl FromStr for PackageInfoV2 {
     /// `PackageInfoV2` or their respective own specification.
     fn from_str(input: &str) -> Result<PackageInfoV2, Self::Err> {
         let pkg_info: PackageInfoV2 = alpm_parsers::custom_ini::from_str(input)?;
-        pkg_info.check_pkg_type()?;
         Ok(pkg_info)
     }
 }
@@ -204,13 +171,10 @@ impl Display for PackageInfoV2 {
                     + "\n"
             }
         }
-        let pkg_type = self
-            .xdata
-            .iter()
-            .find(|v| v.key() == "pkgtype")
-            .ok_or(std::fmt::Error)?;
+        let pkg_type = self.xdata.pkg_type();
         let other_xdata = self
             .xdata
+            .as_ref()
             .iter()
             .filter(|v| v.key() != "pkgtype")
             .collect::<Vec<_>>();
@@ -218,7 +182,7 @@ impl Display for PackageInfoV2 {
             fmt,
             "pkgname = {}\n\
             pkgbase = {}\n\
-            xdata = {pkg_type}\n\
+            xdata = pkgtype={pkg_type}\n\
             pkgver = {}\n\
             pkgdesc = {}\n\
             url = {}\n\
@@ -273,6 +237,7 @@ impl Display for PackageInfoV2 {
 
 #[cfg(test)]
 mod tests {
+    use alpm_types::PackageType;
     use pretty_assertions::assert_eq;
     use rstest::rstest;
     use testresult::TestResult;
@@ -402,9 +367,9 @@ checkdepend = extra-test-tool
                 PackageRelation::from_str("extra-test-tool")?,
                 PackageRelation::from_str("other-extra-test-tool")?,
             ],
-            vec![ExtraData::from_str("pkgtype=pkg")?],
-        )?;
-        assert_eq!(PackageType::Package, pkg_info.pkg_type());
+            ExtraDataEntry::from_str("pkgtype=pkg")?.try_into()?,
+        );
+        assert_eq!(PackageType::Package, pkg_info.xdata.pkg_type());
         Ok(pkg_info)
     }
 
@@ -416,59 +381,15 @@ checkdepend = extra-test-tool
     }
 
     #[rstest]
-    fn pkginfov2_invalid_xdata_fail() -> TestResult {
-        let mut pkg_info = pkg_info()?;
-        pkg_info.xdata = vec![];
-        assert!(pkg_info.check_pkg_type().is_err());
-
-        pkg_info.xdata = vec![ExtraData::from_str("pkgtype=foo")?];
-        assert!(pkg_info.check_pkg_type().is_err());
-        Ok(())
-    }
-
-    #[rstest]
     fn pkginfov2_multiple_xdata() -> TestResult {
         let mut pkg_info = pkg_info()?;
-        pkg_info.xdata.push(ExtraData::from_str("foo=bar")?);
-        pkg_info.xdata.push(ExtraData::from_str("baz=qux")?);
+        let mut xdata = pkg_info.xdata.into_iter().collect::<Vec<_>>();
+        xdata.push(ExtraDataEntry::from_str("foo=bar")?);
+        xdata.push(ExtraDataEntry::from_str("baz=qux")?);
+        pkg_info.xdata = xdata.try_into()?;
         assert_eq!(
             pkg_info.to_string(),
             format!("{VALID_PKGINFOV2_CASE1}\nxdata = foo=bar\nxdata = baz=qux")
-        );
-        Ok(())
-    }
-
-    #[rstest]
-    fn pkginfov2_missing_xdata_fail() -> TestResult {
-        let mut pkg_info_str = VALID_PKGINFOV2_CASE1.to_string();
-        pkg_info_str = pkg_info_str.replace("xdata = pkgtype=pkg\n", "");
-        assert!(PackageInfoV2::from_str(&pkg_info_str).is_err());
-
-        let pkg_info = pkg_info()?;
-        assert!(
-            PackageInfoV2::new(
-                pkg_info.pkgname,
-                pkg_info.pkgbase,
-                pkg_info.pkgver,
-                pkg_info.pkgdesc,
-                pkg_info.url,
-                pkg_info.builddate,
-                pkg_info.packager,
-                pkg_info.size,
-                pkg_info.arch,
-                pkg_info.license,
-                pkg_info.replaces,
-                pkg_info.group,
-                pkg_info.conflict,
-                pkg_info.provides,
-                pkg_info.backup,
-                pkg_info.depend,
-                pkg_info.optdepend,
-                pkg_info.makedepend,
-                pkg_info.checkdepend,
-                vec![]
-            )
-            .is_err()
         );
         Ok(())
     }

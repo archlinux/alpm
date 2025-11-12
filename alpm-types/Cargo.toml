@@ -26,6 +26,7 @@ log.workspace = true
 md-5 = "0.10.5"
 semver.workspace = true
 serde.workspace = true
+serde_with.workspace = true
 serde_json.workspace = true
 crc-fast = "1.6.0"
 sha1 = "0.10.5"

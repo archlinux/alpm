@@ -76,13 +76,7 @@ expression: json
     "foo-virtual2"
   ],
   "xdata": [
-    {
-      "key": "pkgtype",
-      "value": "pkg"
-    },
-    {
-      "key": "random",
-      "value": "value"
-    }
+    "pkgtype=pkg",
+    "random=value"
   ]
 }

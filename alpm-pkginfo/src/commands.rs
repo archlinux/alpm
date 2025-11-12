@@ -31,6 +31,10 @@ pub enum Error {
     /// An [alpm_pkginfo::Error]
     #[error(transparent)]
     PkgInfo(#[from] alpm_pkginfo::Error),
+
+    /// An [alpm_types::Error]
+    #[error(transparent)]
+    AlpmTypes(#[from] alpm_types::Error),
 }
 
 /// Create a file according to a PKGINFO schema
@@ -87,8 +91,8 @@ pub fn create_file(command: CreateCommand) -> Result<(), Error> {
                 args.optdepend,
                 args.makedepend,
                 args.checkdepend,
-                xdata,
-            )?
+                xdata.try_into()?,
+            )
             .to_string(),
             args.output,
         ),

@@ -10,7 +10,7 @@ use alpm_types::{
     Architecture,
     Backup,
     BuildDate,
-    ExtraData,
+    ExtraDataEntry,
     FullVersion,
     Group,
     InstalledSize,
@@ -308,7 +308,7 @@ pub enum CreateCommand {
 
         /// Provide one or more Xdata
         #[arg(env = "PKGINFO_XDATA", long, value_name = "XDATA")]
-        xdata: Vec<ExtraData>,
+        xdata: Vec<ExtraDataEntry>,
     },
 }
 

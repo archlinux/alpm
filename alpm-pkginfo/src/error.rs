@@ -43,10 +43,6 @@ pub enum Error {
     #[error("Invalid variant ({0})")]
     InvalidVariant(#[from] strum::ParseError),
 
-    /// Extra data is missing
-    #[error("Extra data is missing.")]
-    MissingExtraData,
-
     /// Unsupported schema version
     #[error("Unsupported schema version: {0}")]
     UnsupportedSchemaVersion(String),
