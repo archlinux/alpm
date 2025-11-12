@@ -6,7 +6,7 @@ use clap::{Parser, ValueEnum};
 use crate::sync::PackageRepositories;
 
 #[derive(Debug, Parser)]
-#[clap(name = "ALPM Dev Scripts", about = "Dev scripts for the ALPM project")]
+#[clap(name = "dev-scripts", about = "Dev scripts for the ALPM project")]
 pub struct Cli {
     /// Log verbosity level
     #[command(flatten)]
