@@ -1,1 +1,1 @@
-../../../../alpm-types/resources/specification/alpm-db-files.5.md
+../../../../alpm-files/resources/specification/alpm-db-files.5.md
