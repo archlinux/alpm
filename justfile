@@ -293,8 +293,10 @@ generate kind pkg:
             output_kind=manpages
             mkdir -p "$output_dir/$output_kind/"
             for file in "$PWD/$pkg/resources/specification/"*.md; do
-                output_file="$(basename "$file")"
-                lowdown -s -t man -o "$output_dir/$output_kind/${output_file/.md}" "$file"
+                file_name="$(basename "$file")"
+                output_file="${file_name/.md}"
+                section="${output_file/*.}"
+                lowdown -s -t man -M section="$section" -o "$output_dir/$output_kind/$output_file" "$file"
             done
             ;;
         *)
