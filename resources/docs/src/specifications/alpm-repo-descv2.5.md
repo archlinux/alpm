@@ -1,1 +1,1 @@
-../../../../alpm-types/resources/specification/alpm-repo-descv2.5.md
+../../../../alpm-repo-db/resources/specification/alpm-repo-descv2.5.md
