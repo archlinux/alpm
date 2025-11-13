@@ -285,7 +285,12 @@ generate kind pkg:
 
     case "$kind" in
         manpages|shell_completions)
-            sed "s/PKG/$pkg/;s#PATH#$PWD/$pkg#g;s/KIND/$kind/g" > "$script" < .rust-script/allgen.ers
+            module=""
+            if [[ "$pkg" == "alpm-db" ]]; then
+                module="::desc"
+            fi
+
+            sed "s/PKG/$pkg/;s#PATH#$PWD/$pkg#g;s/KIND/$kind/g;s/MODULE/$module/g" > "$script" < .rust-script/allgen.ers
             chmod +x "$script"
             "$script" "$output_dir/$kind"
             ;;
@@ -308,6 +313,7 @@ generate kind pkg:
 [group('build')]
 generate-completions:
     just generate shell_completions alpm-buildinfo
+    just generate shell_completions alpm-db
     just generate shell_completions alpm-files
     just generate shell_completions alpm-lint
     just generate shell_completions alpm-mtree
@@ -318,6 +324,7 @@ generate-completions:
 [group('build')]
 generate-manpages-and-specs:
     just generate manpages alpm-buildinfo
+    just generate manpages alpm-db
     just generate manpages alpm-files
     just generate manpages alpm-lint
     just generate manpages alpm-mtree

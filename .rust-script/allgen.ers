@@ -10,7 +10,7 @@
 fn main() -> testresult::TestResult {
     let output_dir = &std::env::args().collect::<Vec<_>>()[1];
 
-    clap_allgen::render_KIND::<pkg::cli::Cli>(&output_dir)?;
+    clap_allgen::render_KIND::<pkgMODULE::cli::Cli>(&output_dir)?;
 
     Ok(())
 }
