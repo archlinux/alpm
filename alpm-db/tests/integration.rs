@@ -222,64 +222,64 @@ mod create_cli {
     #[case::v2(DbDescSchema::V2(SchemaVersion::new(Version::new(2, 0, 0))))]
     fn create(#[case] schema: DbDescSchema) -> TestResult {
         let tmp = tempdir()?;
-        let out = tmp.path().join("desc");
+        let out = tmp.path().join("desc").to_string_lossy().to_string();
 
         let (version_flag, _data) = super::schema_fixture(&schema);
 
         // Common arguments shared between v1 and v2
         let mut args = vec![
-            "create".to_string(),
-            version_flag.to_string(),
-            "--name".into(),
-            "foo".into(),
-            "--version".into(),
-            "1.0.0-1".into(),
-            "--base".into(),
-            "foo".into(),
-            "--description".into(),
-            "An example package".into(),
-            "--url".into(),
-            "https://example.org".into(),
-            "--arch".into(),
-            "x86_64".into(),
-            "--builddate".into(),
-            "1733737242".into(),
-            "--installdate".into(),
-            "1733737243".into(),
-            "--packager".into(),
-            "Foobar McFooface <foobar@mcfooface.org>".into(),
-            "--size".into(),
-            "123".into(),
-            "--groups".into(),
-            "utils".into(),
-            "--groups".into(),
-            "cli".into(),
-            "--reason".into(),
-            "1".into(),
-            "--license".into(),
-            "MIT".into(),
-            "--license".into(),
-            "Apache-2.0".into(),
-            "--validation".into(),
-            "pgp".into(),
-            "--replaces".into(),
-            "pkg-old".into(),
-            "--depends".into(),
-            "glibc".into(),
-            "--optdepends".into(),
-            "optpkg".into(),
-            "--conflicts".into(),
-            "foo-old".into(),
-            "--provides".into(),
-            "foo-virtual".into(),
+            "create",
+            version_flag,
+            "--name",
+            "foo",
+            "--version",
+            "1.0.0-1",
+            "--base",
+            "foo",
+            "--description",
+            "An example package",
+            "--url",
+            "https://example.org",
+            "--arch",
+            "x86_64",
+            "--builddate",
+            "1733737242",
+            "--installdate",
+            "1733737243",
+            "--packager",
+            "Foobar McFooface <foobar@mcfooface.org>",
+            "--size",
+            "123",
+            "--groups",
+            "utils",
+            "--groups",
+            "cli",
+            "--reason",
+            "1",
+            "--license",
+            "MIT",
+            "--license",
+            "Apache-2.0",
+            "--validation",
+            "pgp",
+            "--replaces",
+            "pkg-old",
+            "--depends",
+            "glibc",
+            "--optdepends",
+            "optpkg",
+            "--conflicts",
+            "foo-old",
+            "--provides",
+            "foo-virtual",
         ];
 
         // Add v2-only field
         if matches!(schema, DbDescSchema::V2(_)) {
-            args.extend(["--xdata".into(), "pkgtype=pkg".into()]);
+            args.extend(["--xdata", "pkgtype=pkg"]);
         }
 
-        args.push(out.to_string_lossy().into());
+        args.push(&out);
 
         // Run the command
         let mut cmd = cargo_bin_cmd!("alpm-db-desc");
