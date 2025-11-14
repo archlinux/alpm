@@ -16,11 +16,11 @@ pub use schema::RepoDescSchema;
 
 mod file;
 pub use file::RepoDescFile;
-//
-// #[cfg(feature = "cli")]
-// #[doc(hidden)]
-// pub mod cli;
-//
-// #[cfg(feature = "cli")]
-// #[doc(hidden)]
-// pub mod commands;
+
+#[cfg(feature = "cli")]
+#[doc(hidden)]
+pub mod cli;
+
+#[cfg(feature = "cli")]
+#[doc(hidden)]
+pub mod commands;

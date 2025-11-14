@@ -67,17 +67,18 @@ pub enum Error {
     #[error("No input file given.")]
     NoInputFile,
 
-    // #[cfg(feature = "cli")]
-    // /// JSON error.
-    // #[error("JSON error while {context}:\n{source}")]
-    // Json {
-    //     /// The context in which the error occurred.
-    //     ///
-    //     /// This is meant to complete the sentence "JSON error while ".
-    //     context: &'static str,
-    //     /// The error source.
-    //     source: serde_json::Error,
-    // },
+    #[cfg(feature = "cli")]
+    /// JSON error.
+    #[error("JSON error while {context}:\n{source}")]
+    Json {
+        /// The context in which the error occurred.
+        ///
+        /// This is meant to complete the sentence "JSON error while ".
+        context: &'static str,
+        /// The error source.
+        source: serde_json::Error,
+    },
+    
     /// Unsupported schema version.
     #[error("Unsupported schema version: {0}")]
     UnsupportedSchemaVersion(String),
