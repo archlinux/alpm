@@ -1,1 +1,6 @@
-//! A library for the creation and access of alpm-repo-db files.
+//! TODO: #![doc = include_str!("../README.md")]
+
+mod error;
+pub use error::Error;
+
+pub mod desc;

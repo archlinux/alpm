@@ -301,6 +301,19 @@ version = "0.1.0"
 [[package]]
 name = "alpm-repo-db"
 version = "0.1.0"
+dependencies = [
+ "alpm-common",
+ "alpm-parsers",
+ "alpm-types",
+ "pretty_assertions",
+ "rstest",
+ "serde",
+ "strum",
+ "tempfile",
+ "testresult",
+ "thiserror",
+ "winnow",
+]
 
 [[package]]
 name = "alpm-soname"
@@ -357,6 +370,7 @@ name = "alpm-types"
 version = "0.9.0"
 dependencies = [
  "alpm-parsers",
+ "base64",
  "blake2",
  "crc-fast",
  "digest",
