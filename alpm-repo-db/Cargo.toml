@@ -12,6 +12,24 @@ rust-version.workspace = true
 version = "0.1.0"
 
 [dependencies]
+alpm-common.workspace = true
+alpm-parsers.workspace = true
+alpm-types.workspace = true
+fluent-i18n.workspace = true
+serde.workspace = true
+strum.workspace = true
+thiserror.workspace = true
+winnow.workspace = true
+
+[dev-dependencies]
+pretty_assertions.workspace = true
+rstest.workspace = true
+tempfile.workspace = true
+testresult.workspace = true
+
+[features]
+_winnow-debug = ["winnow/debug"]
+default = []
 
 [lints]
 workspace = true
