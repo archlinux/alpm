@@ -171,6 +171,13 @@ pub enum Error {
     #[error("{msg}", msg = t!("error-invalid-pgp-keyid", { "keyid" => .0 }))]
     InvalidOpenPGPKeyId(String),
 
+    /// An invalid OpenPGP signature
+    #[error("{msg}", msg = t!("error-invalid-base64-encoding", { "expected_item" => expected_item }))]
+    InvalidBase64Encoding {
+        /// The expected item that could not be decoded.
+        expected_item: String,
+    },
+
     /// An invalid shared object name (v1)
     #[error("{msg}", msg = t!("error-invalid-soname-v1", { "name" => .0 }))]
     InvalidSonameV1(&'static str),

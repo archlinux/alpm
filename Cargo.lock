@@ -367,6 +367,7 @@ name = "alpm-types"
 version = "0.10.0"
 dependencies = [
  "alpm-parsers",
+ "base64",
  "blake2",
  "crc-fast",
  "digest",

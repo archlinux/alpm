@@ -76,7 +76,13 @@ pub use path::{
 };
 
 mod openpgp;
-pub use openpgp::{OpenPGPIdentifier, OpenPGPKeyId, OpenPGPv4Fingerprint, Packager};
+pub use openpgp::{
+    Base64OpenPGPSignature,
+    OpenPGPIdentifier,
+    OpenPGPKeyId,
+    OpenPGPv4Fingerprint,
+    Packager,
+};
 
 mod pkg;
 pub use pkg::{ExtraData, ExtraDataEntry, PackageBaseName, PackageDescription, PackageType};
