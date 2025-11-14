@@ -19,6 +19,7 @@ compatibility_tests = []
 
 [dependencies]
 alpm-parsers.workspace = true
+base64 = "0.22.1"
 blake2 = "0.10.6"
 digest = "0.10.7"
 email_address = "0.2.4"

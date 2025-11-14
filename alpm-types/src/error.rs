@@ -157,6 +157,10 @@ pub enum Error {
     #[error("The string is not a valid OpenPGP key ID: {0}, must be 16 hexadecimal characters")]
     InvalidOpenPGPKeyId(String),
 
+    /// An invalid OpenPGP signature
+    #[error("Invalid OpenPGP signature, should use a valid a base64 encoding")]
+    InvalidOpenPGPSignature,
+
     /// An invalid shared object name (v1)
     #[error("Invalid shared object name (v1): {0}")]
     InvalidSonameV1(&'static str),

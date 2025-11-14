@@ -4,6 +4,7 @@ use std::{
     string::ToString,
 };
 
+use base64::{Engine, prelude::BASE64_STANDARD};
 use email_address::EmailAddress;
 use serde::{Deserialize, Serialize};
 use winnow::{
@@ -286,6 +287,90 @@ impl Display for OpenPGPv4Fingerprint {
     }
 }
 
+/// OpenPGP signature.
+///
+/// The [`OpenPGPSignature`] type wraps a `String` representing a [base64] encoded [OpenPGP detached
+/// signature] ensuring it consists of valid [base64] characters.
+///
+/// ## Examples
+///
+/// ```
+/// use std::str::FromStr;
+///
+/// use alpm_types::{Error, OpenPGPSignature};
+///
+/// # fn main() -> Result<(), alpm_types::Error> {
+/// // Create OpenPGPSignature from a valid base64 String
+/// let sig = OpenPGPSignature::from_str("iHUEABYKAB0WIQRizHP4hOUpV7L92IObeih9mi7GCAUCaBZuVAAKCRCbeih9mi7GCIlMAP9ws/jU4f580ZRQlTQKvUiLbAZOdcB7mQQj83hD1Nc/GwD/WIHhO1/OQkpMERejUrLo3AgVmY3b4/uGhx9XufWEbgE=")?;
+///
+/// // Attempting to create a OpenPGPSignature from an invalid base64 String will fail
+/// assert!(OpenPGPSignature::from_str("!@#$^&*").is_err());
+///
+/// // Format as String
+/// assert_eq!(
+///     format!("{}", sig),
+///     "iHUEABYKAB0WIQRizHP4hOUpV7L92IObeih9mi7GCAUCaBZuVAAKCRCbeih9mi7GCIlMAP9ws/jU4f580ZRQlTQKvUiLbAZOdcB7mQQj83hD1Nc/GwD/WIHhO1/OQkpMERejUrLo3AgVmY3b4/uGhx9XufWEbgE="
+/// );
+/// # Ok(())
+/// # }
+/// ```
+///
+/// [base64]: https://en.wikipedia.org/wiki/Base64
+/// [OpenPGP detached signature]: https://openpgp.dev/book/signing_data.html#detached-signatures
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+pub struct OpenPGPSignature(String);
+
+impl OpenPGPSignature {
+    /// Creates a new [`OpenPGPSignature`] instance.
+    ///
+    /// See [`OpenPGPSignature::from_str`] for more information on how the OpenPGP signature is
+    /// validated.
+    pub fn new(signature: String) -> Result<Self, Error> {
+        Self::from_str(&signature)
+    }
+
+    /// Returns a reference to the inner OpenPGP signature as a `&str`.
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+
+    /// Consumes the [`OpenPGPSignature`] and returns the inner [`String`].
+    pub fn into_inner(self) -> String {
+        self.0
+    }
+}
+
+impl FromStr for OpenPGPSignature {
+    type Err = Error;
+
+    /// Creates a new [`OpenPGPSignature`] instance after validating that it follows the correct
+    /// format.
+    ///
+    /// A valid [OpenPGP signature] should consist only of [base64] characters (A-Z, a-z, 0-9, +, /)
+    /// and may include padding characters (=) at the end.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the OpenPGP signature is not valid.
+    ///
+    /// [base64]: https://en.wikipedia.org/wiki/Base64
+    /// [OpenPGP signature]: https://openpgp.dev/book/signing_data.html#detached-signatures
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        BASE64_STANDARD
+            .decode(s)
+            .map_err(|_| Error::InvalidOpenPGPSignature)?
+            .to_vec();
+        Ok(Self(s.to_string()))
+    }
+}
+
+impl Display for OpenPGPSignature {
+    /// Converts the [`OpenPGPSignature`] to a [`String`].
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.as_str())
+    }
+}
+
 /// A packager of a package
 ///
 /// A `Packager` is represented by a User ID (e.g. `"Foobar McFooFace <foobar@mcfooface.org>"`).
@@ -492,6 +577,34 @@ mod tests {
         #[case] expected: Result<OpenPGPKeyId, Error>,
     ) {
         let result = input.parse::<OpenPGPKeyId>();
+        assert_eq!(result, expected);
+    }
+
+    #[rstest]
+    #[case("d2hhdCBhcmUgeW91IGxvb2tpbmcgZm9yPyA7LTsK")]
+    fn test_parse_openpgp_signature(#[case] input: &str) -> Result<(), Error> {
+        input.parse::<OpenPGPSignature>()?;
+        Ok(())
+    }
+
+    #[rstest]
+    // "=" in the middle
+    #[case(
+        "d2hhdCBhcmUge=W91IGxvb2tpbmcgZm9yPyA7LTsK",
+        Err(Error::InvalidOpenPGPSignature)
+    )]
+    // invalid characters
+    #[case("!@#$%^&*", Err(Error::InvalidOpenPGPSignature))]
+    // just invalid
+    #[case(
+        "iHUEABYKh9mi7GCIlMAP9ws/jU4WEbgE=",
+        Err(Error::InvalidOpenPGPSignature)
+    )]
+    fn test_parse_invalid_openpgp_signature(
+        #[case] input: &str,
+        #[case] expected: Result<OpenPGPSignature, Error>,
+    ) {
+        let result = input.parse::<OpenPGPSignature>();
         assert_eq!(result, expected);
     }
 
