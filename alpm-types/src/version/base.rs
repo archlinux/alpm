@@ -15,7 +15,6 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::iter_char_context;
 use serde::{Deserialize, Serialize};
 use winnow::{
     ModalResult,
@@ -216,13 +215,12 @@ impl Ord for PackageRelease {
 ///
 /// PackageVersion is used to denote the upstream version of a package.
 ///
-/// A PackageVersion wraps a `String`, which is guaranteed to only contain alphanumeric characters,
-/// `"_"`, `"+"` or `"."`, but to not start with a `"_"`, a `"+"` or a `"."` character and to be at
-/// least one char long.
+/// A PackageVersion wraps a `String`, which is guaranteed to only contain ASCII characters,
+/// excluding the ':', '/', '-', '<', '>', '=', or any whitespace characters and must be at least
+/// one character long.
 ///
 /// NOTE: This implementation of PackageVersion is stricter than that of libalpm/pacman. It does not
-/// allow empty strings `""`, or chars that are not in the allowed set, or `"."` as the first
-/// character.
+/// allow empty strings `""`.
 ///
 /// ## Examples
 /// ```
@@ -234,9 +232,9 @@ impl Ord for PackageRelease {
 /// assert!(PackageVersion::new("1.1".to_string()).is_ok());
 /// assert!(PackageVersion::new("foo".to_string()).is_ok());
 /// assert!(PackageVersion::new("0".to_string()).is_ok());
-/// assert!(PackageVersion::new(".0.1".to_string()).is_err());
-/// assert!(PackageVersion::new("_1.0".to_string()).is_err());
-/// assert!(PackageVersion::new("+1.0".to_string()).is_err());
+/// assert!(PackageVersion::new(".0.1".to_string()).is_ok());
+/// assert!(PackageVersion::new("=1.0".to_string()).is_err());
+/// assert!(PackageVersion::new("1<0".to_string()).is_err());
 /// ```
 #[derive(Clone, Debug, Deserialize, Eq, Serialize)]
 pub struct PackageVersion(pub(crate) String);
@@ -263,31 +261,25 @@ impl PackageVersion {
     ///
     /// # Errors
     ///
-    /// Returns an error if `input` is not a valid _alpm-pkgrel_.
+    /// Returns an error if `input` is not a valid _alpm-pkgver_.
     pub fn parser(input: &mut &str) -> ModalResult<Self> {
-        let alnum = |c: char| c.is_ascii_alphanumeric();
+        // General rule for all characters:
+        // only ASCII except for ':', '/', '-', '<', '>', '=' or any whitespace
+        let allowed = |c: char| {
+            c.is_ascii() && ![':', '/', '-', '<', '>', '='].contains(&c) && !c.is_whitespace()
+        };
 
-        let first_character = one_of(alnum)
-            .context(StrContext::Label("first pkgver character"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "ASCII alphanumeric character",
-            )));
-        let special_tail_character = ['_', '+', '.'];
-        let tail_character = one_of((alnum, special_tail_character));
-
-        // no error context because this is infallible due to `0..`
         // note the empty tuple collection to avoid allocation
-        let tail: Repeat<_, _, _, (), _> = repeat(0.., tail_character);
+        let pkgver: Repeat<_, _, _, (), _> = repeat(1.., one_of(allowed));
 
         (
-            first_character,
-            tail,
-            eof.context(StrContext::Label("pkgver character"))
-                .context(StrContext::Expected(StrContextValue::Description(
-                    "ASCII alphanumeric character",
-                )))
-                .context_with(iter_char_context!(special_tail_character)),
+            pkgver,
+            eof
         )
+            .context(StrContext::Label("pkgver character"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace characters",
+            )))
             .take()
             .map(|s: &str| Self(s.to_string()))
             .parse_next(input)
@@ -338,6 +330,8 @@ mod tests {
     #[rstest]
     #[case("foo")]
     #[case("1.0.0")]
+    // sadly, this is valid
+    #[case(".xd")]
     fn valid_pkgver(#[case] pkgver: &str) {
         let parsed = PackageVersion::new(pkgver.to_string());
         assert!(parsed.is_ok(), "Expected pkgver {pkgver} to be valid.");
@@ -354,12 +348,11 @@ mod tests {
     #[rstest]
     #[case("1:foo", "invalid pkgver character")]
     #[case("foo-1", "invalid pkgver character")]
-    #[case("foo,1", "invalid pkgver character")]
-    #[case(".foo", "invalid first pkgver character")]
-    #[case("_foo", "invalid first pkgver character")]
-    // ß is not in [:alnum:]
-    #[case("ß", "invalid first pkgver character")]
+    #[case("foo/1", "invalid pkgver character")]
+    // ß is not ASCII
+    #[case("ß", "invalid pkgver character")]
     #[case("1.ß", "invalid pkgver character")]
+    #[case("", "invalid pkgver character")]
     fn invalid_pkgver(#[case] pkgver: &str, #[case] err_snippet: &str) {
         let Err(Error::ParseError(err_msg)) = PackageVersion::new(pkgver.to_string()) else {
             panic!("Expected pkgver {pkgver} to be invalid.")

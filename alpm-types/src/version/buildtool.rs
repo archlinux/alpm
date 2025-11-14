@@ -218,7 +218,7 @@ mod tests {
     }
 
     #[rstest]
-    #[case(".1.0.0-1-any", "invalid first pkgver character")]
+    #[case("ß-1-any", "invalid pkgver character")]
     fn invalid_buildtoolver_badpkgver(#[case] buildtoolver: &str, #[case] err_snippet: &str) {
         let Err(Error::ParseError(err_msg)) = BuildToolVersion::from_str(buildtoolver) else {
             panic!("'{buildtoolver}' erroneously parsed as BuildToolVersion")

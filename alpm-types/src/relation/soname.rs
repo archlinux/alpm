@@ -813,7 +813,7 @@ mod tests {
 
     #[rstest]
     #[case("noso", "invalid shared object name")]
-    #[case("invalidversion.so=1*2-64", "expected version or shared object name")]
+    #[case("invalidversion.so=1🐀2-64", "expected version or shared object name")]
     #[case(
         "nodelimiter.so=1.64",
         "expected a version or shared object name, followed by an ELF architecture format"

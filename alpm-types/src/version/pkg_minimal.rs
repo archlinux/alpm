@@ -345,6 +345,14 @@ mod tests {
             epoch: None,
         }
     )]
+    // yes, valid
+    #[case::minimal_dot(
+        ".",
+        MinimalVersion {
+            pkgver: PackageVersion::from_str(".")?,
+            epoch: None,
+            }
+    )]
     fn minimal_version_from_str_succeeds(
         #[case] version: &str,
         #[case] expected: MinimalVersion,
@@ -364,35 +372,31 @@ mod tests {
     #[rstest]
     #[case::two_pkgrel(
         "1:foo-1-1",
-        "invalid pkgver character\nexpected ASCII alphanumeric character, `_`, `+`, `.`, alpm-pkgver string"
+        "invalid pkgver character\nexpected an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace characters, alpm-pkgver string"
     )]
     #[case::two_epoch(
         "1:1:foo-1",
-        "invalid pkgver character\nexpected ASCII alphanumeric character, `_`, `+`, `.`, alpm-pkgver string"
+        "invalid pkgver character\nexpected an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace characters, alpm-pkgver string"
     )]
     #[case::empty_string(
         "",
-        "invalid first pkgver character\nexpected ASCII alphanumeric character, alpm-pkgver string"
+        "invalid pkgver character\nexpected an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace characters, alpm-pkgver string"
     )]
     #[case::colon(
         ":",
-        "invalid first pkgver character\nexpected ASCII alphanumeric character, alpm-pkgver string"
-    )]
-    #[case::dot(
-        ".",
-        "invalid first pkgver character\nexpected ASCII alphanumeric character, alpm-pkgver string"
+        "invalid pkgver character\nexpected an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace characters, alpm-pkgver string"
     )]
     #[case::full_with_epoch(
         "1:1.0.0-1",
-        "invalid pkgver character\nexpected ASCII alphanumeric character, `_`, `+`, `.`, alpm-pkgver string"
+        "invalid pkgver character\nexpected an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace characters, alpm-pkgver string"
     )]
     #[case::full(
         "1.0.0-1",
-        "invalid pkgver character\nexpected ASCII alphanumeric character, `_`, `+`, `.`, alpm-pkgver string"
+        "invalid pkgver character\nexpected an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace characters, alpm-pkgver string"
     )]
     #[case::no_pkgrel_dash_end(
         "1.0.0-",
-        "invalid pkgver character\nexpected ASCII alphanumeric character, `_`, `+`, `.`, alpm-pkgver string"
+        "invalid pkgver character\nexpected an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace characters, alpm-pkgver string"
     )]
     #[case::starts_with_dash(
         "-1foo:1",

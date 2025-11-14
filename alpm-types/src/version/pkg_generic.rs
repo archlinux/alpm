@@ -237,6 +237,15 @@ mod tests {
             pkgrel: Some(PackageRelease::new(1, None))
         }
     )]
+    // yes, this is valid
+    #[case(
+        ".-1",
+        Version {
+            pkgver: PackageVersion::new(".".to_string()).unwrap(),
+            epoch: None,
+            pkgrel: Some(PackageRelease::new(1, None))
+            }
+    )]
     fn valid_version_from_string(#[case] version: &str, #[case] expected: Version) {
         assert_eq!(
             Version::from_str(version),
@@ -250,8 +259,7 @@ mod tests {
     #[case::two_pkgrel("1:foo-1-1", "expected end of package release value")]
     #[case::two_epoch("1:1:foo-1", "invalid pkgver character")]
     #[case::no_version("", "expected pkgver string")]
-    #[case::no_version(":", "invalid first pkgver character")]
-    #[case::no_version(".", "invalid first pkgver character")]
+    #[case::no_version(":", "invalid pkgver character")]
     #[case::invalid_integer(
         "-1foo:1",
         "invalid package epoch\nexpected positive non-zero decimal integer, followed by a ':'"

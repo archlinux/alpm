@@ -36,24 +36,6 @@ def test_package_version_invalid_empty() -> None:
         alpm_types.PackageVersion("")
 
 
-def test_package_version_invalid_starts_with_dot() -> None:
-    """Test creating a package version starting with dot raises error."""
-    with pytest.raises(ALPMError):
-        alpm_types.PackageVersion(".1.2.3")
-
-
-def test_package_version_invalid_starts_with_underscore() -> None:
-    """Test creating a package version starting with underscore raises error."""
-    with pytest.raises(ALPMError):
-        alpm_types.PackageVersion("_1.2.3")
-
-
-def test_package_version_invalid_starts_with_plus() -> None:
-    """Test creating a package version starting with plus raises error."""
-    with pytest.raises(ALPMError):
-        alpm_types.PackageVersion("+1.2.3")
-
-
 def test_package_version_equality() -> None:
     """Test package version equality."""
     version1 = alpm_types.PackageVersion("1.2.3")
@@ -429,18 +411,6 @@ def test_version_repr() -> None:
     version = alpm_types.Version.from_str("1.2.3")
     repr_str = repr(version)
     assert "Version" in repr_str
-
-
-def test_package_version_error_handling() -> None:
-    """Test that PackageVersion raises ALPMError."""
-    with pytest.raises(ALPMError):
-        alpm_types.PackageVersion("")
-
-    with pytest.raises(ALPMError):
-        alpm_types.PackageVersion(".invalid")
-
-    with pytest.raises(ALPMError):
-        alpm_types.PackageVersion("_invalid")
 
 
 def test_epoch_error_handling() -> None:
