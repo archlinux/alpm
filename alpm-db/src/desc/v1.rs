@@ -168,7 +168,7 @@ pub struct DbDescFileV1 {
     pub validation: Vec<PackageValidation>,
 
     /// Packages this one replaces.
-    pub replaces: Vec<Name>,
+    pub replaces: Vec<PackageRelation>,
 
     /// Required runtime dependencies.
     pub depends: Vec<PackageRelation>,
@@ -177,10 +177,10 @@ pub struct DbDescFileV1 {
     pub optdepends: Vec<OptionalDependency>,
 
     /// Conflicting packages that cannot be installed together.
-    pub conflicts: Vec<Name>,
+    pub conflicts: Vec<PackageRelation>,
 
     /// Virtual packages or capabilities provided by this one.
-    pub provides: Vec<Name>,
+    pub provides: Vec<PackageRelation>,
 }
 
 impl Display for DbDescFileV1 {
@@ -327,11 +327,11 @@ impl TryFrom<Vec<Section>> for DbDescFileV1 {
         let mut reason = None;
         let mut license: Vec<License> = Vec::new();
         let mut validation: Vec<PackageValidation> = Vec::new();
-        let mut replaces: Vec<Name> = Vec::new();
+        let mut replaces: Vec<PackageRelation> = Vec::new();
         let mut depends: Vec<PackageRelation> = Vec::new();
         let mut optdepends: Vec<OptionalDependency> = Vec::new();
-        let mut conflicts: Vec<Name> = Vec::new();
-        let mut provides: Vec<Name> = Vec::new();
+        let mut conflicts: Vec<PackageRelation> = Vec::new();
+        let mut provides: Vec<PackageRelation> = Vec::new();
 
         /// Helper macro to set a field only once, returning an error if it was already set.
         macro_rules! set_once {
@@ -521,11 +521,11 @@ foo-virtual
             reason: Some(PackageInstallReason::Depend),
             license: vec![License::from_str("MIT")?, License::from_str("Apache-2.0")?],
             validation: vec![PackageValidation::from_str("pgp")?],
-            replaces: vec![Name::new("pkg-old")?],
+            replaces: vec![PackageRelation::from_str("pkg-old")?],
             depends: vec![PackageRelation::from_str("glibc")?],
             optdepends: vec![OptionalDependency::from_str("optpkg")?],
-            conflicts: vec![Name::new("foo-old")?],
-            provides: vec![Name::new("foo-virtual")?],
+            conflicts: vec![PackageRelation::from_str("foo-old")?],
+            provides: vec![PackageRelation::from_str("foo-virtual")?],
         };
         assert_eq!(actual, expected);
         assert_eq!(VALID_DESC_FILE, actual.to_string());

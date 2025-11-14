@@ -156,7 +156,7 @@ pub struct V1CreateArgs {
 
     /// The replaces.
     #[arg(env = "ALPM_DB_DESC_REPLACES", long, value_delimiter = ' ')]
-    pub replaces: Vec<Name>,
+    pub replaces: Vec<PackageRelation>,
 
     /// The dependencies.
     #[arg(env = "ALPM_DB_DESC_DEPENDS", long, value_delimiter = ' ')]
@@ -168,11 +168,11 @@ pub struct V1CreateArgs {
 
     /// The conflicts.
     #[arg(env = "ALPM_DB_DESC_CONFLICTS", long, value_delimiter = ' ')]
-    pub conflicts: Vec<Name>,
+    pub conflicts: Vec<PackageRelation>,
 
     /// The provides.
     #[arg(env = "ALPM_DB_DESC_PROVIDES", long, value_delimiter = ' ')]
-    pub provides: Vec<Name>,
+    pub provides: Vec<PackageRelation>,
 
     /// The output file.
     #[arg(env = "ALPM_DB_DESC_OUTPUT_FILE")]

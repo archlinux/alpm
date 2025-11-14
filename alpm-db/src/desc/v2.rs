@@ -173,7 +173,7 @@ pub struct DbDescFileV2 {
     pub validation: Vec<PackageValidation>,
 
     /// Packages this one replaces.
-    pub replaces: Vec<Name>,
+    pub replaces: Vec<PackageRelation>,
 
     /// Required runtime dependencies.
     pub depends: Vec<PackageRelation>,
@@ -182,10 +182,10 @@ pub struct DbDescFileV2 {
     pub optdepends: Vec<OptionalDependency>,
 
     /// Conflicting packages that cannot be installed together.
-    pub conflicts: Vec<Name>,
+    pub conflicts: Vec<PackageRelation>,
 
     /// Virtual packages or capabilities provided by this one.
-    pub provides: Vec<Name>,
+    pub provides: Vec<PackageRelation>,
 
     /// Structured extra metadata, implementation-defined.
     #[serde_as(as = "TryFromInto<Vec<ExtraDataEntry>>")]
@@ -418,11 +418,11 @@ pkgtype=pkg
             reason: Some(PackageInstallReason::Depend),
             license: vec![License::from_str("MIT")?, License::from_str("Apache-2.0")?],
             validation: vec![PackageValidation::from_str("pgp")?],
-            replaces: vec![Name::new("pkg-old")?],
+            replaces: vec![PackageRelation::from_str("pkg-old")?],
             depends: vec![PackageRelation::from_str("glibc")?],
             optdepends: vec![OptionalDependency::from_str("optpkg")?],
-            conflicts: vec![Name::new("foo-old")?],
-            provides: vec![Name::new("foo-virtual")?],
+            conflicts: vec![PackageRelation::from_str("foo-old")?],
+            provides: vec![PackageRelation::from_str("foo-virtual")?],
             xdata: ExtraDataEntry::from_str("pkgtype=pkg")?.try_into()?,
         };
         assert_eq!(actual, expected);

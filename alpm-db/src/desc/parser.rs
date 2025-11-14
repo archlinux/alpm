@@ -157,15 +157,15 @@ pub enum Section {
     /// %VALIDATION%
     Validation(Vec<PackageValidation>),
     /// %REPLACES%
-    Replaces(Vec<Name>),
+    Replaces(Vec<PackageRelation>),
     /// %DEPENDS%
     Depends(Vec<PackageRelation>),
     /// %OPTDEPENDS%
     OptDepends(Vec<OptionalDependency>),
     /// %CONFLICTS%
-    Conflicts(Vec<Name>),
+    Conflicts(Vec<PackageRelation>),
     /// %PROVIDES%
-    Provides(Vec<Name>),
+    Provides(Vec<PackageRelation>),
     /// %XDATA%
     XData(ExtraData),
 }

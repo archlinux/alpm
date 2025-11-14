@@ -38,8 +38,14 @@ expression: json
     "Sha256"
   ],
   "replaces": [
-    "pkg-old",
-    "pkg-old2"
+    {
+      "name": "pkg-old",
+      "version_requirement": null
+    },
+    {
+      "name": "pkg-old2",
+      "version_requirement": null
+    }
   ],
   "depends": [
     {
@@ -68,12 +74,24 @@ expression: json
     }
   ],
   "conflicts": [
-    "foo-old",
-    "foo-old2"
+    {
+      "name": "foo-old",
+      "version_requirement": null
+    },
+    {
+      "name": "foo-old2",
+      "version_requirement": null
+    }
   ],
   "provides": [
-    "foo-virtual",
-    "foo-virtual2"
+    {
+      "name": "foo-virtual",
+      "version_requirement": null
+    },
+    {
+      "name": "foo-virtual2",
+      "version_requirement": null
+    }
   ],
   "xdata": [
     "pkgtype=pkg",
