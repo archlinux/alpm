@@ -140,7 +140,7 @@ pub struct DbDescFileV2 {
     pub base: PackageBaseName,
 
     /// The description of the package.
-    pub description: Option<PackageDescription>,
+    pub description: PackageDescription,
 
     /// The URL for the project of the package.
     pub url: Option<Url>,
@@ -164,13 +164,13 @@ pub struct DbDescFileV2 {
     pub groups: Vec<Group>,
 
     /// Optional install reason.
-    pub reason: Option<PackageInstallReason>,
+    pub reason: PackageInstallReason,
 
     /// Licenses that apply to the package.
     pub license: Vec<License>,
 
     /// Validation methods used for the package archive.
-    pub validation: Vec<PackageValidation>,
+    pub validation: PackageValidation,
 
     /// Packages this one replaces.
     pub replaces: Vec<PackageRelation>,
@@ -233,6 +233,12 @@ impl FromStr for DbDescFileV2 {
     /// %BASE%
     /// foo
     ///
+    /// %DESC%
+    /// An example package
+    ///
+    /// %URL%
+    /// https://example.org
+    ///
     /// %ARCH%
     /// x86_64
     ///
@@ -247,6 +253,9 @@ impl FromStr for DbDescFileV2 {
     ///
     /// %SIZE%
     /// 123
+    ///
+    /// %VALIDATION%
+    /// pgp
     ///
     /// %XDATA%
     /// pkgtype=pkg
@@ -407,7 +416,7 @@ pkgtype=pkg
             name: Name::new("foo")?,
             version: Version::from_str("1.0.0-1")?,
             base: PackageBaseName::new("foo")?,
-            description: Some(PackageDescription::from("An example package")),
+            description: PackageDescription::from("An example package"),
             url: Some(Url::from_str("https://example.org")?),
             arch: Architecture::from_str("x86_64")?,
             builddate: BuildDate::from(1733737242),
@@ -415,9 +424,9 @@ pkgtype=pkg
             packager: Packager::from_str("Foobar McFooface <foobar@mcfooface.org>")?,
             size: 123,
             groups: vec!["utils".into(), "cli".into()],
-            reason: Some(PackageInstallReason::Depend),
+            reason: PackageInstallReason::Depend,
             license: vec![License::from_str("MIT")?, License::from_str("Apache-2.0")?],
-            validation: vec![PackageValidation::from_str("pgp")?],
+            validation: PackageValidation::from_str("pgp")?,
             replaces: vec![PackageRelation::from_str("pkg-old")?],
             depends: vec![PackageRelation::from_str("glibc")?],
             optdepends: vec![OptionalDependency::from_str("optpkg")?],

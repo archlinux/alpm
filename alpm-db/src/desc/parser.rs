@@ -137,7 +137,7 @@ pub enum Section {
     /// %DESC%
     Desc(PackageDescription),
     /// %URL%
-    Url(Url),
+    Url(Option<Url>),
     /// %ARCH%
     Arch(Architecture),
     /// %BUILDDATE%
@@ -155,7 +155,7 @@ pub enum Section {
     /// %LICENSE%
     License(Vec<License>),
     /// %VALIDATION%
-    Validation(Vec<PackageValidation>),
+    Validation(PackageValidation),
     /// %REPLACES%
     Replaces(Vec<PackageRelation>),
     /// %DEPENDS%
@@ -191,6 +191,27 @@ where
 {
     // Parse until the end of the line and attempt conversion to `T`.
     let value = till_line_ending.parse_to().parse_next(input)?;
+
+    // Consume the newline or handle end-of-file gracefully.
+    alt((line_ending, eof)).parse_next(input)?;
+
+    Ok(value)
+}
+
+/// Parses a single optional value from the input.
+///
+/// Consumes text until the end of the current line.
+///
+/// # Errors
+///
+/// Returns an error if the next token cannot be parsed into `Option<T>`.
+fn opt_value<T>(input: &mut &str) -> ModalResult<Option<T>>
+where
+    T: FromStr + Display,
+    T::Err: Display,
+{
+    // Parse until the end of the line and attempt conversion to `Option<T>`.
+    let value = opt(till_line_ending.parse_to()).parse_next(input)?;
 
     // Consume the newline or handle end-of-file gracefully.
     alt((line_ending, eof)).parse_next(input)?;
@@ -251,7 +272,7 @@ fn section(input: &mut &str) -> ModalResult<Section> {
         SectionKeyword::Version => Section::Version(value(input)?),
         SectionKeyword::Base => Section::Base(value(input)?),
         SectionKeyword::Desc => Section::Desc(value(input)?),
-        SectionKeyword::Url => Section::Url(value(input)?),
+        SectionKeyword::Url => Section::Url(opt_value(input)?),
         SectionKeyword::Arch => Section::Arch(value(input)?),
         SectionKeyword::BuildDate => Section::BuildDate(value(input)?),
         SectionKeyword::InstallDate => Section::InstallDate(value(input)?),
@@ -260,7 +281,7 @@ fn section(input: &mut &str) -> ModalResult<Section> {
         SectionKeyword::Groups => Section::Groups(values(input)?),
         SectionKeyword::Reason => Section::Reason(value(input)?),
         SectionKeyword::License => Section::License(values(input)?),
-        SectionKeyword::Validation => Section::Validation(values(input)?),
+        SectionKeyword::Validation => Section::Validation(value(input)?),
         SectionKeyword::Replaces => Section::Replaces(values(input)?),
         SectionKeyword::Depends => Section::Depends(values(input)?),
         SectionKeyword::OptDepends => Section::OptDepends(values(input)?),

@@ -33,10 +33,7 @@ expression: json
     "MIT",
     "Apache-2.0"
   ],
-  "validation": [
-    "Pgp",
-    "Sha256"
-  ],
+  "validation": "Pgp",
   "replaces": [
     {
       "name": "pkg-old",

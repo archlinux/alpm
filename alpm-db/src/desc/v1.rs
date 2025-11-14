@@ -135,7 +135,7 @@ pub struct DbDescFileV1 {
     pub base: PackageBaseName,
 
     /// The description of the package.
-    pub description: Option<PackageDescription>,
+    pub description: PackageDescription,
 
     /// The URL for the project of the package.
     pub url: Option<Url>,
@@ -158,14 +158,14 @@ pub struct DbDescFileV1 {
     /// Groups the package belongs to.
     pub groups: Vec<Group>,
 
-    /// Optional install reason.
-    pub reason: Option<PackageInstallReason>,
+    /// The reason for installing the package.
+    pub reason: PackageInstallReason,
 
     /// Licenses that apply to the package.
     pub license: Vec<License>,
 
-    /// Validation methods used for the package archive.
-    pub validation: Vec<PackageValidation>,
+    /// Validation method used for the package.
+    pub validation: PackageValidation,
 
     /// Packages this one replaces.
     pub replaces: Vec<PackageRelation>,
@@ -190,14 +190,6 @@ impl Display for DbDescFileV1 {
             writeln!(f, "%{key}%\n{val}\n")
         }
 
-        // Helper function to write an optional value section
-        fn opt<T: Display, W: Write>(f: &mut W, key: &str, val: &Option<T>) -> FmtResult {
-            if let Some(v) = val {
-                writeln!(f, "%{key}%\n{v}\n")?;
-            }
-            Ok(())
-        }
-
         // Helper function to write a multi-value section
         fn section<T: Display, W: Write>(f: &mut W, key: &str, vals: &[T]) -> FmtResult {
             if vals.is_empty() {
@@ -213,20 +205,31 @@ impl Display for DbDescFileV1 {
         single(f, "NAME", &self.name)?;
         single(f, "VERSION", &self.version)?;
         single(f, "BASE", &self.base)?;
-        opt(f, "DESC", &self.description)?;
-        opt(f, "URL", &self.url)?;
+        single(f, "DESC", &self.description)?;
+        // Write an empty string if there is no URL value.
+        single(
+            f,
+            "URL",
+            &self
+                .url
+                .as_ref()
+                .map_or(String::new(), |url| url.to_string()),
+        )?;
         single(f, "ARCH", &self.arch)?;
         single(f, "BUILDDATE", &self.builddate)?;
         single(f, "INSTALLDATE", &self.installdate)?;
         single(f, "PACKAGER", &self.packager)?;
-        // Omit %SIZE% if it is zero
+        // Omit %SIZE% section if its value is "0"
         if self.size != 0 {
             single(f, "SIZE", &self.size)?;
         }
         section(f, "GROUPS", &self.groups)?;
-        opt(f, "REASON", &self.reason)?;
+        // Omit %REASON% section if its value is "PackageInstallReason::Explicit"
+        if self.reason != PackageInstallReason::Explicit {
+            single(f, "REASON", &self.reason)?;
+        }
         section(f, "LICENSE", &self.license)?;
-        section(f, "VALIDATION", &self.validation)?;
+        single(f, "VALIDATION", &self.validation)?;
         section(f, "REPLACES", &self.replaces)?;
         section(f, "DEPENDS", &self.depends)?;
         section(f, "OPTDEPENDS", &self.optdepends)?;
@@ -262,6 +265,12 @@ impl FromStr for DbDescFileV1 {
     /// %BASE%
     /// foo
     ///
+    /// %DESC%
+    /// An example package
+    ///
+    /// %URL%
+    /// https://example.org
+    ///
     /// %ARCH%
     /// x86_64
     ///
@@ -276,6 +285,9 @@ impl FromStr for DbDescFileV1 {
     ///
     /// %SIZE%
     /// 123
+    ///
+    /// %VALIDATION%
+    /// pgp
     ///
     /// "#;
     ///
@@ -326,7 +338,7 @@ impl TryFrom<Vec<Section>> for DbDescFileV1 {
         let mut groups: Vec<Group> = Vec::new();
         let mut reason = None;
         let mut license: Vec<License> = Vec::new();
-        let mut validation: Vec<PackageValidation> = Vec::new();
+        let mut validation = None;
         let mut replaces: Vec<PackageRelation> = Vec::new();
         let mut depends: Vec<PackageRelation> = Vec::new();
         let mut optdepends: Vec<OptionalDependency> = Vec::new();
@@ -368,7 +380,7 @@ impl TryFrom<Vec<Section>> for DbDescFileV1 {
                 Section::Groups(v) => set_vec_once!(groups, v, SectionKeyword::Groups),
                 Section::Reason(v) => set_once!(reason, v, SectionKeyword::Reason),
                 Section::License(v) => set_vec_once!(license, v, SectionKeyword::License),
-                Section::Validation(v) => set_vec_once!(validation, v, SectionKeyword::Validation),
+                Section::Validation(v) => set_once!(validation, v, SectionKeyword::Validation),
                 Section::Replaces(v) => set_vec_once!(replaces, v, SectionKeyword::Replaces),
                 Section::Depends(v) => set_vec_once!(depends, v, SectionKeyword::Depends),
                 Section::OptDepends(v) => set_vec_once!(optdepends, v, SectionKeyword::OptDepends),
@@ -382,17 +394,17 @@ impl TryFrom<Vec<Section>> for DbDescFileV1 {
             name: name.ok_or(Error::MissingSection(SectionKeyword::Name))?,
             version: version.ok_or(Error::MissingSection(SectionKeyword::Version))?,
             base: base.ok_or(Error::MissingSection(SectionKeyword::Base))?,
-            description,
-            url,
+            description: description.ok_or(Error::MissingSection(SectionKeyword::Desc))?,
+            url: url.ok_or(Error::MissingSection(SectionKeyword::Url))?,
             arch: arch.ok_or(Error::MissingSection(SectionKeyword::Arch))?,
             builddate: builddate.ok_or(Error::MissingSection(SectionKeyword::BuildDate))?,
             installdate: installdate.ok_or(Error::MissingSection(SectionKeyword::InstallDate))?,
             packager: packager.ok_or(Error::MissingSection(SectionKeyword::Packager))?,
-            size: size.ok_or(Error::MissingSection(SectionKeyword::Size))?,
+            size: size.unwrap_or_default(),
             groups,
-            reason,
+            reason: reason.unwrap_or(PackageInstallReason::Explicit),
             license,
-            validation,
+            validation: validation.ok_or(Error::MissingSection(SectionKeyword::Validation))?,
             replaces,
             depends,
             optdepends,
@@ -442,7 +454,8 @@ mod tests {
 
     use super::*;
 
-    const VALID_DESC_FILE: &str = r#"%NAME%
+    /// An alpm-db-desc string with all sections explicitly populated.
+    const DESC_FULL: &str = r#"%NAME%
 foo
 
 %VERSION%
@@ -503,32 +516,358 @@ foo-virtual
 
 "#;
 
-    #[test]
-    fn parse_valid_v1_desc() -> TestResult {
-        let actual = DbDescFileV1::from_str(VALID_DESC_FILE)?;
-        let expected = DbDescFileV1 {
+    /// An alpm-db-desc string with all list sections set, but empty.
+    const DESC_EMPTY_LIST_SECTIONS: &str = r#"%NAME%
+foo
+
+%VERSION%
+1.0.0-1
+
+%BASE%
+foo
+
+%DESC%
+An example package
+
+%URL%
+https://example.org/
+
+%ARCH%
+x86_64
+
+%BUILDDATE%
+1733737242
+
+%INSTALLDATE%
+1733737243
+
+%PACKAGER%
+Foobar McFooface <foobar@mcfooface.org>
+
+%GROUPS%
+
+%LICENSE%
+
+%VALIDATION%
+pgp
+
+%REPLACES%
+
+%DEPENDS%
+
+%OPTDEPENDS%
+
+%CONFLICTS%
+
+%PROVIDES%
+
+"#;
+
+    /// An alpm-db-desc string with the minimum set of sections.
+    ///
+    /// All list sections and sections that can be omitted, are omitted.
+    const DESC_MINIMAL: &str = r#"%NAME%
+foo
+
+%VERSION%
+1.0.0-1
+
+%BASE%
+foo
+
+%DESC%
+An example package
+
+%URL%
+https://example.org/
+
+%ARCH%
+x86_64
+
+%BUILDDATE%
+1733737242
+
+%INSTALLDATE%
+1733737243
+
+%PACKAGER%
+Foobar McFooface <foobar@mcfooface.org>
+
+%VALIDATION%
+pgp
+
+"#;
+
+    /// A minimal alpm-db-desc string with empty `%DESC%` and `%URL%` sections.
+    ///
+    /// All list sections and sections that can be omitted, are omitted for brevity.
+    const DESC_EMPTY_DESC_AND_URL: &str = r#"%NAME%
+foo
+
+%VERSION%
+1.0.0-1
+
+%BASE%
+foo
+
+%DESC%
+
+
+%URL%
+
+
+%ARCH%
+x86_64
+
+%BUILDDATE%
+1733737242
+
+%INSTALLDATE%
+1733737243
+
+%PACKAGER%
+Foobar McFooface <foobar@mcfooface.org>
+
+%VALIDATION%
+pgp
+
+"#;
+
+    /// A minimal alpm-db-desc string with the `%REASON%` section explicitly set to "0".
+    ///
+    /// All list sections and sections that can be omitted, are omitted for brevity.
+    const DESC_REASON_EXPLICITLY_ZERO: &str = r#"%NAME%
+foo
+
+%VERSION%
+1.0.0-1
+
+%BASE%
+foo
+
+%DESC%
+An example package
+
+%URL%
+https://example.org/
+
+%ARCH%
+x86_64
+
+%BUILDDATE%
+1733737242
+
+%INSTALLDATE%
+1733737243
+
+%PACKAGER%
+Foobar McFooface <foobar@mcfooface.org>
+
+%REASON%
+0
+
+%VALIDATION%
+pgp
+
+"#;
+
+    /// A minimal alpm-db-desc string with the `%SIZE%` section explicitly set to "0".
+    ///
+    /// All list sections and sections that can be omitted, are omitted for brevity.
+    const DESC_SIZE_EXPLICITLY_ZERO: &str = r#"%NAME%
+foo
+
+%VERSION%
+1.0.0-1
+
+%BASE%
+foo
+
+%DESC%
+An example package
+
+%URL%
+https://example.org/
+
+%ARCH%
+x86_64
+
+%BUILDDATE%
+1733737242
+
+%INSTALLDATE%
+1733737243
+
+%PACKAGER%
+Foobar McFooface <foobar@mcfooface.org>
+
+%SIZE%
+0
+
+%VALIDATION%
+pgp
+
+"#;
+
+    #[rstest]
+    #[case::full(
+        DESC_FULL,
+        DbDescFileV1 {
             name: Name::new("foo")?,
             version: Version::from_str("1.0.0-1")?,
             base: PackageBaseName::new("foo")?,
-            description: Some(PackageDescription::from("An example package")),
-            url: Some(Url::from_str("https://example.org")?),
+            description: PackageDescription::from("An example package"),
+            url: Some(Url::from_str("https://example.org/")?),
             arch: Architecture::from_str("x86_64")?,
             builddate: BuildDate::from(1733737242),
             installdate: BuildDate::from(1733737243),
             packager: Packager::from_str("Foobar McFooface <foobar@mcfooface.org>")?,
             size: 123,
             groups: vec!["utils".into(), "cli".into()],
-            reason: Some(PackageInstallReason::Depend),
+            reason: PackageInstallReason::Depend,
             license: vec![License::from_str("MIT")?, License::from_str("Apache-2.0")?],
-            validation: vec![PackageValidation::from_str("pgp")?],
+            validation: PackageValidation::from_str("pgp")?,
             replaces: vec![PackageRelation::from_str("pkg-old")?],
             depends: vec![PackageRelation::from_str("glibc")?],
             optdepends: vec![OptionalDependency::from_str("optpkg")?],
             conflicts: vec![PackageRelation::from_str("foo-old")?],
             provides: vec![PackageRelation::from_str("foo-virtual")?],
-        };
-        assert_eq!(actual, expected);
-        assert_eq!(VALID_DESC_FILE, actual.to_string());
+        },
+        DESC_FULL,
+    )]
+    #[case::empty_list_sections(
+        DESC_EMPTY_LIST_SECTIONS,
+        DbDescFileV1 {
+            name: Name::new("foo")?,
+            version: Version::from_str("1.0.0-1")?,
+            base: PackageBaseName::new("foo")?,
+            description: PackageDescription::from("An example package"),
+            url: Some(Url::from_str("https://example.org/")?),
+            arch: Architecture::from_str("x86_64")?,
+            builddate: BuildDate::from(1733737242),
+            installdate: BuildDate::from(1733737243),
+            packager: Packager::from_str("Foobar McFooface <foobar@mcfooface.org>")?,
+            size: 0,
+            groups: Vec::new(),
+            reason: PackageInstallReason::Explicit,
+            license: Vec::new(),
+            validation: PackageValidation::from_str("pgp")?,
+            replaces: Vec::new(),
+            depends: Vec::new(),
+            optdepends: Vec::new(),
+            conflicts: Vec::new(),
+            provides: Vec::new(),
+        },
+        DESC_MINIMAL,
+    )]
+    #[case::minimal(
+        DESC_MINIMAL,
+        DbDescFileV1 {
+            name: Name::new("foo")?,
+            version: Version::from_str("1.0.0-1")?,
+            base: PackageBaseName::new("foo")?,
+            description: PackageDescription::from("An example package"),
+            url: Some(Url::from_str("https://example.org/")?),
+            arch: Architecture::from_str("x86_64")?,
+            builddate: BuildDate::from(1733737242),
+            installdate: BuildDate::from(1733737243),
+            packager: Packager::from_str("Foobar McFooface <foobar@mcfooface.org>")?,
+            size: 0,
+            groups: Vec::new(),
+            reason: PackageInstallReason::Explicit,
+            license: Vec::new(),
+            validation: PackageValidation::from_str("pgp")?,
+            replaces: Vec::new(),
+            depends: Vec::new(),
+            optdepends: Vec::new(),
+            conflicts: Vec::new(),
+            provides: Vec::new(),
+        },
+        DESC_MINIMAL,
+    )]
+    #[case::empty_desc_and_url(
+        DESC_EMPTY_DESC_AND_URL,
+        DbDescFileV1 {
+            name: Name::new("foo")?,
+            version: Version::from_str("1.0.0-1")?,
+            base: PackageBaseName::new("foo")?,
+            description: PackageDescription::from(""),
+            url: None,
+            arch: Architecture::from_str("x86_64")?,
+            builddate: BuildDate::from(1733737242),
+            installdate: BuildDate::from(1733737243),
+            packager: Packager::from_str("Foobar McFooface <foobar@mcfooface.org>")?,
+            size: 0,
+            groups: Vec::new(),
+            reason: PackageInstallReason::Explicit,
+            license: Vec::new(),
+            validation: PackageValidation::from_str("pgp")?,
+            replaces: Vec::new(),
+            depends: Vec::new(),
+            optdepends: Vec::new(),
+            conflicts: Vec::new(),
+            provides: Vec::new(),
+        },
+        DESC_EMPTY_DESC_AND_URL,
+    )]
+    #[case::reason_explicitly_zero(
+        DESC_REASON_EXPLICITLY_ZERO,
+        DbDescFileV1 {
+            name: Name::new("foo")?,
+            version: Version::from_str("1.0.0-1")?,
+            base: PackageBaseName::new("foo")?,
+            description: PackageDescription::from("An example package"),
+            url: Some(Url::from_str("https://example.org/")?),
+            arch: Architecture::from_str("x86_64")?,
+            builddate: BuildDate::from(1733737242),
+            installdate: BuildDate::from(1733737243),
+            packager: Packager::from_str("Foobar McFooface <foobar@mcfooface.org>")?,
+            size: 0,
+            groups: Vec::new(),
+            reason: PackageInstallReason::Explicit,
+            license: Vec::new(),
+            validation: PackageValidation::from_str("pgp")?,
+            replaces: Vec::new(),
+            depends: Vec::new(),
+            optdepends: Vec::new(),
+            conflicts: Vec::new(),
+            provides: Vec::new(),
+        },
+        DESC_MINIMAL,
+    )]
+    #[case::size_explicitly_zero(
+        DESC_SIZE_EXPLICITLY_ZERO,
+        DbDescFileV1 {
+            name: Name::new("foo")?,
+            version: Version::from_str("1.0.0-1")?,
+            base: PackageBaseName::new("foo")?,
+            description: PackageDescription::from("An example package"),
+            url: Some(Url::from_str("https://example.org/")?),
+            arch: Architecture::from_str("x86_64")?,
+            builddate: BuildDate::from(1733737242),
+            installdate: BuildDate::from(1733737243),
+            packager: Packager::from_str("Foobar McFooface <foobar@mcfooface.org>")?,
+            size: 0,
+            groups: Vec::new(),
+            reason: PackageInstallReason::Explicit,
+            license: Vec::new(),
+            validation: PackageValidation::from_str("pgp")?,
+            replaces: Vec::new(),
+            depends: Vec::new(),
+            optdepends: Vec::new(),
+            conflicts: Vec::new(),
+            provides: Vec::new(),
+        },
+        DESC_MINIMAL,
+    )]
+    fn parse_valid_v1_desc(
+        #[case] input_data: &str,
+        #[case] expected: DbDescFileV1,
+        #[case] expected_output_data: &str,
+    ) -> TestResult {
+        let desc = DbDescFileV1::from_str(input_data)?;
+        assert_eq!(desc, expected);
+        assert_eq!(expected_output_data, desc.to_string());
         Ok(())
     }
 

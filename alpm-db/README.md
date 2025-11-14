@@ -40,6 +40,12 @@ foo
 %BASE%
 foo
 
+%DESC%
+An example package
+
+%URL%
+https://example.org
+
 %ARCH%
 x86_64
 
@@ -54,6 +60,10 @@ Foobar McFooface <foobar@mcfooface.org>
 
 %SIZE%
 123
+
+%VALIDATION%
+pgp
+
 "#;
 
 let desc = DbDescFileV1::from_str(desc_data)?;
@@ -79,6 +89,12 @@ foo
 %BASE%
 foo
 
+%DESC%
+An example package
+
+%URL%
+https://example.org
+
 %ARCH%
 x86_64
 
@@ -93,6 +109,9 @@ Foobar McFooface <foobar@mcfooface.org>
 
 %SIZE%
 123
+
+%VALIDATION%
+pgp
 
 %XDATA%
 pkgtype = pkg
@@ -134,6 +153,12 @@ foo
 %BASE%
 foo
 
+%DESC%
+An example package
+
+%URL%
+https://example.org/
+
 %ARCH%
 x86_64
 
@@ -148,6 +173,10 @@ Foobar McFooface <foobar@mcfooface.org>
 
 %SIZE%
 123
+
+%VALIDATION%
+pgp
+
 EOF
 
 alpm-db-desc format "$DBDESC_INPUT" --output-format json --pretty > "$DBDESC_OUTPUT"
@@ -170,8 +199,8 @@ cat > "$DBDESC_OUTPUT.expected" <<'EOF'
     }
   },
   "base": "foo",
-  "description": null,
-  "url": null,
+  "description": "An example package",
+  "url": "https://example.org/",
   "arch": "x86_64",
   "builddate": 1733737242,
   "installdate": 1733737243,
@@ -181,9 +210,9 @@ cat > "$DBDESC_OUTPUT.expected" <<'EOF'
   },
   "size": 123,
   "groups": [],
-  "reason": null,
+  "reason": "Explicit",
   "license": [],
-  "validation": [],
+  "validation": "Pgp",
   "replaces": [],
   "depends": [],
   "optdepends": [],

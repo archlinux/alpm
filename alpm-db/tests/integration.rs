@@ -60,7 +60,6 @@ Apache-2.0
 
 %VALIDATION%
 pgp
-sha256
 
 %REPLACES%
 pkg-old
@@ -130,7 +129,6 @@ Apache-2.0
 
 %VALIDATION%
 pgp
-sha256
 
 %REPLACES%
 pkg-old
@@ -336,36 +334,44 @@ mod create_cli {
     #[case::v2(DbDescSchema::V2(SchemaVersion::new(Version::new(2, 0, 0))))]
     fn size_zero_is_omitted(#[case] schema: DbDescSchema) -> TestResult {
         let tmp = tempdir()?;
-        let out = tmp.path().join("desc");
+        let out = tmp.path().join("desc").to_string_lossy().to_string();
 
         let (version_flag, _data) = super::schema_fixture(&schema);
 
         // Minimal required fields
         let mut args = vec![
-            "create".to_string(),
-            version_flag.to_string(),
-            "--name".into(),
-            "foo".into(),
-            "--version".into(),
-            "1.0.0-1".into(),
-            "--base".into(),
-            "foo".into(),
-            "--arch".into(),
-            "x86_64".into(),
-            "--builddate".into(),
-            "1733737242".into(),
-            "--installdate".into(),
-            "1733737243".into(),
-            "--packager".into(),
-            "Foobar <foo@bar>".into(),
-            "--size".into(),
-            "0".into(),
-            out.to_string_lossy().into(),
+            "create",
+            version_flag,
+            "--name",
+            "foo",
+            "--version",
+            "1.0.0-1",
+            "--base",
+            "foo",
+            "--arch",
+            "x86_64",
+            "--builddate",
+            "1733737242",
+            "--description",
+            "A description",
+            "--reason",
+            "0",
+            "--url",
+            "https://example.org",
+            "--validation",
+            "pgp",
+            "--installdate",
+            "1733737243",
+            "--packager",
+            "Foobar <foo@bar>",
+            "--size",
+            "0",
+            &out,
         ];
 
         // Add v2-only field
         if matches!(schema, DbDescSchema::V2(_)) {
-            args.extend(["--xdata".into(), "pkgtype=pkg".into()]);
+            args.extend(["--xdata", "pkgtype=pkg"]);
         }
 
         // Run the command
@@ -429,23 +435,17 @@ mod create_env {
         envs.insert("ALPM_DB_DESC_NAME", inner.name.to_string());
         envs.insert("ALPM_DB_DESC_VERSION", inner.version.to_string());
         envs.insert("ALPM_DB_DESC_BASE", inner.base.to_string());
-        envs.insert(
-            "ALPM_DB_DESC_DESC",
-            inner.description.map_or(String::new(), |d| d.to_string()),
-        );
+        envs.insert("ALPM_DB_DESC_DESC", inner.description.to_string());
         envs.insert(
             "ALPM_DB_DESC_URL",
-            inner.url.map_or(String::new(), |u| u.to_string()),
+            inner.url.map_or(String::new(), |url| url.to_string()),
         );
         envs.insert("ALPM_DB_DESC_ARCH", inner.arch.to_string());
         envs.insert("ALPM_DB_DESC_BUILDDATE", inner.builddate.to_string());
         envs.insert("ALPM_DB_DESC_INSTALLDATE", inner.installdate.to_string());
         envs.insert("ALPM_DB_DESC_PACKAGER", inner.packager.to_string());
         envs.insert("ALPM_DB_DESC_SIZE", inner.size.to_string());
-        envs.insert(
-            "ALPM_DB_DESC_REASON",
-            inner.reason.map_or(String::new(), |r| r.to_string()),
-        );
+        envs.insert("ALPM_DB_DESC_REASON", inner.reason.to_string());
 
         // Helper macro to shorten env setup handling for lists.
         macro_rules! env_join_list {
@@ -462,7 +462,7 @@ mod create_env {
         // Insert all group parameters
         env_join_list!("ALPM_DB_DESC_GROUPS", inner.groups);
         env_join_list!("ALPM_DB_DESC_LICENSE", inner.license);
-        env_join_list!("ALPM_DB_DESC_VALIDATION", inner.validation);
+        envs.insert("ALPM_DB_DESC_VALIDATION", inner.validation.to_string());
         env_join_list!("ALPM_DB_DESC_REPLACES", inner.replaces);
         env_join_list!("ALPM_DB_DESC_DEPENDS", inner.depends);
         env_join_list!("ALPM_DB_DESC_OPTDEPENDS", inner.optdepends);

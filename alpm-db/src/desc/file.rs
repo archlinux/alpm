@@ -61,6 +61,12 @@ impl MetadataFile<DbDescSchema> for DbDescFile {
     /// %BASE%
     /// foo
     ///
+    /// %DESC%
+    /// An example package
+    ///
+    /// %URL%
+    /// https://example.org/
+    ///
     /// %ARCH%
     /// x86_64
     ///
@@ -75,6 +81,9 @@ impl MetadataFile<DbDescSchema> for DbDescFile {
     ///
     /// %SIZE%
     /// 123
+    ///
+    /// %VALIDATION%
+    /// pgp
     ///
     /// "#;
     ///     let file = tempfile::NamedTempFile::new()?;
@@ -140,6 +149,12 @@ impl MetadataFile<DbDescSchema> for DbDescFile {
     /// %BASE%
     /// foo
     ///
+    /// %DESC%
+    /// An example package
+    ///
+    /// %URL%
+    /// https://example.org/
+    ///
     /// %ARCH%
     /// x86_64
     ///
@@ -154,6 +169,9 @@ impl MetadataFile<DbDescSchema> for DbDescFile {
     ///
     /// %SIZE%
     /// 123
+    ///
+    /// %VALIDATION%
+    /// pgp
     ///
     /// %XDATA%
     /// pkgtype=pkg
@@ -217,6 +235,12 @@ impl MetadataFile<DbDescSchema> for DbDescFile {
     /// %BASE%
     /// foo
     ///
+    /// %DESC%
+    /// An example package
+    ///
+    /// %URL%
+    /// https://example.org/
+    ///
     /// %ARCH%
     /// x86_64
     ///
@@ -231,6 +255,9 @@ impl MetadataFile<DbDescSchema> for DbDescFile {
     ///
     /// %SIZE%
     /// 123
+    ///
+    /// %VALIDATION%
+    /// pgp
     ///
     /// "#;
     ///
@@ -249,6 +276,12 @@ impl MetadataFile<DbDescSchema> for DbDescFile {
     /// %BASE%
     /// foo
     ///
+    /// %DESC%
+    /// An example package
+    ///
+    /// %URL%
+    /// https://example.org/
+    ///
     /// %ARCH%
     /// x86_64
     ///
@@ -263,6 +296,9 @@ impl MetadataFile<DbDescSchema> for DbDescFile {
     ///
     /// %SIZE%
     /// 123
+    ///
+    /// %VALIDATION%
+    /// pgp
     ///
     /// %XDATA%
     /// pkgtype=pkg

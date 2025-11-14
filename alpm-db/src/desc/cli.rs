@@ -111,6 +111,8 @@ pub struct V1CreateArgs {
     pub base: PackageBaseName,
 
     /// The package description.
+    ///
+    /// If not provided, an empty string is used.
     #[arg(env = "ALPM_DB_DESC_DESC", long)]
     pub description: Option<PackageDescription>,
 
@@ -143,6 +145,8 @@ pub struct V1CreateArgs {
     pub groups: Vec<Group>,
 
     /// The package install reason.
+    ///
+    /// If unset, assumes an install reason of "0" (explicitly installed).
     #[arg(env = "ALPM_DB_DESC_REASON", long)]
     pub reason: Option<PackageInstallReason>,
 
@@ -151,8 +155,8 @@ pub struct V1CreateArgs {
     pub license: Vec<License>,
 
     /// The package validation methods.
-    #[arg(env = "ALPM_DB_DESC_VALIDATION", long, value_delimiter = ' ')]
-    pub validation: Vec<PackageValidation>,
+    #[arg(env = "ALPM_DB_DESC_VALIDATION", long)]
+    pub validation: PackageValidation,
 
     /// The replaces.
     #[arg(env = "ALPM_DB_DESC_REPLACES", long, value_delimiter = ' ')]
