@@ -45,6 +45,8 @@ error-invalid-pgp-fingerprint = Invalid OpenPGP v4 fingerprint, only 40 uppercas
 
 error-invalid-pgp-keyid = The string is not a valid OpenPGP key ID: { $keyid }, must be 16 hexadecimal characters
 
+error-invalid-base64-encoding = Invalid base64 encoding encountered while decoding { $expected_item }
+
 error-invalid-soname-v1 = Invalid shared object name (v1): { $name }
 
 error-package = Package error: { $error }
@@ -54,3 +56,5 @@ error-unknown-compression = Unknown compression algorithm file extension: { $val
 error-unknown-filetype = Unknown file type identifier: { $value }
 
 error-invalid-architectures = The architecture combination is invalid: { $architectures } ({ $context })
+
+error-invalid-base64-encoding-pgp-signature = base64 encoded OpenPGP detached signature
