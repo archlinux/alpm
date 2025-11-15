@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.0] - 2025-11-15
+
+### Added
+
+- Implement `Default` for `PackageInstallReason`
+- Implement `Default` for `PackageDescription`
+- Localize error messages for alpm-types
+- [**breaking**] Replace `Vec<ExtraData>` with `ExtraData` newtype
+- [**breaking**] Rename `RelativePath` to `RelativeFilePath`
+- Support for CRC-32/CKSUM algorithm and `cksums` field
+- Implement Deserialize for Package and ExtraData types
+- Add PackageValidation to alpm-types
+- Add PackageInstallReason to alpm-types
+- Support whitespace separated PGP key fingerprint format
+
+### Fixed
+
+- Correct error message when passing a directory to `RelativePath`
+
+### Other
+
+- Move `alpm-files` specification to `alpm-files` crate
+- Add `CRC-32/CKSUM` hash function support to specification
+- Move alpm-db-desc specifications to alpm-db crate
+- Add information on different `alpm-files` styles
+
 ## [0.9.0] - 2025-10-30
 
 ### Added
