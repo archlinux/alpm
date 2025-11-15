@@ -193,7 +193,7 @@ fn main() -> Result<(), alpm_soname::Error> {
 
 ## Features
 
-- `cli` adds the commandline handling needed for the `alpm-soname` binary (enabled by default).
+- `cli` adds the commandline handling needed for the `alpm-soname` binary.
 
 ## Contributing
 

@@ -228,10 +228,9 @@ rm -r -- "$test_tmpdir"
 
 ## Features
 
-- `cli`: enables the commandline interface for the `alpm-db-desc` binary
-  (enabled by default)
+- `cli`: enables the commandline interface for the `alpm-db-desc` binary.
 - `_winnow-debug`: enables the `winnow/debug` feature for
-  step-by-step parser debugging
+  step-by-step parser debugging.
 
 ## Contributing
 
