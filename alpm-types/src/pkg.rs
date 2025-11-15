@@ -70,6 +70,16 @@ impl PackageDescription {
     }
 }
 
+impl Default for PackageDescription {
+    /// Returns the default [`PackageDescription`].
+    ///
+    /// Following the default for [`String`], this returns a [`PackageDescription`] wrapping an
+    /// empty string.
+    fn default() -> Self {
+        Self::new("")
+    }
+}
+
 impl FromStr for PackageDescription {
     type Err = Infallible;
 
