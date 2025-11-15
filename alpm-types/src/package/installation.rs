@@ -45,6 +45,7 @@
     Clone,
     Copy,
     Debug,
+    Default,
     PartialEq,
     Eq,
     serde::Deserialize,
@@ -56,6 +57,7 @@
 #[repr(u8)]
 pub enum PackageInstallReason {
     /// Explicitly requested by the user.
+    #[default]
     #[strum(to_string = "0")]
     Explicit = 0,
     /// Installed as a dependency for another package.
