@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2025-11-15
+
+### Added
+
+- Support whitespace separated PGP key fingerprint format
+- Support for CRC-32/CKSUM algorithm and `cksums` field
+- [**breaking**] Rename `RelativePath` to `RelativeFilePath`
+
+### Fixed
+
+- *(python)* Return Iterator instead of Iterable in __iter__
+
+### Other
+
+- *(readme)* Fix links broken on PyPI
+- *(deps)* Update dependency pytest to v9
+
 ## [0.2.1] - 2025-10-31
 
 ### Other
