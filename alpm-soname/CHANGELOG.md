@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2025-11-15
+
+### Added
+
+- Localize error messages for alpm-soname
+- Replace the use of `clap-verbosity` with `clap-verbosity-flag`
+- [**breaking**] Remove `BuildInfoV1` and `BuildInfoV2` `new` constructors
+- [**breaking**] Remove `PackageInfoV1` and `PackageInfoV2` `new` constructors
+
+### Other
+
+- *(readme)* Remove `cli` feature enabled by default
+
 ## [0.2.0] - 2025-10-30
 
 ### Added
