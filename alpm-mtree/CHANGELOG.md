@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2025-11-15
+
+### Added
+
+- Localize error messages for alpm-mtree
+- [**breaking**] Remove `BuildInfoV1` and `BuildInfoV2` `new` constructors
+
+### Other
+
+- *(readme)* Remove `cli` feature enabled by default
+
 ## [0.2.3] - 2025-10-30
 
 ### Other
