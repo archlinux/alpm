@@ -280,7 +280,7 @@ dependencies = [
 
 [[package]]
 name = "alpm-pkginfo"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "alpm-common",
  "alpm-parsers",

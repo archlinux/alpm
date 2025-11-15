@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2025-11-15
+
+### Added
+
+- Localize error messages for alpm-pkginfo
+- [**breaking**] Remove `PackageInfoV1` and `PackageInfoV2` `new` constructors
+- [**breaking**] Replace `Vec<ExtraData>` with `ExtraData` newtype
+
+### Other
+
+- *(readme)* Remove `cli` feature enabled by default
+- *(cargo)* Move `serde_with` to workspace dependencies
+
 ## [0.4.0] - 2025-10-30
 
 ### Added
