@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2025-11-15
+
+### Added
+
+- Replace the use of `clap-verbosity` with `clap-verbosity-flag`
+- [**breaking**] Remove `BuildInfoV1` and `BuildInfoV2` `new` constructors
+- [**breaking**] Remove `PackageInfoV1` and `PackageInfoV2` `new` constructors
+- [**breaking**] Replace `Vec<ExtraData>` with `ExtraData` newtype
+- Update unsafe checksums lint to warn about `cksums`
+- *(lint)* Add `UnknownArchitecture` lint
+
+### Fixed
+
+- Adjust alpm-lint architecture link
+
+### Other
+
+- Fix broken link to alpm-lint API
+
 ## [0.1.1] - 2025-10-31
 
 ### Fixed
