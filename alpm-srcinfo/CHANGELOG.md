@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2025-11-15
+
+### Added
+
+- Localize error messages for alpm-srcinfo
+- [**breaking**] Rename `RelativePath` to `RelativeFilePath`
+- Support for CRC-32/CKSUM algorithm and `cksums` field
+
+### Other
+
+- *(readme)* Remove `cli` feature enabled by default
+- Add `CRC-32/CKSUM` hash function support to specification
+- Update `validpgpkeys` spec to allow whitespace separators
+- Fix spelling of SRCINFO
+
 ## [0.5.0] - 2025-10-30
 
 ### Added
