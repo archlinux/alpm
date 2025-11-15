@@ -21,8 +21,6 @@ This crate is intended solely for use by the `alpm-srcinfo` crate.
 
 As `alpm-pkgbuild` is designed to be used in conjunction with the `alpm-srcinfo` crate, the tests for the bridge logic of this crate also live in the `alpm-srcinfo` project.
 
-### Library
-
 [PKGBUILD]: https://man.archlinux.org/man/PKGBUILD.5
 [SRCINFO]: https://alpm.archlinux.page/specifications/SRCINFO.5.html
 [`alpm-pkgbuild-bridge`]: https://gitlab.archlinux.org/archlinux/alpm/alpm-pkgbuild-bridge
