@@ -6,6 +6,7 @@ use std::{
 };
 
 use alpm_common::{FileFormatSchema, MetadataFile};
+use fluent_i18n::t;
 
 use crate::{
     Error,
@@ -116,7 +117,7 @@ impl MetadataFile<DbDescSchema> for DbDescFile {
         Self::from_reader_with_schema(
             File::open(file).map_err(|source| Error::IoPathError {
                 path: PathBuf::from(file),
-                context: "opening the file for reading",
+                context: t!("error-io-path-open-file"),
                 source,
             })?,
             schema,
@@ -207,7 +208,7 @@ impl MetadataFile<DbDescSchema> for DbDescFile {
         reader
             .read_to_string(&mut buf)
             .map_err(|source| Error::IoReadError {
-                context: "reading DB desc data",
+                context: t!("error-io-read-db-desc"),
                 source,
             })?;
         Self::from_str_with_schema(&buf, schema)

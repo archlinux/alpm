@@ -11,6 +11,7 @@ use std::{
 
 use alpm_common::FileFormatSchema;
 use alpm_types::{SchemaVersion, semver_version::Version};
+use fluent_i18n::t;
 
 use crate::Error;
 
@@ -62,7 +63,7 @@ impl FileFormatSchema for DbDescSchema {
         let file = file.as_ref();
         Self::derive_from_reader(File::open(file).map_err(|source| Error::IoPathError {
             path: PathBuf::from(file),
-            context: "deriving schema version from DB desc file",
+            context: t!("error-io-path-schema-file"),
             source,
         })?)
     }
@@ -88,7 +89,7 @@ impl FileFormatSchema for DbDescSchema {
         reader
             .read_to_string(&mut buf)
             .map_err(|source| Error::IoReadError {
-                context: "deriving schema version from DB desc data",
+                context: t!("error-io-read-schema-data"),
                 source,
             })?;
         Self::derive_from_str(&buf)

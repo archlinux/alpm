@@ -8,6 +8,7 @@ use std::{
 };
 
 use alpm_common::MetadataFile;
+use fluent_i18n::t;
 
 use crate::{
     Error,
@@ -91,21 +92,21 @@ pub fn create_file(command: CreateCommand) -> Result<(), Error> {
         if let Some(output_dir) = output_path.parent() {
             create_dir_all(output_dir).map_err(|source| Error::IoPathError {
                 path: output_dir.to_path_buf(),
-                context: "creating output directory",
+                context: t!("error-io-path-output-dir"),
                 source,
             })?;
         }
 
         let mut out = File::create(&output_path).map_err(|source| Error::IoPathError {
             path: output_path.clone(),
-            context: "creating output file",
+            context: t!("error-io-path-output-file"),
             source,
         })?;
 
         out.write_all(data.as_bytes())
             .map_err(|source| Error::IoPathError {
                 path: output_path.clone(),
-                context: "writing to output file",
+                context: t!("error-io-path-write-file"),
                 source,
             })?;
     } else {
@@ -160,12 +161,12 @@ pub fn format(args: ValidateArgs, output_format: OutputFormat, pretty: bool) -> 
         OutputFormat::Json => {
             let json = if pretty {
                 serde_json::to_string_pretty(&desc).map_err(|e| Error::Json {
-                    context: "serializing to pretty JSON",
+                    context: t!("error-json-serialize-pretty"),
                     source: e,
                 })?
             } else {
                 serde_json::to_string(&desc).map_err(|e| Error::Json {
-                    context: "serializing to JSON",
+                    context: t!("error-json-serialize"),
                     source: e,
                 })?
             };
