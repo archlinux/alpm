@@ -90,12 +90,12 @@ The value is a non-negative integer representing the absolute size of the conten
 
 ### %SHA256SUM%
 
-The **SHA-256**[3] hash digest of the **alpm-package** file.
+The **SHA-256**[2] hash digest of the **alpm-package** file.
 The string consists of 64 hexadecimal characters (e.g. `b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c`).
 
 ### %PGPSIG%
 
-The optional **base64**[4] encoded **OpenPGP signature**[5] for the **alpm-package** file (e.g. `iHUEABYKAB0WIQRizHP4hOUpV7L92IObeih9mi7GCAUCaBZuVAAKCRCbeih9mi7GCIlMAP9ws/jU4f580ZRQlTQKvUiLbAZOdcB7mQQj83hD1Nc/GwD/WIHhO1/OQkpMERejUrLo3AgVmY3b4/uGhx9XufWEbgE=`).
+The optional **base64**[3] encoded **OpenPGP signature**[4] for the **alpm-package** file (e.g. `iHUEABYKAB0WIQRizHP4hOUpV7L92IObeih9mi7GCAUCaBZuVAAKCRCbeih9mi7GCIlMAP9ws/jU4f580ZRQlTQKvUiLbAZOdcB7mQQj83hD1Nc/GwD/WIHhO1/OQkpMERejUrLo3AgVmY3b4/uGhx9XufWEbgE=`).
 The tool for creating the **alpm-repo-desc** file may choose to not include the signature representation, in which case the section is omitted.
 
 ### %URL%
@@ -111,7 +111,7 @@ If there is no license identifier, the section is omitted.
 
 Each value represents a license identifier, which is a string of non-zero length (e.g. `GPL`).
 Although no specific restrictions are enforced for the value aside from its length, it is highly recommended to rely on SPDX license expressions (e.g. `GPL-3.0-or-later` or `Apache-2.0 OR MIT`).
-See **SPDX License List**[6] for further information.
+See **SPDX License List**[5] for further information.
 
 ### %ARCH%
 
@@ -126,8 +126,8 @@ The value must be numeric and represent the seconds since the Epoch, aka. 'Unix 
 ### %PACKAGER%
 
 The User ID of the entity, that built the package.
-The value is meant to be used for identity lookups and represents an **OpenPGP User ID**[7].
-As such, the value is a UTF-8-encoded string, that is conventionally composed of a name and an e-mail address, which aligns with the format described in **RFC 2822**[8] (e.g. `John Doe <john@example.org>`).
+The value is meant to be used for identity lookups and represents an **OpenPGP User ID**[6].
+As such, the value is a UTF-8-encoded string, that is conventionally composed of a name and an e-mail address, which aligns with the format described in **RFC 2822**[7] (e.g. `John Doe <john@example.org>`).
 
 ### %REPLACES%
 
@@ -208,9 +208,6 @@ other-group
 %ISIZE%
 18184634
 
-%MD5SUM%
-d3b07384d113edec49eaa6238ad5ff00
-
 %SHA256SUM%
 b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c
 
@@ -280,14 +277,8 @@ An example meta package
 %ISIZE%
 0
 
-%MD5SUM%
-d3b07384d113edec49eaa6238ad5ff00
-
 %SHA256SUM%
 b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c
-
-%PGPSIG%
-iHUEABYKAB0WIQRizHP4hOUpV7L92IObeih9mi7GCAUCaBZuVAAKCRCbeih9mi7GCIlMAP9ws/jU4f580ZRQlTQKvUiLbAZOdcB7mQQj83hD1Nc/GwD/WIHhO1/OQkpMERejUrLo3AgVmY3b4/uGhx9XufWEbgE=
 
 %URL%
 https://example.org
@@ -314,9 +305,6 @@ Foobar McFooface <foobar@mcfooface.org>
 1. printable ASCII characters
    
    <https://en.wikipedia.org/wiki/ASCII#Printable_characters>
-1. MD-5
-   
-   <https://en.wikipedia.org/wiki/MD5>
 1. SHA-256
    
    <https://en.wikipedia.org/wiki/SHA-2>
