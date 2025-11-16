@@ -20,12 +20,13 @@ use alpm_types::{
     PackageDescription,
     PackageRelation,
     Packager,
+    RelationOrSoname,
     Url,
 };
 use clap::{Args, Parser, Subcommand, ValueEnum};
 use strum::Display;
 
-use crate::{Error, PackageInfoSchema, RelationOrSoname};
+use crate::{Error, PackageInfoSchema};
 
 /// A type wrapping a PathBuf with a default value
 ///

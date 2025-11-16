@@ -2,8 +2,8 @@
 use std::{io::Read, path::PathBuf, str::FromStr};
 
 use alpm_package::Package;
-use alpm_pkginfo::{PackageInfo, RelationOrSoname};
-use alpm_types::{Soname, SonameLookupDirectory, SonameV2};
+use alpm_pkginfo::PackageInfo;
+use alpm_types::{RelationOrSoname, Soname, SonameLookupDirectory, SonameV2};
 use fluent_i18n::t;
 use goblin::{Hint, Object};
 use log::{debug, trace};

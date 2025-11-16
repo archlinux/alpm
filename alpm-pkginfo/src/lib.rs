@@ -10,9 +10,6 @@ pub mod cli;
 mod error;
 pub use crate::error::Error;
 
-pub mod utils;
-pub use crate::utils::RelationOrSoname;
-
 mod schema;
 pub use schema::PackageInfoSchema;
 

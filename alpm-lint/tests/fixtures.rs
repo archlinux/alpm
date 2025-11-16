@@ -12,7 +12,7 @@
 use std::str::FromStr;
 
 use alpm_buildinfo::BuildInfoV2;
-use alpm_pkginfo::{PackageInfoV2, RelationOrSoname};
+use alpm_pkginfo::PackageInfoV2;
 use alpm_srcinfo::{
     SourceInfoV1,
     source_info::v1::{package::Package, package_base::PackageBase},
@@ -32,6 +32,7 @@ use alpm_types::{
     Name,
     PackageDescription,
     Packager,
+    RelationOrSoname,
     StartDirectory,
     Url,
     digests::Sha256,

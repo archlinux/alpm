@@ -20,11 +20,12 @@ use alpm_types::{
     PackageDescription,
     PackageRelation,
     Packager,
+    RelationOrSoname,
     Url,
 };
 use serde_with::{DisplayFromStr, serde_as};
 
-use crate::{Error, RelationOrSoname};
+use crate::Error;
 
 /// PKGINFO version 1
 ///
