@@ -986,12 +986,60 @@ class PackageRelation:
     def __repr__(self) -> str: ...
     def __eq__(self, other: object) -> bool: ...
 
+class Soname:
+    """A shared object's soname."""
+
+    def __init__(self, name: str, version: Optional["PackageVersion"] = None):
+        """Create a new Soname.
+
+        Args:
+            name (str): The name part of the shared object's soname.
+            version (Optional[PackageVersion]): The optional version part of the soname.
+
+        """
+
+    @property
+    def name(self) -> str:
+        """The name part of the shared object's soname."""
+
+    @property
+    def version(self) -> Optional["PackageVersion"]:
+        """The optional version part of the shared object's soname."""
+
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+    def __eq__(self, other: object) -> bool: ...
+
 class SonameV1Type(Enum):
     """The form of a SonameV1."""
 
     BASIC = ("BASIC",)
     UNVERSIONED = ("UNVERSIONED",)
     EXPLICIT = ("EXPLICIT",)
+
+class SonameV2:
+    """Soname data of a shared object based on the alpm-sonamev2 specification."""
+
+    def __init__(self, prefix: str, soname: Soname):
+        """Create a new SonameV2.
+
+        Args:
+            prefix (str): The directory prefix of the shared object file.
+            soname (Soname): The soname value of the shared object.
+
+        """
+
+    @property
+    def prefix(self) -> str:
+        """The directory prefix used for the soname lookup."""
+
+    @property
+    def soname(self) -> Soname:
+        """The soname data containing the shared object's name and optional version."""
+
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...
+    def __eq__(self, other: object) -> bool: ...
 
 class SonameV1:
     """Soname data of a shared object based on the alpm-sonamev1 specification.
@@ -1061,17 +1109,17 @@ class SonameV1:
     def __eq__(self, other: object) -> bool: ...
 
 def relation_or_soname_from_str(s: str) -> RelationOrSoname:
-    """Parse a string into either a PackageRelation or a SonameV1.
+    """Parse a string into either a PackageRelation, SonameV1, or SonameV2.
 
     Args:
-        s (str): The string representation of PackageRelation or SonameV1.
+        s (str): The string representation of PackageRelation, SonameV1, or SonameV2.
 
     Returns:
-        RelationOrSoname: A valid PackageRelation or SonameV1 object.
+        RelationOrSoname: A valid PackageRelation, SonameV1, or SonameV2 object.
 
     Raises:
         ALPMError: If the input string can't be parsed to a valid PackageRelation or
-                   SonameV1.
+                   soname.
 
     """
 

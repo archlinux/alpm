@@ -35,17 +35,17 @@ impl TryFrom<VersionOrSoname> for alpm_types::VersionOrSoname {
 
 #[derive(Clone, Debug, FromPyObject, IntoPyObject, PartialEq)]
 pub enum RelationOrSoname {
-    BasicSonameV1(SonameV1),
     Relation(PackageRelation),
+    SonameV1(SonameV1),
+    SonameV2(SonameV2),
 }
 
 impl From<alpm_types::RelationOrSoname> for RelationOrSoname {
     fn from(value: alpm_types::RelationOrSoname) -> Self {
         match value {
-            alpm_types::RelationOrSoname::BasicSonameV1(s) => {
-                RelationOrSoname::BasicSonameV1(s.into())
-            }
             alpm_types::RelationOrSoname::Relation(r) => RelationOrSoname::Relation(r.into()),
+            alpm_types::RelationOrSoname::SonameV1(s) => RelationOrSoname::SonameV1(s.into()),
+            alpm_types::RelationOrSoname::SonameV2(s) => RelationOrSoname::SonameV2(s.into()),
         }
     }
 }
@@ -53,8 +53,9 @@ impl From<alpm_types::RelationOrSoname> for RelationOrSoname {
 impl From<RelationOrSoname> for alpm_types::RelationOrSoname {
     fn from(value: RelationOrSoname) -> Self {
         match value {
-            RelationOrSoname::BasicSonameV1(s) => alpm_types::RelationOrSoname::BasicSonameV1(s.0),
             RelationOrSoname::Relation(r) => alpm_types::RelationOrSoname::Relation(r.0),
+            RelationOrSoname::SonameV1(s) => alpm_types::RelationOrSoname::SonameV1(s.0),
+            RelationOrSoname::SonameV2(s) => alpm_types::RelationOrSoname::SonameV2(s.0),
         }
     }
 }
@@ -71,9 +72,9 @@ impl TryFrom<RelationOrSoname> for PackageRelation {
     fn try_from(value: RelationOrSoname) -> Result<Self, Self::Error> {
         match value {
             RelationOrSoname::Relation(r) => Ok(r),
-            RelationOrSoname::BasicSonameV1(_) => Err(PyTypeError::new_err(
-                "expected PackageRelation, found SonameV1",
-            )),
+            RelationOrSoname::SonameV1(_) | RelationOrSoname::SonameV2(_) => Err(
+                PyTypeError::new_err("expected PackageRelation, found Soname"),
+            ),
         }
     }
 }
@@ -83,6 +84,89 @@ pub fn relation_or_soname_from_str(s: &str) -> Result<RelationOrSoname, crate::t
     let inner = alpm_types::RelationOrSoname::from_str(s)?;
     Ok(inner.into())
 }
+
+#[pyclass(frozen, eq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Soname(alpm_types::Soname);
+
+#[pymethods]
+impl Soname {
+    #[new]
+    #[pyo3(signature = (name, version = None))]
+    fn new(
+        name: &str,
+        version: Option<crate::types::version::PackageVersion>,
+    ) -> Result<Self, crate::types::Error> {
+        let name = alpm_types::SharedObjectName::new(name)?;
+        let inner = alpm_types::Soname::new(name, version.map(From::from));
+        Ok(inner.into())
+    }
+
+    #[getter]
+    fn name(&self) -> String {
+        self.0.name.to_string()
+    }
+
+    #[getter]
+    fn version(&self) -> Option<crate::types::version::PackageVersion> {
+        self.0.version.clone().map(From::from)
+    }
+
+    fn __repr__(&self) -> String {
+        match self.version() {
+            Some(version) => format!(
+                "Soname(name='{}', version={})",
+                self.name(),
+                version.__repr__()
+            ),
+            None => format!("Soname(name='{}')", self.name()),
+        }
+    }
+
+    fn __str__(&self) -> String {
+        self.0.to_string()
+    }
+}
+
+impl_from!(Soname, alpm_types::Soname);
+
+#[pyclass(frozen, eq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SonameV2(alpm_types::SonameV2);
+
+#[pymethods]
+impl SonameV2 {
+    #[new]
+    fn new(prefix: &str, soname: Soname) -> Result<Self, crate::types::Error> {
+        let prefix = alpm_types::Name::new(prefix)?;
+        let inner = alpm_types::SonameV2::new(prefix, soname.into());
+        Ok(inner.into())
+    }
+
+    #[getter]
+    fn prefix(&self) -> String {
+        self.0.prefix.to_string()
+    }
+
+    #[getter]
+    fn soname(&self) -> Soname {
+        self.0.soname.clone().into()
+    }
+
+    fn __repr__(&self) -> String {
+        format!(
+            "SonameV2(prefix='{}', soname={})",
+            self.prefix(),
+            self.soname().__repr__()
+        )
+    }
+
+    fn __str__(&self) -> String {
+        self.0.to_string()
+    }
+}
+
+impl_from!(SonameV2, alpm_types::SonameV2);
 
 #[pyclass(frozen)]
 #[derive(Clone, Copy, Debug, Display, PartialEq)]

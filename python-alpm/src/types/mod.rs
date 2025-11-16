@@ -72,9 +72,13 @@ pub mod py_types {
     #[pymodule_export]
     use relation::PackageRelation;
     #[pymodule_export]
+    use relation::Soname;
+    #[pymodule_export]
     use relation::SonameV1;
     #[pymodule_export]
     use relation::SonameV1Type;
+    #[pymodule_export]
+    use relation::SonameV2;
     #[pymodule_export]
     use relation::relation_or_soname_from_str;
     #[pymodule_export]

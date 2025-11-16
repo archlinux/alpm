@@ -15,6 +15,7 @@ def test_type_aliases_imports() -> None:
         OpenPGPIdentifier,
         RelationOrSoname,
         SkippableChecksum,
+        Soname,
         SourceInfo,
         SystemArchitecture,
         VcsInfo,

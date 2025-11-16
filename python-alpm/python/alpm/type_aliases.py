@@ -25,6 +25,7 @@ from alpm.alpm_types import (
     PackageOption,
     PackageVersion,
     SonameV1,
+    SonameV2,
     PackageRelation,
     BzrInfo,
     FossilInfo,
@@ -91,12 +92,17 @@ VersionOrSoname: TypeAlias = Union[
 ]
 """Either a PackageVersion or a string representing a shared object name."""
 
+Soname: TypeAlias = Union[
+    SonameV1,
+    SonameV2,
+]
+"""Either a SonameV1 or SonameV2 record."""
 
 RelationOrSoname: TypeAlias = Union[
-    SonameV1,
+    Soname,
     PackageRelation,
 ]
-"""Either a SonameV1 or a PackageRelation."""
+"""Either a SonameV1, SonameV2, or a PackageRelation."""
 
 SystemArchitecture: TypeAlias = Union[KnownArchitecture, UnknownArchitecture]
 """A specific system architecture.
@@ -131,6 +137,7 @@ __all__ = [
     "SkippableChecksum",
     "OpenPGPIdentifier",
     "MakepkgOption",
+    "Soname",
     "VersionOrSoname",
     "RelationOrSoname",
     "SystemArchitecture",

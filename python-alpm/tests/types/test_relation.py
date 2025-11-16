@@ -209,6 +209,19 @@ def test_relation_or_soname_from_str_sonames(input_str: str) -> None:
 
 
 @pytest.mark.parametrize(
+    "input_str",
+    [
+        "lib:libfoo.so",
+        "lib:libfoo.so.1",
+    ],
+)
+def test_relation_or_soname_from_str_soname_v2(input_str: str) -> None:
+    """Test parsing strings that should return SonameV2."""
+    result = alpm_types.relation_or_soname_from_str(input_str)
+    assert isinstance(result, alpm_types.SonameV2)
+
+
+@pytest.mark.parametrize(
     "invalid_str",
     [
         "",
