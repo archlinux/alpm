@@ -36,6 +36,35 @@ This `just` command takes care of a few things:
 - Install the relevant [git pre-commit] and [git pre-push] hooks.
 - Install the [git prepare-commit-msg] hook to automatically add a signoff section to the commit message.
 
+## Localization and translations
+
+This project supports localization and translations of its user-facing strings.
+
+### Translation key structure
+
+Translation keys use a hierarchical kebab-case naming scheme that maps the code base structure:
+
+```text
+{module}-{group}-{key}
+```
+
+- `module` typically mirrors the Rust file that contains the translation usage.
+- `group` is optional and highlights that a subset of keys inside a module refers to the same feature.
+- `key` pinpoints the specific translation.
+
+### Adding translations
+
+Join our translation efforts at [Weblate](https://hosted.weblate.org/projects/alpm/) or contribute directly in this
+repository by adding new keys to the relevant `.ftl` files in the `locales` directories.
+
+Follow these conventions when adding or updating keys:
+
+1. Use lowercase ASCII letters with hyphens as separators. Avoid other punctuation.
+1. Keep related keys under a shared `{module}-{group}` prefix to make their relationship obvious.
+1. Pick descriptive names that clarify what the text is used for and where it sits within the hierarchy.
+
+Some examples are `error-io-write-archive` and `cli-format-pretty-help`.
+
 ## Testing
 
 We run [`nextest`] for fast execution of unit and integration tests.
