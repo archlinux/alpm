@@ -21,6 +21,7 @@ use alpm_types::{
     PackageRelation,
     PackageValidation,
     Packager,
+    RelationOrSoname,
     Url,
     Version,
 };
@@ -171,7 +172,7 @@ pub struct DbDescFileV1 {
     pub replaces: Vec<PackageRelation>,
 
     /// Required runtime dependencies.
-    pub depends: Vec<PackageRelation>,
+    pub depends: Vec<RelationOrSoname>,
 
     /// Optional dependencies that enhance the package.
     pub optdepends: Vec<OptionalDependency>,
@@ -180,7 +181,7 @@ pub struct DbDescFileV1 {
     pub conflicts: Vec<PackageRelation>,
 
     /// Virtual packages or capabilities provided by this one.
-    pub provides: Vec<PackageRelation>,
+    pub provides: Vec<RelationOrSoname>,
 }
 
 impl Display for DbDescFileV1 {
@@ -340,10 +341,10 @@ impl TryFrom<Vec<Section>> for DbDescFileV1 {
         let mut license: Vec<License> = Vec::new();
         let mut validation = None;
         let mut replaces: Vec<PackageRelation> = Vec::new();
-        let mut depends: Vec<PackageRelation> = Vec::new();
+        let mut depends: Vec<RelationOrSoname> = Vec::new();
         let mut optdepends: Vec<OptionalDependency> = Vec::new();
         let mut conflicts: Vec<PackageRelation> = Vec::new();
-        let mut provides: Vec<PackageRelation> = Vec::new();
+        let mut provides: Vec<RelationOrSoname> = Vec::new();
 
         /// Helper macro to set a field only once, returning an error if it was already set.
         macro_rules! set_once {
@@ -504,6 +505,8 @@ pkg-old
 
 %DEPENDS%
 glibc
+libwlroots-0.19.so=libwlroots-0.19.so-64
+lib:libexample.so.1
 
 %OPTDEPENDS%
 optpkg
@@ -513,6 +516,8 @@ foo-old
 
 %PROVIDES%
 foo-virtual
+libwlroots-0.19.so=libwlroots-0.19.so-64
+lib:libexample.so.1
 
 "#;
 
@@ -728,10 +733,18 @@ pgp
             license: vec![License::from_str("MIT")?, License::from_str("Apache-2.0")?],
             validation: PackageValidation::from_str("pgp")?,
             replaces: vec![PackageRelation::from_str("pkg-old")?],
-            depends: vec![PackageRelation::from_str("glibc")?],
+            depends: vec![
+                RelationOrSoname::from_str("glibc")?,
+                RelationOrSoname::from_str("libwlroots-0.19.so=libwlroots-0.19.so-64")?,
+                RelationOrSoname::from_str("lib:libexample.so.1")?,
+            ],
             optdepends: vec![OptionalDependency::from_str("optpkg")?],
             conflicts: vec![PackageRelation::from_str("foo-old")?],
-            provides: vec![PackageRelation::from_str("foo-virtual")?],
+            provides: vec![
+                RelationOrSoname::from_str("foo-virtual")?,
+                RelationOrSoname::from_str("libwlroots-0.19.so=libwlroots-0.19.so-64")?,
+                RelationOrSoname::from_str("lib:libexample.so.1")?,
+            ],
         },
         DESC_FULL,
     )]
@@ -868,6 +881,16 @@ pgp
         let desc = DbDescFileV1::from_str(input_data)?;
         assert_eq!(desc, expected);
         assert_eq!(expected_output_data, desc.to_string());
+        Ok(())
+    }
+
+    #[test]
+    fn depends_and_provides_accept_sonames() -> TestResult {
+        let desc = DbDescFileV1::from_str(DESC_FULL)?;
+        assert!(matches!(desc.depends[1], RelationOrSoname::SonameV1(_)));
+        assert!(matches!(desc.depends[2], RelationOrSoname::SonameV2(_)));
+        assert!(matches!(desc.provides[1], RelationOrSoname::SonameV1(_)));
+        assert!(matches!(desc.provides[2], RelationOrSoname::SonameV2(_)));
         Ok(())
     }
 

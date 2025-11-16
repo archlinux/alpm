@@ -17,6 +17,7 @@ use alpm_types::{
     PackageRelation,
     PackageValidation,
     Packager,
+    RelationOrSoname,
     Url,
     Version,
 };
@@ -164,7 +165,7 @@ pub struct V1CreateArgs {
 
     /// The dependencies.
     #[arg(env = "ALPM_DB_DESC_DEPENDS", long, value_delimiter = ' ')]
-    pub depends: Vec<PackageRelation>,
+    pub depends: Vec<RelationOrSoname>,
 
     /// The optional dependencies.
     #[arg(env = "ALPM_DB_DESC_OPTDEPENDS", long, value_delimiter = ' ')]
@@ -176,7 +177,7 @@ pub struct V1CreateArgs {
 
     /// The provides.
     #[arg(env = "ALPM_DB_DESC_PROVIDES", long, value_delimiter = ' ')]
-    pub provides: Vec<PackageRelation>,
+    pub provides: Vec<RelationOrSoname>,
 
     /// The output file.
     #[arg(env = "ALPM_DB_DESC_OUTPUT_FILE")]

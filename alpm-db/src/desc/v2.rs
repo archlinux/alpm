@@ -23,6 +23,7 @@ use alpm_types::{
     PackageRelation,
     PackageValidation,
     Packager,
+    RelationOrSoname,
     Url,
     Version,
 };
@@ -176,7 +177,7 @@ pub struct DbDescFileV2 {
     pub replaces: Vec<PackageRelation>,
 
     /// Required runtime dependencies.
-    pub depends: Vec<PackageRelation>,
+    pub depends: Vec<RelationOrSoname>,
 
     /// Optional dependencies that enhance the package.
     pub optdepends: Vec<OptionalDependency>,
@@ -185,7 +186,7 @@ pub struct DbDescFileV2 {
     pub conflicts: Vec<PackageRelation>,
 
     /// Virtual packages or capabilities provided by this one.
-    pub provides: Vec<PackageRelation>,
+    pub provides: Vec<RelationOrSoname>,
 
     /// Structured extra metadata, implementation-defined.
     #[serde_as(as = "TryFromInto<Vec<ExtraDataEntry>>")]
@@ -394,6 +395,8 @@ pkg-old
 
 %DEPENDS%
 glibc
+libwlroots-0.19.so=libwlroots-0.19.so-64
+lib:libexample.so.1
 
 %OPTDEPENDS%
 optpkg
@@ -403,6 +406,8 @@ foo-old
 
 %PROVIDES%
 foo-virtual
+libwlroots-0.19.so=libwlroots-0.19.so-64
+lib:libexample.so.1
 
 %XDATA%
 pkgtype=pkg
@@ -428,14 +433,32 @@ pkgtype=pkg
             license: vec![License::from_str("MIT")?, License::from_str("Apache-2.0")?],
             validation: PackageValidation::from_str("pgp")?,
             replaces: vec![PackageRelation::from_str("pkg-old")?],
-            depends: vec![PackageRelation::from_str("glibc")?],
+            depends: vec![
+                RelationOrSoname::from_str("glibc")?,
+                RelationOrSoname::from_str("libwlroots-0.19.so=libwlroots-0.19.so-64")?,
+                RelationOrSoname::from_str("lib:libexample.so.1")?,
+            ],
             optdepends: vec![OptionalDependency::from_str("optpkg")?],
             conflicts: vec![PackageRelation::from_str("foo-old")?],
-            provides: vec![PackageRelation::from_str("foo-virtual")?],
+            provides: vec![
+                RelationOrSoname::from_str("foo-virtual")?,
+                RelationOrSoname::from_str("libwlroots-0.19.so=libwlroots-0.19.so-64")?,
+                RelationOrSoname::from_str("lib:libexample.so.1")?,
+            ],
             xdata: ExtraDataEntry::from_str("pkgtype=pkg")?.try_into()?,
         };
         assert_eq!(actual, expected);
         assert_eq!(VALID_DESC_FILE, actual.to_string());
+        Ok(())
+    }
+
+    #[test]
+    fn depends_and_provides_accept_sonames() -> TestResult {
+        let desc = DbDescFileV2::from_str(VALID_DESC_FILE)?;
+        assert!(matches!(desc.depends[1], RelationOrSoname::SonameV1(_)));
+        assert!(matches!(desc.depends[2], RelationOrSoname::SonameV2(_)));
+        assert!(matches!(desc.provides[1], RelationOrSoname::SonameV1(_)));
+        assert!(matches!(desc.provides[2], RelationOrSoname::SonameV2(_)));
         Ok(())
     }
 

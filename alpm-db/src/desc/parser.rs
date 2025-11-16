@@ -21,6 +21,7 @@ use alpm_types::{
     PackageRelation,
     PackageValidation,
     Packager,
+    RelationOrSoname,
     Url,
     Version,
 };
@@ -159,13 +160,13 @@ pub enum Section {
     /// %REPLACES%
     Replaces(Vec<PackageRelation>),
     /// %DEPENDS%
-    Depends(Vec<PackageRelation>),
+    Depends(Vec<RelationOrSoname>),
     /// %OPTDEPENDS%
     OptDepends(Vec<OptionalDependency>),
     /// %CONFLICTS%
     Conflicts(Vec<PackageRelation>),
     /// %PROVIDES%
-    Provides(Vec<PackageRelation>),
+    Provides(Vec<RelationOrSoname>),
     /// %XDATA%
     XData(ExtraData),
 }
