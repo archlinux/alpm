@@ -114,6 +114,9 @@ alpm-soname get-raw-dependencies $BIN_PACKAGE_PATH --output-format json | tee "$
 
 As demonstrated above, the output format can be set to `json` using the `--output-format` option.
 
+To see which ELF files reference each dependency, add the `--detail` flag. When combined with JSON
+output, the command then returns a structured list of ELF paths with their dependencies.
+
 <!--
 
 Asserts the command above:

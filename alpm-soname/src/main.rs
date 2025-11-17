@@ -27,7 +27,9 @@ fn main() -> ExitCode {
         Command::GetDependencies { args, lookup_dir } => {
             get_dependencies(args, lookup_dir, &mut std::io::stdout())
         }
-        Command::GetRawDependencies { args } => get_raw_dependencies(args, &mut std::io::stdout()),
+        Command::GetRawDependencies { args, detail } => {
+            get_raw_dependencies(args, detail, &mut std::io::stdout())
+        }
     };
 
     if let Err(error) = result {

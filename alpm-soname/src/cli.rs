@@ -50,6 +50,11 @@ pub enum Command {
         /// Package arguments for the get-raw-dependencies command
         #[command(flatten)]
         args: PackageArgs,
+
+        /// Display detailed dependency information grouped by ELF file
+        /// when using the plain output format
+        #[arg(long)]
+        detail: bool,
     },
 }
 

@@ -210,8 +210,12 @@ fn test_soname_lookup(#[case] config: SotestConfig) -> TestResult {
         elf_sonames.contains(&expected_soname),
         "Expected to find {expected_soname:?} in {elf_sonames:?}"
     );
-    let mut expected_sonames: Vec<_> = elf_sonames.iter().flat_map(|e| e.sonames.clone()).collect();
+    let mut expected_sonames: Vec<_> = elf_sonames
+        .iter()
+        .flat_map(|elf| elf.sonames.clone())
+        .collect();
     expected_sonames.sort();
+    expected_sonames.dedup();
     assert_eq!(
         get_raw_dependencies_via_cli(&bin.to_path_buf())?,
         expected_sonames

@@ -1,14 +1,15 @@
 //! Command line functions that are called by the `alpm-soname` executable.
 
-use std::io::Write;
+use std::{collections::BTreeMap, io::Write};
 
 use alpm_soname::{
+    ElfSonames,
     cli::{OutputFormat, PackageArgs},
     extract_elf_sonames,
     find_dependencies,
     find_provisions,
 };
-use alpm_types::{Soname, SonameLookupDirectory};
+use alpm_types::{Name, Soname, SonameLookupDirectory, SonameV2};
 use fluent_i18n::t;
 use thiserror::Error;
 
@@ -42,13 +43,32 @@ pub fn get_provisions<W: Write>(
 
     match args.output_format {
         OutputFormat::Plain => {
-            for provision in provisions {
-                writeln!(output, "{provision}").map_err(|source| {
-                    alpm_soname::Error::IoWriteError {
-                        context: t!("error-io-write-provision-output"),
-                        source,
+            if args.pretty {
+                for (prefix, sonames) in group_sonames_by_prefix(&provisions) {
+                    writeln!(output, "{prefix}").map_err(|source| {
+                        alpm_soname::Error::IoWriteError {
+                            context: t!("error-io-write-provision-output"),
+                            source,
+                        }
+                    })?;
+                    for soname in sonames {
+                        writeln!(output, " ⤷ {soname}").map_err(|source| {
+                            alpm_soname::Error::IoWriteError {
+                                context: t!("error-io-write-provision-output"),
+                                source,
+                            }
+                        })?;
                     }
-                })?;
+                }
+            } else {
+                for provision in &provisions {
+                    writeln!(output, "{provision}").map_err(|source| {
+                        alpm_soname::Error::IoWriteError {
+                            context: t!("error-io-write-provision-output"),
+                            source,
+                        }
+                    })?;
+                }
             }
         }
         OutputFormat::Json => {
@@ -82,16 +102,34 @@ pub fn get_dependencies<W: Write>(
     output: &mut W,
 ) -> Result<(), Error> {
     let dependencies = find_dependencies(args.package, lookup_dir)?;
-
     match args.output_format {
         OutputFormat::Plain => {
-            for dependency in &dependencies {
-                writeln!(output, "{dependency}").map_err(|source| {
-                    alpm_soname::Error::IoWriteError {
-                        context: t!("error-io-write-dependency-output"),
-                        source,
+            if args.pretty {
+                for (prefix, sonames) in group_sonames_by_prefix(&dependencies) {
+                    writeln!(output, "{prefix}").map_err(|source| {
+                        alpm_soname::Error::IoWriteError {
+                            context: t!("error-io-write-dependency-output"),
+                            source,
+                        }
+                    })?;
+                    for soname in sonames {
+                        writeln!(output, " ⤷ {soname}").map_err(|source| {
+                            alpm_soname::Error::IoWriteError {
+                                context: t!("error-io-write-dependency-output"),
+                                source,
+                            }
+                        })?;
                     }
-                })?;
+                }
+            } else {
+                for dependency in &dependencies {
+                    writeln!(output, "{dependency}").map_err(|source| {
+                        alpm_soname::Error::IoWriteError {
+                            context: t!("error-io-write-dependency-output"),
+                            source,
+                        }
+                    })?;
+                }
             }
             return Ok(());
         }
@@ -120,30 +158,64 @@ pub fn get_dependencies<W: Write>(
 ///
 /// Returns an error if [`extract_elf_sonames`] returns an error or if the output stream
 /// can not be written to.
-pub fn get_raw_dependencies<W: Write>(args: PackageArgs, output: &mut W) -> Result<(), Error> {
-    let mut elf_sonames: Vec<Soname> = extract_elf_sonames(args.package)?
-        .into_iter()
-        .flat_map(|elf_soname| elf_soname.sonames)
+///
+/// If `detail` is `true`, the output groups dependencies by the ELF that references them.
+pub fn get_raw_dependencies<W: Write>(
+    args: PackageArgs,
+    detail: bool,
+    output: &mut W,
+) -> Result<(), Error> {
+    let mut elf_sonames: Vec<ElfSonames> = extract_elf_sonames(args.package)?;
+    elf_sonames.sort_by(|a, b| a.path.cmp(&b.path));
+    for elf in &mut elf_sonames {
+        elf.sonames.sort();
+        elf.sonames.dedup();
+    }
+    let sonames: Vec<Soname> = elf_sonames
+        .iter()
+        .flat_map(|elf| elf.sonames.clone())
         .collect();
-    elf_sonames.sort();
-    elf_sonames.dedup();
-
     match args.output_format {
         OutputFormat::Plain => {
-            for elf_soname in elf_sonames {
-                writeln!(output, "{elf_soname}").map_err(|source| {
-                    alpm_soname::Error::IoWriteError {
-                        context: t!("error-io-write-elf-soname-output"),
-                        source,
+            if detail {
+                for elf_soname in elf_sonames {
+                    writeln!(output, "{}", elf_soname.path.display()).map_err(|source| {
+                        alpm_soname::Error::IoWriteError {
+                            context: t!("error-io-write-elf-soname-output"),
+                            source,
+                        }
+                    })?;
+                    for soname in &elf_soname.sonames {
+                        writeln!(output, " ⤷ {soname}").map_err(|source| {
+                            alpm_soname::Error::IoWriteError {
+                                context: t!("error-io-write-elf-soname-output"),
+                                source,
+                            }
+                        })?;
                     }
-                })?;
+                }
+            } else {
+                for soname in &sonames {
+                    writeln!(output, "{soname}").map_err(|source| {
+                        alpm_soname::Error::IoWriteError {
+                            context: t!("error-io-write-elf-soname-output"),
+                            source,
+                        }
+                    })?;
+                }
             }
         }
         OutputFormat::Json => {
-            let json = if args.pretty {
-                serde_json::to_string_pretty(&elf_sonames)?
+            let json = if detail {
+                if args.pretty {
+                    serde_json::to_string_pretty(&elf_sonames)?
+                } else {
+                    serde_json::to_string(&elf_sonames)?
+                }
+            } else if args.pretty {
+                serde_json::to_string_pretty(&sonames)?
             } else {
-                serde_json::to_string(&elf_sonames)?
+                serde_json::to_string(&sonames)?
             };
             writeln!(output, "{json}").map_err(|source| alpm_soname::Error::IoWriteError {
                 context: t!("error-io-write-json"),
@@ -153,4 +225,25 @@ pub fn get_raw_dependencies<W: Write>(args: PackageArgs, output: &mut W) -> Resu
     }
 
     Ok(())
+}
+
+/// Groups a list of [`SonameV2`] data by their shared library prefixes.
+///
+/// Returns a map of shared library prefixes, each with a list of raw [`Soname`] information
+/// attached to them.
+fn group_sonames_by_prefix(sonames: &[SonameV2]) -> BTreeMap<Name, Vec<Soname>> {
+    let mut grouped_sonames: BTreeMap<Name, Vec<Soname>> = BTreeMap::new();
+    for entry in sonames {
+        grouped_sonames
+            .entry(entry.prefix.clone())
+            .or_default()
+            .push(entry.soname.clone());
+    }
+
+    for sonames in grouped_sonames.values_mut() {
+        sonames.sort();
+        sonames.dedup();
+    }
+
+    grouped_sonames
 }
