@@ -95,79 +95,218 @@ install-alpm-package-set set:
 
     readonly set="{{ set }}"
 
+    # Sets of basic default packages for various targets.
+    #
+    # Overrides take place in the switch case, when adding packages to the (initially empty) `packages` array.
+    readonly build_book=(
+        cargo-depgraph
+        graphviz
+        mdbook
+        mdbook-mermaid
+    )
+    readonly check_commits=(
+        git
+        cocogitto
+        codespell
+        committed
+        ripgrep
+    )
+    readonly check_dependencies=(cargo-deny)
+    readonly check_licenses=(
+        git
+        reuse
+    )
+    readonly check_links=(lychee)
+    readonly check_rust=(
+        clang
+        python
+    )
+    readonly check_shell=(
+        ripgrep
+        shellcheck
+        tangler
+    )
+    readonly check_spelling=(codespell)
+    readonly check_unused=(cargo-machete)
+    readonly dev=(
+        cargo-insta
+        git-cliff
+        miniserve
+        release-plz
+        voa-verifiers-arch
+        watchexec
+    )
+    readonly docs=(
+        clang
+        jq
+        python
+        uv
+    )
+    readonly format=(
+        cargo-sort-derives
+        clang
+        mado
+        taplo
+        uv
+    )
+    readonly lint_website=(
+         biome
+         pnpm
+         zola
+    )
+    readonly manpages=(
+        clang
+        lowdown
+        rust-script
+    )
+    readonly pkgbuild=(alpm-pkgbuild-bridge)
+    readonly publish=(
+        clang
+        jq
+        maturin
+        uv
+        zig
+    )
+    readonly python_dev=(
+         maturin
+         uv
+         zig
+    )
+    readonly rust_dev=(rustup)
+    readonly test=(
+        cargo-nextest
+        clang
+        meson
+    )
+    readonly test_containerized=(podman)
+    readonly test_coverage=(
+        cargo-llvm-cov
+        cargo-nextest
+        clang
+        jq
+        maturin
+        meson
+        python
+        uv
+    )
+    readonly test_readmes=(
+        clang
+        diffutils
+        jq
+        meson
+        rust-script
+        tangler
+    )
+
+    # Start with an empty set of packages and add to it in the below switch-case.
+    packages=()
+
     case "$set" in
         all)
-            packages="${PACMAN_PACKAGES}"
+            packages+=(
+                "${build_book[@]}"
+                "${check_commits[@]}"
+                "${check_spelling[@]}"
+                "${check_shell[@]}"
+                "${check_rust[@]}"
+                "${check_unused[@]}"
+                "${check_dependencies[@]}"
+                "${check_licenses[@]}"
+                "${check_links[@]}"
+                "${dev[@]}"
+                "${docs[@]}"
+                "${format[@]}"
+                "${lint_website[@]}"
+                "${manpages[@]}"
+                "${pkgbuild[@]}"
+                "${python_dev[@]}"
+                "${rust_dev[@]}"
+                "${test[@]}"
+                "${test_containerized[@]}"
+                "${test_coverage[@]}"
+                "${test_readmes[@]}"
+            )
             ;;
         book)
-            packages="${BUILD_BOOK_PACKAGES}"
+            packages+=(
+                "${build_book[@]}"
+                "${docs[@]}"
+                "${lint_website[@]}"
+            )
             ;;
         commits)
-            packages="${CHECK_COMMITS_PACKAGES}"
+            packages+=("${check_commits[@]}")
             ;;
         containerized)
-            packages="${CONTAINERIZED_TEST_PACKAGES}"
+            packages+=(
+                "${test_coverage[@]}"
+                "${test_containerized[@]}"
+            )
             ;;
         coverage)
-            packages="${TEST_COVERAGE_PACKAGES}"
+            packages+=("${test_coverage[@]}")
             ;;
         docs)
-            packages="${DOCS_PACKAGES}"
+            packages+=("${docs[@]}")
             ;;
         dependencies)
-            packages="${CHECK_DEPENDENCIES_PACKAGES}"
+            packages+=("${check_dependencies[@]}")
             ;;
         formatting)
-            packages="${FORMAT_PACKAGES}"
+            packages+=("${format[@]}")
             ;;
         licenses)
-            packages="${CHECK_LICENSES_PACKAGES}"
+            packages+=("${check_licenses[@]}")
             ;;
         lint-website)
-            packages="${LINT_WEBSITE_PACKAGES}"
+            packages+=("${lint_website[@]}")
             ;;
         links)
-            packages="${CHECK_LINKS_PACKAGES}"
+            packages+=("${check_links[@]}")
             ;;
         manpages)
-            packages="${MANPAGES_PACKAGES}"
+            packages+=("${manpages[@]}")
             ;;
         publish)
-            packages="${PUBLISH_PACKAGES}"
+            packages+=("${publish[@]}")
             ;;
         python-dev)
-            packages="${PYTHON_DEV_TOOLS_PACKAGES}"
+            packages+=(
+                "${pkgbuild[@]}"
+                "${python_dev[@]}"
+                "${rust_dev[@]}"
+            )
             ;;
         readmes)
-            packages="${TEST_READMES_PACKAGES}"
+            packages+=("${test_readmes[@]}")
             ;;
         rust)
-            packages="${CHECK_RUST_PACKAGES}"
+            packages+=("${check_rust[@]}")
             ;;
         rust-dev)
-            packages="${RUST_DEV_TOOLS_PACKAGES}"
+            packages+=(
+                "${pkgbuild[@]}"
+                "${rust_dev[@]}"
+            )
             ;;
         shell)
-            packages="${CHECK_SHELL_PACKAGES}"
+            packages+=("${check_shell[@]}")
             ;;
         spelling)
-            packages="${SPELLING_PACKAGES}"
+            packages+=("${check_spelling[@]}")
             ;;
         test)
-            packages="${TEST_PACKAGES}"
+            packages+=("${test[@]}")
             ;;
         unused)
-            packages="${CHECK_UNUSED_PACKAGES}"
+            packages+=("${check_unused[@]}")
             ;;
         *)
-            printf 'Invalid package set %s\n' "$set" >&2
+            printf 'Invalid package set %s' "$set" >&2
             exit 1
     esac
 
     just ensure-command pacman run0
-
-    # Read all packages into an array.
-    read -r -d '' -a packages < <(printf '%s\0' "$packages")
 
     # Deduplicate using an associative array
     declare -A unique_packages

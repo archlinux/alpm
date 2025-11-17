@@ -32,7 +32,6 @@ path = [
     "*.yml",
     ".cargo/runner.sh",
     ".codespellrc",
-    ".env",
     ".gitlab/CODEOWNERS",
     ".gitmodules",
     ".lycheeignore",
