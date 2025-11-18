@@ -7,13 +7,12 @@ use alpm_common::MetadataFile;
 use alpm_mtree::Mtree;
 use alpm_pkginfo::PackageInfo;
 use alpm_srcinfo::SourceInfo;
-use colored::Colorize;
-use log::{debug, info, warn};
+use log::{debug, info};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use voa::{
     commands::{openpgp_verify, read_openpgp_signatures, read_openpgp_verifiers},
     core::{Context, Os, Purpose},
-    openpgp::OpenpgpCert,
+    openpgp::VerifierLookup,
     utils::RegularFile,
 };
 
@@ -26,7 +25,7 @@ use crate::{
     ui::get_progress_bar,
 };
 
-/// Verifies a `file` using a `signature` and a set of `certs`.
+/// Verifies a `file` using a `signature` and a [`VerifierLookup`].
 ///
 /// The success or failure of the verification is transmitted through logging.
 ///
@@ -39,7 +38,7 @@ use crate::{
 fn openpgp_verify_file(
     file: PathBuf,
     signature: PathBuf,
-    certs: &[OpenpgpCert],
+    lookup: &VerifierLookup,
 ) -> Result<(), Error> {
     debug!("Verifying {file:?} with {signature:?}");
 
@@ -47,7 +46,7 @@ fn openpgp_verify_file(
         signature.clone(),
     )?]))?;
 
-    let check_results = openpgp_verify(certs, &signatures, &RegularFile::try_from(file.clone())?)?;
+    let check_results = openpgp_verify(lookup, &signatures, &RegularFile::try_from(file.clone())?)?;
 
     // Look at the signer info of all check results and return an error if there is none.
     for check_result in check_results {
@@ -104,6 +103,8 @@ impl TestRunner {
             Vec::new()
         };
 
+        let lookup = VerifierLookup::new(&certs);
+
         let progress_bar = get_progress_bar(test_files.len() as u64);
 
         // Run the validate subcommand for all files in parallel.
@@ -134,7 +135,7 @@ impl TestRunner {
                             data
                         };
 
-                        openpgp_verify_file(data, file.clone(), &certs)
+                        openpgp_verify_file(data, file.clone(), &lookup)
                     }
                 };
 
@@ -159,14 +160,13 @@ impl TestRunner {
             .collect();
 
         if !failures.is_empty() {
-            for (index, failure) in failures.into_iter().enumerate() {
-                let index = format!("[{index}]").bold().red();
-                warn!(
-                    "{index} {} with error:\n {}\n",
-                    failure.0.to_string_lossy().bold(),
-                    failure.1
-                );
-            }
+            return Err(Error::TestFailed {
+                failures: failures
+                    .iter()
+                    .enumerate()
+                    .map(|(index, failure)| (index, failure.0.clone(), failure.1.to_string()))
+                    .collect::<Vec<_>>(),
+            });
         }
 
         Ok(())

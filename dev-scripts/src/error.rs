@@ -2,6 +2,7 @@
 
 use std::path::PathBuf;
 
+use colored::Colorize;
 use log::SetLoggerError;
 
 /// The error that can occur when using the `dev-scripts` executable.
@@ -97,6 +98,22 @@ pub enum Error {
 
     #[error("Rsync report error:\n{message}")]
     RsyncReport { message: String },
+
+    /// A test run failed.
+    #[error(
+        "The test run failed\n{}",
+        failures
+            .iter()
+            .map(|(index, path, message)| {
+                let index = format!("[{index}]").bold().red();
+                format!("{index} {} failed with error:\n{message}", path.to_string_lossy().bold())})
+            .collect::<Vec<_>>()
+            .join("\n")
+    )]
+    TestFailed {
+        /// The failed items as tuples of index, paths and messages.
+        failures: Vec<(usize, PathBuf, String)>,
+    },
 
     /// A `voa::Error` occurred.
     #[error(transparent)]
