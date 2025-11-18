@@ -2696,9 +2696,9 @@ checksum = "9b4f627cb1b25917193a259e49bdad08f671f8d9708acfd5fe0a8c1455d87220"
 
 [[package]]
 name = "pgp"
-version = "0.17.0"
+version = "0.18.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7d918d5da2ce943e4c6088d7694f33f47c19374d6f0f2080a0c5e8010afdfd29"
+checksum = "66d4a27a4d5cfd4e185ddd3eff94dee0f611c4c3e776422254237c54c336c160"
 dependencies = [
  "aead",
  "aes",
@@ -3393,9 +3393,9 @@ dependencies = [
 
 [[package]]
 name = "rpgpie"
-version = "0.7.5"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dc73390dd1530c3a929210ca734d9b96ee454b47cf8752ba4c3c72d4cd5d8231"
+checksum = "931bc231151aa6777dda6d2d1b0ff6a494f1a244ae40f9bcf4698ec643abe175"
 dependencies = [
  "chrono",
  "hex",
@@ -4473,9 +4473,9 @@ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 
 [[package]]
 name = "voa"
-version = "0.4.1"
+version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7d7cefeb513e64bf548b4ec8a6f3e3c32ee755ddf829e88772162a7d3b934787"
+checksum = "a555a7cceed6634017574fbe446aa8381fa064f1e7e1384eeadd2f7170cc94ea"
 dependencies = [
  "log",
  "strum",
@@ -4501,9 +4501,9 @@ dependencies = [
 
 [[package]]
 name = "voa-openpgp"
-version = "0.4.1"
+version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "57e7fe932a878e36f2ca96562cd20738eb60eb27140c607d8183342cc3d9906e"
+checksum = "2bd326aca5b6a6d8e18758d23767274b9bc0ff14961dca845e885483f58f2283"
 dependencies = [
  "env_logger",
  "log",
