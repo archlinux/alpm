@@ -9,8 +9,11 @@ A library for **A**rch **L**inux **P**ackage **M**anagement (ALPM) system databa
 
 ## Overview
 
-`alpm-db` crate contains `desc` module, which provides functionality for writing
-and parsing of ALPM [DB desc] files.
+`alpm-db` crate contains two primary modules:
+
+- `db` to manage [alpm-db] directories (reading, writing and
+  iterating entries stored under paths such as `/var/lib/pacman/local`).
+- `desc` which provides functionality for writing and parsing of [alpm-db-desc] files.
 
 These `desc` files describe the metadata of installed packages on a
 system relying on ALPM.
@@ -18,11 +21,28 @@ They contain fields such as the package name, version, architecture,
 and dependencies.
 
 It also contains a commandline interface (CLI) binary `alpm-db-desc`,
-which can be used to create, parse, format and validate ALPM [DB desc] files.
+which can be used to create, parse, format and validate ALPM [alpm-db-desc] files.
 
 ## Examples
 
 ### Library
+
+Listing entries in an existing [alpm-db] database:
+
+```rust,no_run
+use alpm_db::db::Database;
+
+# fn main() -> Result<(), alpm_db::Error> {
+let db = Database::open("/var/lib/pacman/local")?;
+for entry in db.entries()? {
+    println!("{:?}", entry.name.as_path_buf());
+}
+# Ok(())
+# }
+```
+
+New entries can be produced via `DatabaseEntry::new` and stored on disk with
+`Database::create_entry`.
 
 Parsing [alpm-db-descv1] files:
 
@@ -246,6 +266,7 @@ licensed under the terms of both of those licenses.
 [contribution guidelines]: ../CONTRIBUTING.md
 [Apache-2.0]: ../LICENSES/Apache-2.0.txt
 [MIT]: ../LICENSES/MIT.txt
-[DB desc]: https://alpm.archlinux.page/specifications/alpm-db-desc.5.html
+[alpm-db-desc]: https://alpm.archlinux.page/specifications/alpm-db-desc.5.html
 [alpm-db-descv1]: https://alpm.archlinux.page/specifications/alpm-db-descv1.5.html
 [alpm-db-descv2]: https://alpm.archlinux.page/specifications/alpm-db-descv2.5.html
+[alpm-db]: https://alpm.archlinux.page/specifications/alpm-db.7.html

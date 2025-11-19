@@ -3,6 +3,7 @@
 mod error;
 pub use error::Error;
 
+pub mod db;
 pub mod desc;
 
 // Initialize i18n support.

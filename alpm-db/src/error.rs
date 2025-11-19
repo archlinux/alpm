@@ -14,6 +14,18 @@ pub enum Error {
     #[error("{msg}", msg = t!("error-alpm-types", { "source" => .0.to_string() }))]
     AlpmTypes(#[from] alpm_types::Error),
 
+    /// An [`alpm_common::Error`].
+    #[error(transparent)]
+    AlpmCommon(#[from] alpm_common::Error),
+
+    /// An [`alpm_files::Error`].
+    #[error(transparent)]
+    AlpmFiles(#[from] alpm_files::Error),
+
+    /// An [`alpm_mtree::Error`].
+    #[error(transparent)]
+    AlpmMtree(#[from] alpm_mtree::Error),
+
     /// IO error.
     #[error("{msg}", msg = t!("error-io", { "context" => context, "source" => source.to_string() }))]
     Io {
@@ -64,6 +76,24 @@ pub enum Error {
     /// A section is duplicated in the parsed data.
     #[error("{msg}", msg = t!("error-duplicate-section", { "section" => .0.to_string() }))]
     DuplicateSection(SectionKeyword),
+
+    /// Invalid file encountered.
+    #[error("{msg}", msg = t!("error-invalid-file", { "path" => path.display().to_string(), "context" => context }))]
+    InvalidFile {
+        /// The path of the invalid file.
+        path: PathBuf,
+        /// The context in which the error occurred.
+        context: String,
+    },
+
+    /// Invalid file name encountered.
+    #[error("{msg}", msg = t!("error-invalid-file-name", { "path" => path.display().to_string(), "context" => context }))]
+    InvalidFileName {
+        /// The path of the invalid file.
+        path: PathBuf,
+        /// The context in which the error occurred.
+        context: String,
+    },
 
     /// No input file given.
     #[error("{msg}", msg = t!("error-no-input-file"))]
