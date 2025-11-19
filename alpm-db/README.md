@@ -15,10 +15,28 @@ The `alpm-db` crate provides modules and binaries for working with several compo
   The `alpm-db-desc` CLI can create, format, and validate these files.
 - The `files` module allows writing and parsing of [alpm-db-files] files, which provide file listings and information on files considered for backup of an installed package.
   The `alpm-db-files` CLI can create, format, and validate these files.
+- The `db` module manages [alpm-db] directories (reading, writing and iterating entries stored under paths such as `/var/lib/pacman/local`).
 
 ## Examples
 
 ### Library
+
+#### List entries in a database
+
+```rust,no_run
+use alpm_db::db::Database;
+
+# fn main() -> Result<(), alpm_db::Error> {
+let db = Database::open("/var/lib/pacman/local")?;
+for entry in db.entries()? {
+    println!("{:?}", entry.name.as_path_buf());
+}
+# Ok(())
+# }
+```
+
+New entries can be produced via `DatabaseEntry::new` and stored on disk with
+`Database::create_entry`.
 
 #### Handle alpm-db-desc files programmatically
 

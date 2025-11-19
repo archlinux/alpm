@@ -121,6 +121,7 @@ name = "alpm-db"
 version = "0.1.0"
 dependencies = [
  "alpm-common",
+ "alpm-mtree",
  "alpm-parsers",
  "alpm-types",
  "assert_cmd",

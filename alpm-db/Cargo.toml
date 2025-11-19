@@ -28,6 +28,7 @@ default = []
 
 [dependencies]
 alpm-common.workspace = true
+alpm-mtree.workspace = true
 alpm-parsers.workspace = true
 alpm-types.workspace = true
 clap = { workspace = true, optional = true }
