@@ -12,6 +12,18 @@ pub enum Error {
     #[error(transparent)]
     AlpmTypes(#[from] alpm_types::Error),
 
+    /// An [`alpm_common::Error`].
+    #[error(transparent)]
+    AlpmCommon(#[from] alpm_common::Error),
+
+    /// An [`alpm_files::Error`].
+    #[error(transparent)]
+    AlpmFiles(#[from] alpm_files::Error),
+
+    /// An [`alpm_mtree::Error`].
+    #[error(transparent)]
+    AlpmMtree(#[from] alpm_mtree::Error),
+
     /// IO error.
     #[error("I/O error while {0}:\n{1}")]
     Io(&'static str, std::io::Error),
@@ -51,6 +63,24 @@ pub enum Error {
     /// A section is duplicated in the parsed data.
     #[error("Duplicate section: %{0}%")]
     DuplicateSection(SectionKeyword),
+
+    /// Invalid file encountered.
+    #[error("Invalid file at {path}: {context}")]
+    InvalidFile {
+        /// The path of the invalid file.
+        path: PathBuf,
+        /// The context in which the error occurred.
+        context: String,
+    },
+
+    /// Invalid file name encountered.
+    #[error("Invalid file name at {path}: {context}")]
+    InvalidFileName {
+        /// The path of the invalid file.
+        path: PathBuf,
+        /// The context in which the error occurred.
+        context: String,
+    },
 
     /// No input file given.
     #[error("No input file given.")]
