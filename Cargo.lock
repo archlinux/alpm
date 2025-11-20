@@ -299,7 +299,6 @@ dependencies = [
  "tempfile",
  "testresult",
  "thiserror",
- "winnow",
 ]
 
 [[package]]
