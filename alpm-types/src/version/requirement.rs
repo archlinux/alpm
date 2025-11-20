@@ -102,6 +102,203 @@ impl VersionRequirement {
         })
         .parse_next(input)
     }
+
+    /// Checks whether another [`VersionRequirement`] forms an intersection with this one.
+    ///
+    /// The intersection operation `∩` on versions simply checks if there is _any_ possible set of
+    /// versions that can exist while upholding the constraints (e.g. `>`/`<=`) on both versions.
+    ///
+    /// # Examples
+    ///
+    /// - The expression `<3 ∩ <1` forms the intersection of all versions `<1`
+    /// - The expression `<2 ∩ >1` forms the intersection `X` of all versions `1<X<2`
+    /// - The expression `=2 ∩ <3` forms the intersection of the exact version `2`
+    ///
+    /// ```
+    /// use std::str::FromStr;
+    ///
+    /// use alpm_types::VersionRequirement;
+    ///
+    /// # fn main() -> testresult::TestResult {
+    /// let requirement: VersionRequirement = "<1".parse()?;
+    /// assert!(requirement.is_intersection(&"<0.1".parse()?));
+    ///
+    /// let requirement: VersionRequirement = "<2".parse()?;
+    /// assert!(requirement.is_intersection(&">1".parse()?));
+    ///
+    /// let requirement: VersionRequirement = "=2".parse()?;
+    /// assert!(!requirement.is_intersection(&"<3".parse()?));
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn is_intersection(&self, other: &VersionRequirement) -> bool {
+        // This documentation uses the `∩` set intersection operator to better visualize examples.
+        //
+        // In the following, we need to consider the ordering relationship between the actual
+        // versions of the two `VersionRequirement`s.
+        // If we have `self = ">1.0.1"` and `other = "<2"`, this handles the part of
+        // `"1.0.1".cmp("2")`.
+        let version_comparison = self.version.cmp(&other.version);
+
+        match self.comparison {
+            // Consider the case where we have a `Less`, e.g. `<1`.
+            VersionComparison::Less => {
+                match version_comparison {
+                    // The other version is greater, so its comparison must be "Less" or
+                    // "LessOrEqual" to form an intersection.
+                    //
+                    // Example:
+                    // - `<1.0.1 ∩ <2` forms the intersection of all versions `<1.0.1`
+                    Ordering::Less => matches!(
+                        other.comparison,
+                        VersionComparison::Less | VersionComparison::LessOrEqual
+                    ),
+                    // Both versions are matching. The comparison for other must be "Less" or
+                    // "LessOrEqual"
+                    //
+                    // Example:
+                    // - `<=2 ∩ <2` forms the intersection of all versions `<2`
+                    // - `<2 ∩ <=2` forms the intersection of all versions `<2`
+                    Ordering::Equal => matches!(
+                        other.comparison,
+                        VersionComparison::Less | VersionComparison::LessOrEqual
+                    ),
+
+                    // The other version is smaller.
+                    // Since `self` enforces the `Less` constraint, there will always be at least
+                    // **some** intersection.
+                    //
+                    // Example: Even if `other` also has a "Less" constraint, the expression
+                    // `<3 ∩ <1` forms the intersection of all versions `<1`
+                    Ordering::Greater => true,
+                }
+            }
+            // Consider the case where we have a `LessOrEqual`, e.g. `<=1`.
+            VersionComparison::LessOrEqual => {
+                match version_comparison {
+                    // The other version is greater, so its comparison must be "Less" or
+                    // "LessOrEqual" to form an intersection.
+                    //
+                    // Example:
+                    // - `>=1.0.1 ∩ <2` forms the intersection of all versions `1.0.1<=X<2`
+                    // - `>= 1.0.1 <= 1.2` forms the intersection of all versions `1.0.1<=X<=1.2`
+                    Ordering::Less => matches!(
+                        other.comparison,
+                        VersionComparison::Less | VersionComparison::LessOrEqual
+                    ),
+                    // Both versions are matching, the comparison for other must be either "Less"
+                    // or one of "Equal", "LessOrEqual", or "GreaterOrEqual".
+                    // Any `other` "*Equal" constraint will directly match the `self`
+                    // "Less**Equal**" constraint.
+                    //
+                    // Examples:
+                    // - `<=1 ∩ >=1` forms the intersection of the version `1`
+                    // - `<=1 ∩ <1` forms the intersection of all version `<1`
+                    // - `<=1 ∩ <=1` forms the intersection of all version `<=1`
+                    Ordering::Equal => matches!(
+                        other.comparison,
+                        VersionComparison::Less
+                            | VersionComparison::LessOrEqual
+                            | VersionComparison::Equal
+                            | VersionComparison::GreaterOrEqual
+                    ),
+                    // The other version is smaller.
+                    // Since `self` enforces the `Less` constraint, there will always be at least
+                    // **some** intersection.
+                    //
+                    // Example: Even if `other` also has a "Less" constraint, the expression
+                    // `=<3 ∩ <1` forms the intersection of all versions `<1`
+                    Ordering::Greater => true,
+                }
+            }
+            // Consider the case where we have a `Equal`, e.g. `=1`.
+            VersionComparison::Equal => match version_comparison {
+                // Both versions are matching, the comparison for `other` must be
+                // "LessOrEqual", "Equal", or "GreaterOrEqual" to match the "Equal" constraint on
+                // `self`
+                //
+                // Examples:
+                // - `=1 ∩ >=1` forms the intersection of the version `1`
+                // - `=1 ∩ <=1` forms the intersection of the version `1`
+                // - `=2 ∩ =2` forms the intersection of the version `2`
+                Ordering::Equal => matches!(
+                    other.comparison,
+                    VersionComparison::LessOrEqual
+                        | VersionComparison::Equal
+                        | VersionComparison::GreaterOrEqual
+                ),
+                // The other version must be greater or smaller, so it can be inherently not be
+                // equal.
+                Ordering::Less | Ordering::Greater => false,
+            },
+            // Consider the case where we have a `GreaterOrEqual`, e.g. `>=1`.
+            VersionComparison::GreaterOrEqual => match version_comparison {
+                // The other version is greater.
+                // Since `self` enforces a `Greater` constraint, so there will always be at least
+                // **some** intersection.
+                //
+                // Example: Even if `other` also has a "Less" constraint, the expression
+                // `>=1 ∩ <3` forms the intersection of all versions `1<=X<3`
+                Ordering::Less => true,
+                // Both versions are matching, the comparison for other must be either "Greater"
+                // or one of "Equal", "LessOrEqual", or "GreaterOrEqual".
+                // Any `other` "*Equal" constraint will directly match `self`'s
+                // "LesserOr**Equal**" constraint.
+                //
+                // Examples:
+                // - `>=1 ∩ <=1` forms the intersection of the version `1`
+                // - `>=1 ∩ >1` forms the intersection of all version `>1`
+                // - `>=1 ∩ >=1` forms the intersection of all version `>=1`
+                Ordering::Equal => matches!(
+                    other.comparison,
+                    VersionComparison::LessOrEqual
+                        | VersionComparison::Equal
+                        | VersionComparison::GreaterOrEqual
+                        | VersionComparison::Greater
+                ),
+                // The other version is smaller, so its comparison must be at least "Greater" or
+                // "GreaterOrEqual" to form an intersection.
+                //
+                // Example:
+                // - `>=2 ∩ >1.1` forms the intersection of all versions `>=2`
+                Ordering::Greater => matches!(
+                    other.comparison,
+                    VersionComparison::GreaterOrEqual | VersionComparison::Greater
+                ),
+            },
+            // Consider the case where we have a `Greater`, e.g. `>1`.
+            VersionComparison::Greater => {
+                match version_comparison {
+                    // The other version is greater.
+                    // Since `self` enforces a `Greater` constraint, so there will always be at
+                    // least **some** intersection.
+                    //
+                    // Example: Even if `other` also has a "Less" constraint, the expression
+                    // `>1 ∩ <3` forms the intersection of all versions `1<X<3`
+                    Ordering::Less => true,
+                    // Both versions are matching. The comparison for other must be "Greater" or
+                    // "GreaterOrEqual"
+                    //
+                    // Example:
+                    // - `>2 ∩ >2` forms the intersection of all versions `>2`
+                    // - `>2 ∩ >=2` forms the intersection of all versions `>2`
+                    Ordering::Equal => matches!(
+                        other.comparison,
+                        VersionComparison::GreaterOrEqual | VersionComparison::Greater
+                    ),
+                    // The other version is smaller, so its comparison must be at least "Greater" or
+                    // "GreaterOrEqual" to form an intersection.
+                    //
+                    // Example:
+                    // - `>2 ∩ >=1.1` forms the intersection of all versions `>=2`
+                    Ordering::Greater => matches!(
+                        other.comparison,
+                        VersionComparison::GreaterOrEqual | VersionComparison::Greater
+                    ),
+                }
+            }
+        }
+    }
 }
 
 impl Display for VersionRequirement {
@@ -241,6 +438,7 @@ impl FromStr for VersionComparison {
 #[cfg(test)]
 mod tests {
     use rstest::rstest;
+    use testresult::TestResult;
 
     use super::*;
     /// Ensure that valid version comparison strings can be parsed.
@@ -352,5 +550,85 @@ mod tests {
         let requirement = VersionRequirement::from_str(requirement).unwrap();
         let version = Version::from_str(version).unwrap();
         assert_eq!(requirement.is_satisfied_by(&version), result);
+    }
+
+    #[rstest]
+    #[case::self_less_matching_other_less("<1", "<1")]
+    #[case::self_less_matching_other_less_or_equal("<1", "<=1")]
+    #[case::self_less_bigger_other_less("<1", "<2")]
+    #[case::self_less_bigger_other_less_or_equal("<1", "<=2")]
+    #[case::self_less_smaller_other_less("<1", "<0.1")]
+    #[case::self_less_smaller_other_less_or_equal("<1", "<=0.1")]
+    #[case::self_less_smaller_other_equal("<1", "=0.1")]
+    #[case::self_less_smaller_other_greater_or_equal("<1", ">=0.1")]
+    #[case::self_less_smaller_other_greater("<1", ">0.1")]
+    #[case::self_less_smaller_other_equal("<1", "=0.1")]
+    #[case::self_less_or_equal_matching_other_less("<=1", "<1")]
+    #[case::self_less_or_equal_matching_other_less_or_equal("<=1", "<=1")]
+    #[case::self_less_or_equal_matching_other_equal("<=1", "=1")]
+    #[case::self_less_or_equal_matching_other_greater_or_equal("<=1", ">=1")]
+    #[case::self_less_or_equal_bigger_other_less("<=1", "<2")]
+    #[case::self_less_or_equal_bigger_other_less_or_equal("<=1", "<=2")]
+    #[case::self_less_or_equal_smaller_other_greater_or_equal("<=1", ">=0.1")]
+    #[case::self_less_or_equal_smaller_other_greater("<=1", ">0.1")]
+    #[case::self_equal_matching_other_less_or_equal("=1", "<=1")]
+    #[case::self_equal_matching_other_equal("=1", "=1")]
+    #[case::self_equal_matching_other_greater_or_equal("=1", ">=1")]
+    #[case::self_greater_or_equal_matching_other_less_or_equal(">=1", "<=1")]
+    #[case::self_greater_or_equal_matching_other_equal(">=1", "=1")]
+    #[case::self_greater_or_equal_matching_other_greater_or_equal(">=1", ">=1")]
+    #[case::self_greater_or_equal_matching_other_greater(">=1", ">1")]
+    #[case::self_greater_or_equal_bigger_other_less(">=1", "<2")]
+    #[case::self_greater_or_equal_bigger_other_less_or_equal(">=1", "<=2")]
+    #[case::self_greater_or_equal_bigger_other_equal(">=1", "=2")]
+    #[case::self_greater_or_equal_bigger_other_greater_or_equal(">=1", ">=2")]
+    #[case::self_greater_or_equal_bigger_other_greater(">=1", ">2")]
+    #[case::self_greater_or_equal_smaller_other_greater_or_equal(">=1", ">=0.1")]
+    #[case::self_greater_or_equal_smaller_other_greater(">=1", ">0.1")]
+    #[case::self_greater_matching_other_greater_or_equal(">1", ">=1")]
+    #[case::self_greater_matching_other_greater(">1", ">1")]
+    #[case::self_greater_bigger_other_less(">1", "<2")]
+    #[case::self_greater_bigger_other_less_or_equal(">1", "<=2")]
+    #[case::self_greater_bigger_other_equal(">1", "=2")]
+    #[case::self_greater_bigger_other_greater_or_equal(">1", ">=2")]
+    #[case::self_greater_bigger_other_greater(">1", ">2")]
+    #[case::self_greater_smaller_other_greater_or_equal(">1", ">=0.1")]
+    #[case::self_greater_smaller_other_greater(">1", ">0.1")]
+    fn version_requirements_form_intersection(
+        #[case] self_requirement: &str,
+        #[case] other_requirement: &str,
+    ) -> TestResult {
+        let self_requirement: VersionRequirement = self_requirement.parse()?;
+        let other_requirement: VersionRequirement = other_requirement.parse()?;
+
+        assert!(self_requirement.is_intersection(&other_requirement));
+
+        Ok(())
+    }
+
+    #[rstest]
+    #[case::self_less_matching_other_equal("<1", "=1")]
+    #[case::self_less_matching_other_greater_or_equal("<1", ">=1")]
+    #[case::self_less_matching_other_greater("<1", ">1")]
+    #[case::self_less_or_equal_matching_other_greater("<=1", ">1")]
+    #[case::self_equal_matching_other_less("=1", "<1")]
+    #[case::self_equal_matching_other_greater("=1", ">1")]
+    #[case::self_equal_bigger_other_less("=1", "<2")]
+    #[case::self_equal_bigger_other_greater("=1", ">2")]
+    #[case::self_equal_smaller_other_less("=1", "<0.1")]
+    #[case::self_equal_smaller_other_greater("=1", ">0.1")]
+    #[case::self_greater_or_equal_matching_other_less(">=1", "<1")]
+    #[case::self_greater_matching_other_less(">1", "<1")]
+    #[case::self_greater_matching_other_less_or_equal(">1", "<=1")]
+    #[case::self_greater_matching_other_equal(">1", "=1")]
+    fn version_requirements_do_not_form_intersection(
+        #[case] self_requirement: &str,
+        #[case] other_requirement: &str,
+    ) -> TestResult {
+        let self_requirement: VersionRequirement = self_requirement.parse()?;
+        let other_requirement: VersionRequirement = other_requirement.parse()?;
+
+        assert!(!self_requirement.is_intersection(&other_requirement));
+        Ok(())
     }
 }
