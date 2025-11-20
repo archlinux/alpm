@@ -22,7 +22,7 @@ impl VersionRequirement {
     }
 
     pub fn is_satisfied_by(&self, ver: crate::types::version::Version) -> bool {
-        self.0.is_satisfied_by(&ver.into())
+        self.0.is_satisfied_by_version(&ver.into())
     }
 
     pub fn __repr__(&self) -> String {

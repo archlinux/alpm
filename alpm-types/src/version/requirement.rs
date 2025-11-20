@@ -71,16 +71,17 @@ impl VersionRequirement {
     /// # fn main() -> Result<(), alpm_types::Error> {
     /// let requirement = VersionRequirement::from_str(">=1.5-3")?;
     ///
-    /// assert!(!requirement.is_satisfied_by(&Version::from_str("1.5")?));
-    /// assert!(requirement.is_satisfied_by(&Version::from_str("1.5-3")?));
-    /// assert!(requirement.is_satisfied_by(&Version::from_str("1.6")?));
-    /// assert!(requirement.is_satisfied_by(&Version::from_str("2:1.0")?));
-    /// assert!(!requirement.is_satisfied_by(&Version::from_str("1.0")?));
+    /// assert!(!requirement.is_satisfied_by_version(&Version::from_str("1.5")?));
+    /// assert!(requirement.is_satisfied_by_version(&Version::from_str("1.5-3")?));
+    /// assert!(requirement.is_satisfied_by_version(&Version::from_str("1.6")?));
+    /// assert!(requirement.is_satisfied_by_version(&Version::from_str("2:1.0")?));
+    /// assert!(!requirement.is_satisfied_by_version(&Version::from_str("1.0")?));
     /// # Ok(())
     /// # }
     /// ```
-    pub fn is_satisfied_by(&self, ver: &Version) -> bool {
-        self.comparison.is_compatible_with(ver.cmp(&self.version))
+    pub fn is_satisfied_by_version(&self, version: &Version) -> bool {
+        self.comparison
+            .is_compatible_with(version.cmp(&self.version))
     }
 
     /// Recognizes a [`VersionRequirement`] in a string slice.
@@ -351,6 +352,6 @@ mod tests {
     ) {
         let requirement = VersionRequirement::from_str(requirement).unwrap();
         let version = Version::from_str(version).unwrap();
-        assert_eq!(requirement.is_satisfied_by(&version), result);
+        assert_eq!(requirement.is_satisfied_by_version(&version), result);
     }
 }
