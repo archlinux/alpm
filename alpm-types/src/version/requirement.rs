@@ -102,6 +102,209 @@ impl VersionRequirement {
         })
         .parse_next(input)
     }
+
+    /// Checks whether another [`VersionRequirement`] forms an intersection with this one.
+    ///
+    /// ## Examples
+    ///
+    /// ```
+    /// use std::str::FromStr;
+    ///
+    /// use alpm_types::VersionRequirement;
+    ///
+    /// # fn main() -> testresult::TestResult {
+    /// let requirement: VersionRequirement = "<1".parse()?;
+    /// assert!(requirement.is_intersection(&"<1".parse()?));
+    /// assert!(requirement.is_intersection(&"<=1".parse()?));
+    /// assert!(requirement.is_intersection(&"=0.1".parse()?));
+    /// assert!(requirement.is_intersection(&">0.1".parse()?));
+    /// assert!(requirement.is_intersection(&">=0.1".parse()?));
+    /// assert!(requirement.is_intersection(&"<2".parse()?));
+    /// assert!(requirement.is_intersection(&"<=2".parse()?));
+    /// assert!(!requirement.is_intersection(&"=1".parse()?));
+    /// assert!(!requirement.is_intersection(&">1".parse()?));
+    ///
+    /// let requirement: VersionRequirement = "<=1".parse()?;
+    /// assert!(requirement.is_intersection(&"<1".parse()?));
+    /// assert!(requirement.is_intersection(&"<=1".parse()?));
+    /// assert!(requirement.is_intersection(&"=1".parse()?));
+    /// assert!(requirement.is_intersection(&">=1".parse()?));
+    /// assert!(requirement.is_intersection(&">0.1".parse()?));
+    /// assert!(requirement.is_intersection(&">=0.1".parse()?));
+    /// assert!(requirement.is_intersection(&"<2".parse()?));
+    /// assert!(requirement.is_intersection(&"<=2".parse()?));
+    /// assert!(!requirement.is_intersection(&">1".parse()?));
+    /// assert!(!requirement.is_intersection(&">2".parse()?));
+    ///
+    /// let requirement: VersionRequirement = "=1".parse()?;
+    /// assert!(requirement.is_intersection(&"=1".parse()?));
+    /// assert!(requirement.is_intersection(&"<=1".parse()?));
+    /// assert!(requirement.is_intersection(&">=1".parse()?));
+    /// assert!(!requirement.is_intersection(&"<1".parse()?));
+    /// assert!(!requirement.is_intersection(&">1".parse()?));
+    /// assert!(!requirement.is_intersection(&"<2".parse()?));
+    ///
+    /// let requirement: VersionRequirement = ">=1".parse()?;
+    /// assert!(requirement.is_intersection(&">1".parse()?));
+    /// assert!(requirement.is_intersection(&">=1".parse()?));
+    /// assert!(requirement.is_intersection(&"=1".parse()?));
+    /// assert!(requirement.is_intersection(&"<=1".parse()?));
+    /// assert!(requirement.is_intersection(&">0.1".parse()?));
+    /// assert!(requirement.is_intersection(&">=0.1".parse()?));
+    /// assert!(requirement.is_intersection(&"<2".parse()?));
+    /// assert!(requirement.is_intersection(&"<=2".parse()?));
+    /// assert!(!requirement.is_intersection(&"<1".parse()?));
+    ///
+    /// let requirement: VersionRequirement = ">1".parse()?;
+    /// assert!(requirement.is_intersection(&">1".parse()?));
+    /// assert!(requirement.is_intersection(&">=1".parse()?));
+    /// assert!(requirement.is_intersection(&">0.1".parse()?));
+    /// assert!(requirement.is_intersection(&">=0.1".parse()?));
+    /// assert!(requirement.is_intersection(&"<=2".parse()?));
+    /// assert!(requirement.is_intersection(&">=2".parse()?));
+    /// assert!(requirement.is_intersection(&"<2".parse()?));
+    /// assert!(requirement.is_intersection(&"=2".parse()?));
+    /// assert!(requirement.is_intersection(&">2".parse()?));
+    /// assert!(!requirement.is_intersection(&"=1".parse()?));
+    /// assert!(!requirement.is_intersection(&"<1".parse()?));
+    /// assert!(!requirement.is_intersection(&"<=1".parse()?));
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn is_intersection(&self, other: &VersionRequirement) -> bool {
+        let version_comparison = self.version.cmp(&other.version);
+        match self.comparison {
+            // self is e.g. "<1"
+            VersionComparison::Less => {
+                match version_comparison {
+                    // If the other version is greater, its comparison must be "less" or "less or
+                    // equal", e.g. "<1" vs. "<2" or "<1" vs. "<=2".
+                    Ordering::Less => matches!(
+                        other.comparison,
+                        VersionComparison::Less | VersionComparison::LessOrEqual
+                    ),
+                    // If both versions are matching, the comparison for other must be "less" or
+                    // "less or equal", e.g. "<1" vs. "<1" or "<1" vs. "<=1".
+                    Ordering::Equal => matches!(
+                        other.comparison,
+                        VersionComparison::Less | VersionComparison::LessOrEqual
+                    ),
+                    // If the other version is smaller, its comparison must be "less", "less or
+                    // equal", "equal" or "greater or equal" or "greater", e.g.
+                    // "<1" vs. "<0.1", "<1" vs. "<=0.1", or "<1" vs.
+                    // "=0.1", "<1" vs. ">=0.1", or "<1" vs. ">0.1".
+                    Ordering::Greater => matches!(
+                        other.comparison,
+                        VersionComparison::Less
+                            | VersionComparison::LessOrEqual
+                            | VersionComparison::Equal
+                            | VersionComparison::Greater
+                            | VersionComparison::GreaterOrEqual
+                    ),
+                }
+            }
+            // self is e.g. "<=1"
+            VersionComparison::LessOrEqual => {
+                match version_comparison {
+                    // If the other version is greater, its comparison must be "less" or "less or
+                    // equal", e.g. "<=1" vs. "<2" or "<=1" vs. "<=2".
+                    Ordering::Less => matches!(
+                        other.comparison,
+                        VersionComparison::Less | VersionComparison::LessOrEqual
+                    ),
+                    // If both versions are matching, the comparison for other must be "less",
+                    // "equal", "less or equal", or "greater or equal", e.g. "<=1" vs. "<1", "<=1"
+                    // vs. "=1", "<=1" vs. "<=1", or "<=1" vs. ">=1".
+                    Ordering::Equal => matches!(
+                        other.comparison,
+                        VersionComparison::Less
+                            | VersionComparison::LessOrEqual
+                            | VersionComparison::Equal
+                            | VersionComparison::GreaterOrEqual
+                    ),
+                    // If the other version is smaller, its comparison must be "greater" or
+                    // "greater or equal", e.g. "<=1" vs. ">0.1", or "<1" vs. ">=0.1".
+                    Ordering::Greater => matches!(
+                        other.comparison,
+                        VersionComparison::GreaterOrEqual | VersionComparison::Greater
+                    ),
+                }
+            }
+            // self is e.g. "=1"
+            VersionComparison::Equal => match version_comparison {
+                // If both versions are matching, the comparison for other must be
+                // "less or equal", "equal", or "greater or equal" e.g. "=1" vs. "<=1", "=1" vs.
+                // "=1" or "=1" vs. ">=1".
+                Ordering::Equal => matches!(
+                    other.comparison,
+                    VersionComparison::LessOrEqual
+                        | VersionComparison::Equal
+                        | VersionComparison::GreaterOrEqual
+                ),
+                // If the other version is greater or smaller, the requirement cannot be satisfied.
+                Ordering::Less | Ordering::Greater => false,
+            },
+            // self is e.g. ">=1"
+            VersionComparison::GreaterOrEqual => match version_comparison {
+                // If the other version is greater, its comparison must be "less", "less or
+                // equal", "equal", "greater", or "greater or equal", e.g. ">=1" vs. "<2", ">=1" vs.
+                // "<=2", ">=1" vs. ">2", ">=1" vs. "=2", or ">=1" vs. ">=2".
+                Ordering::Less => matches!(
+                    other.comparison,
+                    VersionComparison::Less
+                        | VersionComparison::LessOrEqual
+                        | VersionComparison::Equal
+                        | VersionComparison::Greater
+                        | VersionComparison::GreaterOrEqual
+                ),
+                // If both versions are matching, the comparison for other must be "less or equal",
+                // "greater", "equal", or "greater or equal", e.g. ">=1" vs. "<=1",
+                // ">=1" vs. ">1", ">=1" vs. "=1" or ">=1" vs. ">=1".
+                Ordering::Equal => matches!(
+                    other.comparison,
+                    VersionComparison::LessOrEqual
+                        | VersionComparison::Equal
+                        | VersionComparison::GreaterOrEqual
+                        | VersionComparison::Greater
+                ),
+                // If the other version is smaller, its comparison must be "greater" or
+                // "greater or equal", e.g. ">=1" vs. ">0.1", or ">=1" vs. ">=0.1".
+                Ordering::Greater => matches!(
+                    other.comparison,
+                    VersionComparison::GreaterOrEqual | VersionComparison::Greater
+                ),
+            },
+            // self is e.g. ">1"
+            VersionComparison::Greater => {
+                match version_comparison {
+                    // If the other version is greater, its comparison must be "less", "less or
+                    // equal", "equal", "greater" or "greater or equal", e.g. ">1" vs. "<2", ">1"
+                    // vs. "<=2", ">1" vs. "=2", ">1" vs. ">2" or ">1" vs.
+                    // ">=2".
+                    Ordering::Less => matches!(
+                        other.comparison,
+                        VersionComparison::Less
+                            | VersionComparison::LessOrEqual
+                            | VersionComparison::Equal
+                            | VersionComparison::GreaterOrEqual
+                            | VersionComparison::Greater
+                    ),
+                    // If both versions are matching, the comparison for other must be "greater" or
+                    // "greater or equal", e.g. ">1" vs. ">1" or ">1" vs. ">=1".
+                    Ordering::Equal => matches!(
+                        other.comparison,
+                        VersionComparison::GreaterOrEqual | VersionComparison::Greater
+                    ),
+                    // If the other version is smaller, its comparison must be "greater", "equal"
+                    // or "greater or equal", e.g. ">1" vs. ">0.1", or ">1" vs. ">=0.1".
+                    Ordering::Greater => matches!(
+                        other.comparison,
+                        VersionComparison::GreaterOrEqual | VersionComparison::Greater
+                    ),
+                }
+            }
+        }
+    }
 }
 
 impl Display for VersionRequirement {
@@ -241,6 +444,7 @@ impl FromStr for VersionComparison {
 #[cfg(test)]
 mod tests {
     use rstest::rstest;
+    use testresult::TestResult;
 
     use super::*;
     /// Ensure that valid version comparison strings can be parsed.
@@ -352,5 +556,278 @@ mod tests {
         let requirement = VersionRequirement::from_str(requirement).unwrap();
         let version = Version::from_str(version).unwrap();
         assert_eq!(requirement.is_satisfied_by(&version), result);
+    }
+
+    fn version_requirement_less() -> TestResult<VersionRequirement> {
+        Ok(VersionRequirement {
+            comparison: VersionComparison::Less,
+            version: "1".parse()?,
+        })
+    }
+
+    fn version_requirement_less_or_equal() -> TestResult<VersionRequirement> {
+        Ok(VersionRequirement {
+            comparison: VersionComparison::LessOrEqual,
+            version: "1".parse()?,
+        })
+    }
+
+    fn version_requirement_equal() -> TestResult<VersionRequirement> {
+        Ok(VersionRequirement {
+            comparison: VersionComparison::Equal,
+            version: "1".parse()?,
+        })
+    }
+
+    fn version_requirement_greater_or_equal() -> TestResult<VersionRequirement> {
+        Ok(VersionRequirement {
+            comparison: VersionComparison::GreaterOrEqual,
+            version: "1".parse()?,
+        })
+    }
+
+    fn version_requirement_greater() -> TestResult<VersionRequirement> {
+        Ok(VersionRequirement {
+            comparison: VersionComparison::Greater,
+            version: "1".parse()?,
+        })
+    }
+
+    #[rstest]
+    #[case::self_less_matching_other_less(
+        version_requirement_less(),
+        VersionRequirement::new("<".parse()?, "1".parse()?),
+    )]
+    #[case::self_less_matching_other_less_or_equal(
+        version_requirement_less(),
+        VersionRequirement::new("<=".parse()?, "1".parse()?),
+    )]
+    #[case::self_less_bigger_other_less(
+        version_requirement_less(),
+        VersionRequirement::new("<".parse()?, "2".parse()?),
+    )]
+    #[case::self_less_bigger_other_less_or_equal(
+        version_requirement_less(),
+        VersionRequirement::new("<=".parse()?, "2".parse()?),
+    )]
+    #[case::self_less_smaller_other_less(
+        version_requirement_less(),
+        VersionRequirement::new("<".parse()?, "0.1".parse()?),
+    )]
+    #[case::self_less_smaller_other_less_or_equal(
+        version_requirement_less(),
+        VersionRequirement::new("<=".parse()?, "0.1".parse()?),
+    )]
+    #[case::self_less_smaller_other_equal(
+        version_requirement_less(),
+        VersionRequirement::new("=".parse()?, "0.1".parse()?),
+    )]
+    #[case::self_less_smaller_other_greater_or_equal(
+        version_requirement_less(),
+        VersionRequirement::new(">=".parse()?, "0.1".parse()?),
+    )]
+    #[case::self_less_smaller_other_greater(
+        version_requirement_less(),
+        VersionRequirement::new(">".parse()?, "0.1".parse()?),
+    )]
+    #[case::self_less_smaller_other_equal(
+        version_requirement_less(),
+        VersionRequirement::new("=".parse()?, "0.1".parse()?),
+    )]
+    #[case::self_less_or_equal_matching_other_less(
+        version_requirement_less_or_equal(),
+        VersionRequirement::new("<".parse()?, "1".parse()?),
+    )]
+    #[case::self_less_or_equal_matching_other_less_or_equal(
+        version_requirement_less_or_equal(),
+        VersionRequirement::new("<=".parse()?, "1".parse()?),
+    )]
+    #[case::self_less_or_equal_matching_other_equal(
+        version_requirement_less_or_equal(),
+        VersionRequirement::new("=".parse()?, "1".parse()?),
+    )]
+    #[case::self_less_or_equal_matching_other_greater_or_equal(
+        version_requirement_less_or_equal(),
+        VersionRequirement::new(">=".parse()?, "1".parse()?),
+    )]
+    #[case::self_less_or_equal_bigger_other_less(
+        version_requirement_less_or_equal(),
+        VersionRequirement::new("<".parse()?, "2".parse()?),
+    )]
+    #[case::self_less_or_equal_bigger_other_less_or_equal(
+        version_requirement_less_or_equal(),
+        VersionRequirement::new("<=".parse()?, "2".parse()?)
+    )]
+    #[case::self_less_or_equal_smaller_other_greater_or_equal(
+        version_requirement_less_or_equal(),
+        VersionRequirement::new(">=".parse()?, "0.1".parse()?),
+    )]
+    #[case::self_less_or_equal_smaller_other_greater(
+        version_requirement_less_or_equal(),
+        VersionRequirement::new(">".parse()?, "0.1".parse()?),
+    )]
+    #[case::self_equal_matching_other_less_or_equal(
+        version_requirement_equal(),
+        VersionRequirement::new("<=".parse()?,"1".parse()?),
+    )]
+    #[case::self_equal_matching_other_equal(
+        version_requirement_equal(),
+        VersionRequirement::new("=".parse()?, "1".parse()?),
+    )]
+    #[case::self_equal_matching_other_greater_or_equal(
+        version_requirement_equal(),
+        VersionRequirement::new(">=".parse()?, "1".parse()?),
+    )]
+    #[case::self_greater_or_equal_matching_other_less_or_equal(
+        version_requirement_greater_or_equal(),
+        VersionRequirement::new("<=".parse()?, "1".parse()?),
+    )]
+    #[case::self_greater_or_equal_matching_other_equal(
+        version_requirement_greater_or_equal(),
+        VersionRequirement::new("=".parse()?, "1".parse()?),
+    )]
+    #[case::self_greater_or_equal_matching_other_greater_or_equal(
+        version_requirement_greater_or_equal(),
+        VersionRequirement::new(">=".parse()?, "1".parse()?),
+    )]
+    #[case::self_greater_or_equal_matching_other_greater(
+        version_requirement_greater_or_equal(),
+        VersionRequirement::new(">".parse()?, "1".parse()?),
+    )]
+    #[case::self_greater_or_equal_bigger_other_less(
+        version_requirement_greater_or_equal(),
+        VersionRequirement::new("<".parse()?, "2".parse()?),
+    )]
+    #[case::self_greater_or_equal_bigger_other_less_or_equal(
+        version_requirement_greater_or_equal(),
+        VersionRequirement::new("<=".parse()?, "2".parse()?),
+    )]
+    #[case::self_greater_or_equal_bigger_other_equal(
+        version_requirement_greater_or_equal(),
+        VersionRequirement::new("=".parse()?, "2".parse()?),
+    )]
+    #[case::self_greater_or_equal_bigger_other_greater_or_equal(
+        version_requirement_greater_or_equal(),
+        VersionRequirement::new(">=".parse()?, "2".parse()?),
+    )]
+    #[case::self_greater_or_equal_bigger_other_greater(
+        version_requirement_greater_or_equal(),
+        VersionRequirement::new(">".parse()?, "2".parse()?),
+    )]
+    #[case::self_greater_or_equal_smaller_other_greater_or_equal(
+        version_requirement_greater_or_equal(),
+        VersionRequirement::new(">=".parse()?, "0.1".parse()?),
+    )]
+    #[case::self_greater_or_equal_smaller_other_greater(
+        version_requirement_greater_or_equal(),
+        VersionRequirement::new(">".parse()?, "0.1".parse()?),
+    )]
+    #[case::self_greater_matching_other_greater_or_equal(
+        version_requirement_greater(),
+        VersionRequirement::new(">=".parse()?, "1".parse()?),
+    )]
+    #[case::self_greater_matching_other_greater(
+        version_requirement_greater(),
+        VersionRequirement::new(">".parse()?, "1".parse()?),
+    )]
+    #[case::self_greater_bigger_other_less(
+        version_requirement_greater(),
+        VersionRequirement::new("<".parse()?, "2".parse()?),
+    )]
+    #[case::self_greater_bigger_other_less_or_equal(
+        version_requirement_greater(),
+        VersionRequirement::new("<=".parse()?, "2".parse()?),
+    )]
+    #[case::self_greater_bigger_other_equal(
+        version_requirement_greater(),
+        VersionRequirement::new("=".parse()?, "2".parse()?),
+    )]
+    #[case::self_greater_bigger_other_greater_or_equal(
+        version_requirement_greater(),
+        VersionRequirement::new(">=".parse()?, "2".parse()?),
+    )]
+    #[case::self_greater_bigger_other_greater(
+        version_requirement_greater(),
+        VersionRequirement::new(">".parse()?, "2".parse()?),
+    )]
+    #[case::self_greater_smaller_other_greater_or_equal(
+        version_requirement_greater(),
+        VersionRequirement::new(">=".parse()?, "0.1".parse()?),
+    )]
+    #[case::self_greater_smaller_other_greater(
+        version_requirement_greater(),
+        VersionRequirement::new(">".parse()?, "0.1".parse()?),
+    )]
+    fn version_requirement_is_intersection_true(
+        #[case] requirement: TestResult<VersionRequirement>,
+        #[case] other: VersionRequirement,
+    ) -> TestResult {
+        assert!(requirement?.is_intersection(&other));
+        Ok(())
+    }
+
+    #[rstest]
+    #[case::self_less_matching_other_equal(
+        version_requirement_less(),
+        VersionRequirement::new("=".parse()?, "1".parse()?),
+    )]
+    #[case::self_less_matching_other_greater_or_equal(
+        version_requirement_less(),
+        VersionRequirement::new(">=".parse()?, "1".parse()?),
+    )]
+    #[case::self_less_matching_other_greater(
+        version_requirement_less(),
+        VersionRequirement::new(">".parse()?, "1".parse()?),
+    )]
+    #[case::self_less_or_equal_matching_other_greater(
+        version_requirement_less_or_equal(),
+        VersionRequirement::new(">".parse()?, "1".parse()?),
+    )]
+    #[case::self_equal_matching_other_less(
+        version_requirement_equal(),
+        VersionRequirement::new("<".parse()?, "1".parse()?),
+    )]
+    #[case::self_equal_matching_other_greater(
+        version_requirement_equal(),
+        VersionRequirement::new(">".parse()?, "1".parse()?),
+    )]
+    #[case::self_equal_bigger_other_less(
+        version_requirement_equal(),
+        VersionRequirement::new("<".parse()?, "2".parse()?),
+    )]
+    #[case::self_equal_bigger_other_greater(
+        version_requirement_equal(),
+        VersionRequirement::new(">".parse()?, "2".parse()?),
+    )]
+    #[case::self_equal_smaller_other_less(
+        version_requirement_equal(),
+        VersionRequirement::new("<".parse()?, "0.1".parse()?),
+    )]
+    #[case::self_equal_smaller_other_greater(
+        version_requirement_equal(),
+        VersionRequirement::new(">".parse()?, "0.1".parse()?),
+    )]
+    #[case::self_greater_or_equal_matching_other_less(
+        version_requirement_greater_or_equal(),
+        VersionRequirement::new("<".parse()?, "1".parse()?),
+    )]
+    #[case::self_greater_matching_other_less(
+        version_requirement_greater(),
+        VersionRequirement::new("<".parse()?, "1".parse()?),
+    )]
+    #[case::self_greater_matching_other_less_or_equal(
+        version_requirement_greater(),
+        VersionRequirement::new("<=".parse()?, "1".parse()?),
+    )]
+    #[case::self_greater_matching_other_equal(
+        version_requirement_greater(),
+        VersionRequirement::new("=".parse()?, "1".parse()?),
+    )]
+    fn version_requirement_is_intersection_false(
+        #[case] requirement: TestResult<VersionRequirement>,
+        #[case] other: VersionRequirement,
+    ) -> TestResult {
+        assert!(!requirement?.is_intersection(&other));
+        Ok(())
     }
 }
