@@ -92,6 +92,7 @@ pub use relation::{
     Group,
     OptionalDependency,
     PackageRelation,
+    RelationLookup,
     RelationOrSoname,
     SharedLibraryPrefix,
     Soname,
