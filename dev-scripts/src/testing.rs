@@ -161,6 +161,12 @@ impl TestRunner {
             .collect();
 
         if !failures.is_empty() {
+            let err = Err(Error::VoaVerificationFailed {
+                file: failures[0].0.clone(),
+                signature: "".into(), // FIXME
+                context: format!("Failed {} verifications", failures.len()),
+            });
+
             for (index, failure) in failures.into_iter().enumerate() {
                 let index = format!("[{index}]").bold().red();
                 warn!(
@@ -169,6 +175,8 @@ impl TestRunner {
                     failure.1
                 );
             }
+
+            return err;
         }
 
         Ok(())
