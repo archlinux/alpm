@@ -392,6 +392,43 @@ impl SonameV1 {
             .context(StrContext::Label("architecture"))
             .parse_next(input)
     }
+
+    /// Returns a reference to the [`SharedObjectName`] of the [`SonameV1`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use alpm_types::{ElfArchitectureFormat, SharedObjectName, SonameV1};
+    ///
+    /// # fn main() -> Result<(), alpm_types::Error> {
+    /// let shared_object_name: SharedObjectName = "example.so".parse()?;
+    ///
+    /// let basic = SonameV1::new("example.so".parse()?, None, None)?;
+    /// assert_eq!(&shared_object_name, basic.shared_object_name());
+    ///
+    /// let unversioned = SonameV1::new(
+    ///     "example.so".parse()?,
+    ///     Some("example.so".parse()?),
+    ///     Some(ElfArchitectureFormat::Bit64),
+    /// )?;
+    /// assert_eq!(&shared_object_name, unversioned.shared_object_name());
+    ///
+    /// let explicit = SonameV1::new(
+    ///     "example.so".parse()?,
+    ///     Some("1.0.0".parse()?),
+    ///     Some(ElfArchitectureFormat::Bit64),
+    /// )?;
+    /// assert_eq!(&shared_object_name, explicit.shared_object_name());
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn shared_object_name(&self) -> &SharedObjectName {
+        match self {
+            SonameV1::Basic(name) => name,
+            SonameV1::Unversioned { name, .. } => name,
+            SonameV1::Explicit { name, .. } => name,
+        }
+    }
 }
 
 impl FromStr for SonameV1 {
