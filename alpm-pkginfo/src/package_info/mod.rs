@@ -9,7 +9,10 @@ use std::{
     str::FromStr,
 };
 
-use alpm_common::{FileFormatSchema, MetadataFile};
+use alpm_common::{FileFormatSchema, MetadataFile, RuntimeRelationLookupData};
+#[cfg(doc)]
+use alpm_types::RelationLookup;
+use alpm_types::{PackageRelation, VersionRequirement};
 use fluent_i18n::t;
 
 use crate::{Error, PackageInfoSchema, PackageInfoV1, PackageInfoV2};
@@ -285,5 +288,247 @@ impl FromStr for PackageInfo {
     /// - or the detected variant of [`PackageInfo`] cannot be constructed from `s`.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Self::from_str_with_schema(s, None)
+    }
+}
+
+impl RuntimeRelationLookupData for PackageInfo {
+    /// Adds each [run-time dependency] to a [`RelationLookup`].
+    ///
+    /// [run-time dependency]: https://alpm.archlinux.page/specifications/alpm-package-relation.7.html#run-time-dependency
+    fn add_run_time_dependencies_to_lookup(&self, lookup: &mut alpm_types::RelationLookup) {
+        let (name, relations) = match self {
+            Self::V1(package_info) => (&package_info.pkgname, &package_info.depend),
+            Self::V2(package_info) => (&package_info.pkgname, &package_info.depend),
+        };
+
+        for relation in relations.iter() {
+            lookup.insert_relation_or_soname(relation, Some(name.clone()));
+        }
+    }
+
+    /// Adds each [optional dependency] to a [`RelationLookup`].
+    ///
+    /// [optional dependency]: https://alpm.archlinux.page/specifications/alpm-package-relation.7.html#optional-dependency
+    fn add_optional_dependencies_to_lookup(&self, lookup: &mut alpm_types::RelationLookup) {
+        let (name, optionals) = match self {
+            Self::V1(package_info) => (&package_info.pkgname, &package_info.optdepend),
+            Self::V2(package_info) => (&package_info.pkgname, &package_info.optdepend),
+        };
+
+        for optional in optionals.iter() {
+            lookup.insert_package_relation(optional.package_relation(), Some(name.clone()))
+        }
+    }
+
+    /// Adds each [provision] to a [`RelationLookup`].
+    ///
+    /// Adds the name and version tracked by the [`PackageInfo`] as a strict [`PackageRelation`]
+    /// (e.g. "example=1.0.0-1") in addition to any [provision], because a package always provides
+    /// itself.
+    ///
+    /// [provision]: https://alpm.archlinux.page/specifications/alpm-package-relation.7.html#provision
+    fn add_provisions_to_lookup(&self, lookup: &mut alpm_types::RelationLookup) {
+        let (name, version, relations) = match self {
+            Self::V1(package_info) => (
+                &package_info.pkgname,
+                &package_info.pkgver,
+                &package_info.provides,
+            ),
+            Self::V2(package_info) => (
+                &package_info.pkgname,
+                &package_info.pkgver,
+                &package_info.provides,
+            ),
+        };
+
+        // Add the package name and version itself to the list of provisions, as a package always
+        // provides itself in the specific version.
+        lookup.insert_package_relation(
+            &PackageRelation {
+                name: name.clone(),
+                version_requirement: Some(VersionRequirement {
+                    comparison: alpm_types::VersionComparison::Equal,
+                    version: version.into(),
+                }),
+            },
+            Some(name.clone()),
+        );
+
+        for relation in relations.iter() {
+            lookup.insert_relation_or_soname(relation, Some(name.clone()));
+        }
+    }
+
+    /// Adds each [conflict] to a [`RelationLookup`].
+    ///
+    /// [conflict]: https://alpm.archlinux.page/specifications/alpm-package-relation.7.html#conflict
+    fn add_conflicts_to_lookup(&self, lookup: &mut alpm_types::RelationLookup) {
+        let (name, relations) = match self {
+            Self::V1(package_info) => (&package_info.pkgname, &package_info.conflict),
+            Self::V2(package_info) => (&package_info.pkgname, &package_info.conflict),
+        };
+
+        for package_relation in relations.iter() {
+            lookup.insert_package_relation(package_relation, Some(name.clone()))
+        }
+    }
+
+    /// Adds each [replacement] to a [`RelationLookup`].
+    ///
+    /// [replacement]: https://alpm.archlinux.page/specifications/alpm-package-relation.7.html#replacement
+    fn add_replacements_to_lookup(&self, lookup: &mut alpm_types::RelationLookup) {
+        let (name, relations) = match self {
+            Self::V1(package_info) => (&package_info.pkgname, &package_info.replaces),
+            Self::V2(package_info) => (&package_info.pkgname, &package_info.replaces),
+        };
+
+        for package_relation in relations.iter() {
+            lookup.insert_package_relation(package_relation, Some(name.clone()))
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use alpm_types::{Name, RelationLookup, Version};
+    use rstest::rstest;
+    use testresult::TestResult;
+
+    use super::*;
+
+    /// Valid PKGINFOv2 data.
+    const PKGINFOV1_DATA: &str = r#"
+pkgname = example
+pkgbase = example
+pkgver = 1:1.0.0-1
+pkgdesc = A project that does something
+url = https://example.org
+builddate = 1729181726
+packager = John Doe <john@example.org>
+size = 181849963
+arch = any
+license = GPL-3.0-or-later
+replaces = other-package>0.9.0-3
+group = package-group
+conflict = conflicting-package<1.0.0
+provides = some-component
+backup = etc/example/config.toml
+depend = glibc
+optdepend = python: for special-python-script.py
+makedepend = cmake
+checkdepend = extra-test-tool
+"#;
+
+    /// Valid PKGINFOv2 data.
+    const PKGINFOV2_DATA: &str = r#"
+pkgname = example
+pkgbase = example
+xdata = pkgtype=pkg
+pkgver = 1:1.0.0-1
+pkgdesc = A project that does something
+url = https://example.org
+builddate = 1729181726
+packager = John Doe <john@example.org>
+size = 181849963
+arch = any
+license = GPL-3.0-or-later
+replaces = other-package>0.9.0-3
+group = package-group
+conflict = conflicting-package<1.0.0
+provides = some-component
+backup = etc/example/config.toml
+depend = glibc
+optdepend = python: for special-python-script.py
+makedepend = cmake
+checkdepend = extra-test-tool
+"#;
+
+    #[rstest]
+    #[case::v1(PKGINFOV1_DATA)]
+    #[case::v1(PKGINFOV2_DATA)]
+    fn package_info_add_run_time_dependencies_to_lookup(#[case] input: &str) -> TestResult {
+        let package_info = PackageInfo::from_str(input)?;
+        let mut lookup = RelationLookup::default();
+
+        package_info.add_run_time_dependencies_to_lookup(&mut lookup);
+        assert_eq!(lookup.len(), 1);
+        assert!(lookup.satisfies_name_and_version(
+            &Name::from_str("glibc")?,
+            &Version::from_str("1:1.0.0-1")?,
+        ));
+
+        Ok(())
+    }
+
+    #[rstest]
+    #[case::v1(PKGINFOV1_DATA)]
+    #[case::v1(PKGINFOV2_DATA)]
+    fn package_info_add_optional_dependencies_to_lookup(#[case] input: &str) -> TestResult {
+        let package_info = PackageInfo::from_str(input)?;
+        let mut lookup = RelationLookup::default();
+
+        package_info.add_optional_dependencies_to_lookup(&mut lookup);
+        assert_eq!(lookup.len(), 1);
+        assert!(
+            lookup
+                .satisfies_name_and_version(&Name::from_str("python")?, &Version::from_str("1")?,)
+        );
+
+        Ok(())
+    }
+
+    #[rstest]
+    #[case::v1(PKGINFOV1_DATA)]
+    #[case::v1(PKGINFOV2_DATA)]
+    fn package_info_add_provisions_to_lookup(#[case] input: &str) -> TestResult {
+        let package_info = PackageInfo::from_str(input)?;
+        let mut lookup = RelationLookup::default();
+
+        package_info.add_provisions_to_lookup(&mut lookup);
+        assert_eq!(lookup.len(), 2);
+        assert!(lookup.satisfies_name_and_version(
+            &Name::from_str("example")?,
+            &Version::from_str("1:1.0.0-1")?,
+        ));
+        assert!(lookup.satisfies_name_and_version(
+            &Name::from_str("some-component")?,
+            &Version::from_str("1:1.0.0-1")?,
+        ));
+
+        Ok(())
+    }
+
+    #[rstest]
+    #[case::v1(PKGINFOV1_DATA)]
+    #[case::v1(PKGINFOV2_DATA)]
+    fn package_info_add_conflicts_to_lookup(#[case] input: &str) -> TestResult {
+        let package_info = PackageInfo::from_str(input)?;
+        let mut lookup = RelationLookup::default();
+
+        package_info.add_conflicts_to_lookup(&mut lookup);
+        assert_eq!(lookup.len(), 1);
+        assert!(lookup.satisfies_name_and_version(
+            &Name::from_str("conflicting-package")?,
+            &Version::from_str("0.9.0")?,
+        ));
+
+        Ok(())
+    }
+
+    #[rstest]
+    #[case::v1(PKGINFOV1_DATA)]
+    #[case::v1(PKGINFOV2_DATA)]
+    fn package_info_add_replacements_to_lookup(#[case] input: &str) -> TestResult {
+        let package_info = PackageInfo::from_str(input)?;
+        let mut lookup = RelationLookup::default();
+
+        package_info.add_replacements_to_lookup(&mut lookup);
+        assert_eq!(lookup.len(), 1);
+        assert!(lookup.satisfies_name_and_version(
+            &Name::from_str("other-package")?,
+            &Version::from_str("1.0.0")?,
+        ));
+
+        Ok(())
     }
 }
