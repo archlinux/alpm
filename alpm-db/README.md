@@ -233,11 +233,11 @@ cat > "$DBDESC_JSON.expected" <<'EOF'
   "name": "foo",
   "version": {
     "pkgver": "1.0.0",
-    "epoch": null,
     "pkgrel": {
       "major": 1,
       "minor": null
-    }
+    },
+    "epoch": null
   },
   "base": "foo",
   "description": "An example package",
