@@ -259,6 +259,11 @@ impl OptionalDependency {
         &self.description
     }
 
+    /// Returns a reference to the tracked [`PackageRelation`].
+    pub fn package_relation(&self) -> &PackageRelation {
+        &self.package_relation
+    }
+
     /// Recognizes an [`OptionalDependency`] in a string slice.
     ///
     /// Consumes all of its input.
