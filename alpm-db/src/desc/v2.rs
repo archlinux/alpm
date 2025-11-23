@@ -12,6 +12,7 @@ use alpm_types::{
     BuildDate,
     ExtraData,
     ExtraDataEntry,
+    FullVersion,
     Group,
     InstalledSize,
     License,
@@ -25,7 +26,6 @@ use alpm_types::{
     Packager,
     RelationOrSoname,
     Url,
-    Version,
 };
 use serde_with::{TryFromInto, serde_as};
 use winnow::Parser;
@@ -135,7 +135,7 @@ pub struct DbDescFileV2 {
     pub name: Name,
 
     /// The version of the package.
-    pub version: Version,
+    pub version: FullVersion,
 
     /// The base name of the package (used in split packages).
     pub base: PackageBaseName,
@@ -419,7 +419,7 @@ pkgtype=pkg
         let actual = DbDescFileV2::from_str(VALID_DESC_FILE)?;
         let expected = DbDescFileV2 {
             name: Name::new("foo")?,
-            version: Version::from_str("1.0.0-1")?,
+            version: FullVersion::from_str("1.0.0-1")?,
             base: PackageBaseName::new("foo")?,
             description: PackageDescription::from("An example package"),
             url: Some(Url::from_str("https://example.org")?),

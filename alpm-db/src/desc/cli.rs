@@ -6,6 +6,7 @@ use alpm_types::{
     Architecture,
     BuildDate,
     ExtraDataEntry,
+    FullVersion,
     Group,
     InstalledSize,
     License,
@@ -19,7 +20,6 @@ use alpm_types::{
     Packager,
     RelationOrSoname,
     Url,
-    Version,
 };
 use clap::{Args, Parser, Subcommand, ValueEnum};
 use strum::Display;
@@ -105,7 +105,7 @@ pub struct V1CreateArgs {
 
     /// The package version.
     #[arg(env = "ALPM_DB_DESC_VERSION", long)]
-    pub version: Version,
+    pub version: FullVersion,
 
     /// The package base.
     #[arg(env = "ALPM_DB_DESC_BASE", long)]

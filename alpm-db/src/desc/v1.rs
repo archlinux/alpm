@@ -10,6 +10,7 @@ use std::{
 use alpm_types::{
     Architecture,
     BuildDate,
+    FullVersion,
     Group,
     InstalledSize,
     License,
@@ -23,7 +24,6 @@ use alpm_types::{
     Packager,
     RelationOrSoname,
     Url,
-    Version,
 };
 use winnow::Parser;
 
@@ -130,7 +130,7 @@ pub struct DbDescFileV1 {
     pub name: Name,
 
     /// The version of the package.
-    pub version: Version,
+    pub version: FullVersion,
 
     /// The base name of the package (used in split packages).
     pub base: PackageBaseName,
@@ -719,7 +719,7 @@ pgp
         DESC_FULL,
         DbDescFileV1 {
             name: Name::new("foo")?,
-            version: Version::from_str("1.0.0-1")?,
+            version: FullVersion::from_str("1.0.0-1")?,
             base: PackageBaseName::new("foo")?,
             description: PackageDescription::from("An example package"),
             url: Some(Url::from_str("https://example.org/")?),
@@ -752,7 +752,7 @@ pgp
         DESC_EMPTY_LIST_SECTIONS,
         DbDescFileV1 {
             name: Name::new("foo")?,
-            version: Version::from_str("1.0.0-1")?,
+            version: FullVersion::from_str("1.0.0-1")?,
             base: PackageBaseName::new("foo")?,
             description: PackageDescription::from("An example package"),
             url: Some(Url::from_str("https://example.org/")?),
@@ -777,7 +777,7 @@ pgp
         DESC_MINIMAL,
         DbDescFileV1 {
             name: Name::new("foo")?,
-            version: Version::from_str("1.0.0-1")?,
+            version: FullVersion::from_str("1.0.0-1")?,
             base: PackageBaseName::new("foo")?,
             description: PackageDescription::from("An example package"),
             url: Some(Url::from_str("https://example.org/")?),
@@ -802,7 +802,7 @@ pgp
         DESC_EMPTY_DESC_AND_URL,
         DbDescFileV1 {
             name: Name::new("foo")?,
-            version: Version::from_str("1.0.0-1")?,
+            version: FullVersion::from_str("1.0.0-1")?,
             base: PackageBaseName::new("foo")?,
             description: PackageDescription::from(""),
             url: None,
@@ -827,7 +827,7 @@ pgp
         DESC_REASON_EXPLICITLY_ZERO,
         DbDescFileV1 {
             name: Name::new("foo")?,
-            version: Version::from_str("1.0.0-1")?,
+            version: FullVersion::from_str("1.0.0-1")?,
             base: PackageBaseName::new("foo")?,
             description: PackageDescription::from("An example package"),
             url: Some(Url::from_str("https://example.org/")?),
@@ -852,7 +852,7 @@ pgp
         DESC_SIZE_EXPLICITLY_ZERO,
         DbDescFileV1 {
             name: Name::new("foo")?,
-            version: Version::from_str("1.0.0-1")?,
+            version: FullVersion::from_str("1.0.0-1")?,
             base: PackageBaseName::new("foo")?,
             description: PackageDescription::from("An example package"),
             url: Some(Url::from_str("https://example.org/")?),

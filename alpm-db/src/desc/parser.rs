@@ -10,6 +10,7 @@ use alpm_types::{
     BuildDate,
     ExtraData,
     ExtraDataEntry,
+    FullVersion,
     Group,
     InstalledSize,
     License,
@@ -23,7 +24,6 @@ use alpm_types::{
     Packager,
     RelationOrSoname,
     Url,
-    Version,
 };
 use strum::{Display, EnumString, VariantNames};
 use winnow::{
@@ -132,7 +132,7 @@ pub enum Section {
     /// %NAME%
     Name(Name),
     /// %VERSION%
-    Version(Version),
+    Version(FullVersion),
     /// %BASE%
     Base(PackageBaseName),
     /// %DESC%
