@@ -6,6 +6,7 @@ mod traits;
 pub use error::Error;
 pub use package::input::{InputPath, InputPaths, relative_data_files, relative_files};
 pub use traits::{
+    build::BuildRelationLookupData,
     metadata_file::MetadataFile,
     package_data::RuntimeRelationLookupData,
     schema::FileFormatSchema,
