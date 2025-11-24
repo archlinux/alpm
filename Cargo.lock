@@ -823,7 +823,7 @@ version = "3.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fde0e0ec90c9dfb3b4b1a0891a7dcd0e2bffde2f7efed5fe7c9bb00e5bfb915e"
 dependencies = [
- "windows-sys 0.48.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -4473,9 +4473,9 @@ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 
 [[package]]
 name = "voa"
-version = "0.4.2"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a555a7cceed6634017574fbe446aa8381fa064f1e7e1384eeadd2f7170cc94ea"
+checksum = "6ea7daef31f677b79982a7c986dc1cda887dafeb9b4e2c367e3251bd8b20397c"
 dependencies = [
  "log",
  "strum",
@@ -4501,9 +4501,9 @@ dependencies = [
 
 [[package]]
 name = "voa-openpgp"
-version = "0.4.2"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2bd326aca5b6a6d8e18758d23767274b9bc0ff14961dca845e885483f58f2283"
+checksum = "f449bd0e9f4a343e83b690b69eff1d5539d225c3d04cd6d0c4982189077b5fe6"
 dependencies = [
  "env_logger",
  "log",
