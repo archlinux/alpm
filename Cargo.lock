@@ -347,6 +347,7 @@ dependencies = [
  "clap",
  "fluent-i18n",
  "insta",
+ "log",
  "pretty_assertions",
  "rstest",
  "serde",
