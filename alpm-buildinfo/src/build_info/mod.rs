@@ -11,8 +11,12 @@ use std::{
     str::FromStr,
 };
 
-use alpm_common::{FileFormatSchema, MetadataFile};
+use alpm_common::{BuildRelationLookupData, FileFormatSchema, MetadataFile};
+use alpm_types::Architecture;
+#[cfg(doc)]
+use alpm_types::{InstalledPackage, RelationLookup};
 use fluent_i18n::t;
+use log::warn;
 
 use crate::{BuildInfoSchema, BuildInfoV1, BuildInfoV2, Error};
 
@@ -302,5 +306,115 @@ impl FromStr for BuildInfo {
     /// - or the detected variant of [`BuildInfo`] cannot be constructed from `s`.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Self::from_str_with_schema(s, None)
+    }
+}
+
+impl BuildRelationLookupData for BuildInfo {
+    /// Adds each [build dependency] to a [`RelationLookup`].
+    ///
+    /// Considers all [`InstalledPackage`] and adds the package name as origin.
+    ///
+    /// # Note
+    ///
+    /// If `architecture` is provided and does not match the [BUILDINFO]'s `pkgname`, no [build
+    /// dependency] is added.
+    ///
+    /// [BUILDINFO]: https://alpm.archlinux.page/specifications/BUILDINFO.5.html
+    /// [build dependency]: https://alpm.archlinux.page/specifications/alpm-package-relation.7.html#build-dependency
+    fn add_build_dependencies_to_lookup(
+        &self,
+        lookup: &mut alpm_types::RelationLookup,
+        architecture: Option<&Architecture>,
+    ) {
+        let (origin, pkg_arch, installed) = match self {
+            Self::V1(build_info) => (
+                &build_info.pkgname,
+                &build_info.pkgarch,
+                build_info.installed.as_slice(),
+            ),
+            Self::V2(build_info) => (
+                &build_info.pkgname,
+                &build_info.pkgarch,
+                build_info.installed.as_slice(),
+            ),
+        };
+
+        if let Some(architecture) = architecture {
+            if architecture != pkg_arch {
+                warn!(
+                    "The target architecture {architecture} for collecting build dependencies does not match the architecture {pkg_arch} of package {origin}. Skipping..."
+                );
+                return;
+            }
+        }
+
+        for install in installed.iter() {
+            lookup.insert_package_relation(&install.to_package_relation(), Some(origin.clone()));
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use alpm_types::{Name, RelationLookup, Version};
+    use rstest::rstest;
+    use testresult::TestResult;
+
+    use super::*;
+
+    /// A BUILDINFOv1 string.
+    const BUILDINFO_V1: &str = r#"format = 1
+builddate = 1
+builddir = /build
+installed = bar-1.2.3-1-any
+installed = beh-2.2.3-4-any
+packager = Foobar McFooface <foobar@mcfooface.org>
+pkgarch = x86_64
+pkgbase = foo
+pkgbuild_sha256sum = b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c
+pkgname = foo
+pkgver = 1:1.0.0-1
+"#;
+
+    /// A BUILDINFOv2 string.
+    const BUILDINFO_V2: &str = r#"format = 2
+builddate = 1
+builddir = /build
+startdir = /startdir/
+buildtool = devtools
+buildtoolver = 1:1.2.1-1-any
+installed = bar-1.2.3-1-any
+installed = beh-2.2.3-4-any
+packager = Foobar McFooface <foobar@mcfooface.org>
+pkgarch = x86_64
+pkgbase = foo
+pkgbuild_sha256sum = b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c
+pkgname = foo
+pkgver = 1:1.0.0-1
+"#;
+
+    #[rstest]
+    #[case::v1(BUILDINFO_V1)]
+    #[case::v2(BUILDINFO_V2)]
+    fn build_info_add_build_dependencies_to_lookup(#[case] build_info_data: &str) -> TestResult {
+        let build_info = BuildInfo::from_str(build_info_data)?;
+        let mut lookup = RelationLookup::default();
+
+        build_info.add_build_dependencies_to_lookup(&mut lookup, Some(&"x86_64".parse()?));
+        assert_eq!(lookup.len(), 2);
+        assert!(
+            lookup.satisfies_name_and_version(
+                &Name::from_str("bar")?,
+                &Version::from_str("1.2.3-1")?
+            )
+        );
+        assert!(
+            lookup.satisfies_name_and_version(
+                &Name::from_str("beh")?,
+                &Version::from_str("2.2.3-4")?
+            )
+        );
+
+        Ok(())
     }
 }

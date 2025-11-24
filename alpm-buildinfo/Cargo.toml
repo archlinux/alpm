@@ -27,6 +27,7 @@ alpm-parsers.workspace = true
 alpm-types.workspace = true
 clap = { workspace = true, optional = true }
 fluent-i18n.workspace = true
+log.workspace = true
 serde.workspace = true
 serde_json = { workspace = true, optional = true }
 serde_more = "0.1.4"
