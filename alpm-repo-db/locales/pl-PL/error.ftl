@@ -25,6 +25,9 @@ error-unsupported-schema-version = Nieobsługiwana wersja formatu pliku: { $vers
 
 error-invalid-format = Parsowanie pliku w formacie v1 lub v2 zakończyło się niepowodzeniem.
 
+error-json = błąd JSON podczas { $context }:
+  { $source }
+
 error-io-path-open-file = otwierania pliku do odczytu
 
 error-io-path-schema-file =
@@ -35,3 +38,12 @@ error-io-read-schema-data =
 
 error-io-read-repo-desc = odczytu danych desc repozytorium pakietów
 
+error-io-create-output-dir = tworzenia katalogu wyjściowego
+
+error-io-create-output-file = tworzenia pliku wyjściowego
+
+error-io-write-output-file = zapisywania do pliku wyjściowego
+
+error-json-serialize-pretty = serializacji do formatu JSON z wcięciami
+
+error-json-serialize = serializacji do formatu JSON
