@@ -133,17 +133,39 @@ assert_eq!(desc.xdata.len(), 2);
 # use a temporary directory for testing
 test_tmpdir="$(mktemp --directory --suffix '.dbdesc-test')"
 # temporary desc input and output files
-DBDESC_INPUT="$(mktemp --tmpdir="$test_tmpdir" --suffix '-desc.in' --dry-run)"
-DBDESC_OUTPUT="$(mktemp --tmpdir="$test_tmpdir" --suffix '-desc.out' --dry-run)"
-export DBDESC_INPUT
-export DBDESC_OUTPUT
+DBDESC="$(mktemp --tmpdir="$test_tmpdir" --suffix '-desc' --dry-run)"
+DBDESC_JSON="$(mktemp --tmpdir="$test_tmpdir" --suffix '-desc.json' --dry-run)"
+export DBDESC
+export DBDESC_JSON
 ```
 -->
 
-Create a database desc file and format it as JSON:
+Create a database desc file from CLI arguments:
 
 ```bash
-cat > "$DBDESC_INPUT" <<'EOF'
+alpm-db-desc create v2 \
+    --name foo \
+    --version 1.0.0-1 \
+    --base foo \
+    --description "An example package" \
+    --url https://example.org/ \
+    --arch x86_64 \
+    --builddate 1733737242 \
+    --installdate 1733737243 \
+    --packager "Foobar McFooface <foobar@mcfooface.org>" \
+    --size 123 \
+    --validation pgp \
+    --optdepends libfoo,libbar \
+    --optdepends "libdesc: Optional dependency with description" \
+    --xdata pkgtype=pkg \
+    "$DBDESC"
+```
+
+The output file (`$DBDESC`) contains the desc data in [alpm-db-descv1] format.
+
+<!--
+```bash
+cat > "$DBDESC.expected" <<'EOF'
 %NAME%
 foo
 
@@ -177,17 +199,32 @@ Foobar McFooface <foobar@mcfooface.org>
 %VALIDATION%
 pgp
 
+%OPTDEPENDS%
+libfoo
+libbar
+libdesc: Optional dependency with description
+
+%XDATA%
+pkgtype=pkg
+
 EOF
 
-alpm-db-desc format "$DBDESC_INPUT" --output-format json --pretty > "$DBDESC_OUTPUT"
+diff --ignore-trailing-space "$DBDESC" "$DBDESC.expected"
+```
+-->
+
+Format db desc data as JSON:
+
+```bash
+alpm-db-desc format "$DBDESC" --output-format json --pretty > "$DBDESC_JSON"
 ```
 
-The output file (`$DBDESC_OUTPUT`) contains the structured JSON representation of
+The output file (`$DBDESC_JSON`) contains the structured JSON representation of
 the parsed desc data.
 
 <!--
 ```bash
-cat > "$DBDESC_OUTPUT.expected" <<'EOF'
+cat > "$DBDESC_JSON.expected" <<'EOF'
 {
   "name": "foo",
   "version": {
@@ -215,13 +252,38 @@ cat > "$DBDESC_OUTPUT.expected" <<'EOF'
   "validation": "Pgp",
   "replaces": [],
   "depends": [],
-  "optdepends": [],
+  "optdepends": [
+    {
+      "package_relation": {
+        "name": "libfoo",
+        "version_requirement": null
+      },
+      "description": null
+    },
+    {
+      "package_relation": {
+        "name": "libbar",
+        "version_requirement": null
+      },
+      "description": null
+    },
+    {
+      "package_relation": {
+        "name": "libdesc",
+        "version_requirement": null
+      },
+      "description": "Optional dependency with description"
+    }
+  ],
   "conflicts": [],
-  "provides": []
+  "provides": [],
+  "xdata": [
+    "pkgtype=pkg"
+  ]
 }
 EOF
 
-diff --ignore-trailing-space "$DBDESC_OUTPUT" "$DBDESC_OUTPUT.expected"
+diff --ignore-trailing-space "$DBDESC_JSON" "$DBDESC_JSON.expected"
 rm -r -- "$test_tmpdir"
 ```
 -->
