@@ -28,6 +28,7 @@ alpm-pkgbuild.workspace = true
 alpm-types.workspace = true
 clap = { workspace = true, optional = true }
 fluent-i18n.workspace = true
+log.workspace = true
 serde.workspace = true
 serde_json = { workspace = true, optional = true }
 strum.workspace = true

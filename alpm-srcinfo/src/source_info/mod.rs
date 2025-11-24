@@ -4,9 +4,10 @@ pub mod v1;
 
 use std::{fs::File, path::Path, str::FromStr};
 
-use alpm_common::MetadataFile;
-use alpm_types::{SchemaVersion, semver_version::Version};
+use alpm_common::{BuildRelationLookupData, MetadataFile};
+use alpm_types::{Architecture, RelationLookup, SchemaVersion, semver_version::Version};
 use fluent_i18n::t;
+use log::warn;
 use serde::{Deserialize, Serialize};
 
 use crate::{Error, SourceInfoSchema, SourceInfoV1};
@@ -240,5 +241,196 @@ impl FromStr for SourceInfo {
     /// - or the detected variant of [`SourceInfo`] cannot be constructed from `s`.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Self::from_str_with_schema(s, None)
+    }
+}
+
+impl BuildRelationLookupData for SourceInfo {
+    /// Adds each [build dependency] to a [`RelationLookup`].
+    ///
+    /// Considers each [build dependency] as well as each [run-time dependency] and adds the package
+    /// base as origin.
+    ///
+    /// If `architecture` is provided, also considers each architecture-specific [build dependency]
+    /// and each [run-time dependency].
+    ///
+    /// # Note
+    ///
+    /// If `architecture` does not match any architecture tracked by the [`SourceInfo`], no [build
+    /// dependency] is added.
+    ///
+    /// [build dependency]: https://alpm.archlinux.page/specifications/alpm-package-relation.7.html#build-dependency
+    /// [run-time dependency]: https://alpm.archlinux.page/specifications/alpm-package-relation.7.html#run-time-dependency
+    fn add_build_dependencies_to_lookup(
+        &self,
+        lookup: &mut RelationLookup,
+        architecture: Option<&Architecture>,
+    ) {
+        let (origin, architectures, run_time_dependencies, build_dependencies) = match self {
+            Self::V1(source_info) => (
+                &source_info.base.name,
+                &source_info.base.architectures,
+                source_info.base.dependencies.as_slice(),
+                source_info.base.make_dependencies.as_slice(),
+            ),
+        };
+
+        // Add any architecture-specific build and run-time dependencies, if they are requested.
+        // NOTE: Here we are returning early, if the provided architecture is not
+        // `Architecture::Any` or does not match any of the pkgbase's architectures.
+        if let Some(architecture) = architecture {
+            let pkgbase_architecture = match architecture {
+                Architecture::Any => None,
+                Architecture::Some(system_arch) => {
+                    if !architectures.into_iter().any(|arch| &arch == architecture) {
+                        warn!(
+                            "The target architecture {architecture} for collecting build dependencies does not match any architecture package base {origin}. Skipping..."
+                        );
+                        return;
+                    }
+
+                    match self {
+                        Self::V1(source_info) => {
+                            source_info.base.architecture_properties.get(system_arch)
+                        }
+                    }
+                }
+            };
+
+            if let Some(pkgbase_architecture) = pkgbase_architecture {
+                for relation in pkgbase_architecture.dependencies.iter() {
+                    lookup.insert_relation_or_soname(relation, Some(origin.clone()));
+                }
+                for package_relation in pkgbase_architecture.make_dependencies.iter() {
+                    lookup.insert_package_relation(package_relation, Some(origin.clone()));
+                }
+            }
+        }
+
+        // Add architecture-agnostic dependencies
+        for package_relation in build_dependencies.iter() {
+            lookup.insert_package_relation(package_relation, Some(origin.clone()));
+        }
+        for relation in run_time_dependencies.iter() {
+            lookup.insert_relation_or_soname(relation, Some(origin.clone()));
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use alpm_types::{Name, RelationLookup, Version};
+    use testresult::TestResult;
+
+    use super::*;
+
+    /// A SRCINFO string.
+    const SRCINFO_V1: &str = r#"pkgbase = example
+	pkgdesc = A example with all pkgbase properties set.
+	pkgver = 0.1.0
+	pkgrel = 1
+	url = https://archlinux.org/
+	arch = x86_64
+	arch = aarch64
+	groups = group
+	groups = group_2
+	license = MIT
+	license = Apache-2.0
+	checkdepends = default_checkdep
+	checkdepends = default_checkdep_2=2.0.0
+	makedepends_x86_64 = default_makedep
+	makedepends_aarch64 = arm_default_makedep_2=2.0.0
+	depends = default_dep
+	depends_x86_64 = x86_default_dep
+	depends_aarch64 = arm_default_dep_2=2.0.0
+	optdepends = default_optdep
+	optdepends = default_optdep_2=2.0.0: With description
+	provides = default_provides
+	provides = default_provides_2=2.0.0
+	conflicts = default_conflict
+	conflicts = default_conflict_2=2.0.0
+	replaces = default_replaces
+	replaces = default_replaces_2=2.0.0
+
+pkgname = example
+"#;
+
+    #[test]
+    fn source_info_add_build_dependencies_to_lookup_none() -> TestResult {
+        let source_info = SourceInfo::from_str(SRCINFO_V1)?;
+        let mut lookup = RelationLookup::default();
+
+        source_info.add_build_dependencies_to_lookup(&mut lookup, None);
+        assert_eq!(lookup.len(), 1);
+        eprintln!("{lookup:?}");
+        assert!(
+            lookup.satisfies_name_and_version(
+                &Name::from_str("default_dep")?,
+                &Version::from_str("1")?
+            )
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn source_info_add_build_dependencies_to_lookup_x86_64() -> TestResult {
+        let source_info = SourceInfo::from_str(SRCINFO_V1)?;
+        let mut lookup = RelationLookup::default();
+
+        source_info.add_build_dependencies_to_lookup(&mut lookup, Some(&"x86_64".parse()?));
+        assert_eq!(lookup.len(), 3);
+        eprintln!("{lookup:?}");
+        assert!(
+            lookup.satisfies_name_and_version(
+                &Name::from_str("default_dep")?,
+                &Version::from_str("1")?
+            )
+        );
+        assert!(lookup.satisfies_name_and_version(
+            &Name::from_str("x86_default_dep")?,
+            &Version::from_str("1")?
+        ));
+        assert!(lookup.satisfies_name_and_version(
+            &Name::from_str("default_makedep")?,
+            &Version::from_str("1")?
+        ));
+
+        Ok(())
+    }
+
+    #[test]
+    fn source_info_add_build_dependencies_to_lookup_aarch64() -> TestResult {
+        let source_info = SourceInfo::from_str(SRCINFO_V1)?;
+        let mut lookup = RelationLookup::default();
+
+        source_info.add_build_dependencies_to_lookup(&mut lookup, Some(&"aarch64".parse()?));
+        assert_eq!(lookup.len(), 3);
+        eprintln!("{lookup:?}");
+        assert!(lookup.satisfies_name_and_version(
+            &Name::from_str("default_dep")?,
+            &Version::from_str("1.2.3-1")?
+        ));
+        assert!(lookup.satisfies_name_and_version(
+            &Name::from_str("arm_default_makedep_2")?,
+            &Version::from_str("2.0.0")?
+        ));
+        assert!(lookup.satisfies_name_and_version(
+            &Name::from_str("arm_default_dep_2")?,
+            &Version::from_str("2.0.0")?
+        ));
+
+        Ok(())
+    }
+
+    #[test]
+    fn source_info_add_build_dependencies_to_lookup_riscv64() -> TestResult {
+        let source_info = SourceInfo::from_str(SRCINFO_V1)?;
+        let mut lookup = RelationLookup::default();
+
+        source_info.add_build_dependencies_to_lookup(&mut lookup, Some(&"riscv64".parse()?));
+        assert_eq!(lookup.len(), 0);
+        eprintln!("{lookup:?}");
+
+        Ok(())
     }
 }
