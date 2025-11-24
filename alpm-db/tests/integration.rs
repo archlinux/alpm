@@ -70,7 +70,7 @@ glibc
 glibc2
 
 %OPTDEPENDS%
-optpkg
+optpkg: description of optpkg
 optpkg2
 
 %CONFLICTS%
@@ -139,7 +139,7 @@ glibc
 glibc2
 
 %OPTDEPENDS%
-optpkg
+optpkg: description of optpkg
 optpkg2
 
 %CONFLICTS%
@@ -267,7 +267,7 @@ mod create_cli {
             "--depends",
             "glibc",
             "--optdepends",
-            "optpkg",
+            "optpkg: description of optpkg",
             "--conflicts",
             "foo-old",
             "--provides",
@@ -449,13 +449,16 @@ mod create_env {
 
         // Helper macro to shorten env setup handling for lists.
         macro_rules! env_join_list {
-            ($key:literal, $getter:expr) => {{
+            ($key:literal, $getter:expr, $delimiter:expr) => {{
                 let value = $getter
                     .iter()
                     .map(ToString::to_string)
                     .collect::<Vec<_>>()
-                    .join(" ");
+                    .join($delimiter);
                 envs.insert($key, value);
+            }};
+            ($key:literal, $getter:expr) => {{
+                env_join_list!($key, $getter, " ");
             }};
         }
 
@@ -465,7 +468,7 @@ mod create_env {
         envs.insert("ALPM_DB_DESC_VALIDATION", inner.validation.to_string());
         env_join_list!("ALPM_DB_DESC_REPLACES", inner.replaces);
         env_join_list!("ALPM_DB_DESC_DEPENDS", inner.depends);
-        env_join_list!("ALPM_DB_DESC_OPTDEPENDS", inner.optdepends);
+        env_join_list!("ALPM_DB_DESC_OPTDEPENDS", inner.optdepends, ",");
         env_join_list!("ALPM_DB_DESC_CONFLICTS", inner.conflicts);
         env_join_list!("ALPM_DB_DESC_PROVIDES", inner.provides);
 

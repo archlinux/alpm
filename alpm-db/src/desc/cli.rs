@@ -168,7 +168,9 @@ pub struct V1CreateArgs {
     pub depends: Vec<RelationOrSoname>,
 
     /// The optional dependencies.
-    #[arg(env = "ALPM_DB_DESC_OPTDEPENDS", long, value_delimiter = ' ')]
+    ///
+    /// Note: uses comma as value delimiter. Optional dependency descriptions can't contain commas.
+    #[arg(env = "ALPM_DB_DESC_OPTDEPENDS", long, value_delimiter = ',')]
     pub optdepends: Vec<OptionalDependency>,
 
     /// The conflicts.

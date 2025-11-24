@@ -60,7 +60,7 @@ expression: json
         "name": "optpkg",
         "version_requirement": null
       },
-      "description": null
+      "description": "description of optpkg"
     },
     {
       "package_relation": {
