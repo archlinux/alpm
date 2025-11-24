@@ -73,6 +73,7 @@ dependencies = [
  "clap",
  "fluent-i18n",
  "insta",
+ "log",
  "rstest",
  "serde",
  "serde_json",
