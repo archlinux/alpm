@@ -22,7 +22,16 @@ use winnow::{
     token::{one_of, rest, take_until},
 };
 
-use crate::{Architecture, FullVersion, Name, PackageFileName, error::Error};
+use crate::{
+    Architecture,
+    FullVersion,
+    Name,
+    PackageFileName,
+    PackageRelation,
+    VersionComparison,
+    VersionRequirement,
+    error::Error,
+};
 
 /// Recognizes the `!` boolean operator in option names.
 ///
@@ -560,6 +569,36 @@ impl InstalledPackage {
     /// ```
     pub fn architecture(&self) -> &Architecture {
         &self.architecture
+    }
+
+    /// Returns the [`PackageRelation`] encoded in this [`InstalledPackage`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::str::FromStr;
+    ///
+    /// use alpm_types::{InstalledPackage, PackageRelation};
+    ///
+    /// # fn main() -> Result<(), alpm_types::Error> {
+    /// let installed_package =
+    ///     InstalledPackage::new("example".parse()?, "1:1.0.0-1".parse()?, "x86_64".parse()?);
+    ///
+    /// assert_eq!(
+    ///     installed_package.to_package_relation(),
+    ///     PackageRelation::from_str("example=1:1.0.0-1")?
+    /// );
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn to_package_relation(&self) -> PackageRelation {
+        PackageRelation {
+            name: self.name.clone(),
+            version_requirement: Some(VersionRequirement {
+                comparison: VersionComparison::Equal,
+                version: self.version.clone().into(),
+            }),
+        }
     }
 
     /// Recognizes an [`InstalledPackage`] in a string slice.
