@@ -1424,6 +1424,8 @@ __all__ = [
     "PackageRelation",
     "SonameV1",
     "SonameV1Type",
+    "SonameV2",
+    "Soname",
     "relation_or_soname_from_str",
     "VersionComparison",
     "VersionRequirement",
