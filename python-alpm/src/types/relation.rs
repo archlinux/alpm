@@ -213,13 +213,7 @@ impl SonameV1 {
 
     #[getter]
     fn name(&self) -> String {
-        use alpm_types::SonameV1::{Basic, Explicit, Unversioned};
-        match &self.0 {
-            Basic(name) => name,
-            Unversioned { name, .. } => name,
-            Explicit { name, .. } => name,
-        }
-        .to_string()
+        self.0.shared_object_name().to_string()
     }
 
     #[getter]
