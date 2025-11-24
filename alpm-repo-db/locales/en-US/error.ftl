@@ -25,6 +25,9 @@ error-unsupported-schema-version = Unsupported schema version: { $version }
 
 error-invalid-format = Failed to parse v1 or v2 format.
 
+error-json = JSON error while { $context }:
+  { $source }
+
 error-io-path-open-file = opening the file for reading
 
 error-io-path-schema-file =
@@ -35,3 +38,12 @@ error-io-read-schema-data =
 
 error-io-read-repo-desc = reading package repository desc data
 
+error-io-create-output-dir = creating output directory
+
+error-io-create-output-file = creating output file
+
+error-io-write-output-file = writing to output file
+
+error-json-serialize-pretty = serializing to pretty JSON
+
+error-json-serialize = serializing to JSON

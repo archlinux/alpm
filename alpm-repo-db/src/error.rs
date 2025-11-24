@@ -80,6 +80,18 @@ pub enum Error {
     #[error("{msg}", msg = t!("error-no-input-file"))]
     NoInputFile,
 
+    #[cfg(feature = "cli")]
+    /// JSON error.
+    #[error("{msg}", msg = t!("error-json", { "context" => context, "source" => source.to_string() }))]
+    Json {
+        /// The context in which the error occurred.
+        ///
+        /// This is meant to complete the sentence "JSON error while ".
+        context: String,
+        /// The error source.
+        source: serde_json::Error,
+    },
+
     /// Unsupported schema version.
     #[error("{msg}", msg = t!("error-unsupported-schema-version", { "version" => .0 }))]
     UnsupportedSchemaVersion(String),

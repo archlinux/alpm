@@ -1,0 +1,13 @@
+---
+source: alpm-repo-db/tests/parse_errors.rs
+description: "%FILENAME%\nexample-1.0.0-1-any.pkg.tar.zst\n\n%NAME%\nexample\n\n%BASE%\nexample\n\n%VERSION%\n1.0.0-1\n\n%DESC%\nAn example package\n\n%GROUPS%\nexample-group\nother-group\n\n%CSIZE%\n1818463\n\n%ISIZE%\n18184634\n\n%MD5SUM%\nd3b07384d113edec49eaa6238ad5ff00\n\n%SHA256SUM%\nb5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c\n\n%PGPSIG%\niHUEABYKAB0WIQRizHP4hOUpV7L92IObeih9mi7GCAUCaBZuVAAKCRCbeih9mi7GCIlMAP9ws/jU4f580ZRQlTQKvUiLbAZOdcB7mQQj83hD1Nc/GwD/WIHhO1/OQkpMERejUrLo3AgVmY3b4/uGhx9XufWEbgE=\n\n%URL%\nhttps://example.org/\n\n%LICENSE%\nMIT\nApache-2.0\n\n%ARCH%\nx86_64\n\n%BUILDDATE%\n1729181726\n\n%AUTHOR%\nFoobar McFooface <foobar@mcfooface.org>\n\n%REPLACES%\nother-pkg-replaced\n\n%CONFLICTS%\nother-pkg-conflicts\n\n%PROVIDES%\nexample-component\n\n%DEPENDS%\nglibc\ngcc-libs\n\n%OPTDEPENDS%\nbash: for a script\n\n%MAKEDEPENDS%\ncmake\n\n%CHECKDEPENDS%\nbats\n"
+expression: error
+---
+Parser failed with the following error:
+parse error at line 48, column 1
+   |
+48 | %AUTHOR%
+   | ^
+invalid section name
+expected a section name that is enclosed in `%` characters, `FILENAME`, `NAME`, `BASE`, `VERSION`, `DESC`, `GROUPS`, `CSIZE`, `ISIZE`, `MD5SUM`, `SHA256SUM`, `PGPSIG`, `URL`, `LICENSE`, `ARCH`, `BUILDDATE`, `PACKAGER`, `REPLACES`, `CONFLICTS`, `PROVIDES`, `DEPENDS`, `OPTDEPENDS`, `MAKEDEPENDS`, `CHECKDEPENDS`, a section in the database desc file
+Matching variant not found

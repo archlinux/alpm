@@ -1,0 +1,70 @@
+---
+source: alpm-repo-db/tests/integration.rs
+description: "Args: alpm-repo-desc create v2 desc | Env: ALPM_REPO_DESC_SHA256SUM=b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c ALPM_REPO_DESC_BUILDDATE=1729181726 ALPM_REPO_DESC_GROUPS=example-group other-group ALPM_REPO_DESC_ARCH=x86_64 ALPM_REPO_DESC_BASE=example ALPM_REPO_DESC_REPLACES=other-pkg-replaced ALPM_REPO_DESC_CHECKDEPENDS=bats ALPM_REPO_DESC_CONFLICTS=other-pkg-conflicts ALPM_REPO_DESC_PROVIDES=example-component ALPM_REPO_DESC_OPTDEPENDS=bash: for a script ALPM_REPO_DESC_ISIZE=18184634 ALPM_REPO_DESC_FILENAME=example-1.0.0-1-any.pkg.tar.zst ALPM_REPO_DESC_VERSION=1.0.0-1 ALPM_REPO_DESC_NAME=example ALPM_REPO_DESC_DEPENDS=glibc gcc-libs ALPM_REPO_DESC_MAKEDEPENDS=cmake ALPM_REPO_DESC_URL=https://example.org/ ALPM_REPO_DESC_CSIZE=1818463 ALPM_REPO_DESC_DESC=An example package ALPM_REPO_DESC_LICENSE=MIT Apache-2.0 ALPM_REPO_DESC_PACKAGER=Foobar McFooface <foobar@mcfooface.org>"
+expression: reparsed
+---
+%FILENAME%
+example-1.0.0-1-any.pkg.tar.zst
+
+%NAME%
+example
+
+%BASE%
+example
+
+%VERSION%
+1.0.0-1
+
+%DESC%
+An example package
+
+%GROUPS%
+example-group
+other-group
+
+%CSIZE%
+1818463
+
+%ISIZE%
+18184634
+
+%SHA256SUM%
+b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c
+
+%URL%
+https://example.org/
+
+%LICENSE%
+MIT
+Apache-2.0
+
+%ARCH%
+x86_64
+
+%BUILDDATE%
+1729181726
+
+%PACKAGER%
+Foobar McFooface <foobar@mcfooface.org>
+
+%REPLACES%
+other-pkg-replaced
+
+%CONFLICTS%
+other-pkg-conflicts
+
+%PROVIDES%
+example-component
+
+%DEPENDS%
+glibc
+gcc-libs
+
+%OPTDEPENDS%
+bash: for a script
+
+%MAKEDEPENDS%
+cmake
+
+%CHECKDEPENDS%
+bats
