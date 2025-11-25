@@ -18,6 +18,7 @@ https://docs.rs/alpm-lint-config/latest/alpm_lint_config/
 https://docs.rs/alpm-compress/latest/alpm_compress/
 https://alpm.archlinux.page/rustdoc/alpm_files/
 https://docs.rs/alpm-files/latest/alpm_files/
+https://docs.rs/alpm-repo-db/latest/alpm_repo_db/
 
 # Remove with !461
 https://alpm.archlinux.page/specifications/alpm-files.5.html
