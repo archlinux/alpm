@@ -28,6 +28,8 @@
     - [CHANGELOG](./alpm-parsers/CHANGELOG.md)
 - [alpm-pkginfo](./alpm-pkginfo/README.md)
     - [CHANGELOG](./alpm-pkginfo/CHANGELOG.md)
+- [alpm-repo-db](./alpm-repo-db/README.md)
+    - [CHANGELOG](./alpm-repo-db/CHANGELOG.md)
 - [alpm-srcinfo](./alpm-srcinfo/README.md)
     - [ARCHITECTURE](./alpm-srcinfo/ARCHITECTURE.md)
     - [CHANGELOG](./alpm-srcinfo/CHANGELOG.md)
