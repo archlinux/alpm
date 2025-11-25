@@ -425,9 +425,10 @@ generate kind pkg:
     case "$kind" in
         manpages|shell_completions)
             module=""
-            if [[ "$pkg" == "alpm-db" ]]; then
-                module="::desc"
-            fi
+            case $pkg in
+                alpm-db|alpm-repo-db)
+                    module="::desc" ;;
+            esac
 
             sed "s/PKG/$pkg/;s#PATH#$PWD/$pkg#g;s/KIND/$kind/g;s/MODULE/$module/g" > "$script" < .rust-script/allgen.ers
             chmod +x "$script"
