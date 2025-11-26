@@ -52,7 +52,7 @@ mindmap
     🗄️ Package Management
       📄 desc
       📄 files
-      📚️ alpm-db*
+      📚️ alpm-db
       📚️ alpm-db-desc
       📚️ alpm-db-download*
       📚️ alpm-db-files
@@ -71,6 +71,7 @@ Currently the following software components are available:
 - [alpm-buildinfo]: a library and commandline interface to work with [BUILDINFO] files
 - [alpm-common]: a library for common traits and functionality
 - [alpm-compress]: a library for compression operations in ALPM
+- [alpm-db]: a library and commandline interface to work with ALPM database [desc] and [files][spec:alpm-db-files] entries
 - [alpm-db-desc]: a library and commandline interface to work with ALPM database [desc] files
 - [alpm-files]: library and command line tool for the handling of [alpm-repo-files][spec:alpm-repo-files] and [alpm-db-files][spec:alpm-db-files] files
 - [alpm-lint]: a linting tool for everything around Arch Linux packaging.
@@ -116,6 +117,7 @@ Contributions to this project, unless noted otherwise, are automatically license
 [alpm-buildinfo]: alpm-buildinfo/
 [alpm-common]: alpm-common/
 [alpm-compress]: alpm-compress/
+[alpm-db]: alpm-db/
 [alpm-db-desc]: alpm-db/
 [alpm-files]: alpm-files/
 [alpm-lint]: alpm-lint/
