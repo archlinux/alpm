@@ -309,6 +309,22 @@ version = "0.1.0"
 [[package]]
 name = "alpm-repo-db"
 version = "0.1.0"
+dependencies = [
+ "alpm-common",
+ "alpm-types",
+ "assert_cmd",
+ "clap",
+ "fluent-i18n",
+ "insta",
+ "rstest",
+ "serde",
+ "serde_json",
+ "strum",
+ "tempfile",
+ "testresult",
+ "thiserror",
+ "winnow",
+]
 
 [[package]]
 name = "alpm-soname"
