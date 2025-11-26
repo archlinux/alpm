@@ -16,6 +16,11 @@ name = "alpm-db-desc"
 path = "src/bin/alpm-db-desc.rs"
 required-features = ["cli"]
 
+[[bin]]
+name = "alpm-db-files"
+path = "src/bin/alpm-db-files.rs"
+required-features = ["cli"]
+
 [features]
 _winnow-debug = ["winnow/debug"]
 cli = ["dep:clap", "dep:serde_json"]
