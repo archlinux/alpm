@@ -14,7 +14,7 @@ use winnow::{
     error::{StrContext, StrContextValue},
 };
 
-use crate::{Error, FilesStyle, FilesStyleToString};
+use crate::files::{Error, FilesStyle, FilesStyleToString};
 
 /// The raw data section in [alpm-files] data.
 ///
@@ -224,9 +224,9 @@ impl FilesStyleToString for FilesV1 {
     /// ```
     /// use std::path::PathBuf;
     ///
-    /// use alpm_files::{FilesStyle, FilesStyleToString, FilesV1};
+    /// use alpm_files::files::{FilesStyle, FilesStyleToString, FilesV1};
     ///
-    /// # fn main() -> Result<(), alpm_files::Error> {
+    /// # fn main() -> Result<(), alpm_files::files::Error> {
     /// // An empty alpm-db-files.
     /// let expected = "";
     /// let files = FilesV1::try_from(Vec::new())?;
@@ -320,10 +320,10 @@ impl FromStr for FilesV1 {
     /// ```
     /// use std::{path::PathBuf, str::FromStr};
     ///
-    /// use alpm_files::FilesV1;
+    /// use alpm_files::files::FilesV1;
     /// use winnow::Parser;
     ///
-    /// # fn main() -> Result<(), alpm_files::Error> {
+    /// # fn main() -> Result<(), alpm_files::files::Error> {
     /// # let expected: Vec<PathBuf> = Vec::new();
     /// // No files according to alpm-db-files.
     /// let data = "";
@@ -394,7 +394,7 @@ impl TryFrom<PathBuf> for FilesV1 {
     ///     path::PathBuf,
     /// };
     ///
-    /// use alpm_files::FilesV1;
+    /// use alpm_files::files::FilesV1;
     /// use tempfile::tempdir;
     ///
     /// # fn main() -> testresult::TestResult {
@@ -441,9 +441,9 @@ impl TryFrom<Vec<PathBuf>> for FilesV1 {
     /// ```
     /// use std::path::PathBuf;
     ///
-    /// use alpm_files::FilesV1;
+    /// use alpm_files::files::FilesV1;
     ///
-    /// # fn main() -> Result<(), alpm_files::Error> {
+    /// # fn main() -> Result<(), alpm_files::files::Error> {
     /// let paths: Vec<PathBuf> = vec![
     ///     PathBuf::from("usr/"),
     ///     PathBuf::from("usr/bin/"),
