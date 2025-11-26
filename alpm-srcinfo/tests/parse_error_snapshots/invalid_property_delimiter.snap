@@ -6,7 +6,7 @@ expression: "format!(\"{error}\")"
 File parsing error:
 parse error at line 3, column 8
   |
-3 | 	pkgver=1.0.0
+3 |  pkgver=1.0.0
   |        ^
 invalid delimiter
 expected an equal sign surrounded by spaces: ' = '.

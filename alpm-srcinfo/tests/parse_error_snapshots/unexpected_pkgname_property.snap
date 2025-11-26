@@ -6,7 +6,7 @@ expression: "format!(\"{error}\")"
 File parsing error:
 parse error at line 7, column 2
   |
-7 | 	validpgpkeys = 4A0C4DFFC02E1A7ED969ED231C2358A25A10D94E
+7 |  validpgpkeys = 4A0C4DFFC02E1A7ED969ED231C2358A25A10D94E
   |  ^
 invalid package property type
 expected one of the allowed package section properties:, `depends`, `optdepends`, `provides`, `conflicts`, `replaces`, `pkgdesc`, `url`, `license`, `arch`, `changelog`, `install`, `groups`, `options`, `backup`

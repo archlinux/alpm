@@ -170,9 +170,12 @@ impl SourceInfoV1 {
     /// # }
     /// ```
     pub fn from_string(content: &str) -> Result<SourceInfoV1, Error> {
+        // A temporary fix for <https://github.com/winnow-rs/winnow/issues/847>
+        let content_no_tabs = content.replace('\t', " ");
+
         // Parse the given srcinfo content.
         let parsed = SourceInfoContent::parser
-            .parse(content)
+            .parse(content_no_tabs.as_str())
             .map_err(|err| Error::ParseError(format!("{err}")))?;
 
         // Bring it into a proper structural representation
