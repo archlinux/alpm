@@ -2,17 +2,22 @@
 
 use std::{fs::read_to_string, path::PathBuf, str::FromStr};
 
-use alpm_db::desc::{DbDescFileV1, DbDescFileV2};
+use alpm_common::MetadataFile;
+use alpm_db::{
+    desc::{DbDescFileV1, DbDescFileV2},
+    files::DbFiles,
+};
+use alpm_types::{SchemaVersion, semver_version::Version};
 use insta::assert_snapshot;
 use rstest::rstest;
 use testresult::TestResult;
 
-/// Each `.desc` file in `tests/parse_errors/` is expected to fail parsing.
+/// Each `.desc` file in `tests/parse_errors/desc` is expected to fail parsing.
 ///
-/// Snapshots are saved in `parse_error_snapshots/` with the error message
+/// Snapshots are saved in same directory with the error message
 /// and the file's contents as description.
 #[rstest]
-fn ensure_parse_errors(#[files("tests/parse_errors/*")] case: PathBuf) -> TestResult {
+fn ensure_desc_parse_errors(#[files("tests/parse_errors/desc/*")] case: PathBuf) -> TestResult {
     let input = read_to_string(&case)?;
     let name = case
         .file_stem()
@@ -37,11 +42,48 @@ fn ensure_parse_errors(#[files("tests/parse_errors/*")] case: PathBuf) -> TestRe
     let input_clone = input.clone();
     insta::with_settings!({
         description => input_clone,
-        snapshot_path => "parse_errors/snapshots",
+        snapshot_path => "parse_errors/desc/snapshots",
         prepend_module_to_snapshot => false,
     }, {
         assert_snapshot!(name, error);
     });
+
+    Ok(())
+}
+
+/// Each `.files` file in `tests/parse_errors/files` is expected to fail parsing.
+///
+/// Snapshots are saved in same directory with the error message
+/// and the file's contents as description.
+#[rstest]
+fn ensure_files_parse_errors(
+    #[files("tests/parse_errors/files/*.files")] file: PathBuf,
+) -> TestResult {
+    let input = read_to_string(&file)?;
+    let result = DbFiles::from_str_with_schema(
+        &input,
+        Some(alpm_db::files::DbFilesSchema::V1(SchemaVersion::new(
+            Version::new(1, 0, 0),
+        ))),
+    );
+
+    match result {
+        Ok(files) => panic!("Should have failed but created DbFiles:\n{files}"),
+        Err(error) => {
+            let name = file
+                .file_stem()
+                .and_then(|s| s.to_str())
+                .unwrap_or("UNKNOWN FILE");
+
+            insta::with_settings!({
+                description => &input,
+                snapshot_path => "parse_errors/files/snapshots",
+                prepend_module_to_snapshot => false,
+            }, {
+                assert_snapshot!(name, error.to_string());
+            })
+        }
+    }
 
     Ok(())
 }

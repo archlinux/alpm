@@ -1,0 +1,69 @@
+---
+source: alpm-db/tests/desc_cli.rs
+description: "Args: alpm-db-desc create v1 desc | Env: ALPM_DB_DESC_NAME=foo ALPM_DB_DESC_BASE=foo ALPM_DB_DESC_BUILDDATE=1733737242 ALPM_DB_DESC_URL=https://example.org/ ALPM_DB_DESC_REASON=1 ALPM_DB_DESC_DEPENDS=glibc glibc2 ALPM_DB_DESC_ARCH=x86_64 ALPM_DB_DESC_CONFLICTS=foo-old foo-old2 ALPM_DB_DESC_OPTDEPENDS=optpkg: description of optpkg,optpkg2 ALPM_DB_DESC_SIZE=123 ALPM_DB_DESC_VALIDATION=sha256 pgp ALPM_DB_DESC_PACKAGER=Foobar McFooface <foobar@mcfooface.org> ALPM_DB_DESC_LICENSE=MIT Apache-2.0 ALPM_DB_DESC_VERSION=1.0.0-1 ALPM_DB_DESC_DESC=An example package ALPM_DB_DESC_GROUPS=utils cli ALPM_DB_DESC_INSTALLDATE=1733737243 ALPM_DB_DESC_REPLACES=pkg-old pkg-old2 ALPM_DB_DESC_PROVIDES=foo-virtual foo-virtual2"
+expression: reparsed
+---
+%NAME%
+foo
+
+%VERSION%
+1.0.0-1
+
+%BASE%
+foo
+
+%DESC%
+An example package
+
+%URL%
+https://example.org/
+
+%ARCH%
+x86_64
+
+%BUILDDATE%
+1733737242
+
+%INSTALLDATE%
+1733737243
+
+%PACKAGER%
+Foobar McFooface <foobar@mcfooface.org>
+
+%SIZE%
+123
+
+%GROUPS%
+utils
+cli
+
+%REASON%
+1
+
+%LICENSE%
+MIT
+Apache-2.0
+
+%VALIDATION%
+sha256
+pgp
+
+%REPLACES%
+pkg-old
+pkg-old2
+
+%DEPENDS%
+glibc
+glibc2
+
+%OPTDEPENDS%
+optpkg: description of optpkg
+optpkg2
+
+%CONFLICTS%
+foo-old
+foo-old2
+
+%PROVIDES%
+foo-virtual
+foo-virtual2
