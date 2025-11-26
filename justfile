@@ -424,14 +424,24 @@ generate kind pkg:
 
     case "$kind" in
         manpages|shell_completions)
-            module=""
-            if [[ "$pkg" == "alpm-db" ]]; then
-                module="::desc"
-            fi
+            modules=()
+            case "$pkg" in
+                alpm-db)
+                    modules+=("::desc" "::files")
+                    ;;
+                alpm-repo-db)
+                    modules+=("::files")
+                    ;;
+                *)
+                    modules+=("")
+                    ;;
+            esac
 
-            sed "s/PKG/$pkg/;s#PATH#$PWD/$pkg#g;s/KIND/$kind/g;s/MODULE/$module/g" > "$script" < .rust-script/allgen.ers
-            chmod +x "$script"
-            "$script" "$output_dir/$kind"
+            for module in "${modules[@]}"; do
+                sed "s/PKG/$pkg/;s#PATH#$PWD/$pkg#g;s/KIND/$kind/g;s/MODULE/$module/g" > "$script" < .rust-script/allgen.ers
+                chmod +x "$script"
+                "$script" "$output_dir/$kind"
+            done
             ;;
         specifications)
             output_kind=manpages
@@ -457,6 +467,7 @@ generate-completions:
     just generate shell_completions alpm-lint
     just generate shell_completions alpm-mtree
     just generate shell_completions alpm-pkginfo
+    just generate shell_completions alpm-repo-db
     just generate shell_completions alpm-srcinfo
 
 # Generates all manpages and specifications

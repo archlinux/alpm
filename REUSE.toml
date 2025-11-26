@@ -38,6 +38,7 @@ path = [
     ".shellcheckrc",
     "alpm-files/tests/fixtures/parser_errors/*.files",
     "alpm-db/tests/parse_errors/files/*.files",
+    "alpm-repo-db/tests/parse_errors/files/*.files",
     "alpm-soname/tests/test_files/*",
     "alpm-srcinfo/tests/files/*.srcinfo",
 ]

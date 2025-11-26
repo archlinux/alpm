@@ -1,1 +1,6 @@
-//! A library for the creation and access of alpm-repo-db files.
+#![doc = include_str!("../README.md")]
+
+pub mod files;
+
+// Initialize i18n support.
+fluent_i18n::i18n!("locales");
