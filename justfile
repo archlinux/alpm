@@ -463,7 +463,6 @@ generate kind pkg:
 generate-completions:
     just generate shell_completions alpm-buildinfo
     just generate shell_completions alpm-db
-    just generate shell_completions alpm-files
     just generate shell_completions alpm-lint
     just generate shell_completions alpm-mtree
     just generate shell_completions alpm-pkginfo
@@ -475,7 +474,6 @@ generate-completions:
 generate-manpages-and-specs:
     just generate manpages alpm-buildinfo
     just generate manpages alpm-db
-    just generate manpages alpm-files
     just generate manpages alpm-lint
     just generate manpages alpm-mtree
     just generate manpages alpm-pkginfo

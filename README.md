@@ -71,7 +71,6 @@ Currently the following components are available:
 - [alpm-compress]: a library for compression operations in ALPM
 - [alpm-db]: a library and commandline interface to work with ALPM database [desc] and [files][spec:alpm-db-files] entries
 - [alpm-db-desc]: a library and commandline interface to work with ALPM database [desc] files
-- [alpm-files]: library and command line tool for the handling of [alpm-repo-files][spec:alpm-repo-files] and [alpm-db-files][spec:alpm-db-files] files
 - [alpm-lint]: a linting tool for everything around Arch Linux packaging.
 - [alpm-lint-website]: a website for easily accessible documentation of lints.
 - [alpm-mtree]: a library and commandline interface to work with [ALPM-MTREE] files
@@ -118,7 +117,6 @@ Contributions to this project, unless noted otherwise, are automatically license
 [alpm-compress]: alpm-compress/
 [alpm-db]: alpm-db/
 [alpm-db-desc]: alpm-db/
-[alpm-files]: alpm-files/
 [alpm-lint]: alpm-lint/
 [alpm-lint-website]: /lints
 [alpm-mtree]: alpm-mtree/
