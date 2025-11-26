@@ -13,7 +13,7 @@ version = "0.1.0"
 
 [[bin]]
 name = "alpm-files"
-path = "src/main.rs"
+path = "src/bin/alpm-files.rs"
 required-features = ["cli"]
 
 [dependencies]
