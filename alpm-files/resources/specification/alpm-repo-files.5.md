@@ -1,1 +1,0 @@
-alpm-files.5.md
