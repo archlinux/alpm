@@ -46,15 +46,13 @@ Metadata connections between **alpm-source-repo**, **alpm-package** and **alpm-r
 Metadata connections between **alpm-package** and **alpm-db** (**libalpm**):
 
 ```text
-      ,------- alpm-package ------.
-     /        /     |      \       \
-    /   BUILDINFO   |    PKGINFO   |
-    |               |       |      |
-    |           ALPM-MTREE  |      |
-    |                       |     /
-    |        alpm-db        |    /
-    |       /       \       |   /
-  alpm-db-files     alpm-db-desc
+         alpm-package ----------.-----------------.
+        /     |      \           \                 \
+  BUILDINFO   |    PKGINFO        \       alpm-db   \
+              |       |   \        \     /       \   \
+          ALPM-MTREE  `    `--- alpm-db-files     \   \
+                       \                           \   \
+                        `------------------------ alpm-db-desc
 ```
 
 ## Building from source
@@ -152,10 +150,14 @@ pkgdesc="An example package"
 arch=(any)
 url="https://example.org"
 license=(CC-BY-SA-4.0)
+backup=(etc/example.conf)
 
 package() {
+   install -vdm 755 "$pkgdir/etc/"
+   printf "Very important config\n" > "$pkgdir/etc/$pkgname.conf"
    install -vdm 755 "$pkgdir/usr/share/$pkgname/"
-   printf "Hello World\!\n" > "$pkgdir/usr/share/$pkgname/example.txt"
+   printf "Hello World\!
+" > "$pkgdir/usr/share/$pkgname/example.txt"
 }
 ```
 
@@ -236,6 +238,7 @@ packager = John Doe <john@example.org>
 size = 14
 arch = any
 license = CC-BY-SA-4.0
+backup = etc/example.conf
 ```
 
 ## Adding a package file to a repository
@@ -292,6 +295,8 @@ The **alpm-repo-files** for the package file contains:
 
 ```text
 %FILES%
+etc/
+etc/example.conf
 usr/
 usr/share/
 usr/share/example/
@@ -347,14 +352,20 @@ pgp
 pkgtype=pkg
 ```
 
-Meanwhile, the contents of the **alpm-db-files** file equals that of the **alpm-repo-files** file in the **alpm-repo-db**:
+The **alpm-db-files** entry in the system database starts from the same list of packaged paths and adds backup tracking for files that may be modified locally.
+The optional `%BACKUP%` section records the MD5 checksum of each tracked file as installed on the system:
 
 ```text
 %FILES%
 usr/
+etc/
+etc/example.conf
 usr/share/
 usr/share/example/
 usr/share/example/example.txt
+
+%BACKUP%
+etc/example.conf d41d8cd98f00b204e9800998ecf8427e
 ```
 
 The **ALPM-MTREE** file also equals that contained in the **alpm-package** file:
@@ -372,7 +383,7 @@ The **ALPM-MTREE** file also equals that contained in the **alpm-package** file:
 
 # SEE ALSO
 
-**bash**(1), **git**(1), **pkgctl**(1), **systemd-nspawn**(1), **tar**(1), **libalpm**(3), **ALPM-MTREE**(5), **BUILDINFO**(5), **PKGBUILD**(5), **PKGINFO**(5), **SRCINFO**(5), **alpm-db**(7), **alpm-db-desc**(7), **alpm-db-files**(7), **alpm-install-scriptlet**(5), **alpm-package**(7), **alpm-package-relation**(7), **alpm-package-source-checksum**(7), **alpm-repo**(7), **alpm-repo-db**(7), **alpm-repo-desc**(7), **alpm-repo-files**(7), **alpm-source-repo**(7), **alpm-split-package**(7), **makepkg**(8), **pacman**(8), **repo-add**(8)
+**bash**(1), **git**(1), **pkgctl**(1), **systemd-nspawn**(1), **tar**(1), **libalpm**(3), **ALPM-MTREE**(5), **BUILDINFO**(5), **PKGBUILD**(5), **PKGINFO**(5), **SRCINFO**(5), **alpm-db**(7), **alpm-db-desc**(7), **alpm-db-files**(5), **alpm-install-scriptlet**(5), **alpm-package**(7), **alpm-package-relation**(7), **alpm-package-source-checksum**(7), **alpm-repo**(7), **alpm-repo-db**(7), **alpm-repo-desc**(7), **alpm-repo-files**(5), **alpm-source-repo**(7), **alpm-split-package**(7), **makepkg**(8), **pacman**(8), **repo-add**(8)
 
 # NOTES
 

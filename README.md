@@ -70,7 +70,7 @@ Currently the following components are available:
 - [alpm-common]: a library for common traits and functionality
 - [alpm-compress]: a library for compression operations in ALPM
 - [alpm-db-desc]: a library and commandline interface to work with ALPM database [desc] files
-- [alpm-files]: library and command line tool for the handling of [alpm-files][spec:alpm-files] files
+- [alpm-files]: library and command line tool for the handling of [alpm-repo-files][spec:alpm-repo-files] and [alpm-db-files][spec:alpm-db-files] files
 - [alpm-lint]: a linting tool for everything around Arch Linux packaging.
 - [alpm-lint-website]: a website for easily accessible documentation of lints.
 - [alpm-mtree]: a library and commandline interface to work with [ALPM-MTREE] files
@@ -133,5 +133,6 @@ Contributions to this project, unless noted otherwise, are automatically license
 [official announcement]: https://lists.archlinux.org/archives/list/arch-dev-public@lists.archlinux.org/thread/MZLH43574GGP7QQ7RKAAIRFT5LJPCEB4/
 [pacman]: https://gitlab.archlinux.org/pacman/pacman
 [spec:alpm-package]: https://alpm.archlinux.page/specifications/alpm-package.7.html
-[spec:alpm-files]: https://alpm.archlinux.page/specifications/alpm-files.5.html
+[spec:alpm-db-files]: https://alpm.archlinux.page/specifications/alpm-db-files.5.html
+[spec:alpm-repo-files]: https://alpm.archlinux.page/specifications/alpm-repo-files.5.html
 [desc]: https://alpm.archlinux.page/specifications/alpm-db-desc.5.html

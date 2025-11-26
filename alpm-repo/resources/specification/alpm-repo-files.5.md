@@ -1,27 +1,27 @@
 # NAME
 
-alpm-files - File format for listing files and directories contained in an **alpm-package**.
+alpm-repo-files - File format for listing files and directories contained in an **alpm-package**.
 
 # DESCRIPTION
 
 The **alpm-files** format is a textual format that lists the directories and files contained in a single **alpm-package**.
 
-Such files are named **files** and are located in **alpm-repo-db** files as well as **libalpm** databases structures.
+Such files are named **files** and are located in **alpm-repo-db** files.
 They are created by package repository management software (such as **dbscripts** [1]).
 Package management software (e.g. **pacman**) uses them to list and query the paths of directories and files contained in a package file.
 
+It is important to not confuse **alpm-repo-files** with **alpm-db-files**, which uses the same file name (**files**) but is used in the context of an **alpm-db**.
+
 ## General Format
 
-An **alpm-files** file is a UTF-8 encoded, newline-delimited file.
-It exists in two different styles (one for **alpm-db** and one for **alpm-repo-db**), which vary slightly.
+An **alpm-repo-files** file is a UTF-8 encoded, newline-delimited file.
 
-The file usually contains a single section header and zero or more section entries.
+The file contains a single section header and zero or more section entries.
 Empty lines are ignored.
 Comments are not supported.
 
 The first line must be the string literal `%FILES%`, which represents the section header.
-Note that, when used in the context of an **alpm-db**, the file may be entirely empty, if it tracks no paths.
-This may be the case e.g. when targeting an **alpm-meta-package**.
+Packages with no files (e.g. **alpm-meta-packages**) may contain only this section header.
 
 All subsequent lines are interpreted as section entries, one per line, sorted in lexical order.
 Each section entry represents either a single file or directory path.
@@ -30,11 +30,9 @@ The following formatting rules apply to the paths:
 - Directories are always listed with a trailing slash (`/`).
 - All paths are relative to the system root (i.e., `/usr/bin/foo` is represented as `usr/bin/foo`).
 
-Note that, when used in the context of an **alpm-db**, the file usually contains a trailing empty line, if it tracks at least one path.
-
 # EXAMPLES
 
-The following is an example of a **alpm-files** file for a package named `foo`:
+The following is an example of an **alpm-repo-files** file for a package named `foo`:
 
 ```text
 %FILES%
@@ -59,11 +57,11 @@ usr/share/zsh/site-functions/
 usr/share/zsh/site-functions/_foo
 ```
 
-The installed package will contain a binary (`usr/bin/foo`), a README file (`usr/share/doc/foo/README.md`), and a license file (`usr/share/licenses/foo/LICENSE-MIT`), among other files such as completion scripts for various shells.
+The packaged files include a binary (`usr/bin/foo`), a README file (`usr/share/doc/foo/README.md`), and a license file (`usr/share/licenses/foo/LICENSE-MIT`), among other files such as completion scripts for various shells.
 
 # SEE ALSO
 
-**libalpm**(3), **alpm-db**(7), **alpm-meta-package**(7), **alpm-package**(7), **alpm-repo-db**(7), **pacman**(8)
+**alpm-db-files**(5), **alpm**(7), **alpm-db**(7), **alpm-package**(7), **alpm-package-name**(7), **alpm-package-version**(7), **alpm-repo**(7), **alpm-repo-db**(7), **pacman**(8)
 
 # NOTES
 

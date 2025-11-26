@@ -56,7 +56,7 @@ Dedicated tools such as **pacman-db-upgrade** are used to upgrade the contents o
 
 The data in an **alpm-db** is derived from **alpm-package** files and created using package management software such as **pacman**.
 For the **alpm-db-desc** entries, the package's **PKGINFO** data, as well as the properties of the package file are used.
-The **alpm-repo-files** file is directly derived from the package file's list of data files.
+The **alpm-db-files** file is directly derived from the package file's list of data files.
 The **ALPM-MTREE** file is a copy of the package's **ALPM-MTREE** file.
 
 ```text
