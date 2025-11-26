@@ -1,6 +1,6 @@
 # alpm-repo-db
 
-A library for creation and access of [alpm-repo-db] files (**A**rch **L**inux **P**ackage **M**anagement (ALPM) repository sync databases).
+A library and command line tool for creation and access of [alpm-repo-db] files (**A**rch **L**inux **P**ackage **M**anagement (ALPM) repository sync databases) and for handling [alpm-repo-files] entries.
 
 ## Documentation
 
@@ -10,17 +10,18 @@ A library for creation and access of [alpm-repo-db] files (**A**rch **L**inux **
 ## Overview
 
 The `alpm-repo-db` crate contains a `desc` module, which provides functionality for writing and parsing of [alpm-repo-desc] files.
-
 These `desc` files describe the metadata of single packages in an [alpm-repo-db] (aka. ALPM repository sync databases).
 They contain data such as the package name, version, architecture, file name, checksums, and dependencies.
 
-This crate also provides the command line interface (CLI) `alpm-repo-desc`, which can be used to create, parse, format and validate [alpm-repo-desc] files.
+It also contains a `files` module, which provides functionality for writing and parsing of [alpm-repo-files] files.
+
+This crate provides the command line interfaces (CLI) `alpm-repo-desc` and `alpm-repo-files`, which can be used to create, parse, format and validate their respective file formats.
 
 ## Examples
 
 ### Library
 
-Parsing [alpm-repo-descv1] files:
+#### Parsing [alpm-repo-descv1] files
 
 ```rust
 use std::str::FromStr;
@@ -81,7 +82,7 @@ assert_eq!(desc.arch.to_string(), "any");
 # }
 ```
 
-Parsing [alpm-repo-descv2] files:
+#### Parsing [alpm-repo-descv2] files
 
 ```rust
 use std::str::FromStr;
@@ -136,7 +137,39 @@ assert_eq!(desc.arch.to_string(), "any");
 # }
 ```
 
-### Commandline
+#### Working with [alpm-repo-files]
+
+```rust
+use std::{path::PathBuf, str::FromStr};
+
+use alpm_repo_db::files::{RepoFiles, RepoFilesV1};
+
+# fn main() -> testresult::TestResult {
+let data = r#"%FILES%
+usr/
+usr/bin/
+usr/bin/foo
+"#;
+let paths = vec![
+  PathBuf::from("usr/"),
+  PathBuf::from("usr/bin/"),
+  PathBuf::from("usr/bin/foo"),
+];
+
+// Create a RepoFiles from a string.
+let files_from_str = RepoFiles::V1(RepoFilesV1::from_str(data)?);
+
+// Create a RepoFiles from list of paths.
+let files_from_paths = RepoFiles::V1(RepoFilesV1::try_from(paths)?);
+
+assert_eq!(files_from_str.as_ref(), files_from_paths.as_ref());
+# Ok(())
+# }
+```
+
+### Command line
+
+#### alpm-repo-desc
 
 <!--
 ```bash
@@ -172,132 +205,28 @@ alpm-repo-desc create v2 \
     "$REPODESC"
 ```
 
-The output file (`$REPODESC`) contains the desc data in [alpm-repo-descv2] format.
-
-<!--
-```bash
-cat > "$REPODESC.expected" <<'EOF'
-%FILENAME%
-example-1.0.0-1-any.pkg.tar.zst
-
-%NAME%
-example
-
-%BASE%
-example
-
-%VERSION%
-1.0.0-1
-
-%DESC%
-An example meta package
-
-%CSIZE%
-4634
-
-%ISIZE%
-0
-
-%SHA256SUM%
-b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c
-
-%URL%
-https://example.org/
-
-%LICENSE%
-GPL-3.0-or-later
-
-%ARCH%
-any
-
-%BUILDDATE%
-1729181726
-
-%PACKAGER%
-Foobar McFooface <foobar@mcfooface.org>
-
-%DEPENDS%
-libfoo
-
-%OPTDEPENDS%
-libbar: Optional dependency with description
-
-EOF
-
-diff --ignore-trailing-space "$REPODESC" "$REPODESC.expected"
-```
--->
-
 Format repo desc data as JSON:
 
 ```bash
 alpm-repo-desc format "$REPODESC" --output-format json --pretty > "$REPODESC_JSON"
 ```
 
-The output file (`$REPODESC_JSON`) contains the structured JSON representation of the parsed desc data.
+#### alpm-repo-files
 
-<!--
 ```bash
-cat > "$REPODESC_JSON.expected" <<'EOF'
-{
-  "file_name": "example-1.0.0-1-any.pkg.tar.zst",
-  "name": "example",
-  "base": "example",
-  "version": {
-    "pkgver": "1.0.0",
-    "epoch": null,
-    "pkgrel": {
-      "major": 1,
-      "minor": null
-    }
-  },
-  "description": "An example meta package",
-  "groups": [],
-  "compressed_size": 4634,
-  "installed_size": 0,
-  "sha256_checksum": "b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c",
-  "pgp_signature": null,
-  "url": "https://example.org/",
-  "license": [
-    "GPL-3.0-or-later"
-  ],
-  "arch": "any",
-  "build_date": 1729181726,
-  "packager": {
-    "name": "Foobar McFooface",
-    "email": "foobar@mcfooface.org"
-  },
-  "replaces": [],
-  "conflicts": [],
-  "provides": [],
-  "dependencies": [
-    {
-      "name": "libfoo",
-      "version_requirement": null
-    }
-  ],
-  "optional_dependencies": [
-    {
-      "package_relation": {
-        "name": "libbar",
-        "version_requirement": null
-      },
-      "description": "Optional dependency with description"
-    }
-  ],
-  "make_dependencies": [],
-  "check_dependencies": []
-}
-EOF
+# Create an alpm-repo-files file from an input directory.
+alpm-repo-files create path/to/input/dir
 
-diff --ignore-trailing-space "$REPODESC_JSON" "$REPODESC_JSON.expected"
-rm -r -- "$test_tmpdir"
+# Format an alpm-repo-files file as JSON.
+alpm-repo-files format --input-file path/to/repo.files --pretty
+
+# Validate an alpm-repo-files file.
+alpm-repo-files validate --input-file path/to/repo.files
 ```
--->
 
 ## Features
 
-- `cli`: enables the commandline interface for the `alpm-repo-desc` binary.
+- `cli`: enables the commandline interfaces for the `alpm-repo-desc` and `alpm-repo-files` binaries.
 - `_winnow-debug`: enables the `winnow/debug` feature for step-by-step parser debugging.
 
 ## Contributing
@@ -309,9 +238,10 @@ Please refer to the [contribution guidelines] to learn how to contribute to this
 This project can be used under the terms of the [Apache-2.0] or [MIT].
 Contributions to this project, unless noted otherwise, are automatically licensed under the terms of both of those licenses.
 
-[contribution guidelines]: ../CONTRIBUTING.md
 [Apache-2.0]: ../LICENSES/Apache-2.0.txt
 [MIT]: ../LICENSES/MIT.txt
 [alpm-repo-db]: https://alpm.archlinux.page/specifications/alpm-repo-db.7.html
 [alpm-repo-descv1]: https://alpm.archlinux.page/specifications/alpm-repo-descv1.5.html
 [alpm-repo-descv2]: https://alpm.archlinux.page/specifications/alpm-repo-descv2.5.html
+[alpm-repo-files]: https://alpm.archlinux.page/specifications/alpm-repo-files.5.html
+[contribution guidelines]: ../CONTRIBUTING.md

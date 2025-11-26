@@ -1,0 +1,12 @@
+---
+source: alpm-repo/tests/parse_errors.rs
+description: "\n%FILES%\nusr/\nusr/bin/\nusr/bin/foo\n"
+expression: error.to_string()
+---
+Parser failed with the following error:
+parse error at line 1, column 1
+  |
+1 | 
+  | ^
+invalid alpm-repo-files section header
+expected %FILES%

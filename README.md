@@ -45,7 +45,7 @@ mindmap
       📄 desc
       📄 files
       📚️ alpm-repo*
-      📚️ alpm-repo-db*
+      📚️ alpm-repo-db
       📚️ alpm-repo-desc*
       📚️ alpm-repo-files
       📂 alpm-state-repo
@@ -79,7 +79,7 @@ Currently the following software components are available:
 - [alpm-package]: a library for the creation of [alpm-package][spec:alpm-package] files
 - [alpm-parsers]: a library for providing various custom parsers/deserializers for file types used in ALPM
 - [alpm-pkginfo]: a library and commandline interface to work with [PKGINFO] files
-- [alpm-repo-db]: a library and commandline tool for creation and access of [alpm-repo-db][spec:alpm-repo-db] files
+- [alpm-repo-db]: a library and command line tool for creation and access of [alpm-repo-db][spec:alpm-repo-db] files and handling of [alpm-repo-files][spec:alpm-repo-files] data
 - [alpm-srcinfo]: a library and commandline interface to work with [SRCINFO] files
 - [alpm-types]: a central library for types used by other ALPM libraries and tools
 - [python-alpm]: Python bindings for ALPM crates and the python-alpm Python library

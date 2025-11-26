@@ -16,6 +16,11 @@ name = "alpm-repo-desc"
 path = "src/bin/alpm-repo-desc.rs"
 required-features = ["cli"]
 
+[[bin]]
+name = "alpm-repo-files"
+path = "src/bin/alpm-repo-files.rs"
+required-features = ["cli"]
+
 [dependencies]
 alpm-common.workspace = true
 alpm-parsers.workspace = true
