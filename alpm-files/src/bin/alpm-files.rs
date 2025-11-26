@@ -10,7 +10,7 @@ use std::{
     str::FromStr,
 };
 
-use alpm_files::{
+use alpm_files::files::{
     Files,
     FilesStyle,
     FilesStyleToString,
@@ -25,9 +25,9 @@ fluent_i18n::i18n!("locales");
 
 #[derive(Debug, thiserror::Error)]
 enum Error {
-    /// An [`alpm_files::Error`] occurred.
+    /// An [`alpm_files::files::Error`] occurred.
     #[error(transparent)]
-    AlpmFiles(#[from] alpm_files::Error),
+    AlpmFiles(#[from] alpm_files::files::Error),
 
     /// A JSON error occurred.
     #[error("{msg}", msg = t!("cli-error-json", { "context" => context, "source" => source.to_string() }))]
@@ -70,13 +70,13 @@ fn create_from_dir(
 
     if let Some(output) = output {
         let mut output_file =
-            File::create(&output).map_err(|source| alpm_files::Error::IoPath {
+            File::create(&output).map_err(|source| alpm_files::files::Error::IoPath {
                 path: output.to_path_buf(),
                 context: t!("cli-error-io-path-opening-output-file-for-writing"),
                 source,
             })?;
         write!(output_file, "{}", files.to_string(style)).map_err(|source| {
-            alpm_files::Error::Io {
+            alpm_files::files::Error::Io {
                 context: t!("cli-error-io-writing-to-output-file"),
                 source,
             }
@@ -84,7 +84,7 @@ fn create_from_dir(
     } else {
         stdout()
             .write(&files.to_string(style).into_bytes())
-            .map_err(|source| alpm_files::Error::Io {
+            .map_err(|source| alpm_files::files::Error::Io {
                 context: t!("cli-error-io-writing-to-stdout"),
                 source,
             })?;
@@ -121,13 +121,13 @@ fn format_output(
     style: FilesStyle,
 ) -> Result<(), Error> {
     let files = if let Some(file) = input_file {
-        Files::from_str(
-            &read_to_string(&file).map_err(|source| alpm_files::Error::IoPath {
+        Files::from_str(&read_to_string(&file).map_err(|source| {
+            alpm_files::files::Error::IoPath {
                 path: file.to_path_buf(),
                 context: t!("cli-reading-file-to-string"),
                 source,
-            })?,
-        )?
+            }
+        })?)?
     } else {
         if stdin().is_terminal() {
             return Err(Error::StdinIsTerminal);
@@ -136,7 +136,7 @@ fn format_output(
         let mut buf = String::new();
         stdin()
             .read_to_string(&mut buf)
-            .map_err(|source| alpm_files::Error::Io {
+            .map_err(|source| alpm_files::files::Error::Io {
                 context: t!("cli-reading-stdin-to-string"),
                 source,
             })?;
@@ -166,17 +166,17 @@ fn format_output(
 
     if let Some(output) = output {
         let mut output_file =
-            File::create(&output).map_err(|source| alpm_files::Error::IoPath {
+            File::create(&output).map_err(|source| alpm_files::files::Error::IoPath {
                 path: output.to_path_buf(),
                 context: t!("cli-opening-output-file-for-writing"),
                 source,
             })?;
-        write!(output_file, "{data}").map_err(|source| alpm_files::Error::Io {
+        write!(output_file, "{data}").map_err(|source| alpm_files::files::Error::Io {
             context: t!("cli-writing-to-output-file"),
             source,
         })?;
     } else {
-        write!(stdout(), "{data}").map_err(|source| alpm_files::Error::Io {
+        write!(stdout(), "{data}").map_err(|source| alpm_files::files::Error::Io {
             context: t!("cli-writing-to-stdout"),
             source,
         })?;
@@ -200,13 +200,13 @@ fn format_output(
 /// [alpm-files]: https://alpm.archlinux.page/specifications/alpm-files.5.html
 fn validate_input(input_file: Option<PathBuf>) -> Result<(), Error> {
     if let Some(file) = input_file {
-        Files::from_str(
-            &read_to_string(&file).map_err(|source| alpm_files::Error::IoPath {
+        Files::from_str(&read_to_string(&file).map_err(|source| {
+            alpm_files::files::Error::IoPath {
                 path: file.to_path_buf(),
                 context: t!("cli-error-io-path-reading-file-to-string"),
                 source,
-            })?,
-        )?;
+            }
+        })?)?;
     } else {
         if stdin().is_terminal() {
             return Err(Error::StdinIsTerminal);
@@ -215,7 +215,7 @@ fn validate_input(input_file: Option<PathBuf>) -> Result<(), Error> {
         let mut buf = String::new();
         stdin()
             .read_to_string(&mut buf)
-            .map_err(|source| alpm_files::Error::Io {
+            .map_err(|source| alpm_files::files::Error::Io {
                 context: t!("cli-error-io-reading-stdin-to-string"),
                 source,
             })?;

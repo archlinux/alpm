@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use clap::{Parser, ValueEnum};
 use fluent_i18n::t;
 
-use crate::FilesStyle;
+use crate::files::FilesStyle;
 
 /// Output format for `alpm-files` commands with data output.
 #[derive(Clone, Debug, strum::Display, ValueEnum)]

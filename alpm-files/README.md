@@ -14,7 +14,7 @@ A specification, library and command line tool for the handling of **A**rch **L*
 ```rust
 use std::{path::PathBuf, str::FromStr};
 
-use alpm_files::{Files, FilesV1};
+use alpm_files::files::{Files, FilesV1};
 
 # fn main() -> testresult::TestResult {
 let data = r#"%FILES%

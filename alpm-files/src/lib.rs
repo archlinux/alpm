@@ -1,15 +1,6 @@
 #![doc = include_str!("../README.md")]
 
-#[cfg(feature = "cli")]
-#[doc(hidden)]
-pub mod cli;
-mod error;
-mod files;
-mod schema;
-
-pub use error::Error;
-pub use files::{Files, FilesStyle, FilesStyleToString, v1::FilesV1};
-pub use schema::FilesSchema;
+pub mod files;
 
 // Initialize i18n support.
 fluent_i18n::i18n!("locales");
