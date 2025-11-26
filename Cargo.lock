@@ -140,26 +140,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "alpm-files"
-version = "0.1.0"
-dependencies = [
- "alpm-common",
- "alpm-types",
- "assert_cmd",
- "clap",
- "fluent-i18n",
- "insta",
- "rstest",
- "serde",
- "serde_json",
- "strum",
- "tempfile",
- "testresult",
- "thiserror",
- "winnow",
-]
-
-[[package]]
 name = "alpm-lint"
 version = "0.2.0"
 dependencies = [

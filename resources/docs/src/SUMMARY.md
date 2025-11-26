@@ -12,8 +12,6 @@
     - [CHANGELOG](./alpm-compress/CHANGELOG.md)
 - [alpm-db](./alpm-db/README.md)
     - [CHANGELOG](./alpm-db/CHANGELOG.md)
-- [alpm-files](./alpm-files/README.md)
-    - [CHANGELOG](./alpm-files/CHANGELOG.md)
 - [alpm-lint](./alpm-lint/README.md)
     - [ARCHITECTURE](./alpm-lint/ARCHITECTURE.md)
     - [CHANGELOG](./alpm-lint/CHANGELOG.md)
