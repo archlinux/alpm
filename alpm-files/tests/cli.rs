@@ -6,7 +6,7 @@ use std::{
     io::Write,
 };
 
-use alpm_files::FilesStyle;
+use alpm_files::files::FilesStyle;
 use assert_cmd::cargo_bin_cmd;
 use rstest::{fixture, rstest};
 use tempfile::{NamedTempFile, TempDir, tempdir};

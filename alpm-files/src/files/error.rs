@@ -67,9 +67,7 @@ pub enum Error {
     SchemaVersionIsUnknown,
 }
 
-impl<'a> From<winnow::error::ParseError<&'a str, winnow::error::ContextError>>
-    for crate::error::Error
-{
+impl<'a> From<winnow::error::ParseError<&'a str, winnow::error::ContextError>> for Error {
     /// Converts a [`winnow::error::ParseError`] into an [`Error::ParseError`].
     fn from(value: winnow::error::ParseError<&'a str, winnow::error::ContextError>) -> Self {
         Self::ParseError(value.to_string())

@@ -2,6 +2,12 @@
 //!
 //! [alpm-files]: https://alpm.archlinux.page/specifications/alpm-files.5.html
 
+#[cfg(feature = "cli")]
+#[doc(hidden)]
+pub mod cli;
+
+mod error;
+mod schema;
 pub mod v1;
 
 use std::{
@@ -12,9 +18,10 @@ use std::{
 };
 
 use alpm_common::{FileFormatSchema, MetadataFile};
+pub use error::Error;
 use fluent_i18n::t;
-
-use crate::{Error, FilesSchema, FilesV1};
+pub use schema::FilesSchema;
+pub use v1::FilesV1;
 
 /// The different styles of the [alpm-files] format.
 ///
@@ -109,7 +116,7 @@ impl MetadataFile<FilesSchema> for Files {
     /// use std::io::Write;
     ///
     /// use alpm_common::MetadataFile;
-    /// use alpm_files::{Files, FilesSchema};
+    /// use alpm_files::files::{Files, FilesSchema};
     /// use alpm_types::{SchemaVersion, semver_version::Version};
     /// use tempfile::NamedTempFile;
     ///
@@ -167,7 +174,7 @@ impl MetadataFile<FilesSchema> for Files {
     /// use std::io::{Seek, SeekFrom, Write};
     ///
     /// use alpm_common::MetadataFile;
-    /// use alpm_files::{Files, FilesSchema};
+    /// use alpm_files::files::{Files, FilesSchema};
     /// use alpm_types::{SchemaVersion, semver_version::Version};
     /// use tempfile::tempfile;
     ///
@@ -219,10 +226,10 @@ impl MetadataFile<FilesSchema> for Files {
     ///
     /// ```
     /// use alpm_common::MetadataFile;
-    /// use alpm_files::{Files, FilesSchema};
+    /// use alpm_files::files::{Files, FilesSchema};
     /// use alpm_types::{SchemaVersion, semver_version::Version};
     ///
-    /// # fn main() -> Result<(), alpm_files::Error> {
+    /// # fn main() -> Result<(), alpm_files::files::Error> {
     /// let data = r#"%FILES%
     /// usr/
     /// usr/bin/

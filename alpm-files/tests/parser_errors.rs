@@ -3,7 +3,7 @@
 use std::{fs::read_to_string, path::PathBuf};
 
 use alpm_common::MetadataFile;
-use alpm_files::{Files, FilesStyle, FilesStyleToString};
+use alpm_files::files::{Files, FilesStyle, FilesStyleToString};
 use alpm_types::{SchemaVersion, semver_version::Version};
 use insta::{assert_snapshot, with_settings};
 use rstest::rstest;
@@ -20,7 +20,7 @@ fn ensure_parse_errors(
     let input = read_to_string(&file)?;
     let result = Files::from_str_with_schema(
         &input,
-        Some(alpm_files::FilesSchema::V1(SchemaVersion::new(
+        Some(alpm_files::files::FilesSchema::V1(SchemaVersion::new(
             Version::new(1, 0, 0),
         ))),
     );

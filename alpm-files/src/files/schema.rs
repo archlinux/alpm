@@ -8,7 +8,7 @@ use alpm_common::FileFormatSchema;
 use alpm_types::{SchemaVersion, semver_version::Version};
 use fluent_i18n::t;
 
-use crate::{Error, files::v1::FilesSection};
+use crate::files::{Error, v1::FilesSection};
 
 /// A schema for the [alpm-files] format.
 ///
@@ -50,7 +50,7 @@ impl FileFormatSchema for FilesSchema {
     /// use std::io::Write;
     ///
     /// use alpm_common::FileFormatSchema;
-    /// use alpm_files::FilesSchema;
+    /// use alpm_files::files::FilesSchema;
     /// use tempfile::NamedTempFile;
     ///
     /// # fn main() -> testresult::TestResult {
@@ -102,7 +102,7 @@ impl FileFormatSchema for FilesSchema {
     /// use std::io::{Seek, SeekFrom, Write};
     ///
     /// use alpm_common::FileFormatSchema;
-    /// use alpm_files::FilesSchema;
+    /// use alpm_files::files::FilesSchema;
     /// use tempfile::tempfile;
     ///
     /// # fn main() -> testresult::TestResult {
@@ -152,9 +152,9 @@ impl FileFormatSchema for FilesSchema {
     ///
     /// ```
     /// use alpm_common::FileFormatSchema;
-    /// use alpm_files::FilesSchema;
+    /// use alpm_files::files::FilesSchema;
     ///
-    /// # fn main() -> Result<(), alpm_files::Error> {
+    /// # fn main() -> Result<(), alpm_files::files::Error> {
     /// let data = r#"%FILES%
     /// usr/
     /// usr/bin/
