@@ -1,5 +1,5 @@
 ---
-source: alpm-db/tests/integration.rs
+source: alpm-db/tests/desc_cli.rs
 description: alpm-db-desc format --output-format json --pretty
 expression: json
 ---
