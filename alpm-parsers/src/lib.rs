@@ -2,3 +2,4 @@
 
 pub mod custom_ini;
 pub mod macros;
+pub mod traits;
