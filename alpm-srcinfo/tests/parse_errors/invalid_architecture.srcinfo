@@ -1,0 +1,7 @@
+pkgbase = any-arch
+	pkgver = 0.1.0
+	pkgrel = 1
+	arch = my_epic_arch_with_a <--space!
+
+pkgname = any-arch
+	arch = any

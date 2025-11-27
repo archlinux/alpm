@@ -1,0 +1,12 @@
+---
+source: alpm-srcinfo/tests/parse_errors.rs
+description: "pkgbase = any-arch\n\tpkgver = 0.1.0\n\tpkgrel = 1\n\tarch = my_epic_arch_with_a <--space!\n\npkgname = any-arch\n\tarch = any\n"
+expression: "format!(\"{error}\")"
+---
+File parsing error:
+parse error at line 4, column 28
+  |
+4 |  arch = my_epic_arch_with_a <--space!
+  |                            ^
+invalid character in system architecture
+expected a string containing only ASCII alphanumeric characters and underscores.

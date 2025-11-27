@@ -4,7 +4,10 @@
 //! The representation is not useful for end-users as it provides data that is not yet validated.
 use std::str::FromStr;
 
-use alpm_parsers::iter_str_context;
+use alpm_parsers::{
+    iter_str_context,
+    traits::{ParserUntil, ParserUntilInclusive},
+};
 use alpm_types::{
     Architecture,
     Backup,
@@ -46,8 +49,8 @@ use winnow::{
         terminated,
         trace,
     },
-    error::{ErrMode, ParserError, StrContext, StrContextValue},
-    token::{take_till, take_until},
+    error::{ContextError, ErrMode, ParserError, StrContext, StrContextValue},
+    token::take_until,
 };
 
 /// Recognizes the ` = ` delimiter between keywords.
@@ -131,33 +134,38 @@ pub struct ArchProperty<T> {
     pub value: T,
 }
 
-/// Recognizes and returns the architecture suffix of a keyword, if it exists.
+/// Parses a keyword until the beginning of ` = ` delimiter. Succeeds on `=`,
+/// so the delimiter parser can provide a more meaningful error message.
 ///
-/// Returns [`None`] if no architecture suffix is found.
+/// This is a workaround for `K:parser_until(alt((' ', '=')))` which is not possible,
+/// since [`alt`] returns a type that does not implement [`Clone`].
+pub fn until_param_delimiter<K>(input: &mut &str) -> ModalResult<K>
+where
+    K: ParserUntil,
+{
+    alt((K::parser_until(' '), K::parser_until('='))).parse_next(input)
+}
+
+/// Parses a keyword that may have an architecture suffix, until the beginning of ` = ` delimiter.
 ///
-/// ## Examples
-/// ```txt
-/// sha256sums_i386 = 0db1b39fd70097c6733cdcce56b1559ece5521ec1aad9ee1d520dda73eff03d0
-///           ^^^^^
-///         This is the suffix with `i386` being the architecture.
-/// ```
-pub fn architecture_suffix(input: &mut &str) -> ModalResult<Option<Architecture>> {
-    // First up, check if there's an underscore.
-    // If there's none, there's no suffix and we can return early.
-    let underscore = opt('_').parse_next(input)?;
-    if underscore.is_none() {
-        return Ok(None);
-    }
-
-    // There has been an underscore, so now we **expect** an architecture to be there and we have
-    // to fail hard if that doesn't work.
-    // We now grab all content until the expected space of the delimiter and map it to an
-    // alpm_types::Architecture.
-    let architecture =
-        cut_err(take_till(0.., |c| c == ' ' || c == '=').and_then(Architecture::parser))
-            .parse_next(input)?;
-
-    Ok(Some(architecture))
+/// Doesn't consume the delimiter.
+///
+/// Keyword can be any type that implements [`ParserUntil`] specified by the generic parameter `K`.
+pub fn keyword_with_architecture_suffix<K>(
+    input: &mut &str,
+) -> ModalResult<(K, Option<Architecture>)>
+where
+    K: ParserUntil,
+{
+    alt((
+        until_param_delimiter::<K>.map(|k| (k, None)),
+        (
+            K::parser_until_inclusive('_'),
+            until_param_delimiter::<Architecture>,
+        )
+            .map(|(k, a)| (k, Some(a))),
+    ))
+    .parse_next(input)
 }
 
 /// Track empty/comment lines
@@ -396,16 +404,22 @@ pub enum PackageBaseKeyword {
     ValidPGPKeys,
 }
 
-impl PackageBaseKeyword {
-    /// Recognizes a [`PackageBaseKeyword`] in an input string slice.
-    pub fn parser(input: &mut &str) -> ModalResult<PackageBaseKeyword> {
-        trace(
-            "package_base_keyword",
-            // Read until we hit something non alphabetical.
-            // This could be either a space or a `_` in case there's an architecture specifier.
-            alpha1.try_map(PackageBaseKeyword::from_str),
+impl ParserUntil for PackageBaseKeyword {
+    /// Returns a [`Parser`] that parses a [`PackageBaseKeyword`] until the given `delimiter` parser
+    /// matches.
+    ///
+    /// Consumes the delimiter.
+    fn parser_until<'a, O, P>(delimiter: P) -> impl Parser<&'a str, Self, ErrMode<ContextError>>
+    where
+        P: Parser<&'a str, O, ErrMode<ContextError>> + Clone,
+    {
+        terminated(
+            trace(
+                "package_base_keyword",
+                alpha1.try_map(PackageBaseKeyword::from_str),
+            ),
+            peek(delimiter),
         )
-        .parse_next(input)
     }
 }
 
@@ -520,17 +534,22 @@ impl PackageBaseProperty {
     ///
     /// This function backtracks in case no keyword in this group matches.
     fn exclusive_property_parser(input: &mut &str) -> ModalResult<PackageBaseProperty> {
-        // First off, get the type of the property.
-        let keyword =
-            trace("exclusive_pkgbase_property", PackageBaseKeyword::parser).parse_next(input)?;
+        let (keyword, architecture) = trace(
+            "exclusive_pkgbase_property",
+            keyword_with_architecture_suffix::<PackageBaseKeyword>,
+        )
+        .context(StrContext::Label("exclusive pkgbase property"))
+        .parse_next(input)?;
 
-        // Parse a possible architecture suffix for architecture specific fields.
-        let architecture = match keyword {
-            PackageBaseKeyword::MakeDepends | PackageBaseKeyword::CheckDepends => {
-                architecture_suffix.parse_next(input)?
+        if architecture.is_some() {
+            match keyword {
+                // Only MakeDepends and CheckDepends support architecture suffixes.
+                PackageBaseKeyword::MakeDepends | PackageBaseKeyword::CheckDepends => {}
+                _ => {
+                    return Err(ErrMode::Backtrack(ParserError::from_input(input)));
+                }
             }
-            _ => None,
-        };
+        }
 
         // Expect the ` = ` separator between the key-value pair
         let _ = delimiter.parse_next(input)?;
@@ -714,16 +733,21 @@ pub enum SharedMetaKeyword {
     Backup,
 }
 
-impl SharedMetaKeyword {
-    /// Recognizes a [`SharedMetaKeyword`] in a string slice.
-    pub fn parser(input: &mut &str) -> ModalResult<SharedMetaKeyword> {
-        // Read until we hit something non alphabetical.
-        // This could be either a space or a `_` in case there's an architecture specifier.
-        trace(
-            "shared_meta_keyword",
-            alpha1.try_map(SharedMetaKeyword::from_str),
+impl ParserUntil for SharedMetaKeyword {
+    /// Returns a parser that recognizes a [`SharedMetaKeyword`] until the given delimiter.
+    ///
+    /// Consumes the delimiter.
+    fn parser_until<'a, O, P>(delimiter: P) -> impl Parser<&'a str, Self, ErrMode<ContextError>>
+    where
+        P: Parser<&'a str, O, ErrMode<ContextError>> + Clone,
+    {
+        terminated(
+            trace(
+                "shared_meta_keyword",
+                alpha1.try_map(SharedMetaKeyword::from_str),
+            ),
+            peek(delimiter),
         )
-        .parse_next(input)
     }
 }
 
@@ -754,12 +778,17 @@ impl SharedMetaProperty {
     /// Recognizes keyword assignments that may be present in both `pkgbase` and `pkgname` sections
     /// of SRCINFO data.
     ///
-    /// This function relies on [`SharedMetaKeyword::parser`] to recognize the relevant keywords.
+    /// This function relies on [`SharedMetaKeyword::parser_until`] to recognize the relevant
+    /// keywords.
     ///
     /// This function backtracks in case no keyword in this group matches.
     fn parser(input: &mut &str) -> ModalResult<SharedMetaProperty> {
         // Now get the type of the property.
-        let keyword = SharedMetaKeyword::parser.parse_next(input)?;
+        let keyword = SharedMetaKeyword::parser_until(' ')
+            .context(StrContext::Expected(StrContextValue::Description(
+                "a shared meta keyword",
+            )))
+            .parse_next(input)?;
 
         // Expect the ` = ` separator between the key-value pair
         let _ = delimiter.parse_next(input)?;
@@ -782,9 +811,7 @@ impl SharedMetaProperty {
             )
             .parse_next(input)?,
             SharedMetaKeyword::Arch => cut_err(
-                till_line_end
-                    .and_then(Architecture::parser)
-                    .map(SharedMetaProperty::Architecture),
+                Architecture::parser_until_line_ending().map(SharedMetaProperty::Architecture),
             )
             .parse_next(input)?,
             SharedMetaKeyword::Changelog => cut_err(
@@ -839,16 +866,21 @@ pub enum RelationKeyword {
     Replaces,
 }
 
-impl RelationKeyword {
-    /// Recognizes a [`RelationKeyword`] in a string slice.
-    pub fn parser(input: &mut &str) -> ModalResult<RelationKeyword> {
-        // Read until we hit something non alphabetical.
-        // This could be either a space or a `_` in case there's an architecture specifier.
-        trace(
-            "relation_keyword",
-            alpha1.try_map(RelationKeyword::from_str),
+impl ParserUntil for RelationKeyword {
+    /// Returns a parser that recognizes a [`RelationKeyword`] until the given delimiter.
+    ///
+    /// Consumes the delimiter.
+    fn parser_until<'a, O, P>(delimiter: P) -> impl Parser<&'a str, Self, ErrMode<ContextError>>
+    where
+        P: Parser<&'a str, O, ErrMode<ContextError>> + Clone,
+    {
+        terminated(
+            trace(
+                "relation_keyword",
+                alpha1.try_map(RelationKeyword::from_str),
+            ),
+            peek(delimiter),
         )
-        .parse_next(input)
     }
 }
 
@@ -879,15 +911,12 @@ impl RelationProperty {
     /// Recognizes package relation keyword assignments that may be present in both `pkgbase` and
     /// `pkgname` sections in SRCINFO data.
     ///
-    /// This function relies on [`RelationKeyword::parser`] to recognize the relevant keywords.
-    /// This function backtracks in case no keyword in this group matches.
+    /// This function relies on [`RelationKeyword::parser_until`] to recognize the relevant
+    /// keywords. This function backtracks in case no keyword in this group matches.
     fn parser(input: &mut &str) -> ModalResult<RelationProperty> {
-        // First off, get the type of the property.
-        let keyword = RelationKeyword::parser.parse_next(input)?;
-
-        // All of these properties can be architecture specific and may have an architecture suffix.
-        // Get it if there's one.
-        let architecture = architecture_suffix.parse_next(input)?;
+        let (keyword, architecture) = keyword_with_architecture_suffix::<RelationKeyword>
+            .context(StrContext::Label("relation property"))
+            .parse_next(input)?;
 
         // Expect the ` = ` separator between the key-value pair
         let _ = delimiter.parse_next(input)?;
@@ -983,16 +1012,21 @@ pub enum SourceKeyword {
     Cksums,
 }
 
-impl SourceKeyword {
-    /// Parse a [`SourceKeyword`].
-    pub fn parser(input: &mut &str) -> ModalResult<SourceKeyword> {
-        // Read until we hit something non alphabetical.
-        // This could be either a space or a `_` in case there's an architecture specifier.
-        trace(
-            "source_keyword",
-            alphanumeric1.try_map(SourceKeyword::from_str),
+impl ParserUntil for SourceKeyword {
+    /// Returns a parser that recognizes a [`SourceKeyword`] until the given delimiter.
+    ///
+    /// Consumes the delimiter.
+    fn parser_until<'a, O, P>(delimiter: P) -> impl Parser<&'a str, Self, ErrMode<ContextError>>
+    where
+        P: Parser<&'a str, O, ErrMode<ContextError>> + Clone,
+    {
+        terminated(
+            trace(
+                "source_keyword",
+                alphanumeric1.try_map(SourceKeyword::from_str),
+            ),
+            peek(delimiter),
         )
-        .parse_next(input)
     }
 }
 
@@ -1031,18 +1065,37 @@ pub enum SourceProperty {
 impl SourceProperty {
     /// Recognizes package source related keyword assignments in SRCINFO data.
     ///
-    /// This function relies on [`SourceKeyword::parser`] to recognize the relevant keywords.
+    /// This function relies on [`SourceKeyword::parser_until`] to recognize the relevant keywords.
     ///
     /// This function backtracks in case no keyword in this group matches.
     fn parser(input: &mut &str) -> ModalResult<SourceProperty> {
-        // First off, get the type of the property.
-        let keyword = SourceKeyword::parser.parse_next(input)?;
+        let (keyword, architecture) = keyword_with_architecture_suffix::<SourceKeyword>
+            .context(StrContext::Label("source property"))
+            .parse_next(input)?;
+
+        if architecture.is_some() {
+            match keyword {
+                // Only `source` and checksum keywords support architecture suffixes.
+                SourceKeyword::Source
+                | SourceKeyword::B2sums
+                | SourceKeyword::Md5sums
+                | SourceKeyword::Sha1sums
+                | SourceKeyword::Sha224sums
+                | SourceKeyword::Sha256sums
+                | SourceKeyword::Sha384sums
+                | SourceKeyword::Sha512sums
+                | SourceKeyword::Cksums => {}
+                SourceKeyword::NoExtract => {
+                    return Err(ErrMode::Backtrack(ParserError::from_input(input)));
+                }
+            }
+        }
+
+        // Expect the ` = ` separator between the key-value pair
+        let _ = delimiter.parse_next(input)?;
 
         let property = match keyword {
             SourceKeyword::NoExtract => {
-                // Expect the ` = ` separator between the key-value pair
-                let _ = delimiter.parse_next(input)?;
-
                 cut_err(till_line_end.map(|s| SourceProperty::NoExtract(s.to_string())))
                     .parse_next(input)?
             }
@@ -1055,13 +1108,6 @@ impl SourceProperty {
             | SourceKeyword::Sha384sums
             | SourceKeyword::Sha512sums
             | SourceKeyword::Cksums => {
-                // All other properties may be architecture specific and thereby have an
-                // architecture suffix.
-                let architecture = architecture_suffix.parse_next(input)?;
-
-                // Expect the ` = ` separator between the key-value pair
-                let _ = delimiter.parse_next(input)?;
-
                 match keyword {
                     SourceKeyword::Source => {
                         cut_err(till_line_end.try_map(Source::from_str).map(|value| {
@@ -1190,8 +1236,14 @@ impl ClearableProperty {
     /// not cleared.
     fn shared_meta_parser(input: &mut &str) -> ModalResult<ClearableProperty> {
         // First off, check if this is any of the clearable properties.
-        let keyword =
-            trace("clearable_shared_meta_property", SharedMetaKeyword::parser).parse_next(input)?;
+        let keyword = trace(
+            "clearable_shared_meta_property",
+            SharedMetaKeyword::parser_until(' '),
+        )
+        .context(StrContext::Expected(StrContextValue::Description(
+            "a shared meta keyword",
+        )))
+        .parse_next(input)?;
 
         // Now check if it's actually a clear.
         // This parser fails and backtracks in case there's anything but spaces and a newline after
@@ -1219,11 +1271,9 @@ impl ClearableProperty {
 
     /// Same as [`Self::shared_meta_parser`], but for clearable [RelationProperty].
     fn relation_parser(input: &mut &str) -> ModalResult<ClearableProperty> {
-        // First off, check if this is any of the clearable properties.
-        let keyword = trace("clearable_property", RelationKeyword::parser).parse_next(input)?;
-
-        // All relations may be architecture specific.
-        let architecture = architecture_suffix.parse_next(input)?;
+        let (keyword, architecture) = keyword_with_architecture_suffix::<RelationKeyword>
+            .context(StrContext::Label("clearable property"))
+            .parse_next(input)?;
 
         // Now check if it's actually a clear.
         // This parser fails and backtracks in case there's anything but spaces and a newline after

@@ -3,7 +3,7 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::{iter_char_context, iter_str_context};
+use alpm_parsers::{iter_char_context, iter_str_context, traits::ParserUntil};
 use serde::{Deserialize, Serialize};
 use strum::VariantNames;
 use winnow::{
@@ -19,7 +19,7 @@ use winnow::{
         StrContextValue::{self, *},
     },
     stream::Stream,
-    token::{one_of, rest, take_until},
+    token::{one_of, take_until},
 };
 
 use crate::{Architecture, FullVersion, Name, PackageFileName, error::Error};
@@ -664,7 +664,7 @@ impl InstalledPackage {
 
         // Advance the parser to beyond the Architecture component, e.g.:
         // "x86_64.pkg.tar.zst" -> ".pkg.tar.zst"
-        let architecture = rest.and_then(Architecture::parser).parse_next(input)?;
+        let architecture = Architecture::parser_until_eof().parse_next(input)?;
 
         Ok(Self {
             name,

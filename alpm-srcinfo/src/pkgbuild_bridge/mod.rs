@@ -6,6 +6,7 @@ mod package_base;
 
 use std::collections::HashMap;
 
+use alpm_parsers::traits::ParserUntil;
 use alpm_pkgbuild::bridge::{BridgeOutput, Keyword, Value};
 use alpm_types::{Architectures, Name, SystemArchitecture};
 use package::handle_packages;
@@ -211,7 +212,7 @@ fn parse_arch_array<'a>(keyword: &Keyword, value: &'a Value) -> Result<Architect
     let architectures = input
         .into_iter()
         .map(|item| {
-            SystemArchitecture::parser
+            SystemArchitecture::parser_until_eof()
                 .context(StrContext::Expected(StrContextValue::Description(
                     "either a single 'any' or an array of one or more specific system architectures."
                 )))

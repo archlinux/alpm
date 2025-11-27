@@ -5,7 +5,7 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::iter_str_context;
+use alpm_parsers::{iter_str_context, traits::ParserUntil};
 #[cfg(doc)]
 use alpm_pkgbuild::bridge::BridgeOutput;
 use alpm_pkgbuild::bridge::{Keyword, Value};
@@ -75,12 +75,13 @@ impl PackageBaseKeywords {
     ///
     /// Returns an error if `input` contains an unexpected keyword.
     pub fn parser(input: &mut &str) -> ModalResult<PackageBaseKeywords> {
+        // TODO
         cut_err(alt((
             "pkgbase".map(|_| PackageBaseKeywords::PkgBase),
-            PackageBaseKeyword::parser.map(PackageBaseKeywords::PackageBase),
-            RelationKeyword::parser.map(PackageBaseKeywords::Relation),
-            SharedMetaKeyword::parser.map(PackageBaseKeywords::SharedMeta),
-            SourceKeyword::parser.map(PackageBaseKeywords::Source),
+            PackageBaseKeyword::parser_until_eof().map(PackageBaseKeywords::PackageBase),
+            RelationKeyword::parser_until_eof().map(PackageBaseKeywords::Relation),
+            SharedMetaKeyword::parser_until_eof().map(PackageBaseKeywords::SharedMeta),
+            SourceKeyword::parser_until_eof().map(PackageBaseKeywords::Source),
         )))
         .context(StrContext::Label("package base property type"))
         .context_with(iter_str_context!([
@@ -197,7 +198,7 @@ pub fn handle_package_base(
         let architecture = match &raw_keyword.suffix {
             Some(suffix) => {
                 // SystemArchitecture::parser forbids "any"
-                let arch = SystemArchitecture::parser
+                let arch = SystemArchitecture::parser_until_eof()
                     .parse(suffix)
                     .map_err(|err| (raw_keyword.clone(), err))?;
                 Some(arch)

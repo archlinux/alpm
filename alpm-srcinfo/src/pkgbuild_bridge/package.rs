@@ -2,7 +2,7 @@
 
 use std::{collections::HashMap, str::FromStr};
 
-use alpm_parsers::iter_str_context;
+use alpm_parsers::{iter_str_context, traits::ParserUntil};
 #[cfg(doc)]
 use alpm_pkgbuild::bridge::BridgeOutput;
 use alpm_pkgbuild::bridge::{ClearableValue, Keyword, RawPackageName};
@@ -130,9 +130,10 @@ impl PackageKeyword {
     ///
     /// Returns an error, if an unknown keyword is encountered.
     pub fn parser(input: &mut &str) -> ModalResult<PackageKeyword> {
+        // TODO
         cut_err(alt((
-            RelationKeyword::parser.map(PackageKeyword::Relation),
-            SharedMetaKeyword::parser.map(PackageKeyword::SharedMeta),
+            RelationKeyword::parser_until_eof().map(PackageKeyword::Relation),
+            SharedMetaKeyword::parser_until_eof().map(PackageKeyword::SharedMeta),
         )))
         .context(StrContext::Label("package base property type"))
         .context_with(iter_str_context!([
@@ -295,7 +296,7 @@ fn handle_package(
         let architecture = match &raw_keyword.suffix {
             Some(suffix) => {
                 // SystemArchitecture::parser forbids "any"
-                let arch = SystemArchitecture::parser
+                let arch = SystemArchitecture::parser_until_eof()
                     .parse(suffix)
                     .map_err(|err| (raw_keyword.clone(), err))?;
                 Some(arch)

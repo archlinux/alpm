@@ -3,15 +3,15 @@ use std::{
     str::FromStr,
 };
 
+use alpm_parsers::traits::ParserUntil;
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString, VariantNames};
 use winnow::{
-    ModalResult,
     Parser,
     ascii::{Caseless, space1},
-    combinator::{alt, cut_err, eof, not, repeat_till},
-    error::{StrContext, StrContextValue},
-    token::one_of,
+    combinator::{alt, cut_err, eof, not, peek, terminated},
+    error::{ContextError, ErrMode, StrContext, StrContextValue},
+    token::take_while,
 };
 
 use crate::Error;
@@ -101,30 +101,31 @@ pub enum SystemArchitecture {
     Unknown(UnknownArchitecture),
 }
 
-impl SystemArchitecture {
-    /// Recognizes a [`SystemArchitecture`] in an input string.
-    ///
-    /// Consumes all input and returns an error if the string doesn't match any architecture.
-    pub fn parser(input: &mut &str) -> ModalResult<SystemArchitecture> {
+impl ParserUntil for SystemArchitecture {
+    /// Returns a [`Parser`] that parses [`SystemArchitecture`] until the given `delimiter` parser
+    /// matches, doesn't consume the delimiter.
+    fn parser_until<'a, O, P>(delimiter: P) -> impl Parser<&'a str, Self, ErrMode<ContextError>>
+    where
+        P: Parser<&'a str, O, ErrMode<ContextError>> + Clone,
+    {
         alt((
             // Handle all static variants
-            ("aarch64", eof).value(SystemArchitecture::Aarch64),
-            ("arm", eof).value(SystemArchitecture::Arm),
-            ("armv6h", eof).value(SystemArchitecture::Armv6h),
-            ("armv7h", eof).value(SystemArchitecture::Armv7h),
-            ("i386", eof).value(SystemArchitecture::I386),
-            ("i486", eof).value(SystemArchitecture::I486),
-            ("i686", eof).value(SystemArchitecture::I686),
-            ("pentium4", eof).value(SystemArchitecture::Pentium4),
-            ("riscv32", eof).value(SystemArchitecture::Riscv32),
-            ("riscv64", eof).value(SystemArchitecture::Riscv64),
-            ("x86_64", eof).value(SystemArchitecture::X86_64),
-            ("x86_64_v2", eof).value(SystemArchitecture::X86_64V2),
-            ("x86_64_v3", eof).value(SystemArchitecture::X86_64V3),
-            ("x86_64_v4", eof).value(SystemArchitecture::X86_64V4),
-            UnknownArchitecture::parser.map(SystemArchitecture::Unknown),
+            ("aarch64", peek(delimiter.clone())).value(SystemArchitecture::Aarch64),
+            ("arm", peek(delimiter.clone())).value(SystemArchitecture::Arm),
+            ("armv6h", peek(delimiter.clone())).value(SystemArchitecture::Armv6h),
+            ("armv7h", peek(delimiter.clone())).value(SystemArchitecture::Armv7h),
+            ("i386", peek(delimiter.clone())).value(SystemArchitecture::I386),
+            ("i486", peek(delimiter.clone())).value(SystemArchitecture::I486),
+            ("i686", peek(delimiter.clone())).value(SystemArchitecture::I686),
+            ("pentium4", peek(delimiter.clone())).value(SystemArchitecture::Pentium4),
+            ("riscv32", peek(delimiter.clone())).value(SystemArchitecture::Riscv32),
+            ("riscv64", peek(delimiter.clone())).value(SystemArchitecture::Riscv64),
+            ("x86_64", peek(delimiter.clone())).value(SystemArchitecture::X86_64),
+            ("x86_64_v2", peek(delimiter.clone())).value(SystemArchitecture::X86_64V2),
+            ("x86_64_v3", peek(delimiter.clone())).value(SystemArchitecture::X86_64V3),
+            ("x86_64_v4", peek(delimiter.clone())).value(SystemArchitecture::X86_64V4),
+            UnknownArchitecture::parser_until(delimiter).map(SystemArchitecture::Unknown),
         ))
-        .parse_next(input)
     }
 }
 
@@ -133,13 +134,13 @@ impl FromStr for SystemArchitecture {
 
     /// Creates a [`SystemArchitecture`] from a string slice.
     ///
-    /// Delegates to [`SystemArchitecture::parser`].
+    /// Delegates to [`SystemArchitecture::parser_until_eof`].
     ///
     /// # Errors
     ///
-    /// Returns an error if [`SystemArchitecture::parser`] fails.
+    /// Returns an error if the parser returned by [`SystemArchitecture::parser_until_eof`] fails.
     fn from_str(s: &str) -> Result<SystemArchitecture, Self::Err> {
-        Ok(Self::parser.parse(s)?)
+        Ok(Self::parser_until_eof().parse(s)?)
     }
 }
 
@@ -159,10 +160,11 @@ impl UnknownArchitecture {
     pub fn inner(&self) -> &str {
         &self.0
     }
+}
 
-    /// Recognizes a [`UnknownArchitecture`] in a string slice.
-    ///
-    /// Consumes all of its input.
+impl ParserUntil for UnknownArchitecture {
+    /// Returns a [`Parser`] that parses [`UnknownArchitecture`] until the given `delimiter` parser
+    /// matches, doesn't consume the delimiter.
     ///
     /// # Errors
     ///
@@ -170,33 +172,42 @@ impl UnknownArchitecture {
     /// (case-insensitive).
     ///
     /// [alpm-architecture]: https://alpm.archlinux.page/specifications/alpm-architecture.7.html
-    pub fn parser(input: &mut &str) -> ModalResult<Self> {
-        // Ensure that we don't have a empty string or a string that only consists of whitespaces.
-        cut_err(not(alt((eof, space1))))
-            .context(StrContext::Label("system architecture"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "a non empty string.",
-            )))
-            .parse_next(input)?;
+    fn parser_until<'a, O, P>(delimiter: P) -> impl Parser<&'a str, Self, ErrMode<ContextError>>
+    where
+        P: Parser<&'a str, O, ErrMode<ContextError>> + Clone,
+    {
+        move |input: &mut &'a str| {
+            // Ensure that we don't have a empty string or a string that only consists of
+            // whitespaces.
+            cut_err(not(alt((eof, space1))))
+                .context(StrContext::Label("system architecture"))
+                .context(StrContext::Expected(StrContextValue::Description(
+                    "a non empty string.",
+                )))
+                .parse_next(input)?;
 
-        // Make sure we don't have an `any`.
-        cut_err(not((Caseless("any"), eof)))
-            .context(StrContext::Label(
-                "system architecture. 'any' has a special meaning and is not allowed here.",
+            // Make sure we don't have an `any`.
+            cut_err(not((Caseless("any"), delimiter.clone())))
+                .context(StrContext::Label(
+                    "system architecture. 'any' has a special meaning and is not allowed here.",
+                ))
+                .parse_next(input)?;
+
+            let special_chars = ['_'];
+
+            cut_err(terminated(
+                take_while(0.., |c: char| {
+                    c.is_ascii_alphanumeric() || special_chars.contains(&c)
+                })
+                .map(|s: &str| UnknownArchitecture(s.to_string())),
+                peek(delimiter.clone()),
             ))
-            .parse_next(input)?;
-
-        let alphanum = |c: char| c.is_ascii_alphanumeric();
-        let special_chars = ['_'];
-
-        cut_err(repeat_till(0.., one_of((alphanum, special_chars)), eof))
-            .map(|(r, _)| r)
-            .map(Self)
             .context(StrContext::Label("character in system architecture"))
             .context(StrContext::Expected(StrContextValue::Description(
                 "a string containing only ASCII alphanumeric characters and underscores.",
             )))
             .parse_next(input)
+        }
     }
 }
 
@@ -225,7 +236,7 @@ impl FromStr for UnknownArchitecture {
     ///
     /// Returns an error if [`UnknownArchitecture::parser`] fails.
     fn from_str(s: &str) -> Result<UnknownArchitecture, Self::Err> {
-        Ok(Self::parser.parse(s)?)
+        Ok(Self::parser_until_eof().parse(s)?)
     }
 }
 
@@ -299,17 +310,18 @@ pub enum Architecture {
     Some(SystemArchitecture),
 }
 
-impl Architecture {
-    /// Recognizes an [`Architecture`] in an input string.
-    ///
-    /// Consumes all input and returns an error if the string doesn't match any architecture.
-    pub fn parser(input: &mut &str) -> ModalResult<Architecture> {
+impl ParserUntil for Architecture {
+    /// Returns a [`Parser`] that parses [`Architecture`] until the given `delimiter` parser
+    /// matches, consuming the delimiter.
+    fn parser_until<'a, O, P>(delimiter: P) -> impl Parser<&'a str, Self, ErrMode<ContextError>>
+    where
+        P: Parser<&'a str, O, ErrMode<ContextError>> + Clone,
+    {
         alt((
-            (Caseless("any"), eof).value(Architecture::Any),
-            SystemArchitecture::parser.map(Architecture::Some),
+            (Caseless("any"), peek(delimiter.clone())).value(Architecture::Any),
+            SystemArchitecture::parser_until(delimiter).map(Architecture::Some),
         ))
         .context(StrContext::Label("alpm-architecture"))
-        .parse_next(input)
     }
 }
 
@@ -324,7 +336,7 @@ impl FromStr for Architecture {
     ///
     /// Returns an error if [`Architecture::parser`] fails.
     fn from_str(s: &str) -> Result<Architecture, Self::Err> {
-        Ok(Self::parser.parse(s)?)
+        Ok(Self::parser_until_eof().parse(s)?)
     }
 }
 
