@@ -1,1 +1,1 @@
-../../../../alpm-repo/resources/specification/alpm-repo-files.5.md
+../../../../alpm-repo-db/resources/specification/alpm-repo-files.5.md
