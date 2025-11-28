@@ -68,6 +68,7 @@ An **alpm-package-version** (_full_ or _full with epoch_) which represents the v
 
 The description of the package.
 The value is a UTF-8 string, zero or more characters long (e.g. `A project used for something`).
+If the description is empty, the section can be omitted.
 
 ### %GROUPS%
 
@@ -102,6 +103,7 @@ The tool for creating the **alpm-repo-desc** file may choose to not include the 
 
 The URL for the project of the package.
 The value is a valid URL or an empty string (e.g. `https://example.org`).
+If the description is empty, the section can be omitted.
 
 ### %LICENSE%
 
