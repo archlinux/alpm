@@ -16,7 +16,7 @@ use winnow::{
     error::{StrContext, StrContextValue},
     token::{take_till, take_until},
 };
-
+use alpm_parsers::traits::ParserUntilInclusive;
 use crate::{Epoch, Error, PackageRelease, PackageVersion, Version};
 
 /// A package version with mandatory [`PackageRelease`].
@@ -158,21 +158,17 @@ impl FullVersion {
         )))
         .parse_next(input)?;
 
-        // Advance the parser until the next '-', e.g.:
-        // "1.0.0-1" -> "-1"
-        let pkgver: PackageVersion = cut_err(take_until(0.., "-"))
+        // Advance the parser until the next '-' and consume the delimiter, e.g.:
+        // "1.0.0-1" -> "1"
+        let pkgver: PackageVersion = cut_err(PackageVersion::parser_until_inclusive('-'))
             .context(StrContext::Expected(StrContextValue::Description(
                 "alpm-pkgver string, followed by a '-' and an alpm-pkgrel string",
             )))
-            .take()
-            .and_then(cut_err(PackageVersion::parser))
             .parse_next(input)?;
 
-        // Consume the delimiter '-'
-        // "-1" -> "1"
-        // and parse everything until eof as a PackageRelease, e.g.:
+        // Parse everything until eof as a PackageRelease, e.g.:
         // "1" -> ""
-        let pkgrel: PackageRelease = preceded("-", cut_err(PackageRelease::parser))
+        let pkgrel: PackageRelease = cut_err(PackageRelease::parser)
             .context(StrContext::Expected(StrContextValue::Description(
                 "alpm-pkgrel string",
             )))
@@ -393,23 +389,23 @@ mod tests {
     #[case::two_epoch("1:1:foo-1", "invalid pkgver character")]
     #[case::empty_string(
         "",
-        "expected alpm-pkgver string, followed by a '-' and an alpm-pkgrel string"
+        "alpm-pkgver string, followed by a '-' and an alpm-pkgrel string"
     )]
     #[case::colon(
         ":",
-        "expected alpm-pkgver string, followed by a '-' and an alpm-pkgrel string"
+        "alpm-pkgver string, followed by a '-' and an alpm-pkgrel string"
     )]
     #[case::dot(
         ".",
-        "expected alpm-pkgver string, followed by a '-' and an alpm-pkgrel string"
+        "alpm-pkgver string, followed by a '-' and an alpm-pkgrel string"
     )]
     #[case::no_pkgrel_with_epoch(
         "1:1.0.0",
-        "expected alpm-pkgver string, followed by a '-' and an alpm-pkgrel string"
+        "alpm-pkgver string, followed by a '-' and an alpm-pkgrel string"
     )]
     #[case::no_pkgrel(
         "1.0.0",
-        "expected alpm-pkgver string, followed by a '-' and an alpm-pkgrel string"
+        "alpm-pkgver string, followed by a '-' and an alpm-pkgrel string"
     )]
     #[case::no_pkgrel_dash_end(
         "1.0.0-",

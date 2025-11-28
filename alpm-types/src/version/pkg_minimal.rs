@@ -17,7 +17,7 @@ use winnow::{
     error::{StrContext, StrContextValue},
     token::take_till,
 };
-
+use alpm_parsers::traits::{ParserUntil, ParserUntilInclusive};
 use crate::{Epoch, Error, PackageVersion, Version};
 #[cfg(doc)]
 use crate::{FullVersion, PackageRelease};
@@ -151,19 +151,11 @@ impl MinimalVersion {
         )))
         .parse_next(input)?;
 
-        // Advance the parser until the next '-', e.g.:
-        // "1.0.0-1" -> "-1"
-        let pkgver: PackageVersion = cut_err(PackageVersion::parser)
+        let pkgver: PackageVersion = cut_err(PackageVersion::parser_until_eof())
             .context(StrContext::Expected(StrContextValue::Description(
                 "alpm-pkgver string",
             )))
             .parse_next(input)?;
-
-        // Ensure that there are no trailing chars left.
-        eof.context(StrContext::Expected(StrContextValue::Description(
-            "end of full alpm-package-version string",
-        )))
-        .parse_next(input)?;
 
         Ok(Self { epoch, pkgver })
     }

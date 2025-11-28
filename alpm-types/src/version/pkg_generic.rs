@@ -1,5 +1,7 @@
 //! A flexible and generic package version.
 
+use winnow::combinator::alt;
+use alpm_parsers::traits::ParserUntil;
 use std::{
     cmp::Ordering,
     fmt::{Display, Formatter},
@@ -128,10 +130,8 @@ impl Version {
 
         seq!(Self {
             epoch: epoch,
-            pkgver: take_till(1.., '-')
-                // this context will trigger on empty pkgver due to 1.. above
-                .context(StrContext::Expected(StrContextValue::Description("pkgver string")))
-                .and_then(PackageVersion::parser),
+            pkgver: alt((PackageVersion::parser_until('-'), PackageVersion::parser_until_eof()))
+                .context(StrContext::Expected(StrContextValue::Description("pkgver string"))),
             pkgrel: opt(preceded('-', cut_err(PackageRelease::parser))),
             _: eof.context(StrContext::Expected(StrContextValue::Description("end of version string"))),
         })
@@ -249,7 +249,7 @@ mod tests {
     #[rstest]
     #[case::two_pkgrel("1:foo-1-1", "expected end of package release value")]
     #[case::two_epoch("1:1:foo-1", "invalid pkgver character")]
-    #[case::no_version("", "expected pkgver string")]
+    #[case::no_version("", "expected ASCII alphanumeric character, pkgver string")]
     #[case::no_version(":", "invalid first pkgver character")]
     #[case::no_version(".", "invalid first pkgver character")]
     #[case::invalid_integer(

@@ -299,7 +299,7 @@ mod tests {
     #[case::bad_operator("<>3.1", "invalid comparison operator")]
     #[case::no_operator("3.1", "expected version comparison operator")]
     #[case::arrow_operator("=>3.1", "invalid comparison operator")]
-    #[case::no_version("<=", "expected pkgver string")]
+    #[case::no_version("<=", "expected ASCII alphanumeric character, pkgver string")]
     fn invalid_version_requirement(#[case] requirement: &str, #[case] err_snippet: &str) {
         let Err(Error::ParseError(err_msg)) = VersionRequirement::from_str(requirement) else {
             panic!("'{requirement}' erroneously parsed as VersionRequirement")

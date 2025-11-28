@@ -172,13 +172,13 @@ mod tests {
     )]
     #[case::minimal_version_with_architecture("1.0.0-any",
         Err(Error::ParseError(
-            "1.0.0\n^\nexpected alpm-pkgver string, followed by a '-' and an alpm-pkgrel string".to_string()
+            "1.0.0\n     ^\ninvalid pkgver character\nexpected ASCII alphanumeric character, `_`, `+`, `.`, alpm-pkgver string, followed by a '-' and an alpm-pkgrel string".to_string()
         ))
      )]
     #[case::minimal_version_with_epoch_and_architecture(
         "1:1.0.0-any",
         Err(Error::ParseError(
-            "1:1.0.0\n  ^\nexpected alpm-pkgver string, followed by a '-' and an alpm-pkgrel string".to_string()
+            "1:1.0.0\n       ^\ninvalid pkgver character\nexpected ASCII alphanumeric character, `_`, `+`, `.`, alpm-pkgver string, followed by a '-' and an alpm-pkgrel string".to_string()
         ))
     )]
     fn valid_buildtoolver_new(
@@ -200,13 +200,13 @@ mod tests {
     #[case::minimal_version_with_architecture(
         "1.0.0-any",
         Error::ParseError(
-            "1.0.0\n^\nexpected alpm-pkgver string, followed by a '-' and an alpm-pkgrel string".to_string()
+            "1.0.0\n     ^\ninvalid pkgver character\nexpected ASCII alphanumeric character, `_`, `+`, `.`, alpm-pkgver string, followed by a '-' and an alpm-pkgrel string".to_string()
         )
     )]
     #[case::minimal_version_with_unknown_architecture(
         "1.0.0-foo",
         Error::ParseError(
-            "1.0.0\n^\nexpected alpm-pkgver string, followed by a '-' and an alpm-pkgrel string".to_string()
+            "1.0.0\n     ^\ninvalid pkgver character\nexpected ASCII alphanumeric character, `_`, `+`, `.`, alpm-pkgver string, followed by a '-' and an alpm-pkgrel string".to_string()
         )
     )]
     fn invalid_buildtoolver_new(#[case] buildtoolver: &str, #[case] expected: Error) {

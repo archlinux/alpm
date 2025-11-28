@@ -25,7 +25,9 @@ use winnow::{
     error::{StrContext, StrContextValue},
     token::one_of,
 };
-
+use winnow::combinator::peek;
+use winnow::error::{ContextError, ErrMode};
+use alpm_parsers::traits::ParserUntil;
 #[cfg(doc)]
 use crate::Version;
 use crate::{Error, VersionSegments};
@@ -256,15 +258,17 @@ impl PackageVersion {
     pub fn segments(&self) -> VersionSegments<'_> {
         VersionSegments::new(&self.0)
     }
+}
 
-    /// Recognizes a [`PackageVersion`] in a string slice.
-    ///
-    /// Consumes all of its input.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if `input` is not a valid _alpm-pkgrel_.
-    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+impl ParserUntil for PackageVersion {
+    /// Recognizes a [`PackageVersion`] in a string slice until the given `delimiter` parser
+    /// matches.
+    /// 
+    /// Does not consume the `delimiter`.
+    fn parser_until<'a, O, P>(delimiter: P) -> impl Parser<&'a str, Self, ErrMode<ContextError>>
+    where
+        P: Parser<&'a str, O, ErrMode<ContextError>> + Clone
+    {
         let alnum = |c: char| c.is_ascii_alphanumeric();
 
         let first_character = one_of(alnum)
@@ -272,8 +276,8 @@ impl PackageVersion {
             .context(StrContext::Expected(StrContextValue::Description(
                 "ASCII alphanumeric character",
             )));
-        let special_tail_character = ['_', '+', '.'];
-        let tail_character = one_of((alnum, special_tail_character));
+        const SPECIAL_TAIL_CHARACTER: [char; 3] = ['_', '+', '.'];
+        let tail_character = one_of((alnum, SPECIAL_TAIL_CHARACTER));
 
         // no error context because this is infallible due to `0..`
         // note the empty tuple collection to avoid allocation
@@ -282,15 +286,14 @@ impl PackageVersion {
         (
             first_character,
             tail,
-            eof.context(StrContext::Label("pkgver character"))
+            peek(delimiter).context(StrContext::Label("pkgver character"))
                 .context(StrContext::Expected(StrContextValue::Description(
                     "ASCII alphanumeric character",
                 )))
-                .context_with(iter_char_context!(special_tail_character)),
+                .context_with(iter_char_context!(SPECIAL_TAIL_CHARACTER)),
         )
             .take()
             .map(|s: &str| Self(s.to_string()))
-            .parse_next(input)
     }
 }
 
@@ -298,7 +301,7 @@ impl FromStr for PackageVersion {
     type Err = Error;
     /// Create a PackageVersion from a string and return it in a Result
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser.parse(s)?)
+        Ok(Self::parser_until_eof().parse(s)?)
     }
 }
 

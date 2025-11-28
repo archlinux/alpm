@@ -25,7 +25,7 @@ use winnow::{
     stream::Stream,
     token::{any, rest, take_till, take_until, take_while},
 };
-
+use alpm_parsers::traits::ParserUntil;
 use crate::{
     ElfArchitectureFormat,
     Error,
@@ -72,7 +72,7 @@ impl VersionOrSoname {
         }
 
         input.reset(&checkpoint);
-        let version_result = rest.and_then(PackageVersion::parser).parse_next(input);
+        let version_result = PackageVersion::parser_until_eof().parse_next(input);
         if version_result.is_ok() {
             let version = version_result?;
             return Ok(VersionOrSoname::Version(version));
@@ -539,7 +539,7 @@ impl Soname {
         // Otherwise, we hit the `eof` and there's no version.
         let version = match delimiter {
             "" => None,
-            "." => Some(rest.and_then(PackageVersion::parser).parse_next(input)?),
+            "." => Some(PackageVersion::parser_until_eof().parse_next(input)?),
             _ => unreachable!(),
         };
 

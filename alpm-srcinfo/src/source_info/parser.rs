@@ -556,8 +556,7 @@ impl PackageBaseProperty {
 
         let property = match keyword {
             PackageBaseKeyword::PkgVer => cut_err(
-                till_line_end
-                    .and_then(PackageVersion::parser)
+                PackageVersion::parser_until_line_ending_inclusive()
                     .map(PackageBaseProperty::PackageVersion),
             )
             .parse_next(input)?,
@@ -811,7 +810,7 @@ impl SharedMetaProperty {
             )
             .parse_next(input)?,
             SharedMetaKeyword::Arch => cut_err(
-                Architecture::parser_until_line_ending().map(SharedMetaProperty::Architecture),
+                Architecture::parser_until_line_ending_inclusive().map(SharedMetaProperty::Architecture),
             )
             .parse_next(input)?,
             SharedMetaKeyword::Changelog => cut_err(

@@ -142,7 +142,7 @@ pub fn handle_package_base(
     let pkgver_keyword = Keyword::simple("pkgver");
     let value = ensure_keyword_exists(&pkgver_keyword, &mut raw)?;
     let package_version: PackageVersion =
-        parse_value(&pkgver_keyword, &value, PackageVersion::parser)?;
+        parse_value(&pkgver_keyword, &value, PackageVersion::parser_until_eof())?;
 
     let pkgrel_keyword = Keyword::simple("pkgrel");
     let value = ensure_keyword_exists(&pkgrel_keyword, &mut raw)?;
