@@ -52,6 +52,8 @@ The following is an example of an **alpm-db-files** file for a package named `fo
 
 ```text
 %FILES%
+etc/
+etc/foo.conf
 usr/
 usr/bin/
 usr/bin/foo
