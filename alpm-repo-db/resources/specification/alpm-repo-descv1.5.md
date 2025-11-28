@@ -64,6 +64,7 @@ An **alpm-package-version** (_full_ or _full with epoch_) which represents the v
 
 The description of the package.
 The value is a UTF-8 string, zero or more characters long (e.g. `A project used for something`).
+If the description is empty, the section can be omitted.
 
 ### %GROUPS%
 
@@ -102,6 +103,7 @@ The **base64**[4] encoded **OpenPGP signature**[5] for the **alpm-package** file
 
 The URL for the project of the package.
 The value is a valid URL or an empty string (e.g. `https://example.org`).
+If the URL is an empty string, the section can be omitted.
 
 ### %LICENSE%
 
