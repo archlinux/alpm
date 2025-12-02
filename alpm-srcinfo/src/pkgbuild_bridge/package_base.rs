@@ -367,7 +367,7 @@ pub fn handle_package_base(
                     b2_checksums,
                     architecture,
                     architecture_properties,
-                    SkippableChecksum::parser,
+                    SkippableChecksum::parser_until_eof(),
                 ),
                 SourceKeyword::Md5sums => package_base_value_array!(
                     raw_keyword,
@@ -375,7 +375,7 @@ pub fn handle_package_base(
                     md5_checksums,
                     architecture,
                     architecture_properties,
-                    SkippableChecksum::parser,
+                    SkippableChecksum::parser_until_eof(),
                 ),
                 SourceKeyword::Sha1sums => package_base_value_array!(
                     raw_keyword,
@@ -383,7 +383,7 @@ pub fn handle_package_base(
                     sha1_checksums,
                     architecture,
                     architecture_properties,
-                    SkippableChecksum::parser,
+                    SkippableChecksum::parser_until_eof(),
                 ),
                 SourceKeyword::Sha224sums => package_base_value_array!(
                     raw_keyword,
@@ -391,7 +391,7 @@ pub fn handle_package_base(
                     sha224_checksums,
                     architecture,
                     architecture_properties,
-                    SkippableChecksum::parser,
+                    SkippableChecksum::parser_until_eof(),
                 ),
                 SourceKeyword::Sha256sums => package_base_value_array!(
                     raw_keyword,
@@ -399,7 +399,7 @@ pub fn handle_package_base(
                     sha256_checksums,
                     architecture,
                     architecture_properties,
-                    SkippableChecksum::parser,
+                    SkippableChecksum::parser_until_eof(),
                 ),
                 SourceKeyword::Sha384sums => package_base_value_array!(
                     raw_keyword,
@@ -407,7 +407,7 @@ pub fn handle_package_base(
                     sha384_checksums,
                     architecture,
                     architecture_properties,
-                    SkippableChecksum::parser,
+                    SkippableChecksum::parser_until_eof(),
                 ),
                 SourceKeyword::Sha512sums => package_base_value_array!(
                     raw_keyword,
@@ -415,7 +415,7 @@ pub fn handle_package_base(
                     sha512_checksums,
                     architecture,
                     architecture_properties,
-                    SkippableChecksum::parser,
+                    SkippableChecksum::parser_until_eof(),
                 ),
                 SourceKeyword::Cksums => package_base_value_array!(
                     raw_keyword,
@@ -423,7 +423,7 @@ pub fn handle_package_base(
                     crc_checksums,
                     architecture,
                     architecture_properties,
-                    SkippableChecksum::parser,
+                    SkippableChecksum::parser_until_eof(),
                 ),
             },
         }
