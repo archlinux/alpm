@@ -114,7 +114,8 @@ impl FileFormatSchema for SourceInfoSchema {
     /// Returns an error if `s` cannot be parsed.
     fn derive_from_str(s: &str) -> Result<SourceInfoSchema, Error> {
         let _parsed = SourceInfoContent::parser
-            .parse(s)
+            // A temporary fix for <https://github.com/winnow-rs/winnow/issues/847>
+            .parse(s.replace('\t', " ").as_str())
             .map_err(|err| Error::ParseError(format!("{err}")))?;
 
         Ok(SourceInfoSchema::V1(SchemaVersion::new(Version::new(
