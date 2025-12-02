@@ -4,7 +4,8 @@ pub mod v1;
 
 use std::{fs::File, path::Path, str::FromStr};
 
-use alpm_common::{FileFormatSchema, MetadataFile};
+use alpm_common::MetadataFile;
+use alpm_types::{SchemaVersion, semver_version::Version};
 use fluent_i18n::t;
 use serde::{Deserialize, Serialize};
 
@@ -209,9 +210,14 @@ impl MetadataFile<SourceInfoSchema> for SourceInfo {
     ///   - a [`SourceInfoSchema`] cannot be derived from `s`,
     ///   - or the detected variant of [`SourceInfo`] cannot be constructed from `s`.
     fn from_str_with_schema(s: &str, schema: Option<SourceInfoSchema>) -> Result<Self, Error> {
+        // NOTE: This does not use `SourceInfoSchema::derive_from_str`,
+        // to not run the parser twice.
+        // In the future, this should run `SourceInfoContent` parser directly
+        // and delegate to `from_raw` instead of `from_string`.
+
         let schema = match schema {
             Some(schema) => schema,
-            None => SourceInfoSchema::derive_from_str(s)?,
+            None => SourceInfoSchema::V1(SchemaVersion::new(Version::new(1, 0, 0))),
         };
 
         match schema {
