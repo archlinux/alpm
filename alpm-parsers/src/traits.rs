@@ -6,6 +6,7 @@ use winnow::{
     combinator::eof,
     error::{ContextError, ErrMode},
 };
+use winnow::combinator::alt;
 
 /// A trait for types that can be parsed until a given delimiter parser matches.
 ///
@@ -70,13 +71,17 @@ pub trait ParserUntil: Sized {
         Self::parser_until(eof)
     }
 
-    /// Returns a [`Parser`] that parses until the end of line (either `\n` or `\r\n`) and consumes
-    /// the line ending.
+    /// Returns a [`Parser`] that parses until the end of line (either `\n` or `\r\n`) or eof.
     ///
+    /// Does not consume the line ending.
+    /// 
     /// Delegates to [`Self::parser_until`] with the [`line_ending`] delimiter.
     #[inline]
     fn parser_until_line_ending<'a>() -> impl Parser<&'a str, Self, ErrMode<ContextError>> {
-        Self::parser_until(line_ending)
+        alt((
+            Self::parser_until(line_ending),
+            Self::parser_until_eof()
+        ))
     }
 }
 
@@ -138,14 +143,17 @@ pub trait ParserUntilInclusive: Sized {
     where
         P: Parser<&'a str, O, ErrMode<ContextError>> + Clone;
 
-    /// Returns a [`Parser`] that parses until the end of line (either `\n` or `\r\n`) and consumes
-    /// the line ending.
+    /// Returns a [`Parser`] that parses until the end of line (either `\n` or `\r\n`) or eof 
+    /// and consumes the line ending.
     ///
     /// Delegates to [`Self::parser_until_inclusive`] with the [`line_ending`] delimiter.
     #[inline]
     fn parser_until_line_ending_inclusive<'a>() -> impl Parser<&'a str, Self, ErrMode<ContextError>>
     {
-        Self::parser_until_inclusive(line_ending)
+        alt((
+            Self::parser_until_inclusive(line_ending),
+            Self::parser_until_inclusive(eof),
+        ))
     }
 }
 

@@ -16,7 +16,7 @@ use winnow::{
     error::{StrContext, StrContextValue},
     token::{take_till, take_until},
 };
-use alpm_parsers::traits::ParserUntilInclusive;
+use alpm_parsers::traits::{ParserUntil, ParserUntilInclusive};
 use crate::{Epoch, Error, PackageRelease, PackageVersion, Version};
 
 /// A package version with mandatory [`PackageRelease`].
@@ -149,10 +149,7 @@ impl FullVersion {
     pub fn parser(input: &mut &str) -> ModalResult<Self> {
         // Advance the parser until after a ':' if there is one, e.g.:
         // "1:1.0.0-1" -> "1.0.0-1"
-        let epoch = opt(terminated(take_till(1.., ':'), ':').and_then(
-            // cut_err now that we've found a pattern with ':'
-            cut_err(Epoch::parser),
-        ))
+        let epoch = opt(Epoch::parser_until_inclusive(':'))
         .context(StrContext::Expected(StrContextValue::Description(
             "followed by a ':'",
         )))
@@ -168,7 +165,7 @@ impl FullVersion {
 
         // Parse everything until eof as a PackageRelease, e.g.:
         // "1" -> ""
-        let pkgrel: PackageRelease = cut_err(PackageRelease::parser)
+        let pkgrel: PackageRelease = cut_err(PackageRelease::parser_until_eof())
             .context(StrContext::Expected(StrContextValue::Description(
                 "alpm-pkgrel string",
             )))

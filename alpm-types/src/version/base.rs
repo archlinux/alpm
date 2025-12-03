@@ -60,23 +60,23 @@ impl Epoch {
     pub fn new(epoch: NonZeroUsize) -> Self {
         Epoch(epoch)
     }
+}
 
-    /// Recognizes an [`Epoch`] in a string slice.
-    ///
-    /// Consumes all of its input.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if `input` is not a valid _alpm_epoch_.
-    pub fn parser(input: &mut &str) -> ModalResult<Self> {
-        terminated(dec_uint, eof)
-            .verify_map(NonZeroUsize::new)
-            .context(StrContext::Label("package epoch"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "positive non-zero decimal integer",
-            )))
-            .map(Self)
-            .parse_next(input)
+impl ParserUntil for Epoch {
+    fn parser_until<'a, O, P>(delimiter: P) -> impl Parser<&'a str, Self, ErrMode<ContextError>>
+    where
+        P: Parser<&'a str, O, ErrMode<ContextError>> + Clone
+    {
+        terminated(
+            dec_uint
+                .verify_map(NonZeroUsize::new)
+                .context(StrContext::Label("package epoch"))
+                .context(StrContext::Expected(StrContextValue::Description(
+                    "positive non-zero decimal integer",
+                )))
+                .map(Self),
+            peek(delimiter),
+        )
     }
 }
 
@@ -84,7 +84,7 @@ impl FromStr for Epoch {
     type Err = Error;
     /// Create an Epoch from a string and return it in a Result
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser.parse(s)?)
+        Ok(Self::parser_until_eof().parse(s)?)
     }
 }
 
@@ -140,15 +140,13 @@ impl PackageRelease {
     pub fn new(major: usize, minor: Option<usize>) -> Self {
         PackageRelease { major, minor }
     }
+}
 
-    /// Recognizes a [`PackageRelease`] in a string slice.
-    ///
-    /// Consumes all of its input.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if `input` does not contain a valid [`PackageRelease`].
-    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+impl ParserUntil for PackageRelease {
+    fn parser_until<'a, O, P>(delimiter: P) -> impl Parser<&'a str, Self, ErrMode<ContextError>>
+    where
+        P: Parser<&'a str, O, ErrMode<ContextError>> + Clone
+    {
         seq!(Self {
             major: digit1.try_map(FromStr::from_str)
                 .context(StrContext::Label("package release"))
@@ -160,11 +158,10 @@ impl PackageRelease {
                 .context(StrContext::Expected(StrContextValue::Description(
                     "single '.' followed by positive decimal integer",
                 ))),
-            _: eof.context(StrContext::Expected(StrContextValue::Description(
+            _: peek(delimiter.clone()).context(StrContext::Expected(StrContextValue::Description(
                 "end of package release value",
             ))),
         })
-        .parse_next(input)
     }
 }
 
@@ -178,7 +175,7 @@ impl FromStr for PackageRelease {
     ///
     /// Returns an error if [`PackageRelease::parser`] fails.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser.parse(s)?)
+        Ok(Self::parser_until_eof().parse(s)?)
     }
 }
 

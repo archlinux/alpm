@@ -18,7 +18,7 @@ use winnow::{
     stream::Stream,
     token::take_until,
 };
-
+use alpm_parsers::traits::ParserUntil;
 use crate::{
     Architecture,
     CompressionAlgorithmFileExtension,
@@ -332,7 +332,7 @@ impl PackageFileName {
             )
             .take()
             // example-package
-            .and_then(Name::parser),
+            .and_then(Name::parser_until_eof()),
         )
         .context(StrContext::Label("alpm-package-name"))
         .parse_next(input)?;

@@ -16,7 +16,9 @@ use winnow::{
     error::{StrContext, StrContextValue},
     token::take_while,
 };
-
+use winnow::combinator::peek;
+use winnow::error::{ContextError, ErrMode};
+use alpm_parsers::traits::ParserUntil;
 use crate::{Error, Version};
 
 /// A version requirement, e.g. for a dependency package.
@@ -82,25 +84,23 @@ impl VersionRequirement {
     pub fn is_satisfied_by(&self, ver: &Version) -> bool {
         self.comparison.is_compatible_with(ver.cmp(&self.version))
     }
+}
 
-    /// Recognizes a [`VersionRequirement`] in a string slice.
-    ///
-    /// Consumes all of its input.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if `input` is not a valid _alpm-comparison_.
-    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+impl ParserUntil for VersionRequirement {
+    fn parser_until<'a, O, P>(
+        delimiter: P,
+    ) -> impl Parser<&'a str, Self, ErrMode<ContextError>>
+    where
+        P: Parser<&'a str, O, ErrMode<ContextError>> + Clone,
+    {
         seq!(Self {
-            comparison: take_while(1.., ('<', '>', '='))
-                // add context here because otherwise take_while can fail and provide no information
-                .context(StrContext::Expected(StrContextValue::Description(
-                    "version comparison operator"
-                )))
-                .and_then(VersionComparison::parser),
-            version: Version::parser,
+            comparison: alt((
+                VersionComparison::parser_until('<'),
+                VersionComparison::parser_until('>'),
+                VersionComparison::parser_until('='),
+            )),
+            version: Version::parser_until(delimiter.clone()),
         })
-        .parse_next(input)
     }
 }
 
@@ -121,7 +121,7 @@ impl FromStr for VersionRequirement {
     ///
     /// Returns an error if [`VersionRequirement::parser`] fails.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser.parse(s)?)
+        Ok(Self::parser_until_eof().parse(s)?)
     }
 }
 
@@ -200,26 +200,25 @@ impl VersionComparison {
             | (VersionComparison::Greater, Ordering::Less | Ordering::Equal) => false,
         }
     }
+}
 
-    /// Recognizes a [`VersionComparison`] in a string slice.
-    ///
-    /// Consumes all of its input.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if `input` is not a valid _alpm-comparison_.
-    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+impl ParserUntil for VersionComparison {
+    fn parser_until<'a, O, P>(
+        delimiter: P,
+    ) -> impl Parser<&'a str, Self, ErrMode<ContextError>>
+    where
+        P: Parser<&'a str, O, ErrMode<ContextError>> + Clone,
+    {
         alt((
-            // insert eofs here (instead of after alt call) so correct error message is thrown
-            ("<=", eof).value(Self::LessOrEqual),
-            (">=", eof).value(Self::GreaterOrEqual),
-            ("=", eof).value(Self::Equal),
-            ("<", eof).value(Self::Less),
-            (">", eof).value(Self::Greater),
+            // insert delimiter here (instead of after alt call) so correct error message is thrown
+            ("<=", peek(delimiter.clone())).value(Self::LessOrEqual),
+            (">=", peek(delimiter.clone())).value(Self::GreaterOrEqual),
+            ("=", peek(delimiter.clone())).value(Self::Equal),
+            ("<", peek(delimiter.clone())).value(Self::Less),
+            (">", peek(delimiter.clone())).value(Self::Greater),
             fail.context(StrContext::Label("comparison operator"))
                 .context_with(iter_str_context!([VersionComparison::VARIANTS])),
         ))
-        .parse_next(input)
     }
 }
 
@@ -234,7 +233,7 @@ impl FromStr for VersionComparison {
     ///
     /// Returns an error if [`VersionComparison::parser`] fails.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser.parse(s)?)
+        Ok(Self::parser_until_eof().parse(s)?)
     }
 }
 

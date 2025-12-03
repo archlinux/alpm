@@ -25,6 +25,7 @@ use winnow::{
     stream::Stream,
     token::{any, rest, take_till, take_until, take_while},
 };
+use winnow::error::{ContextError, ErrMode};
 use alpm_parsers::traits::ParserUntil;
 use crate::{
     ElfArchitectureFormat,
@@ -54,35 +55,35 @@ impl FromStr for VersionOrSoname {
         Ok(Self::parser.parse(s)?)
     }
 }
+impl ParserUntil for VersionOrSoname {
+    fn parser_until<'a, O, P>(delimiter: P) -> impl Parser<&'a str, Self, ErrMode<ContextError>>
+    where
+        P: Parser<&'a str, O, ErrMode<ContextError>> + Clone,
+    {
+        move |input: &mut &'a str| {
+            // In the following, we're doing our own `alt` implementation.
+            // The reason for this is that we build our type parsers so that they throw errors
+            // if they encounter unexpected input instead of backtracking.
+            let checkpoint = input.checkpoint();
+            let soname_result = SharedObjectName::parser_until(delimiter.clone()).parse_next(input);
+            if soname_result.is_ok() {
+                let soname = soname_result?;
+                return Ok(VersionOrSoname::Soname(soname));
+            }
 
-impl VersionOrSoname {
-    /// Recognizes a [`PackageVersion`] or [`SharedObjectName`] in a string slice.
-    ///
-    /// First attempts to recognize a [`SharedObjectName`] and if that fails, falls back to
-    /// recognizing a [`PackageVersion`].
-    pub fn parser(input: &mut &str) -> ModalResult<Self> {
-        // In the following, we're doing our own `alt` implementation.
-        // The reason for this is that we build our type parsers so that they throw errors
-        // if they encounter unexpected input instead of backtracking.
-        let checkpoint = input.checkpoint();
-        let soname_result = SharedObjectName::parser.parse_next(input);
-        if soname_result.is_ok() {
-            let soname = soname_result?;
-            return Ok(VersionOrSoname::Soname(soname));
+            input.reset(&checkpoint);
+            let version_result = PackageVersion::parser_until(delimiter.clone()).parse_next(input);
+            if version_result.is_ok() {
+                let version = version_result?;
+                return Ok(VersionOrSoname::Version(version));
+            }
+
+            cut_err(fail)
+                .context(StrContext::Expected(StrContextValue::Description(
+                    "version or shared object name",
+                )))
+                .parse_next(input)
         }
-
-        input.reset(&checkpoint);
-        let version_result = PackageVersion::parser_until_eof().parse_next(input);
-        if version_result.is_ok() {
-            let version = version_result?;
-            return Ok(VersionOrSoname::Version(version));
-        }
-
-        cut_err(fail)
-            .context(StrContext::Expected(StrContextValue::Description(
-                "version or shared object name",
-            )))
-            .parse_next(input)
     }
 }
 
@@ -318,52 +319,52 @@ impl SonameV1 {
         }
     }
 
-    /// Parses a [`SonameV1`] from a string slice.
-    pub fn parser(input: &mut &str) -> ModalResult<Self> {
-        // Parse the shared object name.
-        let name = Self::parse_shared_object_name(input)?;
-
-        // Parse the version delimiter `=`.
-        //
-        // If it doesn't exist, it is the basic form.
-        if Self::parse_version_delimiter(input).is_err() {
-            return Ok(SonameV1::Basic(name));
-        }
-
-        // Take all input until we hit the delimiter and architecture.
-        let (raw_version_or_soname, _): (String, _) =
-            cut_err(repeat_till(1.., any, peek(("-", digit1, eof))))
-                .context(StrContext::Expected(StrContextValue::Description(
-                    "a version or shared object name, followed by an ELF architecture format",
-                )))
-                .parse_next(input)?;
-
-        // Two cases are possible here:
-        //
-        // 1. Unversioned: `name=soname-architecture`
-        // 2. Explicit: `name=version-architecture`
-        let version_or_soname =
-            VersionOrSoname::parser.parse_next(&mut raw_version_or_soname.as_str())?;
-
-        // Parse the `-` delimiter
-        Self::parse_architecture_delimiter(input)?;
-
-        // Parse the architecture
-        let architecture = Self::parse_architecture(input)?;
-
-        match version_or_soname {
-            VersionOrSoname::Version(version) => Ok(SonameV1::Explicit {
-                name,
-                version,
-                architecture,
-            }),
-            VersionOrSoname::Soname(soname) => Ok(SonameV1::Unversioned {
-                name,
-                soname,
-                architecture,
-            }),
-        }
-    }
+    // /// Parses a [`SonameV1`] from a string slice.
+    // pub fn parser(input: &mut &str) -> ModalResult<Self> {
+    //     // Parse the shared object name.
+    //     let name = Self::parse_shared_object_name(input)?;
+    //
+    //     // Parse the version delimiter `=`.
+    //     //
+    //     // If it doesn't exist, it is the basic form.
+    //     if Self::parse_version_delimiter(input).is_err() {
+    //         return Ok(SonameV1::Basic(name));
+    //     }
+    //
+    //     // Take all input until we hit the delimiter and architecture.
+    //     let (raw_version_or_soname, _): (String, _) =
+    //         cut_err(repeat_till(1.., any, peek(("-", digit1, eof))))
+    //             .context(StrContext::Expected(StrContextValue::Description(
+    //                 "a version or shared object name, followed by an ELF architecture format",
+    //             )))
+    //             .parse_next(input)?;
+    //
+    //     // Two cases are possible here:
+    //     //
+    //     // 1. Unversioned: `name=soname-architecture`
+    //     // 2. Explicit: `name=version-architecture`
+    //     let version_or_soname =
+    //         VersionOrSoname::parser_until_eof().parse_next(&mut raw_version_or_soname.as_str())?;
+    //
+    //     // Parse the `-` delimiter
+    //     Self::parse_architecture_delimiter(input)?;
+    //
+    //     // Parse the architecture
+    //     let architecture = Self::parse_architecture(input)?;
+    //
+    //     match version_or_soname {
+    //         VersionOrSoname::Version(version) => Ok(SonameV1::Explicit {
+    //             name,
+    //             version,
+    //             architecture,
+    //         }),
+    //         VersionOrSoname::Soname(soname) => Ok(SonameV1::Unversioned {
+    //             name,
+    //             soname,
+    //             architecture,
+    //         }),
+    //     }
+    // }
 
     /// Parses the shared object name until the version delimiter `=`.
     fn parse_shared_object_name(input: &mut &str) -> ModalResult<SharedObjectName> {
@@ -403,6 +404,59 @@ impl SonameV1 {
             .try_map(ElfArchitectureFormat::from_str)
             .context(StrContext::Label("architecture"))
             .parse_next(input)
+    }
+}
+
+impl ParserUntil for SonameV1 {
+    fn parser_until<'a, O, P>(delimiter: P) -> impl Parser<&'a str, Self, ErrMode<ContextError>>
+    where
+        P: Parser<&'a str, O, ErrMode<ContextError>> + Clone,
+    {
+        move | input: &mut &'a str | {
+            // Parse the shared object name.
+            let name = alt((
+                SharedObjectName::parser_until("="),
+                SharedObjectName::parser_until(delimiter.clone()),
+            ))
+                .context(StrContext::Label("shared object name"))
+                .parse_next(input)?;
+
+            // Parse the version delimiter `=`.
+            //
+            // If it doesn't exist, it is the basic form.
+            if Self::parse_version_delimiter(input).is_err() {
+                return Ok(SonameV1::Basic(name));
+            }
+
+            // Two cases are possible here:
+            //
+            // 1. Unversioned: `name=soname-architecture`
+            // 2. Explicit: `name=version-architecture`
+            let version_or_soname = alt((
+                VersionOrSoname::parser_until('-'),
+                VersionOrSoname::parser_until(digit1),
+                VersionOrSoname::parser_until(delimiter.clone()),
+            ));
+
+            // Parse the `-` delimiter
+            Self::parse_architecture_delimiter(input)?;
+
+            // Parse the architecture
+            let architecture = Self::parse_architecture(input)?;
+
+            match version_or_soname {
+                VersionOrSoname::Version(version) => Ok(SonameV1::Explicit {
+                    name,
+                    version,
+                    architecture,
+                }),
+                VersionOrSoname::Soname(soname) => Ok(SonameV1::Unversioned {
+                    name,
+                    soname,
+                    architecture,
+                }),
+            }
+        }
     }
 }
 
@@ -448,7 +502,7 @@ impl FromStr for SonameV1 {
     /// # }
     /// ```
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser.parse(s)?)
+        Ok(Self::parser_until_eof().parse(s)?)
     }
 }
 
@@ -521,7 +575,7 @@ impl Soname {
             )
                 // Take both parts and map them onto a SharedObjectName
                 .take()
-                .and_then(Name::parser)
+                .and_then(Name::parser_until_eof())
                 .map(SharedObjectName),
         )
         .context(StrContext::Label("shared object name"))
@@ -783,25 +837,23 @@ impl PackageRelation {
             version_requirement,
         }
     }
+}
 
-    /// Parses a [`PackageRelation`] from a string slice.
-    ///
-    /// Consumes all of its input.
-    ///
-    /// # Examples
-    ///
-    /// See [`Self::from_str`] for code examples.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if `input` is not a valid _package-relation_.
-    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+impl ParserUntil for PackageRelation {
+    fn parser_until<'a, O, P>(delimiter: P) -> impl Parser<&'a str, Self, ErrMode<ContextError>>
+    where
+        P: Parser<&'a str, O, ErrMode<ContextError>> + Clone,
+    {
         seq!(Self {
-            name: take_till(1.., ('<', '>', '=')).and_then(Name::parser).context(StrContext::Label("package name")),
-            version_requirement: opt(VersionRequirement::parser),
-            _: eof.context(StrContext::Expected(StrContextValue::Description("end of relation version requirement"))),
+            name: alt((
+                Name::parser_until('<'),
+                Name::parser_until('>'),
+                Name::parser_until('='),
+                Name::parser_until(delimiter.clone()),
+            )).context(StrContext::Label("package name")),
+            version_requirement: opt(VersionRequirement::parser_until(delimiter.clone())),
+            _: peek(delimiter.clone()).context(StrContext::Expected(StrContextValue::Description("end of relation version requirement"))),
         })
-        .parse_next(input)
     }
 }
 
@@ -1130,7 +1182,7 @@ impl RelationOrSoname {
         }
 
         input.reset(&checkpoint);
-        let sonamev1_result = SonameV1::parser.parse_next(input);
+        let sonamev1_result = SonameV1::parser_until_eof().parse_next(input);
         if sonamev1_result.is_ok() {
             let sonamev1 = sonamev1_result?;
             return Ok(RelationOrSoname::SonameV1(sonamev1));

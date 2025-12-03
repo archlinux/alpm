@@ -72,7 +72,7 @@ pub(crate) fn handle_packages(
         // Check if the variable is assigned to a specific split package.
         // If it isn't, use the name of the base package instead, which is the default.
         let name = if let Some(name) = name.0 {
-            Name::parser
+            Name::parser_until_eof()
                 .parse(&name)
                 .map_err(|err| BridgeError::InvalidPackageName {
                     name: name.clone(),

@@ -29,13 +29,13 @@ impl TryFrom<BridgeOutput> for SourceInfoV1 {
         // Check if there's a `pkgbase` section, which hints that this is a split package.
         let pkgbase_keyword = Keyword::simple("pkgbase");
         if let Some(value) = value.package_base.remove(&pkgbase_keyword) {
-            name = Some(parse_value(&pkgbase_keyword, &value, Name::parser)?);
+            name = Some(parse_value(&pkgbase_keyword, &value, Name::parser_until_eof())?);
         }
 
         // Get the list of all packages that are declared.
         let pkgname_keyword = Keyword::simple("pkgname");
         let names = ensure_keyword_exists(&pkgname_keyword, &mut value.package_base)?;
-        let names = parse_value_array(&pkgname_keyword, &names, Name::parser)?;
+        let names = parse_value_array(&pkgname_keyword, &names, Name::parser_until_eof())?;
 
         // Use the `pkgbase` name by default, otherwise fallback to the first `pkgname` entry.
         let name = match name {
@@ -54,7 +54,7 @@ impl TryFrom<BridgeOutput> for SourceInfoV1 {
             let Some(name) = name.0 else { continue };
 
             let name =
-                Name::parser
+                Name::parser_until_eof()
                     .parse(&name)
                     .map_err(|err| BridgeError::InvalidPackageName {
                         name: name.clone(),

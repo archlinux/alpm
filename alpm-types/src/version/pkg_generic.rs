@@ -1,7 +1,7 @@
 //! A flexible and generic package version.
 
-use winnow::combinator::alt;
-use alpm_parsers::traits::ParserUntil;
+use winnow::combinator::{alt, peek};
+use alpm_parsers::traits::{ParserUntil, ParserUntilInclusive};
 use std::{
     cmp::Ordering,
     fmt::{Display, Formatter},
@@ -16,7 +16,7 @@ use winnow::{
     error::{StrContext, StrContextValue},
     token::take_till,
 };
-
+use winnow::error::{ContextError, ErrMode};
 use crate::{Epoch, Error, PackageRelease, PackageVersion};
 #[cfg(doc)]
 use crate::{FullVersion, MinimalVersion};
@@ -111,31 +111,20 @@ impl Version {
             Ordering::Greater => 1,
         }
     }
+}
 
-    /// Recognizes a [`Version`] in a string slice.
-    ///
-    /// Consumes all of its input.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if `input` is not a valid _alpm-package-version_.
-    pub fn parser(input: &mut &str) -> ModalResult<Self> {
-        let mut epoch = opt(terminated(take_till(1.., ':'), ':').and_then(
-            // cut_err now that we've found a pattern with ':'
-            cut_err(Epoch::parser),
-        ))
-        .context(StrContext::Expected(StrContextValue::Description(
-            "followed by a ':'",
-        )));
-
+impl ParserUntil for Version {
+    fn parser_until<'a, O, P>(delimiter: P) -> impl Parser<&'a str, Self, ErrMode<ContextError>>
+    where
+        P: Parser<&'a str, O, ErrMode<ContextError>> + Clone
+    {
         seq!(Self {
-            epoch: epoch,
+            epoch: opt(Epoch::parser_until_inclusive(':')),
             pkgver: alt((PackageVersion::parser_until('-'), PackageVersion::parser_until_eof()))
                 .context(StrContext::Expected(StrContextValue::Description("pkgver string"))),
-            pkgrel: opt(preceded('-', cut_err(PackageRelease::parser))),
-            _: eof.context(StrContext::Expected(StrContextValue::Description("end of version string"))),
+            pkgrel: opt(preceded('-', cut_err(PackageRelease::parser_until(delimiter.clone())))),
+            _: peek(delimiter.clone()).context(StrContext::Expected(StrContextValue::Description("end of version string"))),
         })
-        .parse_next(input)
     }
 }
 

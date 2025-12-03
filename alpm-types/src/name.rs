@@ -14,7 +14,10 @@ use winnow::{
     stream::Stream,
     token::{any, one_of, rest},
 };
-
+use winnow::binary::length_take;
+use winnow::combinator::terminated;
+use winnow::error::{ContextError, ErrMode};
+use alpm_parsers::traits::{ParserUntil, ParserUntilInclusive};
 use crate::Error;
 
 /// A build tool name
@@ -142,46 +145,42 @@ impl Name {
     pub fn inner(&self) -> &str {
         &self.0
     }
+}
 
-    /// Recognizes a [`Name`] in a string slice.
+impl ParserUntil for Name {
+    /// Recognizes a [`Name`] in a string slice until the given `delimiter` parser matches.
     ///
-    /// Consumes all of its input.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if `input` contains an invalid _alpm-package-name_.
-    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+    /// Does not consume the `delimiter`.
+    fn parser_until<'a, O, P>(delimiter: P) -> impl Parser<&'a str, Self, ErrMode<ContextError>>
+    where
+        P: Parser<&'a str, O, ErrMode<ContextError>> + Clone
+    {
         let alphanum = |c: char| c.is_ascii_alphanumeric();
-        let special_first_chars = ['_', '@', '+'];
-        let first_char = one_of((alphanum, special_first_chars))
+        const SPECIAL_FIRST_CHARS: [char; 3] = ['_', '@', '+'];
+        let first_char = one_of((alphanum, SPECIAL_FIRST_CHARS))
             .context(StrContext::Label("first character of package name"))
             .context(StrContext::Expected(StrContextValue::Description(
                 "ASCII alphanumeric character",
             )))
-            .context_with(iter_char_context!(special_first_chars));
+            .context_with(iter_char_context!(SPECIAL_FIRST_CHARS));
 
-        let never_first_special_chars = ['_', '@', '+', '-', '.'];
-        let never_first_char = one_of((alphanum, never_first_special_chars));
+        const SPECIAL_REMAINING_CHARS: [char; 5] = ['_', '@', '+', '-', '.'];
+        let remaining_char = one_of((alphanum, SPECIAL_REMAINING_CHARS));
 
         // no .context() because this is infallible due to `0..`
         // note the empty tuple collection to avoid allocation
-        let remaining_chars: Repeat<_, _, _, (), _> = repeat(0.., never_first_char);
-
-        let full_parser = (
-            first_char,
-            remaining_chars,
-            // bad characters fall through to eof so we insert that context here
-            eof.context(StrContext::Label("character in package name"))
+        let remaining_chars: Repeat<_, _, _, (), _> = repeat(0.., remaining_char);
+        terminated(
+            (first_char, remaining_chars),
+            // bad characters fall through to delimiter so we insert that context here
+            peek(delimiter).context(StrContext::Label("character in package name"))
                 .context(StrContext::Expected(StrContextValue::Description(
                     "ASCII alphanumeric character",
                 )))
-                .context_with(iter_char_context!(never_first_special_chars)),
-        );
-
-        full_parser
+                .context_with(iter_char_context!(SPECIAL_REMAINING_CHARS)),
+        )
             .take()
             .map(|n: &str| Name(n.to_owned()))
-            .parse_next(input)
     }
 }
 
@@ -190,13 +189,13 @@ impl FromStr for Name {
 
     /// Creates a [`Name`] from a string slice.
     ///
-    /// Delegates to [`Name::parser`].
+    /// Delegates to [`Name::parser_until_eof`].
     ///
     /// # Errors
     ///
-    /// Returns an error if [`Name::parser`] fails.
+    /// Returns an error if [`Name::parser_until_eof`] fails.
     fn from_str(s: &str) -> Result<Name, Self::Err> {
-        Ok(Self::parser.parse(s)?)
+        Ok(Self::parser_until_eof().parse(s)?)
     }
 }
 
@@ -244,45 +243,50 @@ impl SharedObjectName {
     pub fn as_str(&self) -> &str {
         self.0.as_ref()
     }
+}
 
-    /// Parses a [`SharedObjectName`] from a string slice.
-    pub fn parser(input: &mut &str) -> ModalResult<Self> {
-        // Make a checkpoint for parsing the full name in one go later on.
-        // The full name will later on include the `.so` extension, but we have to make sure first
-        // that the name has the correct structure.
-        // (a filename followed by one or more `.so` suffixes)
-        let checkpoint = input.checkpoint();
+impl ParserUntil for SharedObjectName {
+    fn parser_until<'a, O, P>(delimiter: P) -> impl Parser<&'a str, Self, ErrMode<ContextError>>
+    where
+        P: Parser<&'a str, O, ErrMode<ContextError>> + Clone
+    {
+        move |input: &mut &'a str| {
+            // Make a checkpoint for parsing the full name in one go later on.
+            // The full name will later on include the `.so` extension, but we have to make sure first
+            // that the name has the correct structure.
+            // (a filename followed by one or more `.so` suffixes)
+            let checkpoint = input.checkpoint();
 
-        // Parse the name of the shared object until eof or the `.so` is hit.
-        repeat_till::<_, _, String, _, _, _, _>(1.., any, peek(alt((".so", eof))))
-            .context(StrContext::Label("name"))
-            .parse_next(input)?;
+            // Parse the name of the shared object until delimiter or the `.so` is hit.
+            repeat_till::<_, _, String, _, _, _, _>(1.., any, peek(alt((".so", delimiter.clone().map(|_| "")))))
+                .context(StrContext::Label("name"))
+                .parse_next(input)?;
 
-        // Parse at least one or more `.so` suffix(es).
-        cut_err(repeat::<_, _, String, _, _>(1.., ".so").take())
-            .context(StrContext::Label("suffix"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "shared object name suffix '.so'",
-            )))
-            .parse_next(input)?;
+            // Parse at least one or more `.so` suffix(es).
+            cut_err(repeat::<_, _, String, _, _>(1.., ".so").take())
+                .context(StrContext::Label("suffix"))
+                .context(StrContext::Expected(StrContextValue::Description(
+                    "shared object name suffix '.so'",
+                )))
+                .parse_next(input)?;
 
-        // Ensure that there is no trailing content
-        cut_err(eof)
-            .context(StrContext::Label(
-                "unexpected trailing content after shared object name.",
-            ))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "end of input.",
-            )))
-            .parse_next(input)?;
+            // Ensure that there is no trailing content
+            cut_err(peek(delimiter.clone()))
+                .context(StrContext::Label(
+                    "unexpected trailing content after shared object name.",
+                ))
+                .context(StrContext::Expected(StrContextValue::Description(
+                    "end of input.",
+                )))
+                .parse_next(input)?;
 
-        input.reset(&checkpoint);
-        let name = rest
-            .and_then(Name::parser)
-            .context(StrContext::Label("name"))
-            .parse_next(input)?;
+            input.reset(&checkpoint);
+            let name = Name::parser_until(delimiter.clone())
+                .context(StrContext::Label("name"))
+                .parse_next(input)?;
 
-        Ok(SharedObjectName(name))
+            Ok(SharedObjectName(name))
+        }
     }
 }
 
@@ -290,7 +294,7 @@ impl FromStr for SharedObjectName {
     type Err = Error;
     /// Create an [`SharedObjectName`] from a string and return it in a Result
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser.parse(s)?)
+        Ok(Self::parser_until_eof().parse(s)?)
     }
 }
 

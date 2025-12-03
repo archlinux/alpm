@@ -142,10 +142,7 @@ impl MinimalVersion {
     pub fn parser(input: &mut &str) -> ModalResult<Self> {
         // Advance the parser until after a ':' if there is one, e.g.:
         // "1:1.0.0-1" -> "1.0.0-1"
-        let epoch = opt(terminated(take_till(1.., ':'), ':').and_then(
-            // cut_err now that we've found a pattern with ':'
-            cut_err(Epoch::parser),
-        ))
+        let epoch = opt(Epoch::parser_until_inclusive(':'))
         .context(StrContext::Expected(StrContextValue::Description(
             "followed by a ':'",
         )))

@@ -638,7 +638,7 @@ impl InstalledPackage {
             )
             .take()
             // example-package
-            .and_then(Name::parser),
+            .and_then(Name::parser_until_eof()),
         )
         .context(StrContext::Label("alpm-package-name"))
         .parse_next(input)?;
