@@ -1,0 +1,17 @@
+[package]
+authors.workspace = true
+description = "Library for ALPM dependency solving, generic over metadata file type."
+edition.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+license.workspace = true
+name = "alpm-solve"
+readme = "README.md"
+repository.workspace = true
+rust-version.workspace = true
+version = "0.1.0"
+
+[dependencies]
+
+[lints]
+workspace = true
