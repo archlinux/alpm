@@ -152,7 +152,7 @@ pub type StartDirectory = AbsolutePath;
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct RelativeFilePath(PathBuf);
 
 impl RelativeFilePath {
