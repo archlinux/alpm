@@ -328,6 +328,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "alpm-solve"
+version = "0.1.0"
+
+[[package]]
 name = "alpm-soname"
 version = "0.3.0"
 dependencies = [
