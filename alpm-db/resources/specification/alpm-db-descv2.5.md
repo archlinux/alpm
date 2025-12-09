@@ -125,13 +125,18 @@ See **SPDX License List**[4] for further information.
 
 ### %VALIDATION%
 
-The validation method used during installation of the package ensuring its authenticity.
-The value must be one of the following:
+The validation methods used during installation of the package ensuring its authenticity.
+Values may be present one or more times.
+Only the following values are understood:
 
 - `none`: The package integrity and authenticity is not validated.
 - `md5`: The package is validated against an accompanying MD-5 hash digest in an **alpm-repo-db** that belongs to the repository from which the package is installed.
 - `sha256`: The package is validated against an accompanying SHA-256 hash digest in the **alpm-repo-db** that belongs to the repository from which the package is installed.
 - `pgp`: The package's authenticity and integrity is validated using a detached **OpenPGP signature**[5] and a system-wide collection of **OpenPGP certificates**[6].
+  The digital signature may either be present in the `%PGPSIG%` field of an **alpm-repo-db** or as a separate file, alongside the package file.
+
+The `md5` `sha256` and `pgp` values can be used in combination to indicate that all of them apply (e.g. a package file may be validated with both a SHA-256 hash digest and a detached **OpenPGP signature**[5]).
+However, if no validation is performed, only `none` is allowed as value.
 
 ### %REPLACES%
 
