@@ -59,6 +59,7 @@ MIT
 Apache-2.0
 
 %VALIDATION%
+sha256
 pgp
 
 %REPLACES%
@@ -128,6 +129,7 @@ MIT
 Apache-2.0
 
 %VALIDATION%
+sha256
 pgp
 
 %REPLACES%
@@ -260,6 +262,8 @@ mod create_cli {
             "MIT",
             "--license",
             "Apache-2.0",
+            "--validation",
+            "sha256",
             "--validation",
             "pgp",
             "--replaces",
@@ -465,7 +469,7 @@ mod create_env {
         // Insert all group parameters
         env_join_list!("ALPM_DB_DESC_GROUPS", inner.groups);
         env_join_list!("ALPM_DB_DESC_LICENSE", inner.license);
-        envs.insert("ALPM_DB_DESC_VALIDATION", inner.validation.to_string());
+        env_join_list!("ALPM_DB_DESC_VALIDATION", inner.validation);
         env_join_list!("ALPM_DB_DESC_REPLACES", inner.replaces);
         env_join_list!("ALPM_DB_DESC_DEPENDS", inner.depends);
         env_join_list!("ALPM_DB_DESC_OPTDEPENDS", inner.optdepends, ",");

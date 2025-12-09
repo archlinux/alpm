@@ -156,7 +156,7 @@ pub enum Section {
     /// %LICENSE%
     License(Vec<License>),
     /// %VALIDATION%
-    Validation(PackageValidation),
+    Validation(Vec<PackageValidation>),
     /// %REPLACES%
     Replaces(Vec<PackageRelation>),
     /// %DEPENDS%
@@ -282,7 +282,7 @@ fn section(input: &mut &str) -> ModalResult<Section> {
         SectionKeyword::Groups => Section::Groups(values(input)?),
         SectionKeyword::Reason => Section::Reason(value(input)?),
         SectionKeyword::License => Section::License(values(input)?),
-        SectionKeyword::Validation => Section::Validation(value(input)?),
+        SectionKeyword::Validation => Section::Validation(values(input)?),
         SectionKeyword::Replaces => Section::Replaces(values(input)?),
         SectionKeyword::Depends => Section::Depends(values(input)?),
         SectionKeyword::OptDepends => Section::OptDepends(values(input)?),

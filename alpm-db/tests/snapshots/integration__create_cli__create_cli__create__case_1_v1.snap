@@ -1,6 +1,6 @@
 ---
 source: alpm-db/tests/integration.rs
-description: "alpm-db-desc create v1 --name foo --version 1.0.0-1 --base foo --description An example package --url https://example.org --arch x86_64 --builddate 1733737242 --installdate 1733737243 --packager Foobar McFooface <foobar@mcfooface.org> --size 123 --groups utils --groups cli --reason 1 --license MIT --license Apache-2.0 --validation pgp --replaces pkg-old --depends glibc --optdepends optpkg: description of optpkg --conflicts foo-old --provides foo-virtual desc"
+description: "alpm-db-desc create v1 --name foo --version 1.0.0-1 --base foo --description An example package --url https://example.org --arch x86_64 --builddate 1733737242 --installdate 1733737243 --packager Foobar McFooface <foobar@mcfooface.org> --size 123 --groups utils --groups cli --reason 1 --license MIT --license Apache-2.0 --validation sha256 --validation pgp --replaces pkg-old --depends glibc --optdepends optpkg: description of optpkg --conflicts foo-old --provides foo-virtual desc"
 expression: s
 ---
 %NAME%
@@ -45,6 +45,7 @@ MIT
 Apache-2.0
 
 %VALIDATION%
+sha256
 pgp
 
 %REPLACES%

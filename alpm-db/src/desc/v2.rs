@@ -171,7 +171,7 @@ pub struct DbDescFileV2 {
     pub license: Vec<License>,
 
     /// Validation methods used for the package archive.
-    pub validation: PackageValidation,
+    pub validation: Vec<PackageValidation>,
 
     /// Packages this one replaces.
     pub replaces: Vec<PackageRelation>,
@@ -388,6 +388,7 @@ MIT
 Apache-2.0
 
 %VALIDATION%
+sha256
 pgp
 
 %REPLACES%
@@ -431,7 +432,10 @@ pkgtype=pkg
             groups: vec!["utils".into(), "cli".into()],
             reason: PackageInstallReason::Depend,
             license: vec![License::from_str("MIT")?, License::from_str("Apache-2.0")?],
-            validation: PackageValidation::from_str("pgp")?,
+            validation: vec![
+                PackageValidation::from_str("sha256")?,
+                PackageValidation::from_str("pgp")?,
+            ],
             replaces: vec![PackageRelation::from_str("pkg-old")?],
             depends: vec![
                 RelationOrSoname::from_str("glibc")?,

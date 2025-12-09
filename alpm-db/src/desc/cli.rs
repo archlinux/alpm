@@ -156,8 +156,14 @@ pub struct V1CreateArgs {
     pub license: Vec<License>,
 
     /// The package validation methods.
-    #[arg(env = "ALPM_DB_DESC_VALIDATION", long)]
-    pub validation: PackageValidation,
+    #[arg(
+        env = "ALPM_DB_DESC_VALIDATION",
+        long,
+        value_delimiter = ' ',
+        num_args = 1..,
+        required = true
+    )]
+    pub validation: Vec<PackageValidation>,
 
     /// The replaces.
     #[arg(env = "ALPM_DB_DESC_REPLACES", long, value_delimiter = ' ')]

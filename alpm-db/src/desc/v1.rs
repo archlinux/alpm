@@ -165,8 +165,8 @@ pub struct DbDescFileV1 {
     /// Licenses that apply to the package.
     pub license: Vec<License>,
 
-    /// Validation method used for the package.
-    pub validation: PackageValidation,
+    /// Validation methods used for the package.
+    pub validation: Vec<PackageValidation>,
 
     /// Packages this one replaces.
     pub replaces: Vec<PackageRelation>,
@@ -230,7 +230,7 @@ impl Display for DbDescFileV1 {
             single(f, "REASON", &self.reason)?;
         }
         section(f, "LICENSE", &self.license)?;
-        single(f, "VALIDATION", &self.validation)?;
+        section(f, "VALIDATION", &self.validation)?;
         section(f, "REPLACES", &self.replaces)?;
         section(f, "DEPENDS", &self.depends)?;
         section(f, "OPTDEPENDS", &self.optdepends)?;
@@ -405,7 +405,9 @@ impl TryFrom<Vec<Section>> for DbDescFileV1 {
             groups,
             reason: reason.unwrap_or(PackageInstallReason::Explicit),
             license,
-            validation: validation.ok_or(Error::MissingSection(SectionKeyword::Validation))?,
+            validation: validation
+                .filter(|v| !v.is_empty())
+                .ok_or(Error::MissingSection(SectionKeyword::Validation))?,
             replaces,
             depends,
             optdepends,
@@ -498,6 +500,7 @@ MIT
 Apache-2.0
 
 %VALIDATION%
+sha256
 pgp
 
 %REPLACES%
@@ -731,7 +734,10 @@ pgp
             groups: vec!["utils".into(), "cli".into()],
             reason: PackageInstallReason::Depend,
             license: vec![License::from_str("MIT")?, License::from_str("Apache-2.0")?],
-            validation: PackageValidation::from_str("pgp")?,
+            validation: vec![
+                PackageValidation::from_str("sha256")?,
+                PackageValidation::from_str("pgp")?,
+            ],
             replaces: vec![PackageRelation::from_str("pkg-old")?],
             depends: vec![
                 RelationOrSoname::from_str("glibc")?,
@@ -764,7 +770,7 @@ pgp
             groups: Vec::new(),
             reason: PackageInstallReason::Explicit,
             license: Vec::new(),
-            validation: PackageValidation::from_str("pgp")?,
+            validation: vec![PackageValidation::from_str("pgp")?],
             replaces: Vec::new(),
             depends: Vec::new(),
             optdepends: Vec::new(),
@@ -789,7 +795,7 @@ pgp
             groups: Vec::new(),
             reason: PackageInstallReason::Explicit,
             license: Vec::new(),
-            validation: PackageValidation::from_str("pgp")?,
+            validation: vec![PackageValidation::from_str("pgp")?],
             replaces: Vec::new(),
             depends: Vec::new(),
             optdepends: Vec::new(),
@@ -814,7 +820,7 @@ pgp
             groups: Vec::new(),
             reason: PackageInstallReason::Explicit,
             license: Vec::new(),
-            validation: PackageValidation::from_str("pgp")?,
+            validation: vec![PackageValidation::from_str("pgp")?],
             replaces: Vec::new(),
             depends: Vec::new(),
             optdepends: Vec::new(),
@@ -839,7 +845,7 @@ pgp
             groups: Vec::new(),
             reason: PackageInstallReason::Explicit,
             license: Vec::new(),
-            validation: PackageValidation::from_str("pgp")?,
+            validation: vec![PackageValidation::from_str("pgp")?],
             replaces: Vec::new(),
             depends: Vec::new(),
             optdepends: Vec::new(),
@@ -864,7 +870,7 @@ pgp
             groups: Vec::new(),
             reason: PackageInstallReason::Explicit,
             license: Vec::new(),
-            validation: PackageValidation::from_str("pgp")?,
+            validation: vec![PackageValidation::from_str("pgp")?],
             replaces: Vec::new(),
             depends: Vec::new(),
             optdepends: Vec::new(),

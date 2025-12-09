@@ -62,6 +62,7 @@ Foobar McFooface <foobar@mcfooface.org>
 123
 
 %VALIDATION%
+sha256
 pgp
 
 "#;
@@ -111,6 +112,7 @@ Foobar McFooface <foobar@mcfooface.org>
 123
 
 %VALIDATION%
+sha256
 pgp
 
 %XDATA%
@@ -154,6 +156,7 @@ alpm-db-desc create v2 \
     --installdate 1733737243 \
     --packager "Foobar McFooface <foobar@mcfooface.org>" \
     --size 123 \
+    --validation sha256 \
     --validation pgp \
     --optdepends libfoo,libbar \
     --optdepends "libdesc: Optional dependency with description" \
@@ -197,6 +200,7 @@ Foobar McFooface <foobar@mcfooface.org>
 123
 
 %VALIDATION%
+sha256
 pgp
 
 %OPTDEPENDS%
@@ -249,7 +253,10 @@ cat > "$DBDESC_JSON.expected" <<'EOF'
   "groups": [],
   "reason": "Explicit",
   "license": [],
-  "validation": "Pgp",
+  "validation": [
+    "Sha256",
+    "Pgp"
+  ],
   "replaces": [],
   "depends": [],
   "optdepends": [
