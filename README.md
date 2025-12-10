@@ -16,6 +16,8 @@ Read the [official announcement] for more information.
 
 The latest project documentation can be found at <https://alpm.archlinux.page>
 
+Documentation for all current ALPM lints is available at <https://alpm.archlinux.page/lints/>
+
 ## Overview
 
 The following mindmap attempts to provide a high-level overview of the project and put file types as well as (existing and upcoming) libraries into context.
@@ -64,7 +66,7 @@ For an overview of planned specifications and components, refer to the [mileston
 
 ## Components
 
-Currently the following components are available:
+Currently the following software components are available:
 
 - [alpm-buildinfo]: a library and commandline interface to work with [BUILDINFO] files
 - [alpm-common]: a library for common traits and functionality
@@ -72,7 +74,6 @@ Currently the following components are available:
 - [alpm-db-desc]: a library and commandline interface to work with ALPM database [desc] files
 - [alpm-files]: library and command line tool for the handling of [alpm-repo-files][spec:alpm-repo-files] and [alpm-db-files][spec:alpm-db-files] files
 - [alpm-lint]: a linting tool for everything around Arch Linux packaging.
-- [alpm-lint-website]: a website for easily accessible documentation of lints.
 - [alpm-mtree]: a library and commandline interface to work with [ALPM-MTREE] files
 - [alpm-package]: a library for the creation of [alpm-package][spec:alpm-package] files
 - [alpm-parsers]: a library for providing various custom parsers/deserializers for file types used in ALPM
@@ -118,7 +119,6 @@ Contributions to this project, unless noted otherwise, are automatically license
 [alpm-db-desc]: alpm-db/
 [alpm-files]: alpm-files/
 [alpm-lint]: alpm-lint/
-[alpm-lint-website]: /lints
 [alpm-mtree]: alpm-mtree/
 [alpm-package]: alpm-package/
 [alpm-parsers]: alpm-parsers/
