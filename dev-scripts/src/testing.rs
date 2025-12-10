@@ -105,19 +105,26 @@ impl TestRunner {
 
         // Cache the certificates used for VOA-based verification as that significantly increases
         // speed.
-        let certs = if matches!(self.file_type, TestFileType::Signatures) {
-            read_openpgp_verifiers(
+        let (artifact_verifiers, anchors) = if matches!(self.file_type, TestFileType::Signatures) {
+            let artifact_verifiers = read_openpgp_verifiers(
                 Os::from_str("arch").map_err(|source| Error::Voa(voa::Error::VoaCore(source)))?,
                 Purpose::from_str("package")
                     .map_err(|source| Error::Voa(voa::Error::VoaCore(source)))?,
                 Context::Default,
-            )
+            );
+            let anchors = read_openpgp_verifiers(
+                Os::from_str("arch").map_err(|source| Error::Voa(voa::Error::VoaCore(source)))?,
+                Purpose::from_str("trust-anchor-package")
+                    .map_err(|source| Error::Voa(voa::Error::VoaCore(source)))?,
+                Context::Default,
+            );
+            (artifact_verifiers, anchors)
         } else {
-            Vec::new()
+            (Vec::new(), Vec::new())
         };
 
         let cfg = OpenpgpSettings::default();
-        let model_verifier = ModelbasedVerifier::new(&cfg, &certs, &[]);
+        let model_verifier = ModelbasedVerifier::new(&cfg, &artifact_verifiers, &anchors);
 
         let progress_bar = get_progress_bar(test_files.len() as u64);
 
