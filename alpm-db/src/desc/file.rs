@@ -5,7 +5,7 @@ use std::{
     str::FromStr,
 };
 
-use alpm_common::{FileFormatSchema, MetadataFile, Named, RuntimeRelations, Versioned};
+use alpm_common::{FileFormatSchema, Installed, MetadataFile, Named, RuntimeRelations, Versioned};
 use alpm_types::{FullVersion, Name, OptionalDependency, PackageRelation, RelationOrSoname};
 use fluent_i18n::t;
 
@@ -399,6 +399,15 @@ impl RuntimeRelations for DbDescFile {
         match self {
             Self::V1(file) => file.get_replaces(),
             Self::V2(file) => file.get_replaces(),
+        }
+    }
+}
+
+impl Installed for DbDescFile {
+    fn install_reason(&self) -> alpm_types::PackageInstallReason {
+        match self {
+            Self::V1(file) => file.install_reason(),
+            Self::V2(file) => file.install_reason(),
         }
     }
 }

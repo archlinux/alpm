@@ -46,6 +46,10 @@ pub trait Installed {
 /// A trait for generic package metadata combining naming, versioning, and runtime relations.
 pub trait GenericPackageMetadata: Named + Versioned + RuntimeRelations {}
 
+impl<T> GenericPackageMetadata for T where T: Named + Versioned + RuntimeRelations {}
+
 /// A trait for generic installed package metadata combining generic package metadata and
 /// metadata specific to installed packages.
 pub trait GenericInstalledPackageMetadata: GenericPackageMetadata + Installed {}
+
+impl<T> GenericInstalledPackageMetadata for T where T: GenericPackageMetadata + Installed {}

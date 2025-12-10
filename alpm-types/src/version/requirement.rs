@@ -42,7 +42,7 @@ use crate::{Error, Version};
 /// ```
 ///
 /// [alpm-comparison]: https://alpm.archlinux.page/specifications/alpm-comparison.7.html
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize, Hash)]
 pub struct VersionRequirement {
     /// Version comparison function
     pub comparison: VersionComparison,
@@ -80,7 +80,17 @@ impl VersionRequirement {
     /// # }
     /// ```
     pub fn is_satisfied_by(&self, ver: &Version) -> bool {
-        self.comparison.is_compatible_with(ver.cmp(&self.version))
+        // If the requirement does not specify a pkgrel, we ignore it in the comparison.
+        // so that `foo=1` can be satisfied by `foo=1-1`.
+        let other_version = if self.version.pkgrel.is_none() {
+            &Version {
+                pkgrel: None,
+                ..ver.clone()
+            }
+        } else {
+            ver
+        };
+        self.comparison.is_compatible_with(other_version.cmp(&self.version))
     }
 
     /// Recognizes a [`VersionRequirement`] in a string slice.
@@ -356,6 +366,7 @@ impl FromStr for VersionRequirement {
     strum::VariantNames,
     Serialize,
     Deserialize,
+    Hash,
 )]
 pub enum VersionComparison {
     /// Less than or equal to

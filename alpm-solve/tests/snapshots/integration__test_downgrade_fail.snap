@@ -1,0 +1,13 @@
+---
+source: alpm-solve/tests/integration.rs
+expression: fail
+---
+epic-fail <=4-1 cannot be installed because there are no viable options:
+└─ epic-fail 2-1 (package cache) would require
+   └─ libnewdep.so.1-64 <any version>, for which no candidates were found.
+The following packages are incompatible
+├─ neovim =0.9.3-1 can be installed with any of the following options:
+│  └─ neovim 0.9.3-1 (package cache)
+└─ epic-fail <=4-1 cannot be installed because there are no viable options:
+   └─ epic-fail 4-1 (already installed) would constrain
+      └─ neovim to not be <=0.9.3-1, which conflicts with any installable versions previously reported

@@ -5,26 +5,7 @@
 use std::{fmt::Display, str::FromStr};
 
 use alpm_parsers::iter_str_context;
-use alpm_types::{
-    Architecture,
-    Base64OpenPGPSignature,
-    BuildDate,
-    CompressedSize,
-    FullVersion,
-    Group,
-    InstalledSize,
-    License,
-    Md5Checksum,
-    Name,
-    OptionalDependency,
-    PackageBaseName,
-    PackageDescription,
-    PackageFileName,
-    PackageRelation,
-    Packager,
-    Sha256Checksum,
-    Url,
-};
+use alpm_types::{Architecture, Base64OpenPGPSignature, BuildDate, CompressedSize, FullVersion, Group, InstalledSize, License, Md5Checksum, Name, OptionalDependency, PackageBaseName, PackageDescription, PackageFileName, PackageRelation, Packager, RelationOrSoname, Sha256Checksum, Url};
 use strum::{Display, EnumString, VariantNames};
 use winnow::{
     ModalResult,
@@ -172,9 +153,9 @@ pub enum Section {
     /// %CONFLICTS%
     Conflicts(Vec<PackageRelation>),
     /// %PROVIDES%
-    Provides(Vec<PackageRelation>),
+    Provides(Vec<RelationOrSoname>),
     /// %DEPENDS%
-    Depends(Vec<PackageRelation>),
+    Depends(Vec<RelationOrSoname>),
     /// %OPTDEPENDS%
     OptDepends(Vec<OptionalDependency>),
     /// %MAKEDEPENDS%

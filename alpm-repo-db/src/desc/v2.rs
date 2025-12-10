@@ -7,26 +7,8 @@ use std::{
     str::FromStr,
 };
 
-use alpm_common::{Named, Versioned};
-use alpm_types::{
-    Architecture,
-    Base64OpenPGPSignature,
-    BuildDate,
-    CompressedSize,
-    FullVersion,
-    Group,
-    InstalledSize,
-    License,
-    Name,
-    OptionalDependency,
-    PackageBaseName,
-    PackageDescription,
-    PackageFileName,
-    PackageRelation,
-    Packager,
-    Sha256Checksum,
-    Url,
-};
+use alpm_common::{Named, RuntimeRelations, Versioned};
+use alpm_types::{Architecture, Base64OpenPGPSignature, BuildDate, CompressedSize, FullVersion, Group, InstalledSize, License, Name, OptionalDependency, PackageBaseName, PackageDescription, PackageFileName, PackageRelation, Packager, RelationOrSoname, Sha256Checksum, Url};
 use winnow::Parser;
 
 use crate::{
@@ -176,12 +158,12 @@ pub struct RepoDescFileV2 {
     /// Virtual components or packages that this package provides.
     ///
     /// Can be empty.
-    pub provides: Vec<PackageRelation>,
+    pub provides: Vec<RelationOrSoname>,
 
     /// Run-time dependencies required by the package.
     ///
     /// Can be empty.
-    pub dependencies: Vec<PackageRelation>,
+    pub dependencies: Vec<RelationOrSoname>,
 
     /// Optional dependencies that are not strictly required by the package.
     ///
@@ -357,8 +339,8 @@ impl TryFrom<Vec<Section>> for RepoDescFileV2 {
         let mut packager = None;
         let mut replaces: Vec<PackageRelation> = Vec::new();
         let mut conflicts: Vec<PackageRelation> = Vec::new();
-        let mut provides: Vec<PackageRelation> = Vec::new();
-        let mut dependencies: Vec<PackageRelation> = Vec::new();
+        let mut provides: Vec<RelationOrSoname> = Vec::new();
+        let mut dependencies: Vec<RelationOrSoname> = Vec::new();
         let mut optional_dependencies: Vec<OptionalDependency> = Vec::new();
         let mut make_dependencies: Vec<PackageRelation> = Vec::new();
         let mut check_dependencies: Vec<PackageRelation> = Vec::new();
@@ -502,36 +484,34 @@ impl Versioned for RepoDescFileV2 {
     }
 }
 
-// impl RuntimeRelations for RepoDescFileV2 {
-//     fn get_dependencies(&self) -> Vec<&RelationOrSoname> {
-//         // todo, I think I got the deps type wrong in alpm-repo-desc ooops
-//         self.dependencies.iter().collect()
-//     }
-//
-//     fn get_optional_dependencies(&self) -> Vec<&OptionalDependency> {
-//         self.optional_dependencies.iter().collect()
-//     }
-//
-//     fn get_provides(&self) -> Vec<&RelationOrSoname> {
-//         // todo: same here
-//         self.provides.iter().collect()
-//     }
-//
-//     fn get_conflicts(&self) -> Vec<&PackageRelation> {
-//         self.conflicts.iter().collect()
-//     }
-//
-//     fn get_replaces(&self) -> Vec<&PackageRelation> {
-//         self.replaces.iter().collect()
-//     }
-// }
+impl RuntimeRelations for RepoDescFileV2 {
+    fn get_dependencies(&self) -> Vec<&RelationOrSoname> {
+        self.dependencies.iter().collect()
+    }
+
+    fn get_optional_dependencies(&self) -> Vec<&OptionalDependency> {
+        self.optional_dependencies.iter().collect()
+    }
+
+    fn get_provides(&self) -> Vec<&RelationOrSoname> {
+        self.provides.iter().collect()
+    }
+
+    fn get_conflicts(&self) -> Vec<&PackageRelation> {
+        self.conflicts.iter().collect()
+    }
+
+    fn get_replaces(&self) -> Vec<&PackageRelation> {
+        self.replaces.iter().collect()
+    }
+}
 
 #[cfg(test)]
 mod tests {
     use pretty_assertions::assert_eq;
     use rstest::*;
     use testresult::TestResult;
-
+    use alpm_types::RelationOrSoname;
     use super::*;
 
     const VALID_DESC_FILE: &str = r#"%FILENAME%
@@ -696,10 +676,10 @@ Foobar McFooface <foobar@mcfooface.org>
             packager: Packager::from_str("Foobar McFooface <foobar@mcfooface.org>")?,
             replaces: vec![PackageRelation::from_str("other-pkg-replaced")?],
             conflicts: vec![PackageRelation::from_str("other-pkg-conflicts")?],
-            provides: vec![PackageRelation::from_str("example-component")?],
+            provides: vec![RelationOrSoname::from_str("example-component")?],
             dependencies: vec![
-                PackageRelation::from_str("glibc")?,
-                PackageRelation::from_str("gcc-libs")?,
+                RelationOrSoname::from_str("glibc")?,
+                RelationOrSoname::from_str("gcc-libs")?,
             ],
             optional_dependencies: vec![OptionalDependency::from_str("bash: for a script")?],
             make_dependencies: vec![PackageRelation::from_str("cmake")?],

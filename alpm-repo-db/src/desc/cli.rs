@@ -2,26 +2,7 @@
 
 use std::path::PathBuf;
 
-use alpm_types::{
-    Architecture,
-    Base64OpenPGPSignature,
-    BuildDate,
-    CompressedSize,
-    FullVersion,
-    Group,
-    InstalledSize,
-    License,
-    Md5Checksum,
-    Name,
-    OptionalDependency,
-    PackageBaseName,
-    PackageDescription,
-    PackageFileName,
-    PackageRelation,
-    Packager,
-    Sha256Checksum,
-    Url,
-};
+use alpm_types::{Architecture, Base64OpenPGPSignature, BuildDate, CompressedSize, FullVersion, Group, InstalledSize, License, Md5Checksum, Name, OptionalDependency, PackageBaseName, PackageDescription, PackageFileName, PackageRelation, Packager, RelationOrSoname, Sha256Checksum, Url};
 use clap::{Args, Parser, Subcommand, ValueEnum};
 use strum::Display;
 
@@ -166,11 +147,11 @@ pub struct CommonCreateArgs {
 
     /// Virtual components or packages that this package provides.
     #[arg(env = "ALPM_REPO_DESC_PROVIDES", long, value_delimiter = ' ')]
-    pub provides: Vec<PackageRelation>,
+    pub provides: Vec<RelationOrSoname>,
 
     /// Run-time dependencies required by the package.
     #[arg(env = "ALPM_REPO_DESC_DEPENDS", long, value_delimiter = ' ')]
-    pub depends: Vec<PackageRelation>,
+    pub depends: Vec<RelationOrSoname>,
 
     /// Optional dependencies that are not strictly required by the package.
     ///
