@@ -46,8 +46,10 @@ serde_json.workspace = true
 simplelog.workspace = true
 strum.workspace = true
 thiserror.workspace = true
-voa = { version = "0.5.0", default-features = false }
+voa = { path = "../../voa/voa", default-features = false }
 winnow.workspace = true
+voa-openpgp = { path = "../../voa/voa-openpgp" }
+voa-config = { path = "../../voa/voa-config" }
 
 [dev-dependencies]
 assert_cmd.workspace = true

@@ -12,9 +12,10 @@ use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use voa::{
     commands::{openpgp_verify, read_openpgp_signatures, read_openpgp_verifiers},
     core::{Context, Os, Purpose},
-    openpgp::VerifierLookup,
     utils::RegularFile,
 };
+use voa_config::openpgp::OpenpgpSettings;
+use voa_openpgp::ModelbasedVerifier;
 
 use crate::{
     CacheDir,
@@ -38,7 +39,7 @@ use crate::{
 fn openpgp_verify_file(
     file: PathBuf,
     signature: PathBuf,
-    lookup: &VerifierLookup,
+    model_verifier: &ModelbasedVerifier,
 ) -> Result<(), Error> {
     debug!("Verifying {file:?} with {signature:?}");
 
@@ -46,7 +47,11 @@ fn openpgp_verify_file(
         signature.clone(),
     )?]))?;
 
-    let check_results = openpgp_verify(lookup, &signatures, &RegularFile::try_from(file.clone())?)?;
+    let (ok, check_results) = openpgp_verify(
+        model_verifier,
+        &signatures,
+        &RegularFile::try_from(file.clone())?,
+    )?;
 
     // Look at the signer info of all check results and return an error if there is none.
     for check_result in check_results {
@@ -63,6 +68,14 @@ fn openpgp_verify_file(
                 context: "".to_string(),
             });
         }
+    }
+
+    if !ok {
+        return Err(Error::VoaVerificationFailed {
+            file,
+            signature,
+            context: "Insufficient number of accepted signatures".to_string(),
+        });
     }
 
     Ok(())
@@ -103,7 +116,8 @@ impl TestRunner {
             Vec::new()
         };
 
-        let lookup = VerifierLookup::new(&certs);
+        let cfg = OpenpgpSettings::default();
+        let model_verifier = ModelbasedVerifier::new(&cfg, &certs, &[]);
 
         let progress_bar = get_progress_bar(test_files.len() as u64);
 
@@ -135,7 +149,7 @@ impl TestRunner {
                             data
                         };
 
-                        openpgp_verify_file(data, file.clone(), &lookup)
+                        openpgp_verify_file(data, file.clone(), &model_verifier)
                     }
                 };
 
