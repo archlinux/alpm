@@ -155,9 +155,15 @@ licenses:
     - just --justfile .gitlab/justfile section-end "check-licenses"
   stage: check
 
-links:
+build-book-and-links:
   extends: .default-with-rust
   script:
+    - just --justfile .gitlab/justfile section-start "install-alpm-packages" "Install ALPM package set 'book'"
+    - just install-alpm-package-set book
+    - just --justfile .gitlab/justfile section-end "install-alpm-packages"
+    - just --justfile .gitlab/justfile section-start "build-book" "Build project documentation"
+    - just build-book
+    - just --justfile .gitlab/justfile section-end "build-book"
     - just --justfile .gitlab/justfile section-start "install-alpm-packages" "Install ALPM package set 'links'"
     - just install-alpm-package-set links
     - just --justfile .gitlab/justfile section-end "install-alpm-packages"
@@ -218,17 +224,6 @@ test-readmes:
     - just --justfile .gitlab/justfile section-start "test-readmes" "Run README tests"
     - just test-readmes
     - just --justfile .gitlab/justfile section-end "test-readmes"
-  stage: test
-
-build-book:
-  extends: .default-with-rust
-  script:
-    - just --justfile .gitlab/justfile section-start "install-alpm-packages" "Install ALPM package set 'book'"
-    - just install-alpm-package-set book
-    - just --justfile .gitlab/justfile section-end "install-alpm-packages"
-    - just --justfile .gitlab/justfile section-start "build-book" "Build project documentation"
-    - just build-book
-    - just --justfile .gitlab/justfile section-end "build-book"
   stage: test
 
 alpm-lint-website:
