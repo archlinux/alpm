@@ -7,6 +7,7 @@ use std::{
     str::FromStr,
 };
 
+use alpm_common::{Named, Versioned};
 use alpm_types::{
     Architecture,
     Base64OpenPGPSignature,
@@ -463,6 +464,42 @@ impl TryFrom<Vec<Section>> for RepoDescFileV1 {
         })
     }
 }
+
+impl Named for RepoDescFileV1 {
+    fn get_name(&self) -> &Name {
+        &self.name
+    }
+}
+
+impl Versioned for RepoDescFileV1 {
+    fn get_version(&self) -> &FullVersion {
+        &self.version
+    }
+}
+
+// impl RuntimeRelations for RepoDescFileV1 {
+//     fn get_dependencies(&self) -> Vec<&RelationOrSoname> {
+//         // todo, I think I got the deps type wrong in alpm-repo-desc ooops
+//         self.dependencies.iter().collect()
+//     }
+//
+//     fn get_optional_dependencies(&self) -> Vec<&OptionalDependency> {
+//         self.optional_dependencies.iter().collect()
+//     }
+//
+//     fn get_provides(&self) -> Vec<&RelationOrSoname> {
+//         // todo: same here
+//         self.provides.iter().collect()
+//     }
+//
+//     fn get_conflicts(&self) -> Vec<&PackageRelation> {
+//         self.conflicts.iter().collect()
+//     }
+//
+//     fn get_replaces(&self) -> Vec<&PackageRelation> {
+//         self.replaces.iter().collect()
+//     }
+// }
 
 #[cfg(test)]
 mod tests {
