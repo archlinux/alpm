@@ -1,6 +1,6 @@
 //! Tests against downloaded artifacts.
 
-use std::{collections::HashSet, fs::read_dir, path::PathBuf, str::FromStr};
+use std::{collections::HashSet, fs::read_dir, num::NonZeroUsize, path::PathBuf, str::FromStr};
 
 use alpm_buildinfo::BuildInfo;
 use alpm_common::MetadataFile;
@@ -14,7 +14,14 @@ use voa::{
     core::{Context, Os, Purpose},
     utils::RegularFile,
 };
-use voa_config::openpgp::OpenpgpSettings;
+use voa_config::openpgp::{
+    DomainName,
+    NumCertifications,
+    NumDataSignatures,
+    OpenpgpSettings,
+    TrustAnchorMode,
+    VerificationMethod,
+};
 use voa_openpgp::ModelbasedVerifier;
 
 use crate::{
@@ -123,7 +130,19 @@ impl TestRunner {
             (Vec::new(), Vec::new())
         };
 
-        let cfg = OpenpgpSettings::default();
+        // let cfg = OpenpgpSettings::default();
+        let cfg = OpenpgpSettings::new(
+            NumDataSignatures::new(NonZeroUsize::new(1).unwrap()),
+            VerificationMethod::TrustAnchor(
+                TrustAnchorMode::new(
+                    NumCertifications::new(NonZeroUsize::new(3).unwrap()),
+                    HashSet::from_iter([DomainName::from_str("archlinux.org").unwrap()]),
+                    [].into(),
+                )
+                .unwrap(),
+            ),
+        )
+        .expect("FIXME");
         let model_verifier = ModelbasedVerifier::new(&cfg, &artifact_verifiers, &anchors);
 
         let progress_bar = get_progress_bar(test_files.len() as u64);
