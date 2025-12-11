@@ -21,7 +21,7 @@ fn ensure_parse_errors(#[files("tests/parse_errors/*")] case: PathBuf) -> TestRe
 
     // Make sure there're no parse errors
     let Err(error) = result else {
-        return Err("The parser succeeded even though it should've failed parsing.".into());
+        panic!("The parser succeeded even though it should've failed parsing.");
     };
 
     let name = case.file_stem().unwrap().to_str().unwrap();

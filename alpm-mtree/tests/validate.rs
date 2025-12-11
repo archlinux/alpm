@@ -117,7 +117,7 @@ fn new_filetimes(seconds: u64) -> TestResult<FileTimes> {
     let epoch = SystemTime::UNIX_EPOCH;
     let duration = Duration::new(seconds, 0);
     let Some(new) = epoch.checked_add(duration) else {
-        return Err("Can not add duration to unix epoch".into());
+        panic!("Can not add duration to unix epoch");
     };
     Ok(FileTimes::new().set_accessed(new).set_modified(new))
 }
@@ -273,7 +273,7 @@ fn validate_paths_fails_on_duplicate_input_paths() -> TestResult {
         , format!("{error}"));
                 });
     } else {
-        return Err("The validation succeeded even though it should have failed".into());
+        panic!("The validation succeeded even though it should have failed");
     };
 
     Ok(())
@@ -316,7 +316,7 @@ fn validate_paths_fails_on_paths_mismatch() -> TestResult {
         , format!("{error}"));
                 });
     } else {
-        return Err("The validation succeeded even though it should have failed".into());
+        panic!("The validation succeeded even though it should have failed");
     };
 
     Ok(())
@@ -362,7 +362,7 @@ fn validate_paths_fails_on_data_path_mismatch() -> TestResult {
         , format!("{error}"));
                 });
     } else {
-        return Err("The validation succeeded even though it should have failed".into());
+        panic!("The validation succeeded even though it should have failed");
     };
 
     Ok(())
@@ -406,7 +406,7 @@ fn validate_paths_fails_on_not_a_dir() -> TestResult {
         , format!("{error}"));
                 });
     } else {
-        return Err("The validation succeeded even though it should've failed".into());
+        panic!("The validation succeeded even though it should've failed");
     };
 
     Ok(())
@@ -448,7 +448,7 @@ fn validate_paths_fails_on_not_a_symlink() -> TestResult {
         , format!("{error}"));
                 });
     } else {
-        return Err("The validation succeeded even though it should've failed".into());
+        panic!("The validation succeeded even though it should've failed");
     };
 
     Ok(())
@@ -497,7 +497,7 @@ fn validate_paths_fails_on_symlink_mismatch() -> TestResult {
         , format!("{error}"));
                 });
     } else {
-        return Err("The validation succeeded even though it should've failed".into());
+        panic!("The validation succeeded even though it should've failed");
     };
 
     Ok(())
@@ -538,7 +538,7 @@ fn validate_paths_fails_on_not_a_file() -> TestResult {
         , format!("{error}"));
                 });
     } else {
-        return Err("The validation succeeded even though it should've failed".into());
+        panic!("The validation succeeded even though it should've failed");
     };
 
     Ok(())
@@ -577,7 +577,7 @@ fn validate_paths_fails_on_size_mismatch() -> TestResult {
         , format!("{error}"));
                 });
     } else {
-        return Err("The validation succeeded even though it should've failed".into());
+        panic!("The validation succeeded even though it should've failed");
     };
 
     Ok(())
@@ -617,7 +617,7 @@ fn validate_paths_fails_on_digest_mismatch() -> TestResult {
         , format!("{error}"));
                 });
     } else {
-        return Err("The validation succeeded even though it should've failed".into());
+        panic!("The validation succeeded even though it should've failed");
     };
 
     Ok(())
@@ -662,7 +662,7 @@ fn validate_paths_fails_on_time_mismatch() -> TestResult {
         , format!("{error}"));
                 });
     } else {
-        return Err("The validation succeeded even though it should've failed".into());
+        panic!("The validation succeeded even though it should've failed");
     };
 
     Ok(())
@@ -698,7 +698,7 @@ fn validate_paths_fails_on_mode_mismatch() -> TestResult {
         , format!("{error}"));
                 });
     } else {
-        return Err("The validation succeeded even though it should've failed".into());
+        panic!("The validation succeeded even though it should've failed");
     };
 
     Ok(())

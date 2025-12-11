@@ -47,9 +47,7 @@ fn fail_to_parse_package_filename(#[case] s: &str) -> TestResult {
     init_logger()?;
 
     let Err(error) = PackageFileName::parser.parse(s) else {
-        return Err(
-            format!("The parser succeeded parsing {s} although it should have failed").into(),
-        );
+        panic!("The parser succeeded parsing {s} although it should have failed");
     };
 
     with_settings!({
@@ -75,10 +73,9 @@ fn package_file_name_from_path_fails(#[case] path: PathBuf) -> TestResult {
     init_logger()?;
 
     let Err(error) = PackageFileName::try_from(path.as_path()) else {
-        return Err(format!(
+        panic!(
             "Succeeded in creating a PackageFilename from {path:?} although it should have failed"
-        )
-        .into());
+        );
     };
 
     with_settings!({

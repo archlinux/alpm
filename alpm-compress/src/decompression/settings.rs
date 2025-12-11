@@ -113,12 +113,12 @@ mod tests {
         #[case] expected_str: &str,
     ) -> TestResult {
         match DecompressionSettings::try_from(ext) {
-            Ok(settings) => Err(format!("Expected failure, but got: {settings:?}").into()),
+            Ok(settings) => panic!("Expected failure, but got: {settings:?}"),
             Err(Error::UnsupportedCompressionAlgorithm { value }) => {
                 assert_eq!(value, expected_str);
                 Ok(())
             }
-            Err(e) => Err(format!("Unexpected error variant: {e:?}").into()),
+            Err(e) => panic!("Unexpected error variant: {e:?}"),
         }
     }
 

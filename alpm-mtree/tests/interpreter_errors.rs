@@ -35,10 +35,7 @@ fn ensure_errors_v1(#[files("tests/interpreter_error_inputs/*")] case: PathBuf) 
     );
 
     let Err(error) = result else {
-        return Err(format!(
-            "The interpreter succeeded even though it should've failed for input:\n{input}"
-        )
-        .into());
+        panic!("The interpreter succeeded even though it should've failed for input:\n{input}");
     };
 
     let name = case.file_stem().unwrap().to_str().unwrap();

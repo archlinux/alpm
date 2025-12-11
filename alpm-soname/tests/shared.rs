@@ -11,7 +11,7 @@ use alpm_mtree::create_mtree_v2_from_input_dir;
 use alpm_package::{InputDir, OutputDir, Package, PackageCreationConfig, PackageInput};
 use alpm_types::{MetadataFileName, SonameLookupDirectory, SonameV2};
 use serde::{Deserialize, Serialize};
-use testresult::{TestError, TestResult};
+use testresult::TestResult;
 
 const BUILDINFO_BIN: &str = r#"
 format = 2
@@ -110,7 +110,7 @@ pub fn setup_lib(config: &SotestConfig, path: &Path, test_files_dir: &Path) -> T
         .output()?;
 
     if !status.status.success() {
-        return Err(TestError::from("failed to setup sotest c project"));
+        panic!("failed to setup sotest c project");
     }
 
     let status = Command::new("meson")
@@ -120,7 +120,7 @@ pub fn setup_lib(config: &SotestConfig, path: &Path, test_files_dir: &Path) -> T
         .output()?;
 
     if !status.status.success() {
-        return Err(TestError::from("failed to compile sotest c project"));
+        panic!("failed to compile sotest c project");
     }
 
     Ok(())

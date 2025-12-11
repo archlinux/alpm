@@ -1211,7 +1211,7 @@ mod tests {
         let path = temp_dir.path().join("additional");
 
         if let Err(error) = ExistingAbsoluteDir::new(path) {
-            return Err(format!("Failed although it should have succeeded: {error}").into());
+            panic!("Failed although it should have succeeded: {error}");
         }
 
         Ok(())
@@ -1229,7 +1229,7 @@ mod tests {
                 crate::Error::AlpmCommon(alpm_common::Error::NonAbsolutePaths { paths: _ })
             ));
         } else {
-            return Err("Succeeded although it should have failed".into());
+            panic!("Succeeded although it should have failed");
         }
 
         let temp_file = NamedTempFile::new()?;
@@ -1240,7 +1240,7 @@ mod tests {
                 crate::Error::AlpmCommon(alpm_common::Error::NotADirectory { path: _ })
             ));
         } else {
-            return Err("Succeeded although it should have failed".into());
+            panic!("Succeeded although it should have failed");
         }
 
         Ok(())
@@ -1271,7 +1271,7 @@ mod tests {
         File::create(absolute_dir.join(package_name))?;
 
         let Ok(_package) = Package::new(package_name.parse()?, absolute_dir.clone()) else {
-            return Err("Failed although it should have succeeded".into());
+            panic!("Failed although it should have succeeded");
         };
 
         Ok(())
@@ -1289,7 +1289,7 @@ mod tests {
         if let Err(error) = Package::new(package_name.parse()?, absolute_dir.clone()) {
             assert!(matches!(error, crate::Error::PathDoesNotExist { path: _ }))
         } else {
-            return Err("Succeeded although it should have failed".into());
+            panic!("Succeeded although it should have failed");
         }
 
         // The file is a directory.
@@ -1297,7 +1297,7 @@ mod tests {
         if let Err(error) = Package::new(package_name.parse()?, absolute_dir.clone()) {
             assert!(matches!(error, crate::Error::PathIsNotAFile { path: _ }))
         } else {
-            return Err("Succeeded although it should have failed".into());
+            panic!("Succeeded although it should have failed");
         }
 
         Ok(())

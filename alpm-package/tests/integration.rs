@@ -35,7 +35,7 @@ use rstest::rstest;
 use simplelog::{ColorChoice, Config, TermLogger, TerminalMode};
 use tar::EntryType;
 use tempfile::TempDir;
-use testresult::{TestError, TestResult};
+use testresult::TestResult;
 
 const VALID_BUILDINFO_V2_DATA: &str = r#"
 format = 2
@@ -447,10 +447,10 @@ fn package_input_fails_on_missing_metadata(
                 path,
                 input_dir: _,
             }) => assert_eq!(path, expected),
-            _ => return Err("Did not return the correct error variant".into()),
+            _ => panic!("Did not return the correct error variant"),
         }
     } else {
-        return Err("Should have returned an error but succeeded".into());
+        panic!("Should have returned an error but succeeded");
     }
 
     Ok(())
@@ -536,7 +536,7 @@ fn package_creation_config_new_fails() -> TestResult {
             error,
             alpm_package::Error::InputDirIsOutputDir { path: _ }
         )),
-        Ok(_) => return Err("Succeeded, but should have failed".into()),
+        Ok(_) => panic!("Succeeded, but should have failed"),
     }
 
     // Set the output to a sudirectory of the input directory.
@@ -549,7 +549,7 @@ fn package_creation_config_new_fails() -> TestResult {
                 output_path: _
             }
         )),
-        Ok(_) => return Err("Succeeded, but should have failed".into()),
+        Ok(_) => panic!("Succeeded, but should have failed"),
     }
 
     // Set the input to a subdirectory of the output directory.
@@ -562,7 +562,7 @@ fn package_creation_config_new_fails() -> TestResult {
                 output_path: _
             }
         )),
-        Ok(_) => return Err("Succeeded, but should have failed".into()),
+        Ok(_) => panic!("Succeeded, but should have failed"),
     }
 
     Ok(())
@@ -864,7 +864,7 @@ fn read_package_contents(
         let mut reader: PackageReader = package.clone().try_into()?;
         let mut entry = match reader.read_data_entry(".ARBITRARY")? {
             Some(entry) => entry,
-            None => return Err("Expected .ARBITRARY entry, but found none".into()),
+            None => panic!("Expected .ARBITRARY entry, but found none"),
         };
         let content = entry.content()?;
         let content = String::from_utf8(content)?;
@@ -874,7 +874,7 @@ fn read_package_contents(
         let mut reader: PackageReader = package.clone().try_into()?;
         let mut entry = match reader.read_data_entry(".ARBITRARY")? {
             Some(entry) => entry,
-            None => return Err("Expected .ARBITRARY entry, but found none".into()),
+            None => panic!("Expected .ARBITRARY entry, but found none"),
         };
         let mut buffer = vec![0; 4];
         entry.read_exact(&mut buffer)?;
@@ -962,9 +962,9 @@ fn assert_metadata_entry(entry: Option<Result<PackageEntry, Error>>) -> TestResu
     );
     match entry.unwrap()? {
         PackageEntry::Metadata(entry) => Ok(*entry),
-        PackageEntry::InstallScriptlet(_) => Err(TestError::from(
-            "Expected Metadata entry, got install scriptlet.",
-        )),
+        PackageEntry::InstallScriptlet(_) => {
+            panic!("Expected Metadata entry, got install scriptlet.")
+        }
     }
 }
 

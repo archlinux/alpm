@@ -27,11 +27,10 @@ fn ensure_parse_errors(
 
     match result {
         Ok(files) => {
-            return Err(format!(
+            panic!(
                 "Should have failed but successfully created Files:\n{}",
                 files.to_string(FilesStyle::Db)
-            )
-            .into());
+            );
         }
         Err(error) => {
             let name = file

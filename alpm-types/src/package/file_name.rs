@@ -612,10 +612,7 @@ mod test {
 
         match PackageFileName::from_str(s) {
             Err(error) => {
-                return Err(format!(
-                    "The parser failed parsing {s} although it should have succeeded:\n{error}"
-                )
-                .into());
+                panic!("The parser failed parsing {s} although it should have succeeded:\n{error}");
             }
             Ok(value) => {
                 let file_name_string: String = value.clone().into();
@@ -641,10 +638,9 @@ mod test {
 
         match PackageFileName::try_from(path.as_path()) {
             Err(error) => {
-                return Err(format!(
+                panic!(
                     "Failed creating PackageFileName from {path:?} although it should have succeeded:\n{error}"
-                )
-                .into());
+                );
             }
             Ok(value) => assert_eq!(value.to_path_buf(), path),
         };

@@ -255,7 +255,7 @@ mod tests {
     use std::fs::File;
 
     use rstest::rstest;
-    use testresult::{TestError, TestResult};
+    use testresult::TestResult;
 
     use super::*;
 
@@ -308,9 +308,7 @@ mod tests {
 
         let error = match LintScope::detect(tmp_dir.path()) {
             Ok(scope) => {
-                return Err(TestError::from(format!(
-                    "Expected an error for scope detection for file set {files:?}, got {scope}"
-                )));
+                panic!("Expected an error for scope detection for file set {files:?}, got {scope}");
             }
             Err(err) => err,
         };

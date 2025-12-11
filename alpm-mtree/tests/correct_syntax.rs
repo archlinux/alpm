@@ -26,7 +26,7 @@ fn ensure_correct_syntax(#[files("tests/correct_syntax_inputs/*")] case: PathBuf
         Ok(parsed) => parsed,
         Err(error) => {
             eprintln!("The parser failed even though it should've succeeded for input:\n{input}");
-            return Err(format!("{error}").into());
+            panic!("{error}");
         }
     };
 

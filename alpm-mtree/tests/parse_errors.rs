@@ -25,10 +25,7 @@ fn ensure_errors_v1(#[files("tests/parse_error_inputs/*")] case: PathBuf) -> Tes
     let result = mtree.parse(input.as_str());
 
     let Err(error) = result else {
-        return Err(format!(
-            "The parser succeeded even though it should've failed for input:\n{input}"
-        )
-        .into());
+        panic!("The parser succeeded even though it should've failed for input:\n{input}");
     };
 
     let name = case.file_stem().unwrap().to_str().unwrap();

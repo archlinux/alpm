@@ -244,15 +244,15 @@ usr/bin/foo"#;
         let result = FilesSchema::derive_from_file(temp_file.path());
         match result {
             Ok(schema) => {
-                return Err(format!(
+                panic!(
                     "Expected to fail with an Error::SchemaVersionIsUnknown but succeeded: {schema:?}"
-                ).into());
+                );
             }
             Err(Error::SchemaVersionIsUnknown) => {}
             Err(error) => {
-                return Err(format!(
+                panic!(
                     "Expected to fail with an Error::SchemaVersionIsUnknown but got another error instead: {error}"
-                ).into());
+                );
             }
         }
 

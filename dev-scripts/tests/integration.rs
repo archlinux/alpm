@@ -49,7 +49,7 @@ mod srcinfo_compare {
             );
             tempdir.disable_cleanup(true);
             // Now we may error.
-            return Err(err.into());
+            panic!("srcinfo compare failed: {err}");
         }
 
         Ok(())

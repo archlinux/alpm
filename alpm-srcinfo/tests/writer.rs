@@ -21,10 +21,9 @@ fn correct_writer(#[files("tests/correct/*.srcinfo")] case: PathBuf) -> TestResu
     let source_info_result = match source_info_result {
         Ok(result) => result,
         Err(err) => {
-            return Err(format!(
+            panic!(
                 "The parser errored even though it should've succeeded the parsing step:\n{err}"
-            )
-            .into());
+            );
         }
     };
 

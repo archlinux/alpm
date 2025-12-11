@@ -15,7 +15,7 @@ use winnow::Parser;
 #[case::missing_delimiter_2("key value")]
 fn write_ini(#[case] input: &str) -> TestResult {
     let Err(err) = ini_file.parse(input) else {
-        return Err(format!("Expected input to fail:\n{input}").into());
+        panic!("Expected input to fail:\n{input}");
     };
 
     assert_snapshot!(

@@ -195,7 +195,7 @@ mod tests {
         let temp_dir = tempdir()?;
         let non_existing_path = temp_dir.path().join("non-existing");
         if let Err(error) = OutputDir::new(non_existing_path) {
-            return Err(format!("Failed although it should have succeeded:\n{error}").into());
+            panic!("Failed although it should have succeeded:\n{error}");
         }
 
         Ok(())

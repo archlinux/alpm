@@ -374,7 +374,7 @@ mod tests {
     #[case::too_small(Bzip2CompressionLevel::min() - 1)]
     fn create_bzip2_compression_level_fails(#[case] level: u8) -> TestResult {
         if let Ok(level) = Bzip2CompressionLevel::new(level) {
-            return Err(format!("Should not have succeeded but created level: {level}").into());
+            panic!("Should not have succeeded but created level: {level}");
         }
 
         Ok(())
@@ -383,7 +383,7 @@ mod tests {
     #[test]
     fn create_bzip2_compression_level_succeeds() -> TestResult {
         if let Err(error) = Bzip2CompressionLevel::new(6) {
-            return Err(format!("Should have succeeded but raised error:\n{error}").into());
+            panic!("Should have succeeded but raised error:\n{error}");
         }
 
         Ok(())
@@ -394,7 +394,7 @@ mod tests {
     #[case::too_small(GzipCompressionLevel::min() - 1)]
     fn create_gzip_compression_level_fails(#[case] level: u8) -> TestResult {
         if let Ok(level) = GzipCompressionLevel::new(level) {
-            return Err(format!("Should not have succeeded but created level: {level}").into());
+            panic!("Should not have succeeded but created level: {level}");
         }
 
         Ok(())
@@ -403,7 +403,7 @@ mod tests {
     #[test]
     fn create_gzip_compression_level_succeeds() -> TestResult {
         if let Err(error) = GzipCompressionLevel::new(6) {
-            return Err(format!("Should have succeeded but raised error:\n{error}").into());
+            panic!("Should have succeeded but raised error:\n{error}");
         }
 
         Ok(())
@@ -412,7 +412,7 @@ mod tests {
     #[test]
     fn create_xz_compression_level_fails() -> TestResult {
         if let Ok(level) = XzCompressionLevel::new(XzCompressionLevel::max() + 1) {
-            return Err(format!("Should not have succeeded but created level: {level}").into());
+            panic!("Should not have succeeded but created level: {level}");
         }
 
         Ok(())
@@ -421,7 +421,7 @@ mod tests {
     #[test]
     fn create_xz_compression_level_succeeds() -> TestResult {
         if let Err(error) = XzCompressionLevel::new(6) {
-            return Err(format!("Should have succeeded but raised error:\n{error}").into());
+            panic!("Should have succeeded but raised error:\n{error}");
         }
 
         Ok(())
@@ -430,7 +430,7 @@ mod tests {
     #[test]
     fn create_zstd_compression_level_fails() -> TestResult {
         if let Ok(level) = ZstdCompressionLevel::new(ZstdCompressionLevel::max() + 1) {
-            return Err(format!("Should not have succeeded but created level: {level}").into());
+            panic!("Should not have succeeded but created level: {level}");
         }
 
         Ok(())
@@ -439,7 +439,7 @@ mod tests {
     #[test]
     fn create_zstd_compression_level_succeeds() -> TestResult {
         if let Err(error) = ZstdCompressionLevel::new(6) {
-            return Err(format!("Should have succeeded but raised error:\n{error}").into());
+            panic!("Should have succeeded but raised error:\n{error}");
         }
 
         Ok(())

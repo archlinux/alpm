@@ -145,7 +145,7 @@ mod tests {
     use std::{fs::File, io::Write};
 
     use tempfile::tempdir;
-    use testresult::{TestError, TestResult};
+    use testresult::TestResult;
 
     use super::*;
 
@@ -158,15 +158,11 @@ mod tests {
 
         let result = run_bridge_script(temp_path);
         let Err(error) = result else {
-            return Err(TestError::from(
-                "Expected an error, got {result:?} instead.",
-            ));
+            panic!("Expected an error, got {result:?} instead.");
         };
 
         let Error::InvalidFile { path, context } = error else {
-            return Err(TestError::from(format!(
-                "Expected an InvalidFile error, got {error:?} instead."
-            )));
+            panic!("Expected an InvalidFile error, got {error:?} instead.");
         };
 
         assert_eq!(temp_path, path);
@@ -184,15 +180,11 @@ mod tests {
 
         let result = run_bridge_script(&temp_path);
         let Err(error) = result else {
-            return Err(TestError::from(
-                "Expected an error, got {result:?} instead.",
-            ));
+            panic!("Expected an error, got {result:?} instead.");
         };
 
         let Error::IoPath { path, context, .. } = error else {
-            return Err(TestError::from(format!(
-                "Expected an IoPath error, got {error:?} instead."
-            )));
+            panic!("Expected an IoPath error, got {error:?} instead.");
         };
 
         assert_eq!(temp_path, path);
@@ -211,15 +203,11 @@ mod tests {
 
         let result = run_bridge_script(&temp_path);
         let Err(error) = result else {
-            return Err(TestError::from(
-                "Expected an error, got {result:?} instead.",
-            ));
+            panic!("Expected an error, got {result:?} instead.");
         };
 
         let Error::InvalidFile { path, context } = error else {
-            return Err(TestError::from(format!(
-                "Expected an InvalidFile error, got {error:?} instead."
-            )));
+            panic!("Expected an InvalidFile error, got {error:?} instead.");
         };
 
         assert_eq!(temp_path, path);
@@ -240,15 +228,11 @@ mod tests {
 
         let result = run_bridge_script(&temp_path);
         let Err(error) = result else {
-            return Err(TestError::from(
-                "Expected an error, got {result:?} instead.",
-            ));
+            panic!("Expected an error, got {result:?} instead.");
         };
 
         let Error::ScriptExecutionError { .. } = error else {
-            return Err(TestError::from(format!(
-                "Expected an ScriptExecutionError error, got {error:?} instead."
-            )));
+            panic!("Expected an ScriptExecutionError error, got {error:?} instead.");
         };
 
         Ok(())

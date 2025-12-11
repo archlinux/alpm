@@ -34,10 +34,9 @@ fn correct_files(#[files("tests/correct/*.srcinfo")] case: PathBuf) -> TestResul
     let source_info_result = match source_info_result {
         Ok(result) => result,
         Err(err) => {
-            return Err(format!(
+            panic!(
                 "The parser errored even though it should've succeeded the parsing step:\n{err}"
-            )
-            .into());
+            );
         }
     };
 
@@ -65,19 +64,17 @@ fn correct_files(#[files("tests/correct/*.srcinfo")] case: PathBuf) -> TestResul
     let package_json = serde_json::to_string_pretty(&packages)?;
 
     if package_json.contains("unexpected") {
-        return Err(format!(
+        panic!(
             "Found 'unexpected' keyword in json output. {}:\n{package_json}",
             "This indicates that data was included that shouldn't be in there"
-        )
-        .into());
+        );
     }
 
     if package_json.contains("beefc0ffee") {
-        return Err(format!(
+        panic!(
             "Found 'beefc0ffee' keyword in json output. {}:\n{package_json}",
             "This indicates that an checksum was included that shouldn't be in there"
-        )
-        .into());
+        );
     }
 
     // Compare the generated merged json with the expected snapshot.

@@ -485,7 +485,7 @@ impl Display for Packager {
 #[cfg(test)]
 mod tests {
     use rstest::rstest;
-    use testresult::{TestError, TestResult};
+    use testresult::TestResult;
 
     use super::*;
 
@@ -654,9 +654,7 @@ mod tests {
     #[case::address_without_local_part("Foobar McFooface <@mcfooface.org>", "Local part is empty")]
     fn invalid_packager(#[case] packager: &str, #[case] expected_error: &str) -> TestResult {
         let Err(err) = Packager::from_str(packager) else {
-            return Err(TestError::from(format!(
-                "Expected packager string to be invalid: {packager}"
-            )));
+            panic!("Expected packager string to be invalid: {packager}");
         };
 
         let error = err.to_string();

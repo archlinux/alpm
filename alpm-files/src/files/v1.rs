@@ -597,9 +597,11 @@ mod tests {
     ) -> TestResult {
         let result = FilesV1::try_from(paths);
         let errors = match result {
-            Ok(files) => return Err(format!("Should have failed with an Error::InvalidFilesPaths, but succeeded to create a FilesV1: {files:?}").into()),
+            Ok(files) => panic!(
+                "Should have failed with an Error::InvalidFilesPaths, but succeeded to create a FilesV1: {files:?}"
+            ),
             Err(Error::InvalidFilesPaths { message }) => message,
-            Err(error) => return Err(format!("Expected an Error::InvalidFilesPaths, but got: {error}").into()),
+            Err(error) => panic!("Expected an Error::InvalidFilesPaths, but got: {error}"),
         };
 
         eprintln!("{errors}");

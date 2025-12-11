@@ -354,11 +354,10 @@ mod tests {
 
                 if !is_valid {
                     let scoped_name = lint_rule.scoped_name();
-                    return Err(format!(
+                    panic!(
                         "Found lint rule name with invalid character: '{scoped_name}'
 Lint rule names are only allowed to consist of lowercase alphanumeric characters and underscores."
-                    )
-                    .into());
+                    );
                 }
             }
 

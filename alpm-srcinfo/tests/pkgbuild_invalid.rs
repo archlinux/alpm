@@ -6,7 +6,7 @@ use alpm_pkgbuild::bridge::{BridgeOutput, run_bridge_script};
 use alpm_srcinfo::{SourceInfoV1, pkgbuild_bridge::error::BridgeError};
 use insta::assert_snapshot;
 use rstest::rstest;
-use testresult::{TestError, TestResult};
+use testresult::TestResult;
 
 /// Make sure the correct errors are thrown on invalid PKGBUILD files that generate faulty
 /// BridgeOutput.
@@ -25,9 +25,7 @@ fn invalid_files(#[files("tests/pkgbuild_invalid/*.pkgbuild")] case: PathBuf) ->
     let result: Result<SourceInfoV1, BridgeError> = output.try_into();
 
     let Err(err) = result else {
-        return Err(TestError::from(
-            "PKGBUILD to SRCINFO conversion worked, although it should fail.",
-        ));
+        panic!("PKGBUILD to SRCINFO conversion worked, although it should fail.");
     };
 
     // Compare the generated source_info json with the expected snapshot.

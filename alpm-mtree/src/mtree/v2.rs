@@ -948,10 +948,9 @@ mod tests {
         let path = PathBuf::from(path);
 
         match normalize_mtree_path(&path) {
-            Ok(output) => return Err(format!(
+            Ok(output) => panic!(
                 "Succeeded to normalize path {path:?} as {output:?}, but this should have failed!"
-            )
-            .into()),
+            ),
             Err(error) => {
                 if !matches!(
                     error,
@@ -961,7 +960,7 @@ mod tests {
                         source: _
                     }
                 ) {
-                    return Err("Did not raise the correct error".into());
+                    panic!("Did not raise the correct error");
                 }
             }
         }
@@ -984,24 +983,21 @@ mod tests {
         symlink(&test_file, &test_symlink)?;
 
         if let Err(error) = path_metadata(&test_dir, false) {
-            return Err(format!(
+            panic!(
                 "Retrieving metadata of {test_dir:?} should have succeeded, but failed:\n{error}"
-            )
-            .into());
+            );
         }
 
         if let Err(error) = path_metadata(&test_file, false) {
-            return Err(format!(
+            panic!(
                 "Retrieving metadata of {test_file:?} should have succeeded, but failed:\n{error}"
-            )
-            .into());
+            );
         }
 
         if let Err(error) = path_metadata(&test_symlink, false) {
-            return Err(format!(
+            panic!(
                 "Retrieving metadata of {test_symlink:?} should have succeeded, but failed:\n{error}"
-            )
-            .into());
+            );
         }
 
         Ok(())
@@ -1018,24 +1014,21 @@ mod tests {
         let test_symlink = tmp_path.join("link_file.txt");
 
         if let Ok(metadata) = path_metadata(&test_dir, false) {
-            return Err(format!(
+            panic!(
                 "Retrieving metadata of {test_dir:?} should have failed, but succeeded:\n{metadata:?}"
-            )
-            .into());
+            );
         }
 
         if let Ok(metadata) = path_metadata(&test_file, false) {
-            return Err(format!(
+            panic!(
                 "Retrieving metadata of {test_file:?} should have failed, but succeeded:\n{metadata:?}"
-            )
-            .into());
+            );
         }
 
         if let Ok(metadata) = path_metadata(&test_symlink, true) {
-            return Err(format!(
+            panic!(
                 "Retrieving metadata of {test_symlink:?} should have failed, but succeeded:\n{metadata:?}"
-            )
-            .into());
+            );
         }
 
         Ok(())

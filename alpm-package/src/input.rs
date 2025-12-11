@@ -934,18 +934,18 @@ arch = any
             match error {
                 crate::Error::Input(crate::input::Error::MetadataMismatch { mismatches }) => {
                     if mismatches.len() != 1 {
-                        return Err("There should be exactly one metadata mismatch".into());
+                        panic!("There should be exactly one metadata mismatch");
                     }
                     let Some(mismatch) = mismatches.first() else {
-                        return Err("There should be at least one metadata mismatch".into());
+                        panic!("There should be at least one metadata mismatch");
                     };
                     assert_eq!(mismatch.first.key, expected.0);
                     assert_eq!(mismatch.second.key, expected.1);
                 }
-                _ => return Err("Did not return the correct error variant".into()),
+                _ => panic!("Did not return the correct error variant"),
             }
         } else {
-            return Err("Should have returned an error but succeeded".into());
+            panic!("Should have returned an error but succeeded");
         }
 
         Ok(())

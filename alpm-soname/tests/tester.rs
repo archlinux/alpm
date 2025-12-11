@@ -39,7 +39,7 @@ use std::{env, path::PathBuf, str::FromStr};
 
 use alpm_types::SonameLookupDirectory;
 use serde::Serialize;
-use testresult::{TestError, TestResult};
+use testresult::TestResult;
 
 mod shared;
 
@@ -63,10 +63,10 @@ fn main() -> TestResult {
     let current_dir = env::current_dir()?;
     let test_files_dir = current_dir.join("test_files");
     if !test_files_dir.exists() {
-        return Err(TestError::from(format!(
+        panic!(
             "test_files directory not found: {}",
             test_files_dir.display()
-        )));
+        );
     }
 
     let output_dir = env::var("OUTPUT_DIR").unwrap_or_else(|_| "output".to_string());
