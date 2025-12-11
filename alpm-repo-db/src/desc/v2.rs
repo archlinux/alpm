@@ -23,6 +23,7 @@ use alpm_types::{
     PackageFileName,
     PackageRelation,
     Packager,
+    RelationOrSoname,
     Sha256Checksum,
     Url,
 };
@@ -175,12 +176,12 @@ pub struct RepoDescFileV2 {
     /// Virtual components or packages that this package provides.
     ///
     /// Can be empty.
-    pub provides: Vec<PackageRelation>,
+    pub provides: Vec<RelationOrSoname>,
 
     /// Run-time dependencies required by the package.
     ///
     /// Can be empty.
-    pub dependencies: Vec<PackageRelation>,
+    pub dependencies: Vec<RelationOrSoname>,
 
     /// Optional dependencies that are not strictly required by the package.
     ///
@@ -356,8 +357,8 @@ impl TryFrom<Vec<Section>> for RepoDescFileV2 {
         let mut packager = None;
         let mut replaces: Vec<PackageRelation> = Vec::new();
         let mut conflicts: Vec<PackageRelation> = Vec::new();
-        let mut provides: Vec<PackageRelation> = Vec::new();
-        let mut dependencies: Vec<PackageRelation> = Vec::new();
+        let mut provides: Vec<RelationOrSoname> = Vec::new();
+        let mut dependencies: Vec<RelationOrSoname> = Vec::new();
         let mut optional_dependencies: Vec<OptionalDependency> = Vec::new();
         let mut make_dependencies: Vec<PackageRelation> = Vec::new();
         let mut check_dependencies: Vec<PackageRelation> = Vec::new();
@@ -549,10 +550,12 @@ other-pkg-conflicts
 
 %PROVIDES%
 example-component
+lib:libexample.so.1
 
 %DEPENDS%
 glibc
 gcc-libs
+libdep.so=1-64
 
 %OPTDEPENDS%
 bash: for a script
@@ -659,10 +662,14 @@ Foobar McFooface <foobar@mcfooface.org>
             packager: Packager::from_str("Foobar McFooface <foobar@mcfooface.org>")?,
             replaces: vec![PackageRelation::from_str("other-pkg-replaced")?],
             conflicts: vec![PackageRelation::from_str("other-pkg-conflicts")?],
-            provides: vec![PackageRelation::from_str("example-component")?],
+            provides: vec![
+                RelationOrSoname::from_str("example-component")?,
+                RelationOrSoname::from_str("lib:libexample.so.1")?,
+            ],
             dependencies: vec![
-                PackageRelation::from_str("glibc")?,
-                PackageRelation::from_str("gcc-libs")?,
+                RelationOrSoname::from_str("glibc")?,
+                RelationOrSoname::from_str("gcc-libs")?,
+                RelationOrSoname::from_str("libdep.so=1-64")?,
             ],
             optional_dependencies: vec![OptionalDependency::from_str("bash: for a script")?],
             make_dependencies: vec![PackageRelation::from_str("cmake")?],

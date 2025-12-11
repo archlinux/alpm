@@ -22,6 +22,7 @@ use alpm_types::{
     PackageFileName,
     PackageRelation,
     Packager,
+    RelationOrSoname,
     Sha256Checksum,
     Url,
 };
@@ -172,9 +173,9 @@ pub enum Section {
     /// %CONFLICTS%
     Conflicts(Vec<PackageRelation>),
     /// %PROVIDES%
-    Provides(Vec<PackageRelation>),
+    Provides(Vec<RelationOrSoname>),
     /// %DEPENDS%
-    Depends(Vec<PackageRelation>),
+    Depends(Vec<RelationOrSoname>),
     /// %OPTDEPENDS%
     OptDepends(Vec<OptionalDependency>),
     /// %MAKEDEPENDS%
