@@ -7,6 +7,7 @@ use std::{
     str::FromStr,
 };
 
+use alpm_common::{Installed, Named, RuntimeRelations, Versioned};
 use alpm_types::{
     Architecture,
     BuildDate,
@@ -446,6 +447,46 @@ impl From<DbDescFileV2> for DbDescFileV1 {
             conflicts: v2.conflicts,
             provides: v2.provides,
         }
+    }
+}
+
+impl Named for DbDescFileV1 {
+    fn get_name(&self) -> &Name {
+        &self.name
+    }
+}
+
+impl Versioned for DbDescFileV1 {
+    fn get_version(&self) -> &FullVersion {
+        &self.version
+    }
+}
+
+impl RuntimeRelations for DbDescFileV1 {
+    fn get_dependencies(&self) -> Vec<&RelationOrSoname> {
+        self.depends.iter().collect()
+    }
+
+    fn get_optional_dependencies(&self) -> Vec<&OptionalDependency> {
+        self.optdepends.iter().collect()
+    }
+
+    fn get_provides(&self) -> Vec<&RelationOrSoname> {
+        self.provides.iter().collect()
+    }
+
+    fn get_conflicts(&self) -> Vec<&PackageRelation> {
+        self.conflicts.iter().collect()
+    }
+
+    fn get_replaces(&self) -> Vec<&PackageRelation> {
+        self.replaces.iter().collect()
+    }
+}
+
+impl Installed for DbDescFileV1 {
+    fn install_reason(&self) -> PackageInstallReason {
+        self.reason
     }
 }
 

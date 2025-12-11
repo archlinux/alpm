@@ -5,7 +5,8 @@ use std::{
     str::FromStr,
 };
 
-use alpm_common::{FileFormatSchema, MetadataFile};
+use alpm_common::{FileFormatSchema, MetadataFile, Named, RuntimeRelations, Versioned};
+use alpm_types::{FullVersion, Name, OptionalDependency, PackageRelation, RelationOrSoname};
 use fluent_i18n::t;
 
 use crate::{
@@ -343,6 +344,61 @@ impl Display for DbDescFile {
         match self {
             Self::V1(file) => write!(f, "{file}"),
             Self::V2(file) => write!(f, "{file}"),
+        }
+    }
+}
+
+impl Named for DbDescFile {
+    fn get_name(&self) -> &Name {
+        match self {
+            Self::V1(file) => file.get_name(),
+            Self::V2(file) => file.get_name(),
+        }
+    }
+}
+
+impl Versioned for DbDescFile {
+    fn get_version(&self) -> &FullVersion {
+        match self {
+            Self::V1(file) => file.get_version(),
+            Self::V2(file) => file.get_version(),
+        }
+    }
+}
+
+impl RuntimeRelations for DbDescFile {
+    fn get_dependencies(&self) -> Vec<&RelationOrSoname> {
+        match self {
+            Self::V1(file) => file.get_dependencies(),
+            Self::V2(file) => file.get_dependencies(),
+        }
+    }
+
+    fn get_optional_dependencies(&self) -> Vec<&OptionalDependency> {
+        match self {
+            Self::V1(file) => file.get_optional_dependencies(),
+            Self::V2(file) => file.get_optional_dependencies(),
+        }
+    }
+
+    fn get_provides(&self) -> Vec<&RelationOrSoname> {
+        match self {
+            Self::V1(file) => file.get_provides(),
+            Self::V2(file) => file.get_provides(),
+        }
+    }
+
+    fn get_conflicts(&self) -> Vec<&PackageRelation> {
+        match self {
+            Self::V1(file) => file.get_conflicts(),
+            Self::V2(file) => file.get_conflicts(),
+        }
+    }
+
+    fn get_replaces(&self) -> Vec<&PackageRelation> {
+        match self {
+            Self::V1(file) => file.get_replaces(),
+            Self::V2(file) => file.get_replaces(),
         }
     }
 }
