@@ -121,6 +121,81 @@ pub type BuildDirectory = AbsolutePath;
 /// # }
 pub type StartDirectory = AbsolutePath;
 
+/// A representation of a relative path
+///
+/// [`RelativePath`] wraps a [`PathBuf`] that is guaranteed to represent a relative path, regardless
+/// of whether it points to a file or a directory.
+///
+/// ## Examples
+///
+/// ```
+/// use std::{path::PathBuf, str::FromStr};
+///
+/// use alpm_types::{Error, RelativePath};
+///
+/// # fn main() -> Result<(), alpm_types::Error> {
+/// // Create RelativePath from &str
+/// assert_eq!(
+///     RelativePath::from_str("etc/test.conf"),
+///     RelativePath::new(PathBuf::from("etc/test.conf"))
+/// );
+/// assert_eq!(
+///     RelativePath::from_str("etc/"),
+///     RelativePath::new(PathBuf::from("etc/"))
+/// );
+/// assert_eq!(
+///     RelativePath::from_str("/etc/test.conf"),
+///     Err(Error::PathNotRelative(PathBuf::from("/etc/test.conf")))
+/// );
+///
+/// // Format as String
+/// assert_eq!("test/", RelativePath::from_str("test/")?.to_string());
+/// # Ok(())
+/// # }
+/// ```
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub struct RelativePath(PathBuf);
+
+impl RelativePath {
+    /// Create a new [`RelativePath`]
+    pub fn new(path: PathBuf) -> Result<RelativePath, Error> {
+        if !path.is_relative() {
+            return Err(Error::PathNotRelative(path));
+        }
+        Ok(RelativePath(path))
+    }
+
+    /// Consume `self` and return the inner [`PathBuf`]
+    pub fn into_inner(self) -> PathBuf {
+        self.0
+    }
+}
+
+impl AsRef<Path> for RelativePath {
+    fn as_ref(&self) -> &Path {
+        &self.0
+    }
+}
+
+impl FromStr for RelativePath {
+    type Err = Error;
+
+    /// Parses a relative path from a string
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the path is not relative.
+    fn from_str(s: &str) -> Result<RelativePath, Self::Err> {
+        Self::new(PathBuf::from(s))
+    }
+}
+
+impl Display for RelativePath {
+    fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
+        write!(fmt, "{}", self.as_ref().display())
+    }
+}
+
 /// A representation of a relative file path
 ///
 /// `RelativeFilePath` wraps a `PathBuf` that is guaranteed to represent a
@@ -386,6 +461,21 @@ mod tests {
     }
 
     #[rstest]
+    #[case("etc/test.conf", RelativePath::new(PathBuf::from("etc/test.conf")))]
+    #[case("etc/", RelativePath::new(PathBuf::from("etc/")))]
+    #[case(
+        "/etc/test.conf",
+        Err(Error::PathNotRelative(PathBuf::from("/etc/test.conf")))
+    )]
+    #[case(
+        "../etc/test.conf",
+        RelativePath::new(PathBuf::from("../etc/test.conf"))
+    )]
+    fn relative_path_from_str(#[case] s: &str, #[case] result: Result<RelativePath, Error>) {
+        assert_eq!(RelativePath::from_str(s), result);
+    }
+
+    #[rstest]
     #[case("etc/test.conf", RelativeFilePath::new(PathBuf::from("etc/test.conf")))]
     #[case(
         "/etc/test.conf",
@@ -397,7 +487,10 @@ mod tests {
         "../etc/test.conf",
         RelativeFilePath::new(PathBuf::from("../etc/test.conf"))
     )]
-    fn relative_path_from_str(#[case] s: &str, #[case] result: Result<RelativeFilePath, Error>) {
+    fn relative_file_path_from_str(
+        #[case] s: &str,
+        #[case] result: Result<RelativeFilePath, Error>,
+    ) {
         assert_eq!(RelativeFilePath::from_str(s), result);
     }
 
