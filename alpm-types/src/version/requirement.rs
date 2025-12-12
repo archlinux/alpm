@@ -76,11 +76,26 @@ impl VersionRequirement {
     /// assert!(requirement.is_satisfied_by(&Version::from_str("1.6")?));
     /// assert!(requirement.is_satisfied_by(&Version::from_str("2:1.0")?));
     /// assert!(!requirement.is_satisfied_by(&Version::from_str("1.0")?));
+    ///
+    /// // If pkgrel is not specified in the requirement, it is ignored in the comparison.
+    /// let requirement = VersionRequirement::from_str("=1.5")?;
+    /// assert!(requirement.is_satisfied_by(&Version::from_str("1.5-3")?));
     /// # Ok(())
     /// # }
     /// ```
     pub fn is_satisfied_by(&self, ver: &Version) -> bool {
-        self.comparison.is_compatible_with(ver.cmp(&self.version))
+        // If the requirement does not specify a pkgrel, we ignore it in the comparison.
+        // so that `foo=1` can be satisfied by `foo=1-1`.
+        let other_version = if self.version.pkgrel.is_none() {
+            &Version {
+                pkgrel: None,
+                ..ver.clone()
+            }
+        } else {
+            ver
+        };
+        self.comparison
+            .is_compatible_with(other_version.cmp(&self.version))
     }
 
     /// Recognizes a [`VersionRequirement`] in a string slice.
@@ -527,7 +542,7 @@ mod tests {
     #[rstest]
     #[case("=1", "1", true)]
     #[case("=1", "1.0", false)]
-    #[case("=1", "1-1", false)]
+    #[case("=1", "1-1", true)]
     #[case("=1", "1:1", false)]
     #[case("=1", "0.9", false)]
     #[case("<42", "41", true)]
