@@ -8,7 +8,7 @@ The **pkgver** format is a version format, that is used for representing upstrea
 This format is used in build scripts or file formats for package data description or reproduction.
 
 A **pkgver** value is represented by a string, consisting of ASCII characters, excluding the ':', '/', '-', '<', '>', '=' or any whitespace characters.
-The **pkgver** value must be at least one character long, and must not start with a '.' sign.
+The **pkgver** value must be at least one character long.
 If an upstream version contains an invalid character, it is advised to replace it with a valid one or to remove it.
 
 # EXAMPLES
