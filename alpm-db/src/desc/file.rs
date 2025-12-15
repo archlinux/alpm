@@ -5,7 +5,8 @@ use std::{
     str::FromStr,
 };
 
-use alpm_common::{FileFormatSchema, MetadataFile};
+use alpm_common::{FileFormatSchema, Installed, MetadataFile, Named, RuntimeRelations, Versioned};
+use alpm_types::{FullVersion, Name, OptionalDependency, PackageRelation, RelationOrSoname};
 use fluent_i18n::t;
 
 use crate::{
@@ -343,6 +344,70 @@ impl Display for DbDescFile {
         match self {
             Self::V1(file) => write!(f, "{file}"),
             Self::V2(file) => write!(f, "{file}"),
+        }
+    }
+}
+
+impl Named for DbDescFile {
+    fn get_name(&self) -> &Name {
+        match self {
+            Self::V1(file) => file.get_name(),
+            Self::V2(file) => file.get_name(),
+        }
+    }
+}
+
+impl Versioned for DbDescFile {
+    fn get_version(&self) -> &FullVersion {
+        match self {
+            Self::V1(file) => file.get_version(),
+            Self::V2(file) => file.get_version(),
+        }
+    }
+}
+
+impl RuntimeRelations for DbDescFile {
+    fn get_run_time_dependencies(&self) -> &[RelationOrSoname] {
+        match self {
+            Self::V1(file) => file.get_run_time_dependencies(),
+            Self::V2(file) => file.get_run_time_dependencies(),
+        }
+    }
+
+    fn get_optional_dependencies(&self) -> &[OptionalDependency] {
+        match self {
+            Self::V1(file) => file.get_optional_dependencies(),
+            Self::V2(file) => file.get_optional_dependencies(),
+        }
+    }
+
+    fn get_provisions(&self) -> &[RelationOrSoname] {
+        match self {
+            Self::V1(file) => file.get_provisions(),
+            Self::V2(file) => file.get_provisions(),
+        }
+    }
+
+    fn get_conflicts(&self) -> &[PackageRelation] {
+        match self {
+            Self::V1(file) => file.get_conflicts(),
+            Self::V2(file) => file.get_conflicts(),
+        }
+    }
+
+    fn get_replacements(&self) -> &[PackageRelation] {
+        match self {
+            Self::V1(file) => file.get_replacements(),
+            Self::V2(file) => file.get_replacements(),
+        }
+    }
+}
+
+impl Installed for DbDescFile {
+    fn install_reason(&self) -> alpm_types::PackageInstallReason {
+        match self {
+            Self::V1(file) => file.install_reason(),
+            Self::V2(file) => file.install_reason(),
         }
     }
 }
