@@ -26,7 +26,7 @@ use crate::{Error, PackageRelation, SonameV1, SonameV2};
 /// [SRCINFO]: https://alpm.archlinux.page/specifications/SRCINFO.5.html
 /// [alpm-db-desc]: https://alpm.archlinux.page/specifications/alpm-db-desc.5.html
 /// [alpm-package-relations]: https://alpm.archlinux.page/specifications/alpm-package-relation.7.html
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum RelationOrSoname {
     /// A package relation (as [`PackageRelation`]).

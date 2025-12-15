@@ -12,6 +12,7 @@
 
 use std::{
     cmp::Ordering,
+    hash::{Hash, Hasher},
     iter::Peekable,
     str::{CharIndices, Chars, FromStr},
 };
@@ -68,7 +69,7 @@ use crate::PackageVersion;
 ///     Segment { text: "", delimiter_count: 3},
 ///   ];
 ///   ```
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum VersionSegment<'a> {
     /// The start of a new segment.
     /// If the current segment can be split into multiple sub-segments, this variant only contains
@@ -510,9 +511,21 @@ impl PartialOrd for PackageVersion {
     }
 }
 
+// Note: this is not derived as version comparison only compares segments,
+// so e.g. `1.1.1 == 1~1~1`
 impl PartialEq for PackageVersion {
     fn eq(&self, other: &Self) -> bool {
         self.cmp(other).is_eq()
+    }
+}
+
+// Note: This implementation hashes equivalent versions as the same.
+// `1.1.1` will result in the same hash as `1~1~1`.
+impl Hash for PackageVersion {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        for segment in self.segments() {
+            segment.hash(state);
+        }
     }
 }
 

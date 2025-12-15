@@ -46,7 +46,7 @@ use crate::{Epoch, Error, PackageRelease, PackageVersion, Version};
 /// ```
 ///
 /// [alpm-package-version]: https://alpm.archlinux.page/specifications/alpm-package-version.7.html
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct FullVersion {
     /// The version of the package
     pub pkgver: PackageVersion,

@@ -517,7 +517,18 @@ impl TryFrom<Vec<Architecture>> for Architectures {
 ///
 /// [_ELF Header_]: https://en.wikipedia.org/wiki/Executable_and_Linkable_Format#ELF_header
 #[derive(
-    Clone, Copy, Debug, Deserialize, Display, EnumString, Eq, Ord, PartialEq, PartialOrd, Serialize,
+    Clone,
+    Copy,
+    Debug,
+    Deserialize,
+    Display,
+    EnumString,
+    Eq,
+    Ord,
+    PartialEq,
+    PartialOrd,
+    Serialize,
+    Hash,
 )]
 #[strum(serialize_all = "lowercase")]
 pub enum ElfArchitectureFormat {

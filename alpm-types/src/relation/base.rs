@@ -29,7 +29,7 @@ use crate::{Error, Name, VersionRequirement};
 /// dependencies, as those behave differently.
 ///
 /// [alpm-package-relations]: https://alpm.archlinux.page/specifications/alpm-package-relation.7.html
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct PackageRelation {
     /// The name of the package
     pub name: Name,

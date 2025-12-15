@@ -42,7 +42,7 @@ use crate::{Error, Version};
 /// ```
 ///
 /// [alpm-comparison]: https://alpm.archlinux.page/specifications/alpm-comparison.7.html
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct VersionRequirement {
     /// Version comparison function
     pub comparison: VersionComparison,
@@ -371,6 +371,7 @@ impl FromStr for VersionRequirement {
     strum::VariantNames,
     Serialize,
     Deserialize,
+    Hash,
 )]
 pub enum VersionComparison {
     /// Less than or equal to

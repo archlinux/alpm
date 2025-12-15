@@ -49,7 +49,7 @@ use crate::{Error, VersionSegments};
 /// ```
 ///
 /// [alpm-epoch]: https://alpm.archlinux.page/specifications/alpm-epoch.7.html
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Epoch(pub NonZeroUsize);
 
 impl Epoch {
@@ -114,7 +114,7 @@ impl Display for Epoch {
 /// ```
 ///
 /// [alpm-pkgrel]: https://alpm.archlinux.page/specifications/alpm-pkgrel.7.html
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct PackageRelease {
     /// The major version of this package release.
     pub major: usize,
