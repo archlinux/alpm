@@ -9,7 +9,8 @@ use std::{
     str::FromStr,
 };
 
-use alpm_common::{FileFormatSchema, MetadataFile};
+use alpm_common::{FileFormatSchema, MetadataFile, Named, RuntimeRelations, Versioned};
+use alpm_types::{FullVersion, Name, OptionalDependency, PackageRelation, RelationOrSoname};
 use fluent_i18n::t;
 
 use crate::{
@@ -403,5 +404,60 @@ impl FromStr for RepoDescFile {
     /// Returns an error if [`RepoDescFile::from_str_with_schema`] fails.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Self::from_str_with_schema(s, None)
+    }
+}
+
+impl Named for RepoDescFile {
+    fn get_name(&self) -> &Name {
+        match self {
+            Self::V1(file) => file.get_name(),
+            Self::V2(file) => file.get_name(),
+        }
+    }
+}
+
+impl Versioned for RepoDescFile {
+    fn get_version(&self) -> &FullVersion {
+        match self {
+            Self::V1(file) => file.get_version(),
+            Self::V2(file) => file.get_version(),
+        }
+    }
+}
+
+impl RuntimeRelations for RepoDescFile {
+    fn get_run_time_dependencies(&self) -> &[RelationOrSoname] {
+        match self {
+            Self::V1(file) => file.get_run_time_dependencies(),
+            Self::V2(file) => file.get_run_time_dependencies(),
+        }
+    }
+
+    fn get_optional_dependencies(&self) -> &[OptionalDependency] {
+        match self {
+            Self::V1(file) => file.get_optional_dependencies(),
+            Self::V2(file) => file.get_optional_dependencies(),
+        }
+    }
+
+    fn get_provisions(&self) -> &[RelationOrSoname] {
+        match self {
+            Self::V1(file) => file.get_provisions(),
+            Self::V2(file) => file.get_provisions(),
+        }
+    }
+
+    fn get_conflicts(&self) -> &[PackageRelation] {
+        match self {
+            Self::V1(file) => file.get_conflicts(),
+            Self::V2(file) => file.get_conflicts(),
+        }
+    }
+
+    fn get_replacements(&self) -> &[PackageRelation] {
+        match self {
+            Self::V1(file) => file.get_replacements(),
+            Self::V2(file) => file.get_replacements(),
+        }
     }
 }

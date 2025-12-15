@@ -7,6 +7,7 @@ use std::{
     str::FromStr,
 };
 
+use alpm_common::{Named, RuntimeRelations, Versioned};
 use alpm_types::{
     Architecture,
     Base64OpenPGPSignature,
@@ -487,6 +488,40 @@ impl From<RepoDescFileV1> for RepoDescFileV2 {
             make_dependencies: v1.make_dependencies,
             check_dependencies: v1.check_dependencies,
         }
+    }
+}
+
+impl Named for RepoDescFileV2 {
+    fn get_name(&self) -> &Name {
+        &self.name
+    }
+}
+
+impl Versioned for RepoDescFileV2 {
+    fn get_version(&self) -> &FullVersion {
+        &self.version
+    }
+}
+
+impl RuntimeRelations for RepoDescFileV2 {
+    fn get_run_time_dependencies(&self) -> &[RelationOrSoname] {
+        &self.dependencies
+    }
+
+    fn get_optional_dependencies(&self) -> &[OptionalDependency] {
+        &self.optional_dependencies
+    }
+
+    fn get_provisions(&self) -> &[RelationOrSoname] {
+        &self.provides
+    }
+
+    fn get_conflicts(&self) -> &[PackageRelation] {
+        &self.conflicts
+    }
+
+    fn get_replacements(&self) -> &[PackageRelation] {
+        &self.replaces
     }
 }
 
