@@ -1261,8 +1261,11 @@ version = "0.0.0"
 dependencies = [
  "alpm-buildinfo",
  "alpm-common",
+ "alpm-db",
  "alpm-mtree",
  "alpm-pkginfo",
+ "alpm-repo-db",
+ "alpm-solve",
  "alpm-srcinfo",
  "alpm-types",
  "assert_cmd",

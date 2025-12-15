@@ -24,6 +24,10 @@ pub enum Error {
     #[error(transparent)]
     AlpmSourceInfo(#[from] alpm_srcinfo::Error),
 
+    /// An `alpm_solve::Error` occurred.
+    #[error(transparent)]
+    AlpmSolve(#[from] alpm_solve::Error),
+
     /// An `alpm_types::Error` occurred.
     #[error(transparent)]
     AlpmTypes(#[from] alpm_types::Error),

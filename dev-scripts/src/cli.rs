@@ -57,6 +57,31 @@ If "$XDG_CACHE_HOME" is unset, falls back to "~/.cache/alpm/testing/"."#,
         )]
         srcinfo_path: PathBuf,
     },
+
+    /// Run the dependency resolver on your system.
+    ///
+    /// Requires downloading databases first via `test-files download databases`.
+    Resolve {
+        #[arg(short, long, help = "enable partial upgrades")]
+        partial: bool,
+        #[arg(
+            short,
+            long,
+            help = "enforce correct versions of optional dependencies"
+        )]
+        strict_optional: bool,
+        #[arg(
+            help = "The directory with sync db test data",
+            long,
+            long_help = r#"The directory with sync db test data.
+
+If unset, defaults to "$XDG_CACHE_HOME/alpm/testing/".
+If "$XDG_CACHE_HOME" is unset, falls back to "~/.cache/alpm/testing/"."#,
+            short,
+            value_name = "DIR"
+        )]
+        cache_dir: Option<PathBuf>,
+    },
 }
 
 #[derive(Clone, Copy, Debug, Eq, Parser, PartialEq, ValueEnum)]

@@ -10,6 +10,7 @@ use crate::{
     cache::CacheDir,
     commands::{compare_source_info, test_files},
     error::Error,
+    solver::solve_upgrade,
 };
 
 mod cache;
@@ -18,6 +19,7 @@ mod cmd;
 mod commands;
 mod consts;
 mod error;
+mod solver;
 pub mod sync;
 pub mod testing;
 mod ui;
@@ -41,6 +43,19 @@ fn run_command() -> Result<(), Error> {
             pkgbuild_path,
             srcinfo_path,
         } => compare_source_info(pkgbuild_path, srcinfo_path),
+        cli::Command::Resolve {
+            partial,
+            strict_optional,
+            cache_dir,
+        } => {
+            let cache_dir = if let Some(path) = cache_dir {
+                CacheDir::from(path)
+            } else {
+                CacheDir::from_xdg()?
+            };
+
+            solve_upgrade(cache_dir, partial, strict_optional)
+        }
     }
 }
 

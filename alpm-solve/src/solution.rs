@@ -22,20 +22,29 @@ use crate::{
 pub enum DependencyResolutionAction {
     /// A new package has to be installed.
     Install {
+        /// Name of the package to be installed.
         name: Name,
+        /// Version of the package to be installed.
         version: FullVersion,
+        /// Source of the package to be installed.
         source: PackageMetadataOrigin,
     },
     /// An existing package has to be upgraded or downgraded.
     Change {
+        /// Name of the package to be changed.
         name: Name,
+        /// Current version of the package.
         from_version: FullVersion,
+        /// Target version of the package.
         to_version: FullVersion,
+        /// Source of the package to be changed.
         source: PackageMetadataOrigin,
     },
     /// An existing package has to be removed due to conflicts.
     Remove {
+        /// Name of the package to be removed.
         name: Name,
+        /// Packages that conflict with this package, causing its removal.
         conflicts_with: HashMap<PackageRelation, Replaces>,
     },
     /// An existing package can be (optionally) removed as it is no longer required.
