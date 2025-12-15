@@ -41,12 +41,14 @@ resolver = "3"
 alpm-buildinfo = { path = "./alpm-buildinfo", version = "0.5.1" }
 alpm-common = { path = "./alpm-common", version = "0.2.1" }
 alpm-compress = { path = "./alpm-compress", version = "0.1.2" }
+alpm-db = { path = "./alpm-db", version = "0.2.0" }
 alpm-lint-config = { path = "./alpm-lint-config", version = "0.1.1" }
 alpm-mtree = { path = "./alpm-mtree", version = "0.3.1" }
 alpm-package = { path = "./alpm-package", version = "0.4.1" }
 alpm-parsers = { path = "./alpm-parsers", version = "0.4.1" }
 alpm-pkgbuild = { path = "./alpm-pkgbuild", version = "0.2.3" }
 alpm-pkginfo = { path = "./alpm-pkginfo", version = "0.6.0" }
+alpm-repo-db = { path = "./alpm-repo-db", version = "0.1.0" }
 alpm-srcinfo = { path = "./alpm-srcinfo", version = "0.6.1" }
 alpm-types = { path = "./alpm-types", version = "0.11.0" }
 assert_cmd = "2.0.11"
