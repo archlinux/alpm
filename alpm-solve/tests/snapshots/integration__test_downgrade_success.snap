@@ -1,0 +1,9 @@
+---
+source: alpm-solve/tests/integration.rs
+expression: success
+---
+[⌄]   downgrade: epic-fail                 from package cache  4-1─────────────► 2-1
+[⌄]   downgrade: htop                      from package cache  3.2.0-1─────────► 3.1.0-1
+[⌄]   downgrade: neovim                    from package cache  0.9.4-1─────────► 0.9.3-1
+[⌄]   downgrade: python-virtualenv         from package cache  20.24.0-1───────► 20.23.0-1
+[⌄]   downgrade: tmux                      from package cache  3.3-1───────────► 3.2-1

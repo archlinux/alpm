@@ -1,0 +1,5 @@
+---
+source: alpm-solve/tests/integration.rs
+expression: success
+---
+[^]     upgrade: rustup                    from core           1-1─────────────► 2-1

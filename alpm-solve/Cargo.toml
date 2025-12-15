@@ -12,6 +12,15 @@ rust-version.workspace = true
 version = "0.1.0"
 
 [dependencies]
+alpm-common.workspace = true
+alpm-types.workspace = true
+resolvo = "0.10.2"
+thiserror.workspace = true
+
+[dev-dependencies]
+alpm-db.workspace = true
+insta.workspace = true
+rstest.workspace = true
 
 [lints]
 workspace = true

@@ -1,0 +1,7 @@
+---
+source: alpm-solve/tests/integration.rs
+expression: success
+---
+[^]     upgrade: a                         from core           1-1─────────────► 2-1
+[^]     upgrade: dep-c                     from core           1-1─────────────► 2-1
+[^]     upgrade: e                         from core           1-1─────────────► 2-1

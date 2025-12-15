@@ -1,0 +1,8 @@
+---
+source: alpm-solve/tests/integration.rs
+expression: success
+---
+[^]     upgrade: a                         from core           1-1─────────────► 2-1
+[-]      remove: b
+ └─────conflict: c=1-1
+[+]     install: c                         from core           1-1

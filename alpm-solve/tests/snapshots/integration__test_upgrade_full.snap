@@ -1,0 +1,10 @@
+---
+source: alpm-solve/tests/integration.rs
+expression: fail
+---
+The following packages are incompatible
+├─ coreutils >=9.4-1 can be installed with any of the following options:
+│  └─ coreutils 9.4-1 (core)
+└─ epic-fail >=3-1 cannot be installed because there are no viable options:
+   └─ epic-fail 3-1 (core) would constrain
+      └─ coreutils to not be >9, which conflicts with any installable versions previously reported
