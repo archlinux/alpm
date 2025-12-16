@@ -10,9 +10,16 @@ use alpm_srcinfo::SourceInfo;
 use log::{debug, info};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use voa::{
-    commands::{openpgp_verify, read_openpgp_signatures, read_openpgp_verifiers},
+    commands::{
+        PurposeAndContext,
+        get_technology_settings,
+        get_voa_config,
+        openpgp_verify,
+        read_openpgp_signatures,
+        read_openpgp_verifiers,
+    },
     core::{Context, Os, Purpose},
-    openpgp::VerifierLookup,
+    openpgp::ModelBasedVerifier,
     utils::RegularFile,
 };
 
@@ -25,7 +32,7 @@ use crate::{
     ui::get_progress_bar,
 };
 
-/// Verifies a `file` using a `signature` and a [`VerifierLookup`].
+/// Verifies a `file` using a `signature` and a [`ModelBasedVerifier`].
 ///
 /// The success or failure of the verification is transmitted through logging.
 ///
@@ -38,7 +45,7 @@ use crate::{
 fn openpgp_verify_file(
     file: PathBuf,
     signature: PathBuf,
-    lookup: &VerifierLookup,
+    model_verifier: &ModelBasedVerifier,
 ) -> Result<(), Error> {
     debug!("Verifying {file:?} with {signature:?}");
 
@@ -46,14 +53,21 @@ fn openpgp_verify_file(
         signature.clone(),
     )?]))?;
 
-    let check_results = openpgp_verify(lookup, &signatures, &RegularFile::try_from(file.clone())?)?;
+    let check_results = openpgp_verify(
+        model_verifier,
+        &signatures,
+        &RegularFile::try_from(file.clone())?,
+    )?;
 
     // Look at the signer info of all check results and return an error if there is none.
     for check_result in check_results {
         if let Some(signer_info) = check_result.signer_info() {
             debug!(
                 "Successfully verified using {} {}",
-                signer_info.certificate().fingerprint(),
+                signer_info
+                    .certificate()
+                    .fingerprint()
+                    .map_err(voa::Error::VoaOpenPgp)?,
                 signer_info.component_fingerprint()
             )
         } else {
@@ -92,18 +106,34 @@ impl TestRunner {
 
         // Cache the certificates used for VOA-based verification as that significantly increases
         // speed.
-        let certs = if matches!(self.file_type, TestFileType::Signatures) {
-            read_openpgp_verifiers(
-                Os::from_str("arch").map_err(|source| Error::Voa(voa::Error::VoaCore(source)))?,
-                Purpose::from_str("package")
-                    .map_err(|source| Error::Voa(voa::Error::VoaCore(source)))?,
+        let os = Os::from_str("arch").map_err(voa::Error::VoaCore)?;
+
+        let (artifact_verifiers, anchors) = if matches!(self.file_type, TestFileType::Signatures) {
+            let artifact_verifiers = read_openpgp_verifiers(
+                os.clone(),
+                Purpose::from_str("package").map_err(voa::Error::VoaCore)?,
                 Context::Default,
-            )
+            );
+            let anchors = read_openpgp_verifiers(
+                os.clone(),
+                Purpose::from_str("trust-anchor-package").map_err(voa::Error::VoaCore)?,
+                Context::Default,
+            );
+            (artifact_verifiers, anchors)
         } else {
-            Vec::new()
+            (Vec::new(), Vec::new())
         };
 
-        let lookup = VerifierLookup::new(&certs);
+        let config = get_voa_config();
+        let purpose_and_context = PurposeAndContext::new(
+            Some(Purpose::from_str("package").map_err(voa::Error::VoaCore)?),
+            Some(Context::Default),
+        );
+        let openpgp_settings =
+            get_technology_settings(&config, &os, purpose_and_context.as_ref()).openpgp_settings();
+
+        let model_verifier =
+            ModelBasedVerifier::new(openpgp_settings, &artifact_verifiers, &anchors);
 
         let progress_bar = get_progress_bar(test_files.len() as u64);
 
@@ -135,7 +165,7 @@ impl TestRunner {
                             data
                         };
 
-                        openpgp_verify_file(data, file.clone(), &lookup)
+                        openpgp_verify_file(data, file.clone(), &model_verifier)
                     }
                 };
 
