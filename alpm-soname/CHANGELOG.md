@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2025-12-17
+
+### Added
+
+- Improve the `alpm-soname` plain output format
+
+### Fixed
+
+- Fix clippy warnings for Rust 1.92.0
+
+### Other
+
+- [**breaking**] Unify RelationOrSoname in alpm-types
+
 ## [0.3.0] - 2025-11-15
 
 ### Added
