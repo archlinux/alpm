@@ -45,7 +45,7 @@ alpm-mtree = { path = "./alpm-mtree", version = "0.3.1" }
 alpm-package = { path = "./alpm-package", version = "0.4.0" }
 alpm-parsers = { path = "./alpm-parsers", version = "0.4.1" }
 alpm-pkgbuild = { path = "./alpm-pkgbuild", version = "0.2.3" }
-alpm-pkginfo = { path = "./alpm-pkginfo", version = "0.5.0" }
+alpm-pkginfo = { path = "./alpm-pkginfo", version = "0.6.0" }
 alpm-srcinfo = { path = "./alpm-srcinfo", version = "0.6.0" }
 alpm-types = { path = "./alpm-types", version = "0.11.0" }
 assert_cmd = "2.0.11"
