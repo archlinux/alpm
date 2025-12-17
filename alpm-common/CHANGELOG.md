@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2025-12-17
+
+### Other
+
+- Use `mod.rs` module file for `alpm_common::traits`
+
 ## [0.2.0] - 2025-11-15
 
 ### Added
