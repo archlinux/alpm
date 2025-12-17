@@ -1147,7 +1147,6 @@ prepare-release package version="":
             just ensure-command git-cliff
 
             readonly cliff_common_options=(
-                --include-path "${package_name}/"  # <https://github.com/orhun/git-cliff/issues/1292>
                 --workdir "$package_name"
             )
             readonly cliff_bump_options=(
