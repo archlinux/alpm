@@ -9,7 +9,7 @@ name = "alpm-pkgbuild"
 readme = "README.md"
 repository.workspace = true
 rust-version.workspace = true
-version = "0.2.2"
+version = "0.2.3"
 
 [features]
 _winnow-debug = ["winnow/debug"]
