@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2025-12-17
+
+### Added
+
+- Add alpm-db-files to alpm-db crate
+- [**breaking**] Use `FullVersion`, not `Version` in `DbDescFileV1`, `DbDescFileV2`
+- Support multiple validation entries in alpm-db-desc
+- [**breaking**] Use commas as `value_delimiter` for `--optdepends`
+- Localize error messages for alpm-db
+
+### Other
+
+- Mention multiple validation entries in alpm-db-desc specification
+- Add required paths for `alpm-db-files` specification example
+- Split alpm-files specifications
+- *(readme)* Add doctest for creating `alpm-db-desc` using CLI
+- Use RelationOrSoname for provides/depends in alpm-db-desc
+
 ## [0.1.0] - 2025-11-15
 
 ### Added
