@@ -1152,7 +1152,7 @@ prepare-release package version="":
             readonly cliff_bump_options=(
                 "${cliff_common_options[@]}"
                 --bump
-                --prepend CHANGELOG.md
+                --prepend "$package_name/CHANGELOG.md"
                 --unreleased
             )
             git-cliff "${cliff_bump_options[@]}"
