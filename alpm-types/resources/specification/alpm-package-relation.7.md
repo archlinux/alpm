@@ -90,7 +90,7 @@ The value for an optional dependency can be one of the following:
 This **package relation** specifies a component name (an **alpm-package-name**, a *virtual component*, or an **alpm-soname**) that is provided by a given package.
 The use of a provision allows for scenarios in which e.g. several packages provide the same component, allowing package managers to provide a choice.
 
-The value for a **provision** is either an **alpm-package-name**, an **alpm-comparison**, or an **alpm-soname** (e.g. `example`, `example>=1.0.0`, or `lib:libexample.so.1`, respectively).
+The value for a **provision** is either an **alpm-package-name**, a _composite comparison expression_ (an **alpm-comparison** that must use an _equal to_ comparison), or an **alpm-soname** (e.g. `example`, `example=1.0.0`, `libexample.so=1-64` or `lib:libexample.so.1`).
 
 - In **PKGBUILD** files zero or more provisions are specified using the **provides** array.
   Architecture-specific provisions may be specified using an array named 'provides', directly followed by an '_' sign, directly followed by an **alpm-architecture** (all **alpm-architectures** except `any` can be used), e.g. `provides_aarch64`.
