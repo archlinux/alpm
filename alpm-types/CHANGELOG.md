@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.0] - 2025-12-17
+
+### Added
+
+- Add RelativePath type to alpm-types
+- Add `SonameV1::shared_object_name` returning the `SharedObjectName`
+- Add `OptionalDependency::package_relation`
+- Add `InstalledPackage::to_package_relation`
+- Derive `Hash` for `SharedObjectName`
+- Add `VersionRequirement::is_intersection`
+- Add `Base64OpenPGPSignature` newtype
+
+### Fixed
+
+- Make `is_satisfied_by` ignore pkgrel if not present in requirement
+- Make the `PackageVersion` parser allow character set from the spec
+- Fix clippy warnings for Rust 1.92.0
+- *(deps)* Update Rust crate spdx to 0.13.0
+
+### Other
+
+- Only allow "equal to" comparison in alpm-package-relation provision
+- Implement Hash for RelativeFilePath type
+- Allow dot as the first character in `pkgver`
+- Disallow '<', '>', and '=' in `pkgver`
+- Split up the `alpm_types::relation` module further
+- Move alpm-repo-desc spec to `alpm-repo-db`
+- Use the correct license for alpm-types
+- Split alpm-files specifications
+- Update examples for alpm-repo-descv2
+- [**breaking**] Unify RelationOrSoname in alpm-types
+
 ## [0.10.0] - 2025-11-15
 
 ### Added
