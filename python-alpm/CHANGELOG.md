@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2025-12-17
+
+### Added
+
+- Use `alpm_types::SonameV1::shared_object_name` for `SonameV1::name`
+
+### Fixed
+
+- Add `Soname` and `SonameV2` to `__all__`
+- Make the `PackageVersion` parser allow character set from the spec
+
+### Other
+
+- [**breaking**] Update Python bindings for RelationOrSoname type
+
 ## [0.3.0] - 2025-11-15
 
 ### Added
