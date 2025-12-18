@@ -47,14 +47,23 @@ Providing test integration for all [file types] is in scope of this crate, as so
 
 Currently the following file types are supported:
 
-- [ ] ALPM-DB-DESC
-- [ ] ALPM-DB-FILES
+- [x] ALPM-DB-DESC (local pacman database)
+- [x] ALPM-DB-FILES (local pacman database)
 - [x] ALPM-MTREE
 - [ ] ALPM-REPO-DESC
 - [ ] ALPM-REPO-FILES
 - [x] BUILDINFO
 - [x] PKGINFO
 - [x] SRCINFO
+
+### Local pacman database
+
+You can validate the metadata installed on your machine by pointing `dev-scripts` at the local pacman database. These tests use the `alpm_db::db` helpers to parse each entry under `/var/lib/pacman/local` (override with `--local-db-path` if needed).
+
+```sh
+cargo run -- test-files test local-desc
+cargo run -- test-files test local-files --local-db-path /some/chroot/var/lib/pacman/local
+```
 
 <!-- somewhere at the bottom of the file -->
 

@@ -31,7 +31,11 @@ use crate::{
 /// - Download packages.
 /// - Test file parsers on all files.
 /// - Clean up downloaded files.
-pub(crate) fn test_files(cmd: TestFilesCmd, cache_dir: CacheDir) -> Result<(), Error> {
+pub(crate) fn test_files(
+    cmd: TestFilesCmd,
+    cache_dir: CacheDir,
+    local_db_path: Option<PathBuf>,
+) -> Result<(), Error> {
     match cmd {
         TestFilesCmd::Test {
             repositories,
@@ -44,6 +48,7 @@ pub(crate) fn test_files(cmd: TestFilesCmd, cache_dir: CacheDir) -> Result<(), E
                 cache_dir,
                 file_type,
                 repositories,
+                local_db_path,
             };
             runner.run_tests()?;
         }

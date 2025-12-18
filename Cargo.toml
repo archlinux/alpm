@@ -40,6 +40,7 @@ resolver = "3"
 alpm-buildinfo = { path = "./alpm-buildinfo", version = "0.5.1" }
 alpm-common = { path = "./alpm-common", version = "0.2.1" }
 alpm-compress = { path = "./alpm-compress", version = "0.1.2" }
+alpm-db = { path = "./alpm-db", version = "0.2.0" }
 alpm-lint-config = { path = "./alpm-lint-config", version = "0.1.1" }
 alpm-mtree = { path = "./alpm-mtree", version = "0.3.1" }
 alpm-package = { path = "./alpm-package", version = "0.4.1" }

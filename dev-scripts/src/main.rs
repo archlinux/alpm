@@ -28,14 +28,18 @@ fn run_command() -> Result<(), Error> {
     SimpleLogger::init(cli.verbose.log_level_filter(), Config::default())?;
 
     match cli.cmd {
-        cli::Command::TestFiles { cmd, cache_dir } => {
+        cli::Command::TestFiles {
+            cmd,
+            cache_dir,
+            local_db_path,
+        } => {
             let cache_dir = if let Some(path) = cache_dir {
                 CacheDir::from(path)
             } else {
                 CacheDir::from_xdg()?
             };
 
-            test_files(cmd, cache_dir)
+            test_files(cmd, cache_dir, local_db_path)
         }
         cli::Command::CompareSrcinfo {
             pkgbuild_path,

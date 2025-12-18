@@ -34,6 +34,13 @@ If "$XDG_CACHE_HOME" is unset, falls back to "~/.cache/alpm/testing/"."#,
             value_name = "DIR"
         )]
         cache_dir: Option<PathBuf>,
+
+        #[arg(
+            help = "Path to the local alpm-db (defaults to /var/lib/pacman/local/)",
+            long = "local-db-path",
+            value_name = "DIR"
+        )]
+        local_db_path: Option<PathBuf>,
     },
 
     /// Run the `alpm-pkgbuild srcinfo format` command on a PKGBUILD and compare its output with a

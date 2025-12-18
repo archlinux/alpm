@@ -4,6 +4,7 @@ use std::{collections::HashSet, fs::read_dir, path::PathBuf, str::FromStr};
 
 use alpm_buildinfo::BuildInfo;
 use alpm_common::MetadataFile;
+use alpm_db::db::Database;
 use alpm_mtree::Mtree;
 use alpm_pkginfo::PackageInfo;
 use alpm_srcinfo::SourceInfo;
@@ -20,7 +21,14 @@ use crate::{
     CacheDir,
     Error,
     cli::TestFileType,
-    consts::{AUR_DIR, DATABASES_DIR, DOWNLOAD_DIR, PACKAGES_DIR, PKGSRC_DIR},
+    consts::{
+        AUR_DIR,
+        DATABASES_DIR,
+        DEFAULT_LOCAL_DB_PATH,
+        DOWNLOAD_DIR,
+        PACKAGES_DIR,
+        PKGSRC_DIR,
+    },
     sync::PackageRepositories,
     ui::get_progress_bar,
 };
@@ -77,12 +85,21 @@ pub struct TestRunner {
     pub file_type: TestFileType,
     /// The list of repositories against which the test runs.
     pub repositories: Vec<PackageRepositories>,
+    /// Optional path to a local pacman database directory for local tests.
+    pub local_db_path: Option<PathBuf>,
 }
 
 impl TestRunner {
     /// Run validation on all local test files that have been downloaded via the
     /// `test-files download` command.
     pub fn run_tests(&self) -> Result<(), Error> {
+        if matches!(
+            self.file_type,
+            TestFileType::LocalDesc | TestFileType::LocalFiles
+        ) {
+            return self.run_alpm_db_tests();
+        }
+
         let test_files = self.find_files_of_type()?;
         info!(
             "Found {} {} files for testing",
@@ -126,8 +143,9 @@ impl TestRunner {
                         .map_err(|err| err.into()),
                     TestFileType::RemoteDesc => unimplemented!(),
                     TestFileType::RemoteFiles => unimplemented!(),
-                    TestFileType::LocalDesc => unimplemented!(),
-                    TestFileType::LocalFiles => unimplemented!(),
+                    TestFileType::LocalDesc | TestFileType::LocalFiles => unreachable!(
+                        "Local database tests are handled via alpm-db integration before validation"
+                    ),
                     TestFileType::Signatures => {
                         let data = {
                             let mut data = file.clone();
@@ -229,9 +247,9 @@ impl TestRunner {
                     &TestFileType::Signatures.to_string(),
                 );
             }
-            TestFileType::LocalDesc | TestFileType::LocalFiles => {
-                unimplemented!();
-            }
+            TestFileType::LocalDesc | TestFileType::LocalFiles => unreachable!(
+                "Local database tests are handled via alpm-db integration before file discovery"
+            ),
         };
 
         for folder in type_folders {
@@ -261,6 +279,41 @@ impl TestRunner {
         }
 
         Ok(files)
+    }
+
+    /// Runs validation for local pacman databases using [`alpm_db`] helpers.
+    fn run_alpm_db_tests(&self) -> Result<(), Error> {
+        let db_path = self.local_db_root();
+        info!(
+            "Validating {} entries in local database at {}",
+            self.file_type,
+            db_path.display()
+        );
+
+        let database = Database::open(&db_path)?;
+        let report = database.check()?;
+
+        let progress_bar = get_progress_bar(report.entries_checked as u64);
+        progress_bar.inc(report.entries_checked as u64);
+        progress_bar.finish_with_message("Validation run finished.");
+
+        if !report.errors.is_empty() {
+            return Err(Error::TestFailed {
+                failures: report
+                    .errors
+                    .iter()
+                    .enumerate()
+                    .map(|(index, error)| (index, db_path.clone(), error.to_string()))
+                    .collect(),
+            });
+        }
+        Ok(())
+    }
+
+    fn local_db_root(&self) -> PathBuf {
+        self.local_db_path
+            .clone()
+            .unwrap_or_else(|| PathBuf::from(DEFAULT_LOCAL_DB_PATH))
     }
 }
 
@@ -314,9 +367,11 @@ fn files_in_dirs_by_extension(dirs: &[PathBuf], extension: &str) -> Result<Vec<P
 mod tests {
     use std::{
         collections::HashSet,
-        fs::{OpenOptions, create_dir},
+        fs::{self, OpenOptions, create_dir, create_dir_all},
     };
 
+    use alpm_db::db::DbSchema;
+    use alpm_types::{DESC_FILE_NAME, FILES_FILE_NAME, MTREE_FILE_NAME};
     use rstest::rstest;
     use strum::IntoEnumIterator;
     use testresult::TestResult;
@@ -329,6 +384,48 @@ mod tests {
         "acl-2.3.2-1-x86_64",
         "archlinux-keyring-20240520-1-any",
     ];
+    const SAMPLE_DESC: &str = r#"%NAME%
+foo
+
+%VERSION%
+1.0.0-1
+
+%BASE%
+foo
+
+%DESC%
+Example package
+
+%URL%
+https://example.org
+
+%ARCH%
+x86_64
+
+%BUILDDATE%
+1733737242
+
+%INSTALLDATE%
+1733737243
+
+%PACKAGER%
+Dev Scripts <dev@alpm.test>
+
+%SIZE%
+1
+
+%VALIDATION%
+pgp
+"#;
+    const SAMPLE_FILES: &str = r#"%FILES%
+usr/
+usr/bin/
+usr/bin/foo
+"#;
+    const SAMPLE_MTREE: &str = r#"#mtree
+/set mode=644 uid=0 gid=0 type=file
+./usr/bin/foo time=1700000000.0 size=1 sha256digest=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+"#;
 
     /// Ensure that files can be found in case they're nested inside
     /// sub-subdirectories if the directory structure is:
@@ -372,6 +469,7 @@ mod tests {
             cache_dir: CacheDir::from(tmp_dir.path().to_owned()),
             file_type,
             repositories: PackageRepositories::iter().collect(),
+            local_db_path: None,
         };
         let found_files = HashSet::from_iter(runner.find_files_of_type()?.into_iter());
 
@@ -424,6 +522,7 @@ mod tests {
             cache_dir: CacheDir::from(tmp_dir.path().to_owned()),
             file_type,
             repositories: PackageRepositories::iter().collect(),
+            local_db_path: None,
         };
         let found_files = HashSet::from_iter(runner.find_files_of_type()?.into_iter());
 
@@ -470,6 +569,7 @@ mod tests {
             cache_dir: CacheDir::from(tmp_dir.path().to_owned()),
             file_type,
             repositories: PackageRepositories::iter().collect(),
+            local_db_path: None,
         };
         let found_files = HashSet::from_iter(runner.find_files_of_type()?.into_iter());
 
@@ -478,6 +578,35 @@ mod tests {
             "Expected that all created pkgsrc files are also found."
         );
 
+        Ok(())
+    }
+
+    #[test]
+    fn test_run_local_db_via_alpm_db() -> TestResult {
+        let tmp_dir = tempfile::tempdir()?;
+        let db_root = tmp_dir.path().join("local");
+        create_dir_all(&db_root)?;
+        DbSchema::latest().write_version_file(&db_root)?;
+        let entry_dir = db_root.join("foo-1.0.0-1");
+        create_dir(&entry_dir)?;
+        fs::write(entry_dir.join(DESC_FILE_NAME), SAMPLE_DESC)?;
+        fs::write(entry_dir.join(FILES_FILE_NAME), SAMPLE_FILES)?;
+        fs::write(entry_dir.join(MTREE_FILE_NAME), SAMPLE_MTREE)?;
+
+        let base_runner = TestRunner {
+            cache_dir: CacheDir::from(tmp_dir.path().to_owned()),
+            file_type: TestFileType::LocalDesc,
+            repositories: vec![],
+            local_db_path: Some(db_root.clone()),
+        };
+        base_runner.run_tests()?;
+
+        let files_runner = TestRunner {
+            file_type: TestFileType::LocalFiles,
+            local_db_path: Some(db_root),
+            ..base_runner
+        };
+        files_runner.run_tests()?;
         Ok(())
     }
 }

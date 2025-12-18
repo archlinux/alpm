@@ -16,3 +16,7 @@ pub(crate) const PACKAGES_DIR: &str = "packages";
 /// The name of the directory component for repository databases - either downloads or other
 /// artifacts ("databases").
 pub(crate) const DATABASES_DIR: &str = "databases";
+/// Default path to the local [alpm-db].
+///
+/// [alpm-db]: https://alpm.archlinux.page/specifications/alpm-db.7.html
+pub(crate) const DEFAULT_LOCAL_DB_PATH: &str = "/var/lib/pacman/local";
