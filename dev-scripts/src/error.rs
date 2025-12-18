@@ -16,6 +16,10 @@ pub enum Error {
     #[error(transparent)]
     AlpmPackageInfo(#[from] alpm_pkginfo::Error),
 
+    /// An `alpm_db::Error` occurred.
+    #[error(transparent)]
+    AlpmDb(#[from] alpm_db::Error),
+
     /// An `alpm_mtree::Error` occurred.
     #[error(transparent)]
     AlpmMtree(#[from] alpm_mtree::Error),

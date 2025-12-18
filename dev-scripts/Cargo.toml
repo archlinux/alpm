@@ -23,6 +23,7 @@ cli = []
 [dependencies]
 alpm-buildinfo.workspace = true
 alpm-common.workspace = true
+alpm-db.workspace = true
 alpm-mtree.workspace = true
 alpm-pkginfo.workspace = true
 alpm-srcinfo.workspace = true
