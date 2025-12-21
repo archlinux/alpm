@@ -134,7 +134,20 @@ impl BackupEntry {
     /// Recognizes a single backup entry.
     ///
     /// Each entry consists of a relative path, a tab, and a 32 character hexadecimal MD5 digest.
-    pub(crate) fn parser(input: &mut &str) -> ModalResult<Self> {
+    ///
+    /// # Note
+    ///
+    /// As a special edge case, the parser does not fail if it encounters the keyword `(null)`
+    /// instead of an MD-5 hash digest. The `(null)` keyword may be present in [alpm-db-files]
+    /// files, due to how [pacman] handles package metadata with invalid `backup` entries.
+    /// Specifically, if a package is created from a [PKGBUILD] that tracks files in its `backup`
+    /// array, which are not in the package, then pacman creates an invalid `%BACKUP%` entry upon
+    /// installation of the package, instead of skipping the invalid entries.
+    ///
+    /// [PKGBUILD]: https://man.archlinux.org/man/PKGBUILD.5
+    /// [alpm-db-files]: https://alpm.archlinux.page/specifications/alpm-db-files.5.html
+    /// [pacman]: https://man.archlinux.org/man/pacman.8
+    pub(crate) fn parser(input: &mut &str) -> ModalResult<Option<Self>> {
         let mut line = till_line_ending.parse_next(input)?;
         separated_pair(
             take_while(1.., |c: char| c != '\t' && c != '\n' && c != '\r')
@@ -142,9 +155,16 @@ impl BackupEntry {
                 .context(StrContext::Label("relative path"))
                 .parse_to(),
             '\t',
-            Md5Checksum::parser,
+            alt((
+                // Some alpm-db-files metadata may contain "(null)" instead of a hash digest for a
+                // backup entry. This happens if a file that is not contained in a
+                // package is added to the package's PKGBUILD and pacman adds an (unused) backup
+                // entry for it nonetheless.
+                "(null)".value(None),
+                Md5Checksum::parser.map(Some),
+            )),
         )
-        .map(|(path, md5)| BackupEntry { path, md5 })
+        .map(|(path, md5)| md5.map(|md5| BackupEntry { path, md5 }))
         .parse_next(&mut line)
     }
 }
@@ -181,6 +201,7 @@ impl BackupSection {
             0..,
             terminated(BackupEntry::parser, alt((line_ending, eof))),
         )
+        .map(|entries: Vec<Option<BackupEntry>>| entries.into_iter().flatten().collect::<Vec<_>>())
         .parse_next(input)?;
 
         // Consume any trailing whitespaces or new lines.
@@ -891,5 +912,30 @@ mod tests {
             Err(error) => panic!("expected ParseError, got {error}"),
             Ok(files) => panic!("expected parse failure, got {files:?}"),
         }
+    }
+
+    #[test]
+    fn filesv1_from_str_skips_null_backup_entries() -> TestResult {
+        let data = r#"%FILES%
+etc/
+etc/foo/
+etc/foo/foo.conf
+
+%BACKUP%
+etc/foo/foo.conf	d41d8cd98f00b204e9800998ecf8427e
+etc/foo/bar.conf	(null)
+"#;
+
+        let files = DbFilesV1::from_str(data)?;
+
+        assert_eq!(
+            files.backups(),
+            &[BackupEntry {
+                path: RelativeFilePath::from_str("etc/foo/foo.conf")?,
+                md5: Md5Checksum::from_str("d41d8cd98f00b204e9800998ecf8427e")?
+            }]
+        );
+
+        Ok(())
     }
 }
