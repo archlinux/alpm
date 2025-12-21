@@ -15,7 +15,7 @@ Such files are located at the root of ALPM packages and are named **.INSTALL**.
 An **alpm-install-scriptlet** may contain zero or more specific shell functions that define actions for different package lifecycle events.
 All of the functions are optional and only those necessary for a given package may be included.
 
-The script may be written in a shell language that supports the `-c` commandline option and calling named functions with additional arguments from the interpreter's commandline interface.
+The script may be written in a shell language that supports the `-c` command line option and calling named functions with additional arguments from the interpreter's commandline interface.
 
 Note that the shell interpreter used by package management software to run the script is defined globally (e.g. per distribution).
 No shebang is used in the script and the decision on which shell to use for running it is not based on a package's metadata, but instead typically set at the distribution or system level.
