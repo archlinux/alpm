@@ -1,6 +1,6 @@
 # alpm-db
 
-A library and command line interface for **A**rch **L**inux **P**ackage **M**anagement (ALPM) system databases.
+A library and command line interface for [alpm-db] structures used in **A**rch **L**inux **P**ackage **M**anagement (ALPM).
 
 ## Documentation
 
@@ -156,7 +156,7 @@ assert_eq!(files_from_str.as_ref(), files_from_paths.as_ref());
 # }
 ```
 
-### Commandline
+### CLI
 
 #### alpm-db-desc
 
@@ -391,9 +391,8 @@ rm -r -- "$test_tempdir"
 
 ## Features
 
-- `cli`: enables the commandline interface for the `alpm-db-desc` and `alpm-db-files` binaries.
-- `_winnow-debug`: enables the `winnow/debug` feature for
-  step-by-step parser debugging.
+- `cli`: adds dependencies required for the `alpm-db-desc` and `alpm-db-files` command line interfaces.
+- `_winnow-debug`: enables the `winnow/debug` feature for step-by-step parser debugging.
 
 ## Contributing
 
