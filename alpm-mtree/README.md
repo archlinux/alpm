@@ -1,5 +1,7 @@
 # alpm-mtree
 
+A library and command line interface for the parsing and writing of [ALPM-MTREE] files used in **A**rch **L**inux **P**ackage **M**anagement (ALPM).
+
 ## Documentation
 
 - <https://alpm.archlinux.page/rustdoc/alpm_mtree/> for development version of the crate
@@ -22,7 +24,7 @@ let data = r#"#mtree
 assert!(parse_mtree_v2(data).is_ok());
 ```
 
-### Commandline
+### CLI
 
 Validate an `.MTREE` file.
 
@@ -38,7 +40,7 @@ alpm-mtree format ~/.cache/alpm/testing/packages/core/argon2-20190702-6-x86_64/.
 
 ## Features
 
-- `cli` adds the commandline handling needed for the `alpm-mtree` binary.
+- `cli` adds dependencies required for the `alpm-mtree` command line interface.
 - `creation` adds library support for the creation of [ALPM-MTREE] files (enabled by default).
 - `_winnow-debug` enables the `winnow/debug` feature, which shows the exact parsing process of winnow.
 
