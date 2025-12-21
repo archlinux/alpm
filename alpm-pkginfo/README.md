@@ -1,8 +1,8 @@
 # alpm-pkginfo
 
-A library and commandline toolkit for the specification, writing and parsing of `PKGINFO` files used in **A**rch **L**inux **P**ackage **M**anagement (ALPM).
+A library and command line interface for the parsing and writing of [PKGINFO] files used in **A**rch **L**inux **P**ackage **M**anagement (ALPM).
 
-`PKGINFO` files cover a package's metadata and carry various datasets that specify how a package is used in the context of a distribution.
+[PKGINFO] files cover a package's metadata and carry various datasets that specify how a package is used in the context of a distribution.
 
 ## Documentation
 
@@ -13,7 +13,7 @@ A library and commandline toolkit for the specification, writing and parsing of 
 
 ### Library
 
-Create a PKGINFO version 2 file:
+Create a [PKGINFOv2] file:
 
 ```rust
 use std::str::FromStr;
@@ -52,7 +52,7 @@ checkdepend = other-extra-test-tool
 assert!(PackageInfoV2::from_str(pkginfo_data).is_ok());
 ```
 
-Create a PKGINFO version 1 file:
+Create a [PKGINFOv1] file:
 
 ```rust
 use std::str::FromStr;
@@ -90,9 +90,9 @@ checkdepend = other-extra-test-tool
 assert!(PackageInfoV1::from_str(pkginfo_data).is_ok());
 ```
 
-### Commandline
+### CLI
 
-Create a PKGINFO version 2 file using `alpm-pkginfo`:
+Create a [PKGINFOv2] file using `alpm-pkginfo`:
 
 <!--
 ```bash
@@ -251,7 +251,7 @@ rm -r -- "$test_tmpdir"
 
 ## Features
 
-- `cli` adds the commandline handling needed for the `alpm-pkginfo` binary.
+- `cli` adds dependencies required for the `alpm-pkginfo` command line interface.
 - `_winnow-debug` enables the `winnow/debug` feature, which shows the exact parsing process of winnow.
 
 ## Contributing
@@ -266,3 +266,6 @@ Contributions to this project, unless noted otherwise, are automatically license
 [contribution guidelines]: ../CONTRIBUTING.md
 [Apache-2.0]: ../LICENSES/Apache-2.0.txt
 [MIT]: ../LICENSES/MIT.txt
+[PKGINFO]: https://alpm.archlinux.page/specifications/PKGINFO.5.html
+[PKGINFOv1]: https://alpm.archlinux.page/specifications/PKGINFOv1.5.html
+[PKGINFOv2]: https://alpm.archlinux.page/specifications/PKGINFOv2.5.html
