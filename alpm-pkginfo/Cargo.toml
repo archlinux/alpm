@@ -1,6 +1,6 @@
 [package]
 authors.workspace = true
-description = "Library and commandline toolkit for the specification, writing and parsing of ALPM PKGINFO files"
+description = "Library and command line interface for the parsing and writing of PKGINFO files"
 edition.workspace = true
 homepage.workspace = true
 keywords.workspace = true
