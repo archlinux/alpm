@@ -8,6 +8,9 @@ use alpm_repo_db::desc::{
 };
 use clap::Parser;
 
+// Initialize i18n support.
+fluent_i18n::i18n!("locales");
+
 /// The main entrypoint for the `alpm-repo-desc` executable.
 ///
 /// Returns an [`ExitCode::SUCCESS`] if the chosen command succeeded.
