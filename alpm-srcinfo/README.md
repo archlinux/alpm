@@ -1,8 +1,8 @@
 # alpm-srcinfo
 
-A library and command line tool for the specification, parsing and linting of **A**rch **L**inux **P**ackage **M**anagement (ALPM) [SRCINFO] files.
+A library and command line interface for the parsing, linting and writing of [SRCINFO] files used in **A**rch **L**inux **P**ackage **M**anagement (ALPM).
 
-`SRCINFO` files describe a `PKGBUILD` file in a way that doesn't require an interactive shell to evaluate it.
+[SRCINFO] files describe a [PKGBUILD] file in a way that doesn't require an interactive shell to evaluate it.
 
 ## Documentation
 
@@ -12,7 +12,7 @@ A library and command line tool for the specification, parsing and linting of **
 
 ## Examples
 
-### Commandline
+### CLI
 
 #### Inspect SRCINFO packages
 
@@ -230,7 +230,7 @@ assert_eq!(package.dependencies, vec![
 
 ## Features
 
-- `cli` adds the commandline handling needed for the `alpm-srcinfo` binary.
+- `cli` adds dependencies required for the `alpm-srcinfo` command line interface.
 - `_winnow-debug` enables the `winnow/debug` feature, which shows the exact parsing process of winnow.
 
 ## Contributing
@@ -245,4 +245,5 @@ Contributions to this project, unless noted otherwise, are automatically license
 [contribution guidelines]: ../CONTRIBUTING.md
 [Apache-2.0]: ../LICENSES/Apache-2.0.txt
 [MIT]: ../LICENSES/MIT.txt
+[PKGBUILD]: https://man.archlinux.org/man/PKGBUILD.5
 [SRCINFO]: https://alpm.archlinux.page/specifications/SRCINFO.5.html
