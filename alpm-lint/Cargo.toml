@@ -1,6 +1,6 @@
 [package]
 authors.workspace = true
-description = "Library and commandline toolkit for linting of ALPM packaging related files and projects"
+description = "Library and command line interface for linting of ALPM packaging related files and projects"
 edition.workspace = true
 homepage.workspace = true
 keywords.workspace = true
