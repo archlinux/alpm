@@ -1,6 +1,6 @@
 # alpm-soname
 
-A library and command line toolkit for looking up [`soname`] data in an ALPM context
+A library and command line interface for looking up [`soname`] data in an ALPM context
 
 [`soname`]: https://alpm.archlinux.page/specifications/alpm-soname.7.html
 
@@ -196,7 +196,7 @@ fn main() -> Result<(), alpm_soname::Error> {
 
 ## Features
 
-- `cli` adds the commandline handling needed for the `alpm-soname` binary.
+- `cli` adds dependencies required for the `alpm-soname` command line interface.
 
 ## Contributing
 
