@@ -53,9 +53,7 @@ mindmap
       📄 desc
       📄 files
       📚️ alpm-db
-      📚️ alpm-db-desc
       📚️ alpm-db-download*
-      📚️ alpm-db-files
       📚️ alpm-db-verify*
       📚️ alpm-db-verify-vda*
 ```
@@ -71,8 +69,7 @@ Currently the following software components are available:
 - [alpm-buildinfo]: a library and commandline interface to work with [BUILDINFO] files
 - [alpm-common]: a library for common traits and functionality
 - [alpm-compress]: a library for compression operations in ALPM
-- [alpm-db]: a library and commandline interface to work with ALPM database [desc] and [files][spec:alpm-db-files] entries
-- [alpm-db-desc]: a library and commandline interface to work with ALPM database [desc] files
+- [alpm-db]: a library and command line interface to work with an [alpm-db][spec:alpm-db] and its [alpm-db-desc][spec:alpm-db-desc] and [alpm-db-files][spec:alpm-db-files] file formats
 - [alpm-lint]: a linting tool for everything around Arch Linux packaging.
 - [alpm-mtree]: a library and commandline interface to work with [ALPM-MTREE] files
 - [alpm-package]: a library for the creation of [alpm-package][spec:alpm-package] files
@@ -117,7 +114,6 @@ Contributions to this project, unless noted otherwise, are automatically license
 [alpm-common]: alpm-common/
 [alpm-compress]: alpm-compress/
 [alpm-db]: alpm-db/
-[alpm-db-desc]: alpm-db/
 [alpm-lint]: alpm-lint/
 [alpm-mtree]: alpm-mtree/
 [alpm-package]: alpm-package/
@@ -136,6 +132,7 @@ Contributions to this project, unless noted otherwise, are automatically license
 [pacman]: https://gitlab.archlinux.org/pacman/pacman
 [spec:alpm-package]: https://alpm.archlinux.page/specifications/alpm-package.7.html
 [spec:alpm-repo-db]: https://alpm.archlinux.page/specifications/alpm-repo-db.7.html
+[spec:alpm-db]: https://alpm.archlinux.page/specifications/alpm-db.7.html
+[spec:alpm-db-desc]: https://alpm.archlinux.page/specifications/alpm-db-desc.5.html
 [spec:alpm-db-files]: https://alpm.archlinux.page/specifications/alpm-db-files.5.html
 [spec:alpm-repo-files]: https://alpm.archlinux.page/specifications/alpm-repo-files.5.html
-[desc]: https://alpm.archlinux.page/specifications/alpm-db-desc.5.html
