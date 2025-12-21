@@ -69,7 +69,7 @@ Currently the following software components are available:
 - [alpm-compress]: a library for compression operations in ALPM
 - [alpm-db]: a library and command line interface to work with an [alpm-db][spec:alpm-db] and its [alpm-db-desc][spec:alpm-db-desc] and [alpm-db-files][spec:alpm-db-files] file formats
 - [alpm-lint]: a linting tool for everything around Arch Linux packaging.
-- [alpm-mtree]: a library and commandline interface to work with [ALPM-MTREE] files
+- [alpm-mtree]: a library and commandline interface to work with [ALPM-MTREE][spec:ALPM-MTREE] files
 - [alpm-package]: a library for the creation of [alpm-package][spec:alpm-package] files
 - [alpm-parsers]: a library for providing various custom parsers/deserializers for file types used in ALPM
 - [alpm-pkginfo]: a library and commandline interface to work with [PKGINFO] files
@@ -98,7 +98,7 @@ The above are part of [archlinux-keyring] and certified by at least three [main 
 This project can be used under the terms of the [Apache-2.0] or [MIT].
 Contributions to this project, unless noted otherwise, are automatically licensed under the terms of both of those licenses.
 
-[ALPM-MTREE]: https://alpm.archlinux.page/specifications/ALPM-MTREE.5.html
+[spec:ALPM-MTREE]: https://alpm.archlinux.page/specifications/ALPM-MTREE.5.html
 [Apache-2.0]: LICENSES/Apache-2.0.txt
 [BUILDINFO]: https://alpm.archlinux.page/specifications/BUILDINFO.5.html
 [MIT]: LICENSES/MIT.txt
