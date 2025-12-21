@@ -1,8 +1,8 @@
 # alpm-buildinfo
 
-A library and commandline toolkit for the specification, writing and parsing of **A**rch **L**inux **P**ackage **M**anagement (ALPM) `BUILDINFO` files.
+A library and command line interface for the parsing and writing of [BUILDINFO] files used in **A**rch **L**inux **P**ackage **M**anagement (ALPM).
 
-`BUILDINFO` files describe the build environment of a package and carry various datasets, that help in reproducing the same package bit-by-bit.
+[BUILDINFO] files describe the build environment of a package and carry various datasets, that help in reproducing the same package bit-by-bit.
 
 ## Documentation
 
@@ -39,7 +39,7 @@ buildtoolver = 1:1.2.1-1-any
 assert!(BuildInfoV2::from_str(buildinfo_data).is_ok());
 ```
 
-### Commandline
+### CLI
 
 <!--
 ```bash
@@ -51,7 +51,7 @@ export BUILDINFO_OUTPUT_FILE
 ```
 -->
 
-Create a BUILDINFO version 1 file using `alpm-buildinfo`:
+Create a [BUILDINFOV2] file using `alpm-buildinfo`:
 
 ```bash
 alpm-buildinfo create v2 \
@@ -162,7 +162,7 @@ rm -r -- "$test_tmpdir"
 
 ## Features
 
-- `cli` adds the commandline handling needed for the `alpm-buildinfo` binary.
+- `cli` adds dependencies required for the `alpm-buildinfo` command line interface.
 - `_winnow-debug` enables the `winnow/debug` feature, which shows the exact parsing process of winnow.
 
 ## Contributing
@@ -176,4 +176,7 @@ Contributions to this project, unless noted otherwise, are automatically license
 
 [contribution guidelines]: ../CONTRIBUTING.md
 [Apache-2.0]: ../LICENSES/Apache-2.0.txt
+[BUILDINFO]: https://alpm.archlinux.page/specifications/BUILDINFO.5.html
+[BUILDINFOv1]: https://alpm.archlinux.page/specifications/BUILDINFOv1.5.html
+[BUILDINFOv2]: https://alpm.archlinux.page/specifications/BUILDINFOv2.5.html
 [MIT]: ../LICENSES/MIT.txt
