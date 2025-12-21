@@ -1,6 +1,6 @@
 # alpm-repo-db
 
-A library and command line tool for creation and access of [alpm-repo-db] files (**A**rch **L**inux **P**ackage **M**anagement (ALPM) repository sync databases) and for handling [alpm-repo-files] entries.
+A library and command line interface for creation and access of [alpm-repo-db] files (**A**rch **L**inux **P**ackage **M**anagement (ALPM) repository sync databases) and handling of their [alpm-repo-desc] and [alpm-repo-files] file formats.
 
 ## Documentation
 
@@ -226,7 +226,7 @@ alpm-repo-files validate --input-file path/to/repo.files
 
 ## Features
 
-- `cli`: enables the commandline interfaces for the `alpm-repo-desc` and `alpm-repo-files` binaries.
+- `cli`: adds dependencies required for the `alpm-repo-desc` and `alpm-repo-files` command line interfaces.
 - `_winnow-debug`: enables the `winnow/debug` feature for step-by-step parser debugging.
 
 ## Contributing
@@ -241,6 +241,7 @@ Contributions to this project, unless noted otherwise, are automatically license
 [Apache-2.0]: ../LICENSES/Apache-2.0.txt
 [MIT]: ../LICENSES/MIT.txt
 [alpm-repo-db]: https://alpm.archlinux.page/specifications/alpm-repo-db.7.html
+[alpm-repo-desc]: https://alpm.archlinux.page/specifications/alpm-repo-desc.5.html
 [alpm-repo-descv1]: https://alpm.archlinux.page/specifications/alpm-repo-descv1.5.html
 [alpm-repo-descv2]: https://alpm.archlinux.page/specifications/alpm-repo-descv2.5.html
 [alpm-repo-files]: https://alpm.archlinux.page/specifications/alpm-repo-files.5.html
