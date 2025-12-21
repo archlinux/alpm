@@ -1,6 +1,6 @@
 [package]
 authors.workspace = true
-description = "Library and command line interface for the handling of the alpm-db-desc format"
+description = "Library and command line interface for handling alpm-db structures"
 edition.workspace = true
 homepage.workspace = true
 keywords.workspace = true
