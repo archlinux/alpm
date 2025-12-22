@@ -38,6 +38,9 @@ pub use compression::CompressionAlgorithmFileExtension;
 mod date;
 pub use date::{BuildDate, FromOffsetDateTime};
 
+mod db;
+pub use db::{DESC_FILE_NAME, FILES_FILE_NAME, MTREE_FILE_NAME};
+
 mod env;
 pub use env::{BuildEnvironmentOption, InstalledPackage, MakepkgOption, PackageOption};
 
