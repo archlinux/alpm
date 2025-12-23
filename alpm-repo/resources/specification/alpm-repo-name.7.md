@@ -11,7 +11,8 @@ A repository name serves as identifier for package management software and allow
 
 ## Format
 
-The **alpm-repo-name** value may be a UTF-8 string, that must not contain the characters `/`, `?`, `!` and must not start with the `-` character.
+The **alpm-repo-name** value may be a UTF-8 string that is at least one character long.
+It must not contain the characters `/`, `?`, `!` and must not start with the `-` character.
 
 # EXAMPLES
 
