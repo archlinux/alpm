@@ -212,6 +212,114 @@ impl AsRef<str> for Name {
     }
 }
 
+/// A package repository name
+///
+/// Package repository names may contain any UTF-8 characters, except `/`, `?` and `!`,
+/// and can't start with `-` (see [alpm-repo-name]).
+///
+/// ## Examples
+/// ```
+/// use std::str::FromStr;
+///
+/// use alpm_types::{Error, RepositoryName};
+///
+/// # fn main() -> Result<(), alpm_types::Error> {
+/// // create RepositoryName from &str
+/// assert_eq!(
+///     RepositoryName::from_str("core"),
+///     Ok(RepositoryName::new("core")?)
+/// );
+/// assert!(RepositoryName::from_str("-test").is_err());
+///
+/// // format as String
+/// assert_eq!("extra", format!("{}", RepositoryName::new("extra")?));
+/// # Ok(())
+/// # }
+/// ```
+///
+/// [alpm-repo-name]: https://alpm.archlinux.page/specifications/alpm-repo-name.7.html
+#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+pub struct RepositoryName(String);
+
+impl RepositoryName {
+    /// Create a new `Name`
+    pub fn new(name: &str) -> Result<Self, Error> {
+        Self::from_str(name)
+    }
+
+    /// Return a reference to the inner type
+    pub fn inner(&self) -> &str {
+        &self.0
+    }
+
+    /// Recognizes a [`RepositoryName`] in a string slice.
+    ///
+    /// Consumes all of its input.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if `input` contains an invalid _alpm-repo-name_.
+    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+        const FORBIDDEN_CHARS: [char; 4] = ['/', '?', '!', '\n'];
+        let valid_chars = |c: char| !FORBIDDEN_CHARS.contains(&c);
+        let valid_first_chars = |c: char| valid_chars(c) && c != '-';
+
+        let first_char = one_of(valid_first_chars)
+            .context(StrContext::Label(
+                "first character of package repository name",
+            ))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "Any UTF-8 character, except for '/', '?', '!', '\n' and '-'",
+            )));
+
+        // no .context() because this is infallible due to `0..`
+        // note the empty tuple collection to avoid allocation
+        let remaining_chars: Repeat<_, _, _, (), _> = repeat(0.., one_of(valid_chars));
+
+        let full_parser = (
+            first_char,
+            remaining_chars,
+            // bad characters fall through to eof so we insert that context here
+            eof.context(StrContext::Label("character in package repository name"))
+                .context(StrContext::Expected(StrContextValue::Description(
+                    "Any UTF-8 character, except for '/', '?', '!' and '\n'",
+                ))),
+        );
+
+        full_parser
+            .take()
+            .map(|n: &str| RepositoryName(n.to_owned()))
+            .parse_next(input)
+    }
+}
+
+impl FromStr for RepositoryName {
+    type Err = Error;
+
+    /// Creates a [`RepositoryName`] from a string slice.
+    ///
+    /// Delegates to [`RepositoryName::parser`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if [`RepositoryName::parser`] fails.
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self::parser.parse(s)?)
+    }
+}
+
+impl Display for RepositoryName {
+    fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
+        write!(fmt, "{}", self.inner())
+    }
+}
+
+impl AsRef<str> for RepositoryName {
+    fn as_ref(&self) -> &str {
+        self.inner()
+    }
+}
+
 /// A shared object name.
 ///
 /// This type wraps a [`Name`] and is used to represent the name of a shared object file
@@ -378,6 +486,39 @@ mod tests {
         }
     }
 
+    #[rstest]
+    #[case("repo-na?me'''", "invalid character in package repository name")]
+    #[case("-repo-name", "invalid first character")]
+    fn repo_name_parse_error(#[case] input: &str, #[case] err_snippet: &str) {
+        let Err(Error::ParseError(err_msg)) = RepositoryName::from_str(input) else {
+            panic!("'{input}' erroneously parsed as a RepositoryName")
+        };
+        assert!(
+            err_msg.contains(err_snippet),
+            "Error:\n=====\n{err_msg}\n=====\nshould contain snippet:\n\n{err_snippet}"
+        );
+    }
+
+    proptest! {
+        #![proptest_config(ProptestConfig::with_cases(1000))]
+
+        #[test]
+        fn valid_repo_name_from_string(name_str in r"[^\n/?!-]+[^\n/?!-]*") {
+            let name = RepositoryName::from_str(&name_str).unwrap();
+            prop_assert_eq!(name_str, format!("{}", name));
+        }
+
+        #[test]
+        fn invalid_repo_name_from_string_start(name_str in r"-[^\n/?!-]*") {
+            let error = RepositoryName::from_str(&name_str).unwrap_err();
+            assert!(matches!(error, Error::ParseError(_)));
+        }
+        #[test]
+        fn invalid_repo_name_with_invalid_characters(name_str in r"[\n?!-]+") {
+            let error = RepositoryName::from_str(&name_str).unwrap_err();
+            assert!(matches!(error, Error::ParseError(_)));
+        }
+    }
     #[rstest]
     #[case("example.so", SharedObjectName("example.so".parse().unwrap()))]
     #[case("example.so.so", SharedObjectName("example.so.so".parse().unwrap()))]

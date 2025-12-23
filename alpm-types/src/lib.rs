@@ -51,7 +51,7 @@ mod license;
 pub use license::License;
 
 mod name;
-pub use name::{BuildTool, Name, SharedObjectName};
+pub use name::{BuildTool, Name, RepositoryName, SharedObjectName};
 
 mod package;
 pub use package::{
