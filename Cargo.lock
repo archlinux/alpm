@@ -340,6 +340,7 @@ dependencies = [
  "insta",
  "resolvo",
  "rstest",
+ "testresult",
  "thiserror",
 ]
 
