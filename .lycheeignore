@@ -11,6 +11,7 @@ https://wiki.archlinux.org
 # Only available after merge to default branch and deployment of website.
 https://alpm.archlinux.page/rustdoc/alpm_db
 https://docs.rs/alpm-db-desc/latest/alpm_db
+https://alpm.archlinux.page/rustdoc/alpm_solve/
 
 # Only available after first release of the crate.
 https://docs.rs/alpm-lint/latest/alpm_lint/
@@ -19,6 +20,7 @@ https://docs.rs/alpm-compress/latest/alpm_compress/
 https://alpm.archlinux.page/rustdoc/alpm_files/
 https://docs.rs/alpm-files/latest/alpm_files/
 https://docs.rs/alpm-repo-db/latest/alpm_repo_db/
+https://docs.rs/alpm-solve/latest/alpm_solve/
 
 # Remove with !461
 https://alpm.archlinux.page/specifications/alpm-files.5.html
