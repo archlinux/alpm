@@ -459,7 +459,7 @@ version = "1.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "40c48f72fd53cd289104fc64099abca73db4166ad86ea0b4341abe65af83dadc"
 dependencies = [
- "windows-sys 0.60.2",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -470,7 +470,7 @@ checksum = "291e6a250ff86cd4a820112fb8898808a366d8f9f58ce16d1f538353ad55747d"
 dependencies = [
  "anstyle",
  "once_cell_polyfill",
- "windows-sys 0.60.2",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -1316,7 +1316,7 @@ dependencies = [
  "libc",
  "option-ext",
  "redox_users",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -1536,7 +1536,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
- "windows-sys 0.52.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -3506,9 +3506,9 @@ dependencies = [
 
 [[package]]
 name = "rpgpie"
-version = "0.8.1"
+version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "742ec6ed647d969a26b009bd4199d8ce763c0ac3a04e79cc608bd09ed7b0aeb9"
+checksum = "2c9b462402b484f3127dcb91186f85170fd79a363bc84c55d765de837e0c8ee1"
 dependencies = [
  "chrono",
  "hex",
@@ -3597,7 +3597,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys",
- "windows-sys 0.52.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -4198,7 +4198,7 @@ dependencies = [
  "getrandom 0.3.4",
  "once_cell",
  "rustix",
- "windows-sys 0.52.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -4626,9 +4626,9 @@ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 
 [[package]]
 name = "voa"
-version = "0.6.0"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0d2e2dbf7efba6b18466c0856172f11c9dcba1a8be1e5557a5ab2aa435e9328d"
+checksum = "4a2ddf6dd65894ac03753772b18fb92daf3e42bdc3f448a2ec29b52b81fcd3f0"
 dependencies = [
  "log",
  "strum",
@@ -4659,9 +4659,9 @@ dependencies = [
 
 [[package]]
 name = "voa-core"
-version = "0.3.1"
+version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c3f94006cc08a1fcf0d3d074bb5fb9705d76d0cd01772a337d8094382bf580fe"
+checksum = "ba3b68e9628525bfc4cdb93588042659485bda007965f514b5ed8181f4a38d87"
 dependencies = [
  "directories",
  "libc",
@@ -4675,15 +4675,16 @@ dependencies = [
 
 [[package]]
 name = "voa-openpgp"
-version = "0.5.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f449bd0e9f4a343e83b690b69eff1d5539d225c3d04cd6d0c4982189077b5fe6"
+checksum = "07b964bdd0240d060cb4771a4570479193e4f4fe6b5e80a9d5a084749a81fc55"
 dependencies = [
  "env_logger",
  "log",
  "pgp",
  "rpgpie",
  "thiserror",
+ "voa-config",
  "voa-core",
 ]
 
@@ -4834,7 +4835,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.52.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
