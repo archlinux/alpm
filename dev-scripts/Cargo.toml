@@ -35,12 +35,11 @@ flate2.workspace = true
 indicatif = "0.18"
 log.workspace = true
 rayon = "1"
-reqwest = { version = "0.12", default-features = false, features = [
+reqwest = { version = "0.13", default-features = false, features = [
     "blocking",
     "charset",
     "http2",
     "json",
-    "rustls-tls",
 ] }
 serde_json.workspace = true
 simplelog.workspace = true
