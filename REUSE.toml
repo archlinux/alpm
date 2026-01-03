@@ -35,6 +35,7 @@ path = [
     ".gitlab/CODEOWNERS",
     ".gitmodules",
     ".lycheeignore",
+    ".mailmap",
     ".shellcheckrc",
     "alpm-db/tests/parse_errors/files/*.files",
     "alpm-repo-db/tests/parse_errors/files/*.files",
