@@ -11,11 +11,11 @@ No, but you could build one with it.
 ## Can I build packages with ALPM?
 
 Yes, but only part of the package build process is currently possible.
-ALPM does not offer functionality for building a package from a [PKGBUILD] file, but it allows creating a package file from a prepared input directory.
+ALPM does not offer functionality for building a package from a [PKGBUILD(5)] file, but it allows creating a package file from a prepared input directory.
 
 ## Why or when would I use ALPM?
 
-If your project deals with Arch Linux packages, repository sync databases, or specific metadata files (e.g. [SRCINFO]).
+If your project deals with Arch Linux packages, repository sync databases, or specific metadata files (e.g. [SRCINFO(5)]).
 
 ALPM provides a variety of libraries and command-line interfaces, that enable the creation and validation of metadata files used in the Arch Linux ecosystem.
 
@@ -38,7 +38,7 @@ Until the end of 2025, we will:
 - complete our set of central specification documents, covering all relevant file formats and concepts,
 - complete our set of libraries that implement support for these file formats and concepts,
 - create a drop-in replacement C library for libalpm,
-- create Python bindings for the validation of the [SRCINFO] format,
+- create Python bindings for the validation of the [SRCINFO(5)] format,
 - and implement package signature verification based on [VOA].
 
 ## What are the future plans for the project?
@@ -51,30 +51,30 @@ Our plan is to:
 
 ## What is the difference between the Pacman project and ALPM?
 
-Pacman is a project that provides the [`makepkg`], [`repo-add`] and [`pacman`] executables and the shared library [libalpm].
+Pacman is a project that provides the [`makepkg(8)`], [`repo-add(8)`] and [`pacman(8)`] executables and the shared library [libalpm(3)].
 
 ALPM is a highly modular "library first" framework, that provides reimagined building blocks for package management tools.
 
 ### What is the difference between the `pacman` CLI tool and ALPM?
 
-The [`pacman`] CLI tool is a system package manager written in C.
+The [`pacman(8)`] CLI tool is a system package manager written in C.
 It allows to install/uninstall/upgrade/downgrade packages on a system and retrieve metadata from packages on a system or from repository metadata.
 
-The ALPM project does not provide a tool equivalent in functionality to the [`pacman`] executable.
+The ALPM project does not provide a tool equivalent in functionality to the [`pacman(8)`] executable.
 
 ### What is the difference between the `makepkg` CLI tool and ALPM?
 
-The [`makepkg`] CLI tool is a Bash-based script to create package files from package build scripts (i.e. [PKGBUILD]).
+The [`makepkg(8)`] CLI tool is a Bash-based script to create package files from package build scripts (i.e. [PKGBUILD(5)]).
 
-The ALPM project does not provide a tool equivalent in functionality to the [`makepkg`] executable.
+The ALPM project does not provide a tool equivalent in functionality to the [`makepkg(8)`] executable.
 
 ### What is the difference between the shared library `libalpm` and ALPM?
 
-The shared library `libalpm` is written in C and provides functionality for managing system state based on a local package database on end-user machines.
-It provides low-level access to actions such as installation/uninstallation/upgrade/downgrade of packages and the retrieval of metadata to its consumers (e.g. [`pacman`]).
+The shared library [libalpm(3)] is written in C and provides functionality for managing system state based on a local package database on end-user machines.
+It provides low-level access to actions such as installation/uninstallation/upgrade/downgrade of packages and the retrieval of metadata to its consumers (e.g. [`pacman(8)`]).
 
 The ALPM project reimplements various building blocks that are required for system management.
-It will provide an alternative implementation of the [libalpm] API, based on strong validation and strict typing.
+It will provide an alternative implementation of the [libalpm(3)] API, based on strong validation and strict typing.
 
 ## Is ALPM based on Pacman?
 
@@ -91,7 +91,7 @@ The goal is to provide a Python API with a broad scope, that can be used in a di
 ## Can I use ALPM with C?
 
 Currently, it is not a focus of the ALPM project to provide a broad C-API.
-However, the alternative [libalpm] implementation based on ALPM libraries will offer a subset of its functionality.
+However, the alternative [libalpm(3)] implementation based on ALPM libraries will offer a subset of its functionality.
 
 ## How can I contribute?
 
@@ -112,14 +112,14 @@ In case you want to reach out to the project developers, use one of the several 
 [Apache-2.0]: https://spdx.org/licenses/Apache-2.0.html
 [GitLab organization]: https://gitlab.archlinux.org/archlinux/alpm/alpm/-/project_members
 [MIT]: https://spdx.org/licenses/MIT.html
-[PKGBUILD]: https://man.archlinux.org/man/PKGBUILD.5
-[SRCINFO]: https://alpm.archlinux.page/specifications/SRCINFO.5.html
+[PKGBUILD(5)]: https://man.archlinux.org/man/PKGBUILD.5
+[SRCINFO(5)]: https://alpm.archlinux.page/specifications/SRCINFO.5.html
 [VOA]: https://uapi-group.org/specifications/specs/file_hierarchy_for_the_verification_of_os_artifacts/
-[`makepkg`]: https://man.archlinux.org/man/makepkg.8
-[`pacman`]: https://man.archlinux.org/man/pacman.8
-[`repo-add`]: https://man.archlinux.org/man/repo-add.8
+[`makepkg(8)`]: https://man.archlinux.org/man/makepkg.8
+[`pacman(8)`]: https://man.archlinux.org/man/pacman.8
+[`repo-add(8)`]: https://man.archlinux.org/man/repo-add.8
 [contributing guidelines]: https://alpm.archlinux.page/CONTRIBUTING.html
 [get in touch]: https://alpm.archlinux.page/community.html
-[libalpm]: https://man.archlinux.org/man/libalpm.3
+[libalpm(3)]: https://man.archlinux.org/man/libalpm.3
 [reuse configuration]: https://gitlab.archlinux.org/archlinux/alpm/alpm/-/blob/main/REUSE.toml
 [supported by the Sovereign Tech Fund]: https://www.sovereign.tech/tech/arch-linux-package-management
