@@ -24,22 +24,11 @@ ALPM provides a variety of libraries and command-line interfaces, that enable th
 ALPM is free and open source and can be used under the the terms of the [Apache-2.0] or [MIT].
 For details refer to the project's [reuse configuration].
 
-## What's the timeline for the current development phase?
+## Who is funding the work on the ALPM project?
 
-Currently, development on the ALPM project is [supported by the Sovereing Tech Fund] (STF) until the end of 2025.
+Currently no one.
 
-This funding encompasses a specific set of functionality.
-See next question for a more detailed overview of topics.
-
-## What is the scope of the current development phase of the project?
-
-Until the end of 2025, we will:
-
-- complete our set of central specification documents, covering all relevant file formats and concepts,
-- complete our set of libraries that implement support for these file formats and concepts,
-- create a drop-in replacement C library for libalpm,
-- create Python bindings for the validation of the [SRCINFO(5)] format,
-- and implement package signature verification based on [VOA].
+In 2024 and 2025, development on the ALPM project has been funded by the [Sovereign Tech Agency] (STA).
 
 ## What are the future plans for the project?
 
@@ -75,8 +64,7 @@ The ALPM project does not provide a tool equivalent in functionality to the [`ma
 The shared library [libalpm(3)] is written in C and provides functionality for managing system state based on a local package database on end-user machines.
 It provides low-level access to actions such as installation/uninstallation/upgrade/downgrade of packages and the retrieval of metadata to its consumers (e.g. [`pacman(8)`]).
 
-The ALPM project reimplements various building blocks that are required for system management.
-It will provide an alternative implementation of the [libalpm(3)] API, based on strong validation and strict typing.
+The ALPM project provides various building blocks in [Rust], that are required for system management, based on strong validation and strict typing.
 
 ## Is ALPM based on Pacman?
 
@@ -93,7 +81,7 @@ The goal is to provide a Python API with a broad scope, that can be used in a di
 ## Can I use ALPM with C?
 
 Currently, it is not a focus of the ALPM project to provide a broad C-API.
-However, the alternative [libalpm(3)] implementation based on ALPM libraries will offer a subset of its functionality.
+However, in the future an alternative [libalpm(3)] implementation based on ALPM libraries could be created to offer this subset of the project's functionality.
 
 ## How can I contribute?
 
@@ -115,7 +103,9 @@ In case you want to reach out to the project developers, use one of the several 
 [GitLab organization]: https://gitlab.archlinux.org/archlinux/alpm/alpm/-/project_members
 [MIT]: https://spdx.org/licenses/MIT.html
 [PKGBUILD(5)]: https://man.archlinux.org/man/PKGBUILD.5
+[Rust]: https://rust-lang.org/
 [SRCINFO(5)]: https://alpm.archlinux.page/specifications/SRCINFO.5.html
+[Sovereign Tech Agency]: https://www.sovereign.tech/tech/arch-linux-package-management
 [VOA]: https://uapi-group.org/specifications/specs/file_hierarchy_for_the_verification_of_os_artifacts/
 [`makepkg(8)`]: https://man.archlinux.org/man/makepkg.8
 [`pacman(8)`]: https://man.archlinux.org/man/pacman.8
@@ -124,4 +114,3 @@ In case you want to reach out to the project developers, use one of the several 
 [get in touch]: https://alpm.archlinux.page/community.html
 [libalpm(3)]: https://man.archlinux.org/man/libalpm.3
 [reuse configuration]: https://gitlab.archlinux.org/archlinux/alpm/alpm/-/blob/main/REUSE.toml
-[supported by the Sovereign Tech Fund]: https://www.sovereign.tech/tech/arch-linux-package-management
