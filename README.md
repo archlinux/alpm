@@ -89,8 +89,8 @@ Releases of [components] are created by the developers of this project.
 
 [OpenPGP certificates] with the following [OpenPGP fingerprints] can be used to verify signed tags:
 
-- `991F6E3F0765CF6295888586139B09DA5BF0D338` (David Runge <dvzrv@archlinux.org>)
-- `165E0FF7C48C226E1EC363A7F83424824B3E4B90` (Orhun Parmaksız <orhun@archlinux.org>)
+- [`991F6E3F0765CF6295888586139B09DA5BF0D338`] ([David Runge] &lt;<dvzrv@archlinux.org>&gt;)
+- [`165E0FF7C48C226E1EC363A7F83424824B3E4B90`] ([Orhun Parmaksız] &lt;<orhun@archlinux.org>&gt;)
 
 The above are part of [archlinux-keyring] and certified by at least three [main signing keys] of the distribution.
 
@@ -102,13 +102,17 @@ Contributions to this project, unless noted otherwise, are automatically license
 [spec:ALPM-MTREE]: https://alpm.archlinux.page/specifications/ALPM-MTREE.5.html
 [Apache-2.0]: LICENSES/Apache-2.0.txt
 [BUILDINFO]: https://alpm.archlinux.page/specifications/BUILDINFO.5.html
+[David Runge]: https://archlinux.org/people/developers/#dvzrv
 [MIT]: LICENSES/MIT.txt
 [OpenPGP certificates]: https://openpgp.dev/book/certificates.html
 [OpenPGP fingerprints]: https://openpgp.dev/book/certificates.html#fingerprint
+[Orhun Parmaksız]: https://archlinux.org/people/package-maintainer/#orhun
 [PKGINFO]: https://alpm.archlinux.page/specifications/PKGINFO.5.html
 [Rust]: https://www.rust-lang.org/
 [SRCINFO]: https://alpm.archlinux.page/specifications/SRCINFO.5.html
 [Sovereign Tech Agency]: https://www.sovereign.tech/tech/arch-linux-package-management
+[`165E0FF7C48C226E1EC363A7F83424824B3E4B90`]: https://pgpkeys.eu/pks/lookup?search=165E0FF7C48C226E1EC363A7F83424824B3E4B90&fingerprint=on&op=index
+[`991F6E3F0765CF6295888586139B09DA5BF0D338`]: https://pgpkeys.eu/pks/lookup?search=991F6E3F0765CF6295888586139B09DA5BF0D338&fingerprint=on&op=index
 [alpm-buildinfo]: alpm-buildinfo/
 [alpm-common]: alpm-common/
 [alpm-compress]: alpm-compress/
