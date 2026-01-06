@@ -9,7 +9,7 @@ Currently, this project aims to maintain compatibility with [pacman] `5.1.0` and
 The scope of this project is to provide robust integration for all relevant package creation and consumption, as well as repository management tasks.
 As such, the ALPM project also aims at providing drop-in replacements or alternatives for some facilities provided by [pacman].
 
-This project is currently supported by the [Sovereign Tech Agency].
+This project has been financed by the [Sovereign Tech Agency].
 Read the [official announcement] for more information.
 
 ## Documentation
