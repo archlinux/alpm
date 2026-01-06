@@ -21,7 +21,7 @@ ALPM provides a variety of libraries and command-line interfaces, that enable th
 
 ## Under what license is ALPM released?
 
-ALPM is free and open source and for the most part can be used under the the terms of the [Apache-2.0] or [MIT].
+ALPM is free and open source and can be used under the the terms of the [Apache-2.0] or [MIT].
 For details refer to the project's [reuse configuration].
 
 ## What's the timeline for the current development phase?
