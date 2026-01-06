@@ -28,6 +28,8 @@
     - [CHANGELOG](./alpm-pkginfo/CHANGELOG.md)
 - [alpm-repo-db](./alpm-repo-db/README.md)
     - [CHANGELOG](./alpm-repo-db/CHANGELOG.md)
+- [alpm-soname](./alpm-soname/README.md)
+    - [CHANGELOG](./alpm-soname/CHANGELOG.md)
 - [alpm-srcinfo](./alpm-srcinfo/README.md)
     - [ARCHITECTURE](./alpm-srcinfo/ARCHITECTURE.md)
     - [CHANGELOG](./alpm-srcinfo/CHANGELOG.md)
