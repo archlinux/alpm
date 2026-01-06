@@ -28,37 +28,37 @@ mindmap
     📂 Source
       📄 PKGBUILD
       📄 .SRCINFO
-      📚️ alpm-srcinfo
+      📚️ alpm-pkgbuild
+      ⌨️/📚️ alpm-srcinfo
     📦 Package
       📄 .BUILDINFO
-      📄 .PKGINFO
       📄 .INSTALL
       📄 .MTREE
-      📚️ alpm-buildinfo
-      📚️ alpm-pkgbuild
-      📚️ alpm-pkginfo
-      📚️ alpm-mtree
+      📄 .PKGINFO
+      ⌨️/📚️ alpm-buildinfo
+      ⌨️/📚️ alpm-mtree
       📚️ alpm-package
-      📚️ alpm-package-verify*
-      📚️ alpm-package-verify-vda*
+      ⌨️/📚️ alpm-pkginfo
+      ⌨️/📚️ alpm-soname
     🗄️ Repository
       📄 desc
       📄 files
-      📚️ alpm-repo*
-      📚️ alpm-repo-db
-      📂 alpm-state-repo
+      ⌨️/📚️ alpm-repo-db
     🗄️ Package Management
       📄 desc
       📄 files
-      📚️ alpm-db
-      📚️ alpm-db-download*
-      📚️ alpm-db-verify*
-      📚️ alpm-db-verify-vda*
+      ⌨️/📚️ alpm-db
+    ✅️ Linting
+      ⌨️/📚️ alpm-lint
+    💬 Language bindings
+      🐍 python-alpm
+    🛠️ Utils
+      📚️ alpm-common
+      📚️ alpm-compress
+      📚️ alpm-parsers
 ```
 
 For an overview of planned specifications and components, refer to the [milestones] of the project.
-
-[*] Not yet implemented, or subject to change.
 
 ## Components
 
@@ -74,6 +74,7 @@ Currently the following software components are available:
 - [alpm-parsers]: a library for providing various custom parsers/deserializers for file types used in ALPM
 - [alpm-pkginfo]: a library and command line interface to work with [PKGINFO] files
 - [alpm-repo-db]: a library and command line interface to work with an [alpm-repo-db][spec:alpm-repo-db] and its [alpm-repo-desc][spec:alpm-repo-desc] and [alpm-repo-files][spec:alpm-repo-files]file formats
+- [alpm-soname]: a library and command line interface for looking up soname data
 - [alpm-srcinfo]: a library and command line interface to work with [SRCINFO] files
 - [alpm-types]: a central library for types used by other ALPM libraries and tools
 - [python-alpm]: Python bindings for ALPM crates and the python-alpm Python library
@@ -118,6 +119,7 @@ Contributions to this project, unless noted otherwise, are automatically license
 [alpm-parsers]: alpm-parsers/
 [alpm-pkginfo]: alpm-pkginfo/
 [alpm-repo-db]: alpm-repo-db/
+[alpm-soname]: alpm-srcinfo/
 [alpm-srcinfo]: alpm-srcinfo/
 [alpm-types]: alpm-types/
 [python-alpm]: python-alpm/
