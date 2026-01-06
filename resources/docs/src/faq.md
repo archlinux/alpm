@@ -46,6 +46,8 @@ Until the end of 2025, we will:
 Our plan is to:
 
 - further improve the documentation of the Arch Linux packaging ecosystem,
+- write more lint rules,
+- write further libraries and command line interfaces for package creation, as well as system and repository handling,
 - help integrate ALPM into further projects,
 - and extend the Python bindings.
 
