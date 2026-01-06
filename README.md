@@ -64,18 +64,18 @@ For an overview of planned specifications and components, refer to the [mileston
 
 Currently the following software components are available:
 
-- [alpm-buildinfo]: a library and command line interface to work with [BUILDINFO] files
+- [alpm-buildinfo]: a library and command line interface to work with [BUILDINFO(5)] files
 - [alpm-common]: a library for common traits and functionality
 - [alpm-compress]: a library for compression operations in ALPM
-- [alpm-db]: a library and command line interface to work with an [alpm-db][spec:alpm-db] and its [alpm-db-desc][spec:alpm-db-desc] and [alpm-db-files][spec:alpm-db-files] file formats
+- [alpm-db]: a library and command line interface to work with an [alpm-db(7)] and its [alpm-db-desc(5)] and [alpm-db-files(5)] file formats
 - [alpm-lint]: a linting tool for everything around Arch Linux packaging.
-- [alpm-mtree]: a library and command line interface to work with [ALPM-MTREE][spec:ALPM-MTREE] files
-- [alpm-package]: a library for the creation of [alpm-package][spec:alpm-package] files
+- [alpm-mtree]: a library and command line interface to work with [ALPM-MTREE(5)] files
+- [alpm-package]: a library for the creation of [alpm-package(7)] files
 - [alpm-parsers]: a library for providing various custom parsers/deserializers for file types used in ALPM
-- [alpm-pkginfo]: a library and command line interface to work with [PKGINFO] files
-- [alpm-repo-db]: a library and command line interface to work with an [alpm-repo-db][spec:alpm-repo-db] and its [alpm-repo-desc][spec:alpm-repo-desc] and [alpm-repo-files][spec:alpm-repo-files]file formats
+- [alpm-pkginfo]: a library and command line interface to work with [PKGINFO(5)] files
+- [alpm-repo-db]: a library and command line interface to work with an [alpm-repo-db(7)] and its [alpm-repo-desc(5)] and [alpm-repo-files(5)] file formats
 - [alpm-soname]: a library and command line interface for looking up soname data
-- [alpm-srcinfo]: a library and command line interface to work with [SRCINFO] files
+- [alpm-srcinfo]: a library and command line interface to work with [SRCINFO(5)] files
 - [alpm-types]: a central library for types used by other ALPM libraries and tools
 - [python-alpm]: Python bindings for ALPM crates and the python-alpm Python library
 
@@ -99,34 +99,40 @@ The above are part of [archlinux-keyring] and certified by at least three [main 
 This project can be used under the terms of the [Apache-2.0] or [MIT].
 Contributions to this project, unless noted otherwise, are automatically licensed under the terms of both of those licenses.
 
-[spec:ALPM-MTREE]: https://alpm.archlinux.page/specifications/ALPM-MTREE.5.html
+[ALPM-MTREE(5)]: https://alpm.archlinux.page/specifications/ALPM-MTREE.5.html
 [Apache-2.0]: LICENSES/Apache-2.0.txt
-[BUILDINFO]: https://alpm.archlinux.page/specifications/BUILDINFO.5.html
+[BUILDINFO(5)]: https://alpm.archlinux.page/specifications/BUILDINFO.5.html
 [David Runge]: https://archlinux.org/people/developers/#dvzrv
 [MIT]: LICENSES/MIT.txt
 [OpenPGP certificates]: https://openpgp.dev/book/certificates.html
 [OpenPGP fingerprints]: https://openpgp.dev/book/certificates.html#fingerprint
 [Orhun Parmaksız]: https://archlinux.org/people/package-maintainer/#orhun
-[PKGINFO]: https://alpm.archlinux.page/specifications/PKGINFO.5.html
+[PKGINFO(5)]: https://alpm.archlinux.page/specifications/PKGINFO.5.html
 [Rust]: https://www.rust-lang.org/
-[SRCINFO]: https://alpm.archlinux.page/specifications/SRCINFO.5.html
+[SRCINFO(5)]: https://alpm.archlinux.page/specifications/SRCINFO.5.html
 [Sovereign Tech Agency]: https://www.sovereign.tech/tech/arch-linux-package-management
 [`165E0FF7C48C226E1EC363A7F83424824B3E4B90`]: https://pgpkeys.eu/pks/lookup?search=165E0FF7C48C226E1EC363A7F83424824B3E4B90&fingerprint=on&op=index
 [`991F6E3F0765CF6295888586139B09DA5BF0D338`]: https://pgpkeys.eu/pks/lookup?search=991F6E3F0765CF6295888586139B09DA5BF0D338&fingerprint=on&op=index
 [alpm-buildinfo]: alpm-buildinfo/
 [alpm-common]: alpm-common/
 [alpm-compress]: alpm-compress/
+[alpm-db(7)]: https://alpm.archlinux.page/specifications/alpm-db.7.html
+[alpm-db-desc(5)]: https://alpm.archlinux.page/specifications/alpm-db-desc.5.html
+[alpm-db-files(5)]: https://alpm.archlinux.page/specifications/alpm-db-files.5.html
 [alpm-db]: alpm-db/
 [alpm-lint]: alpm-lint/
 [alpm-mtree]: alpm-mtree/
+[alpm-package(7)]: https://alpm.archlinux.page/specifications/alpm-package.7.html
 [alpm-package]: alpm-package/
 [alpm-parsers]: alpm-parsers/
 [alpm-pkginfo]: alpm-pkginfo/
+[alpm-repo-db(7)]: https://alpm.archlinux.page/specifications/alpm-repo-db.7.html
 [alpm-repo-db]: alpm-repo-db/
+[alpm-repo-desc(5)]: https://alpm.archlinux.page/specifications/alpm-repo-desc.5.html
+[alpm-repo-files(5)]: https://alpm.archlinux.page/specifications/alpm-repo-files.5.html
 [alpm-soname]: alpm-srcinfo/
 [alpm-srcinfo]: alpm-srcinfo/
 [alpm-types]: alpm-types/
-[python-alpm]: python-alpm/
 [archlinux-keyring]: https://gitlab.archlinux.org/archlinux/archlinux-keyring
 [components]: #components
 [contribution guidelines]: CONTRIBUTING.md
@@ -134,10 +140,4 @@ Contributions to this project, unless noted otherwise, are automatically license
 [milestones]: https://gitlab.archlinux.org/archlinux/alpm/alpm/-/milestones
 [official announcement]: https://lists.archlinux.org/archives/list/arch-dev-public@lists.archlinux.org/thread/MZLH43574GGP7QQ7RKAAIRFT5LJPCEB4/
 [pacman]: https://gitlab.archlinux.org/pacman/pacman
-[spec:alpm-package]: https://alpm.archlinux.page/specifications/alpm-package.7.html
-[spec:alpm-db]: https://alpm.archlinux.page/specifications/alpm-db.7.html
-[spec:alpm-db-desc]: https://alpm.archlinux.page/specifications/alpm-db-desc.5.html
-[spec:alpm-db-files]: https://alpm.archlinux.page/specifications/alpm-db-files.5.html
-[spec:alpm-repo-db]: https://alpm.archlinux.page/specifications/alpm-repo-db.7.html
-[spec:alpm-repo-desc]: https://alpm.archlinux.page/specifications/alpm-repo-desc.5.html
-[spec:alpm-repo-files]: https://alpm.archlinux.page/specifications/alpm-repo-files.5.html
+[python-alpm]: python-alpm/
