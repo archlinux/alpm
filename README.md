@@ -89,9 +89,9 @@ Releases of [components] are created by the developers of this project.
 
 [OpenPGP certificates] with the following [OpenPGP fingerprints] can be used to verify signed tags:
 
-- [`3051329B47B855C4F888F975CC9408F679023B65`] ([Arne Christian Beer] &lt;<nukesor@archlinux.org>&gt;)
-- [`991F6E3F0765CF6295888586139B09DA5BF0D338`] ([David Runge] &lt;<dvzrv@archlinux.org>&gt;)
-- [`165E0FF7C48C226E1EC363A7F83424824B3E4B90`] ([Orhun Parmaksız] &lt;<orhun@archlinux.org>&gt;)
+- [`3051329b47b855c4f888f975cc9408f679023b65`] ([Arne Christian Beer] &lt;<nukesor@archlinux.org>&gt;)
+- [`991f6e3f0765cf6295888586139b09da5bf0d338`] ([David Runge] &lt;<dvzrv@archlinux.org>&gt;)
+- [`165e0ff7c48c226e1ec363a7f83424824b3e4b90`] ([Orhun Parmaksız] &lt;<orhun@archlinux.org>&gt;)
 
 Some of the above are part of [archlinux-keyring] and certified by at least three [main signing keys] of the distribution.
 
@@ -113,9 +113,9 @@ Contributions to this project, unless noted otherwise, are automatically license
 [Rust]: https://www.rust-lang.org/
 [SRCINFO(5)]: https://alpm.archlinux.page/specifications/SRCINFO.5.html
 [Sovereign Tech Agency]: https://www.sovereign.tech/tech/arch-linux-package-management
-[`165E0FF7C48C226E1EC363A7F83424824B3E4B90`]: https://pgpkeys.eu/pks/lookup?search=165E0FF7C48C226E1EC363A7F83424824B3E4B90&fingerprint=on&op=index
-[`3051329B47B855C4F888F975CC9408F679023B65`]: https://pgpkeys.eu/pks/lookup?search=3051329B47B855C4F888F975CC9408F679023B65&fingerprint=on&op=index
-[`991F6E3F0765CF6295888586139B09DA5BF0D338`]: https://pgpkeys.eu/pks/lookup?search=991F6E3F0765CF6295888586139B09DA5BF0D338&fingerprint=on&op=index
+[`165e0ff7c48c226e1ec363a7f83424824b3e4b90`]: https://pgpkeys.eu/pks/lookup?search=165e0ff7c48c226e1ec363a7f83424824b3e4b90&fingerprint=on&op=index
+[`3051329b47b855c4f888f975cc9408f679023b65`]: https://pgpkeys.eu/pks/lookup?search=3051329b47b855c4f888f975cc9408f679023b65&fingerprint=on&op=index
+[`991f6e3f0765cf6295888586139b09da5bf0d338`]: https://pgpkeys.eu/pks/lookup?search=991f6e3f0765cf6295888586139b09da5bf0d338&fingerprint=on&op=index
 [alpm-buildinfo]: alpm-buildinfo/
 [alpm-common]: alpm-common/
 [alpm-compress]: alpm-compress/
