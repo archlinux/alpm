@@ -312,16 +312,16 @@ impl Architectures {
     }
 }
 
-#[pyclass(frozen, eq, ord, hash)]
+#[pyclass(frozen, eq, eq_int, ord, hash)]
 #[derive(Clone, Copy, Debug, Display, Eq, Hash, Ord, PartialEq, PartialOrd)]
 // Uses Python's enum variant naming convention.
 #[allow(clippy::upper_case_acronyms)]
 #[allow(non_camel_case_types)]
 pub enum ElfArchitectureFormat {
     #[strum(to_string = "32")]
-    BIT_32,
+    BIT_32 = 32,
     #[strum(to_string = "64")]
-    BIT_64,
+    BIT_64 = 64,
 }
 
 #[pymethods]

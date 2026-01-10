@@ -48,8 +48,8 @@ def test_elf_architecture_format_inequality() -> None:
 
 def test_elf_architecture_format_enum_values() -> None:
     """Test ElfArchitectureFormat enum values."""
-    assert alpm_types.ElfArchitectureFormat.BIT_32 is not None
-    assert alpm_types.ElfArchitectureFormat.BIT_64 is not None
+    assert alpm_types.ElfArchitectureFormat.BIT_32 == 32
+    assert alpm_types.ElfArchitectureFormat.BIT_64 == 64
 
 
 @pytest.mark.parametrize(

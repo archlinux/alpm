@@ -1212,8 +1212,8 @@ class ElfArchitectureFormat(Enum):
     This enum represents the Class field in the ELF Header.
     """
 
-    BIT_32 = ("32",)
-    BIT_64 = ("64",)
+    BIT_32 = 32
+    BIT_64 = 64
 
     @staticmethod
     def from_str(format: str) -> "ElfArchitectureFormat":
