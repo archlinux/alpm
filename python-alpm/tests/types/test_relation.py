@@ -209,6 +209,28 @@ def test_relation_or_soname_from_str_sonames(input_str: str) -> None:
 
 
 @pytest.mark.parametrize(
+    "input_str,arch",
+    [
+        # unversioned
+        ("libfoo.so=libfoo.so-64", alpm_types.ElfArchitectureFormat.BIT_64),
+        # explicit
+        ("libfoo.so=2-32", alpm_types.ElfArchitectureFormat.BIT_32),
+    ],
+)
+def test_sonamev1_has_architecture(
+    input_str: str, arch: alpm_types.ElfArchitectureFormat
+) -> None:
+    """Regression test for a problem found during aurweb integration.
+
+    <https://gitlab.archlinux.org/archlinux/aurweb/-/issues/548>
+    <https://gitlab.archlinux.org/archlinux/aurweb/-/merge_requests/880>
+    """
+    result = alpm_types.relation_or_soname_from_str(input_str)
+    assert isinstance(result, alpm_types.SonameV1)
+    assert result.architecture == arch
+
+
+@pytest.mark.parametrize(
     "input_str",
     [
         "lib:libfoo.so",

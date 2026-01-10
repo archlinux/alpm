@@ -238,8 +238,10 @@ impl SonameV1 {
     fn architecture(&self) -> Option<crate::types::system::ElfArchitectureFormat> {
         use alpm_types::SonameV1::{Basic, Explicit, Unversioned};
         match self.0 {
-            Basic(_) | Unversioned { .. } => None,
-            Explicit { architecture, .. } => Some(architecture.into()),
+            Basic(_) => None,
+            Explicit { architecture, .. } | Unversioned { architecture, .. } => {
+                Some(architecture.into())
+            }
         }
     }
 
