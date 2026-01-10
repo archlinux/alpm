@@ -9,9 +9,6 @@ title = "ALPM Lint Documentation"
 [link_checker]
 skip_prefixes = ["https://alpm.archlinux.page/lints/"]
 
-[markdown]
-highlight_code = true
-
 # For all theme config options refer to https://www.getzola.org/themes/linkita/
 [extra]
 disable_default_favicon = true
