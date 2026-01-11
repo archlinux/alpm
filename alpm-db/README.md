@@ -5,7 +5,7 @@ A library and command line interface for [alpm-db] structures used in **A**rch *
 ## Documentation
 
 - <https://alpm.archlinux.page/rustdoc/alpm_db/> for development version of the crate.
-- <https://docs.rs/alpm-db-desc/latest/alpm_db/> for released version of the crate.
+- <https://docs.rs/alpm-db/latest/alpm_db/> for released version of the crate.
 
 ## Overview
 
