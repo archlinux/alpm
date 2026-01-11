@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-01-11
+
+### Fixed
+
+- Ignore backup entries with null digest in alpm-db-files
+- Initialize `fluent_i18n` support for the `alpm-db-desc` binary
+
+### Other
+
+- *(README)* Fix docs.rs link of the crate
+- *(README)* Streamline wording and use of "command line interface"
+- *(cargo)* Make crate description more generic
+
 ## [0.2.0] - 2025-12-17
 
 ### Added
