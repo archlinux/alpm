@@ -41,7 +41,7 @@ alpm-buildinfo = { path = "./alpm-buildinfo", version = "0.5.1" }
 alpm-common = { path = "./alpm-common", version = "0.2.1" }
 alpm-compress = { path = "./alpm-compress", version = "0.1.2" }
 alpm-lint-config = { path = "./alpm-lint-config", version = "0.1.1" }
-alpm-mtree = { path = "./alpm-mtree", version = "0.3.1" }
+alpm-mtree = { path = "./alpm-mtree", version = "0.3.2" }
 alpm-package = { path = "./alpm-package", version = "0.4.1" }
 alpm-parsers = { path = "./alpm-parsers", version = "0.4.1" }
 alpm-pkgbuild = { path = "./alpm-pkgbuild", version = "0.2.3" }
