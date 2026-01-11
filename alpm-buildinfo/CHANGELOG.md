@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.2] - 2026-01-11
+
+### Other
+
+- *(README)* Improve wording and specification links
+- *(cargo)* Make crate description more concise
+
 ## [0.5.1] - 2025-12-17
 
 ### Other
