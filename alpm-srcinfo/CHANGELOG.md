@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.2] - 2026-01-11
+
+### Other
+
+- *(README)* Use "command line interface" and add PKGBUILD man page
+
 ## [0.6.1] - 2025-12-17
 
 ### Fixed

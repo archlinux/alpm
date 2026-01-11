@@ -357,7 +357,7 @@ dependencies = [
 
 [[package]]
 name = "alpm-srcinfo"
-version = "0.6.1"
+version = "0.6.2"
 dependencies = [
  "alpm-common",
  "alpm-parsers",
