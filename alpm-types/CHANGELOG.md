@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.1] - 2026-01-11
+
+### Other
+
+- Fix spelling of "command line"
+
 ## [0.11.0] - 2025-12-17
 
 ### Added
