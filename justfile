@@ -383,6 +383,12 @@ build-book:
     cp -r "$target_dir/doc/"{search.*,src,static.files,trait.impl,type.impl} "$rustdoc_dir"
     cp -r "$target_dir/doc/"*.{js,html} "$rustdoc_dir"
 
+    if [[ ! -f "alpm-lint-website/themes/linkita/theme.toml" ]]; then
+        echo "The alpm-lint-website linkita submodule does not exist"
+        echo "Did you clone the submodule? Check the contribution guidelines."
+        exit 1
+    fi
+
     just --justfile alpm-lint-website/justfile build
     cp -r alpm-lint-website/public "$output_dir/docs/lints"
 
