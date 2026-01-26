@@ -118,6 +118,19 @@ New (versions of) specifications must be accompanied by examples and code testin
 
 The examples and code testing those examples must be kept around for legacy and deprecated specifications to guarantee backwards compatibility.
 
+## Building the book
+
+The book includes all documentation from all parts of the project.
+
+To build the book, you need to pull the theme submodule for the linting website as well.
+
+```sh
+git submodule update --init --recursive
+```
+
+Afterwards you can build the book with `just build-book`, which outputs everything into `output/docs`.
+You can serve the book locally via `serve-book`.
+
 ## Writing commit messages
 
 To ensure compatibility and automatic creation of [semantic versioning] compatible releases the commit message style follows [conventional commits].
@@ -168,6 +181,10 @@ just release <package>
 ```
 
 The crate is afterwards automatically published on <https://crates.io> using a pipeline job.
+
+## Common Gotchas
+
+- The `lychee` check fails with a "cached" link. To resolve this, you need to remove the `.lycheecache` file.
 
 ## License
 
