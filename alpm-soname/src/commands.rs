@@ -165,16 +165,20 @@ pub fn get_raw_dependencies<W: Write>(
     detail: bool,
     output: &mut W,
 ) -> Result<(), Error> {
-    let mut elf_sonames: Vec<ElfSonames> = extract_elf_sonames(args.package)?;
-    elf_sonames.sort_by(|a, b| a.path.cmp(&b.path));
-    for elf in &mut elf_sonames {
-        elf.sonames.sort();
-        elf.sonames.dedup();
-    }
-    let sonames: Vec<Soname> = elf_sonames
-        .iter()
-        .flat_map(|elf| elf.sonames.clone())
-        .collect();
+    let elf_sonames = {
+        let mut elf_sonames: Vec<ElfSonames> = extract_elf_sonames(args.package)?;
+        elf_sonames.sort_by(|a, b| a.path.cmp(&b.path));
+        elf_sonames
+    };
+    let sonames = {
+        let mut sonames: Vec<Soname> = elf_sonames
+            .iter()
+            .flat_map(|elf| elf.sonames.clone())
+            .collect();
+        sonames.sort();
+        sonames.dedup();
+        sonames
+    };
     match args.output_format {
         OutputFormat::Plain => {
             if detail {
