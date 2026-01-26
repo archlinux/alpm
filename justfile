@@ -632,8 +632,19 @@ check-licenses:
 # Check for stale links in documentation
 [group('check')]
 check-links:
+    #!/usr/bin/env bash
+
+    set -euo pipefail
+
+    readonly output_dir="{{ output_dir }}"
+
     just ensure-command lychee
-    lychee .
+    # Only run lychee if the book has been built at least once.
+    if [[ -d "${output_dir}/docs" ]]; then
+        lychee .
+    else
+        printf 'Skipping link checking, as the book has not been built.\nRun `just build-book` to build the book.'
+    fi
 
 # Checks the Rust source code using cargo-clippy.
 [group('check')]
