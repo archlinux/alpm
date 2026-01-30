@@ -64,13 +64,13 @@ pub fn extract_elf_sonames(path: PathBuf) -> Result<Vec<ElfSonames>, Error> {
         let mut buffer = header.to_vec();
         entry
             .read_to_end(&mut buffer)
-            .map_err(|source| Error::IoReadError {
+            .map_err(|source| Error::IoRead {
                 context: t!("error-io-read-archive-entry"),
                 source,
             })?;
 
         // Parse the ELF file and collect the dependencies
-        let object = Object::parse(&buffer).map_err(|source| Error::ElfError {
+        let object = Object::parse(&buffer).map_err(|source| Error::Elf {
             context: t!("error-parse-elf"),
             source,
         })?;

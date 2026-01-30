@@ -17,7 +17,7 @@ pub enum Error {
         "context" => context,
         "source" => source.to_string()
     }))]
-    IoPathError {
+    IoPath {
         /// The path where the error occurred.
         path: PathBuf,
         /// The context in which the error occurred.
@@ -33,7 +33,7 @@ pub enum Error {
         "context" => context,
         "source" => source.to_string()
     }))]
-    IoReadError {
+    IoRead {
         /// The context in which the error occurred.
         ///
         /// This is meant to complete the sentence "Read error while ".
@@ -48,7 +48,7 @@ pub enum Error {
 
     /// An [`alpm_parsers::custom_ini::Error`].
     #[error("{msg}", msg = t!("error-deserialize-buildinfo", { "source" => .0.to_string() }))]
-    DeserializeError(#[from] alpm_parsers::custom_ini::Error),
+    Deserialization(#[from] alpm_parsers::custom_ini::Error),
 
     /// Unsupported schema version
     #[error("Unsupported schema version: {0}")]

@@ -77,7 +77,7 @@ pub enum Error {
         "parameters" => format!("{parameters:?}"),
         "source" => source.to_string()
     }))]
-    ScriptError {
+    Script {
         /// The context in which the error occurred.
         context: String,
         /// The parameters supplied to the script.
@@ -92,7 +92,7 @@ pub enum Error {
         "stdout" => stdout,
         "stderr" => stderr
     }))]
-    ScriptExecutionError {
+    ScriptExecution {
         /// The parameters supplied to the script.
         parameters: Vec<String>,
         /// The stdout of the failed command.

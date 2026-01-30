@@ -72,7 +72,7 @@ pub enum Error {
 
     /// A parsing error that occurred during the winnow file parsing.
     #[error("{msg}", msg = t!("error-parse", { "error" => .0 }))]
-    ParseError(String),
+    Parse(String),
 
     /// An error occurred during the interpretation phase of the language.
     #[error("{msg}", msg = t!("error-interpreter", {

@@ -14,7 +14,7 @@ pub enum Error {
         "context" => context,
         "source" => source.to_string()
     }))]
-    IoPathError {
+    IoPath {
         /// The path at which the error occurred.
         path: PathBuf,
 
@@ -32,7 +32,7 @@ pub enum Error {
         "context" => context,
         "source" => source.to_string()
     }))]
-    IoWriteError {
+    IoWrite {
         /// The context in which the error occurred.
         ///
         /// This is meant to complete the sentence "I/O write error while ".
@@ -47,7 +47,7 @@ pub enum Error {
         "context" => context,
         "source" => source.to_string()
     }))]
-    IoReadError {
+    IoRead {
         /// The context in which the error occurred.
         ///
         /// This is meant to complete the sentence "I/O read error while ".
@@ -74,7 +74,7 @@ pub enum Error {
         "context" => context,
         "source" => source.to_string()
     }))]
-    ElfError {
+    Elf {
         /// The context in which the error occurred.
         ///
         /// This is meant to complete the sentence "ELF format error while ".

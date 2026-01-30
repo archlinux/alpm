@@ -51,7 +51,7 @@ impl FileFormatSchema for BuildInfoSchema {
         Self: Sized,
     {
         let file = file.as_ref();
-        Self::derive_from_reader(File::open(file).map_err(|source| Error::IoPathError {
+        Self::derive_from_reader(File::open(file).map_err(|source| Error::IoPath {
             path: PathBuf::from(file),
             context: t!("error-io-derive-schema-file"),
             source,
@@ -75,7 +75,7 @@ impl FileFormatSchema for BuildInfoSchema {
         let mut reader = reader;
         reader
             .read_to_string(&mut buf)
-            .map_err(|source| Error::IoReadError {
+            .map_err(|source| Error::IoRead {
                 context: t!("error-io-derive-schema-data"),
                 source,
             })?;

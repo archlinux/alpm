@@ -90,21 +90,21 @@ pub fn create_file(command: CreateCommand) -> Result<(), Error> {
     if let Some(output_path) = output {
         // Create parent directories if necessary
         if let Some(output_dir) = output_path.parent() {
-            create_dir_all(output_dir).map_err(|source| Error::IoPathError {
+            create_dir_all(output_dir).map_err(|source| Error::IoPath {
                 path: output_dir.to_path_buf(),
                 context: t!("error-io-path-output-dir"),
                 source,
             })?;
         }
 
-        let mut out = File::create(&output_path).map_err(|source| Error::IoPathError {
+        let mut out = File::create(&output_path).map_err(|source| Error::IoPath {
             path: output_path.clone(),
             context: t!("error-io-path-output-file"),
             source,
         })?;
 
         out.write_all(data.as_bytes())
-            .map_err(|source| Error::IoPathError {
+            .map_err(|source| Error::IoPath {
                 path: output_path.clone(),
                 context: t!("error-io-path-write-file"),
                 source,

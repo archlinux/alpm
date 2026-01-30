@@ -31,7 +31,7 @@ pub enum Error {
         "context" => context,
         "source" => source.to_string(),
     }))]
-    IoPathError {
+    IoPath {
         /// The path at which the error occurred.
         path: PathBuf,
         /// The context in which the error occurred.
@@ -44,7 +44,7 @@ pub enum Error {
 
     /// I/O error while reading a buffer.
     #[error("{msg}", msg = t!("error-io-read", { "context" => context, "source" => source.to_string() }))]
-    IoReadError {
+    IoRead {
         /// The context in which the error occurred.
         ///
         /// This is meant to complete the sentence "Read error while ".
@@ -55,7 +55,7 @@ pub enum Error {
 
     /// A winnow parser for a type didn't work and produced an error.
     #[error("{msg}", msg = t!("error-parse", { "error" => .0 }))]
-    ParseError(String),
+    Parse(String),
 
     /// A section is missing in the parsed data.
     #[error("{msg}", msg = t!("error-missing-section", { "section" => .0.to_string() }))]
@@ -91,8 +91,8 @@ pub enum Error {
 }
 
 impl<'a> From<winnow::error::ParseError<&'a str, winnow::error::ContextError>> for Error {
-    /// Converts a [`winnow::error::ParseError`] into an [`Error::ParseError`].
+    /// Converts a [`winnow::error::ParseError`] into an [`Error::Parse`].
     fn from(value: winnow::error::ParseError<&'a str, winnow::error::ContextError>) -> Self {
-        Self::ParseError(value.to_string())
+        Self::Parse(value.to_string())
     }
 }

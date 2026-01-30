@@ -737,7 +737,7 @@ impl PartialOrd for Path {
 pub fn parse_mtree_v2(content: String) -> Result<Vec<Path>, Error> {
     let parsed_contents = parser::mtree
         .parse(&content)
-        .map_err(|err| Error::ParseError(format!("{err}")))?;
+        .map_err(|err| Error::Parse(format!("{err}")))?;
 
     paths_from_parsed_content(&content, parsed_contents)
 }

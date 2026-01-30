@@ -29,7 +29,7 @@ pub enum Error {
         "context" => context,
         "source" => source.to_string(),
     }))]
-    IoPathError {
+    IoPath {
         /// The path at which the error occurred.
         path: PathBuf,
         /// The context in which the error occurred.
@@ -42,7 +42,7 @@ pub enum Error {
 
     /// I/O error while reading a buffer.
     #[error("{msg}", msg = t!("error-io-read", { "context" => context, "source" => source.to_string() }))]
-    IoReadError {
+    IoRead {
         /// The context in which the error occurred.
         ///
         /// This is meant to complete the sentence "Read error while ".

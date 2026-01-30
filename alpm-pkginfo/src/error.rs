@@ -16,7 +16,7 @@ pub enum Error {
         "context" => context,
         "source" => source.to_string()
     }))]
-    IoPathError {
+    IoPath {
         /// The path where the error occurred.
         ///
         /// This is meant to complete the sentence "I/O error while  ".
@@ -32,7 +32,7 @@ pub enum Error {
         "context" => context,
         "source" => source.to_string()
     }))]
-    IoReadError {
+    IoRead {
         /// The context in which the error occurred.
         ///
         /// This is meant to complete the sentence "Read error while ".
@@ -47,7 +47,7 @@ pub enum Error {
 
     /// An [`alpm_parsers::custom_ini::Error`].
     #[error("{msg}", msg = t!("error-deserialize", { "source" => source.to_string() }))]
-    DeserializeError {
+    Deserialization {
         /// The deserialization error source.
         #[from]
         source: alpm_parsers::custom_ini::Error,

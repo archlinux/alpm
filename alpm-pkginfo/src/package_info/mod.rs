@@ -96,7 +96,7 @@ impl MetadataFile<PackageInfoSchema> for PackageInfo {
     ) -> Result<Self, Error> {
         let file = file.as_ref();
         Self::from_reader_with_schema(
-            File::open(file).map_err(|source| Error::IoPathError {
+            File::open(file).map_err(|source| Error::IoPath {
                 path: PathBuf::from(file),
                 context: t!("error-io-open-file"),
                 source,
@@ -168,7 +168,7 @@ impl MetadataFile<PackageInfoSchema> for PackageInfo {
         let mut buf = String::new();
         reader
             .read_to_string(&mut buf)
-            .map_err(|source| Error::IoReadError {
+            .map_err(|source| Error::IoRead {
                 context: t!("error-io-read-pkginfo-data"),
                 source,
             })?;

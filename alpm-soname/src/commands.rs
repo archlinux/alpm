@@ -45,15 +45,13 @@ pub fn get_provisions<W: Write>(
         OutputFormat::Plain => {
             if args.pretty {
                 for (prefix, sonames) in group_sonames_by_prefix(&provisions) {
-                    writeln!(output, "{prefix}").map_err(|source| {
-                        alpm_soname::Error::IoWriteError {
-                            context: t!("error-io-write-provision-output"),
-                            source,
-                        }
+                    writeln!(output, "{prefix}").map_err(|source| alpm_soname::Error::IoWrite {
+                        context: t!("error-io-write-provision-output"),
+                        source,
                     })?;
                     for soname in sonames {
                         writeln!(output, " ⤷ {soname}").map_err(|source| {
-                            alpm_soname::Error::IoWriteError {
+                            alpm_soname::Error::IoWrite {
                                 context: t!("error-io-write-provision-output"),
                                 source,
                             }
@@ -63,7 +61,7 @@ pub fn get_provisions<W: Write>(
             } else {
                 for provision in &provisions {
                     writeln!(output, "{provision}").map_err(|source| {
-                        alpm_soname::Error::IoWriteError {
+                        alpm_soname::Error::IoWrite {
                             context: t!("error-io-write-provision-output"),
                             source,
                         }
@@ -77,7 +75,7 @@ pub fn get_provisions<W: Write>(
             } else {
                 serde_json::to_string(&provisions)?
             };
-            writeln!(output, "{json}").map_err(|source| alpm_soname::Error::IoWriteError {
+            writeln!(output, "{json}").map_err(|source| alpm_soname::Error::IoWrite {
                 context: t!("error-io-write-json"),
                 source,
             })?;
@@ -106,15 +104,13 @@ pub fn get_dependencies<W: Write>(
         OutputFormat::Plain => {
             if args.pretty {
                 for (prefix, sonames) in group_sonames_by_prefix(&dependencies) {
-                    writeln!(output, "{prefix}").map_err(|source| {
-                        alpm_soname::Error::IoWriteError {
-                            context: t!("error-io-write-dependency-output"),
-                            source,
-                        }
+                    writeln!(output, "{prefix}").map_err(|source| alpm_soname::Error::IoWrite {
+                        context: t!("error-io-write-dependency-output"),
+                        source,
                     })?;
                     for soname in sonames {
                         writeln!(output, " ⤷ {soname}").map_err(|source| {
-                            alpm_soname::Error::IoWriteError {
+                            alpm_soname::Error::IoWrite {
                                 context: t!("error-io-write-dependency-output"),
                                 source,
                             }
@@ -124,7 +120,7 @@ pub fn get_dependencies<W: Write>(
             } else {
                 for dependency in &dependencies {
                     writeln!(output, "{dependency}").map_err(|source| {
-                        alpm_soname::Error::IoWriteError {
+                        alpm_soname::Error::IoWrite {
                             context: t!("error-io-write-dependency-output"),
                             source,
                         }
@@ -135,7 +131,7 @@ pub fn get_dependencies<W: Write>(
         }
         OutputFormat::Json => {
             let json = serde_json::to_string_pretty(&dependencies)?;
-            writeln!(output, "{json}").map_err(|source| alpm_soname::Error::IoWriteError {
+            writeln!(output, "{json}").map_err(|source| alpm_soname::Error::IoWrite {
                 context: t!("error-io-write-json"),
                 source,
             })?;
@@ -196,14 +192,14 @@ pub fn get_raw_dependencies<W: Write>(
             if detail {
                 for elf_soname in elf_sonames {
                     writeln!(output, "{}", elf_soname.path.display()).map_err(|source| {
-                        alpm_soname::Error::IoWriteError {
+                        alpm_soname::Error::IoWrite {
                             context: t!("error-io-write-elf-soname-output"),
                             source,
                         }
                     })?;
                     for soname in &elf_soname.sonames {
                         writeln!(output, " ⤷ {soname}").map_err(|source| {
-                            alpm_soname::Error::IoWriteError {
+                            alpm_soname::Error::IoWrite {
                                 context: t!("error-io-write-elf-soname-output"),
                                 source,
                             }
@@ -212,14 +208,14 @@ pub fn get_raw_dependencies<W: Write>(
                 }
             } else if let Some(elf_soname) = elf_soname {
                 writeln!(output, "{}", elf_soname.path.display()).map_err(|source| {
-                    alpm_soname::Error::IoWriteError {
+                    alpm_soname::Error::IoWrite {
                         context: t!("error-io-write-elf-soname-output"),
                         source,
                     }
                 })?;
                 for soname in &elf_soname.sonames {
                     writeln!(output, " ⤷ {soname}").map_err(|source| {
-                        alpm_soname::Error::IoWriteError {
+                        alpm_soname::Error::IoWrite {
                             context: t!("error-io-write-elf-soname-output"),
                             source,
                         }
@@ -227,11 +223,9 @@ pub fn get_raw_dependencies<W: Write>(
                 }
             } else {
                 for soname in &sonames {
-                    writeln!(output, "{soname}").map_err(|source| {
-                        alpm_soname::Error::IoWriteError {
-                            context: t!("error-io-write-elf-soname-output"),
-                            source,
-                        }
+                    writeln!(output, "{soname}").map_err(|source| alpm_soname::Error::IoWrite {
+                        context: t!("error-io-write-elf-soname-output"),
+                        source,
                     })?;
                 }
             }
@@ -246,7 +240,7 @@ pub fn get_raw_dependencies<W: Write>(
                 (false, Some(elf_soname), false) => serde_json::to_string(&elf_soname)?,
                 (true, Some(_), _) => unreachable!("--detail conflicts with --elf <PATH>"),
             };
-            writeln!(output, "{json}").map_err(|source| alpm_soname::Error::IoWriteError {
+            writeln!(output, "{json}").map_err(|source| alpm_soname::Error::IoWrite {
                 context: t!("error-io-write-json"),
                 source,
             })?;

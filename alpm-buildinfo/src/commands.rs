@@ -87,14 +87,14 @@ pub fn create_file(command: CreateCommand) -> Result<(), Error> {
 
     // create any parent directories if necessary
     if let Some(output_dir) = output.0.parent() {
-        create_dir_all(output_dir).map_err(|source| alpm_buildinfo::Error::IoPathError {
+        create_dir_all(output_dir).map_err(|source| alpm_buildinfo::Error::IoPath {
             path: output_dir.to_path_buf(),
             context: t!("error-io-create-output-dir"),
             source,
         })?;
     }
 
-    let mut out = File::create(&output.0).map_err(|source| alpm_buildinfo::Error::IoPathError {
+    let mut out = File::create(&output.0).map_err(|source| alpm_buildinfo::Error::IoPath {
         path: output.0.clone(),
         context: t!("error-io-create-output-file"),
         source,
@@ -102,7 +102,7 @@ pub fn create_file(command: CreateCommand) -> Result<(), Error> {
 
     let _ = out
         .write(data.as_bytes())
-        .map_err(|source| alpm_buildinfo::Error::IoPathError {
+        .map_err(|source| alpm_buildinfo::Error::IoPath {
             path: output.0,
             context: t!("error-io-write-output-file"),
             source,

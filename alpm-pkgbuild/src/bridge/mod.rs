@@ -112,25 +112,23 @@ pub fn run_bridge_script(pkgbuild_path: &Path) -> Result<String, Error> {
         "Spawning command '{DEFAULT_SCRIPT_NAME} {}'",
         parameters.join(" ")
     );
-    let child = command.spawn().map_err(|source| Error::ScriptError {
+    let child = command.spawn().map_err(|source| Error::Script {
         context: t!("error-script-spawn"),
         parameters: parameters.clone(),
         source,
     })?;
 
     debug!("Waiting for '{DEFAULT_SCRIPT_NAME}' to finish");
-    let output = child
-        .wait_with_output()
-        .map_err(|source| Error::ScriptError {
-            context: t!("error-script-finish"),
-            parameters: parameters.clone(),
-            source,
-        })?;
+    let output = child.wait_with_output().map_err(|source| Error::Script {
+        context: t!("error-script-finish"),
+        parameters: parameters.clone(),
+        source,
+    })?;
 
     if !output.status.success() {
         let stdout = String::from_utf8_lossy(&output.stdout).to_string();
         let stderr = String::from_utf8_lossy(&output.stderr).to_string();
-        return Err(Error::ScriptExecutionError {
+        return Err(Error::ScriptExecution {
             parameters,
             stdout,
             stderr,
@@ -231,7 +229,7 @@ mod tests {
             panic!("Expected an error, got {result:?} instead.");
         };
 
-        let Error::ScriptExecutionError { .. } = error else {
+        let Error::ScriptExecution { .. } = error else {
             panic!("Expected an ScriptExecutionError error, got {error:?} instead.");
         };
 
