@@ -82,6 +82,9 @@ missing_debug_implementations = "deny"
 missing_docs = "deny"
 unsafe_code = "deny"
 
+[workspace.lints.clippy]
+enum_variant_names = "deny"
+
 [profile.release]
 codegen-units = 1
 lto = true
