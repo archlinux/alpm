@@ -20,6 +20,8 @@ error-io-read-archive-entry = reading entry from archive
 error-elf-error = ELF format error while { $context }:
   { $source }
 
+error-elf-file-not-found = ELF not found: { $elf_path }
+
 error-input-dir-not-supported = Using input directories is not supported: { $path }
 
 error-json = JSON error:

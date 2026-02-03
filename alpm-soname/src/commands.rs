@@ -1,6 +1,6 @@
 //! Command line functions that are called by the `alpm-soname` executable.
 
-use std::{collections::BTreeMap, io::Write};
+use std::{collections::BTreeMap, io::Write, path::PathBuf};
 
 use alpm_soname::{
     ElfSonames,
@@ -147,21 +147,22 @@ pub fn get_dependencies<W: Write>(
 
 /// Get the raw ELF soname dependencies of a package and print them to the given output.
 ///
-///
 /// Unlike [`get_dependencies`], this function does not filter the dependencies by the lookup
 /// directory. In other words, it prints all ELF sonames found in the package regardless of whether
 /// they match the lookup directory or not.
 ///
 /// See the [`extract_elf_sonames`] function for more details.
 ///
+/// If `detail` is `true`, the output groups dependencies by the ELF that references them. If an
+/// `elf_path` is supplied, dependencies are shown for only the ELF specified by `elf_path`.
+///
 /// # Errors
 ///
 /// Returns an error if [`extract_elf_sonames`] returns an error or if the output stream
 /// can not be written to.
-///
-/// If `detail` is `true`, the output groups dependencies by the ELF that references them.
 pub fn get_raw_dependencies<W: Write>(
     args: PackageArgs,
+    elf_path: Option<PathBuf>,
     detail: bool,
     output: &mut W,
 ) -> Result<(), Error> {
@@ -179,6 +180,17 @@ pub fn get_raw_dependencies<W: Write>(
         sonames.dedup();
         sonames
     };
+    let elf_soname: Option<&ElfSonames> = elf_path
+        .map(|elf_path| {
+            let relpath = elf_path
+                .strip_prefix(std::path::MAIN_SEPARATOR_STR)
+                .unwrap_or(elf_path.as_path());
+            elf_sonames
+                .iter()
+                .find(|elf| elf.path == relpath)
+                .ok_or_else(|| Error::SonameError(alpm_soname::Error::ElfFileNotFound { elf_path }))
+        })
+        .transpose()?;
     match args.output_format {
         OutputFormat::Plain => {
             if detail {
@@ -198,6 +210,21 @@ pub fn get_raw_dependencies<W: Write>(
                         })?;
                     }
                 }
+            } else if let Some(elf_soname) = elf_soname {
+                writeln!(output, "{}", elf_soname.path.display()).map_err(|source| {
+                    alpm_soname::Error::IoWriteError {
+                        context: t!("error-io-write-elf-soname-output"),
+                        source,
+                    }
+                })?;
+                for soname in &elf_soname.sonames {
+                    writeln!(output, " ⤷ {soname}").map_err(|source| {
+                        alpm_soname::Error::IoWriteError {
+                            context: t!("error-io-write-elf-soname-output"),
+                            source,
+                        }
+                    })?;
+                }
             } else {
                 for soname in &sonames {
                     writeln!(output, "{soname}").map_err(|source| {
@@ -210,16 +237,14 @@ pub fn get_raw_dependencies<W: Write>(
             }
         }
         OutputFormat::Json => {
-            let json = if detail {
-                if args.pretty {
-                    serde_json::to_string_pretty(&elf_sonames)?
-                } else {
-                    serde_json::to_string(&elf_sonames)?
-                }
-            } else if args.pretty {
-                serde_json::to_string_pretty(&sonames)?
-            } else {
-                serde_json::to_string(&sonames)?
+            let json = match (detail, elf_soname, args.pretty) {
+                (true, None, true) => serde_json::to_string_pretty(&elf_sonames)?,
+                (true, None, false) => serde_json::to_string(&elf_sonames)?,
+                (false, None, true) => serde_json::to_string_pretty(&sonames)?,
+                (false, None, false) => serde_json::to_string(&sonames)?,
+                (false, Some(elf_soname), true) => serde_json::to_string_pretty(&elf_soname)?,
+                (false, Some(elf_soname), false) => serde_json::to_string(&elf_soname)?,
+                (true, Some(_), _) => unreachable!("--detail conflicts with --elf <PATH>"),
             };
             writeln!(output, "{json}").map_err(|source| alpm_soname::Error::IoWriteError {
                 context: t!("error-io-write-json"),

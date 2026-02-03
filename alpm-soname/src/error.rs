@@ -84,6 +84,13 @@ pub enum Error {
         source: goblin::error::Error,
     },
 
+    /// ELF not found error
+    #[error("{msg}", msg = t!("error-elf-file-not-found", { "elf_path" => elf_path }))]
+    ElfFileNotFound {
+        /// Path of the ELF file specified by the user.
+        elf_path: PathBuf,
+    },
+
     /// Input directory not supported
     #[error("{msg}", msg = t!("error-input-dir-not-supported", { "path" => path }))]
     InputDirectoryNotSupported {

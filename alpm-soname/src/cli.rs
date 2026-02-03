@@ -51,6 +51,10 @@ pub enum Command {
         #[command(flatten)]
         args: PackageArgs,
 
+        /// Filter dependencies for an ELF located at PATH in the package
+        #[arg(short, long, value_name = "PATH", conflicts_with = "detail")]
+        elf: Option<PathBuf>,
+
         /// Display detailed dependency information grouped by ELF file
         /// when using the plain output format
         #[arg(long)]

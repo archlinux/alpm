@@ -27,8 +27,8 @@ fn main() -> ExitCode {
         Command::GetDependencies { args, lookup_dir } => {
             get_dependencies(args, lookup_dir, &mut std::io::stdout())
         }
-        Command::GetRawDependencies { args, detail } => {
-            get_raw_dependencies(args, detail, &mut std::io::stdout())
+        Command::GetRawDependencies { args, elf, detail } => {
+            get_raw_dependencies(args, elf, detail, &mut std::io::stdout())
         }
     };
 
