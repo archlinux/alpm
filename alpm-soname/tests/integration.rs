@@ -72,20 +72,41 @@ fn get_dependencies_via_cli(
 }
 
 /// Invoke the CLI to get raw dependencies.
-fn get_raw_dependencies_via_cli(pkg: &Path) -> TestResult<Vec<Soname>> {
+fn get_raw_dependencies_via_cli<I, S>(pkg: &Path, args: I) -> Vec<u8>
+where
+    I: IntoIterator<Item = S>,
+    S: AsRef<std::ffi::OsStr>,
+{
     let mut cmd = cargo_bin_cmd!("alpm-soname");
-    let output = cmd
-        .args([
-            "get-raw-dependencies",
-            "--output-format",
-            "json",
-            pkg.to_str().unwrap(),
-        ])
+    cmd.args(["get-raw-dependencies"])
+        .args(args)
+        .arg(pkg.to_str().unwrap())
         .assert()
         .success()
         .get_output()
         .stdout
-        .clone();
+        .clone()
+}
+
+fn get_raw_dependencies_default_via_cli(pkg: &Path) -> TestResult<Vec<Soname>> {
+    let output = get_raw_dependencies_via_cli(pkg, ["--output-format", "json"]);
+    Ok(serde_json::from_slice(&output)?)
+}
+
+fn get_raw_dependencies_detail_via_cli(pkg: &Path) -> TestResult<Vec<ElfSonames>> {
+    let output = get_raw_dependencies_via_cli(pkg, ["--output-format", "json", "--detail"]);
+    Ok(serde_json::from_slice(&output)?)
+}
+
+fn get_raw_dependencies_elf1_via_cli(pkg: &Path) -> TestResult<ElfSonames> {
+    let output =
+        get_raw_dependencies_via_cli(pkg, ["--output-format", "json", "--elf", "usr/bin/sotest"]);
+    Ok(serde_json::from_slice(&output)?)
+}
+
+fn get_raw_dependencies_elf2_via_cli(pkg: &Path) -> TestResult<ElfSonames> {
+    let output =
+        get_raw_dependencies_via_cli(pkg, ["--output-format", "json", "-e", "/usr/bin/sotest2"]);
     Ok(serde_json::from_slice(&output)?)
 }
 
@@ -195,8 +216,8 @@ fn test_soname_lookup(#[case] config: SotestConfig) -> TestResult {
         dependencies
     );
 
-    let elf_sonames = extract_elf_sonames(bin.to_path_buf())?;
-    let expected_soname = ElfSonames {
+    let sonames_detail = extract_elf_sonames(bin.to_path_buf())?;
+    let soname_binsotest = ElfSonames {
         path: PathBuf::from("usr/bin/sotest"),
         sonames: vec![
             Soname {
@@ -206,19 +227,43 @@ fn test_soname_lookup(#[case] config: SotestConfig) -> TestResult {
             "libc.so.6".parse()?,
         ],
     };
+    let soname_binsotest2 = {
+        let mut tmp = soname_binsotest.clone();
+        tmp.path.set_file_name("sotest2");
+        tmp
+    };
     assert!(
-        elf_sonames.contains(&expected_soname),
-        "Expected to find {expected_soname:?} in {elf_sonames:?}"
+        sonames_detail.contains(&soname_binsotest),
+        "Expected to find {soname_binsotest:?} in {sonames_detail:?}"
     );
-    let mut expected_sonames: Vec<_> = elf_sonames
-        .iter()
-        .flat_map(|elf| elf.sonames.clone())
-        .collect();
-    expected_sonames.sort();
-    expected_sonames.dedup();
+    assert!(
+        sonames_detail.contains(&soname_binsotest2),
+        "Expected to find {soname_binsotest2:?} in {sonames_detail:?}"
+    );
+    let sonames_default = {
+        let mut sonames_default: Vec<_> = sonames_detail
+            .iter()
+            .flat_map(|elf| elf.sonames.clone())
+            .collect();
+        sonames_default.sort();
+        sonames_default.dedup();
+        sonames_default
+    };
     assert_eq!(
-        get_raw_dependencies_via_cli(&bin.to_path_buf())?,
-        expected_sonames
+        get_raw_dependencies_default_via_cli(&bin.to_path_buf())?,
+        sonames_default
+    );
+    assert_eq!(
+        get_raw_dependencies_detail_via_cli(&bin.to_path_buf())?,
+        sonames_detail
+    );
+    assert_eq!(
+        get_raw_dependencies_elf1_via_cli(&bin.to_path_buf())?,
+        soname_binsotest
+    );
+    assert_eq!(
+        get_raw_dependencies_elf2_via_cli(&bin.to_path_buf())?,
+        soname_binsotest2
     );
 
     Ok(())

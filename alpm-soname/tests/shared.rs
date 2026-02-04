@@ -144,6 +144,8 @@ pub fn create_bin_package(path: &Path, config: &SotestConfig) -> TestResult<Pack
 
     create_dir_all(input_dir.join("usr/bin"))?;
     copy(path.join("build/sotest"), input_dir.join("usr/bin/sotest"))?;
+    // So that bin package has multiple ELFs with duplicated soname dependencies
+    copy(path.join("build/sotest"), input_dir.join("usr/bin/sotest2"))?;
 
     create_mtree_v2_from_input_dir(&input_dir)?;
 
