@@ -36,7 +36,7 @@ sha2 = "0.10.7"
 spdx = "0.13.0"
 strum.workspace = true
 thiserror.workspace = true
-time = "0.3.22"
+time = "0.3.47"
 url = { version = "2.4.0", features = ["serde"] }
 winnow.workspace = true
 
