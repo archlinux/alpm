@@ -115,7 +115,7 @@ impl From<LintIssue> for LintIssueDisplay {
 ///
 /// This is used to categorize lint issues and to provide detailed data
 /// for good error messages for each type of issue.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub enum LintIssueType {
     /// All issues that can be encountered when linting a [SRCINFO] file.
     ///
@@ -126,7 +126,7 @@ pub enum LintIssueType {
 /// A specific type of [SRCINFO] related lint issues that may be encountered during linting.
 ///
 /// [SRCINFO]: https://alpm.archlinux.page/specifications/SRCINFO.5.html
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub enum SourceInfoIssue {
     /// A generic issue that only consists of some text without any additional fields.
     ///
