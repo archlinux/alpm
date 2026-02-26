@@ -25,7 +25,7 @@ stages:
   interruptible: true
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "schedule"
 
 # default setup with Rust tools running on default branch and in MRs
 .default-with-rust:
@@ -276,7 +276,7 @@ publish-to-registry:
 issue-bot:
   image: registry.gitlab.com/gitlab-org/distribution/issue-bot:latest
   rules:
-    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "schedule"
       when: on_failure
   script: /issue-bot
   stage: report
