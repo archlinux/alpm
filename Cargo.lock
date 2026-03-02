@@ -101,7 +101,7 @@ dependencies = [
  "serde_json",
  "serde_more",
  "serde_with",
- "strum",
+ "strum 0.28.0",
  "tempfile",
  "testresult",
  "thiserror",
@@ -155,7 +155,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_with",
- "strum",
+ "strum 0.28.0",
  "tempfile",
  "testresult",
  "thiserror",
@@ -184,7 +184,7 @@ dependencies = [
  "serde",
  "serde_json",
  "simplelog",
- "strum",
+ "strum 0.28.0",
  "tempfile",
  "testresult",
  "thiserror",
@@ -197,7 +197,7 @@ dependencies = [
  "clap",
  "fluent-i18n",
  "serde",
- "strum",
+ "strum 0.28.0",
  "tempfile",
  "testresult",
  "thiserror",
@@ -222,7 +222,7 @@ dependencies = [
  "serde",
  "serde_json",
  "simplelog",
- "strum",
+ "strum 0.28.0",
  "tempfile",
  "testresult",
  "thiserror",
@@ -274,7 +274,7 @@ dependencies = [
  "log",
  "rstest",
  "serde_json",
- "strum",
+ "strum 0.28.0",
  "tempfile",
  "testresult",
  "thiserror",
@@ -298,7 +298,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_with",
- "strum",
+ "strum 0.28.0",
  "tempfile",
  "testresult",
  "thiserror",
@@ -323,7 +323,7 @@ dependencies = [
  "rstest",
  "serde",
  "serde_json",
- "strum",
+ "strum 0.28.0",
  "tempfile",
  "testresult",
  "thiserror",
@@ -349,7 +349,7 @@ dependencies = [
  "serde",
  "serde_json",
  "simplelog",
- "strum",
+ "strum 0.28.0",
  "tempfile",
  "testresult",
  "thiserror",
@@ -371,7 +371,7 @@ dependencies = [
  "rstest",
  "serde",
  "serde_json",
- "strum",
+ "strum 0.28.0",
  "tempfile",
  "testresult",
  "thiserror",
@@ -406,7 +406,7 @@ dependencies = [
  "sha2",
  "simplelog",
  "spdx",
- "strum",
+ "strum 0.28.0",
  "testresult",
  "thiserror",
  "time",
@@ -1234,7 +1234,7 @@ dependencies = [
  "rstest",
  "serde_json",
  "simplelog",
- "strum",
+ "strum 0.28.0",
  "tempfile",
  "testresult",
  "thiserror",
@@ -1329,7 +1329,7 @@ dependencies = [
  "optfield",
  "proc-macro2",
  "quote",
- "strum",
+ "strum 0.27.2",
  "syn",
 ]
 
@@ -3140,7 +3140,7 @@ dependencies = [
  "alpm-types",
  "pyo3",
  "semver",
- "strum",
+ "strum 0.28.0",
 ]
 
 [[package]]
@@ -3995,7 +3995,16 @@ version = "0.27.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "af23d6f6c1a224baef9d3f61e287d2761385a5b88fdab4eb4c6f11aeb54c4bcf"
 dependencies = [
- "strum_macros",
+ "strum_macros 0.27.2",
+]
+
+[[package]]
+name = "strum"
+version = "0.28.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9628de9b8791db39ceda2b119bbe13134770b56c138ec1d3af810d045c04f9bd"
+dependencies = [
+ "strum_macros 0.28.0",
 ]
 
 [[package]]
@@ -4003,6 +4012,18 @@ name = "strum_macros"
 version = "0.27.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7695ce3845ea4b33927c055a39dc438a45b059f7c1b3d91d38d10355fb8cbca7"
+dependencies = [
+ "heck",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "strum_macros"
+version = "0.28.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ab85eea0270ee17587ed4156089e10b9e6880ee688791d45a905f5b1ca36f664"
 dependencies = [
  "heck",
  "proc-macro2",
@@ -4517,7 +4538,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4a2ddf6dd65894ac03753772b18fb92daf3e42bdc3f448a2ec29b52b81fcd3f0"
 dependencies = [
  "log",
- "strum",
+ "strum 0.27.2",
  "thiserror",
  "voa-config",
  "voa-core",
@@ -4553,7 +4574,7 @@ dependencies = [
  "libc",
  "log",
  "serde",
- "strum",
+ "strum 0.27.2",
  "thiserror",
  "winnow",
  "xdg",
