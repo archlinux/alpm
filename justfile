@@ -129,6 +129,7 @@ install-alpm-package-set set:
     readonly check_spelling=(codespell)
     readonly check_unused=(cargo-machete)
     readonly dev=(
+        biome
         cargo-insta
         git-cliff
         miniserve
@@ -143,6 +144,7 @@ install-alpm-package-set set:
         uv
     )
     readonly format=(
+        biome
         cargo-sort-derives
         clang
         mado
@@ -534,9 +536,12 @@ build-python platform="current":
 # Checks source code formatting
 [group('check')]
 check-formatting:
-    just ensure-command cargo-sort-derives mado taplo
+    just ensure-command biome cargo-sort-derives mado taplo uv
 
     just --unstable --fmt --check
+
+    biome check --indent-style=space --expand=always renovate.json
+
     # We're using nightly to properly group imports, see rustfmt.toml
     cargo +nightly fmt -- --check
 
@@ -795,6 +800,8 @@ fix:
     #!/usr/bin/env bash
     set -euo pipefail
 
+    just ensure-command biome cargo codespell git uv
+
     if ! git diff-files --quiet ; then
         echo "Working tree has changes. Please stage them: git add ."
         exit 1
@@ -802,6 +809,7 @@ fix:
 
     codespell --write-changes
     just --unstable --fmt
+    biome format --write --indent-style=space --expand=always renovate.json
     cargo clippy --fix --allow-staged
 
     # fmt must be last as clippy's changes may break formatting
