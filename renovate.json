@@ -2,8 +2,13 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "addLabels": [
     "scope::deps"
-  ]
-  "assignees": ["dvzrv", "j-g00da", "nukesor", "orhun"],
+  ],
+  "assignees": [
+    "dvzrv",
+    "j-g00da",
+    "nukesor",
+    "orhun"
+  ],
   "commitMessageLowerCase": "never",
   "extends": [
     "config:base",
@@ -13,5 +18,5 @@
   "patch": {
     "enabled": false
   },
-  "separateMinorPatch": true,
+  "separateMinorPatch": true
 }
