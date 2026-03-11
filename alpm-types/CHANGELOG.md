@@ -504,7 +504,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Refactoring
 
-- Move environmen related types to separate module - (5442732) - David Runge
+- Move environment related types to separate module - (5442732) - David Runge
 - Move package related types to separate module - (860ecb6) - David Runge
 - Move system related types to separate module - (28b3662) - David Runge
 - Move checksum related types to separate module - (1eec013) - David Runge
