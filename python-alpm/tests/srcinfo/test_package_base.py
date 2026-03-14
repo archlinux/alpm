@@ -169,7 +169,11 @@ def test_package_base_options_getter_setter() -> None:
 
     assert package_base.options == []
 
-    options = [makepkg_option_from_str("!strip"), makepkg_option_from_str("!docs")]
+    options = [
+        makepkg_option_from_str("pestrip"),
+        makepkg_option_from_str("!strip"),
+        makepkg_option_from_str("!docs"),
+    ]
     package_base.options = options
     assert package_base.options == options
 

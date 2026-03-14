@@ -193,7 +193,11 @@ def test_package_options_getter_setter() -> None:
     assert package.options is None
 
     # Override
-    options = [makepkg_option_from_str("!strip"), makepkg_option_from_str("!docs")]
+    options = [
+        makepkg_option_from_str("pestrip"),
+        makepkg_option_from_str("!strip"),
+        makepkg_option_from_str("!docs"),
+    ]
     override_options = Override(options)
     package.options = override_options
     assert package.options.value == options

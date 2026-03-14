@@ -336,6 +336,10 @@ pub enum PackageOption {
     #[strum(serialize = "lto")]
     Lto(bool),
 
+    /// Strip debug symbols from Portable Executable (PE) format files
+    #[strum(serialize = "pestrip")]
+    PEStrip(bool),
+
     /// Remove files specified by PURGE_TARGETS
     #[strum(serialize = "purge")]
     Purge(bool),
@@ -372,6 +376,7 @@ impl PackageOption {
             Self::EmptyDirs(_) => "emptydirs",
             Self::Libtool(_) => "libtool",
             Self::Lto(_) => "lto",
+            Self::PEStrip(_) => "pestrip",
             Self::Purge(_) => "purge",
             Self::StaticLibs(_) => "staticlibs",
             Self::Strip(_) => "strip",
@@ -389,6 +394,7 @@ impl PackageOption {
             | Self::Libtool(on)
             | Self::Lto(on)
             | Self::Purge(on)
+            | Self::PEStrip(on)
             | Self::StaticLibs(on)
             | Self::Strip(on)
             | Self::Zipman(on) => *on,
@@ -413,6 +419,7 @@ impl PackageOption {
             "emptydirs".value(Self::EmptyDirs(on)),
             "libtool".value(Self::Libtool(on)),
             "lto".value(Self::Lto(on)),
+            "pestrip".value(Self::PEStrip(on)),
             "purge".value(Self::Purge(on)),
             "staticlibs".value(Self::StaticLibs(on)),
             "strip".value(Self::Strip(on)),
@@ -787,7 +794,7 @@ mod tests {
         "!somethingelse",
         concat!(
             "expected `buildflags`, `ccache`, `check`, `color`, `distcc`, `sign`, `makeflags`, ",
-            "`autodeps`, `debug`, `docs`, `emptydirs`, `libtool`, `lto`, `purge`, ",
+            "`autodeps`, `debug`, `docs`, `emptydirs`, `libtool`, `lto`, `pestrip`, `purge`, ",
             "`staticlibs`, `strip`, `zipman`",
         )
     )]
@@ -812,6 +819,7 @@ mod tests {
     #[case("emptydirs", PackageOption::EmptyDirs(true))]
     #[case("!libtool", PackageOption::Libtool(false))]
     #[case("lto", PackageOption::Lto(true))]
+    #[case("pestrip", PackageOption::PEStrip(true))]
     #[case("purge", PackageOption::Purge(true))]
     #[case("staticlibs", PackageOption::StaticLibs(true))]
     #[case("strip", PackageOption::Strip(true))]
@@ -824,7 +832,7 @@ mod tests {
     #[rstest]
     #[case(
         "!somethingelse",
-        "expected `autodeps`, `debug`, `docs`, `emptydirs`, `libtool`, `lto`, `purge`, `staticlibs`, `strip`, `zipman`"
+        "expected `autodeps`, `debug`, `docs`, `emptydirs`, `libtool`, `lto`, `pestrip`, `purge`, `staticlibs`, `strip`, `zipman`"
     )]
     #[case(
         "#somethingelse",

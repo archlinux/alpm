@@ -45,6 +45,7 @@ def test_build_environment_option_invalid() -> None:
         "autodeps",
         "lto",
         "purge",
+        "pestrip",
     ],
 )
 @pytest.mark.parametrize("on", [True, False])
