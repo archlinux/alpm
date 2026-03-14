@@ -85,7 +85,7 @@ pub fn relation_or_soname_from_str(s: &str) -> Result<RelationOrSoname, crate::t
     Ok(inner.into())
 }
 
-#[pyclass(frozen, eq)]
+#[pyclass(frozen, eq, from_py_object)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Soname(alpm_types::Soname);
 
@@ -130,7 +130,7 @@ impl Soname {
 
 impl_from!(Soname, alpm_types::Soname);
 
-#[pyclass(frozen, eq)]
+#[pyclass(frozen, eq, from_py_object)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SonameV2(alpm_types::SonameV2);
 
@@ -168,7 +168,7 @@ impl SonameV2 {
 
 impl_from!(SonameV2, alpm_types::SonameV2);
 
-#[pyclass(frozen)]
+#[pyclass(frozen, from_py_object)]
 #[derive(Clone, Copy, Debug, Display, PartialEq)]
 // Uses Python's enum variant naming convention.
 #[allow(clippy::upper_case_acronyms)]
@@ -190,7 +190,7 @@ impl From<&alpm_types::SonameV1> for SonameV1Type {
     }
 }
 
-#[pyclass(frozen, eq)]
+#[pyclass(frozen, eq, from_py_object)]
 #[derive(Clone, Debug, PartialEq)]
 pub struct SonameV1(alpm_types::SonameV1);
 
@@ -280,7 +280,7 @@ impl SonameV1 {
 
 impl_from!(SonameV1, alpm_types::SonameV1);
 
-#[pyclass(frozen, eq)]
+#[pyclass(frozen, eq, from_py_object)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PackageRelation(alpm_types::PackageRelation);
 
@@ -331,7 +331,7 @@ impl PackageRelation {
 
 impl_from!(PackageRelation, alpm_types::PackageRelation);
 
-#[pyclass(frozen, eq)]
+#[pyclass(frozen, eq, from_py_object)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct OptionalDependency(alpm_types::OptionalDependency);
 

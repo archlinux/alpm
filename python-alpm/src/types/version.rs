@@ -4,7 +4,7 @@ use pyo3::{exceptions::PyValueError, prelude::*};
 
 use crate::macros::impl_from;
 
-#[pyclass(frozen, eq, ord)]
+#[pyclass(frozen, eq, ord, from_py_object)]
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub struct PackageVersion(alpm_types::PackageVersion);
 
@@ -37,7 +37,7 @@ impl From<SemverError> for PyErr {
     }
 }
 
-#[pyclass(frozen, eq, ord)]
+#[pyclass(frozen, eq, ord, from_py_object)]
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub struct SchemaVersion(alpm_types::SchemaVersion);
 
@@ -111,7 +111,7 @@ impl SchemaVersion {
 
 impl_from!(SchemaVersion, alpm_types::SchemaVersion);
 
-#[pyclass(frozen, eq, ord)]
+#[pyclass(frozen, eq, ord, from_py_object)]
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub struct Epoch(alpm_types::Epoch);
 
@@ -149,7 +149,7 @@ impl Epoch {
 
 impl_from!(Epoch, alpm_types::Epoch);
 
-#[pyclass(frozen, eq)]
+#[pyclass(frozen, eq, from_py_object)]
 #[derive(Clone, Debug, PartialEq)]
 pub struct PackageRelease(alpm_types::PackageRelease);
 
@@ -191,7 +191,7 @@ impl PackageRelease {
 
 impl_from!(PackageRelease, alpm_types::PackageRelease);
 
-#[pyclass(frozen, eq, ord)]
+#[pyclass(frozen, eq, ord, from_py_object)]
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct FullVersion(alpm_types::FullVersion);
 
@@ -251,7 +251,7 @@ impl FullVersion {
 
 impl_from!(FullVersion, alpm_types::FullVersion);
 
-#[pyclass(frozen, eq, ord)]
+#[pyclass(frozen, eq, ord, from_py_object)]
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Version(alpm_types::Version);
 

@@ -41,7 +41,7 @@ pub fn makepkg_option_from_str(option: &str) -> Result<MakepkgOption, crate::typ
     Ok(inner_ident.into())
 }
 
-#[pyclass(frozen, eq)]
+#[pyclass(frozen, eq, from_py_object)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct BuildEnvironmentOption(alpm_types::BuildEnvironmentOption);
 
@@ -78,7 +78,7 @@ impl BuildEnvironmentOption {
 
 impl_from!(BuildEnvironmentOption, alpm_types::BuildEnvironmentOption);
 
-#[pyclass(frozen, eq)]
+#[pyclass(frozen, eq, from_py_object)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PackageOption(alpm_types::PackageOption);
 

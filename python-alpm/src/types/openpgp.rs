@@ -47,7 +47,7 @@ pub fn openpgp_identifier_from_str(
     Ok(inner_ident.into())
 }
 
-#[pyclass(frozen, eq)]
+#[pyclass(frozen, eq, from_py_object)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct OpenPGPKeyId(alpm_types::OpenPGPKeyId);
 
@@ -70,7 +70,7 @@ impl OpenPGPKeyId {
 
 impl_from!(OpenPGPKeyId, alpm_types::OpenPGPKeyId);
 
-#[pyclass(frozen, eq)]
+#[pyclass(frozen, eq, from_py_object)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct OpenPGPv4Fingerprint(alpm_types::OpenPGPv4Fingerprint);
 

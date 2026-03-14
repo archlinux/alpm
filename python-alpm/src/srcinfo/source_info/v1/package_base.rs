@@ -29,7 +29,7 @@ use crate::{
     },
 };
 
-#[pyclass(eq)]
+#[pyclass(eq, from_py_object)]
 #[derive(Clone, Debug, PartialEq)]
 pub struct PackageBase(alpm_srcinfo::source_info::v1::package_base::PackageBase);
 
@@ -366,7 +366,7 @@ impl_from!(
     alpm_srcinfo::source_info::v1::package_base::PackageBase
 );
 
-#[pyclass(eq)]
+#[pyclass(eq, from_py_object)]
 #[derive(Clone, Debug, PartialEq)]
 pub struct PackageBaseArchitecture(
     alpm_srcinfo::source_info::v1::package_base::PackageBaseArchitecture,

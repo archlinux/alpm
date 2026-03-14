@@ -5,7 +5,7 @@ use strum::Display;
 
 use crate::macros::{impl_from, vec_convert};
 
-#[pyclass(frozen, eq, ord, hash)]
+#[pyclass(frozen, eq, ord, hash, from_py_object)]
 #[derive(Clone, Copy, Debug, Display, Eq, Hash, Ord, PartialEq, PartialOrd)]
 // Uses Python's enum variant naming convention.
 #[allow(clippy::upper_case_acronyms)]
@@ -60,7 +60,7 @@ impl KnownArchitecture {
     }
 }
 
-#[pyclass(frozen, eq, ord, hash)]
+#[pyclass(frozen, eq, ord, hash, from_py_object)]
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct UnknownArchitecture(alpm_types::UnknownArchitecture);
 
@@ -189,7 +189,7 @@ impl TryFrom<RawArchitecture> for Architecture {
     }
 }
 
-#[pyclass(frozen, eq, ord, hash)]
+#[pyclass(frozen, eq, ord, hash, from_py_object)]
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Architecture(alpm_types::Architecture);
 
@@ -225,7 +225,7 @@ impl Architecture {
     }
 }
 
-#[pyclass(frozen, eq, ord, hash)]
+#[pyclass(frozen, eq, ord, hash, from_py_object)]
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Architectures(alpm_types::Architectures);
 
@@ -245,7 +245,7 @@ impl TryFrom<Vec<Architecture>> for Architectures {
     }
 }
 
-#[pyclass]
+#[pyclass(from_py_object)]
 #[derive(Clone, Debug)]
 pub struct ArchitecturesIterator(std::vec::IntoIter<alpm_types::Architecture>);
 
@@ -312,7 +312,7 @@ impl Architectures {
     }
 }
 
-#[pyclass(frozen, eq, eq_int, ord, hash)]
+#[pyclass(frozen, eq, eq_int, ord, hash, from_py_object)]
 #[derive(Clone, Copy, Debug, Display, Eq, Hash, Ord, PartialEq, PartialOrd)]
 // Uses Python's enum variant naming convention.
 #[allow(clippy::upper_case_acronyms)]

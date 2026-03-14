@@ -95,7 +95,7 @@ macro_rules! impl_override_setter {
     };
 }
 
-#[pyclass(eq)]
+#[pyclass(eq, from_py_object)]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Package(alpm_srcinfo_package::Package);
 
@@ -335,7 +335,7 @@ impl Package {
 
 impl_from!(Package, alpm_srcinfo_package::Package);
 
-#[pyclass(eq)]
+#[pyclass(eq, from_py_object)]
 #[derive(Clone, Debug, PartialEq)]
 pub struct PackageArchitecture(alpm_srcinfo_package::PackageArchitecture);
 
@@ -451,7 +451,7 @@ pub enum Overridable {
 // None             | Override::No
 // Override(None)   | Override::Clear
 // Override(T)      | Override::Yes { value: T }
-#[pyclass(frozen)]
+#[pyclass(frozen, from_py_object)]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Override(Option<Overridable>);
 

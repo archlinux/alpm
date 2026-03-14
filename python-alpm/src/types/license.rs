@@ -2,7 +2,7 @@ use pyo3::prelude::*;
 
 use crate::macros::impl_from;
 
-#[pyclass(frozen, eq)]
+#[pyclass(frozen, eq, from_py_object)]
 #[derive(Clone, Debug, PartialEq)]
 pub struct License(alpm_types::License);
 

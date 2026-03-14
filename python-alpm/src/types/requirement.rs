@@ -4,7 +4,7 @@ use pyo3::prelude::*;
 
 use crate::macros::impl_from;
 
-#[pyclass(frozen, eq)]
+#[pyclass(frozen, eq, from_py_object)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct VersionRequirement(alpm_types::VersionRequirement);
 
@@ -39,7 +39,7 @@ impl VersionRequirement {
 
 impl_from!(VersionRequirement, alpm_types::VersionRequirement);
 
-#[pyclass(frozen, eq)]
+#[pyclass(frozen, eq, from_py_object)]
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 // Uses Python's enum variant naming convention.
 #[allow(clippy::upper_case_acronyms)]

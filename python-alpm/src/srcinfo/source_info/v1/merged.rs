@@ -35,7 +35,7 @@ pub enum PackageOrName {
     Name(String),
 }
 
-#[pyclass]
+#[pyclass(from_py_object)]
 #[derive(Clone, Debug)]
 pub struct MergedPackage(alpm_srcinfo_merged::MergedPackage);
 
@@ -197,7 +197,7 @@ impl MergedPackage {
 
 impl_from!(MergedPackage, alpm_srcinfo_merged::MergedPackage);
 
-#[pyclass(frozen)]
+#[pyclass(frozen, from_py_object)]
 #[derive(Clone, Debug)]
 pub struct MergedSource(alpm_srcinfo_merged::MergedSource);
 

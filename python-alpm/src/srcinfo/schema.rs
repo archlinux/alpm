@@ -5,7 +5,7 @@ use pyo3::prelude::*;
 
 use crate::{macros::impl_from, types::version::SchemaVersion};
 
-#[pyclass(frozen, eq)]
+#[pyclass(frozen, eq, from_py_object)]
 #[derive(Clone, Debug, PartialEq)]
 pub struct SourceInfoSchema(alpm_srcinfo::SourceInfoSchema);
 

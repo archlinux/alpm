@@ -7,7 +7,7 @@ use pyo3::{
 
 use crate::macros::impl_from;
 
-#[pyclass(frozen, eq)]
+#[pyclass(frozen, eq, from_py_object)]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Url(alpm_types::Url);
 
@@ -30,7 +30,7 @@ impl Url {
 
 impl_from!(Url, alpm_types::Url);
 
-#[pyclass(frozen, eq)]
+#[pyclass(frozen, eq, from_py_object)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SourceUrl(alpm_types::SourceUrl);
 
@@ -111,7 +111,7 @@ impl From<alpm_types::url::VcsInfo> for VcsInfo {
     }
 }
 
-#[pyclass(frozen, eq)]
+#[pyclass(frozen, eq, from_py_object)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct BzrInfo(Option<alpm_types::url::BzrFragment>);
 
@@ -139,7 +139,7 @@ impl IntoPyDict<'_> for BzrInfo {
     }
 }
 
-#[pyclass(frozen, eq)]
+#[pyclass(frozen, eq, from_py_object)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct FossilInfo(Option<alpm_types::url::FossilFragment>);
 
@@ -173,7 +173,7 @@ impl IntoPyDict<'_> for FossilInfo {
     }
 }
 
-#[pyclass(frozen, eq)]
+#[pyclass(frozen, eq, from_py_object)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct GitInfo {
     fragment: Option<alpm_types::url::GitFragment>,
@@ -231,7 +231,7 @@ impl IntoPyDict<'_> for GitInfo {
     }
 }
 
-#[pyclass(frozen, eq)]
+#[pyclass(frozen, eq, from_py_object)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct HgInfo(Option<alpm_types::url::HgFragment>);
 
@@ -265,7 +265,7 @@ impl IntoPyDict<'_> for HgInfo {
     }
 }
 
-#[pyclass(frozen, eq)]
+#[pyclass(frozen, eq, from_py_object)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SvnInfo(Option<alpm_types::url::SvnFragment>);
 

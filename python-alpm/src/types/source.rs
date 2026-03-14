@@ -4,7 +4,7 @@ use pyo3::prelude::*;
 
 use crate::{macros::impl_from, types::url::SourceUrl};
 
-#[pyclass(frozen, eq)]
+#[pyclass(frozen, eq, from_py_object)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Source(alpm_types::Source);
 

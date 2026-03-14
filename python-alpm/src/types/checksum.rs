@@ -6,7 +6,7 @@ use crate::macros::impl_from;
 
 macro_rules! define_checksum {
     ($checksum:ident, $skippable_checksum: ident, $digest:ty) => {
-        #[pyclass(frozen, eq, ord)]
+        #[pyclass(frozen, eq, ord, from_py_object)]
         #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
         pub struct $checksum(alpm_types::Checksum<$digest>);
 
@@ -29,7 +29,7 @@ macro_rules! define_checksum {
 
         impl_from!($checksum, alpm_types::Checksum<$digest>);
 
-        #[pyclass(frozen)]
+        #[pyclass(frozen, from_py_object)]
         #[derive(Clone, Debug)]
         pub struct $skippable_checksum(alpm_types::SkippableChecksum<$digest>);
 
