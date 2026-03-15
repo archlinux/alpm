@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.2] - 2026-03-15
+
+### Fixed
+
+- Add missing `PackageOption::PEStrip`
+
+### Other
+
+- *(CHANGELOG.md)* Fix a typo in the notes of a past release
+- *(i18n)* Rename locale files to main.ftl
+- *(i18n)* Consolidate per-language Fluent files
+- Bump time
+
 ## [0.11.1] - 2026-01-11
 
 ### Other
