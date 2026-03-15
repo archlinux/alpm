@@ -19,7 +19,7 @@ fluent-i18n.workspace = true
 liblzma = { version = "0.4.1", features = ["parallel"] }
 log.workspace = true
 num_cpus = "1.17.0"
-tar = "0.4.44"
+tar.workspace = true
 thiserror.workspace = true
 zstd = { version = "0.13.3", features = ["zstdmt"] }
 

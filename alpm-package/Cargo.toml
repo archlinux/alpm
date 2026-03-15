@@ -20,7 +20,7 @@ alpm-pkginfo.workspace = true
 alpm-types.workspace = true
 fluent-i18n.workspace = true
 log.workspace = true
-tar = "0.4.44"
+tar.workspace = true
 thiserror.workspace = true
 
 [dev-dependencies]
