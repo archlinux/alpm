@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.3] - 2026-03-16
+
+### Other
+
+- *(deps)* Move `filetime` crate to workspace dependencies
+- *(i18n)* Rename locale files to main.ftl
+- *(i18n)* Consolidate per-language Fluent files
+- Canonicalize error variants
+
 ## [0.3.2] - 2026-01-11
 
 ### Other
