@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.2] - 2026-03-16
+
+### Other
+
+- *(i18n)* Rename locale files to main.ftl
+- Canonicalize error variants
+
 ## [0.6.1] - 2026-01-11
 
 ### Other
