@@ -1,10 +1,8 @@
-# By default, require approval from relevant people.
-[everything][1]
-* @dvzrv @j-g00da @nukesor @orhun
+# By default, require approval from relevant developers.
+* @@developer
 
 # Don't require approval for project metadata and files required for creating releases.
-[metadata][0]
-Cargo.lock
-Cargo.toml
-*/Cargo.toml
-*/CHANGELOG.md
+!/Cargo.lock
+!/Cargo.toml
+!/*/Cargo.toml
+!/*/CHANGELOG.md
