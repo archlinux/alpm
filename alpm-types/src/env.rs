@@ -413,17 +413,21 @@ impl PackageOption {
         let mut name = option_name_parser.parse_next(input)?;
 
         alt((
-            "autodeps".value(Self::AutoDeps(on)),
-            "debug".value(Self::Debug(on)),
-            "docs".value(Self::Docs(on)),
-            "emptydirs".value(Self::EmptyDirs(on)),
-            "libtool".value(Self::Libtool(on)),
-            "lto".value(Self::Lto(on)),
-            "pestrip".value(Self::PEStrip(on)),
-            "purge".value(Self::Purge(on)),
-            "staticlibs".value(Self::StaticLibs(on)),
-            "strip".value(Self::Strip(on)),
-            "zipman".value(Self::Zipman(on)),
+            alt((
+                "autodeps".value(Self::AutoDeps(on)),
+                "debug".value(Self::Debug(on)),
+                "docs".value(Self::Docs(on)),
+                "emptydirs".value(Self::EmptyDirs(on)),
+                "libtool".value(Self::Libtool(on)),
+                "lto".value(Self::Lto(on)),
+                "pestrip".value(Self::PEStrip(on)),
+                "purge".value(Self::Purge(on)),
+                "staticlibs".value(Self::StaticLibs(on)),
+            )),
+            alt((
+                "strip".value(Self::Strip(on)),
+                "zipman".value(Self::Zipman(on)),
+            )),
             fail.context(StrContext::Label("makepkg packaging option"))
                 .context_with(iter_str_context!([PackageOption::VARIANTS])),
         ))

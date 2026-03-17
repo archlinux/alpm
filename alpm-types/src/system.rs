@@ -108,20 +108,24 @@ impl SystemArchitecture {
     pub fn parser(input: &mut &str) -> ModalResult<SystemArchitecture> {
         alt((
             // Handle all static variants
-            ("aarch64", eof).value(SystemArchitecture::Aarch64),
-            ("arm", eof).value(SystemArchitecture::Arm),
-            ("armv6h", eof).value(SystemArchitecture::Armv6h),
-            ("armv7h", eof).value(SystemArchitecture::Armv7h),
-            ("i386", eof).value(SystemArchitecture::I386),
-            ("i486", eof).value(SystemArchitecture::I486),
-            ("i686", eof).value(SystemArchitecture::I686),
-            ("pentium4", eof).value(SystemArchitecture::Pentium4),
-            ("riscv32", eof).value(SystemArchitecture::Riscv32),
-            ("riscv64", eof).value(SystemArchitecture::Riscv64),
-            ("x86_64", eof).value(SystemArchitecture::X86_64),
-            ("x86_64_v2", eof).value(SystemArchitecture::X86_64V2),
-            ("x86_64_v3", eof).value(SystemArchitecture::X86_64V3),
-            ("x86_64_v4", eof).value(SystemArchitecture::X86_64V4),
+            alt((
+                ("aarch64", eof).value(SystemArchitecture::Aarch64),
+                ("arm", eof).value(SystemArchitecture::Arm),
+                ("armv6h", eof).value(SystemArchitecture::Armv6h),
+                ("armv7h", eof).value(SystemArchitecture::Armv7h),
+                ("i386", eof).value(SystemArchitecture::I386),
+                ("i486", eof).value(SystemArchitecture::I486),
+                ("i686", eof).value(SystemArchitecture::I686),
+                ("pentium4", eof).value(SystemArchitecture::Pentium4),
+                ("riscv32", eof).value(SystemArchitecture::Riscv32),
+            )),
+            alt((
+                ("riscv64", eof).value(SystemArchitecture::Riscv64),
+                ("x86_64", eof).value(SystemArchitecture::X86_64),
+                ("x86_64_v2", eof).value(SystemArchitecture::X86_64V2),
+                ("x86_64_v3", eof).value(SystemArchitecture::X86_64V3),
+                ("x86_64_v4", eof).value(SystemArchitecture::X86_64V4),
+            )),
             UnknownArchitecture::parser.map(SystemArchitecture::Unknown),
         ))
         .parse_next(input)
