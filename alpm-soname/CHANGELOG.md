@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.2] - 2026-03-17
+
+### Added
+
+- `alpm-soname get-raw-dep...`: Add option to filter deps by ELFs
+
+### Fixed
+
+- *(soname)* Dedup output list of alpm-soname get-raw-dependencies
+
+### Other
+
+- *(i18n)* Rename locale files to main.ftl
+- Canonicalize error variants
+- `alpm-soname get-raw-deps...`: Add tests for --detail and --elf
+
 ## [0.4.1] - 2026-01-11
 
 ### Other
