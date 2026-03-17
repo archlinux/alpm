@@ -30,6 +30,14 @@ features = ["pyo3/extension-module"]
 module-name = "alpm._native"
 python-source = "python"
 
+# maturin currently can't generate reproducible SBOMs
+# https://gitlab.archlinux.org/archlinux/alpm/alpm/-/issues/288
+# Upstream fix in cyclonedx:
+# https://github.com/CycloneDX/cyclonedx-rust-cargo/pull/852
+[tool.maturin.sbom]
+auditwheel = false
+rust = false
+
 [dependency-groups]
 dev = [
     "mypy>=1.17,<2.0",
