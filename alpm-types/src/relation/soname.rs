@@ -8,6 +8,7 @@ use std::{
     str::FromStr,
 };
 
+use alpm_parsers::traits::ParserUntil;
 use serde::{Deserialize, Serialize};
 use winnow::{
     ModalResult,
@@ -546,7 +547,10 @@ impl Soname {
             )
                 // Take both parts and map them onto a SharedObjectName
                 .take()
-                .and_then(Name::parser)
+                // TODO: Refactor to `.` delimiter aware parser.
+                //       Maybe refactor the special parser for the InstalledPackage to be generic
+                //       over the delimiter?
+                .and_then(Name::parser_until_eof)
                 .map(SharedObjectName),
         )
         .context(StrContext::Label("shared object name"))
