@@ -6,6 +6,7 @@ mod package_base;
 
 use std::collections::HashMap;
 
+use alpm_parsers::traits::AlpmParser;
 use alpm_pkgbuild::bridge::{BridgeOutput, Keyword, Value};
 use alpm_types::{Architectures, Name, SystemArchitecture};
 use package::handle_packages;

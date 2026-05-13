@@ -2,6 +2,6 @@
 source: alpm-types/src/env.rs
 ---
 package$with$dollars-30-0.1-any
-^
+       ^
 invalid character in package name
 expected ASCII alphanumeric character, `_`, `@`, `+`, `-`, `.`

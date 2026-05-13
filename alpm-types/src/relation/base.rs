@@ -5,6 +5,7 @@ use std::{
     str::FromStr,
 };
 
+use alpm_parsers::traits::ParserUntil;
 use serde::{Deserialize, Serialize};
 use winnow::{
     ModalResult,
@@ -78,7 +79,7 @@ impl PackageRelation {
     /// Returns an error if `input` is not a valid _package-relation_.
     pub fn parser(input: &mut &str) -> ModalResult<Self> {
         seq!(Self {
-            name: take_till(1.., ('<', '>', '=')).and_then(Name::parser).context(StrContext::Label("package name")),
+            name: Name::parser_until(alt(("<", ">", "=", eof))).context(StrContext::Label("package name")),
             version_requirement: opt(VersionRequirement::parser),
             _: eof.context(StrContext::Expected(StrContextValue::Description("end of relation version requirement"))),
         })
@@ -546,10 +547,11 @@ mod tests {
     )]
     fn opt_depend_from_string(#[case] input: &str, #[case] expected: OptionalDependency) {
         let opt_depend_result = OptionalDependency::from_str(input);
-        let Ok(optional_dependency) = opt_depend_result else {
-            panic!(
-                "Encountered unexpected error when parsing optional dependency: {opt_depend_result:?}"
-            )
+        let optional_dependency = match opt_depend_result {
+            Ok(dep) => dep,
+            Err(err) => {
+                panic!("Encountered unexpected error when parsing optional dependency:\n {err}")
+            }
         };
 
         assert_eq!(
