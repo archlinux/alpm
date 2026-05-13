@@ -4,15 +4,18 @@ use std::{
     string::ToString,
 };
 
-use alpm_parsers::iter_char_context;
+use alpm_parsers::{
+    iter_char_context,
+    traits::{AlpmParser, ParserUntil},
+};
 use serde::{Deserialize, Serialize};
 use winnow::{
     ModalResult,
     Parser,
     combinator::{Repeat, alt, cut_err, eof, peek, repeat, repeat_till},
-    error::{StrContext, StrContextValue},
+    error::{ContextError, ErrMode, StrContext, StrContextValue},
     stream::Stream,
-    token::{any, one_of, rest},
+    token::{any, one_of},
 };
 
 use crate::Error;
@@ -133,6 +136,9 @@ impl Display for BuildTool {
 pub struct Name(String);
 
 impl Name {
+    const SPECIAL_FIRST_CHARS: [char; 3] = ['_', '@', '+'];
+    const NEVER_FIRST_CHAR: [char; 5] = ['_', '@', '+', '-', '.'];
+
     /// Create a new `Name`
     pub fn new(name: &str) -> Result<Self, Error> {
         Self::from_str(name)
@@ -142,46 +148,145 @@ impl Name {
     pub fn inner(&self) -> &str {
         &self.0
     }
+}
 
-    /// Recognizes a [`Name`] in a string slice.
+impl Name {
+    /// Recognizes a [`Name`] as part of an [`InstalledPackage`](`crate::InstalledPackage`).
     ///
-    /// Consumes all of its input.
+    /// # Warning
+    ///
+    /// This parser is designed **specifically** for the internal
+    /// [`InstalledPackage`](`crate::InstalledPackage`) parser.
+    ///
+    /// [`InstalledPackage`](`crate::InstalledPackage`) is a very special use-case, as it uses
+    /// dashes (`-`) as delimiter. However, dashes are also valid characters in a [`Name`].
+    /// As such, the [`Name`] parser must be aware of how many dashes are expected to be inside the
+    /// input string to parse.
+    ///
+    /// This is a necessary, albeit cursed hack due to
+    /// [`InstalledPackage`](`crate::InstalledPackage`)'s dash-based delimiter design.
+    ///
+    /// In contrast to [`Name::parser`], this function expects the final character to be a `-`,
+    /// which it **does not consume**.
     ///
     /// # Errors
     ///
-    /// Returns an error if `input` contains an invalid _alpm-package-name_.
-    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+    /// Returns an error if `input` contains an invalid [alpm-package-name].
+    ///
+    /// [alpm-package-name]: https://alpm.archlinux.page/specifications/alpm-package-name.7.html
+    pub(crate) fn parse_name_followed_by_version<'a>(
+        delimiter_count: usize,
+    ) -> impl Parser<&'a str, Self, ErrMode<ContextError>> {
+        let never_first_char_list = ['_', '@', '+', '.'];
+
         let alphanum = |c: char| c.is_ascii_alphanumeric();
-        let special_first_chars = ['_', '@', '+'];
-        let first_char = one_of((alphanum, special_first_chars))
+        let first_char = one_of((alphanum, Self::SPECIAL_FIRST_CHARS))
             .context(StrContext::Label("first character of package name"))
             .context(StrContext::Expected(StrContextValue::Description(
                 "ASCII alphanumeric character",
             )))
-            .context_with(iter_char_context!(special_first_chars));
+            .context_with(iter_char_context!(Self::SPECIAL_FIRST_CHARS));
 
-        let never_first_special_chars = ['_', '@', '+', '-', '.'];
-        let never_first_char = one_of((alphanum, never_first_special_chars));
+        let never_first_char = one_of((alphanum, never_first_char_list));
+
+        // The following is used to parse expressions such as this:
+        // `example-package-name-1:45.2.0-x86_64`
+        //
+        // The parser will be called with `delimiters = 3`.
+        // The `part` parser consumes all valid characters, except `-`.
+        // `parts` then chains `part` 2 (`3-1`) times, where each part is expected to be followed by
+        // a `-`.
+        // This effectively consumes: `example-package-`
+        //
+        // If any invalid characters are in this section, `part` will terminate, `-` will not match
+        // and a respective error message is thrown that points to that specific char.
+        let part: Repeat<_, _, _, (), _> = repeat(0.., never_first_char);
+        let parts: Repeat<_, _, _, (), _> = repeat(
+            delimiter_count - 1,
+            (
+                part,
+                '-'.context(StrContext::Label("character in package name"))
+                    .context(StrContext::Expected(StrContextValue::Description(
+                        "ASCII alphanumeric character",
+                    )))
+                    .context_with(iter_char_context!(Self::NEVER_FIRST_CHAR)),
+            ),
+        );
+
+        // Reconstruct the `part` parser, as we need it for the final step.
+        let alphanum = |c: char| c.is_ascii_alphanumeric();
+        let never_first_char = one_of((alphanum, never_first_char_list));
+        let part: Repeat<_, _, _, (), _> = repeat(0.., never_first_char);
+
+        // This is the final full parser. Let's go through it piece-by-piece.
+        // `example-package-name-1:45.2.0-x86_64`
+        let full_parser = (
+            // Extracts `e`
+            // `xample-package-name-1:45.2.0-x86_64`
+            first_char,
+            // Extracts the first two parts (and the following delimiters)
+            // `name-1:45.2.0-x86_64`
+            parts,
+            // Extracts the single final part
+            // `-1:45.2.0-x86_64`
+            part,
+            // Ensures the part is followed by a delimiter and not by an invalid char.
+            // `-1:45.2.0-x86_64`
+            peek('-')
+                .context(StrContext::Label("character in package name"))
+                .context(StrContext::Expected(StrContextValue::Description(
+                    "ASCII alphanumeric character",
+                )))
+                .context_with(iter_char_context!(Self::NEVER_FIRST_CHAR)),
+        );
+
+        full_parser.take().map(|n: &str| Name(n.to_owned()))
+    }
+}
+
+impl AlpmParser for Name {
+    /// Recognizes a [`Name`] in a string slice.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the immediate start of `input` does not a valid [alpm-package-name].
+    ///
+    /// [alpm-package-version]: https://alpm.archlinux.page/specifications/alpm-package-name.7.html
+    fn parser(input: &mut &str) -> ModalResult<Self> {
+        let alphanum = |c: char| c.is_ascii_alphanumeric();
+        let first_char = one_of((alphanum, Self::SPECIAL_FIRST_CHARS))
+            .context(StrContext::Label("first character of package name"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "ASCII alphanumeric character",
+            )))
+            .context_with(iter_char_context!(Self::SPECIAL_FIRST_CHARS));
+
+        let never_first_char = one_of((alphanum, Self::NEVER_FIRST_CHAR));
 
         // no .context() because this is infallible due to `0..`
         // note the empty tuple collection to avoid allocation
         let remaining_chars: Repeat<_, _, _, (), _> = repeat(0.., never_first_char);
 
-        let full_parser = (
-            first_char,
-            remaining_chars,
-            // bad characters fall through to eof so we insert that context here
-            eof.context(StrContext::Label("character in package name"))
-                .context(StrContext::Expected(StrContextValue::Description(
-                    "ASCII alphanumeric character",
-                )))
-                .context_with(iter_char_context!(never_first_special_chars)),
-        );
+        let full_parser = (first_char, remaining_chars);
 
         full_parser
             .take()
             .map(|n: &str| Name(n.to_owned()))
             .parse_next(input)
+    }
+
+    fn delimiter_error_context<'a, O, P>(
+        parser: P,
+    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    where
+        P: Parser<&'a str, O, ErrMode<ContextError>>,
+    {
+        parser
+            .context(StrContext::Label("character in package name"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "ASCII alphanumeric character",
+            )))
+            .context_with(iter_char_context!(Self::NEVER_FIRST_CHAR))
     }
 }
 
@@ -196,7 +301,7 @@ impl FromStr for Name {
     ///
     /// Returns an error if [`Name::parser`] fails.
     fn from_str(s: &str) -> Result<Name, Self::Err> {
-        Ok(Self::parser.parse(s)?)
+        Ok(Self::parser_until_eof.parse(s)?)
     }
 }
 
@@ -277,10 +382,7 @@ impl SharedObjectName {
             .parse_next(input)?;
 
         input.reset(&checkpoint);
-        let name = rest
-            .and_then(Name::parser)
-            .context(StrContext::Label("name"))
-            .parse_next(input)?;
+        let name = Name::parser.parse_next(input)?;
 
         Ok(SharedObjectName(name))
     }
