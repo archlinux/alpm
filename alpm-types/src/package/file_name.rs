@@ -13,7 +13,7 @@ use winnow::{
     ModalResult,
     Parser,
     ascii::alphanumeric1,
-    combinator::{cut_err, eof, opt, peek, preceded, repeat},
+    combinator::{cut_err, eof, opt, preceded},
     error::{AddContext, ContextError, ErrMode, ParserError, StrContext, StrContextValue},
     stream::Stream,
     token::take_until,
@@ -316,26 +316,14 @@ impl PackageFileName {
         }
 
         // The (zero or more) dashes in the Name component.
-        let dashes_in_name = dashes.saturating_sub(3);
+        let dashes_till_version = dashes.saturating_sub(2);
 
         // Advance the parser to the dash just behind the Name component, based on the amount of
         // dashes in the Name, e.g.:
         // "example-package-1:1.0.0-1-x86_64.pkg.tar.zst" -> "-1:1.0.0-1-x86_64.pkg.tar.zst"
-        let name = cut_err(
-            repeat::<_, _, (), _, _>(
-                dashes_in_name + 1,
-                // Advances to the next `-`.
-                // If multiple `-` are present, the `-` that has been previously advanced to will
-                // be consumed in the next itaration via the `opt("-")`. This enables us to go
-                // **up to** the last `-`, while still consuming all `-` in between.
-                (opt("-"), take_until(0.., "-"), peek("-")),
-            )
-            .take()
-            // example-package
-            .and_then(Name::parser),
-        )
-        .context(StrContext::Label("alpm-package-name"))
-        .parse_next(input)?;
+        let name = cut_err(Name::parse_name_followed_by_version(dashes_till_version))
+            .context(StrContext::Label("alpm-package-name"))
+            .parse_next(input)?;
 
         // Consume leading dash in front of FullVersion, e.g.:
         // "-1:1.0.0-1-x86_64.pkg.tar.zst" -> "1:1.0.0-1-x86_64.pkg.tar.zst"

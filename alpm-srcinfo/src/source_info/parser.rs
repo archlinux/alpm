@@ -4,7 +4,7 @@
 //! The representation is not useful for end-users as it provides data that is not yet validated.
 use std::str::FromStr;
 
-use alpm_parsers::iter_str_context;
+use alpm_parsers::{iter_str_context, traits::ParserUntilInclusive};
 use alpm_types::{
     Architecture,
     Backup,
@@ -291,8 +291,7 @@ impl RawPackageBase {
 
         // Get the name of the base package.
         // Don't use `till_line_ending`, as we want the name to have a length of at least one.
-        let name = till_line_end
-            .and_then(Name::parser)
+        let name = cut_err(Name::parser_until_line_ending_inclusive)
             .context(StrContext::Label("package base name"))
             .context(StrContext::Expected(StrContextValue::Description(
                 "the name of the base package",
@@ -342,8 +341,7 @@ impl RawPackage {
             .parse_next(input)?;
 
         // Get the name of the base package.
-        let name = till_line_end
-            .and_then(Name::parser)
+        let name = cut_err(Name::parser_until_line_ending_inclusive)
             .context(StrContext::Label("package name"))
             .context(StrContext::Expected(StrContextValue::Description(
                 "the name of a package",
