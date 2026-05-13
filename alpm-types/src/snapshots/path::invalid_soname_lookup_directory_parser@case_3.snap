@@ -7,5 +7,5 @@ invalid prefix for a shared object lookup path
 Parser failed with the following error:
 :/usr/lib
 ^
-invalid first character of package name
+invalid first character of name
 expected ASCII alphanumeric character, `_`, `@`, `+`

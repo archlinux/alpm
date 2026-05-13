@@ -3,5 +3,5 @@ source: alpm-types/src/relation/base.rs
 ---
 name:description with no leading whitespace
 ^
-invalid character in package name
+invalid character in name
 expected ASCII alphanumeric character, `_`, `@`, `+`, `-`, `.`
