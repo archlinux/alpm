@@ -4,7 +4,10 @@
 //! The representation is not useful for end-users as it provides data that is not yet validated.
 use std::str::FromStr;
 
-use alpm_parsers::{iter_str_context, traits::ParserUntilInclusive};
+use alpm_parsers::{
+    iter_str_context,
+    traits::{ParserUntil, ParserUntilInclusive},
+};
 use alpm_types::{
     Architecture,
     Backup,
@@ -47,7 +50,7 @@ use winnow::{
         trace,
     },
     error::{ErrMode, ParserError, StrContext, StrContextValue},
-    token::{take_till, take_until},
+    token::take_until,
 };
 
 /// Recognizes the ` = ` delimiter between keywords.
@@ -151,11 +154,12 @@ pub fn architecture_suffix(input: &mut &str) -> ModalResult<Option<Architecture>
 
     // There has been an underscore, so now we **expect** an architecture to be there and we have
     // to fail hard if that doesn't work.
-    // We now grab all content until the expected space of the delimiter and map it to an
-    // alpm_types::Architecture.
-    let architecture =
-        cut_err(take_till(0.., |c| c == ' ' || c == '=').and_then(Architecture::parser))
-            .parse_next(input)?;
+    // As such, we expect the Architecture parser to succeed and be followed by the `delimiter`.
+    let architecture = cut_err(Architecture::parser_until(delimiter))
+        .context(StrContext::Expected(StrContextValue::Description(
+            "followed by a ' ='",
+        )))
+        .parse_next(input)?;
 
     Ok(Some(architecture))
 }
@@ -535,24 +539,19 @@ impl PackageBaseProperty {
 
         let property = match keyword {
             PackageBaseKeyword::PkgVer => cut_err(
-                till_line_end
-                    .and_then(PackageVersion::parser)
+                PackageVersion::parser_until_line_ending_inclusive
                     .map(PackageBaseProperty::PackageVersion),
             )
             .parse_next(input)?,
             PackageBaseKeyword::PkgRel => cut_err(
-                till_line_end
-                    .and_then(PackageRelease::parser)
+                PackageRelease::parser_until_line_ending_inclusive
                     .map(PackageBaseProperty::PackageRelease),
             )
             .parse_next(input)?,
 
-            PackageBaseKeyword::Epoch => cut_err(
-                till_line_end
-                    .and_then(Epoch::parser)
-                    .map(PackageBaseProperty::PackageEpoch),
-            )
-            .parse_next(input)?,
+            PackageBaseKeyword::Epoch => cut_err(Epoch::parser_until_line_ending_inclusive)
+                .map(PackageBaseProperty::PackageEpoch)
+                .parse_next(input)?,
             PackageBaseKeyword::ValidPGPKeys => cut_err(
                 till_line_end
                     .try_map(OpenPGPIdentifier::from_str)
@@ -780,8 +779,7 @@ impl SharedMetaProperty {
             )
             .parse_next(input)?,
             SharedMetaKeyword::Arch => cut_err(
-                till_line_end
-                    .and_then(Architecture::parser)
+                Architecture::parser_until_line_ending_inclusive
                     .map(SharedMetaProperty::Architecture),
             )
             .parse_next(input)?,
@@ -1073,50 +1071,42 @@ impl SourceProperty {
                     // all checksum properties are parsed the same way.
                     SourceKeyword::B2sums => SourceProperty::B2Checksum(ArchProperty {
                         architecture,
-                        value: till_line_end
-                            .and_then(SkippableChecksum::parser)
+                        value: cut_err(SkippableChecksum::parser_until_line_ending)
                             .parse_next(input)?,
                     }),
                     SourceKeyword::Md5sums => SourceProperty::Md5Checksum(ArchProperty {
                         architecture,
-                        value: till_line_end
-                            .and_then(SkippableChecksum::parser)
+                        value: cut_err(SkippableChecksum::parser_until_line_ending)
                             .parse_next(input)?,
                     }),
                     SourceKeyword::Sha1sums => SourceProperty::Sha1Checksum(ArchProperty {
                         architecture,
-                        value: till_line_end
-                            .and_then(SkippableChecksum::parser)
+                        value: cut_err(SkippableChecksum::parser_until_line_ending)
                             .parse_next(input)?,
                     }),
                     SourceKeyword::Sha224sums => SourceProperty::Sha224Checksum(ArchProperty {
                         architecture,
-                        value: till_line_end
-                            .and_then(SkippableChecksum::parser)
+                        value: cut_err(SkippableChecksum::parser_until_line_ending)
                             .parse_next(input)?,
                     }),
                     SourceKeyword::Sha256sums => SourceProperty::Sha256Checksum(ArchProperty {
                         architecture,
-                        value: till_line_end
-                            .and_then(SkippableChecksum::parser)
+                        value: cut_err(SkippableChecksum::parser_until_line_ending)
                             .parse_next(input)?,
                     }),
                     SourceKeyword::Sha384sums => SourceProperty::Sha384Checksum(ArchProperty {
                         architecture,
-                        value: till_line_end
-                            .and_then(SkippableChecksum::parser)
+                        value: cut_err(SkippableChecksum::parser_until_line_ending)
                             .parse_next(input)?,
                     }),
                     SourceKeyword::Sha512sums => SourceProperty::Sha512Checksum(ArchProperty {
                         architecture,
-                        value: till_line_end
-                            .and_then(SkippableChecksum::parser)
+                        value: cut_err(SkippableChecksum::parser_until_line_ending)
                             .parse_next(input)?,
                     }),
                     SourceKeyword::Cksums => SourceProperty::CrcChecksum(ArchProperty {
                         architecture,
-                        value: till_line_end
-                            .and_then(SkippableChecksum::parser)
+                        value: cut_err(SkippableChecksum::parser_until_line_ending)
                             .parse_next(input)?,
                     }),
                     SourceKeyword::NoExtract => unreachable!(),

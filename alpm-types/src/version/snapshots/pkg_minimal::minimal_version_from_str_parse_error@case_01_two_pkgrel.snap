@@ -3,5 +3,5 @@ source: alpm-types/src/version/pkg_minimal.rs
 ---
 1:foo-1-1
      ^
-invalid pkgver character
-expected an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace characters, alpm-pkgver string
+invalid minimal alpm-package-version
+expected the package version to end with an alpm-pkgver

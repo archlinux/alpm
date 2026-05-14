@@ -1,0 +1,7 @@
+---
+source: alpm-types/src/source.rs
+---
+
+^
+invalid source url
+expected a filename followed by `::` or a path/url with valid end of input.

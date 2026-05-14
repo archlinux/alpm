@@ -64,7 +64,8 @@ pub enum Error {
     #[error("{msg}", msg = t!("error-unsupported-schema-version", { "version" => .0 }))]
     UnsupportedSchemaVersion(String),
 
-    /// A alpm-pkgbuild bridge error that occurred when converting a PKGBUILD to a [`SourceInfoV1`].
+    /// An alpm-pkgbuild bridge error that occurred when converting a PKGBUILD to a
+    /// [`SourceInfoV1`].
     ///
     /// See [`PkgbuildError`] for further details.
     #[error("{msg}", msg = t!("error-bridge", { "error" => .0.to_string() }))]
