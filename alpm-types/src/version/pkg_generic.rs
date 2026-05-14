@@ -6,6 +6,7 @@ use std::{
     str::FromStr,
 };
 
+use alpm_parsers::traits::AlpmParser;
 use serde::{Deserialize, Serialize};
 use winnow::{
     ModalResult,
