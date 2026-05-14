@@ -8,6 +8,7 @@ use std::{
     str::FromStr,
 };
 
+use alpm_parsers::traits::AlpmParser;
 use serde::{Deserialize, Serialize};
 use winnow::{
     ModalResult,
@@ -172,11 +173,8 @@ impl FullVersion {
         // "-1" -> "1"
         // and parse everything until eof as a PackageRelease, e.g.:
         // "1" -> ""
-        let pkgrel: PackageRelease = preceded("-", cut_err(PackageRelease::parser))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "alpm-pkgrel string",
-            )))
-            .parse_next(input)?;
+        let pkgrel: PackageRelease =
+            cut_err(preceded("-", PackageRelease::parser)).parse_next(input)?;
 
         // Ensure that there are no trailing chars left.
         eof.context(StrContext::Expected(StrContextValue::Description(
