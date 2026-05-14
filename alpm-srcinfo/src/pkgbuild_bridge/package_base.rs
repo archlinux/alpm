@@ -5,7 +5,7 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::iter_str_context;
+use alpm_parsers::{iter_str_context, traits::AlpmParser};
 #[cfg(doc)]
 use alpm_pkgbuild::bridge::BridgeOutput;
 use alpm_pkgbuild::bridge::{Keyword, Value};

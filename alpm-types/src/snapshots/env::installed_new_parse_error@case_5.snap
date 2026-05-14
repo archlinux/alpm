@@ -2,6 +2,6 @@
 source: alpm-types/src/env.rs
 ---
 packagename-30-0.1-any*asdf
-                   ^
-invalid character in system architecture
+                      ^
+invalid character in architecture
 expected a string containing only ASCII alphanumeric characters and underscores.
