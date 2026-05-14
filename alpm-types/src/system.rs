@@ -3,14 +3,15 @@ use std::{
     str::FromStr,
 };
 
+use alpm_parsers::traits::{AlpmParser, ParserUntil};
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString, VariantNames};
 use winnow::{
     ModalResult,
     Parser,
-    ascii::{Caseless, space1},
-    combinator::{alt, cut_err, eof, not, repeat_till},
-    error::{StrContext, StrContextValue},
+    ascii::Caseless,
+    combinator::{alt, cut_err, eof, not, repeat},
+    error::{ContextError, ErrMode, StrContext, StrContextValue},
     token::one_of,
 };
 
@@ -39,12 +40,8 @@ use crate::Error;
 ///     Ok(SystemArchitecture::Aarch64)
 /// );
 ///
-/// // format as String
+/// // Format as String
 /// assert_eq!("x86_64", format!("{}", SystemArchitecture::X86_64));
-/// assert_eq!(
-///     "custom_arch",
-///     format!("{}", UnknownArchitecture::new("custom_arch")?)
-/// );
 /// # Ok(())
 /// # }
 /// ```
@@ -101,34 +98,71 @@ pub enum SystemArchitecture {
     Unknown(UnknownArchitecture),
 }
 
-impl SystemArchitecture {
+impl AlpmParser for SystemArchitecture {
     /// Recognizes a [`SystemArchitecture`] in an input string.
     ///
-    /// Consumes all input and returns an error if the string doesn't match any architecture.
-    pub fn parser(input: &mut &str) -> ModalResult<SystemArchitecture> {
-        alt((
+    /// # Errors
+    ///
+    /// Returns an error if the immediate start of `input` does not a contain a valid
+    /// SystemArchitecture.
+    fn parser(input: &mut &str) -> ModalResult<SystemArchitecture> {
+        // Make sure we don't have an `any`.
+        cut_err(not((Caseless("any"), eof)))
+            .context(StrContext::Label(
+                "system architecture. 'any' has a special meaning and is not allowed here.",
+            ))
+            .parse_next(input)?;
+
+        let alphanum = |c: char| c.is_ascii_alphanumeric();
+        let special_chars = ['_'];
+
+        // We consume as many valid characters as we can until we hit an unknown char or `eof`.
+        // E.g.
+        // `asdfasdf_x86_64_omega:test` -> `:test`
+        let architecture: String = cut_err(repeat(1.., one_of((alphanum, special_chars))))
+            .context(StrContext::Label("character in system architecture"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "a string containing only ASCII alphanumeric characters and underscores.",
+            )))
+            .parse_next(input)?;
+
+        // We now take that valid architecture and check it against all known static variants in our
+        // SystemArchitecture enum.
+        // If none of those match, return it as an SystemArchitecture::Unknown.
+        let architecture = match architecture.as_str() {
             // Handle all static variants
-            alt((
-                ("aarch64", eof).value(SystemArchitecture::Aarch64),
-                ("arm", eof).value(SystemArchitecture::Arm),
-                ("armv6h", eof).value(SystemArchitecture::Armv6h),
-                ("armv7h", eof).value(SystemArchitecture::Armv7h),
-                ("i386", eof).value(SystemArchitecture::I386),
-                ("i486", eof).value(SystemArchitecture::I486),
-                ("i686", eof).value(SystemArchitecture::I686),
-                ("pentium4", eof).value(SystemArchitecture::Pentium4),
-                ("riscv32", eof).value(SystemArchitecture::Riscv32),
-            )),
-            alt((
-                ("riscv64", eof).value(SystemArchitecture::Riscv64),
-                ("x86_64", eof).value(SystemArchitecture::X86_64),
-                ("x86_64_v2", eof).value(SystemArchitecture::X86_64V2),
-                ("x86_64_v3", eof).value(SystemArchitecture::X86_64V3),
-                ("x86_64_v4", eof).value(SystemArchitecture::X86_64V4),
-            )),
-            UnknownArchitecture::parser.map(SystemArchitecture::Unknown),
-        ))
-        .parse_next(input)
+            "aarch64" => SystemArchitecture::Aarch64,
+            "armv6h" => SystemArchitecture::Armv6h,
+            "armv7h" => SystemArchitecture::Armv7h,
+            "arm" => SystemArchitecture::Arm,
+            "i386" => SystemArchitecture::I386,
+            "i486" => SystemArchitecture::I486,
+            "i686" => SystemArchitecture::I686,
+            "pentium4" => SystemArchitecture::Pentium4,
+            "riscv32" => SystemArchitecture::Riscv32,
+            "riscv64" => SystemArchitecture::Riscv64,
+            "x86_64_v2" => SystemArchitecture::X86_64V2,
+            "x86_64_v3" => SystemArchitecture::X86_64V3,
+            "x86_64_v4" => SystemArchitecture::X86_64V4,
+            "x86_64" => SystemArchitecture::X86_64,
+            // Generic fallback handler.
+            other => SystemArchitecture::Unknown(UnknownArchitecture::new(other)),
+        };
+
+        Ok(architecture)
+    }
+
+    fn delimiter_error_context<'a, O, P>(
+        parser: P,
+    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    where
+        P: Parser<&'a str, O, ErrMode<ContextError>>,
+    {
+        parser
+            .context(StrContext::Label("character in system architecture"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "a string containing only ASCII alphanumeric characters and underscores.",
+            )))
     }
 }
 
@@ -143,7 +177,7 @@ impl FromStr for SystemArchitecture {
     ///
     /// Returns an error if [`SystemArchitecture::parser`] fails.
     fn from_str(s: &str) -> Result<SystemArchitecture, Self::Err> {
-        Ok(Self::parser.parse(s)?)
+        Ok(Self::parser_until_eof.parse(s)?)
     }
 }
 
@@ -154,53 +188,21 @@ impl FromStr for SystemArchitecture {
 pub struct UnknownArchitecture(String);
 
 impl UnknownArchitecture {
-    /// Create a new `Name`
-    pub fn new(name: &str) -> Result<Self, Error> {
-        Self::from_str(name)
+    /// Create a new `UnknownArchitecture` by name.
+    ///
+    /// This is not publicly exposed, to ensure that this type can only be created by using
+    /// [`SystemArchitecture`]'s constructors.
+    ///
+    /// That way, we can uphold the invariant that `UnknownArchitecture` will never contain a valid
+    /// and known `SystemArchitecture` variant, as any values **must** pass through
+    /// `SystemArchitecture`'s parser.
+    pub(crate) fn new(name: &str) -> Self {
+        Self(name.to_string())
     }
 
     /// Return a reference to the inner type
     pub fn inner(&self) -> &str {
         &self.0
-    }
-
-    /// Recognizes a [`UnknownArchitecture`] in a string slice.
-    ///
-    /// Consumes all of its input.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if `input` contains an invalid [alpm-architecture] or "any"
-    /// (case-insensitive).
-    ///
-    /// [alpm-architecture]: https://alpm.archlinux.page/specifications/alpm-architecture.7.html
-    pub fn parser(input: &mut &str) -> ModalResult<Self> {
-        // Ensure that we don't have a empty string or a string that only consists of whitespaces.
-        cut_err(not(alt((eof, space1))))
-            .context(StrContext::Label("system architecture"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "a non empty string.",
-            )))
-            .parse_next(input)?;
-
-        // Make sure we don't have an `any`.
-        cut_err(not((Caseless("any"), eof)))
-            .context(StrContext::Label(
-                "system architecture. 'any' has a special meaning and is not allowed here.",
-            ))
-            .parse_next(input)?;
-
-        let alphanum = |c: char| c.is_ascii_alphanumeric();
-        let special_chars = ['_'];
-
-        cut_err(repeat_till(0.., one_of((alphanum, special_chars)), eof))
-            .map(|(r, _)| r)
-            .map(Self)
-            .context(StrContext::Label("character in system architecture"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "a string containing only ASCII alphanumeric characters and underscores.",
-            )))
-            .parse_next(input)
     }
 }
 
@@ -215,21 +217,6 @@ impl From<UnknownArchitecture> for Architecture {
     /// Converts an [`UnknownArchitecture`] into an [`Architecture`].
     fn from(value: UnknownArchitecture) -> Self {
         Architecture::Some(value.into())
-    }
-}
-
-impl FromStr for UnknownArchitecture {
-    type Err = Error;
-
-    /// Creates a [`UnknownArchitecture`] from a string slice.
-    ///
-    /// Delegates to [`UnknownArchitecture::parser`].
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if [`UnknownArchitecture::parser`] fails.
-    fn from_str(s: &str) -> Result<UnknownArchitecture, Self::Err> {
-        Ok(Self::parser.parse(s)?)
     }
 }
 
@@ -303,17 +290,32 @@ pub enum Architecture {
     Some(SystemArchitecture),
 }
 
-impl Architecture {
+impl AlpmParser for Architecture {
     /// Recognizes an [`Architecture`] in an input string.
     ///
-    /// Consumes all input and returns an error if the string doesn't match any architecture.
-    pub fn parser(input: &mut &str) -> ModalResult<Architecture> {
+    /// # Errors
+    ///
+    /// Returns an error if the immediate start of `input` does not a contain a valid Architecture.
+    fn parser(input: &mut &str) -> ModalResult<Architecture> {
         alt((
-            (Caseless("any"), eof).value(Architecture::Any),
+            Caseless("any").value(Architecture::Any),
             SystemArchitecture::parser.map(Architecture::Some),
         ))
         .context(StrContext::Label("alpm-architecture"))
         .parse_next(input)
+    }
+
+    fn delimiter_error_context<'a, O, P>(
+        parser: P,
+    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    where
+        P: Parser<&'a str, O, ErrMode<ContextError>>,
+    {
+        parser
+            .context(StrContext::Label("character in architecture"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "a string containing only ASCII alphanumeric characters and underscores.",
+            )))
     }
 }
 
@@ -328,7 +330,7 @@ impl FromStr for Architecture {
     ///
     /// Returns an error if [`Architecture::parser`] fails.
     fn from_str(s: &str) -> Result<Architecture, Self::Err> {
-        Ok(Self::parser.parse(s)?)
+        Ok(Self::parser_until_eof.parse(s)?)
     }
 }
 
@@ -545,24 +547,8 @@ mod tests {
     use crate::configure_insta;
 
     #[rstest]
-    #[case(
-        SystemArchitecture::Aarch64.into(),
-        Architecture::Some(SystemArchitecture::Aarch64)
-    )]
-    #[case(
-        SystemArchitecture::from_str("f_oo").unwrap().into(),
-        Architecture::Some(SystemArchitecture::from_str("f_oo").unwrap())
-    )]
-    fn system_architecture_into_architecture(
-        #[case] left: Architecture,
-        #[case] right: Architecture,
-    ) {
-        assert_eq!(left, right);
-    }
-
-    #[rstest]
     #[case("aarch64", SystemArchitecture::Aarch64)]
-    #[case("f_oo", UnknownArchitecture::new("f_oo").unwrap().into())]
+    #[case("f_oo", UnknownArchitecture::new("f_oo").into())]
     fn system_architecture_from_string(#[case] s: &str, #[case] arch: SystemArchitecture) {
         assert_eq!(SystemArchitecture::from_str(s), Ok(arch));
     }
@@ -602,8 +588,8 @@ mod tests {
     #[case("x86_64_v2", SystemArchitecture::X86_64V2.into())]
     #[case("x86_64_v3", SystemArchitecture::X86_64V3.into())]
     #[case("x86_64_v4", SystemArchitecture::X86_64V4.into())]
-    #[case("foo", UnknownArchitecture::new("foo").unwrap().into())]
-    #[case("f_oo", UnknownArchitecture::new("f_oo").unwrap().into())]
+    #[case("foo", UnknownArchitecture::new("foo").into())]
+    #[case("f_oo", UnknownArchitecture::new("f_oo").into())]
     fn architecture_from_string(#[case] input: &str, #[case] arch: Architecture) {
         assert_eq!(Architecture::from_str(input), Ok(arch));
     }

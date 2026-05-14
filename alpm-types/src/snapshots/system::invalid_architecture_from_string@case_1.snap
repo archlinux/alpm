@@ -3,5 +3,5 @@ source: alpm-types/src/system.rs
 ---
 f oo
  ^
-invalid character in system architecture
+invalid character in architecture
 expected a string containing only ASCII alphanumeric characters and underscores.
