@@ -2,6 +2,6 @@
 source: alpm-types/src/env.rs
 ---
 foo-1:1.0.0-bar-any
-    ^
+            ^
 invalid package release
-expected positive decimal integer
+expected positive decimal integer, an alpm-package-version (full or full with epoch) followed by a `-` and an architecture
