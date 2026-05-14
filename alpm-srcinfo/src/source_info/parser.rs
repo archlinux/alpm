@@ -4,7 +4,10 @@
 //! The representation is not useful for end-users as it provides data that is not yet validated.
 use std::str::FromStr;
 
-use alpm_parsers::{iter_str_context, traits::ParserUntilInclusive};
+use alpm_parsers::{
+    iter_str_context,
+    traits::{ParserUntil, ParserUntilInclusive},
+};
 use alpm_types::{
     Architecture,
     Backup,
@@ -47,7 +50,7 @@ use winnow::{
         trace,
     },
     error::{ErrMode, ParserError, StrContext, StrContextValue},
-    token::{take_till, take_until},
+    token::take_until,
 };
 
 /// Recognizes the ` = ` delimiter between keywords.
@@ -151,11 +154,12 @@ pub fn architecture_suffix(input: &mut &str) -> ModalResult<Option<Architecture>
 
     // There has been an underscore, so now we **expect** an architecture to be there and we have
     // to fail hard if that doesn't work.
-    // We now grab all content until the expected space of the delimiter and map it to an
-    // alpm_types::Architecture.
-    let architecture =
-        cut_err(take_till(0.., |c| c == ' ' || c == '=').and_then(Architecture::parser))
-            .parse_next(input)?;
+    // As such, we expect the Architecture parser to succeed and be followed by the `delimiter`.
+    let architecture = cut_err(Architecture::parser_until(delimiter))
+        .context(StrContext::Expected(StrContextValue::Description(
+            "followed by a ' ='",
+        )))
+        .parse_next(input)?;
 
     Ok(Some(architecture))
 }
@@ -780,8 +784,7 @@ impl SharedMetaProperty {
             )
             .parse_next(input)?,
             SharedMetaKeyword::Arch => cut_err(
-                till_line_end
-                    .and_then(Architecture::parser)
+                Architecture::parser_until_line_ending_inclusive
                     .map(SharedMetaProperty::Architecture),
             )
             .parse_next(input)?,

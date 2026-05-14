@@ -3,7 +3,7 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::{iter_char_context, iter_str_context};
+use alpm_parsers::{iter_char_context, iter_str_context, traits::ParserUntil};
 use serde::{Deserialize, Serialize};
 use strum::VariantNames;
 use winnow::{
@@ -19,7 +19,7 @@ use winnow::{
         StrContextValue::{self, *},
     },
     stream::Stream,
-    token::{one_of, rest, take_until},
+    token::{one_of, take_until},
 };
 
 use crate::{
@@ -676,17 +676,17 @@ impl InstalledPackage {
 
         // Advance the parser to the dash just behind the Name component, based on the amount of
         // dashes in the Name, e.g.:
-        // "example-package-1:1.0.0-1-x86_64.pkg.tar.zst" -> "-1:1.0.0-1-x86_64.pkg.tar.zst"
+        // "example-package-1:1.0.0-1-x86_64" -> "-1:1.0.0-1-x86_64"
         let name = cut_err(Name::parse_name_followed_by_version(dashes_till_version))
             .context(StrContext::Label("alpm-package-name"))
             .parse_next(input)?;
 
         // Consume leading dash in front of Version, e.g.:
-        // "-1:1.0.0-1-x86_64.pkg.tar.zst" -> "1:1.0.0-1-x86_64.pkg.tar.zst"
+        // "-1:1.0.0-1-x86_64" -> "1:1.0.0-1-x86_64"
         "-".parse_next(input)?;
 
         // Advance the parser to beyond the Version component (which contains one dash), e.g.:
-        // "1:1.0.0-1-x86_64.pkg.tar.zst" -> "-x86_64.pkg.tar.zst"
+        // "1:1.0.0-1-x86_64" -> "-x86_64"
         let version: FullVersion = cut_err((take_until(0.., "-"), "-", take_until(0.., "-")))
             .context(StrContext::Label("alpm-package-version"))
             .context(StrContext::Expected(StrContextValue::Description(
@@ -697,12 +697,11 @@ impl InstalledPackage {
             .parse_next(input)?;
 
         // Consume leading dash, e.g.:
-        // "-x86_64.pkg.tar.zst" -> "x86_64.pkg.tar.zst"
+        // "-x86_64" -> "x86_64"
         "-".parse_next(input)?;
 
-        // Advance the parser to beyond the Architecture component, e.g.:
-        // "x86_64.pkg.tar.zst" -> ".pkg.tar.zst"
-        let architecture = rest.and_then(Architecture::parser).parse_next(input)?;
+        // Expect the rest of the input to be the Architecture component:
+        let architecture = Architecture::parser_until_eof.parse_next(input)?;
 
         Ok(Self {
             name,
