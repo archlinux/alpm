@@ -13,9 +13,8 @@ use serde::{Deserialize, Serialize};
 use winnow::{
     ModalResult,
     Parser,
-    combinator::{cut_err, eof, opt, terminated},
+    combinator::{cut_err, eof},
     error::{StrContext, StrContextValue},
-    token::take_till,
 };
 
 use crate::{Epoch, Error, PackageVersion, Version};
@@ -140,16 +139,11 @@ impl MinimalVersion {
     ///
     /// [alpm-package-version]: https://alpm.archlinux.page/specifications/alpm-package-version.7.html
     pub fn parser(input: &mut &str) -> ModalResult<Self> {
-        // Advance the parser until after a ':' if there is one, e.g.:
-        // "1:1.0.0-1" -> "1.0.0-1"
-        let epoch = opt(terminated(take_till(1.., ':'), ':').and_then(
-            // cut_err now that we've found a pattern with ':'
-            cut_err(Epoch::parser),
-        ))
-        .context(StrContext::Expected(StrContextValue::Description(
-            "followed by a ':'",
-        )))
-        .parse_next(input)?;
+        // Parse an optional, which advances the cursor until after a ':', e.g.:
+        // "1:1.0.0" -> "1.0.0"
+        //
+        // If no epoch exists, the cursor does not move.
+        let epoch = Epoch::parse_optional_until_inclusive_colon.parse_next(input)?;
 
         // Advance the parser until the next '-', e.g.:
         // "1.0.0-1" -> "-1"

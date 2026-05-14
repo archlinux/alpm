@@ -2,6 +2,6 @@
 source: alpm-types/src/version/pkg_minimal.rs
 ---
 1-foo:
-^
+ ^
 invalid package epoch
 expected non-negative decimal integer, followed by a ':'

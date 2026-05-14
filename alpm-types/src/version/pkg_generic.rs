@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use winnow::{
     ModalResult,
     Parser,
-    combinator::{cut_err, eof, opt, preceded, seq, terminated},
+    combinator::{cut_err, eof, opt, preceded, seq},
     error::{StrContext, StrContextValue},
     token::take_till,
 };
@@ -119,16 +119,8 @@ impl Version {
     ///
     /// Returns an error if `input` is not a valid _alpm-package-version_.
     pub fn parser(input: &mut &str) -> ModalResult<Self> {
-        let mut epoch = opt(terminated(take_till(1.., ':'), ':').and_then(
-            // cut_err now that we've found a pattern with ':'
-            cut_err(Epoch::parser),
-        ))
-        .context(StrContext::Expected(StrContextValue::Description(
-            "followed by a ':'",
-        )));
-
         seq!(Self {
-            epoch: epoch,
+            epoch: Epoch::parse_optional_until_inclusive_colon,
             pkgver: take_till(1.., '-')
                 // this context will trigger on empty pkgver due to 1.. above
                 .context(StrContext::Expected(StrContextValue::Description("pkgver string")))
