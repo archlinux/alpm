@@ -4,4 +4,4 @@ source: alpm-types/src/version/pkg_full.rs
 1.0.0-
       ^
 invalid package release
-expected positive decimal integer, alpm-pkgrel string
+expected positive decimal integer

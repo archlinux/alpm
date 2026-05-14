@@ -15,13 +15,14 @@ use std::{
     str::FromStr,
 };
 
+use alpm_parsers::traits::{AlpmParser, ParserUntil};
 use serde::{Deserialize, Serialize};
 use winnow::{
     ModalResult,
     Parser,
     ascii::{dec_uint, digit1},
     combinator::{Repeat, cut_err, eof, opt, preceded, repeat, seq, terminated},
-    error::{StrContext, StrContextValue},
+    error::{ContextError, ErrMode, StrContext, StrContextValue},
     token::one_of,
 };
 
@@ -137,17 +138,19 @@ impl PackageRelease {
     pub fn new(major: usize, minor: Option<usize>) -> Self {
         PackageRelease { major, minor }
     }
+}
 
+impl AlpmParser for PackageRelease {
     /// Recognizes a [`PackageRelease`] in a string slice.
-    ///
-    /// Consumes all of its input.
     ///
     /// # Errors
     ///
-    /// Returns an error if `input` does not contain a valid [`PackageRelease`].
-    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+    /// Returns an error if the immediate start of `input` does not contain a valid
+    /// [`PackageRelease`].
+    fn parser(input: &mut &str) -> ModalResult<Self> {
         seq!(Self {
-            major: digit1.try_map(FromStr::from_str)
+            major: digit1
+                .try_map(FromStr::from_str)
                 .context(StrContext::Label("package release"))
                 .context(StrContext::Expected(StrContextValue::Description(
                     "positive decimal integer",
@@ -157,11 +160,21 @@ impl PackageRelease {
                 .context(StrContext::Expected(StrContextValue::Description(
                     "single '.' followed by positive decimal integer",
                 ))),
-            _: eof.context(StrContext::Expected(StrContextValue::Description(
-                "end of package release value",
-            ))),
         })
         .parse_next(input)
+    }
+
+    fn delimiter_error_context<'a, O, P>(
+        parser: P,
+    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    where
+        P: Parser<&'a str, O, ErrMode<ContextError>>,
+    {
+        parser
+            .context(StrContext::Label("package release"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "single '.' followed by positive decimal integer",
+            )))
     }
 }
 
@@ -175,7 +188,7 @@ impl FromStr for PackageRelease {
     ///
     /// Returns an error if [`PackageRelease::parser`] fails.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser.parse(s)?)
+        Ok(Self::parser_until_eof.parse(s)?)
     }
 }
 
