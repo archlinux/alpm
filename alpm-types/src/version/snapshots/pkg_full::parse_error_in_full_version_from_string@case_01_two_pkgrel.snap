@@ -3,4 +3,5 @@ source: alpm-types/src/version/pkg_full.rs
 ---
 1:foo-1-1
        ^
-expected end of full alpm-package-version string
+invalid package relation
+expected the package version to end with a valid package release, i.e. a positive integer followed by an optional `.` and another positive integer

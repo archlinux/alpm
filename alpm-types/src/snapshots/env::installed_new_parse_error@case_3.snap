@@ -2,5 +2,4 @@
 source: alpm-types/src/env.rs
 ---
 packagename-30-0.1oops-any
-            ^
-expected end of full alpm-package-version string
+                  ^

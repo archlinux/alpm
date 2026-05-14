@@ -6,7 +6,7 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::iter_str_context;
+use alpm_parsers::{iter_str_context, traits::ParserUntil};
 use serde::{Deserialize, Serialize};
 use strum::VariantNames;
 use winnow::{
@@ -331,14 +331,7 @@ impl PackageFileName {
 
         // Advance the parser to beyond the FullVersion component (which contains one dash), e.g.:
         // "1:1.0.0-1-x86_64.pkg.tar.zst" -> "-x86_64.pkg.tar.zst"
-        let version: FullVersion = cut_err((take_until(0.., "-"), "-", take_until(0.., "-")))
-            .context(StrContext::Label("alpm-package-version"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "an alpm-package-version (full or full with epoch) followed by a `-` and an architecture",
-            )))
-            .take()
-            .and_then(cut_err(FullVersion::parser))
-            .parse_next(input)?;
+        let version: FullVersion = FullVersion::parser_until("-").parse_next(input)?;
 
         // Consume leading dash, e.g.:
         // "-x86_64.pkg.tar.zst" -> "x86_64.pkg.tar.zst"

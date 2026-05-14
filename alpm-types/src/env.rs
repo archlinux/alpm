@@ -3,7 +3,11 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::{iter_char_context, iter_str_context, traits::ParserUntil};
+use alpm_parsers::{
+    iter_char_context,
+    iter_str_context,
+    traits::{AlpmParser, ParserUntil},
+};
 use serde::{Deserialize, Serialize};
 use strum::VariantNames;
 use winnow::{
@@ -19,7 +23,7 @@ use winnow::{
         StrContextValue::{self, *},
     },
     stream::Stream,
-    token::{one_of, take_until},
+    token::one_of,
 };
 
 use crate::{
@@ -687,13 +691,11 @@ impl InstalledPackage {
 
         // Advance the parser to beyond the Version component (which contains one dash), e.g.:
         // "1:1.0.0-1-x86_64" -> "-x86_64"
-        let version: FullVersion = cut_err((take_until(0.., "-"), "-", take_until(0.., "-")))
+        let version: FullVersion = FullVersion::parser
             .context(StrContext::Label("alpm-package-version"))
             .context(StrContext::Expected(StrContextValue::Description(
                 "an alpm-package-version (full or full with epoch) followed by a `-` and an architecture",
             )))
-            .take()
-            .and_then(cut_err(FullVersion::parser))
             .parse_next(input)?;
 
         // Consume leading dash, e.g.:
