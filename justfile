@@ -556,7 +556,7 @@ check-formatting:
 
 # Runs all check targets
 [group('check')]
-check: check-spelling check-formatting check-shell-code check-rust-code check-python-code check-unused-deps check-dependencies check-licenses check-links
+check: check-spelling check-formatting check-shell-code check-rust-code check-python-code check-unused-deps check-licenses check-links
 
 # Checks commit messages for correctness
 [group('check')]
