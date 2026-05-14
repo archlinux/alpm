@@ -15,15 +15,15 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::traits::{AlpmParser, ParserUntil};
+use alpm_parsers::traits::{AlpmParser, ParserUntil, ParserUntilInclusive};
 use serde::{Deserialize, Serialize};
 use winnow::{
     ModalResult,
     Parser,
     ascii::{dec_uint, digit1},
-    combinator::{Repeat, cut_err, eof, opt, preceded, repeat, seq, terminated},
+    combinator::{Repeat, cut_err, eof, opt, peek, preceded, repeat, seq, terminated},
     error::{ContextError, ErrMode, StrContext, StrContextValue},
-    token::one_of,
+    token::{one_of, take_till},
 };
 
 #[cfg(doc)]
@@ -59,15 +59,49 @@ impl Epoch {
         Epoch(epoch)
     }
 
-    /// Recognizes an [`Epoch`] in a string slice.
+    /// This parser is a common parser helper that handles epochs in versions.
     ///
-    /// Consumes all of its input.
+    /// In all of Alpm's package versions, the epoch is an optional prefix to the version, followed
+    /// by a colon `':'`, which is exactly what this parser checks for.
+    ///
+    /// 1. Checks if there's a colon in the input **up to** the next newline. Otherwise it might
+    ///    scan the whole input, which might be a file.
+    /// 2. If a colon is found, begin parsing of the Epoch
+    /// 3. Once the Epoch parser has finished (and succeeded), expect a `:`.
+    pub fn parse_optional_until_inclusive_colon(input: &mut &str) -> ModalResult<Option<Self>> {
+        // Check if there's a ':' character, which indicates the presence of an epoch.
+        let has_epoch = peek(opt(terminated(
+            take_till(0.., |c| c == ':' || c == '\n'),
+            ':',
+        )))
+        .parse_next(input)?;
+
+        let epoch = if has_epoch.is_some() {
+            // We know there's an epoch, advance the parser until after a ':', e.g.:
+            // "1:1.0.0-1" -> "1.0.0-1"
+            Some(
+                cut_err(Epoch::parser_until_inclusive(":"))
+                    .context(StrContext::Expected(StrContextValue::Description(
+                        "followed by a ':'",
+                    )))
+                    .parse_next(input)?,
+            )
+        } else {
+            None
+        };
+
+        Ok(epoch)
+    }
+}
+
+impl AlpmParser for Epoch {
+    /// Recognizes an [`Epoch`] in a string slice.
     ///
     /// # Errors
     ///
-    /// Returns an error if `input` is not a valid _alpm_epoch_.
-    pub fn parser(input: &mut &str) -> ModalResult<Self> {
-        terminated(dec_uint, eof)
+    /// Returns an error if `input` does not begin with a valid _alpm_epoch_.
+    fn parser(input: &mut &str) -> ModalResult<Self> {
+        dec_uint
             .verify_map(NonZeroUsize::new)
             .context(StrContext::Label("package epoch"))
             .context(StrContext::Expected(StrContextValue::Description(
@@ -76,13 +110,26 @@ impl Epoch {
             .map(Self)
             .parse_next(input)
     }
+
+    fn delimiter_error_context<'a, O, P>(
+        parser: P,
+    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    where
+        P: Parser<&'a str, O, ErrMode<ContextError>>,
+    {
+        parser
+            .context(StrContext::Label("package epoch"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "positive non-zero decimal integer",
+            )))
+    }
 }
 
 impl FromStr for Epoch {
     type Err = Error;
     /// Create an Epoch from a string and return it in a Result
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser.parse(s)?)
+        Ok(Self::parser_until_eof.parse(s)?)
     }
 }
 
