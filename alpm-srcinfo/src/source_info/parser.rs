@@ -545,8 +545,7 @@ impl PackageBaseProperty {
             )
             .parse_next(input)?,
             PackageBaseKeyword::PkgRel => cut_err(
-                till_line_end
-                    .and_then(PackageRelease::parser)
+                PackageRelease::parser_until_line_ending_inclusive
                     .map(PackageBaseProperty::PackageRelease),
             )
             .parse_next(input)?,

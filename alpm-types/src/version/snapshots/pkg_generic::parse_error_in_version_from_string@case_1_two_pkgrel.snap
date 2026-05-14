@@ -3,4 +3,4 @@ source: alpm-types/src/version/pkg_generic.rs
 ---
 1:foo-1-1
        ^
-expected end of package release value
+expected end of version string
