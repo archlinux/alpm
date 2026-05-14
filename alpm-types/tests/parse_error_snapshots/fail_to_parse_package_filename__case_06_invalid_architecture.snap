@@ -4,6 +4,6 @@ description: example-pkg-1.0.0-1-x86-64.pkg.tar.zst
 expression: "format!(\"{error}\")"
 ---
 example-pkg-1.0.0-1-x86-64.pkg.tar.zst
-                  ^
+                    ^
 invalid package release
 expected positive decimal integer

@@ -4,5 +4,6 @@ description: example-pkg-1.0.0-1.pkg.tar.zst
 expression: "format!(\"{error}\")"
 ---
 example-pkg-1.0.0-1.pkg.tar.zst
-        ^
-expected end of full alpm-package-version string
+               ^
+invalid package relation
+expected the package version to end with a valid package release, i.e. a positive integer followed by an optional `.` and another positive integer
