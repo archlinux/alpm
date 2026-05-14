@@ -8,13 +8,13 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::traits::AlpmParser;
+use alpm_parsers::traits::{AlpmParser, ParserUntil};
 use serde::{Deserialize, Serialize};
 use winnow::{
     ModalResult,
     Parser,
-    combinator::{cut_err, eof, opt, preceded, terminated},
-    error::{StrContext, StrContextValue},
+    combinator::{cut_err, opt, preceded, terminated},
+    error::{ContextError, ErrMode, StrContext, StrContextValue},
     token::{take_till, take_until},
 };
 
@@ -136,18 +136,18 @@ impl FullVersion {
             Ordering::Greater => 1,
         }
     }
+}
 
+impl AlpmParser for FullVersion {
     /// Recognizes a [`FullVersion`] in a string slice.
-    ///
-    /// Consumes all of its input.
     ///
     /// # Errors
     ///
-    /// Returns an error if `input` is not a valid [alpm-package-version] (_full_ or _full with
-    /// epoch_).
+    /// Returns an error if `input` does not begin with a valid  [alpm-package-version] (_full_ or
+    /// _full with epoch_).
     ///
     /// [alpm-package-version]: https://alpm.archlinux.page/specifications/alpm-package-version.7.html
-    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+    fn parser(input: &mut &str) -> ModalResult<Self> {
         // Advance the parser until after a ':' if there is one, e.g.:
         // "1:1.0.0-1" -> "1.0.0-1"
         let epoch = opt(terminated(take_till(1.., ':'), ':').and_then(
@@ -176,17 +176,27 @@ impl FullVersion {
         let pkgrel: PackageRelease =
             cut_err(preceded("-", PackageRelease::parser)).parse_next(input)?;
 
-        // Ensure that there are no trailing chars left.
-        eof.context(StrContext::Expected(StrContextValue::Description(
-            "end of full alpm-package-version string",
-        )))
-        .parse_next(input)?;
-
         Ok(Self {
             epoch,
             pkgver,
             pkgrel,
         })
+    }
+
+    fn delimiter_error_context<'a, O, P>(
+        parser: P,
+    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    where
+        P: Parser<&'a str, O, ErrMode<ContextError>>,
+    {
+        parser
+            .context(StrContext::Label("package relation"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "the package version to end with a valid package release",
+            )))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "i.e. a positive integer followed by an optional `.` and another positive integer",
+            )))
     }
 }
 
@@ -205,13 +215,13 @@ impl FromStr for FullVersion {
     type Err = Error;
     /// Creates a new [`FullVersion`] from a string slice.
     ///
-    /// Delegates to [`FullVersion::parser`].
+    /// Delegates to [`FullVersion::parser_until_eof`](ParserUntil::parser_until_eof).
     ///
     /// # Errors
     ///
     /// Returns an error if [`Version::parser`] fails.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser.parse(s)?)
+        Ok(Self::parser_until_eof.parse(s)?)
     }
 }
 
