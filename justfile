@@ -632,7 +632,7 @@ check-commits:
 # Checks for issues with dependencies
 [group('check')]
 check-dependencies: dry-update
-    cargo deny --all-features check
+    cargo deny --features cli check
 
 # Checks licensing status
 [group('check')]
@@ -661,7 +661,7 @@ check-links:
 [group('check')]
 check-rust-code:
     just ensure-command cargo cargo-clippy
-    cargo clippy --all-features --all-targets --workspace -- -D warnings
+    cargo clippy --features cli --all-targets --workspace -- -D warnings
 
 # Checks the Python source code using ruff and mypy.
 [group('check')]
@@ -993,6 +993,15 @@ test-docs *options:
     toolchain="+stable"
     commands=(cargo)
     read -r -a options <<< "{{ options }}"
+    # If no options are provided, run all targets, locked, with cli checks.
+    # We include the cli flag to prevent re-compilation when running both test-docs and test.
+    if (( ${#options[@]} == 0 )); then
+        options+=(
+            --all
+            --locked
+            --features cli
+        )
+    fi
 
     if [[ "$coverage" == "true" ]]; then
         commands+=(cargo-llvm-cov)
@@ -1005,7 +1014,7 @@ test-docs *options:
         just ensure-command "${commands[@]}"
     fi
 
-    cargo "$toolchain" test --locked --doc "${options[@]}"
+    cargo "$toolchain" test --doc "${options[@]}"
 
 # Runs per project end-to-end tests found in a project README.md
 [group('test')]
