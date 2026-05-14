@@ -550,12 +550,9 @@ impl PackageBaseProperty {
             )
             .parse_next(input)?,
 
-            PackageBaseKeyword::Epoch => cut_err(
-                till_line_end
-                    .and_then(Epoch::parser)
-                    .map(PackageBaseProperty::PackageEpoch),
-            )
-            .parse_next(input)?,
+            PackageBaseKeyword::Epoch => cut_err(Epoch::parser_until_line_ending_inclusive)
+                .map(PackageBaseProperty::PackageEpoch)
+                .parse_next(input)?,
             PackageBaseKeyword::ValidPGPKeys => cut_err(
                 till_line_end
                     .try_map(OpenPGPIdentifier::from_str)
