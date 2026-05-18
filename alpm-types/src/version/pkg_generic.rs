@@ -199,9 +199,11 @@ impl PartialOrd for Version {
 mod tests {
     use std::num::NonZeroUsize;
 
+    use insta::assert_snapshot;
     use rstest::rstest;
 
     use super::*;
+    use crate::configure_insta;
 
     /// Ensure that valid version strings are parsed as expected.
     #[rstest]
@@ -256,26 +258,19 @@ mod tests {
 
     /// Ensure that invalid version strings produce the respective errors.
     #[rstest]
-    #[case::two_pkgrel("1:foo-1-1", "expected end of package release value")]
-    #[case::two_epoch("1:1:foo-1", "invalid pkgver character")]
-    #[case::no_version("", "expected pkgver string")]
-    #[case::no_version(":", "invalid pkgver character")]
-    #[case::invalid_integer(
-        "-1foo:1",
-        "invalid package epoch\nexpected positive non-zero decimal integer, followed by a ':'"
-    )]
-    #[case::invalid_integer(
-        "1-foo:1",
-        "invalid package epoch\nexpected positive non-zero decimal integer, followed by a ':'"
-    )]
-    fn parse_error_in_version_from_string(#[case] version: &str, #[case] err_snippet: &str) {
+    #[case::two_pkgrel("1:foo-1-1")]
+    #[case::two_epoch("1:1:foo-1")]
+    #[case::no_version("")]
+    #[case::no_version(":")]
+    #[case::invalid_integer("-1foo:1")]
+    #[case::invalid_integer("1-foo:1")]
+    fn parse_error_in_version_from_string(#[case] version: &str) {
         let Err(Error::ParseError(err_msg)) = Version::from_str(version) else {
             panic!("parsing '{version}' did not fail as expected")
         };
-        assert!(
-            err_msg.contains(err_snippet),
-            "Error:\n=====\n{err_msg}\n=====\nshould contain snippet:\n\n{err_snippet}"
-        );
+
+        let (test_name, _guard) = configure_insta();
+        assert_snapshot!(test_name, err_msg.to_string());
     }
 
     /// Ensure that versions are properly serialized back to their string representation.

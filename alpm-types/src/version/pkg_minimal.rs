@@ -309,12 +309,14 @@ impl From<&MinimalVersion> for Version {
 
 #[cfg(test)]
 mod tests {
+    use insta::assert_snapshot;
     use log::{LevelFilter, debug};
     use rstest::rstest;
     use simplelog::{ColorChoice, Config, TermLogger, TerminalMode};
     use testresult::TestResult;
 
     use super::*;
+    use crate::configure_insta;
     /// Initialize a logger that shows trace messages on stderr.
     fn init_logger() {
         if TermLogger::init(
@@ -370,56 +372,23 @@ mod tests {
 
     /// Ensures that invalid [`MinimalVersion`] strings lead to parse errors.
     #[rstest]
-    #[case::two_pkgrel(
-        "1:foo-1-1",
-        "invalid pkgver character\nexpected an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace characters, alpm-pkgver string"
-    )]
-    #[case::two_epoch(
-        "1:1:foo-1",
-        "invalid pkgver character\nexpected an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace characters, alpm-pkgver string"
-    )]
-    #[case::empty_string(
-        "",
-        "invalid pkgver character\nexpected an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace characters, alpm-pkgver string"
-    )]
-    #[case::colon(
-        ":",
-        "invalid pkgver character\nexpected an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace characters, alpm-pkgver string"
-    )]
-    #[case::full_with_epoch(
-        "1:1.0.0-1",
-        "invalid pkgver character\nexpected an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace characters, alpm-pkgver string"
-    )]
-    #[case::full(
-        "1.0.0-1",
-        "invalid pkgver character\nexpected an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace characters, alpm-pkgver string"
-    )]
-    #[case::no_pkgrel_dash_end(
-        "1.0.0-",
-        "invalid pkgver character\nexpected an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace characters, alpm-pkgver string"
-    )]
-    #[case::starts_with_dash(
-        "-1foo:1",
-        "invalid package epoch\nexpected positive non-zero decimal integer, followed by a ':'"
-    )]
-    #[case::ends_with_colon(
-        "1-foo:",
-        "invalid package epoch\nexpected positive non-zero decimal integer, followed by a ':'"
-    )]
-    #[case::ends_with_colon_number(
-        "1-foo:1",
-        "invalid package epoch\nexpected positive non-zero decimal integer, followed by a ':'"
-    )]
-    fn minimal_version_from_str_parse_error(#[case] version: &str, #[case] err_snippet: &str) {
-        init_logger();
-
-        let Err(Error::ParseError(err_msg)) = MinimalVersion::from_str(version) else {
+    #[case::two_pkgrel("1:foo-1-1")]
+    #[case::two_epoch("1:1:foo-1")]
+    #[case::empty_string("")]
+    #[case::colon(":")]
+    #[case::minimal_with_epoch("1:1.0.0-1")]
+    #[case::minimal("1.0.0-1")]
+    #[case::no_pkgrel_dash_end("1.0.0-")]
+    #[case::starts_with_dash("-1foo:1")]
+    #[case::ends_with_colon("1-foo:")]
+    #[case::ends_with_colon_number("1-foo:1")]
+    fn minimal_version_from_str_parse_error(#[case] version: &str) {
+        let Err(Error::ParseError(err)) = MinimalVersion::from_str(version) else {
             panic!("parsing '{version}' as MinimalVersion did not fail as expected")
         };
-        assert!(
-            err_msg.contains(err_snippet),
-            "Error:\n=====\n{err_msg}\n=====\nshould contain snippet:\n\n{err_snippet}"
-        );
+
+        let (test_name, _guard) = configure_insta();
+        assert_snapshot!(test_name, err.to_string());
     }
 
     /// Ensures that [`MinimalVersion`] can be created from valid/compatible [`Version`] (and

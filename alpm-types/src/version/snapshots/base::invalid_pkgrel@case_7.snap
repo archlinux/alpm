@@ -1,0 +1,6 @@
+---
+source: alpm-types/src/version/base.rs
+---
+1.0.0
+   ^
+expected end of package release value

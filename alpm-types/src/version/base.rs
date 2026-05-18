@@ -302,9 +302,11 @@ impl Display for PackageVersion {
 
 #[cfg(test)]
 mod tests {
+    use insta::assert_snapshot;
     use rstest::rstest;
 
     use super::*;
+    use crate::configure_insta;
 
     #[rstest]
     #[case("1", Ok(Epoch(NonZeroUsize::new(1).unwrap())))]
@@ -346,21 +348,20 @@ mod tests {
 
     /// Ensure that invalid **pkgver**s are throwing errors.
     #[rstest]
-    #[case("1:foo", "invalid pkgver character")]
-    #[case("foo-1", "invalid pkgver character")]
-    #[case("foo/1", "invalid pkgver character")]
+    #[case("1:foo")]
+    #[case("foo-1")]
+    #[case("foo/1")]
     // ß is not ASCII
-    #[case("ß", "invalid pkgver character")]
-    #[case("1.ß", "invalid pkgver character")]
-    #[case("", "invalid pkgver character")]
-    fn invalid_pkgver(#[case] pkgver: &str, #[case] err_snippet: &str) {
+    #[case("ß")]
+    #[case("1.ß")]
+    #[case("")]
+    fn invalid_pkgver(#[case] pkgver: &str) {
         let Err(Error::ParseError(err_msg)) = PackageVersion::new(pkgver.to_string()) else {
             panic!("Expected pkgver {pkgver} to be invalid.")
         };
-        assert!(
-            err_msg.contains(err_snippet),
-            "Error:\n=====\n{err_msg}\n=====\nshould contain snippet:\n\n{err_snippet}"
-        );
+
+        let (test_name, _guard) = configure_insta();
+        assert_snapshot!(test_name, err_msg.to_string());
     }
 
     /// Make sure that we can parse valid **pkgrel** strings.
@@ -385,22 +386,21 @@ mod tests {
 
     /// Ensure that invalid **pkgrel**s are throwing errors.
     #[rstest]
-    #[case(".1", "expected positive decimal integer")]
-    #[case("1.", "expected single '.' followed by positive decimal integer")]
-    #[case("1..1", "expected single '.' followed by positive decimal integer")]
-    #[case("-1", "expected positive decimal integer")]
-    #[case("a", "expected positive decimal integer")]
-    #[case("1.a", "expected single '.' followed by positive decimal integer")]
-    #[case("1.0.0", "expected end of package release")]
-    #[case("", "expected positive decimal integer")]
-    fn invalid_pkgrel(#[case] pkgrel: &str, #[case] err_snippet: &str) {
+    #[case(".1")]
+    #[case("1.")]
+    #[case("1..1")]
+    #[case("-1")]
+    #[case("a")]
+    #[case("1.a")]
+    #[case("1.0.0")]
+    #[case("")]
+    fn invalid_pkgrel(#[case] pkgrel: &str) {
         let Err(Error::ParseError(err_msg)) = PackageRelease::from_str(pkgrel) else {
             panic!("'{pkgrel}' erroneously parsed as PackageRelease")
         };
-        assert!(
-            err_msg.contains(err_snippet),
-            "Error:\n=====\n{err_msg}\n=====\nshould contain snippet:\n\n{err_snippet}"
-        );
+
+        let (test_name, _guard) = configure_insta();
+        assert_snapshot!(test_name, err_msg.to_string());
     }
 
     /// Test that pkgrel ordering works as intended

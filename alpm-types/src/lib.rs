@@ -131,3 +131,95 @@ pub mod semver_version {
 }
 
 fluent_i18n::i18n!("locales");
+
+/// This is a helper macro that is used by unit tests in the `alpm-types` crate.
+///
+/// Specifically, it takes care of two things:
+///
+/// 1. Make the test filename **somewhat** human readable. cargo-insta uses the full module name by
+///    default, which is absurdly long due to our usage of rstest. Since the snapshots are placed in
+///    the immediate module anyway, we only need one level of module indirection. The tests
+///    filenames have the format of: `{module}::{test_function}@{test_case_name}`
+/// 2. Remove the `expression` field from the snapshot, as it's of no use in parser tests.
+///
+/// The function returns the test name to use in `assert_snapshot`, as well as a settings guard,
+/// which assures that the settings we just adjusted are local to this thread and stay up until the
+/// guard goes out of scope.
+///
+/// # Example
+///
+/// ```rs,norun
+/// #[rstest]
+/// #[case::something_bad("oh no")]
+/// #[case::something_else_bad("oh nooo")]
+/// fn invalid_version_requirement(#[case] requirement: &str) {
+///     let Err(Error::ParseError(err_msg)) = VersionRequirement::from_str(requirement) else {
+///         panic!("'{requirement}' erroneously parsed as VersionRequirement")
+///     };
+///
+///     let (test_name, _guard) = configure_insta();
+///     assert_snapshot!(test_name, err_msg.to_string());
+/// }
+#[cfg(test)]
+// We ignore `expect_fun_call`, as this is test code and more this makes it significantly
+// more convenient/easier to read.
+#[allow(clippy::expect_fun_call)]
+fn configure_insta() -> (String, insta::internals::SettingsBindDropGuard) {
+    // Get the full thread name, which is pretty much a rust module string
+    // e.g. `version::base::tests::invalid_pkgver::case_4`
+    let thread_name = std::thread::current()
+        .name()
+        .expect("Couldn't determine test thread name!!")
+        .to_string();
+
+    let (mut rest, mut end) = thread_name.rsplit_once("::").expect(&format!(
+        "Test thread name does not have an expected first level: {thread_name}"
+    ));
+
+    // If we're inside an rstest test case, the last section of the test will be something along the
+    // line of `case_4` followed by an optional test case name.
+    //
+    // Otherwise, it's the name of the test function.
+    let mut test_case_name: Option<String> = None;
+    let function_name = if end.contains("case") {
+        test_case_name = Some(end.to_string());
+
+        // The next part will then be the actual test name
+        (rest, end) = rest.rsplit_once("::").expect(&format!(
+            "Test thread name does not have an expected second level: {thread_name}"
+        ));
+
+        end.to_string()
+    } else {
+        end.to_string()
+    };
+
+    // Now get the module name which contains the test function.
+    let module_name = loop {
+        (rest, end) = match rest.rsplit_once("::") {
+            Some(split) => split,
+            // Handle the case that we reached the topmost module.
+            None => break rest.to_string(),
+        };
+
+        // Ignore any *test* modules, as those are not interesting for us.
+        if !end.contains("test") {
+            break end.to_string();
+        };
+    };
+
+    let mut settings = insta::Settings::clone_current();
+    settings.set_prepend_module_to_snapshot(false);
+    // If we're inside a testcase, set the case name as a suffix.
+    if let Some(test_case_name) = test_case_name {
+        settings.set_snapshot_suffix(test_case_name.to_string());
+    }
+
+    // Since we're test parsers, the expression is always generic and only clutters the output.
+    // The expression that's needed for context is always fully visible in the actual error message.
+    settings.set_omit_expression(true);
+    let guard = settings.bind_to_scope();
+
+    // Return the cargo insta test name for usage in the `assert_snapshot` function.
+    (format!("{module_name}::{function_name}"), guard)
+}

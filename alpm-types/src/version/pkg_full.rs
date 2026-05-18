@@ -333,12 +333,14 @@ impl From<&FullVersion> for Version {
 
 #[cfg(test)]
 mod tests {
+    use insta::assert_snapshot;
     use log::{LevelFilter, debug};
     use rstest::rstest;
     use simplelog::{ColorChoice, Config, TermLogger, TerminalMode};
     use testresult::TestResult;
 
     use super::*;
+    use crate::configure_insta;
 
     /// Initialize a logger that shows trace messages on stderr.
     fn init_logger() {
@@ -389,54 +391,26 @@ mod tests {
 
     /// Ensures that invalid [`FullVersion`] strings lead to parse errors.
     #[rstest]
-    #[case::two_pkgrel("1:foo-1-1", "expected end of package release value")]
-    #[case::two_epoch("1:1:foo-1", "invalid pkgver character")]
-    #[case::empty_string(
-        "",
-        "expected alpm-pkgver string, followed by a '-' and an alpm-pkgrel string"
-    )]
-    #[case::colon(
-        ":",
-        "expected alpm-pkgver string, followed by a '-' and an alpm-pkgrel string"
-    )]
-    #[case::dot(
-        ".",
-        "expected alpm-pkgver string, followed by a '-' and an alpm-pkgrel string"
-    )]
-    #[case::no_pkgrel_with_epoch(
-        "1:1.0.0",
-        "expected alpm-pkgver string, followed by a '-' and an alpm-pkgrel string"
-    )]
-    #[case::no_pkgrel(
-        "1.0.0",
-        "expected alpm-pkgver string, followed by a '-' and an alpm-pkgrel string"
-    )]
-    #[case::no_pkgrel_dash_end(
-        "1.0.0-",
-        "invalid package release\nexpected positive decimal integer, alpm-pkgrel string"
-    )]
-    #[case::starts_with_dash(
-        "-1foo:1",
-        "invalid package epoch\nexpected positive non-zero decimal integer, followed by a ':'"
-    )]
-    #[case::ends_with_colon(
-        "1-foo:",
-        "invalid package epoch\nexpected positive non-zero decimal integer, followed by a ':'"
-    )]
-    #[case::ends_with_colon_number(
-        "1-foo:1",
-        "invalid package epoch\nexpected positive non-zero decimal integer, followed by a ':'"
-    )]
-    fn parse_error_in_full_version_from_string(#[case] version: &str, #[case] err_snippet: &str) {
+    #[case::two_pkgrel("1:foo-1-1")]
+    #[case::two_epoch("1:1:foo-1")]
+    #[case::empty_string("")]
+    #[case::colon(":")]
+    #[case::dot(".")]
+    #[case::no_pkgrel_with_epoch("1:1.0.0")]
+    #[case::no_pkgrel("1.0.0")]
+    #[case::no_pkgrel_dash_end("1.0.0-")]
+    #[case::starts_with_dash("-1foo:1")]
+    #[case::ends_with_colon("1-foo:")]
+    #[case::ends_with_colon_number("1-foo:1")]
+    fn parse_error_in_full_version_from_string(#[case] version: &str) {
         init_logger();
 
         let Err(Error::ParseError(err_msg)) = FullVersion::from_str(version) else {
             panic!("parsing '{version}' as FullVersion did not fail as expected")
         };
-        assert!(
-            err_msg.contains(err_snippet),
-            "Error:\n=====\n{err_msg}\n=====\nshould contain snippet:\n\n{err_snippet}"
-        );
+
+        let (test_name, _guard) = configure_insta();
+        assert_snapshot!(test_name, err_msg.to_string());
     }
 
     /// Ensures that [`FullVersion`] can be created from valid/compatible [`Version`] (and

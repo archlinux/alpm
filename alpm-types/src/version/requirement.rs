@@ -452,10 +452,13 @@ impl FromStr for VersionComparison {
 
 #[cfg(test)]
 mod tests {
+    use insta::assert_snapshot;
     use rstest::rstest;
     use testresult::TestResult;
 
     use super::*;
+    use crate::configure_insta;
+
     /// Ensure that valid version comparison strings can be parsed.
     #[rstest]
     #[case("<", VersionComparison::Less)]
@@ -469,21 +472,17 @@ mod tests {
 
     /// Ensure that invalid version comparisons will throw an error.
     #[rstest]
-    #[case("", "invalid comparison operator")]
-    #[case("<<", "invalid comparison operator")]
-    #[case("==", "invalid comparison operator")]
-    #[case("!=", "invalid comparison operator")]
-    #[case(" =", "invalid comparison operator")]
-    #[case("= ", "invalid comparison operator")]
-    #[case("<1", "invalid comparison operator")]
-    fn invalid_version_comparison(#[case] comparison: &str, #[case] err_snippet: &str) {
-        let Err(Error::ParseError(err_msg)) = VersionComparison::from_str(comparison) else {
+    #[case("")]
+    #[case("<<")]
+    #[case("==")]
+    #[case("!=")]
+    #[case(" =")]
+    #[case("= ")]
+    #[case("<1")]
+    fn invalid_version_comparison(#[case] comparison: &str) {
+        let Err(Error::ParseError(_)) = VersionComparison::from_str(comparison) else {
             panic!("'{comparison}' did not fail as expected")
         };
-        assert!(
-            err_msg.contains(err_snippet),
-            "Error:\n=====\n{err_msg}\n=====\nshould contain snippet:\n\n{err_snippet}"
-        );
     }
 
     /// Test successful parsing for version requirement strings.
@@ -509,33 +508,18 @@ mod tests {
     }
 
     #[rstest]
-    #[case::bad_operator("<>3.1", "invalid comparison operator")]
-    #[case::no_operator("3.1", "expected version comparison operator")]
-    #[case::arrow_operator("=>3.1", "invalid comparison operator")]
-    #[case::no_version("<=", "expected pkgver string")]
-    fn invalid_version_requirement(#[case] requirement: &str, #[case] err_snippet: &str) {
+    #[case::bad_operator("<>3.1")]
+    #[case::no_operator("3.1")]
+    #[case::arrow_operator("=>3.1")]
+    #[case::no_version("<=")]
+    #[case::invalid_pkgver("<3.1>3.2")]
+    fn invalid_version_requirement(#[case] requirement: &str) {
         let Err(Error::ParseError(err_msg)) = VersionRequirement::from_str(requirement) else {
             panic!("'{requirement}' erroneously parsed as VersionRequirement")
         };
-        assert!(
-            err_msg.contains(err_snippet),
-            "Error:\n=====\n{err_msg}\n=====\nshould contain snippet:\n\n{err_snippet}"
-        );
-    }
 
-    #[rstest]
-    #[case("<3.1>3.2", "invalid pkgver character")]
-    fn invalid_version_requirement_pkgver_parse(
-        #[case] requirement: &str,
-        #[case] err_snippet: &str,
-    ) {
-        let Err(Error::ParseError(err_msg)) = VersionRequirement::from_str(requirement) else {
-            panic!("'{requirement}' erroneously parsed as VersionRequirement")
-        };
-        assert!(
-            err_msg.contains(err_snippet),
-            "Error:\n=====\n{err_msg}\n=====\nshould contain snippet:\n\n{err_snippet}"
-        );
+        let (test_name, _guard) = configure_insta();
+        assert_snapshot!(test_name, err_msg.to_string());
     }
 
     /// Check whether a version requirement (>= 1.0) is fulfilled by a given version string.

@@ -1,0 +1,7 @@
+---
+source: alpm-types/src/version/base.rs
+---
+1:foo
+ ^
+invalid pkgver character
+expected an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace characters

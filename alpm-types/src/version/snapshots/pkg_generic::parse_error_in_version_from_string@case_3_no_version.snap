@@ -1,0 +1,6 @@
+---
+source: alpm-types/src/version/pkg_generic.rs
+---
+
+^
+expected pkgver string

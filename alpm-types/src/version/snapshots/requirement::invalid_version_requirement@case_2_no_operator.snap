@@ -1,0 +1,6 @@
+---
+source: alpm-types/src/version/requirement.rs
+---
+3.1
+^
+expected version comparison operator

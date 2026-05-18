@@ -146,50 +146,64 @@ impl Display for BuildToolVersion {
 
 #[cfg(test)]
 mod tests {
+    use insta::assert_snapshot;
     use rstest::rstest;
     use testresult::TestResult;
 
     use super::*;
+    use crate::configure_insta;
 
     /// Ensure that valid strings are correctly parsed as [`BuildToolVersion`] and invalid ones lead
     /// to an [`Error`].
     #[rstest]
     #[case::devtools_full(
         "1.0.0-1-any",
-        Ok(BuildToolVersion::DevTools{version: FullVersion::from_str("1.0.0-1")?, architecture: Architecture::from_str("any")?}),
+        BuildToolVersion::DevTools{version: FullVersion::from_str("1.0.0-1")?, architecture: Architecture::from_str("any")?},
     )]
     #[case::devtools_full_with_epoch(
         "1:1.0.0-1-any",
-        Ok(BuildToolVersion::DevTools{version: FullVersion::from_str("1:1.0.0-1")?, architecture: Architecture::from_str("any")?}),
+        BuildToolVersion::DevTools{version: FullVersion::from_str("1:1.0.0-1")?, architecture: Architecture::from_str("any")?},
     )]
     #[case::makepkg_minimal(
         "1.0.0",
-        Ok(BuildToolVersion::Makepkg(MinimalVersion::from_str("1.0.0")?)),
+        BuildToolVersion::Makepkg(MinimalVersion::from_str("1.0.0")?),
     )]
     #[case::makepkg_minimal_with_epoch(
         "1:1.0.0",
-        Ok(BuildToolVersion::Makepkg(MinimalVersion::from_str("1:1.0.0")?)),
+        BuildToolVersion::Makepkg(MinimalVersion::from_str("1:1.0.0")?),
     )]
-    #[case::minimal_version_with_architecture("1.0.0-any",
-        Err(Error::ParseError(
-            "1.0.0\n^\nexpected alpm-pkgver string, followed by a '-' and an alpm-pkgrel string".to_string()
-        ))
-     )]
-    #[case::minimal_version_with_epoch_and_architecture(
-        "1:1.0.0-any",
-        Err(Error::ParseError(
-            "1:1.0.0\n  ^\nexpected alpm-pkgver string, followed by a '-' and an alpm-pkgrel string".to_string()
-        ))
-    )]
-    fn valid_buildtoolver_new(
+    fn valid_buildtool_version(
         #[case] input: &str,
-        #[case] expected: Result<BuildToolVersion, Error>,
+        #[case] expected: BuildToolVersion,
     ) -> TestResult {
-        let parse_result = BuildToolVersion::from_str(input);
+        let version = match BuildToolVersion::from_str(input) {
+            Ok(version) => version,
+            Err(err) => {
+                panic!("Expected BuildToolVersion parsing of string {input} to succeed:\n{err}")
+            }
+        };
+
         assert_eq!(
-            parse_result, expected,
-            "Expected '{expected:?}' when parsing '{input}' but got '{parse_result:?}'"
+            version, expected,
+            "Expected '{expected:#?}' when parsing '{input}' but got '{version:#?}'"
         );
+
+        Ok(())
+    }
+
+    #[rstest]
+    #[case::minimal_version_with_architecture("1.0.0-any")]
+    #[case::minimal_version_with_epoch_and_architecture("1:1.0.0-any")]
+    fn invalid_buildtool_version(#[case] input: &str) -> TestResult {
+        let err = match BuildToolVersion::from_str(input) {
+            Err(err) => err,
+            Ok(_) => {
+                panic!("Expected BuildToolVersion parsing of string {input} to fail")
+            }
+        };
+
+        let (test_name, _guard) = configure_insta();
+        assert_snapshot!(test_name, err.to_string());
 
         Ok(())
     }
@@ -197,35 +211,18 @@ mod tests {
     /// Ensures that [`BuildToolVersion::from_str`] fails on invalid version strings with specific
     /// errors.
     #[rstest]
-    #[case::minimal_version_with_architecture(
-        "1.0.0-any",
-        Error::ParseError(
-            "1.0.0\n^\nexpected alpm-pkgver string, followed by a '-' and an alpm-pkgrel string".to_string()
-        )
-    )]
-    #[case::minimal_version_with_unknown_architecture(
-        "1.0.0-foo",
-        Error::ParseError(
-            "1.0.0\n^\nexpected alpm-pkgver string, followed by a '-' and an alpm-pkgrel string".to_string()
-        )
-    )]
-    fn invalid_buildtoolver_new(#[case] buildtoolver: &str, #[case] expected: Error) {
-        assert_eq!(
-            BuildToolVersion::from_str(buildtoolver),
-            Err(expected),
-            "Expected error during parse of buildtoolver '{buildtoolver}'"
-        );
-    }
-
-    #[rstest]
-    #[case("ß-1-any", "invalid pkgver character")]
-    fn invalid_buildtoolver_badpkgver(#[case] buildtoolver: &str, #[case] err_snippet: &str) {
-        let Err(Error::ParseError(err_msg)) = BuildToolVersion::from_str(buildtoolver) else {
-            panic!("'{buildtoolver}' erroneously parsed as BuildToolVersion")
+    #[case::minimal_version_with_architecture("1.0.0-any")]
+    #[case::minimal_version_with_unknown_architecture("1.0.0-foo")]
+    #[case::bad_package_version("ß-1-any")]
+    fn invalid_buildtoolver_new(#[case] input: &str) {
+        let err = match BuildToolVersion::from_str(input) {
+            Err(err) => err,
+            Ok(_) => {
+                panic!("Expected BuildToolVersion parsing of string {input} to fail")
+            }
         };
-        assert!(
-            err_msg.contains(err_snippet),
-            "Error:\n=====\n{err_msg}\n=====\nshould contain snippet:\n\n{err_snippet}"
-        );
+
+        let (test_name, _guard) = configure_insta();
+        assert_snapshot!(test_name, err.to_string());
     }
 }
