@@ -3,4 +3,5 @@ source: alpm-types/src/version/pkg_full.rs
 ---
 
 ^
-expected alpm-pkgver string, followed by a '-' and an alpm-pkgrel string
+invalid alpm-pkgver character
+expected an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace characters

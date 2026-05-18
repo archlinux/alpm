@@ -8,13 +8,14 @@ use std::{
     str::FromStr,
 };
 
+use alpm_parsers::traits::{AlpmParser, ParserUntil, ParserUntilInclusive};
 use fluent_i18n::t;
 use serde::{Deserialize, Serialize};
 use winnow::{
     ModalResult,
     Parser,
-    combinator::{cut_err, eof},
-    error::{StrContext, StrContextValue},
+    combinator::opt,
+    error::{ContextError, ErrMode, StrContext, StrContextValue},
 };
 
 use crate::{Epoch, Error, PackageVersion, Version};
@@ -127,39 +128,42 @@ impl MinimalVersion {
             Ordering::Greater => 1,
         }
     }
+}
 
+impl AlpmParser for MinimalVersion {
     /// Recognizes a [`MinimalVersion`] in a string slice.
-    ///
-    /// Consumes all of its input.
     ///
     /// # Errors
     ///
-    /// Returns an error if `input` is not a valid [alpm-package-version] (_full_ or _full with
-    /// epoch_).
+    /// Returns an error if `input` does not begin with a valid [alpm-package-version] (_minimal_ or
+    /// _minimal with epoch_).
     ///
     /// [alpm-package-version]: https://alpm.archlinux.page/specifications/alpm-package-version.7.html
-    pub fn parser(input: &mut &str) -> ModalResult<Self> {
-        // Parse an optional, which advances the cursor until after a ':', e.g.:
+    fn parser(input: &mut &str) -> ModalResult<Self> {
+        // Parse an optional epoch, which advances the cursor until after a ':', e.g.:
         // "1:1.0.0" -> "1.0.0"
         //
         // If no epoch exists, the cursor does not move.
-        let epoch = Epoch::parse_optional_until_inclusive_colon.parse_next(input)?;
+        let epoch = opt(Epoch::parser_until_inclusive(":")).parse_next(input)?;
 
-        // Advance the parser until the next '-', e.g.:
-        // "1.0.0-1" -> "-1"
-        let pkgver: PackageVersion = cut_err(PackageVersion::parser)
-            .context(StrContext::Expected(StrContextValue::Description(
-                "alpm-pkgver string",
-            )))
-            .parse_next(input)?;
-
-        // Ensure that there are no trailing chars left.
-        eof.context(StrContext::Expected(StrContextValue::Description(
-            "end of full alpm-package-version string",
-        )))
-        .parse_next(input)?;
+        // Parse the remaining chars
+        // "1.0.0" -> ""
+        let pkgver: PackageVersion = PackageVersion::parser.parse_next(input)?;
 
         Ok(Self { epoch, pkgver })
+    }
+
+    fn delimiter_error_context<'a, O, P>(
+        parser: P,
+    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    where
+        P: Parser<&'a str, O, ErrMode<ContextError>>,
+    {
+        parser
+            .context(StrContext::Label("minimal alpm-package-version"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "the package version to end with an alpm-pkgver",
+            )))
     }
 }
 
@@ -184,7 +188,7 @@ impl FromStr for MinimalVersion {
     ///
     /// Returns an error if [`Version::parser`] fails.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser.parse(s)?)
+        Ok(Self::parser_until_eof.parse(s)?)
     }
 }
 

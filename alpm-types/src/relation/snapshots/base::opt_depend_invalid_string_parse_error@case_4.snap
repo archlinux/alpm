@@ -5,5 +5,3 @@ parse error at line 1, column 15
   |
 1 | dep-name>=10: 
   |               ^
-invalid optional dependency description
-expected no carriage returns or newlines
