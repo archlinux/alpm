@@ -2,6 +2,6 @@
 source: alpm-types/src/version/pkg_generic.rs
 ---
 1:1:foo-1
-  ^
-invalid pkgver character
-expected an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace characters
+   ^
+invalid alpm-package-version
+expected end of the version string

@@ -6,14 +6,13 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::traits::AlpmParser;
+use alpm_parsers::traits::{AlpmParser, ParserUntil, ParserUntilInclusive};
 use serde::{Deserialize, Serialize};
 use winnow::{
     ModalResult,
     Parser,
-    combinator::{cut_err, eof, opt, preceded, seq},
-    error::{StrContext, StrContextValue},
-    token::take_till,
+    combinator::opt,
+    error::{ContextError, ErrMode, StrContext, StrContextValue},
 };
 
 use crate::{Epoch, Error, PackageRelease, PackageVersion};
@@ -110,7 +109,9 @@ impl Version {
             Ordering::Greater => 1,
         }
     }
+}
 
+impl AlpmParser for Version {
     /// Recognizes a [`Version`] in a string slice.
     ///
     /// Consumes all of its input.
@@ -118,17 +119,46 @@ impl Version {
     /// # Errors
     ///
     /// Returns an error if `input` is not a valid _alpm-package-version_.
-    pub fn parser(input: &mut &str) -> ModalResult<Self> {
-        seq!(Self {
-            epoch: Epoch::parse_optional_until_inclusive_colon,
-            pkgver: take_till(1.., '-')
-                // this context will trigger on empty pkgver due to 1.. above
-                .context(StrContext::Expected(StrContextValue::Description("pkgver string")))
-                .and_then(PackageVersion::parser),
-            pkgrel: opt(preceded('-', cut_err(PackageRelease::parser))),
-            _: eof.context(StrContext::Expected(StrContextValue::Description("end of version string"))),
+    fn parser(input: &mut &str) -> ModalResult<Self> {
+        // Parse an optional epoch, which advances the cursor until after a ':', e.g.:
+        // "1:1.0.0-1" -> "1.0.0-1"
+        //
+        // If no epoch exists, the cursor does not move.
+        let epoch = opt(Epoch::parser_until_inclusive(":")).parse_next(input)?;
+
+        // Advance the parser until the next '-', e.g.:
+        // "1.0.0-1" -> "-1"
+        let pkgver = PackageVersion::parser.parse_next(input)?;
+
+        // Parse an optional PackageRelease, e.g.:
+        // "-1" -> ""
+        //
+        // If an `-` is found, the PackageRelease is expected and must exist
+        let delimiter = opt('-').parse_next(input)?;
+        let pkgrel = if delimiter.is_some() {
+            Some(PackageRelease::parser.parse_next(input)?)
+        } else {
+            None
+        };
+
+        Ok(Self {
+            epoch,
+            pkgver,
+            pkgrel,
         })
-        .parse_next(input)
+    }
+
+    fn delimiter_error_context<'a, O, P>(
+        parser: P,
+    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    where
+        P: Parser<&'a str, O, ErrMode<ContextError>>,
+    {
+        parser
+            .context(StrContext::Label("alpm-package-version"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "end of the version string",
+            )))
     }
 }
 
@@ -142,7 +172,7 @@ impl FromStr for Version {
     ///
     /// Returns an error if [`Version::parser`] fails.
     fn from_str(s: &str) -> Result<Version, Self::Err> {
-        Ok(Self::parser.parse(s)?)
+        Ok(Self::parser_until_eof.parse(s)?)
     }
 }
 

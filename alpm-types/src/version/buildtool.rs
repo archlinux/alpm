@@ -5,7 +5,14 @@ use std::{
     str::FromStr,
 };
 
+use alpm_parsers::traits::{AlpmParser, ParserUntil};
 use serde::Serialize;
+use winnow::{
+    Parser,
+    combinator::opt,
+    error::{ContextError, ErrMode, StrContext, StrContextValue},
+    prelude::ModalResult,
+};
 
 #[cfg(doc)]
 use crate::BuildTool;
@@ -109,6 +116,58 @@ impl BuildToolVersion {
     }
 }
 
+impl AlpmParser for BuildToolVersion {
+    /// Recognizes a [`BuildToolVersion`] in a string slice.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the immediate start of the `input` does not a contain a valid
+    /// `BuildToolVersion`.
+    fn parser(input: &mut &str) -> ModalResult<Self> {
+        // The start can either be:
+        // - A minimal version (no pkgrel, thereby shorter)
+        // - A full version together with an `-` and an architecture.
+        //
+        // Since the FullVersion is longer, we can use it to determine what kind of input we can
+        // expect.
+        let full_version = opt(FullVersion::parser).parse_next(input)?;
+
+        if let Some(version) = full_version {
+            "-".context(StrContext::Label("buildtool version"))
+                .context(StrContext::Expected(StrContextValue::Description(
+                    "'-' delimiter between full alpm-package-version and alpm-architecture",
+                )))
+                .parse_next(input)?;
+
+            let architecture = Architecture::parser.parse_next(input)?;
+            return Ok(BuildToolVersion::DevTools {
+                version,
+                architecture,
+            });
+        }
+
+        let minimal_version =  MinimalVersion::parser
+            .context(StrContext::Label("buildtool version"))
+            .context(StrContext::Expected(StrContextValue::Description("a stand-alone minimal alpm-package-version")))
+            .context(StrContext::Expected(StrContextValue::Description("or a full alpm-package-version together with a alpm-architecture, delimited by a '-'")))
+            .parse_next(input)?;
+
+        Ok(BuildToolVersion::Makepkg(minimal_version))
+    }
+
+    fn delimiter_error_context<'a, O, P>(
+        parser: P,
+    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    where
+        P: Parser<&'a str, O, ErrMode<ContextError>>,
+    {
+        parser
+            .context(StrContext::Label("buildtool version"))
+            .context(StrContext::Expected(StrContextValue::Description("a stand-alone minimal alpm-package-version")))
+            .context(StrContext::Expected(StrContextValue::Description("or a full alpm-package-version together with a alpm-architecture, delimited by a '-'")))
+    }
+}
+
 impl FromStr for BuildToolVersion {
     type Err = Error;
     /// Creates a [`BuildToolVersion`] from a string slice.
@@ -122,13 +181,7 @@ impl FromStr for BuildToolVersion {
     ///   the left-hand side is not a valid [`FullVersion`] or the right hand side is not a valid
     ///   [`Architecture`].
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.rsplit_once('-') {
-            Some((version, architecture)) => Ok(BuildToolVersion::DevTools {
-                version: FullVersion::from_str(version)?,
-                architecture: Architecture::from_str(architecture)?,
-            }),
-            None => Ok(BuildToolVersion::Makepkg(MinimalVersion::from_str(s)?)),
-        }
+        Ok(Self::parser_until_eof.parse(s)?)
     }
 }
 
@@ -192,8 +245,9 @@ mod tests {
     }
 
     #[rstest]
-    #[case::minimal_version_with_architecture("1.0.0-any")]
+    #[case::full_version_with_architecture("1.0.0-any")]
     #[case::minimal_version_with_epoch_and_architecture("1:1.0.0-any")]
+    #[case::bad_package_version("ß-1-any")]
     fn invalid_buildtool_version(#[case] input: &str) -> TestResult {
         let err = match BuildToolVersion::from_str(input) {
             Err(err) => err,
@@ -206,23 +260,5 @@ mod tests {
         assert_snapshot!(test_name, err.to_string());
 
         Ok(())
-    }
-
-    /// Ensures that [`BuildToolVersion::from_str`] fails on invalid version strings with specific
-    /// errors.
-    #[rstest]
-    #[case::minimal_version_with_architecture("1.0.0-any")]
-    #[case::minimal_version_with_unknown_architecture("1.0.0-foo")]
-    #[case::bad_package_version("ß-1-any")]
-    fn invalid_buildtoolver_new(#[case] input: &str) {
-        let err = match BuildToolVersion::from_str(input) {
-            Err(err) => err,
-            Ok(_) => {
-                panic!("Expected BuildToolVersion parsing of string {input} to fail")
-            }
-        };
-
-        let (test_name, _guard) = configure_insta();
-        assert_snapshot!(test_name, err.to_string());
     }
 }

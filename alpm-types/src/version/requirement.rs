@@ -6,15 +6,18 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::iter_str_context;
+use alpm_parsers::{
+    iter_str_context,
+    traits::{AlpmParser, ParserUntil},
+};
 use serde::{Deserialize, Serialize};
 use strum::VariantNames;
 use winnow::{
     ModalResult,
     Parser,
-    combinator::{alt, eof, fail, seq},
-    error::{StrContext, StrContextValue},
-    token::take_while,
+    combinator::{alt, fail, opt, peek, seq},
+    error::{ContextError, ErrMode, StrContext, StrContextValue},
+    token::one_of,
 };
 
 use crate::{Error, Version};
@@ -96,26 +99,6 @@ impl VersionRequirement {
         };
         self.comparison
             .is_compatible_with(other_version.cmp(&self.version))
-    }
-
-    /// Recognizes a [`VersionRequirement`] in a string slice.
-    ///
-    /// Consumes all of its input.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if `input` is not a valid _alpm-comparison_.
-    pub fn parser(input: &mut &str) -> ModalResult<Self> {
-        seq!(Self {
-            comparison: take_while(1.., ('<', '>', '='))
-                // add context here because otherwise take_while can fail and provide no information
-                .context(StrContext::Expected(StrContextValue::Description(
-                    "version comparison operator"
-                )))
-                .and_then(VersionComparison::parser),
-            version: Version::parser,
-        })
-        .parse_next(input)
     }
 
     /// Checks whether another [`VersionRequirement`] forms an intersection with this one.
@@ -316,6 +299,35 @@ impl VersionRequirement {
     }
 }
 
+impl AlpmParser for VersionRequirement {
+    /// Recognizes a [`VersionRequirement`] in a string slice.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the immediate start of `input` does not a contain a valid
+    /// VersionRequirement.
+    fn parser(input: &mut &str) -> ModalResult<Self> {
+        seq!(Self {
+            comparison: VersionComparison::parser,
+            version: Version::parser,
+        })
+        .parse_next(input)
+    }
+
+    fn delimiter_error_context<'a, O, P>(
+        parser: P,
+    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    where
+        P: Parser<&'a str, O, ErrMode<ContextError>>,
+    {
+        parser
+            .context(StrContext::Label("version requirement"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "end of version requirement.",
+            )))
+    }
+}
+
 impl Display for VersionRequirement {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}{}", self.comparison, self.version)
@@ -333,7 +345,7 @@ impl FromStr for VersionRequirement {
     ///
     /// Returns an error if [`VersionRequirement::parser`] fails.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser.parse(s)?)
+        Ok(Self::parser_until_eof.parse(s)?)
     }
 }
 
@@ -412,26 +424,56 @@ impl VersionComparison {
             | (VersionComparison::Greater, Ordering::Less | Ordering::Equal) => false,
         }
     }
+}
 
+impl AlpmParser for VersionComparison {
     /// Recognizes a [`VersionComparison`] in a string slice.
-    ///
-    /// Consumes all of its input.
     ///
     /// # Errors
     ///
-    /// Returns an error if `input` is not a valid _alpm-comparison_.
-    pub fn parser(input: &mut &str) -> ModalResult<Self> {
-        alt((
-            // insert eofs here (instead of after alt call) so correct error message is thrown
-            ("<=", eof).value(Self::LessOrEqual),
-            (">=", eof).value(Self::GreaterOrEqual),
-            ("=", eof).value(Self::Equal),
-            ("<", eof).value(Self::Less),
-            (">", eof).value(Self::Greater),
+    /// Returns an error if the immediate start of `input` does not contain a valid
+    /// _alpm-comparison_, **or** if the immediate start of `input` contains a valid
+    /// _alpm-comparison_, but is then followed by any further comparison character (`<`, `>`,
+    /// `=`).
+    fn parser(input: &mut &str) -> ModalResult<Self> {
+        // Consume the long expressions first!
+        // Otherwise, we would terminate early and not conta
+        let variant = opt(alt((
+            "<=".value(Self::LessOrEqual),
+            ">=".value(Self::GreaterOrEqual),
+            "=".value(Self::Equal),
+            "<".value(Self::Less),
+            ">".value(Self::Greater),
+        )))
+        .parse_next(input)?;
+
+        if let Some(variant) = variant {
+            // We found a valid variant in the beginning of the input.
+            // Now, make sure that there's not another comparison character following up.
+            let invalid_char = peek(opt(one_of(('<', '>', '=')))).parse_next(input)?;
+            if invalid_char.is_some() {
+                fail.context(StrContext::Label("comparison operator"))
+                    .context_with(iter_str_context!([VersionComparison::VARIANTS]))
+                    .parse_next(input)?;
+            }
+
+            Ok(variant)
+        } else {
             fail.context(StrContext::Label("comparison operator"))
-                .context_with(iter_str_context!([VersionComparison::VARIANTS])),
-        ))
-        .parse_next(input)
+                .context_with(iter_str_context!([VersionComparison::VARIANTS]))
+                .parse_next(input)
+        }
+    }
+
+    fn delimiter_error_context<'a, O, P>(
+        parser: P,
+    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    where
+        P: Parser<&'a str, O, ErrMode<ContextError>>,
+    {
+        parser
+            .context(StrContext::Label("comparison operator"))
+            .context_with(iter_str_context!([VersionComparison::VARIANTS]))
     }
 }
 
@@ -446,7 +488,7 @@ impl FromStr for VersionComparison {
     ///
     /// Returns an error if [`VersionComparison::parser`] fails.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser.parse(s)?)
+        Ok(Self::parser_until_eof.parse(s)?)
     }
 }
 
