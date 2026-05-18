@@ -15,15 +15,15 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::traits::{AlpmParser, ParserUntil, ParserUntilInclusive};
+use alpm_parsers::traits::{AlpmParser, ParserUntil};
 use serde::{Deserialize, Serialize};
 use winnow::{
     ModalResult,
     Parser,
     ascii::{dec_uint, digit1},
-    combinator::{Repeat, cut_err, eof, opt, peek, preceded, repeat, seq, terminated},
+    combinator::opt,
     error::{ContextError, ErrMode, StrContext, StrContextValue},
-    token::{one_of, take_till},
+    token::take_while,
 };
 
 #[cfg(doc)]
@@ -57,40 +57,6 @@ impl Epoch {
     /// Create a new Epoch
     pub fn new(epoch: NonZeroUsize) -> Self {
         Epoch(epoch)
-    }
-
-    /// This parser is a common parser helper that handles epochs in versions.
-    ///
-    /// In all of Alpm's package versions, the epoch is an optional prefix to the version, followed
-    /// by a colon `':'`, which is exactly what this parser checks for.
-    ///
-    /// 1. Checks if there's a colon in the input **up to** the next newline. Otherwise it might
-    ///    scan the whole input, which might be a file.
-    /// 2. If a colon is found, begin parsing of the Epoch
-    /// 3. Once the Epoch parser has finished (and succeeded), expect a `:`.
-    pub fn parse_optional_until_inclusive_colon(input: &mut &str) -> ModalResult<Option<Self>> {
-        // Check if there's a ':' character, which indicates the presence of an epoch.
-        let has_epoch = peek(opt(terminated(
-            take_till(0.., |c| c == ':' || c == '\n'),
-            ':',
-        )))
-        .parse_next(input)?;
-
-        let epoch = if has_epoch.is_some() {
-            // We know there's an epoch, advance the parser until after a ':', e.g.:
-            // "1:1.0.0-1" -> "1.0.0-1"
-            Some(
-                cut_err(Epoch::parser_until_inclusive(":"))
-                    .context(StrContext::Expected(StrContextValue::Description(
-                        "followed by a ':'",
-                    )))
-                    .parse_next(input)?,
-            )
-        } else {
-            None
-        };
-
-        Ok(epoch)
     }
 }
 
@@ -194,20 +160,30 @@ impl AlpmParser for PackageRelease {
     ///
     /// Returns an error if `input` does not begin with a valid [`PackageRelease`].
     fn parser(input: &mut &str) -> ModalResult<Self> {
-        seq!(Self {
-            major: digit1
+        let major = digit1
+            .try_map(FromStr::from_str)
+            .context(StrContext::Label("package release"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "positive decimal integer",
+            )))
+            .parse_next(input)?;
+
+        // If we find a dot, also expect there to be a minor version number
+        let minor = if opt('.').parse_next(input)?.is_some() {
+            let minor = digit1
                 .try_map(FromStr::from_str)
                 .context(StrContext::Label("package release"))
                 .context(StrContext::Expected(StrContextValue::Description(
-                    "positive decimal integer",
-                ))),
-            minor: opt(preceded('.', cut_err(digit1.try_map(FromStr::from_str))))
-                .context(StrContext::Label("package release"))
-                .context(StrContext::Expected(StrContextValue::Description(
                     "single '.' followed by positive decimal integer",
-                ))),
-        })
-        .parse_next(input)
+                )))
+                .parse_next(input)?;
+
+            Some(minor)
+        } else {
+            None
+        };
+
+        Ok(Self { major, minor })
     }
 
     fn delimiter_error_context<'a, O, P>(
@@ -313,35 +289,42 @@ impl PackageVersion {
     pub fn segments(&self) -> VersionSegments<'_> {
         VersionSegments::new(&self.0)
     }
+}
 
+impl AlpmParser for PackageVersion {
     /// Recognizes a [`PackageVersion`] in a string slice.
-    ///
-    /// Consumes all of its input.
     ///
     /// # Errors
     ///
-    /// Returns an error if `input` is not a valid _alpm-pkgver_.
-    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+    /// Returns an error if `input` does not begin with a valid [alpm-pkgver].
+    ///
+    /// [alpm-pkgver]: https://alpm.archlinux.page/specifications/alpm-pkgver.7.html
+    fn parser(input: &mut &str) -> ModalResult<Self> {
         // General rule for all characters:
         // only ASCII except for ':', '/', '-', '<', '>', '=' or any whitespace
         let allowed = |c: char| {
             c.is_ascii() && ![':', '/', '-', '<', '>', '='].contains(&c) && !c.is_whitespace()
         };
 
-        // note the empty tuple collection to avoid allocation
-        let pkgver: Repeat<_, _, _, (), _> = repeat(1.., one_of(allowed));
-
-        (
-            pkgver,
-            eof
-        )
-            .context(StrContext::Label("pkgver character"))
+        take_while(1.., allowed)
+            .context(StrContext::Label("alpm-pkgver character"))
             .context(StrContext::Expected(StrContextValue::Description(
                 "an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace characters",
             )))
-            .take()
             .map(|s: &str| Self(s.to_string()))
             .parse_next(input)
+    }
+
+    fn delimiter_error_context<'a, O, P>(
+        parser: P,
+    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    where
+        P: Parser<&'a str, O, ErrMode<ContextError>>,
+    {
+        parser.context(StrContext::Label("pkgver character"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "ASCII characters, except for ':', '/', '-', '<', '>', '=', or any whitespace characters",
+            )))
     }
 }
 
@@ -349,7 +332,7 @@ impl FromStr for PackageVersion {
     type Err = Error;
     /// Create a PackageVersion from a string and return it in a Result
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser.parse(s)?)
+        Ok(Self::parser_until_eof.parse(s)?)
     }
 }
 

@@ -1,0 +1,8 @@
+---
+source: alpm-types/src/version/buildtool.rs
+---
+Parser failed with the following error:
+ß-1-any
+^
+invalid alpm-pkgver character
+expected an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace characters, a stand-alone minimal alpm-package-version, or a full alpm-package-version together with a alpm-architecture, delimited by a '-'

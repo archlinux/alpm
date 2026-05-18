@@ -5,5 +5,5 @@ expression: "format!(\"{error}\")"
 ---
 example---x86_64.pkg.tar.zst
         ^
-invalid pkgver character
+invalid alpm-pkgver character
 expected an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace characters

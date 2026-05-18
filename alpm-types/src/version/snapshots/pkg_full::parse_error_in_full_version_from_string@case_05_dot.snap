@@ -2,5 +2,6 @@
 source: alpm-types/src/version/pkg_full.rs
 ---
 .
-^
-expected alpm-pkgver string, followed by a '-' and an alpm-pkgrel string
+ ^
+invalid full alpm-package-version
+expected the '-' delimiter that divides the alpm-pkgver and alpm-pkgrel in a full alpm-package-version

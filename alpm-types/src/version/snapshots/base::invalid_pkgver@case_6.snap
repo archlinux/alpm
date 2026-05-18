@@ -3,5 +3,5 @@ source: alpm-types/src/version/base.rs
 ---
 
 ^
-invalid pkgver character
+invalid alpm-pkgver character
 expected an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace characters
