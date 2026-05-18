@@ -8,5 +8,5 @@ parse error at line 3, column 11
   |
 3 |  pkgver = 🐀1.0.0
   |           ^
-invalid pkgver character
+invalid alpm-pkgver character
 expected an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace characters

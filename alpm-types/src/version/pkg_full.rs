@@ -8,14 +8,13 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::traits::{AlpmParser, ParserUntil};
+use alpm_parsers::traits::{AlpmParser, ParserUntil, ParserUntilInclusive};
 use serde::{Deserialize, Serialize};
 use winnow::{
     ModalResult,
     Parser,
-    combinator::{cut_err, preceded},
+    combinator::opt,
     error::{ContextError, ErrMode, StrContext, StrContextValue},
-    token::take_until,
 };
 
 use crate::{Epoch, Error, PackageRelease, PackageVersion, Version};
@@ -152,24 +151,23 @@ impl AlpmParser for FullVersion {
         // "1:1.0.0-1" -> "1.0.0-1"
         //
         // If no epoch exists, the cursor does not move.
-        let epoch = Epoch::parse_optional_until_inclusive_colon.parse_next(input)?;
+        let epoch = opt(Epoch::parser_until_inclusive(":")).parse_next(input)?;
 
         // Advance the parser until the next '-', e.g.:
         // "1.0.0-1" -> "-1"
-        let pkgver: PackageVersion = cut_err(take_until(0.., "-"))
+        let pkgver: PackageVersion = PackageVersion::parser.parse_next(input)?;
+
+        "-".context(StrContext::Label("full alpm-package-version"))
             .context(StrContext::Expected(StrContextValue::Description(
-                "alpm-pkgver string, followed by a '-' and an alpm-pkgrel string",
+                "the '-' delimiter that divides the alpm-pkgver and alpm-pkgrel in a full alpm-package-version",
             )))
-            .take()
-            .and_then(cut_err(PackageVersion::parser))
             .parse_next(input)?;
 
         // Consume the delimiter '-'
         // "-1" -> "1"
         // and parse everything until eof as a PackageRelease, e.g.:
         // "1" -> ""
-        let pkgrel: PackageRelease =
-            cut_err(preceded("-", PackageRelease::parser)).parse_next(input)?;
+        let pkgrel: PackageRelease = PackageRelease::parser.parse_next(input)?;
 
         Ok(Self {
             epoch,
@@ -185,7 +183,7 @@ impl AlpmParser for FullVersion {
         P: Parser<&'a str, O, ErrMode<ContextError>>,
     {
         parser
-            .context(StrContext::Label("package relation"))
+            .context(StrContext::Label("full alpm-package-version"))
             .context(StrContext::Expected(StrContextValue::Description(
                 "the package version to end with a valid package release",
             )))

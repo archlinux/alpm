@@ -4,4 +4,4 @@ source: alpm-types/src/relation/composite.rs
 lib:libexample.so.10-10
                   ^
 invalid pkgver character
-expected an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace characters
+expected an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace character

@@ -539,8 +539,7 @@ impl PackageBaseProperty {
 
         let property = match keyword {
             PackageBaseKeyword::PkgVer => cut_err(
-                till_line_end
-                    .and_then(PackageVersion::parser)
+                PackageVersion::parser_until_line_ending_inclusive
                     .map(PackageBaseProperty::PackageVersion),
             )
             .parse_next(input)?,

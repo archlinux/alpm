@@ -3,4 +3,5 @@ source: alpm-types/src/version/pkg_generic.rs
 ---
 1:foo-1-1
        ^
-expected end of version string
+invalid alpm-package-version
+expected end of the version string
