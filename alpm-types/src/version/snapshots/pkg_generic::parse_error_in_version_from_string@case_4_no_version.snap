@@ -3,5 +3,5 @@ source: alpm-types/src/version/pkg_generic.rs
 ---
 :
 ^
-invalid package epoch
-expected positive non-zero decimal integer, followed by a ':'
+invalid alpm-pkgver character
+expected an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace characters

@@ -30,6 +30,7 @@ path = [
     "**/.gitignore",
     "**justfile",
     "*.yml",
+    "*/proptest-regressions/**",
     ".cargo/runner.sh",
     ".codespellrc",
     ".gitlab/CODEOWNERS",

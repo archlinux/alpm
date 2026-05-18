@@ -8,13 +8,13 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::traits::ParserUntil;
+use alpm_parsers::traits::{AlpmParser, ParserUntil};
 use serde::{Deserialize, Serialize};
 use winnow::{
     ModalResult,
     Parser,
     ascii::digit1,
-    combinator::{alt, cut_err, eof, fail, peek, repeat, repeat_till},
+    combinator::{alt, cut_err, eof, peek, repeat, repeat_till},
     error::{StrContext, StrContextValue},
     stream::Stream,
     token::{any, rest, take_while},
@@ -51,26 +51,23 @@ impl VersionOrSoname {
     /// recognizing a [`PackageVersion`].
     pub fn parser(input: &mut &str) -> ModalResult<Self> {
         // In the following, we're doing our own `alt` implementation.
-        // The reason for this is that we build our type parsers so that they throw errors
-        // if they encounter unexpected input instead of backtracking.
+        //
+        // First we check if there's a simple shared object name without a version
         let checkpoint = input.checkpoint();
         let soname_result = SharedObjectName::parser.parse_next(input);
         if soname_result.is_ok() {
             let soname = soname_result?;
             return Ok(VersionOrSoname::Soname(soname));
         }
-
         input.reset(&checkpoint);
-        let version_result = rest.and_then(PackageVersion::parser).parse_next(input);
-        if version_result.is_ok() {
-            let version = version_result?;
-            return Ok(VersionOrSoname::Version(version));
-        }
 
-        cut_err(fail)
+        // If the input does not contain a shared object name, we then try to parse a version.
+        PackageVersion::parser
+            .context(StrContext::Label("version or shared object name"))
             .context(StrContext::Expected(StrContextValue::Description(
-                "version or shared object name",
+                "a valid alpm-sonamev1 or alpm-pkgver",
             )))
+            .map(VersionOrSoname::Version)
             .parse_next(input)
     }
 }

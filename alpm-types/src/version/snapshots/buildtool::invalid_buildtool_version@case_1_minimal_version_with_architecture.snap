@@ -1,7 +1,0 @@
----
-source: alpm-types/src/version/buildtool.rs
----
-Parser failed with the following error:
-1.0.0
-^
-expected alpm-pkgver string, followed by a '-' and an alpm-pkgrel string
