@@ -968,6 +968,9 @@ test *options:
             --locked
             --all
             --features cli
+            --no-fail-fast
+            --status-level fail
+            --final-status-level fail
         )
     fi
 
