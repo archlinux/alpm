@@ -1,0 +1,7 @@
+---
+source: alpm-types/src/relation/soname.rs
+---
+lib:libexample.so-abc
+                 ^
+invalid version delimiter
+expected version delimiter `.`

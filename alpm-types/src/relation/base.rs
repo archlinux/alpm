@@ -359,11 +359,12 @@ pub type Group = String;
 
 #[cfg(test)]
 mod tests {
+    use insta::assert_snapshot;
     use proptest::{prop_assert_eq, proptest, test_runner::Config as ProptestConfig};
     use rstest::rstest;
 
     use super::*;
-    use crate::VersionComparison;
+    use crate::{VersionComparison, configure_insta};
 
     const COMPARATOR_REGEX: &str = r"(<|<=|=|>=|>)";
     /// NOTE: [`Epoch`][alpm_types::Epoch] is implicitly constrained by [`std::usize::MAX`].
@@ -598,26 +599,16 @@ mod tests {
     }
 
     #[rstest]
-    #[case(
-        "#invalid-name: this is an example dependency",
-        "invalid first character of package name"
-    )]
-    #[case(": no_name_colon", "invalid first character of package name")]
-    #[case(
-        "name:description with no leading whitespace",
-        "invalid character in package name"
-    )]
-    #[case(
-        "dep-name>=10: \n\ndescription with\rnewlines",
-        "expected no carriage returns or newlines"
-    )]
-    fn opt_depend_invalid_string_parse_error(#[case] input: &str, #[case] err_snippet: &str) {
+    #[case("#invalid-name: this is an example dependency")]
+    #[case(": no_name_colon")]
+    #[case("name:description with no leading whitespace")]
+    #[case("dep-name>=10: \n\ndescription with\rnewlines")]
+    fn opt_depend_invalid_string_parse_error(#[case] input: &str) {
         let Err(Error::ParseError(err_msg)) = OptionalDependency::from_str(input) else {
             panic!("'{input}' did not fail to parse as expected")
         };
-        assert!(
-            err_msg.contains(err_snippet),
-            "Error:\n=====\n{err_msg}\n=====\nshould contain snippet:\n\n{err_snippet}"
-        );
+
+        let (test_name, _guard) = configure_insta();
+        assert_snapshot!(test_name, err_msg.to_string());
     }
 }

@@ -1,0 +1,7 @@
+---
+source: alpm-types/src/relation/composite.rs
+---
+lib:libexample.so-abc
+                 ^
+invalid version delimiter
+expected version delimiter `.`

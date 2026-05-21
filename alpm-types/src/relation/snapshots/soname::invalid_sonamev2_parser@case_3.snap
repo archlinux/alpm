@@ -1,0 +1,7 @@
+---
+source: alpm-types/src/relation/soname.rs
+---
+lib:libexample.so.10-10
+                  ^
+invalid pkgver character
+expected an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace characters

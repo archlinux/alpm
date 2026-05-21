@@ -1,0 +1,6 @@
+---
+source: alpm-types/src/relation/soname.rs
+---
+invalidversion.so=1🐀2-64
+                        ^
+expected version or shared object name

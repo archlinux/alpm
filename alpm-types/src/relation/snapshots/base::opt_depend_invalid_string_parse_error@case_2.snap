@@ -1,0 +1,7 @@
+---
+source: alpm-types/src/relation/base.rs
+---
+: no_name_colon
+^
+invalid first character of name
+expected ASCII alphanumeric character, `_`, `@`, `+`

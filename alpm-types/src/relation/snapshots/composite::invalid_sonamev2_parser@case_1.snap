@@ -1,0 +1,7 @@
+---
+source: alpm-types/src/relation/composite.rs
+---
+libexample.so.1
+               ^
+invalid shared library prefix delimiter
+expected shared library prefix `:`

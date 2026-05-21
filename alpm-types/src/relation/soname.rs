@@ -763,9 +763,11 @@ impl Display for SonameV2 {
 
 #[cfg(test)]
 mod tests {
+    use insta::assert_snapshot;
     use rstest::rstest;
 
     use super::*;
+    use crate::configure_insta;
 
     #[rstest]
     #[case("example.so", SonameV1::Basic("example.so".parse().unwrap()))]
@@ -812,27 +814,19 @@ mod tests {
     }
 
     #[rstest]
-    #[case("noso", "invalid shared object name")]
-    #[case("invalidversion.so=1🐀2-64", "expected version or shared object name")]
-    #[case(
-        "nodelimiter.so=1.64",
-        "expected a version or shared object name, followed by an ELF architecture format"
-    )]
-    #[case(
-        "noarchitecture.so=1-",
-        "expected a version or shared object name, followed by an ELF architecture format"
-    )]
-    #[case("invalidarchitecture.so=1-82", "invalid architecture")]
-    #[case("invalidsoname.so~1.64", "unexpected trailing content")]
-    fn invalid_sonamev1_parser(#[case] input: &str, #[case] error_snippet: &str) {
-        let result = SonameV1::from_str(input);
-        assert!(result.is_err(), "Expected SonameV1 parsing to fail");
-        let err = result.unwrap_err();
-        let pretty_error = err.to_string();
-        assert!(
-            pretty_error.contains(error_snippet),
-            "Error:\n=====\n{pretty_error}\n=====\nshould contain snippet:\n\n{error_snippet}"
-        );
+    #[case("noso")]
+    #[case("invalidversion.so=1🐀2-64")]
+    #[case("nodelimiter.so=1.64")]
+    #[case("noarchitecture.so=1-")]
+    #[case("invalidarchitecture.so=1-82")]
+    #[case("invalidsoname.so~1.64")]
+    fn invalid_sonamev1_parser(#[case] input: &str) {
+        let Err(Error::ParseError(err_msg)) = SonameV1::from_str(input) else {
+            panic!("parsing '{input}' as FullVersion did not fail as expected")
+        };
+
+        let (test_name, _guard) = configure_insta();
+        assert_snapshot!(test_name, err_msg.to_string());
     }
 
     #[rstest]
@@ -918,18 +912,16 @@ mod tests {
     }
 
     #[rstest]
-    #[case("libexample.so.1", "invalid shared library prefix delimiter")]
-    #[case("lib:libexample.so-abc", "invalid version delimiter")]
-    #[case("lib:libexample.so.10-10", "invalid pkgver character")]
-    #[case("lib:libexample.so.1.0.0-64", "invalid pkgver character")]
-    fn invalid_sonamev2_parser(#[case] input: &str, #[case] error_snippet: &str) {
-        let result = SonameV2::from_str(input);
-        assert!(result.is_err(), "Expected SonameV2 parsing to fail");
-        let err = result.unwrap_err();
-        let pretty_error = err.to_string();
-        assert!(
-            pretty_error.contains(error_snippet),
-            "Error:\n=====\n{pretty_error}\n=====\nshould contain snippet:\n\n{error_snippet}"
-        );
+    #[case("libexample.so.1")]
+    #[case("lib:libexample.so-abc")]
+    #[case("lib:libexample.so.10-10")]
+    #[case("lib:libexample.so.1.0.0-64")]
+    fn invalid_sonamev2_parser(#[case] input: &str) {
+        let Err(Error::ParseError(err_msg)) = SonameV2::from_str(input) else {
+            panic!("parsing '{input}' as FullVersion did not fail as expected")
+        };
+
+        let (test_name, _guard) = configure_insta();
+        assert_snapshot!(test_name, err_msg.to_string());
     }
 }

@@ -1,0 +1,7 @@
+---
+source: alpm-types/src/relation/base.rs
+---
+name:description with no leading whitespace
+^
+invalid character in package name
+expected ASCII alphanumeric character, `_`, `@`, `+`, `-`, `.`

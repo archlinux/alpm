@@ -157,26 +157,25 @@ impl FromStr for RelationOrSoname {
 
 #[cfg(test)]
 mod tests {
+    use insta::assert_snapshot;
     use rstest::rstest;
     use testresult::TestResult;
 
     use super::*;
-    use crate::{ElfArchitectureFormat, Soname, VersionOrSoname};
+    use crate::{ElfArchitectureFormat, Soname, VersionOrSoname, configure_insta};
 
     #[rstest]
-    #[case("libexample.so.1", "invalid shared library prefix delimiter")]
-    #[case("lib:libexample.so-abc", "invalid version delimiter")]
-    #[case("lib:libexample.so.10-10", "invalid pkgver character")]
-    #[case("lib:libexample.so.1.0.0-64", "invalid pkgver character")]
-    fn invalid_sonamev2_parser(#[case] input: &str, #[case] error_snippet: &str) {
-        let result = SonameV2::from_str(input);
-        assert!(result.is_err(), "Expected SonameV2 parsing to fail");
-        let err = result.unwrap_err();
-        let pretty_error = err.to_string();
-        assert!(
-            pretty_error.contains(error_snippet),
-            "Error:\n=====\n{pretty_error}\n=====\nshould contain snippet:\n\n{error_snippet}"
-        );
+    #[case("libexample.so.1")]
+    #[case("lib:libexample.so-abc")]
+    #[case("lib:libexample.so.10-10")]
+    #[case("lib:libexample.so.1.0.0-64")]
+    fn invalid_sonamev2_parser(#[case] input: &str) {
+        let Err(Error::ParseError(err_msg)) = SonameV2::from_str(input) else {
+            panic!("'{input}' did not fail to parse as expected")
+        };
+
+        let (test_name, _guard) = configure_insta();
+        assert_snapshot!(test_name, err_msg.to_string());
     }
 
     #[rstest]
@@ -186,7 +185,7 @@ mod tests {
     )]
     #[case(
         "example=1.0.0",
-        RelationOrSoname::Relation(PackageRelation::new("example".parse().unwrap(), "=1.0.0".parse().ok())) 
+        RelationOrSoname::Relation(PackageRelation::new("example".parse().unwrap(), "=1.0.0".parse().ok()))
     )]
     #[case(
         "example>=1.0.0",
