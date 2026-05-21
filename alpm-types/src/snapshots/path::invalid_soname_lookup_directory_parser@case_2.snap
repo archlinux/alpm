@@ -1,0 +1,7 @@
+---
+source: alpm-types/src/path.rs
+---
+lib:
+    ^
+invalid directory
+expected directory for a shared object lookup path

@@ -537,29 +537,22 @@ pub enum ElfArchitectureFormat {
 mod tests {
     use std::str::FromStr;
 
+    use insta::assert_snapshot;
     use rstest::rstest;
     use strum::ParseError;
 
     use super::*;
-
-    // Error message when trying to parse "any" as `SystemArchitecture`
-    const ERROR_ANY: &str = concat!(
-        "any\n",
-        "^\n",
-        "invalid system architecture. 'any' has a special meaning and is not allowed here."
-    );
-
-    // Error message when trying to parse "f oo" as `SystemArchitecture` or `Architecture`
-    const ERROR_FOO: &str = concat!(
-        "f oo\n",
-        " ^\n",
-        "invalid character in system architecture\n",
-        "expected a string containing only ASCII alphanumeric characters and underscores."
-    );
+    use crate::configure_insta;
 
     #[rstest]
-    #[case(SystemArchitecture::Aarch64.into(), Architecture::Some(SystemArchitecture::Aarch64))]
-    #[case(SystemArchitecture::from_str("f_oo").unwrap().into(), Architecture::Some(SystemArchitecture::from_str("f_oo").unwrap()))]
+    #[case(
+        SystemArchitecture::Aarch64.into(),
+        Architecture::Some(SystemArchitecture::Aarch64)
+    )]
+    #[case(
+        SystemArchitecture::from_str("f_oo").unwrap().into(),
+        Architecture::Some(SystemArchitecture::from_str("f_oo").unwrap())
+    )]
     fn system_architecture_into_architecture(
         #[case] left: Architecture,
         #[case] right: Architecture,
@@ -568,15 +561,22 @@ mod tests {
     }
 
     #[rstest]
-    #[case("aarch64", Ok(SystemArchitecture::Aarch64))]
-    #[case("f_oo", UnknownArchitecture::new("f_oo").map(From::from))]
-    #[case("f oo", Err(Error::ParseError(ERROR_FOO.to_string())))]
-    #[case("any", Err(Error::ParseError(ERROR_ANY.to_string())))]
-    fn system_architecture_from_string(
-        #[case] s: &str,
-        #[case] arch: Result<SystemArchitecture, Error>,
-    ) {
-        assert_eq!(SystemArchitecture::from_str(s), arch);
+    #[case("aarch64", SystemArchitecture::Aarch64)]
+    #[case("f_oo", UnknownArchitecture::new("f_oo").unwrap().into())]
+    fn system_architecture_from_string(#[case] s: &str, #[case] arch: SystemArchitecture) {
+        assert_eq!(SystemArchitecture::from_str(s), Ok(arch));
+    }
+
+    #[rstest]
+    #[case("f oo")]
+    #[case("any")]
+    fn invalid_system_architecture_from_string(#[case] input: &str) {
+        let Err(Error::ParseError(err_msg)) = SystemArchitecture::from_str(input) else {
+            panic!("'{input}' erroneously parsed as a SystemArchitecture")
+        };
+
+        let (test_name, _guard) = configure_insta();
+        assert_snapshot!(test_name, err_msg.to_string());
     }
 
     #[rstest]
@@ -587,26 +587,36 @@ mod tests {
     }
 
     #[rstest]
-    #[case("any", Ok(Architecture::Any))]
-    #[case("aarch64", Ok(SystemArchitecture::Aarch64.into()))]
-    #[case("arm", Ok(SystemArchitecture::Arm.into()))]
-    #[case("armv6h", Ok(SystemArchitecture::Armv6h.into()))]
-    #[case("armv7h", Ok(SystemArchitecture::Armv7h.into()))]
-    #[case("i386", Ok(SystemArchitecture::I386.into()))]
-    #[case("i486", Ok(SystemArchitecture::I486.into()))]
-    #[case("i686", Ok(SystemArchitecture::I686.into()))]
-    #[case("pentium4", Ok(SystemArchitecture::Pentium4.into()))]
-    #[case("riscv32", Ok(SystemArchitecture::Riscv32.into()))]
-    #[case("riscv64", Ok(SystemArchitecture::Riscv64.into()))]
-    #[case("x86_64", Ok(SystemArchitecture::X86_64.into()))]
-    #[case("x86_64_v2", Ok(SystemArchitecture::X86_64V2.into()))]
-    #[case("x86_64_v3", Ok(SystemArchitecture::X86_64V3.into()))]
-    #[case("x86_64_v4", Ok(SystemArchitecture::X86_64V4.into()))]
-    #[case("foo", UnknownArchitecture::new("foo").map(From::from))]
-    #[case("f_oo", UnknownArchitecture::new("f_oo").map(From::from))]
-    #[case("f oo", Err(Error::ParseError(ERROR_FOO.to_string())))]
-    fn architecture_from_string(#[case] s: &str, #[case] arch: Result<Architecture, Error>) {
-        assert_eq!(Architecture::from_str(s), arch);
+    #[case("any", Architecture::Any)]
+    #[case("aarch64", SystemArchitecture::Aarch64.into())]
+    #[case("arm", SystemArchitecture::Arm.into())]
+    #[case("armv6h", SystemArchitecture::Armv6h.into())]
+    #[case("armv7h", SystemArchitecture::Armv7h.into())]
+    #[case("i386", SystemArchitecture::I386.into())]
+    #[case("i486", SystemArchitecture::I486.into())]
+    #[case("i686", SystemArchitecture::I686.into())]
+    #[case("pentium4", SystemArchitecture::Pentium4.into())]
+    #[case("riscv32", SystemArchitecture::Riscv32.into())]
+    #[case("riscv64", SystemArchitecture::Riscv64.into())]
+    #[case("x86_64", SystemArchitecture::X86_64.into())]
+    #[case("x86_64_v2", SystemArchitecture::X86_64V2.into())]
+    #[case("x86_64_v3", SystemArchitecture::X86_64V3.into())]
+    #[case("x86_64_v4", SystemArchitecture::X86_64V4.into())]
+    #[case("foo", UnknownArchitecture::new("foo").unwrap().into())]
+    #[case("f_oo", UnknownArchitecture::new("f_oo").unwrap().into())]
+    fn architecture_from_string(#[case] input: &str, #[case] arch: Architecture) {
+        assert_eq!(Architecture::from_str(input), Ok(arch));
+    }
+
+    #[rstest]
+    #[case("f oo")]
+    fn invalid_architecture_from_string(#[case] input: &str) {
+        let Err(Error::ParseError(err_msg)) = Architecture::from_str(input) else {
+            panic!("'{input}' erroneously parsed as a Architecture")
+        };
+
+        let (test_name, _guard) = configure_insta();
+        assert_snapshot!(test_name, err_msg.to_string());
     }
 
     #[rstest]
@@ -619,14 +629,26 @@ mod tests {
 
     #[rstest]
     #[case(vec![Architecture::Any], Ok(Architectures::Any))]
-    #[case(vec![SystemArchitecture::Aarch64.into()], Ok(Architectures::Some(vec![SystemArchitecture::Aarch64])))]
-    #[case(vec![SystemArchitecture::Arm.into(), SystemArchitecture::I386.into()], Ok(Architectures::Some(vec![SystemArchitecture::Arm, SystemArchitecture::I386])))]
+    #[case(
+        vec![SystemArchitecture::Aarch64.into()],
+        Ok(Architectures::Some(vec![SystemArchitecture::Aarch64]))
+    )]
+    #[case(
+        vec![SystemArchitecture::Arm.into(), SystemArchitecture::I386.into()],
+        Ok(Architectures::Some(vec![SystemArchitecture::Arm, SystemArchitecture::I386]))
+    )]
     // Duplicates are allowed (discouraged by linter)
-    #[case(vec![SystemArchitecture::Arm.into(), SystemArchitecture::Arm.into()], Ok(Architectures::Some(vec![SystemArchitecture::Arm, SystemArchitecture::Arm])))]
-    #[case(vec![Architecture::Any, SystemArchitecture::I386.into()], Err(Error::InvalidArchitectures {
-        architectures: vec![Architecture::Any, SystemArchitecture::I386.into()],
-        context: "'any' cannot be used in combination with other architectures.",
-    }))]
+    #[case(
+        vec![SystemArchitecture::Arm.into(), SystemArchitecture::Arm.into()],
+        Ok(Architectures::Some(vec![SystemArchitecture::Arm, SystemArchitecture::Arm]))
+    )]
+    #[case(
+        vec![Architecture::Any, SystemArchitecture::I386.into()],
+        Err(Error::InvalidArchitectures {
+            architectures: vec![Architecture::Any, SystemArchitecture::I386.into()],
+            context: "'any' cannot be used in combination with other architectures.",
+        })
+    )]
     #[case(vec![Architecture::Any, Architecture::Any], Err(Error::InvalidArchitectures {
         architectures: vec![Architecture::Any, Architecture::Any],
         context: "'any' cannot be used in combination with other architectures.",

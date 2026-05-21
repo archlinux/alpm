@@ -1,0 +1,8 @@
+---
+source: alpm-types/src/openpgp.rs
+---
+Parser failed with the following error:
+Foobar McFooface <@mcfooface.org>
+                  ^
+invalid Email address
+Local part is empty.

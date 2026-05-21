@@ -484,10 +484,12 @@ impl Display for Packager {
 
 #[cfg(test)]
 mod tests {
+    use insta::assert_snapshot;
     use rstest::rstest;
     use testresult::TestResult;
 
     use super::*;
+    use crate::configure_insta;
 
     #[rstest]
     #[case("4A0C4DFFC02E1A7ED969ED231C2358A25A10D94E")]
@@ -638,32 +640,20 @@ mod tests {
 
     /// Test that invalid packager expressions are detected as such and throw the expected error.
     #[rstest]
-    #[case::no_name("<foobar@mcfooface.org>", "invalid packager name")]
-    #[case::no_name_and_address_not_wrapped(
-        "foobar@mcfooface.org",
-        "invalid or missing opening delimiter '<' for email address"
-    )]
-    #[case::no_wrapped_address(
-        "Foobar McFooface",
-        "invalid or missing opening delimiter '<' for email address"
-    )]
+    #[case::no_name("<foobar@mcfooface.org>")]
+    #[case::no_name_and_address_not_wrapped("foobar@mcfooface.org")]
+    #[case::no_wrapped_address("Foobar McFooface")]
     #[case::two_wrapped_addresses(
-        "Foobar McFooface <foobar@mcfooface.org> <foobar@mcfoofacemcfooface.org>",
-        "expected end of packager string"
+        "Foobar McFooface <foobar@mcfooface.org> <foobar@mcfoofacemcfooface.org>"
     )]
-    #[case::address_without_local_part("Foobar McFooface <@mcfooface.org>", "Local part is empty")]
-    fn invalid_packager(#[case] packager: &str, #[case] expected_error: &str) -> TestResult {
-        let Err(err) = Packager::from_str(packager) else {
-            panic!("Expected packager string to be invalid: {packager}");
+    #[case::address_without_local_part("Foobar McFooface <@mcfooface.org>")]
+    fn invalid_packager(#[case] input: &str) {
+        let Err(err_msg) = Packager::from_str(input) else {
+            panic!("'{input}' erroneously parsed as a Package")
         };
 
-        let error = err.to_string();
-        assert!(
-            error.contains(expected_error),
-            "Expected error:\n{error}\n\nto contain string:\n{expected_error}"
-        );
-
-        Ok(())
+        let (test_name, _guard) = configure_insta();
+        assert_snapshot!(test_name, err_msg.to_string());
     }
 
     #[rstest]

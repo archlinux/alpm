@@ -632,10 +632,12 @@ impl FixedOutput for Crc32Cksum {
 
 #[cfg(test)]
 mod tests {
+    use insta::assert_snapshot;
     use proptest::prelude::*;
     use rstest::rstest;
 
     use super::*;
+    use crate::configure_insta;
 
     proptest! {
         #![proptest_config(ProptestConfig::with_cases(1000))]
@@ -916,23 +918,20 @@ mod tests {
 
     #[rstest]
     #[case::non_hex_digits(
-        "0cf9180a764aba863a67b6d72f0918bc13gggggg642cb2dce5a34f0a702f9470ddc2bf125c12198b1995c233c34b4afd346c54a2334c350a948a51b6e8b4e6b6",
-        "expected ASCII hex digit"
+        "0cf9180a764aba863a67b6d72f0918bc13gggggg642cb2dce5a34f0a702f9470ddc2bf125c12198b1995c233c34b4afd346c54a2334c350a948a51b6e8b4e6b6"
     )]
-    #[case::incomplete_pair(" b ", "expected ASCII hex digit")]
-    #[case::incomplete_digest("0cf9180a764aba863a67b6d72f0918bca", "expected ASCII hex digit")]
+    #[case::incomplete_pair(" b ")]
+    #[case::incomplete_digest("0cf9180a764aba863a67b6d72f0918bca")]
     #[case::whitespace(
-        "d2 02 d7 95 1d f2 c4 b7 11 ca 44 b4 bc c9 d7 b3 63 fa 42 52 12 7e 05 8c 1a 91 0e c0 5b 6c d0 38 d7 1c c2 12 21 c0 31 c0 35 9f 99 3e 74 6b 07 f5 96 5c f8 c5 c3 74 6a 58 33 7a d9 ab 65 27 8e 77",
-        "expected ASCII hex digit"
+        "d2 02 d7 95 1d f2 c4 b7 11 ca 44 b4 bc c9 d7 b3 63 fa 42 52 12 7e 05 8c 1a 91 0e c0 5b 6c d0 38 d7 1c c2 12 21 c0 31 c0 35 9f 99 3e 74 6b 07 f5 96 5c f8 c5 c3 74 6a 58 33 7a d9 ab 65 27 8e 77"
     )]
-    fn checksum_parse_error(#[case] input: &str, #[case] err_snippet: &str) {
+    fn checksum_parse_error(#[case] input: &str) {
         let Err(Error::ParseError(err_msg)) = Sha512Checksum::from_str(input) else {
-            panic!("'{input}' did not fail to parse as expected")
+            panic!("'{input}' erroneously parsed as Sha512Checksum")
         };
-        assert!(
-            err_msg.contains(err_snippet),
-            "Error:\n=====\n{err_msg}\n=====\nshould contain snippet:\n\n{err_snippet}"
-        );
+
+        let (test_name, _guard) = configure_insta();
+        assert_snapshot!(test_name, err_msg.to_string());
     }
 
     #[rstest]

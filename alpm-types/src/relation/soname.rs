@@ -918,7 +918,7 @@ mod tests {
     #[case("lib:libexample.so.1.0.0-64")]
     fn invalid_sonamev2_parser(#[case] input: &str) {
         let Err(Error::ParseError(err_msg)) = SonameV2::from_str(input) else {
-            panic!("parsing '{input}' as FullVersion did not fail as expected")
+            panic!("'{input}' erroneously parsed as a SonameV2")
         };
 
         let (test_name, _guard) = configure_insta();

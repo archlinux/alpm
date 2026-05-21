@@ -605,7 +605,7 @@ mod tests {
     #[case("dep-name>=10: \n\ndescription with\rnewlines")]
     fn opt_depend_invalid_string_parse_error(#[case] input: &str) {
         let Err(Error::ParseError(err_msg)) = OptionalDependency::from_str(input) else {
-            panic!("'{input}' did not fail to parse as expected")
+            panic!("'{input}' erroneously parsed as a OptionalDependency")
         };
 
         let (test_name, _guard) = configure_insta();

@@ -1,0 +1,7 @@
+---
+source: alpm-types/src/url.rs
+---
+git+https://example/project#revision=v1.0.0?signed
+                            ^
+invalid git revision type
+expected `branch`, `commit`, `tag`

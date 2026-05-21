@@ -1,0 +1,7 @@
+---
+source: alpm-types/src/openpgp.rs
+---
+Parser failed with the following error:
+<foobar@mcfooface.org>
+^
+invalid packager name

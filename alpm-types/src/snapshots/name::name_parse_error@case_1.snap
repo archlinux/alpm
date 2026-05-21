@@ -1,0 +1,7 @@
+---
+source: alpm-types/src/name.rs
+---
+package_name_'''
+             ^
+invalid character in package name
+expected ASCII alphanumeric character, `_`, `@`, `+`, `-`, `.`

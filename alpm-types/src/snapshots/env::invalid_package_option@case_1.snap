@@ -1,0 +1,7 @@
+---
+source: alpm-types/src/env.rs
+---
+!somethingelse
+              ^
+invalid makepkg packaging option
+expected `autodeps`, `debug`, `docs`, `emptydirs`, `libtool`, `lto`, `pestrip`, `purge`, `staticlibs`, `strip`, `zipman`

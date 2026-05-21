@@ -1,0 +1,6 @@
+---
+source: alpm-types/src/url.rs
+---
+git+https://example/project#branch=feature?signed?signed
+                                                 ^
+invalid or duplicate query parameter for detected VCS.

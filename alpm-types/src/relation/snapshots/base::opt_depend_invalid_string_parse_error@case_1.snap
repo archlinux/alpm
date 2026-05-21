@@ -3,5 +3,5 @@ source: alpm-types/src/relation/base.rs
 ---
 #invalid-name: this is an example dependency
 ^
-invalid first character of name
+invalid first character of package name
 expected ASCII alphanumeric character, `_`, `@`, `+`

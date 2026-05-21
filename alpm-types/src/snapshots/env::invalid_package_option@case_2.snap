@@ -1,0 +1,6 @@
+---
+source: alpm-types/src/env.rs
+---
+#somethingelse
+^
+expected `!`, ASCII alphanumeric character, `-`, `.`, `_`, `!`

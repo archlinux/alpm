@@ -1,0 +1,7 @@
+---
+source: alpm-types/src/url.rs
+---
+svn+https://example/project#branch=feature
+                            ^
+invalid svn revision type
+expected revision keyword

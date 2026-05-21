@@ -772,11 +772,12 @@ impl Display for InstalledPackage {
 
 #[cfg(test)]
 mod tests {
+    use insta::assert_snapshot;
     use rstest::rstest;
     use testresult::TestResult;
 
     use super::*;
-    use crate::SystemArchitecture;
+    use crate::{SystemArchitecture, configure_insta};
 
     #[rstest]
     #[case(
@@ -794,26 +795,15 @@ mod tests {
     }
 
     #[rstest]
-    #[case(
-        "!somethingelse",
-        concat!(
-            "expected `buildflags`, `ccache`, `check`, `color`, `distcc`, `sign`, `makeflags`, ",
-            "`autodeps`, `debug`, `docs`, `emptydirs`, `libtool`, `lto`, `pestrip`, `purge`, ",
-            "`staticlibs`, `strip`, `zipman`",
-        )
-    )]
-    #[case(
-        "#somethingelse",
-        "expected `!`, ASCII alphanumeric character, `-`, `.`, `_`"
-    )]
-    fn invalid_makepkg_option(#[case] input: &str, #[case] err_snippet: &str) {
+    #[case("!somethingelse")]
+    #[case("#somethingelse")]
+    fn invalid_makepkg_option(#[case] input: &str) {
         let Err(Error::ParseError(err_msg)) = MakepkgOption::from_str(input) else {
-            panic!("'{input}' erroneously parsed as VersionRequirement")
+            panic!("'{input}' erroneously parsed as MakepkgOption")
         };
-        assert!(
-            err_msg.contains(err_snippet),
-            "Error:\n=====\n{err_msg}\n=====\nshould contain snippet:\n\n{err_snippet}"
-        );
+
+        let (test_name, _guard) = configure_insta();
+        assert_snapshot!(test_name, err_msg.to_string());
     }
 
     #[rstest]
@@ -834,22 +824,15 @@ mod tests {
     }
 
     #[rstest]
-    #[case(
-        "!somethingelse",
-        "expected `autodeps`, `debug`, `docs`, `emptydirs`, `libtool`, `lto`, `pestrip`, `purge`, `staticlibs`, `strip`, `zipman`"
-    )]
-    #[case(
-        "#somethingelse",
-        "expected `!`, ASCII alphanumeric character, `-`, `.`, `_`"
-    )]
-    fn invalid_package_option(#[case] input: &str, #[case] err_snippet: &str) {
+    #[case("!somethingelse")]
+    #[case("#somethingelse")]
+    fn invalid_package_option(#[case] input: &str) {
         let Err(Error::ParseError(err_msg)) = PackageOption::from_str(input) else {
-            panic!("'{input}' erroneously parsed as VersionRequirement")
+            panic!("'{input}' erroneously parsed as PackageOption")
         };
-        assert!(
-            err_msg.contains(err_snippet),
-            "Error:\n=====\n{err_msg}\n=====\nshould contain snippet:\n\n{err_snippet}"
-        );
+
+        let (test_name, _guard) = configure_insta();
+        assert_snapshot!(test_name, err_msg.to_string());
     }
 
     #[rstest]
@@ -867,36 +850,15 @@ mod tests {
     }
 
     #[rstest]
-    #[case(
-        "!somethingelse",
-        "expected `buildflags`, `ccache`, `check`, `color`, `distcc`, `sign`, `makeflags`"
-    )]
-    #[case(
-        "#somethingelse",
-        "expected `!`, ASCII alphanumeric character, `-`, `.`, `_`"
-    )]
-    fn invalid_build_environment_option(#[case] input: &str, #[case] err_snippet: &str) {
+    #[case("!somethingelse")]
+    #[case("#somethingelse")]
+    fn invalid_build_environment_option(#[case] input: &str) {
         let Err(Error::ParseError(err_msg)) = BuildEnvironmentOption::from_str(input) else {
-            panic!("'{input}' erroneously parsed as VersionRequirement")
+            panic!("'{input}' erroneously parsed as BuildEnvironmentOption")
         };
-        assert!(
-            err_msg.contains(err_snippet),
-            "Error:\n=====\n{err_msg}\n=====\nshould contain snippet:\n\n{err_snippet}"
-        );
-    }
 
-    #[rstest]
-    #[case("#test", "invalid character in makepkg option")]
-    #[case("test!", "invalid character in makepkg option")]
-    fn invalid_option(#[case] input: &str, #[case] error_snippet: &str) {
-        let result = option_name_parser.parse(input);
-        assert!(result.is_err(), "Expected makepkg option parsing to fail");
-        let err = result.unwrap_err();
-        let pretty_error = err.to_string();
-        assert!(
-            pretty_error.contains(error_snippet),
-            "Error:\n=====\n{pretty_error}\n=====\nshould contain snippet:\n\n{error_snippet}"
-        );
+        let (test_name, _guard) = configure_insta();
+        assert_snapshot!(test_name, err_msg.to_string());
     }
 
     #[rstest]
@@ -922,25 +884,17 @@ mod tests {
     }
 
     #[rstest]
-    #[case("foo-1:1.0.0-bar-any", "invalid package release")]
-    #[case(
-        "foo-1:1.0.0_any",
-        "expected a package name, followed by an alpm-package-version (full or full with epoch) and an architecture."
-    )]
-    #[case("packagename-30-0.1oops-any", "expected end of package release value")]
-    #[case("package$with$dollars-30-0.1-any", "invalid character in package name")]
-    #[case(
-        "packagename-30-0.1-any*asdf",
-        "invalid character in system architecture"
-    )]
-    fn installed_new_parse_error(#[case] input: &str, #[case] error_snippet: &str) {
-        let result = InstalledPackage::from_str(input);
-        assert!(result.is_err(), "Expected InstalledPackage parsing to fail");
-        let err = result.unwrap_err();
-        let pretty_error = err.to_string();
-        assert!(
-            pretty_error.contains(error_snippet),
-            "Error:\n=====\n{pretty_error}\n=====\nshould contain snippet:\n\n{error_snippet}"
-        );
+    #[case("foo-1:1.0.0-bar-any")]
+    #[case("foo-1:1.0.0_any")]
+    #[case("packagename-30-0.1oops-any")]
+    #[case("package$with$dollars-30-0.1-any")]
+    #[case("packagename-30-0.1-any*asdf")]
+    fn installed_new_parse_error(#[case] input: &str) {
+        let Err(Error::ParseError(err_msg)) = InstalledPackage::from_str(input) else {
+            panic!("'{input}' erroneously parsed as InstalledPackage")
+        };
+
+        let (test_name, _guard) = configure_insta();
+        assert_snapshot!(test_name, err_msg.to_string());
     }
 }

@@ -302,10 +302,12 @@ impl Display for SharedObjectName {
 
 #[cfg(test)]
 mod tests {
+    use insta::assert_snapshot;
     use proptest::prelude::*;
     use rstest::rstest;
 
     use super::*;
+    use crate::configure_insta;
 
     #[rstest]
     #[case(
@@ -344,16 +346,15 @@ mod tests {
     }
 
     #[rstest]
-    #[case("package_name_'''", "invalid character in package name")]
-    #[case("-package_with_leading_hyphen", "invalid first character")]
-    fn name_parse_error(#[case] input: &str, #[case] err_snippet: &str) {
+    #[case("package_name_'''")]
+    #[case("-package_with_leading_hyphen")]
+    fn name_parse_error(#[case] input: &str) {
         let Err(Error::ParseError(err_msg)) = Name::from_str(input) else {
             panic!("'{input}' erroneously parsed as a Name")
         };
-        assert!(
-            err_msg.contains(err_snippet),
-            "Error:\n=====\n{err_msg}\n=====\nshould contain snippet:\n\n{err_snippet}"
-        );
+
+        let (test_name, _guard) = configure_insta();
+        assert_snapshot!(test_name, err_msg.to_string());
     }
 
     proptest! {
@@ -393,16 +394,14 @@ mod tests {
     }
 
     #[rstest]
-    #[case("noso", "expected shared object name suffix '.so'")]
-    #[case("example.so.1", "unexpected trailing content after shared object name")]
-    fn invalid_shared_object_name_parser(#[case] input: &str, #[case] error_snippet: &str) {
-        let result = SharedObjectName::from_str(input);
-        assert!(result.is_err(), "Expected SharedObjectName parsing to fail");
-        let err = result.unwrap_err();
-        let pretty_error = err.to_string();
-        assert!(
-            pretty_error.contains(error_snippet),
-            "Error:\n=====\n{pretty_error}\n=====\nshould contain snippet:\n\n{error_snippet}"
-        );
+    #[case("noso")]
+    #[case("example.so.1")]
+    fn invalid_shared_object_name_parser(#[case] input: &str) {
+        let Err(Error::ParseError(err_msg)) = SharedObjectName::from_str(input) else {
+            panic!("'{input}' erroneously parsed as a SonameV2")
+        };
+
+        let (test_name, _guard) = configure_insta();
+        assert_snapshot!(test_name, err_msg.to_string());
     }
 }

@@ -1,0 +1,7 @@
+---
+source: alpm-types/src/url.rs
+---
+git+https://example/project#branch=feature#branch=feature
+                                          ^
+invalid unexpected trailing content in URL.
+expected end of input.

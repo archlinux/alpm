@@ -1,7 +1,7 @@
 ---
-source: alpm-types/src/relation/base.rs
+source: alpm-types/src/name.rs
 ---
-: no_name_colon
+-package_with_leading_hyphen
 ^
 invalid first character of package name
 expected ASCII alphanumeric character, `_`, `@`, `+`

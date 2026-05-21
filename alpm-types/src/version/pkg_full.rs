@@ -402,11 +402,11 @@ mod tests {
     #[case::starts_with_dash("-1foo:1")]
     #[case::ends_with_colon("1-foo:")]
     #[case::ends_with_colon_number("1-foo:1")]
-    fn parse_error_in_full_version_from_string(#[case] version: &str) {
+    fn parse_error_in_full_version_from_string(#[case] input: &str) {
         init_logger();
 
-        let Err(Error::ParseError(err_msg)) = FullVersion::from_str(version) else {
-            panic!("parsing '{version}' as FullVersion did not fail as expected")
+        let Err(Error::ParseError(err_msg)) = FullVersion::from_str(input) else {
+            panic!("'{input}' erroneously parsed as a FullVersion")
         };
 
         let (test_name, _guard) = configure_insta();

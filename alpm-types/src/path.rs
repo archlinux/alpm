@@ -437,10 +437,12 @@ impl FromStr for SonameLookupDirectory {
 
 #[cfg(test)]
 mod tests {
+    use insta::assert_snapshot;
     use rstest::rstest;
     use testresult::TestResult;
 
     use super::*;
+    use crate::configure_insta;
 
     #[rstest]
     #[case("/home", BuildDirectory::new(PathBuf::from("/home")))]
@@ -514,17 +516,15 @@ mod tests {
     }
 
     #[rstest]
-    #[case("lib", "invalid shared library prefix delimiter")]
-    #[case("lib:", "invalid directory")]
-    #[case(":/usr/lib", "invalid first character of package name")]
-    fn invalid_soname_lookup_directory_parser(#[case] input: &str, #[case] error_snippet: &str) {
-        let result = SonameLookupDirectory::from_str(input);
-        assert!(result.is_err(), "Expected LookupDirectory parsing to fail");
-        let err = result.unwrap_err();
-        let pretty_error = err.to_string();
-        assert!(
-            pretty_error.contains(error_snippet),
-            "Error:\n=====\n{pretty_error}\n=====\nshould contain snippet:\n\n{error_snippet}"
-        );
+    #[case("lib")]
+    #[case("lib:")]
+    #[case(":/usr/lib")]
+    fn invalid_soname_lookup_directory_parser(#[case] input: &str) {
+        let Err(Error::ParseError(err_msg)) = SonameLookupDirectory::from_str(input) else {
+            panic!("'{input}' erroneously parsed as a SonameLookupDirectory")
+        };
+
+        let (test_name, _guard) = configure_insta();
+        assert_snapshot!(test_name, err_msg.to_string());
     }
 }

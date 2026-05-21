@@ -701,10 +701,12 @@ impl SvnFragment {
 
 #[cfg(test)]
 mod tests {
+    use insta::assert_snapshot;
     use rstest::rstest;
     use testresult::TestResult;
 
     use super::*;
+    use crate::configure_insta;
 
     #[rstest]
     #[case("https://example.com/", Ok("https://example.com/"))]
@@ -833,42 +835,19 @@ mod tests {
 
     /// Run the parser for SourceUrl and ensure that the expected parse error messages show up.
     #[rstest]
-    #[case(
-        "git+https://example/project#revision=v1.0.0?signed",
-        "invalid git revision type\nexpected `branch`, `commit`, `tag`"
-    )]
-    #[case(
-        "git+https://example/project#branch=feature#branch=feature",
-        "invalid unexpected trailing content in URL."
-    )]
-    #[case(
-        "git+https://example/project#branch=feature?signed?signed",
-        "invalid or duplicate query parameter for detected VCS."
-    )]
-    #[case(
-        "bzr+https://example/project#branch=feature",
-        "invalid bzr revision type\nexpected revision keyword"
-    )]
-    #[case(
-        "svn+https://example/project#branch=feature",
-        "invalid svn revision type\nexpected revision keyword"
-    )]
-    #[case(
-        "hg+https://example/project#commit=154021a",
-        "invalid hg revision type\nexpected `branch`, `revision`, `tag`"
-    )]
-    #[case(
-        "hg+https://example/project#branch=feature?signed",
-        "invalid or duplicate query parameter for detected VCS."
-    )]
-    fn test_source_url_parsing_failure(#[case] input: &str, #[case] error_snippet: &str) {
-        let result = SourceUrl::from_str(input);
-        assert!(result.is_err(), "Invalid source_url should fail to parse.");
-        let err = result.unwrap_err();
-        let pretty_error = err.to_string();
-        assert!(
-            pretty_error.contains(error_snippet),
-            "Error:\n=====\n{pretty_error}\n=====\nshould contain snippet:\n\n{error_snippet}"
-        );
+    #[case("git+https://example/project#revision=v1.0.0?signed")]
+    #[case("git+https://example/project#branch=feature#branch=feature")]
+    #[case("git+https://example/project#branch=feature?signed?signed")]
+    #[case("bzr+https://example/project#branch=feature")]
+    #[case("svn+https://example/project#branch=feature")]
+    #[case("hg+https://example/project#commit=154021a")]
+    #[case("hg+https://example/project#branch=feature?signed")]
+    fn test_source_url_parsing_failure(#[case] input: &str) {
+        let Err(Error::ParseError(err_msg)) = SourceUrl::from_str(input) else {
+            panic!("'{input}' erroneously parsed as a SourceUrl")
+        };
+
+        let (test_name, _guard) = configure_insta();
+        assert_snapshot!(test_name, err_msg.to_string());
     }
 }

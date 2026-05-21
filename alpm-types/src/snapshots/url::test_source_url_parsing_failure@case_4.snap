@@ -1,0 +1,7 @@
+---
+source: alpm-types/src/url.rs
+---
+bzr+https://example/project#branch=feature
+                            ^
+invalid bzr revision type
+expected revision keyword
