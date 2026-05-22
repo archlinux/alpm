@@ -3,5 +3,5 @@ source: alpm-types/src/relation/composite.rs
 ---
 lib:libexample.so-abc
                  ^
-invalid version delimiter
-expected version delimiter `.`
+invalid sonamev2
+expected end of input.
