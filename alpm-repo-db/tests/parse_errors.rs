@@ -13,7 +13,7 @@ mod desc {
     /// Snapshots are saved in `parse_error_snapshots/` with the error message
     /// and the file's contents as description.
     #[rstest]
-    fn ensure_parse_errors(#[files("tests/parse_errors/*.desc")] case: PathBuf) -> TestResult {
+    fn ensure_parse_errors(#[files("tests/parse_errors/desc/*.desc")] case: PathBuf) -> TestResult {
         let input = read_to_string(&case)?;
         let name = case
             .file_stem()
@@ -38,7 +38,7 @@ mod desc {
         let input_clone = input.clone();
         insta::with_settings!({
             description => input_clone,
-            snapshot_path => "parse_errors/snapshots",
+            snapshot_path => "parse_errors/desc/snapshots",
             prepend_module_to_snapshot => false,
         }, {
             assert_snapshot!(name, error);

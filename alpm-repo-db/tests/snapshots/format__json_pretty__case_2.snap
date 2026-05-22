@@ -1,0 +1,87 @@
+---
+source: alpm-repo-db/tests/integration.rs
+description: alpm-repo-desc format --output-format json --pretty
+expression: json
+---
+{
+  "file_name": "example-1.0.0-1-any.pkg.tar.zst",
+  "name": "example",
+  "base": "example",
+  "version": {
+    "pkgver": "1.0.0",
+    "pkgrel": {
+      "major": 1,
+      "minor": null
+    },
+    "epoch": null
+  },
+  "description": "An example package",
+  "groups": [
+    "example-group",
+    "other-group"
+  ],
+  "compressed_size": 1818463,
+  "installed_size": 18184634,
+  "sha256_checksum": "b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c",
+  "pgp_signature": null,
+  "url": "https://example.org/",
+  "license": [
+    "MIT",
+    "Apache-2.0"
+  ],
+  "arch": "x86_64",
+  "build_date": 1729181726,
+  "packager": {
+    "name": "Foobar McFooface",
+    "email": "foobar@mcfooface.org"
+  },
+  "replaces": [
+    {
+      "name": "other-pkg-replaced",
+      "version_requirement": null
+    }
+  ],
+  "conflicts": [
+    {
+      "name": "other-pkg-conflicts",
+      "version_requirement": null
+    }
+  ],
+  "provides": [
+    {
+      "name": "example-component",
+      "version_requirement": null
+    }
+  ],
+  "dependencies": [
+    {
+      "name": "glibc",
+      "version_requirement": null
+    },
+    {
+      "name": "gcc-libs",
+      "version_requirement": null
+    }
+  ],
+  "optional_dependencies": [
+    {
+      "package_relation": {
+        "name": "bash",
+        "version_requirement": null
+      },
+      "description": "for a script"
+    }
+  ],
+  "make_dependencies": [
+    {
+      "name": "cmake",
+      "version_requirement": null
+    }
+  ],
+  "check_dependencies": [
+    {
+      "name": "bats",
+      "version_requirement": null
+    }
+  ]
+}

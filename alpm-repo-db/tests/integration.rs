@@ -545,7 +545,11 @@ mod format {
             .unwrap_or_else(|| "unknown_test".to_string());
 
         let description = format!("alpm-repo-desc {}", args.join(" "));
-        insta::with_settings!({ description => description }, {
+        insta::with_settings!({
+            description => description,
+            snapshot_path => "snapshots",
+            prepend_module_to_snapshot => false,
+        }, {
             assert_snapshot!(test_name, json);
         });
         Ok(())
