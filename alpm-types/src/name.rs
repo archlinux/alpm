@@ -12,10 +12,9 @@ use serde::{Deserialize, Serialize};
 use winnow::{
     ModalResult,
     Parser,
-    combinator::{Repeat, alt, cut_err, eof, peek, repeat, repeat_till},
+    combinator::{Repeat, alt, eof, peek, repeat, repeat_till},
     error::{ContextError, ErrMode, StrContext, StrContextValue},
-    stream::Stream,
-    token::{any, one_of},
+    token::one_of,
 };
 
 use crate::Error;
@@ -136,7 +135,9 @@ impl Display for BuildTool {
 pub struct Name(String);
 
 impl Name {
+    // Only a subset of special characters is allowed as the first character of a name.
     const SPECIAL_FIRST_CHARS: [char; 3] = ['_', '@', '+'];
+    // This set of characters is allowed anywhere, **except** as first character of a name.
     const NEVER_FIRST_CHAR: [char; 5] = ['_', '@', '+', '-', '.'];
 
     /// Create a new `Name`
@@ -322,7 +323,7 @@ impl AsRef<str> for Name {
 /// This type wraps a [`Name`] and is used to represent the name of a shared object file
 /// that ends with the `.so` suffix.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-pub struct SharedObjectName(pub(crate) Name);
+pub struct SharedObjectName(pub(crate) String);
 
 impl SharedObjectName {
     /// Creates a new [`SharedObjectName`].
@@ -349,42 +350,54 @@ impl SharedObjectName {
     pub fn as_str(&self) -> &str {
         self.0.as_ref()
     }
+}
 
+impl AlpmParser for SharedObjectName {
     /// Parses a [`SharedObjectName`] from a string slice.
-    pub fn parser(input: &mut &str) -> ModalResult<Self> {
-        // Make a checkpoint for parsing the full name in one go later on.
-        // The full name will later on include the `.so` extension, but we have to make sure first
-        // that the name has the correct structure.
-        // (a filename followed by one or more `.so` suffixes)
-        let checkpoint = input.checkpoint();
+    fn parser(input: &mut &str) -> ModalResult<Self> {
+        // The SharedObjectName is basically a `Name` with extra restrictions (as it requires an
+        // `.so`) extension.
+        // As such, we re-implement the `Name` logic to ensure proper error handling.
+        let alphanum = |c: char| c.is_ascii_alphanumeric();
 
-        // Parse the name of the shared object until eof or the `.so` is hit.
-        repeat_till::<_, _, String, _, _, _, _>(1.., any, peek(alt((".so", eof))))
-            .context(StrContext::Label("name"))
-            .parse_next(input)?;
+        let never_first_char = one_of((alphanum, Name::NEVER_FIRST_CHAR));
 
-        // Parse at least one or more `.so` suffix(es).
-        cut_err(repeat::<_, _, String, _, _>(1.., ".so").take())
-            .context(StrContext::Label("suffix"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "shared object name suffix '.so'",
-            )))
-            .parse_next(input)?;
+        (
+            // The first character, which has special restrictions
+            one_of((alphanum, Name::SPECIAL_FIRST_CHARS))
+                .context(StrContext::Label("first character of name"))
+                .context(StrContext::Expected(StrContextValue::Description(
+                    "ASCII alphanumeric character",
+                )))
+                .context_with(iter_char_context!(Name::SPECIAL_FIRST_CHARS)),
+            // Parse the name of the shared object until an `.so`, eof or an invalid character is
+            // hit.
+            repeat_till::<_, _, String, _, _, _, _>(1.., never_first_char, peek(alt((".so", eof))))
+                .context(StrContext::Label("name")),
+            // Then make sure that there's at least one or more `.so` suffix(es).
+            repeat::<_, _, String, _, _>(1.., ".so")
+                .take()
+                .context(StrContext::Label("suffix"))
+                .context(StrContext::Expected(StrContextValue::Description(
+                    "shared object name suffix '.so'",
+                ))),
+        )
+            .take()
+            .map(|n: &str| SharedObjectName(n.to_owned()))
+            .parse_next(input)
+    }
 
-        // Ensure that there is no trailing content
-        cut_err(eof)
-            .context(StrContext::Label(
-                "unexpected trailing content after shared object name.",
-            ))
+    fn delimiter_error_context<'a, O, P>(
+        parser: P,
+    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    where
+        P: Parser<&'a str, O, ErrMode<ContextError>>,
+    {
+        parser
+            .context(StrContext::Label("shared object name"))
             .context(StrContext::Expected(StrContextValue::Description(
                 "end of input.",
             )))
-            .parse_next(input)?;
-
-        input.reset(&checkpoint);
-        let name = Name::parser.parse_next(input)?;
-
-        Ok(SharedObjectName(name))
     }
 }
 
@@ -392,7 +405,7 @@ impl FromStr for SharedObjectName {
     type Err = Error;
     /// Create an [`SharedObjectName`] from a string and return it in a Result
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser.parse(s)?)
+        Ok(Self::parser_until_eof.parse(s)?)
     }
 }
 
