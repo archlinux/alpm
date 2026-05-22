@@ -2,6 +2,6 @@
 source: alpm-types/src/relation/soname.rs
 ---
 invalidversion.so=1🐀2-64
-                        ^
-invalid version or shared object name
-expected a valid alpm-sonamev1 or alpm-pkgver
+                   ^
+invalid architecture delimiter
+expected architecture delimiter `-`

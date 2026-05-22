@@ -3,4 +3,5 @@ source: alpm-types/src/relation/soname.rs
 ---
 nodelimiter.so=1.64
                    ^
-expected a version or shared object name, followed by an ELF architecture format
+invalid architecture delimiter
+expected architecture delimiter `-`
