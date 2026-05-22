@@ -22,7 +22,7 @@ requires-python = ">=3.10"
 Changelog = "https://alpm.archlinux.page/python-alpm/CHANGELOG.html"
 Documentation = "https://alpm.archlinux.page/pdoc/"
 Homepage = "https://alpm.archlinux.page/python-alpm/"
-Issues = "https://gitlab.archlinux.org/archlinux/alpm/alpm/-/issues"
+Issues = "https://gitlab.archlinux.org/archlinux/alpm/alpm/-/work_items"
 Repository = "https://gitlab.archlinux.org/archlinux/alpm/alpm"
 
 [tool.maturin]
@@ -31,7 +31,7 @@ module-name = "alpm._native"
 python-source = "python"
 
 # maturin currently can't generate reproducible SBOMs
-# https://gitlab.archlinux.org/archlinux/alpm/alpm/-/issues/288
+# https://gitlab.archlinux.org/archlinux/alpm/alpm/-/work_items/288
 # Upstream fix in cyclonedx:
 # https://github.com/CycloneDX/cyclonedx-rust-cargo/pull/852
 [tool.maturin.sbom]

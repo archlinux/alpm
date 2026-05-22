@@ -98,7 +98,7 @@ The current members of the project are listed in the [GitLab organization].
 
 In case you want to reach out to the project developers, use one of the several ways to [get in touch].
 
-["good first issue"]: https://gitlab.archlinux.org/archlinux/alpm/alpm/-/issues/?sort=closed_at_desc&state=opened&label_name%5B%5D=hint%3A%3Agood-first-issue&first_page_size=20
+["good first issue"]: https://gitlab.archlinux.org/archlinux/alpm/alpm/-/work_items/?sort=closed_at_desc&state=opened&label_name%5B%5D=hint%3A%3Agood-first-issue&first_page_size=20
 [Apache-2.0]: https://spdx.org/licenses/Apache-2.0.html
 [GitLab organization]: https://gitlab.archlinux.org/archlinux/alpm/alpm/-/project_members
 [MIT]: https://spdx.org/licenses/MIT.html

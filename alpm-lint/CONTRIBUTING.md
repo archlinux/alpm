@@ -33,7 +33,7 @@ As a guideline, it is advised to follow this checklist:
 Figure out which scope the new lint will be applied to:
 
 - `LintScope::SourceInfo` - For [`.SRCINFO`] file-specific lints
-- `LintScope::PackageBuild` - For [`PKGBUILD`] file-specific lints  
+- `LintScope::PackageBuild` - For [`PKGBUILD`] file-specific lints
 - `LintScope::PackageInfo` - For [`.PKGINFO`] file-specific lints
 - `LintScope::BuildInfo` - For [`.BUILDINFO`] file-specific lints
 - `LintScope::SourceRepository` - For lints that need both [`PKGBUILD`] and [`.SRCINFO`]
@@ -164,5 +164,5 @@ Also, check out the `tests/fixtures.rs` module in case you need stub data for te
 [`LintRule implementations`]: https://alpm.archlinux.page/rustdoc/alpm_lint/lint_rules/index.html
 [`LintScope`]: https://alpm.archlinux.page/rustdoc/alpm_lint/scope/enum.LintScope.html
 [`LintStore`]: https://alpm.archlinux.page/rustdoc/alpm_lint/lint_rules/store/struct.LintStore.html
-[`open an issue`]: https://gitlab.archlinux.org/archlinux/alpm/alpm/-/issues
+[`open an issue`]: https://gitlab.archlinux.org/archlinux/alpm/alpm/-/work_items
 

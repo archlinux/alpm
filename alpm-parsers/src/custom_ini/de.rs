@@ -464,7 +464,7 @@ mod tests {
     //
     // See these issues for more information:
     //
-    // - https://gitlab.archlinux.org/archlinux/alpm/alpm/-/issues/78
+    // - https://gitlab.archlinux.org/archlinux/alpm/alpm/-/work_items/78
     // - https://github.com/serde-rs/serde/issues/1881
     // - https://github.com/serde-rs/serde/issues/1183
     //

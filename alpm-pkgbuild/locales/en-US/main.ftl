@@ -24,10 +24,10 @@ error-script-failed-start = Failed to { $context } process to extract PKGBUILD:
 
 error-script-execution = Error during pkgbuild bridge execution:
   Command: alpm-pkgbuild-bridge { $parameters }
-  
+
   stdout:
   { $stdout }
-  
+
   stderr:
   { $stderr }
 
@@ -37,9 +37,9 @@ error-script-finish = waiting for process to finish
 
 error-bridge-parse = An unexpected error occurred in the output parser for the 'alpm-pkgbuild-bridge' script:
   { $error }
-  
+
   Please report this as a bug at:
-  https://gitlab.archlinux.org/archlinux/alpm/alpm/-/issues
+  https://gitlab.archlinux.org/archlinux/alpm/alpm/-/work_items
 
 error-json = JSON error:
   { $source }

@@ -134,7 +134,7 @@ mod format_packages {
     use super::*;
 
     // TODO: Write a test once we have a default value for the architecture.
-    //       https://gitlab.archlinux.org/archlinux/alpm/alpm/-/issues/107
+    //       https://gitlab.archlinux.org/archlinux/alpm/alpm/-/work_items/107
 
     /// Run a basic format-package test for the x86_64 architecture.
     #[test]
