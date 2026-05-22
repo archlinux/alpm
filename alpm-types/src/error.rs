@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
 use fluent_i18n::t;
+use winnow::error::{ContextError, ParseError};
 
 use crate::Architecture;
 
@@ -208,11 +209,9 @@ impl From<std::num::ParseIntError> for crate::error::Error {
     }
 }
 
-impl<'a> From<winnow::error::ParseError<&'a str, winnow::error::ContextError>>
-    for crate::error::Error
-{
-    /// Converts a [`winnow::error::ParseError`] into an [`Error::ParseError`].
-    fn from(value: winnow::error::ParseError<&'a str, winnow::error::ContextError>) -> Self {
+impl<'a> From<ParseError<&'a str, ContextError>> for crate::error::Error {
+    /// Converts a [`ParseError`] into an [`Error::ParseError`].
+    fn from(value: ParseError<&'a str, ContextError>) -> Self {
         Self::ParseError(value.to_string())
     }
 }

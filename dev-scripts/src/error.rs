@@ -4,6 +4,7 @@ use std::path::PathBuf;
 
 use colored::Colorize;
 use log::SetLoggerError;
+use winnow::error::{ContextError, ParseError};
 
 /// The error that can occur when using the `dev-scripts` executable.
 #[derive(Debug, thiserror::Error)]
@@ -130,11 +131,9 @@ pub enum Error {
     },
 }
 
-impl<'a> From<winnow::error::ParseError<&'a str, winnow::error::ContextError>>
-    for crate::error::Error
-{
-    /// Converts a [`winnow::error::ParseError`] into an [`Error::Parser`].
-    fn from(value: winnow::error::ParseError<&'a str, winnow::error::ContextError>) -> Self {
+impl<'a> From<ParseError<&'a str, ContextError>> for crate::error::Error {
+    /// Converts a [`ParseError`] into an [`Error::Parser`].
+    fn from(value: ParseError<&'a str, ContextError>) -> Self {
         Self::Parser(value.to_string())
     }
 }
