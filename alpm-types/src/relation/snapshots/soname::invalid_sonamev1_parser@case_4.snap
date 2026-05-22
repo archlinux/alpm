@@ -3,4 +3,5 @@ source: alpm-types/src/relation/soname.rs
 ---
 noarchitecture.so=1-
                     ^
-expected a version or shared object name, followed by an ELF architecture format
+invalid ELF architecture
+expected `32 or 64`

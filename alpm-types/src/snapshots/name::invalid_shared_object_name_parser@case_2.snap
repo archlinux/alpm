@@ -3,5 +3,5 @@ source: alpm-types/src/name.rs
 ---
 example.so.1
           ^
-invalid unexpected trailing content after shared object name.
+invalid shared object name
 expected end of input.
