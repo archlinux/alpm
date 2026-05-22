@@ -5,14 +5,13 @@ use std::{
     str::FromStr,
 };
 
+use alpm_parsers::traits::AlpmParser;
 use serde::{Deserialize, Serialize};
 use winnow::{
     ModalResult,
     Parser,
-    combinator::{cut_err, fail},
+    combinator::alt,
     error::{StrContext, StrContextValue},
-    stream::Stream,
-    token::rest,
 };
 
 use crate::{Error, PackageRelation, SonameV1, SonameV2};
@@ -59,41 +58,29 @@ impl PartialEq<SonameV2> for RelationOrSoname {
     }
 }
 
-impl RelationOrSoname {
+impl AlpmParser for RelationOrSoname {
     /// Recognizes a [`SonameV2`], a [`SonameV1`] or a [`PackageRelation`] in a string slice.
     ///
     /// First attempts to recognize a [`SonameV2`], then a [`SonameV1`] and if that fails, falls
     /// back to recognizing a [`PackageRelation`].
     /// Depending on recognized type, a [`RelationOrSoname`] is created accordingly.
-    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if `input` does not begin with a valid
+    /// [`SonameV2`], [`SonameV1`] or [`PackageRelation`].
+    fn parser(input: &mut &str) -> ModalResult<Self> {
         // Implement a custom `winnow::combinator::alt`, as all type parsers are built in
         // such a way that they return errors on unexpected input instead of backtracking.
-        let checkpoint = input.checkpoint();
-        let sonamev2_result = SonameV2::parser.parse_next(input);
-        if sonamev2_result.is_ok() {
-            let sonamev2 = sonamev2_result?;
-            return Ok(RelationOrSoname::SonameV2(sonamev2));
-        }
-
-        input.reset(&checkpoint);
-        let sonamev1_result = SonameV1::parser.parse_next(input);
-        if sonamev1_result.is_ok() {
-            let sonamev1 = sonamev1_result?;
-            return Ok(RelationOrSoname::SonameV1(sonamev1));
-        }
-
-        input.reset(&checkpoint);
-        let relation_result = rest.and_then(PackageRelation::parser).parse_next(input);
-        if relation_result.is_ok() {
-            let relation = relation_result?;
-            return Ok(RelationOrSoname::Relation(relation));
-        }
-
-        cut_err(fail)
-            .context(StrContext::Expected(StrContextValue::Description(
-                "alpm-sonamev2, alpm-sonamev1 or alpm-package-relation",
-            )))
-            .parse_next(input)
+        alt((
+            SonameV2::parser.map(RelationOrSoname::SonameV2),
+            SonameV1::parser.map(RelationOrSoname::SonameV1),
+            PackageRelation::parser.map(RelationOrSoname::Relation),
+        ))
+        .context(StrContext::Expected(StrContextValue::Description(
+            "alpm-sonamev2, alpm-sonamev1 or alpm-package-relation",
+        )))
+        .parse_next(input)
     }
 }
 

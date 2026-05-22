@@ -7,5 +7,5 @@ invalid shared object name
 Parser failed with the following error:
 invalidsoname.so~1.64
                 ^
-invalid unexpected trailing content after shared object name.
+invalid shared object name
 expected end of input.

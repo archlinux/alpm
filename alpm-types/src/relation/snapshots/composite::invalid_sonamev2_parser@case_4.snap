@@ -2,6 +2,6 @@
 source: alpm-types/src/relation/composite.rs
 ---
 lib:libexample.so.1.0.0-64
-                  ^
-invalid pkgver character
-expected an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace characters
+                       ^
+invalid sonamev2
+expected end of input.

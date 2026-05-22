@@ -9,7 +9,7 @@ use alpm_soname::{
     find_dependencies,
     find_provisions,
 };
-use alpm_types::{Name, Soname, SonameLookupDirectory, SonameV2};
+use alpm_types::{SharedLibraryPrefix, Soname, SonameLookupDirectory, SonameV2};
 use fluent_i18n::t;
 use thiserror::Error;
 
@@ -254,8 +254,8 @@ pub fn get_raw_dependencies<W: Write>(
 ///
 /// Returns a map of shared library prefixes, each with a list of raw [`Soname`] information
 /// attached to them.
-fn group_sonames_by_prefix(sonames: &[SonameV2]) -> BTreeMap<Name, Vec<Soname>> {
-    let mut grouped_sonames: BTreeMap<Name, Vec<Soname>> = BTreeMap::new();
+fn group_sonames_by_prefix(sonames: &[SonameV2]) -> BTreeMap<SharedLibraryPrefix, Vec<Soname>> {
+    let mut grouped_sonames: BTreeMap<SharedLibraryPrefix, Vec<Soname>> = BTreeMap::new();
     for entry in sonames {
         grouped_sonames
             .entry(entry.prefix.clone())

@@ -12,7 +12,7 @@ use winnow::{
     ascii::Caseless,
     combinator::{alt, cut_err, eof, not, repeat},
     error::{ContextError, ErrMode, StrContext, StrContextValue},
-    token::one_of,
+    token::{one_of, take_while},
 };
 
 use crate::Error;
@@ -524,6 +524,18 @@ pub enum ElfArchitectureFormat {
     /// 64-bit
     #[strum(to_string = "64")]
     Bit64 = 64,
+}
+
+impl AlpmParser for ElfArchitectureFormat {
+    fn parser(input: &mut &str) -> ModalResult<Self> {
+        take_while(1.., |c: char| c.is_ascii_digit())
+            .try_map(ElfArchitectureFormat::from_str)
+            .context(StrContext::Label("ELF architecture"))
+            .context(StrContext::Expected(StrContextValue::StringLiteral(
+                "32 or 64",
+            )))
+            .parse_next(input)
+    }
 }
 
 #[cfg(test)]
