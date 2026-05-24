@@ -5,7 +5,7 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::traits::AlpmParser;
+use alpm_parsers::traits::{AlpmParser, ParserUntil};
 use serde::{Deserialize, Serialize};
 use winnow::{
     ModalResult,
@@ -269,7 +269,9 @@ impl OptionalDependency {
     pub fn package_relation(&self) -> &PackageRelation {
         &self.package_relation
     }
+}
 
+impl AlpmParser for OptionalDependency {
     /// Recognizes an [`OptionalDependency`] in a string slice.
     ///
     /// This format is inherently flawed, as the `:` delimiter may exist in three different
@@ -294,7 +296,7 @@ impl OptionalDependency {
     ///
     /// Returns an error if `input` is not a valid _alpm-package-relation_ of type _optional
     /// dependency_.
-    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+    fn parser(input: &mut &str) -> ModalResult<Self> {
         // Due to the ambiguous nature of this format, we must implement our own PackageRelation and
         // VersionRequirement parser handling.
 
@@ -382,6 +384,19 @@ impl OptionalDependency {
             description,
         })
     }
+
+    fn delimiter_error_context<'a, O, P>(
+        parser: P,
+    ) -> impl Parser<&'a str, O, winnow::error::ErrMode<winnow::error::ContextError>>
+    where
+        P: Parser<&'a str, O, winnow::error::ErrMode<winnow::error::ContextError>>,
+    {
+        parser
+            .context(StrContext::Label("character in optional dependency"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "end of input.",
+            )))
+    }
 }
 
 impl FromStr for OptionalDependency {
@@ -395,7 +410,7 @@ impl FromStr for OptionalDependency {
     ///
     /// Returns an error if [`OptionalDependency::parser`] fails.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser.parse(s)?)
+        Ok(Self::parser_until_eof.parse(s)?)
     }
 }
 
