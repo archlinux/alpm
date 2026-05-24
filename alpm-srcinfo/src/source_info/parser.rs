@@ -923,14 +923,12 @@ impl RelationProperty {
                 }
             }
             RelationKeyword::OptDepends => cut_err(
-                till_line_end
-                    .and_then(OptionalDependency::parser)
-                    .map(|value| {
-                        RelationProperty::OptionalDependency(ArchProperty {
-                            architecture: architecture.clone(),
-                            value,
-                        })
-                    }),
+                OptionalDependency::parser_until_line_ending_inclusive.map(|value| {
+                    RelationProperty::OptionalDependency(ArchProperty {
+                        architecture: architecture.clone(),
+                        value,
+                    })
+                }),
             )
             .parse_next(input)?,
         };

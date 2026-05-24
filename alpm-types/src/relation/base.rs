@@ -5,18 +5,19 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::traits::AlpmParser;
+use alpm_parsers::traits::{AlpmParser, ParserUntil, ParserUntilInclusive};
 use serde::{Deserialize, Serialize};
 use winnow::{
     ModalResult,
     Parser,
     ascii::space1,
-    combinator::{opt, seq},
+    combinator::{opt, peek, seq, terminated},
     error::{StrContext, StrContextValue},
-    token::take_till,
+    token::{none_of, take_till},
 };
 
 use crate::{
+    Epoch,
     Error,
     Name,
     PackageRelease,
@@ -269,7 +270,9 @@ impl OptionalDependency {
     pub fn package_relation(&self) -> &PackageRelation {
         &self.package_relation
     }
+}
 
+impl AlpmParser for OptionalDependency {
     /// Recognizes an [`OptionalDependency`] in a string slice.
     ///
     /// This format is inherently flawed, as the `:` delimiter may exist in two different, optional
@@ -288,15 +291,21 @@ impl OptionalDependency {
     /// way>1: 17.0.1-5 ambiguous.
     /// ```
     ///
-    /// Due to this, this parser does a double-pass on the version and tries to parse it once with
-    /// epoch and once without epoch. This results in less than optimal error handling, but at least
-    /// it allows us to handle those ambiguous expressions.
+    /// Due to this, the parser disambiguates the two cases as follows:
+    ///
+    /// - A `:` directly followed by a non-whitespace character is considered an epoch delimiter.
+    /// - A `:` followed by whitespace starts a description.
+    ///
+    /// As such, ambiguous input like `example>=1:foo bar` is treated as containing an epoch and
+    /// rejected, as `foo bar` is not a valid version.
+    /// Input like `example>=1: 3.2.1-5 foo bar` is successfully parsed with the version being `1`
+    /// and the description being `3.2.1-5 foo bar`.
     ///
     /// # Errors
     ///
     /// Returns an error if `input` is not a valid _alpm-package-relation_ of type _optional
     /// dependency_.
-    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+    fn parser(input: &mut &str) -> ModalResult<Self> {
         // Due to the ambiguous nature of this format, we must implement our own PackageRelation and
         // VersionRequirement parser handling.
 
@@ -312,37 +321,37 @@ impl OptionalDependency {
 
         // Branch into the path where a comparison exists.
         let version_requirement = if let Some(comparison) = comparison {
-            // First up, we check if there exists valid full version.
-            let version = opt(Version::parser).parse_next(input)?;
-            match version {
-                None => {
-                    // We didn't find a valid version with an optional epoch.
-                    // Now, we try to parse a version without epoch, to remove any ambiguities
-                    // regarding the description `:` delimiter. If this branch
-                    // fails, we fail hard.
+            // Parse an optional epoch, e.g.:
+            // "1:17.0.1-5: my-description" -> "17.0.1-5: my-description"
+            //
+            // An epoch delimiter ':' must always be directly followed by a non-whitespace
+            // character, while a description ':' delimiter is always followed by whitespace.
+            // The lookahead on the character after the ':' disambiguates the two.
+            let epoch = opt(terminated(
+                Epoch::parser_until_inclusive(":"),
+                peek(none_of(|c: char| c.is_whitespace())),
+            ))
+            .parse_next(input)?;
 
-                    // Advance the parser until the next '-', e.g.:
-                    // "1.0.0-1: my-description" -> "-1: my-description"
-                    let pkgver = PackageVersion::parser.parse_next(input)?;
+            // Advance the parser until the next '-', e.g.:
+            // "17.0.1-5: my-description" -> "-5: my-description"
+            let pkgver = PackageVersion::parser.parse_next(input)?;
 
-                    // Parse an optional PackageRelease, e.g.:
-                    // "-1: my-description" -> ": my-description"
-                    //
-                    // If an `-` is found, the PackageRelease is expected and must exist
-                    let delimiter = opt('-').parse_next(input)?;
-                    let pkgrel = if delimiter.is_some() {
-                        Some(PackageRelease::parser.parse_next(input)?)
-                    } else {
-                        None
-                    };
+            // Parse an optional PackageRelease, e.g.:
+            // "-5: my-description" -> ": my-description"
+            //
+            // If an `-` is found, the PackageRelease is expected and must exist
+            let delimiter = opt('-').parse_next(input)?;
+            let pkgrel = if delimiter.is_some() {
+                Some(PackageRelease::parser.parse_next(input)?)
+            } else {
+                None
+            };
 
-                    Some(VersionRequirement {
-                        comparison,
-                        version: Version::new(pkgver, None, pkgrel),
-                    })
-                }
-                Some(version) => Some(VersionRequirement::new(comparison, version)),
-            }
+            Some(VersionRequirement {
+                comparison,
+                version: Version::new(pkgver, epoch, pkgrel),
+            })
         } else {
             None
         };
@@ -384,6 +393,19 @@ impl OptionalDependency {
             description,
         })
     }
+
+    fn delimiter_error_context<'a, O, P>(
+        parser: P,
+    ) -> impl Parser<&'a str, O, winnow::error::ErrMode<winnow::error::ContextError>>
+    where
+        P: Parser<&'a str, O, winnow::error::ErrMode<winnow::error::ContextError>>,
+    {
+        parser
+            .context(StrContext::Label("character in optional dependency"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "end of input.",
+            )))
+    }
 }
 
 impl FromStr for OptionalDependency {
@@ -397,7 +419,7 @@ impl FromStr for OptionalDependency {
     ///
     /// Returns an error if [`OptionalDependency::parser`] fails.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser.parse(s)?)
+        Ok(Self::parser_until_eof.parse(s)?)
     }
 }
 
@@ -615,6 +637,34 @@ mod tests {
                 }),
             },
             description: Some("required by extension-wiki-publisher and extension-nlpsolver".to_string()),
+        },
+    )]
+    // A ':' directly followed by a non-whitespace character acts as an epoch delimiter.
+    #[case(
+        "example>=1:17.0.1-5: my dependency",
+        OptionalDependency {
+            package_relation: PackageRelation {
+                name: Name::new("example").unwrap(),
+                version_requirement: Some(VersionRequirement {
+                    comparison: VersionComparison::GreaterOrEqual,
+                    version: "1:17.0.1-5".parse().unwrap(),
+                }),
+            },
+            description: Some("my dependency".to_string()),
+        },
+    )]
+    // A ':' followed by whitespace acts as a description delimiter.
+    #[case(
+        "example>1: 17.0.1-5 ambiguous.",
+        OptionalDependency {
+            package_relation: PackageRelation {
+                name: Name::new("example").unwrap(),
+                version_requirement: Some(VersionRequirement {
+                    comparison: VersionComparison::Greater,
+                    version: "1".parse().unwrap(),
+                }),
+            },
+            description: Some("17.0.1-5 ambiguous.".to_string()),
         },
     )]
     fn opt_depend_from_string(#[case] input: &str, #[case] expected: OptionalDependency) {
