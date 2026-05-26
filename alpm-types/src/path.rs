@@ -4,13 +4,14 @@ use std::{
     str::FromStr,
 };
 
+use alpm_parsers::traits::ParserUntil;
 use serde::{Deserialize, Serialize};
 use winnow::{
     ModalResult,
     Parser,
-    combinator::{alt, cut_err, eof, peek, repeat_till},
-    error::{StrContext, StrContextValue},
-    token::{any, rest},
+    combinator::{alt, eof, peek, repeat_till},
+    error::{ContextError, ErrMode, StrContext, StrContextValue},
+    token::any,
 };
 
 use crate::{Error, SharedLibraryPrefix};
@@ -361,40 +362,51 @@ impl SonameLookupDirectory {
     pub fn new(prefix: SharedLibraryPrefix, directory: AbsolutePath) -> Self {
         Self { prefix, directory }
     }
+}
 
+impl ParserUntil for SonameLookupDirectory {
     /// Parses a [`SonameLookupDirectory`] from a string slice.
     ///
-    /// Consumes all of its input.
-    ///
     /// See [`SonameLookupDirectory::from_str`] for more details.
-    pub fn parser(input: &mut &str) -> ModalResult<Self> {
-        // Parse until the first `:`, which separates the prefix from the directory.
-        let prefix = cut_err(
-            repeat_till(1.., any, peek(alt((":", eof))))
-                .try_map(|(name, _): (String, &str)| SharedLibraryPrefix::from_str(&name)),
-        )
-        .context(StrContext::Label("prefix for a shared object lookup path"))
-        .parse_next(input)?;
+    fn parser_until<'a, P>(delimiter: P) -> impl Parser<&'a str, Self, ErrMode<ContextError>>
+    where
+        P: Parser<&'a str, &'a str, ErrMode<ContextError>>,
+    {
+        // Define the actual parser closure.
+        // The delimiter is moved into the closure and borrowed via `by_ref()` on each call.
+        let mut delimiter_parser = delimiter;
+        move |input: &mut &'a str| -> ModalResult<Self> {
+            // Parse until the first `:`, which separates the prefix from the directory.
+            let prefix = repeat_till(1.., any, peek(alt((":", eof))))
+                .try_map(|(name, _): (String, &str)| SharedLibraryPrefix::from_str(&name))
+                .context(StrContext::Label("prefix for a shared object lookup path"))
+                .parse_next(input)?;
 
-        // Take the delimiter.
-        cut_err(":")
-            .context(StrContext::Label("shared library prefix delimiter"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "shared library prefix `:`",
-            )))
-            .parse_next(input)?;
+            // Take the delimiter.
+            ":".context(StrContext::Label("shared library prefix delimiter"))
+                .context(StrContext::Expected(StrContextValue::Description(
+                    "shared library prefix `:`",
+                )))
+                .parse_next(input)?;
 
-        // Parse the rest as a directory.
-        let directory = rest
-            .verify(|s: &str| !s.is_empty())
-            .try_map(AbsolutePath::from_str)
-            .context(StrContext::Label("directory"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "directory for a shared object lookup path",
-            )))
-            .parse_next(input)?;
+            // Parse the rest as a directory.
+            let directory = repeat_till(1.., any, peek(delimiter_parser.by_ref()))
+                .try_map(|(path, _): (String, &str)| AbsolutePath::from_str(&path))
+                .context(StrContext::Label("directory"))
+                .context(StrContext::Expected(StrContextValue::Description(
+                    "directory for a shared object lookup path",
+                )))
+                .parse_next(input)?;
 
-        Ok(Self { prefix, directory })
+            peek(delimiter_parser.by_ref())
+                .context(StrContext::Label("SonameLookupDirectory"))
+                .context(StrContext::Expected(StrContextValue::Description(
+                    "valid end of input.",
+                )))
+                .parse_next(input)?;
+
+            Ok(Self { prefix, directory })
+        }
     }
 }
 
@@ -410,9 +422,11 @@ impl FromStr for SonameLookupDirectory {
 
     /// Creates a [`SonameLookupDirectory`] from a string slice.
     ///
+    /// Delegates to [`SonameLookupDirectory::parser_until`].
+    ///
     /// # Errors
     ///
-    /// Returns an error if `input` can not be converted into a [`SonameLookupDirectory`].
+    /// Returns an error if [`SonameLookupDirectory::parser_until`] fails.
     ///
     /// # Examples
     ///
@@ -431,7 +445,7 @@ impl FromStr for SonameLookupDirectory {
     /// # }
     /// ```
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser.parse(s)?)
+        Ok(Self::parser_until_eof.parse(s)?)
     }
 }
 
