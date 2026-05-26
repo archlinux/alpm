@@ -562,8 +562,7 @@ impl PackageBaseProperty {
             // Handle `pkgbase` specific package relations.
             PackageBaseKeyword::MakeDepends | PackageBaseKeyword::CheckDepends => {
                 // Read and parse the generic architecture specific PackageRelation.
-                let value =
-                    cut_err(till_line_end.and_then(PackageRelation::parser)).parse_next(input)?;
+                let value = cut_err(PackageRelation::parser_until_line_ending).parse_next(input)?;
                 let arch_property = ArchProperty {
                     architecture,
                     value,
@@ -892,8 +891,7 @@ impl RelationProperty {
             // Handle these together in a single blob as they all deserialize to the same base type.
             RelationKeyword::Conflicts | RelationKeyword::Replaces => {
                 // Read and parse the generic architecture specific PackageRelation.
-                let value =
-                    cut_err(till_line_end.and_then(PackageRelation::parser)).parse_next(input)?;
+                let value = cut_err(PackageRelation::parser_until_line_ending).parse_next(input)?;
                 let arch_property = ArchProperty {
                     architecture,
                     value,
