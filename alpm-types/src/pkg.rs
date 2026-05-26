@@ -1,8 +1,14 @@
 use std::{convert::Infallible, fmt::Display, str::FromStr};
 
+use alpm_parsers::{iter_str_context, traits::AlpmParser};
 use serde::{Deserialize, Serialize};
 use serde_with::{DeserializeFromStr, SerializeDisplay};
-use strum::{Display, EnumString};
+use strum::{Display, EnumString, VariantNames};
+use winnow::{
+    Parser,
+    ascii::alpha1,
+    error::{ContextError, ErrMode, StrContext, StrContextValue},
+};
 
 use crate::{Error, Name};
 
@@ -23,7 +29,7 @@ use crate::{Error, Name};
 /// assert_eq!("src", format!("{}", PackageType::Source));
 /// assert_eq!("split", format!("{}", PackageType::Split));
 /// ```
-#[derive(Clone, Copy, Debug, Display, EnumString, Eq, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, Display, EnumString, Eq, PartialEq, Serialize, VariantNames)]
 pub enum PackageType {
     /// a debug package
     #[strum(to_string = "debug")]
@@ -37,6 +43,35 @@ pub enum PackageType {
     /// one split package out of a set of several
     #[strum(to_string = "split")]
     Split,
+}
+
+impl AlpmParser for PackageType {
+    /// Recognizes a [`PackageType`] in a string slice.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the immediate alphanumeric `input` is not a valid variant
+    /// a `PackageType`.
+    fn parser(input: &mut &str) -> Result<Self, ErrMode<ContextError>> {
+        alpha1
+            .try_map(PackageType::from_str)
+            .context(StrContext::Label("package type"))
+            .context_with(iter_str_context!([PackageType::VARIANTS]))
+            .parse_next(input)
+    }
+
+    fn delimiter_error_context<'a, O, P>(
+        parser: P,
+    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    where
+        P: Parser<&'a str, O, ErrMode<ContextError>>,
+    {
+        parser
+            .context(StrContext::Label("package type"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "an alphanbetic string",
+            )))
+    }
 }
 
 /// Description of a package
