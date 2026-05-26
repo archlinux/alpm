@@ -1,0 +1,7 @@
+---
+source: alpm-types/src/pkg.rs
+---
+=value
+^
+invalid extra data
+expected a utf-8 key before the `=` delimiter
