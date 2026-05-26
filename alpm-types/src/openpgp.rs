@@ -4,6 +4,7 @@ use std::{
     string::ToString,
 };
 
+use alpm_parsers::traits::ParserUntil;
 use base64::{Engine, prelude::BASE64_STANDARD};
 use email_address::EmailAddress;
 use fluent_i18n::t;
@@ -11,9 +12,9 @@ use serde::{Deserialize, Serialize};
 use winnow::{
     ModalResult,
     Parser,
-    combinator::{cut_err, eof, seq},
-    error::{StrContext, StrContextValue},
-    token::take_till,
+    combinator::{alt, not, peek, repeat_till},
+    error::{ContextError, ErrMode, StrContext, StrContextValue},
+    token::any,
 };
 
 use crate::Error;
@@ -434,37 +435,78 @@ impl Packager {
     pub fn email(&self) -> &EmailAddress {
         &self.email
     }
+}
 
+impl ParserUntil for Packager {
     /// Parses a [`Packager`] from a string slice.
-    ///
-    /// Consumes all of its input.
-    ///
-    /// # Examples
-    ///
-    /// See [`Self::from_str`] for code examples.
     ///
     /// # Errors
     ///
     /// Returns an error if `input` does not represent a valid [`Packager`].
-    pub fn parser(input: &mut &str) -> ModalResult<Self> {
-        seq!(Self {
+    fn parser_until<'a, P>(delimiter: P) -> impl Parser<&'a str, Self, ErrMode<ContextError>>
+    where
+        P: Parser<&'a str, &'a str, ErrMode<ContextError>>,
+    {
+        // Define the actual parser closure.
+        // The delimiter is moved into the closure and borrowed via `by_ref()` on each call.
+        let mut delimiter_parser = delimiter;
+        move |input: &mut &'a str| -> ModalResult<Self> {
+            // Make sure the first character isn't a `<`, which may happen if the packager name is
+            // missing.
+            not("<")
+                .context(StrContext::Label("packager name"))
+                .context(StrContext::Expected(StrContextValue::Description(
+                    "a packager name",
+                )))
+                .parse_next(input)?;
+
             // The name that precedes the email address
-            name: cut_err(take_till(1.., '<'))
-                .map(|s: &str| s.trim().to_string())
-                .context(StrContext::Label("packager name")),
+            let name = repeat_till::<_, _, (), _, _, _, _>(
+                1..,
+                any,
+                peek(alt(("<", delimiter_parser.by_ref()))),
+            )
+            .take()
+            .map(|name: &str| name.trim())
+            .verify(|name: &str| !name.is_empty())
+            .map(|name: &str| name.to_string())
+            .context(StrContext::Label("packager name"))
+            .parse_next(input)?;
+
             // The '<' delimiter that marks the start of the email string
-            _: cut_err('<').context(StrContext::Label("or missing opening delimiter '<' for email address")),
+            '<'.context(StrContext::Label("packager"))
+                .context(StrContext::Expected(StrContextValue::Description(
+                    "opening delimiter '<' for email address",
+                )))
+                .parse_next(input)?;
+
             // The email address, which is validated by the EmailAddress struct.
-            email: cut_err(
-                take_till(1.., '>')
-                    .try_map(EmailAddress::from_str))
-                    .context(StrContext::Label("Email address")
-                ),
+            let email = repeat_till::<_, _, (), _, _, _, _>(
+                1..,
+                any,
+                peek(alt((">", delimiter_parser.by_ref()))),
+            )
+            .take()
+            .try_map(EmailAddress::from_str)
+            .context(StrContext::Label("Email address"))
+            .parse_next(input)?;
+
             // The '>' delimiter that marks the end of the email string
-            _: cut_err('>').context(StrContext::Label("or missing closing delimiter '>' for email address")),
-            _: eof.context(StrContext::Expected(StrContextValue::Description("end of packager string"))),
-        })
-        .parse_next(input)
+            '>'.context(StrContext::Label("packager"))
+                .context(StrContext::Expected(StrContextValue::Description(
+                    "closing delimiter '>' of packager email address",
+                )))
+                .parse_next(input)?;
+
+            peek(delimiter_parser.by_ref())
+                .context(StrContext::Label("packager: unexpected trailing content"))
+                .context(StrContext::Expected(StrContextValue::Description(
+                    "end of input.",
+                )))
+                .parse_next(input)?;
+
+            Ok(Self { name, email })
+        }
     }
 }
 
@@ -472,7 +514,7 @@ impl FromStr for Packager {
     type Err = Error;
     /// Create a Packager from a string
     fn from_str(s: &str) -> Result<Packager, Self::Err> {
-        Ok(Self::parser.parse(s)?)
+        Ok(Self::parser_until_eof.parse(s)?)
     }
 }
 
