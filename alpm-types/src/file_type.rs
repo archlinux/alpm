@@ -1,7 +1,15 @@
 //! File type handling.
 
+use std::str::FromStr;
+
+use alpm_parsers::{iter_str_context, traits::AlpmParser};
 use serde::{Deserialize, Serialize};
-use strum::{AsRefStr, Display, EnumString, IntoStaticStr};
+use strum::{AsRefStr, Display, EnumString, IntoStaticStr, VariantNames};
+use winnow::{
+    Parser,
+    ascii::alpha1,
+    error::{ContextError, ErrMode, StrContext, StrContextValue},
+};
 
 /// The identifier of a file type used in ALPM.
 ///
@@ -21,6 +29,7 @@ use strum::{AsRefStr, Display, EnumString, IntoStaticStr};
     IntoStaticStr,
     PartialEq,
     Serialize,
+    VariantNames,
 )]
 #[serde(untagged)]
 pub enum FileTypeIdentifier {
@@ -40,4 +49,33 @@ pub enum FileTypeIdentifier {
     #[serde(rename = "src")]
     #[strum(to_string = "src")]
     SourcePackage,
+}
+
+impl AlpmParser for FileTypeIdentifier {
+    /// Recognizes a [`FileTypeIdentifier`] in a string slice.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the immediate alphabetic `input` is not a valid variant
+    /// a `FileTypeIdentifier`.
+    fn parser(input: &mut &str) -> Result<Self, ErrMode<ContextError>> {
+        alpha1
+            .try_map(FileTypeIdentifier::from_str)
+            .context(StrContext::Label("compression algorithm file extension"))
+            .context_with(iter_str_context!([FileTypeIdentifier::VARIANTS]))
+            .parse_next(input)
+    }
+
+    fn delimiter_error_context<'a, O, P>(
+        parser: P,
+    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    where
+        P: Parser<&'a str, O, ErrMode<ContextError>>,
+    {
+        parser
+            .context(StrContext::Label("FileTypeIdentifier"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "an alphabetic string",
+            )))
+    }
 }
