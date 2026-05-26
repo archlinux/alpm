@@ -5,6 +5,7 @@
 use std::{collections::HashSet, fmt::Display, path::PathBuf, str::FromStr};
 
 use alpm_common::relative_files;
+use alpm_parsers::traits::AlpmParser;
 use alpm_types::{Md5Checksum, RelativeFilePath, RelativePath};
 use fluent_i18n::t;
 use winnow::{
