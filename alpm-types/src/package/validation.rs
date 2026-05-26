@@ -1,5 +1,16 @@
 //! Package validation handling.
 
+use std::str::FromStr;
+
+use alpm_parsers::{iter_str_context, traits::AlpmParser};
+use serde::{Deserialize, Serialize};
+use strum::{AsRefStr, Display, EnumString, VariantNames};
+use winnow::{
+    Parser,
+    ascii::alphanumeric1,
+    error::{ContextError, ErrMode, StrContext, StrContextValue},
+};
+
 /// The validation method used during installation of a package.
 ///
 /// A validation method can ensure the integrity of a package.
@@ -48,14 +59,7 @@
 /// # }
 /// ```
 #[derive(
-    Clone,
-    Debug,
-    PartialEq,
-    serde::Deserialize,
-    serde::Serialize,
-    strum::EnumString,
-    strum::Display,
-    strum::AsRefStr,
+    Clone, Debug, PartialEq, Deserialize, Serialize, EnumString, Display, AsRefStr, VariantNames,
 )]
 #[strum(serialize_all = "lowercase")]
 pub enum PackageValidation {
@@ -67,4 +71,33 @@ pub enum PackageValidation {
     Sha256,
     /// The package is validated using **PGP signatures**.
     Pgp,
+}
+
+impl AlpmParser for PackageValidation {
+    /// Recognizes a [`PackageValidation`] in a string slice.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the immediate alphanumeric `input` is not a valid variant
+    /// of a `PackageValidation`.
+    fn parser(input: &mut &str) -> Result<Self, ErrMode<ContextError>> {
+        alphanumeric1
+            .try_map(PackageValidation::from_str)
+            .context(StrContext::Label("package validation method"))
+            .context_with(iter_str_context!([PackageValidation::VARIANTS]))
+            .parse_next(input)
+    }
+
+    fn delimiter_error_context<'a, O, P>(
+        parser: P,
+    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    where
+        P: Parser<&'a str, O, ErrMode<ContextError>>,
+    {
+        parser
+            .context(StrContext::Label("package validation method"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "an alphanumeric string",
+            )))
+    }
 }
