@@ -1,0 +1,7 @@
+---
+source: alpm-types/src/pkg.rs
+---
+key=
+    ^
+invalid extra data value
+expected an utf-8 string
