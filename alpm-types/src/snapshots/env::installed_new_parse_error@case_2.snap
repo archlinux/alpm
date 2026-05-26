@@ -4,5 +4,5 @@ source: alpm-types/src/env.rs
 foo-1:1.0.0_any
 ^
 invalid alpm-package file name
-expected a package name, followed by an alpm-package-version (full or full with epoch) and an architecture.
+expected a package name, followed by an alpm-package-version (full or full with epoch) and an alpm-architecture.
 All components must be delimited with a dash ('-').
