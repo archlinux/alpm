@@ -4,4 +4,5 @@ source: alpm-types/src/openpgp.rs
 Parser failed with the following error:
 Foobar McFooface <foobar@mcfooface.org> <foobar@mcfoofacemcfooface.org>
                                        ^
-expected end of packager string
+invalid packager: unexpected trailing content
+expected end of input.
