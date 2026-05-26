@@ -2,6 +2,7 @@
 
 use std::{path::PathBuf, thread::current};
 
+use alpm_parsers::traits::AlpmParser;
 use alpm_types::PackageFileName;
 use insta::{assert_snapshot, with_settings};
 use log::{LevelFilter, debug};
