@@ -13,7 +13,7 @@ use strum::VariantNames;
 use winnow::{
     ModalResult,
     Parser,
-    combinator::{alt, cut_err, eof, fail, opt, peek, repeat, repeat_till},
+    combinator::{alt, cut_err, fail, opt, peek, repeat, repeat_till},
     error::{
         AddContext,
         ContextError,
@@ -67,6 +67,8 @@ fn option_bool_parser(input: &mut &str) -> ModalResult<bool> {
     Ok(opt('!').parse_next(input)?.is_none())
 }
 
+pub static SPECIAL_OPTION_CHARS: [char; 3] = ['-', '.', '_'];
+
 /// Recognizes option names.
 ///
 /// This parser fully consumes its input.
@@ -81,17 +83,9 @@ fn option_bool_parser(input: &mut &str) -> ModalResult<bool> {
 fn option_name_parser<'s>(input: &mut &'s str) -> ModalResult<&'s str> {
     let alphanum = |c: char| c.is_ascii_alphanumeric();
 
-    let special_chars = ['-', '.', '_'];
-    let valid_chars = one_of((alphanum, special_chars));
+    let valid_chars = one_of((alphanum, SPECIAL_OPTION_CHARS));
     let name = repeat::<_, _, (), _, _>(0.., valid_chars)
         .take()
-        .parse_next(input)?;
-
-    eof.context(StrContext::Label("character in makepkg option"))
-        .context(StrContext::Expected(Description(
-            "ASCII alphanumeric character",
-        )))
-        .context_with(iter_char_context!(special_chars))
         .parse_next(input)?;
 
     Ok(name)
@@ -113,16 +107,14 @@ pub enum MakepkgOption {
     Package(PackageOption),
 }
 
-impl MakepkgOption {
+impl AlpmParser for MakepkgOption {
     /// Recognizes any [`PackageOption`] and [`BuildEnvironmentOption`] in a
     /// string slice.
-    ///
-    /// Consumes all of its input.
     ///
     /// # Errors
     ///
     /// Returns an error if `input` is neither of the listed options.
-    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+    fn parser(input: &mut &str) -> ModalResult<Self> {
         alt((
             BuildEnvironmentOption::parser.map(MakepkgOption::BuildEnvironment),
             PackageOption::parser.map(MakepkgOption::Package),
@@ -133,6 +125,20 @@ impl MakepkgOption {
                 ])),
         ))
         .parse_next(input)
+    }
+
+    fn delimiter_error_context<'a, O, P>(
+        parser: P,
+    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    where
+        P: Parser<&'a str, O, ErrMode<ContextError>>,
+    {
+        parser
+            .context(StrContext::Label("makepkg option"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "string consisting of alphanumerics or",
+            )))
+            .context_with(iter_char_context!(SPECIAL_OPTION_CHARS))
     }
 }
 
@@ -242,15 +248,15 @@ impl BuildEnvironmentOption {
             | Self::Sign(on) => *on,
         }
     }
+}
 
+impl AlpmParser for BuildEnvironmentOption {
     /// Recognizes a [`BuildEnvironmentOption`] in a string slice.
-    ///
-    /// Consumes all of its input.
     ///
     /// # Errors
     ///
-    /// Returns an error if `input` is not a valid build environment option.
-    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+    /// Returns an error if `input` does not begin with a valid [`BuildEnvironmentOption`].
+    fn parser(input: &mut &str) -> ModalResult<Self> {
         let on = option_bool_parser.parse_next(input)?;
         let mut name = option_name_parser.parse_next(input)?;
 
@@ -267,6 +273,20 @@ impl BuildEnvironmentOption {
         ))
         .parse_next(&mut name)
     }
+
+    fn delimiter_error_context<'a, O, P>(
+        parser: P,
+    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    where
+        P: Parser<&'a str, O, ErrMode<ContextError>>,
+    {
+        parser
+            .context(StrContext::Label("build environment option"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "string consisting of alphanumerics or",
+            )))
+            .context_with(iter_char_context!(SPECIAL_OPTION_CHARS))
+    }
 }
 
 impl FromStr for BuildEnvironmentOption {
@@ -279,7 +299,7 @@ impl FromStr for BuildEnvironmentOption {
     ///
     /// Returns an error if [`BuildEnvironmentOption::parser`] fails.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser.parse(s)?)
+        Ok(Self::parser_until_eof.parse(s)?)
     }
 }
 
@@ -404,15 +424,15 @@ impl PackageOption {
             | Self::Zipman(on) => *on,
         }
     }
+}
 
+impl AlpmParser for PackageOption {
     /// Recognizes a [`PackageOption`] in a string slice.
-    ///
-    /// Consumes all of its input.
     ///
     /// # Errors
     ///
-    /// Returns an error if `input` is not the valid string representation of a [`PackageOption`].
-    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+    /// Returns an error if `input` does not begin with a valid [`PackageOption`].
+    fn parser(input: &mut &str) -> ModalResult<Self> {
         let on = option_bool_parser.parse_next(input)?;
         let mut name = option_name_parser.parse_next(input)?;
 
@@ -437,6 +457,20 @@ impl PackageOption {
         ))
         .parse_next(&mut name)
     }
+
+    fn delimiter_error_context<'a, O, P>(
+        parser: P,
+    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    where
+        P: Parser<&'a str, O, ErrMode<ContextError>>,
+    {
+        parser
+            .context(StrContext::Label("package option"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "string consisting of alphanumerics or",
+            )))
+            .context_with(iter_char_context!(SPECIAL_OPTION_CHARS))
+    }
 }
 
 impl FromStr for PackageOption {
@@ -449,7 +483,7 @@ impl FromStr for PackageOption {
     ///
     /// Returns an error if [`PackageOption::parser`] fails.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser.parse(s)?)
+        Ok(Self::parser_until_eof.parse(s)?)
     }
 }
 
