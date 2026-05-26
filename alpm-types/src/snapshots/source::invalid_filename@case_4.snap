@@ -1,0 +1,6 @@
+---
+source: alpm-types/src/source.rs
+---
+/absolute/path
+^
+File name (/absolute/path) contains invalid characters: /
