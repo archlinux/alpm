@@ -1,13 +1,19 @@
 use std::{convert::Infallible, fmt::Display, str::FromStr};
 
-use alpm_parsers::{iter_str_context, traits::AlpmParser};
+use alpm_parsers::{
+    iter_str_context,
+    traits::{AlpmParser, ParserUntil},
+};
 use serde::{Deserialize, Serialize};
 use serde_with::{DeserializeFromStr, SerializeDisplay};
 use strum::{Display, EnumString, VariantNames};
 use winnow::{
+    ModalResult,
     Parser,
-    ascii::alpha1,
+    ascii::{alpha1, space0},
+    combinator::{alt, not, peek, repeat_till},
     error::{ContextError, ErrMode, StrContext, StrContextValue},
+    token::any,
 };
 
 use crate::{Error, Name};
@@ -208,16 +214,83 @@ impl ExtraDataEntry {
     }
 }
 
+impl ParserUntil for ExtraDataEntry {
+    /// Parses a [`ExtraDataEntry`] from a string slice.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if `input` does not represent a valid [`ExtraDataEntry`].
+    fn parser_until<'a, P>(delimiter: P) -> impl Parser<&'a str, Self, ErrMode<ContextError>>
+    where
+        P: Parser<&'a str, &'a str, ErrMode<ContextError>>,
+    {
+        // Define the actual parser closure.
+        // The delimiter is moved into the closure and borrowed via `by_ref()` on each call.
+        let mut delimiter_parser = delimiter;
+        move |input: &mut &'a str| -> ModalResult<Self> {
+            // Handle the case were there's no key
+            not("=")
+                .context(StrContext::Label("extra data"))
+                .context(StrContext::Expected(StrContextValue::Description(
+                    "a utf-8 key before the `=` delimiter",
+                )))
+                .parse_next(input)?;
+
+            let key: &str = repeat_till::<_, _, (), _, _, _, _>(
+                1..,
+                any,
+                peek(alt((
+                    (space0, "=", space0).take(),
+                    delimiter_parser.by_ref(),
+                ))),
+            )
+            .take()
+            .context(StrContext::Label("extra data key"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "an utf-8 string, followed by a `=`.",
+            )))
+            .parse_next(input)?;
+
+            (space0, "=", space0)
+                .context(StrContext::Label("extra data delimiter"))
+                .context(StrContext::Expected(StrContextValue::Description(
+                    "a `=` between the key and value",
+                )))
+                .parse_next(input)?;
+
+            let value: &str =
+                repeat_till::<_, _, (), _, _, _, _>(1.., any, peek(delimiter_parser.by_ref()))
+                    .take()
+                    .context(StrContext::Label("extra data value"))
+                    .context(StrContext::Expected(StrContextValue::Description(
+                        "an utf-8 string",
+                    )))
+                    .parse_next(input)?;
+
+            peek(delimiter_parser.by_ref())
+                .context(StrContext::Label("extra data value"))
+                .context(StrContext::Expected(StrContextValue::Description(
+                    "end of input",
+                )))
+                .parse_next(input)?;
+
+            Ok(Self::new(key.trim().to_string(), value.trim().to_string()))
+        }
+    }
+}
+
 impl FromStr for ExtraDataEntry {
     type Err = Error;
 
-    /// Parses an `extra_data` from string.
+    /// Creates an [`ExtraDataEntry`] from a string slice.
     ///
     /// The string is expected to be in the format `key=value`.
     ///
-    /// ## Errors
+    /// Delegates to [`ExtraDataEntry::parser_until`].
     ///
-    /// This function returns an error if the string is missing the key or value component.
+    /// # Errors
+    ///
+    /// Returns an error if [`ExtraDataEntry::parser_until`] fails.
     ///
     /// ## Examples
     ///
@@ -235,19 +308,7 @@ impl FromStr for ExtraDataEntry {
     /// # }
     /// ```
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        const DELIMITER: char = '=';
-        let mut parts = s.splitn(2, DELIMITER);
-        let key = parts
-            .next()
-            .map(|v| v.trim())
-            .filter(|v| !v.is_empty())
-            .ok_or(Error::MissingComponent { component: "key" })?;
-        let value = parts
-            .next()
-            .map(|v| v.trim())
-            .filter(|v| !v.is_empty())
-            .ok_or(Error::MissingComponent { component: "value" })?;
-        Ok(Self::new(key.to_string(), value.to_string()))
+        Ok(Self::parser_until_eof.parse(s)?)
     }
 }
 
@@ -356,10 +417,12 @@ impl AsRef<[ExtraDataEntry]> for ExtraData {
 mod tests {
     use std::str::FromStr;
 
+    use insta::assert_snapshot;
     use rstest::rstest;
     use testresult::TestResult;
 
     use super::*;
+    use crate::configure_insta;
 
     #[rstest]
     #[case("debug", Ok(PackageType::Debug))]
@@ -400,14 +463,16 @@ mod tests {
     }
 
     #[rstest]
-    #[case("key", Err(Error::MissingComponent { component: "value" }))]
-    #[case("key=", Err(Error::MissingComponent { component: "value" }))]
-    #[case("=value", Err(Error::MissingComponent { component: "key" }))]
-    fn extra_data_entry_from_str_error(
-        #[case] extra_data: &str,
-        #[case] result: Result<ExtraDataEntry, Error>,
-    ) {
-        assert_eq!(ExtraDataEntry::from_str(extra_data), result);
+    #[case("key")]
+    #[case("key=")]
+    #[case("=value")]
+    fn extra_data_entry_from_str_error(#[case] input: &str) {
+        let Err(Error::ParseError(err_msg)) = ExtraDataEntry::from_str(input) else {
+            panic!("'{input}' erroneously parsed as a ExtraDataEntry")
+        };
+
+        let (test_name, _guard) = configure_insta();
+        assert_snapshot!(test_name, err_msg.to_string());
     }
 
     #[rstest]
