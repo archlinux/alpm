@@ -5,6 +5,7 @@ use std::{
     str::FromStr,
 };
 
+use alpm_parsers::traits::AlpmParser;
 use digest::{Digest, FixedOutput, HashMarker, Output, OutputSizeUser, Update};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use strum::{Display, EnumString, VariantArray, VariantNames};
@@ -12,7 +13,7 @@ use winnow::{
     ModalResult,
     Parser,
     ascii::dec_uint,
-    combinator::{alt, cut_err, eof, repeat, terminated},
+    combinator::{alt, cut_err, not, repeat},
     error::{StrContext, StrContextValue},
     token::one_of,
 };
@@ -306,17 +307,18 @@ impl<D: DigestString> Checksum<D> {
     pub fn inner(&self) -> &[u8] {
         &self.digest
     }
+}
 
+impl<D: DigestString> AlpmParser for Checksum<D> {
     /// Recognizes an ASCII hexadecimal [`Checksum`] from a string slice.
     ///
-    /// Consumes all input.
     /// See [`Checksum::from_str`].
     ///
     /// # Errors
     ///
-    /// Returns an error if `input` is not the output of a _hash function_
+    /// Returns an error if the immediate `input` is not the output of a _hash function_
     /// in hexadecimal (or decimal in case of CRC-32/CKSUM) form.
-    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+    fn parser(input: &mut &str) -> ModalResult<Self> {
         /// Consume 1 hex digit and return its hex value.
         ///
         /// Accepts uppercase or lowercase.
@@ -344,14 +346,16 @@ impl<D: DigestString> Checksum<D> {
         let digest = match D::ENCODING {
             DigestEncoding::Hex => {
                 // Consume exactly the number of hex pairs that our Digest type expects
-                let digest = cut_err(repeat(digest_bytes, hex_pair))
+                let digest = repeat(digest_bytes, hex_pair)
                     .context(StrContext::Label("hash digest"))
                     .context(StrContext::Expected(StrContextValue::Description(
                         "a hex hash digest with the appropriate length for the given algorithm.",
                     )))
                     .parse_next(input)?;
 
-                cut_err(eof)
+                // Handle the case that there's another hex char after the expected number of digits
+                // This is one of the few cases that we consider a hard error.
+                cut_err(not(hex_digit))
                     .context(StrContext::Expected(StrContextValue::Description(
                         "end of checksum. Checksum is too long.",
                     )))
@@ -381,7 +385,7 @@ impl<D: DigestString> Checksum<D> {
 
                 // Parse into the u128 decimal and verify that the resulting value fits into our
                 // requested digest length. E.g. CRC-32 is restricted to a u32.
-                cut_err(dec_uint::<_, u128, _>)
+                dec_uint::<_, u128, _>
                     .verify(move |&v| v <= max_value)
                     // Convert the u128 into a big endian byte array.
                     // Then cut the array at the highest significant byte we allow for this digest.
@@ -398,6 +402,19 @@ impl<D: DigestString> Checksum<D> {
             digest,
             _marker: PhantomData,
         })
+    }
+
+    fn delimiter_error_context<'a, O, P>(
+        parser: P,
+    ) -> impl Parser<&'a str, O, winnow::error::ErrMode<winnow::error::ContextError>>
+    where
+        P: Parser<&'a str, O, winnow::error::ErrMode<winnow::error::ContextError>>,
+    {
+        parser
+            .context(StrContext::Label("character in checksum"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "a string consisting of solely decimal or hexadecimal chars.",
+            )))
     }
 }
 
@@ -506,27 +523,37 @@ impl<D: DigestString + Clone> SkippableChecksum<D> {
     pub fn is_skipped(&self) -> bool {
         matches!(self, SkippableChecksum::Skip)
     }
+}
 
+impl<D: DigestString + Clone> AlpmParser for SkippableChecksum<D> {
     /// Recognizes a [`SkippableChecksum`] from a string slice.
     ///
-    /// Consumes all its input.
     /// See [`SkippableChecksum::from_str`], [`Checksum::parser`] and [`Checksum::from_str`].
     ///
     /// # Errors
     ///
-    /// Returns an error if `input` is not the output of a _hash function_
-    /// in hexadecimal (or decimal in case of CRC32/CKSUM) form.
-    pub fn parser(input: &mut &str) -> ModalResult<Self> {
-        terminated(
-            alt((
-                "SKIP".value(Self::Skip),
-                Checksum::parser.map(|digest| Self::Checksum { digest }),
-            )),
-            cut_err(eof).context(StrContext::Expected(StrContextValue::Description(
-                "end of checksum.",
-            ))),
-        )
+    /// Returns an error if the immediate `input` is not the output of a _hash function_
+    /// in hexadecimal (or decimal in case of CRC-32/CKSUM) form, or the keyword `SKIP`.
+    fn parser(input: &mut &str) -> ModalResult<Self> {
+        alt((
+            "SKIP".value(Self::Skip),
+            Checksum::parser.map(|digest| Self::Checksum { digest }),
+        ))
+        .context(StrContext::Expected(StrContextValue::Description(
+            "a hash digest with the appropriate length for the given algorithm, or an uppercase 'SKIP'",
+        )))
         .parse_next(input)
+    }
+
+    fn delimiter_error_context<'a, O, P>(
+        parser: P,
+    ) -> impl Parser<&'a str, O, winnow::error::ErrMode<winnow::error::ContextError>>
+    where
+        P: Parser<&'a str, O, winnow::error::ErrMode<winnow::error::ContextError>>,
+    {
+        parser.context(StrContext::Expected(StrContextValue::Description(
+            "end of checksum.",
+        )))
     }
 }
 
