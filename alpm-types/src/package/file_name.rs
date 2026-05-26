@@ -13,10 +13,10 @@ use winnow::{
     ModalResult,
     Parser,
     ascii::alphanumeric1,
-    combinator::{cut_err, eof, opt, preceded},
+    combinator::{opt, peek, repeat_till},
     error::{AddContext, ContextError, ErrMode, ParserError, StrContext, StrContextValue},
     stream::Stream,
-    token::take_until,
+    token::{any, take_until},
 };
 
 use crate::{
@@ -251,7 +251,9 @@ impl PackageFileName {
     pub fn set_compression(&mut self, compression: Option<CompressionAlgorithmFileExtension>) {
         self.compression = compression
     }
+}
 
+impl ParserUntil for PackageFileName {
     /// Recognizes a [`PackageFileName`] in a string slice.
     ///
     /// Relies on [`winnow`] to parse `input` and recognize the [`Name`], [`FullVersion`],
@@ -269,6 +271,7 @@ impl PackageFileName {
     /// # Examples
     ///
     /// ```
+    /// use alpm_parsers::traits::ParserUntil;
     /// use alpm_types::PackageFileName;
     /// use winnow::Parser;
     ///
@@ -276,26 +279,48 @@ impl PackageFileName {
     /// let filename = "example-package-1:1.0.0-1-x86_64.pkg.tar.zst";
     /// assert_eq!(
     ///     filename,
-    ///     PackageFileName::parser.parse(filename)?.to_string()
+    ///     PackageFileName::parser_until_eof
+    ///         .parse(filename)?
+    ///         .to_string()
     /// );
     /// # Ok(())
     /// # }
     /// ```
-    pub fn parser(input: &mut &str) -> ModalResult<Self> {
-        // Detect the amount of dashes in input and subsequently in the Name component.
-        //
-        // Note: This is a necessary step because dashes are used as delimiters between the
-        // components of the file name and the Name component (an alpm-package-name) can contain
-        // dashes, too.
-        // We know that the minimum amount of dashes in a valid alpm-package file name is
-        // three (one dash between the Name, FullVersion, PackageRelease, and Architecture
-        // component each).
-        // We rely on this fact to determine the amount of dashes in the Name component and
-        // thereby the cut-off point between the Name and the FullVersion component.
-        let dashes: usize = input.chars().filter(|char| char == &'-').count();
+    fn parser_until<'a, P>(delimiter: P) -> impl Parser<&'a str, Self, ErrMode<ContextError>>
+    where
+        P: Parser<&'a str, &'a str, ErrMode<ContextError>>,
+    {
+        // Define the actual parser closure.
+        // The delimiter is moved into the closure and borrowed via `by_ref()` on each call.
+        let mut delimiter_parser = delimiter;
+        move |input: &mut &'a str| -> ModalResult<Self> {
+            // Detect the amount of dashes in input and subsequently in the Name component.
+            //
+            // Note: This is a necessary step because dashes are used as delimiters between the
+            // components of the file name and the Name component (an alpm-package-name) can contain
+            // dashes, too.
+            // We know that the minimum amount of dashes in a valid alpm-package file name is
+            // three (one dash between the Name, FullVersion, PackageRelease, and Architecture
+            // component each).
+            // We rely on this fact to determine the amount of dashes in the Name component and
+            // thereby the cut-off point between the Name and the FullVersion component.
+            let checkpoint = input.checkpoint();
+            let dashes: usize =
+                repeat_till::<_, _, (), _, _, _, _>(0.., any, peek(delimiter_parser.by_ref()))
+                    .take()
+                    .map(|s| {
+                        s.chars().fold(0, |acc, char| {
+                            if char == '-' {
+                                return acc + 1;
+                            }
+                            acc
+                        })
+                    })
+                    .parse_next(input)?;
+            input.reset(&checkpoint);
 
-        if dashes < 3 {
-            let context_error = ContextError::from_input(input)
+            if dashes < 3 {
+                let context_error = ContextError::from_input(input)
                 .add_context(
                     input,
                     &input.checkpoint(),
@@ -312,93 +337,108 @@ impl PackageFileName {
                     ))
                 );
 
-            return Err(ErrMode::Cut(context_error));
+                return Err(ErrMode::Backtrack(context_error));
+            }
+
+            // The (zero or more) dashes in the Name component.
+            let dashes_till_version = dashes.saturating_sub(2);
+
+            // Advance the parser to the dash just behind the Name component, based on the amount of
+            // dashes in the Name, e.g.:
+            // "example-package-1:1.0.0-1-x86_64.pkg.tar.zst" -> "-1:1.0.0-1-x86_64.pkg.tar.zst"
+            let name = Name::parse_name_followed_by_version(dashes_till_version)
+                .context(StrContext::Label("alpm-package-name"))
+                .parse_next(input)?;
+
+            // Consume leading dash in front of FullVersion, e.g.:
+            // "-1:1.0.0-1-x86_64.pkg.tar.zst" -> "1:1.0.0-1-x86_64.pkg.tar.zst"
+            "-".parse_next(input)?;
+
+            // Advance the parser to beyond the FullVersion component (which contains one dash),
+            // e.g.: "1:1.0.0-1-x86_64.pkg.tar.zst" -> "-x86_64.pkg.tar.zst"
+            let version: FullVersion = FullVersion::parser_until("-").parse_next(input)?;
+
+            // Consume leading dash, e.g.:
+            // "-x86_64.pkg.tar.zst" -> "x86_64.pkg.tar.zst"
+            "-".parse_next(input)?;
+
+            // Advance the parser to beyond the Architecture component, e.g.:
+            // "x86_64.pkg.tar.zst" -> ".pkg.tar.zst"
+            let architecture = take_until(0.., ".")
+                .try_map(Architecture::from_str)
+                .parse_next(input)?;
+
+            // Consume leading dot, e.g.:
+            // ".pkg.tar.zst" -> "pkg.tar.zst"
+            ".".context(StrContext::Label("alpm-package file name"))
+                .context(StrContext::Expected(StrContextValue::StringLiteral(
+                    "a `.` between the architecture and the `pkg` extension",
+                )))
+                .parse_next(input)?;
+
+            // Consume the required alpm-package file type identifier, e.g.:
+            // "pkg.tar.zst" -> ".tar.zst"
+            "pkg"
+                .context(StrContext::Label("alpm-package file type identifier"))
+                .context(StrContext::Expected(StrContextValue::StringLiteral(
+                    FileTypeIdentifier::BinaryPackage.into(),
+                )))
+                .parse_next(input)?;
+
+            // Consume leading dot, e.g.:
+            // ".tar.zst" -> "tar.zst"
+            ".".context(StrContext::Label("alpm-package file name"))
+                .context(StrContext::Expected(StrContextValue::StringLiteral(
+                    "a `.` between the `pkg` and `tar` extension",
+                )))
+                .parse_next(input)?;
+
+            // Consume the required tar suffix, e.g.:
+            // "tar.zst" -> ".zst"
+            "tar"
+                .context(StrContext::Label("tar suffix"))
+                .context(StrContext::Expected(StrContextValue::Description("tar")))
+                .parse_next(input)?;
+
+            // Check if there's a `.`, which hints that a CompressionAlgorithmFileExtension exists.
+            // ".zst" -> "zst"
+            // If input is "", no compression is present.
+            let has_compression = opt(".").parse_next(input)?;
+
+            let mut compression = None;
+            if has_compression.is_some() {
+                // Advance the parser for the CompressionAlgorithmFileExtension component, e.g.:
+                // "zst" -> ""
+                compression = Some(
+                    alphanumeric1
+                        .try_map(|s| {
+                            CompressionAlgorithmFileExtension::from_str(s).map_err(|_source| {
+                                crate::Error::UnknownCompressionAlgorithmFileExtension {
+                                    value: s.to_string(),
+                                }
+                            })
+                        })
+                        .context(StrContext::Label("file extension for compression"))
+                        .context_with(iter_str_context!([
+                            CompressionAlgorithmFileExtension::VARIANTS
+                        ]))
+                        .parse_next(input)?,
+                );
+            }
+
+            peek(delimiter_parser.by_ref())
+                .context(StrContext::Expected(StrContextValue::Description(
+                    "end of package filename",
+                )))
+                .parse_next(input)?;
+
+            Ok(Self {
+                name,
+                version,
+                architecture,
+                compression,
+            })
         }
-
-        // The (zero or more) dashes in the Name component.
-        let dashes_till_version = dashes.saturating_sub(2);
-
-        // Advance the parser to the dash just behind the Name component, based on the amount of
-        // dashes in the Name, e.g.:
-        // "example-package-1:1.0.0-1-x86_64.pkg.tar.zst" -> "-1:1.0.0-1-x86_64.pkg.tar.zst"
-        let name = cut_err(Name::parse_name_followed_by_version(dashes_till_version))
-            .context(StrContext::Label("alpm-package-name"))
-            .parse_next(input)?;
-
-        // Consume leading dash in front of FullVersion, e.g.:
-        // "-1:1.0.0-1-x86_64.pkg.tar.zst" -> "1:1.0.0-1-x86_64.pkg.tar.zst"
-        "-".parse_next(input)?;
-
-        // Advance the parser to beyond the FullVersion component (which contains one dash), e.g.:
-        // "1:1.0.0-1-x86_64.pkg.tar.zst" -> "-x86_64.pkg.tar.zst"
-        let version: FullVersion = FullVersion::parser_until("-").parse_next(input)?;
-
-        // Consume leading dash, e.g.:
-        // "-x86_64.pkg.tar.zst" -> "x86_64.pkg.tar.zst"
-        "-".parse_next(input)?;
-
-        // Advance the parser to beyond the Architecture component, e.g.:
-        // "x86_64.pkg.tar.zst" -> ".pkg.tar.zst"
-        let architecture = take_until(0.., ".")
-            .try_map(Architecture::from_str)
-            .parse_next(input)?;
-
-        // Consume leading dot, e.g.:
-        // ".pkg.tar.zst" -> "pkg.tar.zst"
-        ".".parse_next(input)?;
-
-        // Consume the required alpm-package file type identifier, e.g.:
-        // "pkg.tar.zst" -> ".tar.zst"
-        take_until(0.., ".")
-            .and_then(Into::<&str>::into(FileTypeIdentifier::BinaryPackage))
-            .context(StrContext::Label("alpm-package file type identifier"))
-            .context(StrContext::Expected(StrContextValue::StringLiteral(
-                FileTypeIdentifier::BinaryPackage.into(),
-            )))
-            .parse_next(input)?;
-
-        // Consume leading dot, e.g.:
-        // ".tar.zst" -> "tar.zst"
-        ".".parse_next(input)?;
-
-        // Consume the required tar suffix, e.g.:
-        // "tar.zst" -> ".zst"
-        cut_err("tar")
-            .context(StrContext::Label("tar suffix"))
-            .context(StrContext::Expected(StrContextValue::Description("tar")))
-            .parse_next(input)?;
-
-        // Advance the parser to EOF for the CompressionAlgorithmFileExtension component, e.g.:
-        // ".zst" -> ""
-        // If input is "", we use no compression.
-        let compression = opt(preceded(
-            ".",
-            cut_err(alphanumeric1.try_map(|s| {
-                CompressionAlgorithmFileExtension::from_str(s).map_err(|_source| {
-                    crate::Error::UnknownCompressionAlgorithmFileExtension {
-                        value: s.to_string(),
-                    }
-                })
-            }))
-            .context(StrContext::Label("file extension for compression"))
-            .context_with(iter_str_context!([
-                CompressionAlgorithmFileExtension::VARIANTS
-            ])),
-        ))
-        .parse_next(input)?;
-
-        // Ensure that there are no trailing chars left.
-        eof.context(StrContext::Expected(StrContextValue::Description(
-            "end of package filename",
-        )))
-        .parse_next(input)?;
-
-        Ok(Self {
-            name,
-            version,
-            architecture,
-            compression,
-        })
     }
 }
 
@@ -431,11 +471,11 @@ impl FromStr for PackageFileName {
 
     /// Creates a [`PackageFileName`] from a string slice.
     ///
-    /// Delegates to [`PackageFileName::parser`].
+    /// Delegates to [`PackageFileName::parser_until`].
     ///
     /// # Errors
     ///
-    /// Returns an error if [`PackageFileName::parser`] fails.
+    /// Returns an error if [`PackageFileName::parser_until`] fails.
     ///
     /// # Examples
     ///
@@ -451,7 +491,7 @@ impl FromStr for PackageFileName {
     /// # }
     /// ```
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser.parse(s)?)
+        Ok(Self::parser_until_eof.parse(s)?)
     }
 }
 
@@ -461,7 +501,7 @@ impl TryFrom<&Path> for PackageFileName {
     /// Creates a [`PackageFileName`] from a [`Path`] reference.
     ///
     /// The file name in `value` is extracted and, if valid is turned into a string slice.
-    /// The creation of the [`PackageFileName`] is delegated to [`PackageFileName::parser`].
+    /// The creation of the [`PackageFileName`] is delegated to [`PackageFileName::parser_until`].
     ///
     /// # Errors
     ///
@@ -469,7 +509,7 @@ impl TryFrom<&Path> for PackageFileName {
     ///
     /// - `value` does not contain a valid file name,
     /// - `value` can not be turned into a string slice,
-    /// - or [`PackageFileName::parser`] fails.
+    /// - or [`PackageFileName::parser_until`] fails.
     ///
     /// # Examples
     ///
@@ -500,7 +540,7 @@ impl TryFrom<&Path> for PackageFileName {
             }
             .into());
         };
-        Ok(Self::parser.parse(s)?)
+        Ok(Self::parser_until_eof.parse(s)?)
     }
 }
 
@@ -509,11 +549,11 @@ impl TryFrom<String> for PackageFileName {
 
     /// Creates a [`PackageFileName`] from a String.
     ///
-    /// Delegates to [`PackageFileName::parser`].
+    /// Delegates to [`PackageFileName::parser_until`].
     ///
     /// # Errors
     ///
-    /// Returns an error if [`PackageFileName::parser`] fails.
+    /// Returns an error if [`PackageFileName::parser_until`] fails.
     ///
     /// # Examples
     ///
@@ -532,7 +572,7 @@ impl TryFrom<String> for PackageFileName {
     /// # }
     /// ```
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        Ok(Self::parser.parse(&value)?)
+        Ok(Self::parser_until_eof.parse(&value)?)
     }
 }
 
