@@ -13,7 +13,7 @@ use strum::VariantNames;
 use winnow::{
     ModalResult,
     Parser,
-    combinator::{alt, cut_err, eof, fail, opt, peek, repeat},
+    combinator::{alt, cut_err, eof, fail, opt, peek, repeat, repeat_till},
     error::{
         AddContext,
         ContextError,
@@ -23,7 +23,7 @@ use winnow::{
         StrContextValue::{self, *},
     },
     stream::Stream,
-    token::one_of,
+    token::{any, one_of},
 };
 
 use crate::{
@@ -615,11 +615,10 @@ impl InstalledPackage {
             }),
         }
     }
+}
 
+impl ParserUntil for InstalledPackage {
     /// Recognizes an [`InstalledPackage`] in a string slice.
-    ///
-    /// Relies on [`winnow`] to parse `input` and recognize the [`Name`], [`FullVersion`], and
-    /// [`Architecture`] components.
     ///
     /// # Errors
     ///
@@ -632,30 +631,54 @@ impl InstalledPackage {
     /// # Examples
     ///
     /// ```
+    /// use alpm_parsers::traits::ParserUntil;
     /// use alpm_types::InstalledPackage;
     /// use winnow::Parser;
     ///
     /// # fn main() -> Result<(), alpm_types::Error> {
     /// let name = "example-package-1:1.0.0-1-x86_64";
-    /// assert_eq!(name, InstalledPackage::parser.parse(name)?.to_string());
+    /// assert_eq!(
+    ///     name,
+    ///     InstalledPackage::parser_until_eof.parse(name)?.to_string()
+    /// );
     /// # Ok(())
     /// # }
     /// ```
-    pub fn parser(input: &mut &str) -> ModalResult<Self> {
-        // Detect the amount of dashes in input and subsequently in the Name component.
-        //
-        // This is a necessary step because dashes are used as delimiters between the
-        // components of the file name and the Name component (an alpm-package-name) can contain
-        // dashes, too.
-        // We know that the minimum amount of dashes in a valid alpm-package file name is
-        // three (one dash between the Name, Version, PackageRelease, and Architecture
-        // component each).
-        // We rely on this fact to determine the amount of dashes in the Name component and
-        // thereby the cut-off point between the Name and the Version component.
-        let dashes: usize = input.chars().filter(|char| char == &'-').count();
+    fn parser_until<'a, P>(delimiter: P) -> impl Parser<&'a str, Self, ErrMode<ContextError>>
+    where
+        P: Parser<&'a str, &'a str, ErrMode<ContextError>>,
+    {
+        // Define the actual parser closure.
+        // The delimiter is moved into the closure and borrowed via `by_ref()` on each call.
+        let mut delimiter_parser = delimiter;
+        move |input: &mut &'a str| -> ModalResult<Self> {
+            // Detect the amount of dashes in input and subsequently in the Name component.
+            //
+            // This is a necessary step because dashes are used as delimiters between the
+            // components of the file name and the Name component (an alpm-package-name) can contain
+            // dashes, too.
+            // We know that the minimum amount of dashes in a valid alpm-package file name is
+            // three (one dash between the Name, Version, PackageRelease, and Architecture
+            // component each).
+            // We rely on this fact to determine the amount of dashes in the Name component and
+            // thereby the cut-off point between the Name and the Version component.
+            let checkpoint = input.checkpoint();
+            let dashes: usize =
+                repeat_till::<_, _, (), _, _, _, _>(0.., any, peek(delimiter_parser.by_ref()))
+                    .take()
+                    .map(|s| {
+                        s.chars().fold(0, |acc, char| {
+                            if char == '-' {
+                                return acc + 1;
+                            }
+                            acc
+                        })
+                    })
+                    .parse_next(input)?;
+            input.reset(&checkpoint);
 
-        if dashes < 2 {
-            let context_error = ContextError::from_input(input)
+            if dashes < 2 {
+                let context_error = ContextError::from_input(input)
                 .add_context(
                     input,
                     &input.checkpoint(),
@@ -666,50 +689,56 @@ impl InstalledPackage {
                     &input.checkpoint(),
                     StrContext::Expected(StrContextValue::Description(
                         concat!(
-                        "a package name, followed by an alpm-package-version (full or full with epoch) and an architecture.",
+                        "a package name, followed by an alpm-package-version (full or full with epoch) and an alpm-architecture.",
                         "\nAll components must be delimited with a dash ('-')."
                         )
                     ))
                 );
 
-            return Err(ErrMode::Cut(context_error));
-        }
+                return Err(ErrMode::Backtrack(context_error));
+            }
 
-        // The (zero or more) dashes in the Name component.
-        let dashes_till_version = dashes.saturating_sub(2);
+            // The (zero or more) dashes in the Name component.
+            let dashes_till_version = dashes.saturating_sub(2);
 
-        // Advance the parser to the dash just behind the Name component, based on the amount of
-        // dashes in the Name, e.g.:
-        // "example-package-1:1.0.0-1-x86_64" -> "-1:1.0.0-1-x86_64"
-        let name = cut_err(Name::parse_name_followed_by_version(dashes_till_version))
-            .context(StrContext::Label("alpm-package-name"))
-            .parse_next(input)?;
+            // Advance the parser to the dash just behind the Name component, based on the amount of
+            // dashes in the Name, e.g.:
+            // "example-package-1:1.0.0-1-x86_64" -> "-1:1.0.0-1-x86_64"
+            let name = Name::parse_name_followed_by_version(dashes_till_version)
+                .context(StrContext::Label("alpm-package-name"))
+                .parse_next(input)?;
 
-        // Consume leading dash in front of Version, e.g.:
-        // "-1:1.0.0-1-x86_64" -> "1:1.0.0-1-x86_64"
-        "-".parse_next(input)?;
+            // Consume leading dash in front of Version, e.g.:
+            // "-1:1.0.0-1-x86_64" -> "1:1.0.0-1-x86_64"
+            "-".parse_next(input)?;
 
-        // Advance the parser to beyond the Version component (which contains one dash), e.g.:
-        // "1:1.0.0-1-x86_64" -> "-x86_64"
-        let version: FullVersion = FullVersion::parser
+            // Advance the parser to beyond the Version component (which contains one dash), e.g.:
+            // "1:1.0.0-1-x86_64" -> "-x86_64"
+            let version: FullVersion = FullVersion::parser
             .context(StrContext::Label("alpm-package-version"))
             .context(StrContext::Expected(StrContextValue::Description(
-                "an alpm-package-version (full or full with epoch) followed by a `-` and an architecture",
+                "an alpm-package-version (full or full with epoch) followed by a `-` and an alpm-architecture",
             )))
             .parse_next(input)?;
 
-        // Consume leading dash, e.g.:
-        // "-x86_64" -> "x86_64"
-        "-".parse_next(input)?;
+            // Consume leading dash, e.g.:
+            // "-x86_64" -> "x86_64"
+            "-".context(StrContext::Label("alpm-package file name"))
+                .context(StrContext::Expected(StrContextValue::Description(
+                    "expected a `-` followed by an alpm-architecture",
+                )))
+                .parse_next(input)?;
 
-        // Expect the rest of the input to be the Architecture component:
-        let architecture = Architecture::parser_until_eof.parse_next(input)?;
+            // Parse the architecture component
+            let architecture =
+                Architecture::parser_until(delimiter_parser.by_ref()).parse_next(input)?;
 
-        Ok(Self {
-            name,
-            version,
-            architecture,
-        })
+            Ok(Self {
+                name,
+                version,
+                architecture,
+            })
+        }
     }
 }
 
@@ -729,11 +758,11 @@ impl FromStr for InstalledPackage {
 
     /// Creates an [`InstalledPackage`] from a string slice.
     ///
-    /// Delegates to [`InstalledPackage::parser`].
+    /// Delegates to [`InstalledPackage::parser_until`].
     ///
     /// # Errors
     ///
-    /// Returns an error if [`InstalledPackage::parser`] fails.
+    /// Returns an error if [`InstalledPackage::parser_until`] fails.
     ///
     /// # Examples
     ///
@@ -749,7 +778,7 @@ impl FromStr for InstalledPackage {
     /// # }
     /// ```
     fn from_str(s: &str) -> Result<InstalledPackage, Self::Err> {
-        Ok(Self::parser.parse(s)?)
+        Ok(Self::parser_until_eof.parse(s)?)
     }
 }
 
