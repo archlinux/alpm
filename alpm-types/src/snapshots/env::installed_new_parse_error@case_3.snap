@@ -3,3 +3,5 @@ source: alpm-types/src/env.rs
 ---
 packagename-30-0.1oops-any
                   ^
+invalid alpm-package file name
+expected expected a `-` followed by an alpm-architecture
