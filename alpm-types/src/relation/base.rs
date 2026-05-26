@@ -73,7 +73,9 @@ impl PackageRelation {
             version_requirement,
         }
     }
+}
 
+impl AlpmParser for PackageRelation {
     /// Parses a [`PackageRelation`] from a string slice.
     ///
     /// # Examples
@@ -83,12 +85,25 @@ impl PackageRelation {
     /// # Errors
     ///
     /// Returns an error if `input` is not a valid _package-relation_.
-    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+    fn parser(input: &mut &str) -> ModalResult<Self> {
         seq!(Self {
             name: Name::parser.context(StrContext::Label("package name")),
             version_requirement: opt(VersionRequirement::parser),
         })
         .parse_next(input)
+    }
+
+    fn delimiter_error_context<'a, O, P>(
+        parser: P,
+    ) -> impl Parser<&'a str, O, winnow::error::ErrMode<winnow::error::ContextError>>
+    where
+        P: Parser<&'a str, O, winnow::error::ErrMode<winnow::error::ContextError>>,
+    {
+        parser
+            .context(StrContext::Label("alpm-package-relation"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "end of input after version requirement",
+            )))
     }
 }
 
