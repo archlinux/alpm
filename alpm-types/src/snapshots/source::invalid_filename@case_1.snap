@@ -1,0 +1,6 @@
+---
+source: alpm-types/src/source.rs
+---
+./bikeshed_colour.patch
+^
+File name (./bikeshed_colour.patch) contains invalid characters: /
