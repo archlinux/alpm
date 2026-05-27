@@ -5,7 +5,10 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::{iter_str_context, traits::AlpmParser};
+use alpm_parsers::{
+    iter_str_context,
+    traits::{AlpmParser, ParserUntil},
+};
 #[cfg(doc)]
 use alpm_pkgbuild::bridge::BridgeOutput;
 use alpm_pkgbuild::bridge::{Keyword, Value};
@@ -226,7 +229,7 @@ pub fn handle_package_base(
                 }
                 PackageBaseKeyword::Epoch => {
                     ensure_no_suffix(raw_keyword, architecture)?;
-                    epoch = parse_optional_value(raw_keyword, value, Epoch::parser)?;
+                    epoch = parse_optional_value(raw_keyword, value, Epoch::parser_until_eof)?;
                 }
                 PackageBaseKeyword::ValidPGPKeys => {
                     ensure_no_suffix(raw_keyword, architecture)?;
@@ -243,7 +246,7 @@ pub fn handle_package_base(
                         check_dependencies,
                         architecture,
                         architecture_properties,
-                        PackageRelation::parser,
+                        PackageRelation::parser_until_eof,
                     )
                 }
                 PackageBaseKeyword::MakeDepends => package_base_value_array!(
@@ -252,7 +255,7 @@ pub fn handle_package_base(
                     make_dependencies,
                     architecture,
                     architecture_properties,
-                    PackageRelation::parser,
+                    PackageRelation::parser_until_eof,
                 ),
             },
             PackageBaseKeywords::SharedMeta(keyword) => match keyword {
@@ -296,7 +299,8 @@ pub fn handle_package_base(
                 }
                 SharedMetaKeyword::Options => {
                     ensure_no_suffix(raw_keyword, architecture)?;
-                    options = parse_value_array(raw_keyword, value, MakepkgOption::parser)?;
+                    options =
+                        parse_value_array(raw_keyword, value, MakepkgOption::parser_until_eof)?;
                 }
                 SharedMetaKeyword::Backup => {
                     ensure_no_suffix(raw_keyword, architecture)?;
@@ -311,7 +315,7 @@ pub fn handle_package_base(
                     dependencies,
                     architecture,
                     architecture_properties,
-                    RelationOrSoname::parser,
+                    RelationOrSoname::parser_until_eof,
                 ),
                 RelationKeyword::OptDepends => package_base_value_array!(
                     raw_keyword,
@@ -319,7 +323,7 @@ pub fn handle_package_base(
                     optional_dependencies,
                     architecture,
                     architecture_properties,
-                    OptionalDependency::parser,
+                    OptionalDependency::parser_until_eof,
                 ),
                 RelationKeyword::Provides => package_base_value_array!(
                     raw_keyword,
@@ -327,7 +331,7 @@ pub fn handle_package_base(
                     provides,
                     architecture,
                     architecture_properties,
-                    RelationOrSoname::parser,
+                    RelationOrSoname::parser_until_eof,
                 ),
                 RelationKeyword::Conflicts => package_base_value_array!(
                     raw_keyword,
@@ -335,7 +339,7 @@ pub fn handle_package_base(
                     conflicts,
                     architecture,
                     architecture_properties,
-                    PackageRelation::parser,
+                    PackageRelation::parser_until_eof,
                 ),
                 RelationKeyword::Replaces => package_base_value_array!(
                     raw_keyword,
@@ -343,7 +347,7 @@ pub fn handle_package_base(
                     replaces,
                     architecture,
                     architecture_properties,
-                    PackageRelation::parser,
+                    PackageRelation::parser_until_eof,
                 ),
             },
 
@@ -366,7 +370,7 @@ pub fn handle_package_base(
                     b2_checksums,
                     architecture,
                     architecture_properties,
-                    SkippableChecksum::parser,
+                    SkippableChecksum::parser_until_eof,
                 ),
                 SourceKeyword::Md5sums => package_base_value_array!(
                     raw_keyword,
@@ -374,7 +378,7 @@ pub fn handle_package_base(
                     md5_checksums,
                     architecture,
                     architecture_properties,
-                    SkippableChecksum::parser,
+                    SkippableChecksum::parser_until_eof,
                 ),
                 SourceKeyword::Sha1sums => package_base_value_array!(
                     raw_keyword,
@@ -382,7 +386,7 @@ pub fn handle_package_base(
                     sha1_checksums,
                     architecture,
                     architecture_properties,
-                    SkippableChecksum::parser,
+                    SkippableChecksum::parser_until_eof,
                 ),
                 SourceKeyword::Sha224sums => package_base_value_array!(
                     raw_keyword,
@@ -390,7 +394,7 @@ pub fn handle_package_base(
                     sha224_checksums,
                     architecture,
                     architecture_properties,
-                    SkippableChecksum::parser,
+                    SkippableChecksum::parser_until_eof,
                 ),
                 SourceKeyword::Sha256sums => package_base_value_array!(
                     raw_keyword,
@@ -398,7 +402,7 @@ pub fn handle_package_base(
                     sha256_checksums,
                     architecture,
                     architecture_properties,
-                    SkippableChecksum::parser,
+                    SkippableChecksum::parser_until_eof,
                 ),
                 SourceKeyword::Sha384sums => package_base_value_array!(
                     raw_keyword,
@@ -406,7 +410,7 @@ pub fn handle_package_base(
                     sha384_checksums,
                     architecture,
                     architecture_properties,
-                    SkippableChecksum::parser,
+                    SkippableChecksum::parser_until_eof,
                 ),
                 SourceKeyword::Sha512sums => package_base_value_array!(
                     raw_keyword,
@@ -414,7 +418,7 @@ pub fn handle_package_base(
                     sha512_checksums,
                     architecture,
                     architecture_properties,
-                    SkippableChecksum::parser,
+                    SkippableChecksum::parser_until_eof,
                 ),
                 SourceKeyword::Cksums => package_base_value_array!(
                     raw_keyword,
@@ -422,7 +426,7 @@ pub fn handle_package_base(
                     crc_checksums,
                     architecture,
                     architecture_properties,
-                    SkippableChecksum::parser,
+                    SkippableChecksum::parser_until_eof,
                 ),
             },
         }
