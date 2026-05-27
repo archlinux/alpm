@@ -1,0 +1,10 @@
+---
+source: alpm-repo-db/tests/correct.rs
+description: simple RepoFiles JSON representation.
+expression: json
+---
+[
+  "usr/",
+  "usr/bin/",
+  "usr/bin/foo"
+]

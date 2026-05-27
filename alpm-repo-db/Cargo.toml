@@ -38,6 +38,7 @@ assert_cmd.workspace = true
 insta.workspace = true
 pretty_assertions.workspace = true
 rstest.workspace = true
+serde_json.workspace = true
 tempfile.workspace = true
 testresult.workspace = true
 
