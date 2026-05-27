@@ -27,7 +27,7 @@ fn setup_faulty_srcinfo() -> TestResult<TempDir> {
     )?];
     let srcinfo_content = source_info.as_srcinfo();
 
-    let mut file = File::create(&srcinfo_path)?;
+    let mut file = File::create(srcinfo_path)?;
     file.write_all(srcinfo_content.as_bytes())?;
 
     Ok(tempdir)
@@ -109,7 +109,9 @@ mod check {
         let output_str = String::from_utf8_lossy(&output.stdout);
 
         // The output should contain valid JSON and deserialize into a vec of LintIssue.
-        let issues: Vec<LintIssue> = serde_json::from_str(&output_str)?;
+        let issues: Vec<LintIssue> = serde_json::from_str(&output_str).unwrap_or_else(|_| {
+            panic!("Failed to deserialize alpm-lint output as json:\n{output_str}")
+        });
 
         // We should find the correct lint issue.
         assert_eq!(issues[0].lint_rule, "source_info::unsafe_checksum");

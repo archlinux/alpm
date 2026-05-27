@@ -6,17 +6,15 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::{iter_str_context, traits::ParserUntil};
+use alpm_parsers::traits::{AlpmParser, ParserUntil};
 use serde::{Deserialize, Serialize};
-use strum::VariantNames;
 use winnow::{
     ModalResult,
     Parser,
-    ascii::alphanumeric1,
     combinator::{opt, peek, repeat_till},
     error::{AddContext, ContextError, ErrMode, ParserError, StrContext, StrContextValue},
     stream::Stream,
-    token::{any, take_until},
+    token::any,
 };
 
 use crate::{
@@ -364,9 +362,7 @@ impl ParserUntil for PackageFileName {
 
             // Advance the parser to beyond the Architecture component, e.g.:
             // "x86_64.pkg.tar.zst" -> ".pkg.tar.zst"
-            let architecture = take_until(0.., ".")
-                .try_map(Architecture::from_str)
-                .parse_next(input)?;
+            let architecture = Architecture::parser_until(".").parse_next(input)?;
 
             // Consume leading dot, e.g.:
             // ".pkg.tar.zst" -> "pkg.tar.zst"
@@ -409,21 +405,7 @@ impl ParserUntil for PackageFileName {
             if has_compression.is_some() {
                 // Advance the parser for the CompressionAlgorithmFileExtension component, e.g.:
                 // "zst" -> ""
-                compression = Some(
-                    alphanumeric1
-                        .try_map(|s| {
-                            CompressionAlgorithmFileExtension::from_str(s).map_err(|_source| {
-                                crate::Error::UnknownCompressionAlgorithmFileExtension {
-                                    value: s.to_string(),
-                                }
-                            })
-                        })
-                        .context(StrContext::Label("file extension for compression"))
-                        .context_with(iter_str_context!([
-                            CompressionAlgorithmFileExtension::VARIANTS
-                        ]))
-                        .parse_next(input)?,
-                );
+                compression = Some(CompressionAlgorithmFileExtension::parser.parse_next(input)?);
             }
 
             peek(delimiter_parser.by_ref())
