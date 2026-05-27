@@ -40,6 +40,7 @@ reqwest = { version = "0.13", default-features = false, features = [
     "charset",
     "http2",
     "json",
+    "rustls",
 ] }
 serde_json.workspace = true
 simplelog.workspace = true
