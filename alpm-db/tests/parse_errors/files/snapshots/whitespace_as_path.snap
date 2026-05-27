@@ -4,9 +4,8 @@ description: "%FILES%\nusr/\nusr/bin/\n        \nusr/bin/foo\n"
 expression: error.to_string()
 ---
 Parser failed with the following error:
-parse error at line 4, column 1
+parse error at line 5, column 1
   |
-4 |         
+5 | usr/bin/foo
   | ^
-invalid relative path
-expected relative path not consisting of whitespaces and/or tabs
+invalid end of input after empty newlines.

@@ -361,26 +361,24 @@ usr/bin/foo	d41d8cd98f00b204e9800998ecf8427e
         Ok(())
     }
 
-    const ALPM_DB_FILES_FULL: &str = r#"%FILES%
+    const FILES_FULL: &str = r#"%FILES%
+usr/
+usr/bin/
+usr/bin/foo
+"#;
+    const FILES_TRAILING_NEWLINE: &str = r#"%FILES%
 usr/
 usr/bin/
 usr/bin/foo
 
 "#;
-    const ALPM_DB_FILES_EMPTY: &str = "";
-    const ALPM_REPO_FILES_FULL: &str = r#"%FILES%
-usr/
-usr/bin/
-usr/bin/foo
-"#;
-    const ALPM_REPO_FILES_EMPTY: &str = "%FILES%";
 
     /// Ensures that different types of full and empty alpm-db-files files can be parsed from file.
     #[rstest]
-    #[case::alpm_db_files_full(ALPM_DB_FILES_FULL, 3)]
-    #[case::alpm_db_files_empty(ALPM_DB_FILES_EMPTY, 0)]
-    #[case::alpm_repo_files_full(ALPM_REPO_FILES_FULL, 3)]
-    #[case::alpm_repo_files_full(ALPM_REPO_FILES_EMPTY, 0)]
+    #[case::alpm_db_files_empty("", 0)]
+    #[case::alpm_db_header_only("%FILES%", 0)]
+    #[case::alpm_db_files_full(FILES_FULL, 3)]
+    #[case::alpm_db_files_full(FILES_TRAILING_NEWLINE, 3)]
     fn files_from_file_with_schema_succeeds(#[case] data: &str, #[case] len: usize) -> TestResult {
         let mut temp_file = NamedTempFile::new()?;
         write!(temp_file, "{data}")?;

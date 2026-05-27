@@ -307,18 +307,16 @@ usr/bin/foo
         assert!(matches!(result, Err(Error::UnknownSchemaVersion)));
     }
 
-    const ALPM_REPO_FILES_FULL: &str = r#"%FILES%
+    const REPO_FILES_FULL: &str = r#"%FILES%
 usr/
 usr/bin/
 usr/bin/foo
 "#;
-    const ALPM_REPO_FILES_EMPTY: &str = "%FILES%\n";
-    const ALPM_REPO_FILES_EMPTY_NO_HEADER: &str = "";
 
     /// Ensures that full and empty alpm-repo-files files can be parsed from file.
     #[rstest]
-    #[case::alpm_repo_files_full(ALPM_REPO_FILES_FULL, 3)]
-    #[case::alpm_repo_files_empty(ALPM_REPO_FILES_EMPTY, 0)]
+    #[case::alpm_repo_files_full(REPO_FILES_FULL, 3)]
+    #[case::alpm_repo_files_empty("%FILES%\n", 0)]
     fn files_from_file_with_schema_succeeds(#[case] data: &str, #[case] len: usize) -> TestResult {
         let mut temp_file = NamedTempFile::new()?;
         write!(temp_file, "{data}")?;
@@ -340,7 +338,7 @@ usr/bin/foo
     #[test]
     fn files_from_file_with_schema_fails_without_header() -> TestResult {
         let mut temp_file = NamedTempFile::new()?;
-        write!(temp_file, "{ALPM_REPO_FILES_EMPTY_NO_HEADER}")?;
+        write!(temp_file, "")?;
 
         let result = RepoFiles::from_file_with_schema(
             temp_file.path(),
