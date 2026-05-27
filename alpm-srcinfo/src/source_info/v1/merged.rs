@@ -319,10 +319,10 @@ impl MergedPackage {
         // If the [`Package`] is compatible with any architecture, then we set the architecture of
         // the package to 'any' regardless of the requested architecture, as 'any' subsumes them
         // all.
-        if let Some(value) = package.architectures {
-            if matches!(value, Architectures::Any) {
-                self.architecture = Architecture::Any
-            }
+        if let Some(value) = package.architectures
+            && matches!(value, Architectures::Any)
+        {
+            self.architecture = Architecture::Any
         };
 
         package.description.merge_option(&mut self.description);

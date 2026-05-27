@@ -424,10 +424,12 @@ impl DbFilesV1 {
             }
 
             // Add non top-level, relative paths without a parent as errors.
-            if let Some(parent) = path.parent() {
-                if parent != empty_parent && parent != root_parent && !path_set.contains(parent) {
-                    errors.add_without_parent(path.to_path_buf());
-                }
+            if let Some(parent) = path.parent()
+                && parent != empty_parent
+                && parent != root_parent
+                && !path_set.contains(parent)
+            {
+                errors.add_without_parent(path.to_path_buf());
             }
 
             // Add duplicates as errors.
