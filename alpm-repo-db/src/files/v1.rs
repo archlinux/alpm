@@ -10,8 +10,8 @@ use fluent_i18n::t;
 use winnow::{
     ModalResult,
     Parser,
-    ascii::{line_ending, multispace0, space1, till_line_ending},
-    combinator::{alt, cut_err, eof, fail, not, opt, repeat, terminated},
+    ascii::{line_ending, multispace0, space0, till_line_ending},
+    combinator::{alt, cut_err, eof, not, repeat, terminated},
     error::{StrContext, StrContextValue},
 };
 
@@ -39,20 +39,15 @@ impl FilesSection {
     /// Returns an error if a [`RelativePath`] cannot be created from the line, or something other
     /// than a line ending or EOF is encountered afterwards.
     fn parse_path(input: &mut &str) -> ModalResult<RelativePath> {
+        // Make sure that the line is not empty.
+        not(alt(((space0, line_ending).take(), eof))).parse_next(input)?;
+
         // Parse until the end of the line and attempt conversion to RelativePath.
-        // Make sure that the string is not empty!
-        alt((
-            (space1, line_ending)
-                .take()
-                .and_then(cut_err(fail))
-                .context(StrContext::Expected(StrContextValue::Description(
-                    "relative path not consisting of whitespaces and/or tabs",
-                ))),
-            till_line_ending,
-        ))
-        .verify(|s: &str| !s.is_empty())
-        .context(StrContext::Label("relative path"))
-        .parse_to()
+        cut_err(
+            till_line_ending
+                .context(StrContext::Label("relative path"))
+                .parse_to(),
+        )
         .parse_next(input)
     }
 
@@ -90,13 +85,9 @@ impl FilesSection {
         // Consume any trailing whitespaces or new lines.
         multispace0.parse_next(input)?;
 
-        // Fail if there are any further non-whitespace characters.
-        let _opt: Option<&str> =
-            opt(not(eof)
-                .take()
-                .and_then(cut_err(fail).context(StrContext::Expected(
-                    StrContextValue::Description("no further path after newline"),
-                ))))
+        // Fail if there are any further characters.
+        cut_err(eof)
+            .context(StrContext::Label("trailing content after newline."))
             .parse_next(input)?;
 
         Ok(Self(paths))

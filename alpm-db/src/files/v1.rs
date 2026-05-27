@@ -11,9 +11,10 @@ use fluent_i18n::t;
 use winnow::{
     ModalResult,
     Parser,
-    ascii::{line_ending, multispace0, space1, till_line_ending},
-    combinator::{alt, cut_err, eof, fail, not, opt, repeat, separated_pair, terminated},
+    ascii::{line_ending, multispace0, newline, space0, till_line_ending},
+    combinator::{alt, cut_err, eof, not, opt, peek, repeat, separated_pair, terminated},
     error::{StrContext, StrContextValue},
+    stream::AsChar,
     token::take_while,
 };
 
@@ -41,20 +42,15 @@ impl FilesSection {
     /// Returns an error if a [`RelativePath`] cannot be created from the line, or something other
     /// than a line ending or EOF is encountered afterwards.
     fn parse_path(input: &mut &str) -> ModalResult<RelativePath> {
+        // Make sure that the line is not empty.
+        not(alt(((space0, line_ending).take(), eof))).parse_next(input)?;
+
         // Parse until the end of the line and attempt conversion to RelativePath.
-        // Make sure that the string is not empty!
-        alt((
-            (space1, line_ending)
-                .take()
-                .and_then(cut_err(fail))
-                .context(StrContext::Expected(StrContextValue::Description(
-                    "relative path not consisting of whitespaces and/or tabs",
-                ))),
-            till_line_ending,
-        ))
-        .verify(|s: &str| !s.is_empty())
-        .context(StrContext::Label("relative path"))
-        .parse_to()
+        cut_err(
+            till_line_ending
+                .context(StrContext::Label("relative path"))
+                .parse_to(),
+        )
         .parse_next(input)
     }
 
@@ -96,23 +92,6 @@ impl FilesSection {
         let paths: Vec<RelativePath> =
             repeat(0.., terminated(Self::parse_path, alt((line_ending, eof)))).parse_next(input)?;
 
-        // Consume any trailing whitespaces or new lines.
-        multispace0.parse_next(input)?;
-
-        // If a BACKUP section follows, leave the rest of the input to that parser.
-        if input.is_empty() || input.starts_with(BackupSection::SECTION_KEYWORD) {
-            return Ok(Self(paths));
-        }
-
-        // Fail if there are any further non-whitespace characters.
-        let _opt: Option<&str> =
-            opt(not(eof)
-                .take()
-                .and_then(cut_err(fail).context(StrContext::Expected(
-                    StrContextValue::Description("no further path after newline"),
-                ))))
-            .parse_next(input)?;
-
         Ok(Self(paths))
     }
 
@@ -149,9 +128,12 @@ impl BackupEntry {
     /// [alpm-db-files]: https://alpm.archlinux.page/specifications/alpm-db-files.5.html
     /// [pacman]: https://man.archlinux.org/man/pacman.8
     pub(crate) fn parser(input: &mut &str) -> ModalResult<Option<Self>> {
-        let mut line = till_line_ending.parse_next(input)?;
+        // Backtrack if we reached the end of the file or an empty line.
+        not(alt((eof, (space0, newline).take()))).parse_next(input)?;
+
+        // Parse the `path + \t + md5/null` construct
         separated_pair(
-            take_while(1.., |c: char| c != '\t' && c != '\n' && c != '\r')
+            take_while(1.., |c: char| c != '\t' && !c.is_newline())
                 .verify(|s: &str| !s.chars().all(|c| c.is_whitespace()))
                 .context(StrContext::Label("relative path"))
                 .parse_to(),
@@ -166,14 +148,14 @@ impl BackupEntry {
             )),
         )
         .map(|(path, md5)| md5.map(|md5| BackupEntry { path, md5 }))
-        .parse_next(&mut line)
+        .parse_next(input)
     }
 }
 
 /// The raw backup section in [alpm-db-files] data.
 ///
 /// [alpm-db-files]: https://alpm.archlinux.page/specifications/alpm-db-files.5.html
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub(crate) struct BackupSection(Vec<BackupEntry>);
 
 impl BackupSection {
@@ -187,6 +169,12 @@ impl BackupSection {
     /// Returns an error if the section header is missing or malformed, or if any entry cannot be
     /// parsed.
     pub(crate) fn parser(input: &mut &str) -> ModalResult<Self> {
+        // Make sure there's an section header indicator. Otherwise, this is not a new section.
+        let header_indicator = opt(peek("%")).parse_next(input)?;
+        if header_indicator.is_none() {
+            return Ok(Self::default());
+        }
+
         cut_err(terminated(Self::SECTION_KEYWORD, alt((line_ending, eof))))
             .context(StrContext::Label("alpm-db-files backup section header"))
             .context(StrContext::Expected(StrContextValue::Description(
@@ -194,28 +182,12 @@ impl BackupSection {
             )))
             .parse_next(input)?;
 
-        if input.is_empty() {
-            return Ok(Self(Vec::new()));
-        }
-
         let entries: Vec<BackupEntry> = repeat(
             0..,
             terminated(BackupEntry::parser, alt((line_ending, eof))),
         )
         .map(|entries: Vec<Option<BackupEntry>>| entries.into_iter().flatten().collect::<Vec<_>>())
         .parse_next(input)?;
-
-        // Consume any trailing whitespaces or new lines.
-        multispace0.parse_next(input)?;
-
-        // Fail if there are any further non-whitespace characters.
-        let _opt: Option<&str> =
-            opt(not(eof)
-                .take()
-                .and_then(cut_err(fail).context(StrContext::Expected(
-                    StrContextValue::Description("no further backup entry after newline"),
-                ))))
-            .parse_next(input)?;
 
         Ok(Self(entries))
     }
@@ -526,6 +498,38 @@ impl Display for DbFilesV1 {
     }
 }
 
+impl DbFilesV1 {
+    fn parser(input: &mut &str) -> ModalResult<Result<Self, Error>> {
+        let files_section = FilesSection::parser.parse_next(input)?;
+
+        // Consume any trailing whitespaces or new lines.
+        multispace0.parse_next(input)?;
+
+        // Check if we're at the end of the file.
+        // If not, this means that there's a backup section.
+        let at_end = opt(eof).parse_next(input)?;
+
+        let backup_section = if at_end.is_none() {
+            BackupSection::parser.parse_next(input)?
+        } else {
+            BackupSection::default()
+        };
+
+        // Leniently parse any trailing newlines/space at the end of the file.
+        multispace0.parse_next(input)?;
+
+        // Fail if there are any further characters.
+        cut_err(eof)
+            .context(StrContext::Label("end of input after empty newlines."))
+            .parse_next(input)?;
+
+        Ok(DbFilesV1::try_from_parts(
+            files_section.paths(),
+            backup_section.entries(),
+        ))
+    }
+}
+
 impl FromStr for DbFilesV1 {
     type Err = Error;
 
@@ -593,19 +597,7 @@ impl FromStr for DbFilesV1 {
     /// # }
     /// ```
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let (files_section, backup_section) =
-            (|input: &mut &str| -> ModalResult<(FilesSection, BackupSection)> {
-                let files_section = FilesSection::parser.parse_next(input)?;
-                let backup_section = if input.is_empty() {
-                    BackupSection(Vec::new())
-                } else {
-                    BackupSection::parser.parse_next(input)?
-                };
-                Ok((files_section, backup_section))
-            })
-            .parse(s)?;
-
-        DbFilesV1::try_from_parts(files_section.paths(), backup_section.entries())
+        Self::parser.parse(s)?
     }
 }
 

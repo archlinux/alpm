@@ -8,4 +8,4 @@ parse error at line 5, column 1
   |
 5 | usr/bin/foo
   | ^
-expected no further path after newline
+invalid end of input after empty newlines.
