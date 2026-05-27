@@ -1,0 +1,30 @@
+---
+source: alpm-db/tests/correct.rs
+description: nested DbFiles JSON representation.
+expression: json
+---
+{
+  "files": [
+    "etc/",
+    "etc/foo/",
+    "etc/foo/bar.conf",
+    "etc/foo/foo.conf",
+    "usr/",
+    "usr/bin/",
+    "usr/bin/foo",
+    "usr/share/",
+    "usr/share/doc/",
+    "usr/share/doc/foo/",
+    "usr/share/doc/foo/README"
+  ],
+  "backup": [
+    {
+      "path": "etc/foo/bar.conf",
+      "md5": "5d41402abc4b2a76b9719d911017c592"
+    },
+    {
+      "path": "etc/foo/foo.conf",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e"
+    }
+  ]
+}

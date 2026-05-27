@@ -1,0 +1,18 @@
+---
+source: alpm-db/tests/correct.rs
+description: with_backup DbFiles JSON representation.
+expression: json
+---
+{
+  "files": [
+    "usr/",
+    "usr/bin/",
+    "usr/bin/foo"
+  ],
+  "backup": [
+    {
+      "path": "usr/bin/foo",
+      "md5": "d41d8cd98f00b204e9800998ecf8427e"
+    }
+  ]
+}

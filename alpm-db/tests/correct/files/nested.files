@@ -1,0 +1,16 @@
+%FILES%
+etc/
+etc/foo/
+etc/foo/bar.conf
+etc/foo/foo.conf
+usr/
+usr/bin/
+usr/bin/foo
+usr/share/
+usr/share/doc/
+usr/share/doc/foo/
+usr/share/doc/foo/README
+
+%BACKUP%
+etc/foo/bar.conf	5d41402abc4b2a76b9719d911017c592
+etc/foo/foo.conf	d41d8cd98f00b204e9800998ecf8427e
