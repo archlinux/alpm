@@ -1,0 +1,12 @@
+---
+source: alpm-db/tests/correct.rs
+description: simple DbFiles JSON representation.
+expression: json
+---
+{
+  "files": [
+    "usr/",
+    "usr/bin/",
+    "usr/bin/foo"
+  ]
+}
