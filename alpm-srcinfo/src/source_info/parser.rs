@@ -799,9 +799,7 @@ impl SharedMetaProperty {
                     .parse_next(input)?
             }
             SharedMetaKeyword::Options => cut_err(
-                till_line_end
-                    .try_map(MakepkgOption::from_str)
-                    .map(SharedMetaProperty::Option),
+                MakepkgOption::parser_until_line_ending_inclusive.map(SharedMetaProperty::Option),
             )
             .parse_next(input)?,
             SharedMetaKeyword::Backup => cut_err(
@@ -906,8 +904,8 @@ impl RelationProperty {
             }
             RelationKeyword::Depends | RelationKeyword::Provides => {
                 // Read and parse the generic architecture specific RelationOrSoname.
-                let value =
-                    cut_err(till_line_end.try_map(RelationOrSoname::from_str)).parse_next(input)?;
+                let value = cut_err(RelationOrSoname::parser_until_line_ending_inclusive)
+                    .parse_next(input)?;
                 let arch_property = ArchProperty {
                     architecture,
                     value,
@@ -1056,7 +1054,7 @@ impl SourceProperty {
 
                 match keyword {
                     SourceKeyword::Source => {
-                        cut_err(till_line_end.try_map(Source::from_str).map(|value| {
+                        cut_err(Source::parser_until_line_ending_inclusive.map(|value| {
                             SourceProperty::Source(ArchProperty {
                                 architecture: architecture.clone(),
                                 value,
