@@ -38,7 +38,7 @@ mod desc {
         let input_clone = input.clone();
         insta::with_settings!({
             description => input_clone,
-            snapshot_path => "parse_errors/desc/snapshots",
+            snapshot_path => "parse_error_snapshots/desc",
             prepend_module_to_snapshot => false,
         }, {
             assert_snapshot!(name, error);
@@ -60,7 +60,7 @@ mod files {
 
     /// Each `.files` file in `tests/parse_errors/files` is expected to fail parsing.
     ///
-    /// Snapshots are saved in `tests/parse_errors/files/snapshots` with the error message
+    /// Snapshots are saved in `tests/parse_error_snapshots/files` with the error message
     /// and the file's contents as description.
     #[rstest]
     fn ensure_parse_errors(
@@ -84,7 +84,7 @@ mod files {
 
                 with_settings!({
                     description => &input,
-                    snapshot_path => "parse_errors/files/snapshots",
+                    snapshot_path => "parse_error_snapshots/files",
                     prepend_module_to_snapshot => false,
                 }, {
                     assert_snapshot!(name, error.to_string());

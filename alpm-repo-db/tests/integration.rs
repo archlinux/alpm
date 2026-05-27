@@ -319,7 +319,7 @@ mod create_cli {
             })
             .collect::<Vec<_>>();
         let description = format!("alpm-repo-desc {}", sanitized_args.join(" "));
-        insta::with_settings!({ description => description }, {
+        insta::with_settings!({ description => description, snapshot_path => "cli_snapshots" }, {
             assert_snapshot!(test_name, s);
         });
 
@@ -487,7 +487,7 @@ mod create_env {
             sanitized_args.join(" "),
             env_string
         );
-        insta::with_settings!({ description => description }, {
+        insta::with_settings!({ description => description, snapshot_path => "cli_snapshots" }, {
             assert_snapshot!(test_name, reparsed);
         });
 
@@ -547,7 +547,7 @@ mod format {
         let description = format!("alpm-repo-desc {}", args.join(" "));
         insta::with_settings!({
             description => description,
-            snapshot_path => "snapshots",
+            snapshot_path => "cli_snapshots",
             prepend_module_to_snapshot => false,
         }, {
             assert_snapshot!(test_name, json);
