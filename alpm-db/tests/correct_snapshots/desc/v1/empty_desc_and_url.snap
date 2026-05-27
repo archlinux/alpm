@@ -1,0 +1,38 @@
+---
+source: alpm-db/tests/correct.rs
+description: v1 empty_desc_and_url DbDescFile JSON representation.
+expression: json
+---
+{
+  "name": "foo",
+  "version": {
+    "pkgver": "1.0.0",
+    "pkgrel": {
+      "major": 1,
+      "minor": null
+    },
+    "epoch": null
+  },
+  "base": "foo",
+  "description": "",
+  "url": null,
+  "arch": "x86_64",
+  "builddate": 1733737242,
+  "installdate": 1733737243,
+  "packager": {
+    "name": "Foobar McFooface",
+    "email": "foobar@mcfooface.org"
+  },
+  "size": 0,
+  "groups": [],
+  "reason": "Explicit",
+  "license": [],
+  "validation": [
+    "Pgp"
+  ],
+  "replaces": [],
+  "depends": [],
+  "optdepends": [],
+  "conflicts": [],
+  "provides": []
+}

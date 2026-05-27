@@ -340,121 +340,12 @@ impl TryFrom<Vec<Section>> for DbDescFileV2 {
 
 #[cfg(test)]
 mod tests {
-    use pretty_assertions::assert_eq;
     use rstest::*;
     use testresult::TestResult;
 
     use super::*;
 
-    const VALID_DESC_FILE: &str = r#"%NAME%
-foo
-
-%VERSION%
-1.0.0-1
-
-%BASE%
-foo
-
-%DESC%
-An example package
-
-%URL%
-https://example.org/
-
-%ARCH%
-x86_64
-
-%BUILDDATE%
-1733737242
-
-%INSTALLDATE%
-1733737243
-
-%PACKAGER%
-Foobar McFooface <foobar@mcfooface.org>
-
-%SIZE%
-123
-
-%GROUPS%
-utils
-cli
-
-%REASON%
-1
-
-%LICENSE%
-MIT
-Apache-2.0
-
-%VALIDATION%
-sha256
-pgp
-
-%REPLACES%
-pkg-old
-
-%DEPENDS%
-glibc
-libwlroots-0.19.so=libwlroots-0.19.so-64
-lib:libexample.so.1
-
-%OPTDEPENDS%
-optpkg
-
-%CONFLICTS%
-foo-old
-
-%PROVIDES%
-foo-virtual
-libwlroots-0.19.so=libwlroots-0.19.so-64
-lib:libexample.so.1
-
-%XDATA%
-pkgtype=pkg
-
-"#;
-
-    #[test]
-    fn parse_valid_v2_desc() -> TestResult {
-        let actual = DbDescFileV2::from_str(VALID_DESC_FILE)?;
-        let expected = DbDescFileV2 {
-            name: Name::new("foo")?,
-            version: FullVersion::from_str("1.0.0-1")?,
-            base: PackageBaseName::new("foo")?,
-            description: PackageDescription::from("An example package"),
-            url: Some(Url::from_str("https://example.org")?),
-            arch: Architecture::from_str("x86_64")?,
-            builddate: BuildDate::from(1733737242),
-            installdate: BuildDate::from(1733737243),
-            packager: Packager::from_str("Foobar McFooface <foobar@mcfooface.org>")?,
-            size: 123,
-            groups: vec!["utils".into(), "cli".into()],
-            reason: PackageInstallReason::Depend,
-            license: vec![License::from_str("MIT")?, License::from_str("Apache-2.0")?],
-            validation: vec![
-                PackageValidation::from_str("sha256")?,
-                PackageValidation::from_str("pgp")?,
-            ],
-            replaces: vec![PackageRelation::from_str("pkg-old")?],
-            depends: vec![
-                RelationOrSoname::from_str("glibc")?,
-                RelationOrSoname::from_str("libwlroots-0.19.so=libwlroots-0.19.so-64")?,
-                RelationOrSoname::from_str("lib:libexample.so.1")?,
-            ],
-            optdepends: vec![OptionalDependency::from_str("optpkg")?],
-            conflicts: vec![PackageRelation::from_str("foo-old")?],
-            provides: vec![
-                RelationOrSoname::from_str("foo-virtual")?,
-                RelationOrSoname::from_str("libwlroots-0.19.so=libwlroots-0.19.so-64")?,
-                RelationOrSoname::from_str("lib:libexample.so.1")?,
-            ],
-            xdata: ExtraDataEntry::from_str("pkgtype=pkg")?.try_into()?,
-        };
-        assert_eq!(actual, expected);
-        assert_eq!(VALID_DESC_FILE, actual.to_string());
-        Ok(())
-    }
+    const VALID_DESC_FILE: &str = include_str!("../../tests/correct/desc/v2/full.desc");
 
     #[test]
     fn depends_and_provides_accept_sonames() -> TestResult {
