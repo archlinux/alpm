@@ -1,0 +1,39 @@
+---
+source: alpm-repo-db/tests/correct.rs
+description: v2 minimal RepoDescFile JSON representation.
+expression: json
+---
+{
+  "file_name": "example-1.0.0-1-any.pkg.tar.zst",
+  "name": "example",
+  "base": "example",
+  "version": {
+    "pkgver": "1.0.0",
+    "pkgrel": {
+      "major": 1,
+      "minor": null
+    },
+    "epoch": null
+  },
+  "description": "",
+  "groups": [],
+  "compressed_size": 1818463,
+  "installed_size": 18184634,
+  "sha256_checksum": "b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c",
+  "pgp_signature": null,
+  "url": null,
+  "license": [],
+  "arch": "x86_64",
+  "build_date": 1729181726,
+  "packager": {
+    "name": "Foobar McFooface",
+    "email": "foobar@mcfooface.org"
+  },
+  "replaces": [],
+  "conflicts": [],
+  "provides": [],
+  "dependencies": [],
+  "optional_dependencies": [],
+  "make_dependencies": [],
+  "check_dependencies": []
+}
