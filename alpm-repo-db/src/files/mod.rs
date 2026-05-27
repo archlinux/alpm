@@ -250,37 +250,14 @@ mod tests {
     use std::io::Write;
 
     use alpm_types::{SchemaVersion, semver_version::Version};
-    use rstest::rstest;
     use tempfile::NamedTempFile;
     use testresult::TestResult;
 
     use super::*;
 
-    /// Ensures that [`RepoFiles::to_string`] produces the expected output.
-    #[rstest]
-    #[case(
-        vec![
-            PathBuf::from("usr/"),
-            PathBuf::from("usr/bin/"),
-            PathBuf::from("usr/bin/foo"),
-        ],
-        r#"%FILES%
-usr/
-usr/bin/
-usr/bin/foo
-"#
-    )]
-    #[case(Vec::new(), "%FILES%\n")]
-    fn files_to_string(#[case] input: Vec<PathBuf>, #[case] expected_output: &str) -> TestResult {
-        let files = RepoFiles::V1(RepoFilesV1::try_from(input)?);
-
-        assert_eq!(files.to_string(), expected_output);
-
-        Ok(())
-    }
-
+    /// Ensures that the parser leniently accepts trailing blank lines after the path list.
     #[test]
-    fn files_from_str() -> TestResult {
+    fn files_from_str_accepts_trailing_blank_line() -> TestResult {
         let input = r#"%FILES%
 usr/
 usr/bin/
@@ -305,33 +282,6 @@ usr/bin/foo
         let result = RepoFiles::from_str("");
 
         assert!(matches!(result, Err(Error::UnknownSchemaVersion)));
-    }
-
-    const REPO_FILES_FULL: &str = r#"%FILES%
-usr/
-usr/bin/
-usr/bin/foo
-"#;
-
-    /// Ensures that full and empty alpm-repo-files files can be parsed from file.
-    #[rstest]
-    #[case::alpm_repo_files_full(REPO_FILES_FULL, 3)]
-    #[case::alpm_repo_files_empty("%FILES%\n", 0)]
-    fn files_from_file_with_schema_succeeds(#[case] data: &str, #[case] len: usize) -> TestResult {
-        let mut temp_file = NamedTempFile::new()?;
-        write!(temp_file, "{data}")?;
-
-        let files = RepoFiles::from_file_with_schema(
-            temp_file.path(),
-            Some(RepoFilesSchema::V1(SchemaVersion::new(Version::new(
-                1, 0, 0,
-            )))),
-        )?;
-
-        assert!(matches!(files, RepoFiles::V1(_)));
-        assert_eq!(files.as_ref().len(), len);
-
-        Ok(())
     }
 
     /// Ensures that missing headers prevent parsing alpm-repo-files files.

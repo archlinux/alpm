@@ -1,0 +1,18 @@
+---
+source: alpm-repo-db/tests/correct.rs
+description: nested RepoFiles JSON representation.
+expression: json
+---
+[
+  "etc/",
+  "etc/foo/",
+  "etc/foo/bar.conf",
+  "etc/foo/foo.conf",
+  "usr/",
+  "usr/bin/",
+  "usr/bin/foo",
+  "usr/share/",
+  "usr/share/doc/",
+  "usr/share/doc/foo/",
+  "usr/share/doc/foo/README"
+]
