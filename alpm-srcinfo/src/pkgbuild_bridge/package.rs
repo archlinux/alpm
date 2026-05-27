@@ -2,7 +2,10 @@
 
 use std::{collections::HashMap, str::FromStr};
 
-use alpm_parsers::{iter_str_context, traits::AlpmParser};
+use alpm_parsers::{
+    iter_str_context,
+    traits::{AlpmParser, ParserUntil},
+};
 #[cfg(doc)]
 use alpm_pkgbuild::bridge::BridgeOutput;
 use alpm_pkgbuild::bridge::{ClearableValue, Keyword, RawPackageName};
@@ -312,7 +315,7 @@ fn handle_package(
                     package,
                     dependencies,
                     architecture,
-                    RelationOrSoname::parser,
+                    RelationOrSoname::parser_until_eof,
                 ),
                 RelationKeyword::OptDepends => package_value_array!(
                     &raw_keyword,
@@ -320,7 +323,7 @@ fn handle_package(
                     package,
                     optional_dependencies,
                     architecture,
-                    OptionalDependency::parser,
+                    OptionalDependency::parser_until_eof,
                 ),
                 RelationKeyword::Provides => package_value_array!(
                     &raw_keyword,
@@ -328,7 +331,7 @@ fn handle_package(
                     package,
                     provides,
                     architecture,
-                    RelationOrSoname::parser,
+                    RelationOrSoname::parser_until_eof,
                 ),
                 RelationKeyword::Conflicts => package_value_array!(
                     &raw_keyword,
@@ -336,7 +339,7 @@ fn handle_package(
                     package,
                     conflicts,
                     architecture,
-                    PackageRelation::parser,
+                    PackageRelation::parser_until_eof,
                 ),
                 RelationKeyword::Replaces => package_value_array!(
                     &raw_keyword,
@@ -344,7 +347,7 @@ fn handle_package(
                     package,
                     replaces,
                     architecture,
-                    PackageRelation::parser,
+                    PackageRelation::parser_until_eof,
                 ),
             },
             PackageKeyword::SharedMeta(keyword) => match keyword {
@@ -374,7 +377,7 @@ fn handle_package(
                     let archs = parse_clearable_value_array(
                         &raw_keyword,
                         &value,
-                        rest.try_map(Architecture::from_str),
+                        Architecture::parser_until_eof,
                     )?;
 
                     // Architectures are a bit special as they **are not** allowed to be cleared.
@@ -417,7 +420,7 @@ fn handle_package(
                     package.options = parse_clearable_value_array(
                         &raw_keyword,
                         &value,
-                        rest.try_map(MakepkgOption::from_str),
+                        MakepkgOption::parser_until_eof,
                     )?;
                 }
                 SharedMetaKeyword::Backup => {
