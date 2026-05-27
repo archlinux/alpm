@@ -42,7 +42,7 @@ fn ensure_desc_parse_errors(#[files("tests/parse_errors/desc/*")] case: PathBuf)
     let input_clone = input.clone();
     insta::with_settings!({
         description => input_clone,
-        snapshot_path => "parse_errors/desc/snapshots",
+        snapshot_path => "parse_error_snapshots/desc",
         prepend_module_to_snapshot => false,
     }, {
         assert_snapshot!(name, error);
@@ -77,7 +77,7 @@ fn ensure_files_parse_errors(
 
             insta::with_settings!({
                 description => &input,
-                snapshot_path => "parse_errors/files/snapshots",
+                snapshot_path => "parse_error_snapshots/files",
                 prepend_module_to_snapshot => false,
             }, {
                 assert_snapshot!(name, error.to_string());
