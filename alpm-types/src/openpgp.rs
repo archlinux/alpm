@@ -449,7 +449,7 @@ impl ParserUntil for Packager {
         // Define the actual parser closure.
         // The delimiter is moved into the closure and borrowed via `by_ref()` on each call.
         let mut delimiter_parser = delimiter;
-        move |input: &mut Input<'a>| -> PResult<'a, Self> {
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Self> {
             // Make sure the first character isn't a `<`, which may happen if the packager name is
             // missing.
             not("<")
@@ -505,7 +505,9 @@ impl ParserUntil for Packager {
                 .parse_next(input)?;
 
             Ok(Self { name, email })
-        }
+        };
+
+        parser.layer("alpm packager")
     }
 }
 

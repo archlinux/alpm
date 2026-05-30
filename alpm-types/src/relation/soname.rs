@@ -52,9 +52,7 @@ impl AlpmParser for VersionOrSoname {
             PackageVersion::parser.map(VersionOrSoname::Version),
         ))
         .context(StrContext::Label("version or shared object name"))
-        .context(StrContext::Expected(StrContextValue::Description(
-            "a valid alpm-sonamev1 or alpm-pkgver",
-        )))
+        .layer("alpm-pkgver or alpm-sonamev1")
         .parse_next(input)
     }
 
@@ -69,6 +67,7 @@ impl AlpmParser for VersionOrSoname {
             .context(StrContext::Expected(StrContextValue::Description(
                 "end of input.",
             )))
+            .layer("alpm-pkgver or alpm-sonamev1")
     }
 }
 
@@ -348,6 +347,7 @@ impl AlpmParser for SonameV1 {
     /// Returns an error if `input` does not begin with a [alpm-sonamev1].
     ///
     /// [alpm-sonamev1]: https://alpm.archlinux.page/specifications/alpm-sonamev1.7.html
+    // TODO: Wrap this parser in a layer closure
     fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         // Parse the shared object name.
         let name = repeat_till(1.., any, peek(alt(("=", eof))))
@@ -408,6 +408,7 @@ impl AlpmParser for SonameV1 {
             .context(StrContext::Expected(StrContextValue::Description(
                 "the string to end after the sonamev1 definition.",
             )))
+            .layer("alpm-sonamev1")
     }
 }
 
@@ -512,12 +513,8 @@ impl Soname {
     /// - `<name>.so`: A shared object name without a version. (e.g. `libexample.so`)
     /// - `<name>.so.<version>`: A shared object name with a version. (e.g. `libexample.so.1`)
     ///     - The version must be a valid [`PackageVersion`].
+    // TODO: Wrap this parser in a layer closure
     pub fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
-        // Note: This parser is pretty much all over the place and there's no to parse it in a
-        // paradigmatic way. There're no clear delimiters, and parsing can effectively only be
-        // achieved by splitting by `.` from the back of the string or by looking for `.so`, but
-        // those may also part of the `Name` character set (which is why we check for multiple
-        // `.so` instances).
         let name = SharedObjectName::parser
             .context(StrContext::Label("shared object name"))
             .parse_next(input)?;
@@ -661,6 +658,7 @@ impl AlpmParser for SonameV2 {
     /// # Errors
     ///
     /// Returns an error if no [`SonameV2`] can be created from `input`.
+    // TODO: Wrap this parser in a layer closure
     fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         // Parse everything from the start to the first `:` and parse as `SharedLibraryPrefix`.
         let prefix = repeat_till(1.., any, peek(alt((":", eof))))
@@ -674,9 +672,6 @@ impl AlpmParser for SonameV2 {
             )))
             .parse_next(input)?;
 
-        // TODO: Consider providing a custom ParserUntil implementation for SonameV2.
-        //   That implementation would be a copy-paste of this parser, but with
-        //  `Soname::parser_until` instead, so that error messages are properly contextualized.
         let soname = Soname::parser.parse_next(input)?;
 
         Ok(Self { prefix, soname })
@@ -693,6 +688,7 @@ impl AlpmParser for SonameV2 {
             .context(StrContext::Expected(StrContextValue::Description(
                 "end of input.",
             )))
+            .layer("alpm-sonamev2")
     }
 }
 

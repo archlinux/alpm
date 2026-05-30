@@ -317,6 +317,7 @@ impl<D: DigestString> AlpmParser for Checksum<D> {
     ///
     /// Returns an error if the immediate `input` is not the output of a _hash function_
     /// in hexadecimal (or decimal in case of CRC-32/CKSUM) form.
+    // TODO: Wrap this parser in a layer closure
     fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         /// Consume 1 hex digit and return its hex value.
         ///
@@ -414,6 +415,7 @@ impl<D: DigestString> AlpmParser for Checksum<D> {
             .context(StrContext::Expected(StrContextValue::Description(
                 "a string consisting of solely decimal or hexadecimal chars.",
             )))
+            .layer("checksum")
     }
 }
 
@@ -541,6 +543,7 @@ impl<D: DigestString + Clone> AlpmParser for SkippableChecksum<D> {
         .context(StrContext::Expected(StrContextValue::Description(
             "a hash digest with the appropriate length for the given algorithm, or an uppercase 'SKIP'",
         )))
+            .layer("skippable checksum")
         .parse_next(input)
     }
 
@@ -550,9 +553,11 @@ impl<D: DigestString + Clone> AlpmParser for SkippableChecksum<D> {
     where
         P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
-        parser.context(StrContext::Expected(StrContextValue::Description(
-            "end of checksum.",
-        )))
+        parser
+            .context(StrContext::Expected(StrContextValue::Description(
+                "end of checksum.",
+            )))
+            .layer("skippable checksum")
     }
 }
 

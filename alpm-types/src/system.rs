@@ -103,6 +103,7 @@ impl AlpmParser for SystemArchitecture {
     /// # Errors
     ///
     /// Returns an error if `input` does not begin with a valid `SystemArchitecture`.
+    // TODO: Wrap this parser in a layer closure
     fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, SystemArchitecture> {
         // Make sure we don't have an `any`.
         cut_err(not((Caseless("any"), eof)))
@@ -161,6 +162,7 @@ impl AlpmParser for SystemArchitecture {
             .context(StrContext::Expected(StrContextValue::Description(
                 "a string containing only ASCII alphanumeric characters and underscores.",
             )))
+            .layer("system architecture")
     }
 }
 
@@ -300,6 +302,7 @@ impl AlpmParser for Architecture {
             SystemArchitecture::parser.map(Architecture::Some),
         ))
         .context(StrContext::Label("alpm-architecture"))
+        .layer("alpm-architecture")
         .parse_next(input)
     }
 
@@ -314,6 +317,7 @@ impl AlpmParser for Architecture {
             .context(StrContext::Expected(StrContextValue::Description(
                 "a string containing only ASCII alphanumeric characters and underscores.",
             )))
+            .layer("alpm-architecture")
     }
 }
 
@@ -537,11 +541,24 @@ impl AlpmParser for ElfArchitectureFormat {
     fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         take_while(1.., |c: char| c.is_ascii_digit())
             .try_map(ElfArchitectureFormat::from_str)
-            .context(StrContext::Label("ELF architecture"))
             .context(StrContext::Expected(StrContextValue::StringLiteral(
                 "32 or 64",
             )))
+            .layer("ELF architecture")
             .parse_next(input)
+    }
+
+    fn delimiter_error_context<'a, O, P>(
+        parser: P,
+    ) -> impl Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>
+    where
+        P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
+    {
+        parser
+            .context(StrContext::Expected(StrContextValue::StringLiteral(
+                "32 or 64",
+            )))
+            .layer("ELF architecture")
     }
 }
 

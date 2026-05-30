@@ -237,7 +237,10 @@ impl Name {
                 .context_with(iter_char_context!(Self::NEVER_FIRST_CHAR)),
         );
 
-        full_parser.take().map(|n: &str| Name(n.to_owned()))
+        full_parser
+            .take()
+            .layer("alpm-package-name")
+            .map(|n: &str| Name(n.to_owned()))
     }
 }
 
@@ -268,6 +271,7 @@ impl AlpmParser for Name {
 
         full_parser
             .take()
+            .layer("alpm-package-name")
             .map(|n: &str| Name(n.to_owned()))
             .parse_next(input)
     }
@@ -284,6 +288,7 @@ impl AlpmParser for Name {
                 "ASCII alphanumeric character",
             )))
             .context_with(iter_char_context!(Self::NEVER_FIRST_CHAR))
+            .layer("alpm-package-name")
     }
 }
 

@@ -267,7 +267,7 @@ impl ParserUntil for SourceUrl {
         // Define the actual parser closure.
         // The delimiter is moved into the closure and borrowed via `by_ref()` on each call.
         let mut delimiter = delimiter;
-        move |input: &mut Input<'a>| -> PResult<Self> {
+        let parser = move |input: &mut Input<'a>| -> PResult<Self> {
             // Check if we should use a VCS for this URL.
             let vcs = opt(VcsProtocol::parser).parse_next(input)?;
 
@@ -328,7 +328,9 @@ impl ParserUntil for SourceUrl {
                 url,
                 vcs_info: Some(vcs_info),
             })
-        }
+        };
+
+        parser.layer("source url")
     }
 }
 

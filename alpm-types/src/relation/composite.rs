@@ -7,11 +7,7 @@ use std::{
 
 use alpm_parsers::prelude::*;
 use serde::{Deserialize, Serialize};
-use winnow::{
-    Parser,
-    combinator::alt,
-    error::{StrContext, StrContextValue},
-};
+use winnow::{Parser, combinator::alt};
 
 use crate::{Error, PackageRelation, SonameV1, SonameV2};
 
@@ -71,10 +67,17 @@ impl AlpmParser for RelationOrSoname {
             SonameV1::parser.map(RelationOrSoname::SonameV1),
             PackageRelation::parser.map(RelationOrSoname::Relation),
         ))
-        .context(StrContext::Expected(StrContextValue::Description(
-            "alpm-sonamev2, alpm-sonamev1 or alpm-package-relation",
-        )))
+        .layer("alpm-package-relation or alpm-sonamev1 or alpm-sonamev2")
         .parse_next(input)
+    }
+
+    fn delimiter_error_context<'a, O, P>(
+        parser: P,
+    ) -> impl Parser<Input<'a>, O, winnow::error::ErrMode<ParseStack<'a>>>
+    where
+        P: Parser<Input<'a>, O, winnow::error::ErrMode<ParseStack<'a>>>,
+    {
+        parser.layer("alpm-package-relation or alpm-sonamev1 or alpm-sonamev2")
     }
 }
 

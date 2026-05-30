@@ -121,6 +121,7 @@ impl AlpmParser for BuildToolVersion {
     /// # Errors
     ///
     /// Returns an error if `input` does not begin with a `BuildToolVersion`.
+    // TODO: Wrap this parser in a layer closure
     fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         // The start can either be:
         // - A minimal version (no pkgrel, thereby shorter)
@@ -145,7 +146,6 @@ impl AlpmParser for BuildToolVersion {
         }
 
         let minimal_version =  MinimalVersion::parser
-            .context(StrContext::Label("buildtool version"))
             .context(StrContext::Expected(StrContextValue::Description("a stand-alone minimal alpm-package-version")))
             .context(StrContext::Expected(StrContextValue::Description("or a full alpm-package-version together with a alpm-architecture, delimited by a '-'")))
             .parse_next(input)?;
@@ -160,9 +160,9 @@ impl AlpmParser for BuildToolVersion {
         P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
-            .context(StrContext::Label("buildtool version"))
             .context(StrContext::Expected(StrContextValue::Description("a stand-alone minimal alpm-package-version")))
             .context(StrContext::Expected(StrContextValue::Description("or a full alpm-package-version together with a alpm-architecture, delimited by a '-'")))
+            .layer("buildtool version")
     }
 }
 

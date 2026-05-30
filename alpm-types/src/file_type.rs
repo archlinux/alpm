@@ -61,8 +61,8 @@ impl AlpmParser for FileTypeIdentifier {
     fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         alpha1
             .try_map(FileTypeIdentifier::from_str)
-            .context(StrContext::Label("compression algorithm file extension"))
             .context_with(iter_str_context!([FileTypeIdentifier::VARIANTS]))
+            .layer("filetype identifier")
             .parse_next(input)
     }
 
@@ -73,9 +73,9 @@ impl AlpmParser for FileTypeIdentifier {
         P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
-            .context(StrContext::Label("FileTypeIdentifier"))
             .context(StrContext::Expected(StrContextValue::Description(
                 "an alphabetic string",
             )))
+            .layer("filetype identifier")
     }
 }

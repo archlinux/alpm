@@ -83,8 +83,8 @@ impl AlpmParser for PackageValidation {
     fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         alphanumeric1
             .try_map(PackageValidation::from_str)
-            .context(StrContext::Label("package validation method"))
             .context_with(iter_str_context!([PackageValidation::VARIANTS]))
+            .layer("package validation method")
             .parse_next(input)
     }
 
@@ -95,9 +95,10 @@ impl AlpmParser for PackageValidation {
         P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
-            .context(StrContext::Label("package validation method"))
             .context(StrContext::Expected(StrContextValue::Description(
                 "an alphanumeric string",
             )))
+            .context_with(iter_str_context!([PackageValidation::VARIANTS]))
+            .layer("package validation method")
     }
 }

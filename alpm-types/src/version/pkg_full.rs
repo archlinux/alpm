@@ -145,8 +145,7 @@ impl AlpmParser for FullVersion {
     /// _full with epoch_).
     ///
     /// [alpm-package-version]: https://alpm.archlinux.page/specifications/alpm-package-version.7.html
-    ///
-    /// TODO: Decide whether to put the layer inside or outside?
+    // TODO: Wrap this parser in a layer closure or convert to seq!
     fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         // Parse an optional, which advances the cursor until after a ':', e.g.:
         // "1:1.0.0-1" -> "1.0.0-1"
@@ -184,13 +183,13 @@ impl AlpmParser for FullVersion {
         P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
-            .context(StrContext::Label("full alpm-package-version"))
             .context(StrContext::Expected(StrContextValue::Description(
                 "the package version to end with a valid package release",
             )))
             .context(StrContext::Expected(StrContextValue::Description(
                 "i.e. a positive integer followed by an optional `.` and another positive integer",
             )))
+            .layer("full alpm-package-version")
     }
 }
 

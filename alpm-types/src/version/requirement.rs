@@ -306,6 +306,7 @@ impl AlpmParser for VersionRequirement {
             comparison: VersionComparison::parser,
             version: Version::parser,
         })
+        .layer("version requirement")
         .parse_next(input)
     }
 
@@ -316,10 +317,10 @@ impl AlpmParser for VersionRequirement {
         P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
-            .context(StrContext::Label("version requirement"))
             .context(StrContext::Expected(StrContextValue::Description(
                 "end of version requirement.",
             )))
+            .layer("version requirement")
     }
 }
 

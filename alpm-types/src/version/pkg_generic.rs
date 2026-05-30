@@ -118,6 +118,7 @@ impl AlpmParser for Version {
     /// # Errors
     ///
     /// Returns an error if `input` is not a valid _alpm-package-version_.
+    // TODO: Wrap this parser in a layer closure
     fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         // Parse an optional epoch, which advances the cursor until after a ':', e.g.:
         // "1:1.0.0-1" -> "1.0.0-1"
@@ -154,10 +155,10 @@ impl AlpmParser for Version {
         P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
-            .context(StrContext::Label("alpm-package-version"))
             .context(StrContext::Expected(StrContextValue::Description(
                 "end of the version string",
             )))
+            .layer("alpm-package-version")
     }
 }
 
