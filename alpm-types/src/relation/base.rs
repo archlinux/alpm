@@ -5,14 +5,12 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::traits::{AlpmParser, ParserUntil, ParserUntilInclusive};
+use alpm_parsers::prelude::*;
 use serde::{Deserialize, Serialize};
 use winnow::{
-    ModalResult,
-    Parser,
     ascii::space1,
     combinator::{opt, peek, seq, terminated},
-    error::{StrContext, StrContextValue},
+    error::ErrMode,
     token::{none_of, take_till},
 };
 
@@ -88,7 +86,7 @@ impl AlpmParser for PackageRelation {
     /// Returns an error if `input` does not begin with a valid [alpm-package-relation].
     ///
     /// [alpm-package-relation]: https://alpm.archlinux.page/specifications/alpm-package-relation.7.html
-    fn parser(input: &mut &str) -> ModalResult<Self> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         seq!(Self {
             name: Name::parser.context(StrContext::Label("package name")),
             version_requirement: opt(VersionRequirement::parser),
@@ -98,9 +96,9 @@ impl AlpmParser for PackageRelation {
 
     fn delimiter_error_context<'a, O, P>(
         parser: P,
-    ) -> impl Parser<&'a str, O, winnow::error::ErrMode<winnow::error::ContextError>>
+    ) -> impl Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, O, winnow::error::ErrMode<winnow::error::ContextError>>,
+        P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
             .context(StrContext::Label("alpm-package-relation"))
@@ -203,7 +201,7 @@ impl FromStr for PackageRelation {
     /// # }
     /// ```
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser.parse(s)?)
+        Ok(Self::parser.parse(Input::new(s))?)
     }
 }
 
@@ -322,7 +320,7 @@ impl AlpmParser for OptionalDependency {
     ///
     /// Returns an error if `input` is not a valid _alpm-package-relation_ of type _optional
     /// dependency_.
-    fn parser(input: &mut &str) -> ModalResult<Self> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         // Due to the ambiguous nature of this format, we must implement our own PackageRelation and
         // VersionRequirement parser handling.
 
@@ -413,9 +411,9 @@ impl AlpmParser for OptionalDependency {
 
     fn delimiter_error_context<'a, O, P>(
         parser: P,
-    ) -> impl Parser<&'a str, O, winnow::error::ErrMode<winnow::error::ContextError>>
+    ) -> impl Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, O, winnow::error::ErrMode<winnow::error::ContextError>>,
+        P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
             .context(StrContext::Label("character in optional dependency"))
@@ -436,7 +434,7 @@ impl FromStr for OptionalDependency {
     ///
     /// Returns an error if [`OptionalDependency::parser`] fails.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser_until_eof.parse(s)?)
+        Ok(Self::parser_until_eof.parse(Input::new(s))?)
     }
 }
 

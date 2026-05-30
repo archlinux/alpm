@@ -5,10 +5,9 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::traits::AlpmParser;
+use alpm_parsers::prelude::*;
 use serde::{Deserialize, Serialize};
 use winnow::{
-    ModalResult,
     Parser,
     combinator::alt,
     error::{StrContext, StrContextValue},
@@ -69,7 +68,7 @@ impl AlpmParser for RelationOrSoname {
     ///
     /// Returns an error if `input` does not begin with a valid
     /// [`SonameV2`], [`SonameV1`] or [`PackageRelation`].
-    fn parser(input: &mut &str) -> ModalResult<Self> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         // Implement a custom `winnow::combinator::alt`, as all type parsers are built in
         // such a way that they return errors on unexpected input instead of backtracking.
         alt((
@@ -137,7 +136,7 @@ impl FromStr for RelationOrSoname {
     /// ```
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Self::parser
-            .parse(s)
+            .parse(Input::new(s))
             .map_err(|error| Error::ParseError(error.to_string()))
     }
 }
@@ -227,11 +226,11 @@ mod tests {
         )
     )]
     fn test_relation_or_soname_parser(
-        #[case] mut input: &str,
+        #[case] input: &str,
         #[case] expected: RelationOrSoname,
     ) -> TestResult {
         let input_str = input.to_string();
-        let result = RelationOrSoname::parser(&mut input)?;
+        let result = RelationOrSoname::parser(&mut Input::new(input))?;
         assert_eq!(result, expected);
         assert_eq!(result.to_string(), input_str);
         Ok(())

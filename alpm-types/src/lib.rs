@@ -165,6 +165,9 @@ fluent_i18n::i18n!("locales");
 // more convenient/easier to read.
 #[allow(clippy::expect_fun_call)]
 fn configure_insta() -> (String, insta::internals::SettingsBindDropGuard) {
+    // First up, disable colored output for our snapshot errors.
+    colored::control::set_override(false);
+
     // Get the full thread name, which is pretty much a rust module string
     // e.g. `version::base::tests::invalid_pkgver::case_4`
     let thread_name = std::thread::current()

@@ -392,6 +392,7 @@ dependencies = [
  "alpm-parsers",
  "base64 0.23.0",
  "blake2",
+ "colored",
  "crc-fast",
  "digest",
  "email_address",
