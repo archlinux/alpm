@@ -19,8 +19,10 @@ default = ["serde"]
 serde = ["dep:serde"]
 
 [dependencies]
+colored.workspace = true
 serde = { workspace = true, optional = true }
 testresult.workspace = true
+unicode-width.workspace = true
 winnow.workspace = true
 
 [dev-dependencies]

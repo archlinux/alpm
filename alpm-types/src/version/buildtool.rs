@@ -5,15 +5,10 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::traits::{AlpmParser, ParserUntil};
+use alpm_parsers::prelude::*;
 #[cfg(feature = "serde")]
 use serde::Serialize;
-use winnow::{
-    Parser,
-    combinator::opt,
-    error::{ContextError, ErrMode, StrContext, StrContextValue},
-    prelude::ModalResult,
-};
+use winnow::{combinator::opt, error::ErrMode};
 
 #[cfg(doc)]
 use crate::BuildTool;
@@ -126,48 +121,55 @@ impl AlpmParser for BuildToolVersion {
     /// Returns an error if `input` does not begin with a [build tool version].
     ///
     /// [build tool version]: https://alpm.archlinux.page/specifications/BUILDINFOv2.5.html#buildtoolver
-    fn parser(input: &mut &str) -> ModalResult<Self> {
-        // The start can either be:
-        // - A minimal version (no pkgrel, thereby shorter)
-        // - A full version together with an `-` and an architecture.
-        //
-        // Since the FullVersion is longer, we can use it to determine what kind of input we can
-        // expect.
-        let full_version = opt(FullVersion::parser).parse_next(input)?;
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Self> {
+            // The start can either be:
+            // - A minimal version (no pkgrel, thereby shorter)
+            // - A full version together with an `-` and an architecture.
+            //
+            // Since the FullVersion is longer, we can use it to determine what kind of input we can
+            // expect.
+            let full_version = opt(FullVersion::parser).parse_next(input)?;
 
-        if let Some(version) = full_version {
-            "-".context(StrContext::Label("buildtool version"))
-                .context(StrContext::Expected(StrContextValue::Description(
-                    "'-' delimiter between full alpm-package-version and alpm-architecture",
-                )))
+            if let Some(version) = full_version {
+                "-".label("buildtool version")
+                    .expected_text(
+                        "'-' delimiter between full alpm-package-version and alpm-architecture",
+                    )
+                    .parse_next(input)?;
+
+                let architecture = Architecture::parser.parse_next(input)?;
+                return Ok(BuildToolVersion::DevTools {
+                    version,
+                    architecture,
+                });
+            }
+
+            let minimal_version = MinimalVersion::parser
+                .expected_text("a minimal alpm-package-version")
+                .expected_text(
+                    "or a full alpm-package-version followed by a '-' and an alpm-architecture",
+                )
                 .parse_next(input)?;
 
-            let architecture = Architecture::parser.parse_next(input)?;
-            return Ok(BuildToolVersion::DevTools {
-                version,
-                architecture,
-            });
-        }
+            Ok(BuildToolVersion::Makepkg(minimal_version))
+        };
 
-        let minimal_version =  MinimalVersion::parser
-            .context(StrContext::Label("buildtool version"))
-            .context(StrContext::Expected(StrContextValue::Description("a stand-alone minimal alpm-package-version")))
-            .context(StrContext::Expected(StrContextValue::Description("or a full alpm-package-version together with an alpm-architecture, delimited by a '-'")))
-            .parse_next(input)?;
-
-        Ok(BuildToolVersion::Makepkg(minimal_version))
+        parser.layer("buildtool version").parse_next(input)
     }
 
     fn delimiter_error_context<'a, O, P>(
         parser: P,
-    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    ) -> impl Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, O, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
-            .context(StrContext::Label("buildtool version"))
-            .context(StrContext::Expected(StrContextValue::Description("a stand-alone minimal alpm-package-version")))
-            .context(StrContext::Expected(StrContextValue::Description("or a full alpm-package-version together with an alpm-architecture, delimited by a '-'")))
+            .expected_text("a minimal alpm-package-version")
+            .expected_text(
+                "or a full alpm-package-version followed by a '-' and an alpm-architecture",
+            )
+            .layer("buildtool version")
     }
 }
 
@@ -181,7 +183,7 @@ impl FromStr for BuildToolVersion {
     ///
     /// Returns an error if [`BuildToolVersion::parser`] fails.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser_until_eof.parse(s)?)
+        Ok(Self::parser_until_eof.parse(Input::new(s))?)
     }
 }
 
@@ -249,6 +251,8 @@ mod tests {
     #[case::minimal_version_with_epoch_and_architecture("1:1.0.0-any")]
     #[case::bad_package_version("ß-1-any")]
     fn invalid_buildtool_version(#[case] input: &str) -> TestResult {
+        let (test_name, _guard) = configure_insta();
+
         let err = match BuildToolVersion::from_str(input) {
             Err(err) => err,
             Ok(_) => {
@@ -256,7 +260,6 @@ mod tests {
             }
         };
 
-        let (test_name, _guard) = configure_insta();
         assert_snapshot!(test_name, err.to_string());
 
         Ok(())

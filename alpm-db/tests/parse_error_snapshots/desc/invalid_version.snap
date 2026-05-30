@@ -4,9 +4,13 @@ description: "%NAME%\nfoo\n\n%VERSION%\n!\n\n%BASE%\nfoo\n\n%DESC%\nVersion must
 expression: error
 ---
 Parser failed with the following error:
-parse error at line 5, column 1
-  |
+error: invalid full alpm-package-version
+  | 
+4 | %VERSION%
 5 | !
-  | ^
-invalid sections
-expected a section in the database desc file
+  | ~^ expected the '-' delimiter that divides the alpm-pkgver and alpm-pkgrel
+  | 
+  = while parsing:
+    alpm-repo-desc file value section: (%VERSION%)
+    └ full alpm-package-version: (!)
+      → expected the '-' delimiter that divides the alpm-pkgver and alpm-pkgrel

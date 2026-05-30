@@ -8,15 +8,13 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::traits::{AlpmParser, ParserUntil, ParserUntilInclusive};
+use alpm_parsers::prelude::*;
 use fluent_i18n::t;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use winnow::{
-    ModalResult,
-    Parser,
-    combinator::opt,
-    error::{ContextError, ErrMode, StrContext, StrContextValue},
+    combinator::{opt, seq},
+    error::ErrMode,
 };
 
 use crate::{Epoch, Error, PackageVersion, Version};
@@ -141,31 +139,30 @@ impl AlpmParser for MinimalVersion {
     /// _minimal with epoch_).
     ///
     /// [alpm-package-version]: https://alpm.archlinux.page/specifications/alpm-package-version.7.html
-    fn parser(input: &mut &str) -> ModalResult<Self> {
-        // Parse an optional epoch, which advances the cursor until after a ':', e.g.:
-        // "1:1.0.0" -> "1.0.0"
-        //
-        // If no epoch exists, the cursor does not move.
-        let epoch = opt(Epoch::parser_until_inclusive(":")).parse_next(input)?;
-
-        // Parse the remaining chars
-        // "1.0.0" -> ""
-        let pkgver: PackageVersion = PackageVersion::parser.parse_next(input)?;
-
-        Ok(Self { epoch, pkgver })
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
+        seq!(Self {
+            // Parse an optional epoch, which advances the cursor until after a ':', e.g.:
+            // "1:1.0.0" -> "1.0.0"
+            //
+            // If no epoch exists, the cursor does not move.
+            epoch: opt(Epoch::parser_until_inclusive(":")),
+            // Parse the remaining chars
+            // "1.0.0" -> ""
+            pkgver: PackageVersion::parser,
+        })
+        .layer("minimal alpm-package-version")
+        .parse_next(input)
     }
 
     fn delimiter_error_context<'a, O, P>(
         parser: P,
-    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    ) -> impl Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, O, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
-            .context(StrContext::Label("minimal alpm-package-version"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "the package version to end with an alpm-pkgver",
-            )))
+            .description("The package version must end after the alpm-pkgver")
+            .layer("minimal alpm-package-version")
     }
 }
 
@@ -190,7 +187,7 @@ impl FromStr for MinimalVersion {
     ///
     /// Returns an error if [`Version::parser`] fails.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser_until_eof.parse(s)?)
+        Ok(Self::parser_until_eof.parse(Input::new(s))?)
     }
 }
 
@@ -383,11 +380,12 @@ mod tests {
     #[case::ends_with_colon("1-foo:")]
     #[case::ends_with_colon_number("1-foo:1")]
     fn minimal_version_from_str_parse_error(#[case] version: &str) {
+        let (test_name, _guard) = configure_insta();
+
         let Err(Error::ParseError(err)) = MinimalVersion::from_str(version) else {
             panic!("parsing '{version}' as MinimalVersion did not fail as expected")
         };
 
-        let (test_name, _guard) = configure_insta();
         assert_snapshot!(test_name, err.to_string());
     }
 

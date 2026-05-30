@@ -1,5 +1,5 @@
 error-invalid-integer = Invalid integer (caused by { $kind })
- 
+
 error-invalid-variant = Invalid variant ({ $error })
 
 error-invalid-email = Invalid e-mail ({ $error })
@@ -30,6 +30,8 @@ error-path-not-absolute = The path is not absolute: { $path }
 error-path-not-relative = The path is not relative: { $path }
 
 error-path-not-file = The path is not a file: { $path }
+
+error-path-not-sibling = The path is not a relative sibling file, i.e. it either starts with a `./` or contains a directory: { $path }
 
 error-filename-invalid-chars = File name ({ $path }) contains invalid characters: { $invalid_char }
 

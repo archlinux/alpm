@@ -5,15 +5,12 @@
 use std::{collections::HashSet, fmt::Display, path::PathBuf, str::FromStr};
 
 use alpm_common::relative_files;
-use alpm_parsers::traits::AlpmParser;
+use alpm_parsers::prelude::*;
 use alpm_types::{Md5Checksum, RelativeFilePath, RelativePath};
 use fluent_i18n::t;
 use winnow::{
-    ModalResult,
-    Parser,
     ascii::{line_ending, multispace0, newline, space0, till_line_ending},
     combinator::{alt, cut_err, eof, not, opt, peek, repeat, separated_pair, terminated},
-    error::{StrContext, StrContextValue},
     stream::AsChar,
     token::take_while,
 };
@@ -41,16 +38,17 @@ impl FilesSection {
     ///
     /// Returns an error if a [`RelativePath`] cannot be created from the line, or something other
     /// than a line ending or EOF is encountered afterwards.
-    fn parse_path(input: &mut &str) -> ModalResult<RelativePath> {
+    fn parse_path<'a>(input: &mut Input<'a>) -> PResult<'a, RelativePath> {
         // Make sure that the line is not empty.
         not(alt(((space0, line_ending).take(), eof))).parse_next(input)?;
 
         // Parse until the end of the line and attempt conversion to RelativePath.
         cut_err(
             till_line_ending
-                .context(StrContext::Label("relative path"))
+                .expected_text("a single line that contains a relative path")
                 .parse_to(),
         )
+        .layer("path")
         .parse_next(input)
     }
 
@@ -66,33 +64,36 @@ impl FilesSection {
     ///   [`RelativePath`].
     ///
     /// [alpm-db-files]: https://alpm.archlinux.page/specifications/alpm-db-files.5.html
-    pub(crate) fn parser(input: &mut &str) -> ModalResult<Self> {
-        // Return early if the input is empty.
-        // This may be the case in an alpm-db-files file if a package contains no files.
-        if input.is_empty() {
-            return Ok(Self(Vec::new()));
-        }
+    pub(crate) fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Self> {
+            // Return early if the input is empty.
+            // This may be the case in an alpm-db-files file if a package contains no files.
+            if input.is_empty() {
+                return Ok(Self(Vec::new()));
+            }
 
-        // Consume the required section header "%FILES%".
-        // Optionally consume one following line ending.
-        cut_err(terminated(Self::SECTION_KEYWORD, alt((line_ending, eof))))
-            .context(StrContext::Label("alpm-db-files section header"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                Self::SECTION_KEYWORD,
-            )))
-            .parse_next(input)?;
+            // Consume the required section header "%FILES%".
+            // Optionally consume one following line ending.
+            cut_err(terminated(Self::SECTION_KEYWORD, alt((line_ending, eof))))
+                .expected_string(Self::SECTION_KEYWORD)
+                .layer("files section header")
+                .parse_next(input)?;
 
-        // Return early if there is only the section header.
-        if input.is_empty() {
-            return Ok(Self(Vec::new()));
-        }
+            // Return early if there is only the section header.
+            if input.is_empty() {
+                return Ok(Self(Vec::new()));
+            }
 
-        // Consider all following lines as paths.
-        // Optionally consume one following line ending.
-        let paths: Vec<RelativePath> =
-            repeat(0.., terminated(Self::parse_path, alt((line_ending, eof)))).parse_next(input)?;
+            // Consider all following lines as paths.
+            // Optionally consume one following line ending.
+            let paths: Vec<RelativePath> =
+                repeat(0.., terminated(Self::parse_path, alt((line_ending, eof))))
+                    .parse_next(input)?;
 
-        Ok(Self(paths))
+            Ok(Self(paths))
+        };
+
+        parser.layer("files section").parse_next(input)
     }
 
     /// Returns the paths.
@@ -106,11 +107,20 @@ impl FilesSection {
 pub struct BackupEntry {
     /// The path to the file that is backed up.
     pub path: RelativeFilePath,
-    /// The MD5 checksum of the backed up file as stored in the package.
+    /// The optional MD5 checksum of the backed up file as stored in the package.
     pub md5: Md5Checksum,
 }
 
-impl BackupEntry {
+/// A path that should be tracked for backup together with its checksum.
+#[derive(Clone, Debug, Eq, PartialEq, serde::Serialize)]
+struct RawBackupEntry {
+    /// The path to the file that is backed up.
+    pub path: RelativeFilePath,
+    /// The optional MD5 checksum of the backed up file as stored in the package.
+    pub md5: Option<Md5Checksum>,
+}
+
+impl AlpmParser for RawBackupEntry {
     /// Recognizes a single backup entry.
     ///
     /// Each entry consists of a relative path, a tab, and a 32 character hexadecimal MD5 digest.
@@ -127,7 +137,7 @@ impl BackupEntry {
     /// [PKGBUILD]: https://man.archlinux.org/man/PKGBUILD.5
     /// [alpm-db-files]: https://alpm.archlinux.page/specifications/alpm-db-files.5.html
     /// [pacman]: https://man.archlinux.org/man/pacman.8
-    pub(crate) fn parser(input: &mut &str) -> ModalResult<Option<Self>> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         // Backtrack if we reached the end of the file or an empty line.
         not(alt((eof, (space0, newline).take()))).parse_next(input)?;
 
@@ -135,7 +145,7 @@ impl BackupEntry {
         separated_pair(
             take_while(1.., |c: char| c != '\t' && !c.is_newline())
                 .verify(|s: &str| !s.chars().all(|c| c.is_whitespace()))
-                .context(StrContext::Label("relative path"))
+                .expected_text("relative path")
                 .parse_to(),
             '\t',
             alt((
@@ -147,7 +157,8 @@ impl BackupEntry {
                 Md5Checksum::parser.map(Some),
             )),
         )
-        .map(|(path, md5)| md5.map(|md5| BackupEntry { path, md5 }))
+        .map(|(path, md5)| RawBackupEntry { path, md5 })
+        .layer("backup entry")
         .parse_next(input)
     }
 }
@@ -168,28 +179,40 @@ impl BackupSection {
     ///
     /// Returns an error if the section header is missing or malformed, or if any entry cannot be
     /// parsed.
-    pub(crate) fn parser(input: &mut &str) -> ModalResult<Self> {
-        // Make sure there's an section header indicator. Otherwise, this is not a new section.
-        let header_indicator = opt(peek("%")).parse_next(input)?;
-        if header_indicator.is_none() {
-            return Ok(Self::default());
-        }
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Self> {
+            // Make sure there's an section header indicator. Otherwise, this is not a new section.
+            let header_indicator = opt(peek("%")).parse_next(input)?;
+            if header_indicator.is_none() {
+                return Ok(Self::default());
+            }
 
-        cut_err(terminated(Self::SECTION_KEYWORD, alt((line_ending, eof))))
-            .context(StrContext::Label("alpm-db-files backup section header"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                Self::SECTION_KEYWORD,
-            )))
+            cut_err(terminated(Self::SECTION_KEYWORD, alt((line_ending, eof))))
+                .expected_string(Self::SECTION_KEYWORD)
+                .layer("backup section header")
+                .parse_next(input)?;
+
+            let entries: Vec<RawBackupEntry> = repeat(
+                0..,
+                terminated(RawBackupEntry::parser, alt((line_ending, eof))),
+            )
             .parse_next(input)?;
 
-        let entries: Vec<BackupEntry> = repeat(
-            0..,
-            terminated(BackupEntry::parser, alt((line_ending, eof))),
-        )
-        .map(|entries: Vec<Option<BackupEntry>>| entries.into_iter().flatten().collect::<Vec<_>>())
-        .parse_next(input)?;
+            let entries = entries
+                .into_iter()
+                .filter_map(|backup| {
+                    let md5 = backup.md5?;
+                    Some(BackupEntry {
+                        path: backup.path,
+                        md5,
+                    })
+                })
+                .collect();
 
-        Ok(Self(entries))
+            Ok(Self(entries))
+        };
+
+        parser.layer("backup section").parse_next(input)
     }
 
     /// Returns the parsed entries.
@@ -499,7 +522,7 @@ impl Display for DbFilesV1 {
 }
 
 impl DbFilesV1 {
-    fn parser(input: &mut &str) -> ModalResult<Result<Self, Error>> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Result<Self, Error>> {
         let files_section = FilesSection::parser.parse_next(input)?;
 
         // Consume any trailing whitespaces or new lines.
@@ -520,9 +543,7 @@ impl DbFilesV1 {
 
         // Fail if there are any further characters.
         cut_err(eof)
-            .context(StrContext::Expected(StrContextValue::Description(
-                "no further content",
-            )))
+            .description("No further content is expected after an empty line")
             .parse_next(input)?;
 
         Ok(DbFilesV1::try_from_parts(
@@ -599,7 +620,7 @@ impl FromStr for DbFilesV1 {
     /// # }
     /// ```
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Self::parser.parse(s)?
+        Self::parser.parse(Input::new(s))?
     }
 }
 

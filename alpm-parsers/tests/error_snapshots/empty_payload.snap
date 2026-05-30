@@ -1,0 +1,23 @@
+---
+source: alpm-parsers/tests/error.rs
+description: "layer1 [\n  layer2 [\n    layer3 []\n  ]\n]\n"
+expression: "format!(\"{error}\")"
+---
+error: invalid payload word
+  | 
+2 |   layer2 [
+3 |     layer3 []
+  |             ^ expected a word that contains neither brackets nor whitespace
+4 |   ]
+  | 
+  = while parsing:
+    document: (layer1 [)
+    └ layer1: (layer1 [)
+      │ → The layer1 block, which wraps a single layer2 block
+      └ layer2: (layer2 [)
+        │ → The layer2 block, which wraps a single layer3 block
+        └ layer3: (layer3 [])
+          │ → The layer3 block, which wraps the payload word
+          └ payload: (])
+            → invalid payload word
+            → expected a word that contains neither brackets nor whitespace

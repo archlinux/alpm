@@ -1,7 +1,12 @@
 ---
 source: alpm-types/src/url.rs
 ---
-git+https://example/project#branch=feature#branch=feature
-                                          ^
-invalid unexpected trailing content in URL.
-expected end of input.
+error: invalid unexpected trailing content in URL.
+ | 
+ | git+https://example/project#branch=feature#branch=feature
+ | ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^ expected end of input.
+ | 
+ = while parsing:
+   source url: (git+https://example/…)
+   → invalid unexpected trailing content in URL.
+   → expected end of input.

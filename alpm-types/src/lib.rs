@@ -67,6 +67,7 @@ mod path;
 pub use path::{
     AbsolutePath,
     Backup,
+    Basename,
     BuildDirectory,
     Changelog,
     Install,
@@ -132,15 +133,16 @@ pub mod semver_version {
 
 fluent_i18n::i18n!("locales");
 
-/// This is a helper macro that is used by unit tests in the `alpm-types` crate.
+/// This is a helper function that is used by unit tests in the `alpm-types` crate.
 ///
-/// Specifically, it takes care of two things:
+/// Specifically, it takes care of three things:
 ///
 /// 1. Make the test filename **somewhat** human readable. cargo-insta uses the full module name by
 ///    default, which is absurdly long due to our usage of rstest. Since the snapshots are placed in
 ///    the immediate module anyway, we only need one level of module indirection. The tests
 ///    filenames have the format of: `{module}::{test_function}@{test_case_name}`
 /// 2. Remove the `expression` field from the snapshot, as it's of no use in parser tests.
+/// 3. Disable colored output, so that no ANSI escape codes end up in snapshots.
 ///
 /// The function returns the test name to use in `assert_snapshot`, as well as a settings guard,
 /// which assures that the settings we just adjusted are local to this thread and stay up until the
@@ -153,11 +155,14 @@ fluent_i18n::i18n!("locales");
 /// #[case::something_bad("oh no")]
 /// #[case::something_else_bad("oh nooo")]
 /// fn invalid_version_requirement(#[case] requirement: &str) {
+///     // Call this before parsing!
+///     // Otherwise the rendered error may contain ANSI escape codes.
+///     let (test_name, _guard) = configure_insta();
+///
 ///     let Err(Error::ParseError(err_msg)) = VersionRequirement::from_str(requirement) else {
 ///         panic!("'{requirement}' erroneously parsed as VersionRequirement")
 ///     };
 ///
-///     let (test_name, _guard) = configure_insta();
 ///     assert_snapshot!(test_name, err_msg.to_string());
 /// }
 #[cfg(test)]
@@ -165,6 +170,9 @@ fluent_i18n::i18n!("locales");
 // more convenient/easier to read.
 #[allow(clippy::expect_fun_call)]
 fn configure_insta() -> (String, insta::internals::SettingsBindDropGuard) {
+    // First up, disable colored output for our snapshot errors.
+    colored::control::set_override(false);
+
     // Get the full thread name, which is pretty much a rust module string
     // e.g. `version::base::tests::invalid_pkgver::case_4`
     let thread_name = std::thread::current()

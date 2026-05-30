@@ -4,9 +4,15 @@ description: "pkgbase = test\n\t# Delimiter should have spaces.\n\tpkgver=1.0.0\
 expression: "format!(\"{error}\")"
 ---
 File parsing error:
-parse error at line 3, column 8
-  |
+error: invalid delimiter
+  | 
+2 |  # Delimiter should have spaces.
 3 |  pkgver=1.0.0
   |        ^
-invalid delimiter
-expected an equal sign surrounded by spaces: ' = '.
+4 |  pkgrel = 1
+  | 
+  = while parsing:
+    pkgbase section: (pkgbase = test)
+    └ package base property: (pkgver=1.0.0)
+      └ delimiter: (=1.0.0)
+        → Expected an equal sign surrounded by spaces: ' = '.

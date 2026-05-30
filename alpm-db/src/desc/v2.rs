@@ -7,6 +7,7 @@ use std::{
     str::FromStr,
 };
 
+use alpm_parsers::prelude::*;
 use alpm_types::{
     Architecture,
     BuildDate,
@@ -28,7 +29,6 @@ use alpm_types::{
     Url,
 };
 use serde_with::{TryFromInto, serde_as};
-use winnow::Parser;
 
 use crate::{
     Error,
@@ -278,7 +278,7 @@ impl FromStr for DbDescFileV2 {
     ///
     /// [alpm-db-descv2]: https://alpm.archlinux.page/specifications/alpm-db-descv2.5.html
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let sections = sections.parse(s)?;
+        let sections = sections.parse(Input::new(s))?;
         Self::try_from(sections)
     }
 }
@@ -358,7 +358,7 @@ mod tests {
     }
 
     #[rstest]
-    #[case("%UNKNOWN%\nvalue", "invalid section name")]
+    #[case("%UNKNOWN%\nvalue", "expected a valid section")]
     #[case("%VERSION%\n1.0.0-1\n", "Missing section: %NAME%")]
     fn invalid_desc_parser(#[case] input: &str, #[case] error_snippet: &str) {
         let result = DbDescFileV2::from_str(input);

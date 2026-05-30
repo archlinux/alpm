@@ -41,6 +41,7 @@ path = [
     ".mailmap",
     ".shellcheckrc",
     "alpm-db/tests/parse_errors/files/*.files",
+    "alpm-parsers/tests/error_input/*",
     "alpm-repo-db/tests/parse_errors/files/*.files",
     "alpm-soname/tests/test_files/*",
     "alpm-srcinfo/tests/files/*.srcinfo",

@@ -5,10 +5,7 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::{
-    iter_str_context,
-    traits::{AlpmParser, ParserUntil},
-};
+use alpm_parsers::prelude::*;
 #[cfg(doc)]
 use alpm_pkgbuild::bridge::BridgeOutput;
 use alpm_pkgbuild::bridge::{Keyword, Value};
@@ -36,10 +33,7 @@ use alpm_types::{
 };
 use strum::VariantNames;
 use winnow::{
-    ModalResult,
-    Parser,
     combinator::{alt, cut_err},
-    error::StrContext,
     token::rest,
 };
 
@@ -54,7 +48,7 @@ use crate::{
         parse_value_array,
     },
     source_info::{
-        parser::{PackageBaseKeyword, RelationKeyword, SharedMetaKeyword, SourceKeyword},
+        parser::{ExclusivePackageBaseKeyword, RelationKeyword, SharedMetaKeyword, SourceKeyword},
         v1::package_base::{PackageBase, PackageBaseArchitecture},
     },
 };
@@ -63,7 +57,7 @@ use crate::{
 enum PackageBaseKeywords {
     // The `pkgbase` keyword.
     PkgBase,
-    PackageBase(PackageBaseKeyword),
+    PackageBase(ExclusivePackageBaseKeyword),
     Relation(RelationKeyword),
     SharedMeta(SharedMetaKeyword),
     Source(SourceKeyword),
@@ -77,22 +71,26 @@ impl PackageBaseKeywords {
     /// # Errors
     ///
     /// Returns an error if `input` contains an unexpected keyword.
-    pub fn parser(input: &mut &str) -> ModalResult<PackageBaseKeywords> {
+    pub fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, PackageBaseKeywords> {
         cut_err(alt((
             "pkgbase".map(|_| PackageBaseKeywords::PkgBase),
-            PackageBaseKeyword::parser.map(PackageBaseKeywords::PackageBase),
+            ExclusivePackageBaseKeyword::parser.map(PackageBaseKeywords::PackageBase),
             RelationKeyword::parser.map(PackageBaseKeywords::Relation),
             SharedMetaKeyword::parser.map(PackageBaseKeywords::SharedMeta),
             SourceKeyword::parser.map(PackageBaseKeywords::Source),
         )))
-        .context(StrContext::Label("package base property type"))
-        .context_with(iter_str_context!([
-            &["pkgbase"],
-            PackageBaseKeyword::VARIANTS,
-            RelationKeyword::VARIANTS,
-            SharedMetaKeyword::VARIANTS,
-            SourceKeyword::VARIANTS,
-        ]))
+        .expected_strings(
+            [
+                &["pkgbase"],
+                ExclusivePackageBaseKeyword::VARIANTS,
+                RelationKeyword::VARIANTS,
+                SharedMetaKeyword::VARIANTS,
+                SourceKeyword::VARIANTS,
+            ]
+            .into_iter()
+            .flatten(),
+        )
+        .context(StrContext::Label("package base property keyword"))
         .parse_next(input)
     }
 }
@@ -193,7 +191,7 @@ pub fn handle_package_base(
     for (raw_keyword, value) in &raw {
         // Parse the keyword
         let keyword = PackageBaseKeywords::parser
-            .parse(&raw_keyword.keyword)
+            .parse(Input::new(&raw_keyword.keyword))
             .map_err(|err| (raw_keyword.clone(), err))?;
 
         // Parse the architecture suffix if it exists.
@@ -201,7 +199,7 @@ pub fn handle_package_base(
             Some(suffix) => {
                 // SystemArchitecture::parser forbids "any"
                 let arch = SystemArchitecture::parser
-                    .parse(suffix)
+                    .parse(Input::new(suffix))
                     .map_err(|err| (raw_keyword.clone(), err))?;
                 Some(arch)
             }
@@ -221,17 +219,17 @@ pub fn handle_package_base(
             PackageBaseKeywords::PackageBase(keyword) => match keyword {
                 // Both PkgVer and PkgRel have been handled above.
                 // We check for an unexpected suffix anyway in case somebody goofed up.
-                PackageBaseKeyword::PkgVer => {
+                ExclusivePackageBaseKeyword::PkgVer => {
                     ensure_no_suffix(raw_keyword, architecture)?;
                 }
-                PackageBaseKeyword::PkgRel => {
+                ExclusivePackageBaseKeyword::PkgRel => {
                     ensure_no_suffix(raw_keyword, architecture)?;
                 }
-                PackageBaseKeyword::Epoch => {
+                ExclusivePackageBaseKeyword::Epoch => {
                     ensure_no_suffix(raw_keyword, architecture)?;
                     epoch = parse_optional_value(raw_keyword, value, Epoch::parser_until_eof)?;
                 }
-                PackageBaseKeyword::ValidPGPKeys => {
+                ExclusivePackageBaseKeyword::ValidPGPKeys => {
                     ensure_no_suffix(raw_keyword, architecture)?;
                     pgp_fingerprints = parse_value_array(
                         raw_keyword,
@@ -239,7 +237,7 @@ pub fn handle_package_base(
                         rest.try_map(OpenPGPIdentifier::from_str),
                     )?;
                 }
-                PackageBaseKeyword::CheckDepends => {
+                ExclusivePackageBaseKeyword::CheckDepends => {
                     package_base_value_array!(
                         raw_keyword,
                         value,
@@ -249,7 +247,7 @@ pub fn handle_package_base(
                         PackageRelation::parser_until_eof,
                     )
                 }
-                PackageBaseKeyword::MakeDepends => package_base_value_array!(
+                ExclusivePackageBaseKeyword::MakeDepends => package_base_value_array!(
                     raw_keyword,
                     value,
                     make_dependencies,

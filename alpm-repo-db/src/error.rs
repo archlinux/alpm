@@ -2,8 +2,9 @@
 
 use std::path::PathBuf;
 
+use alpm_parsers::error::{Input, ParseStack};
 use fluent_i18n::t;
-use winnow::error::{ContextError, ParseError};
+use winnow::error::ParseError;
 
 use crate::desc::SectionKeyword;
 
@@ -102,9 +103,11 @@ pub enum Error {
     InvalidFormat,
 }
 
-impl<'a> From<ParseError<&'a str, ContextError>> for Error {
+impl<'a> From<ParseError<Input<'a>, ParseStack<'a>>> for Error {
     /// Converts a [`ParseError`] into an [`Error::ParseError`].
-    fn from(value: ParseError<&'a str, ContextError>) -> Self {
-        Self::ParseError(value.to_string())
+    fn from(value: ParseError<Input<'a>, ParseStack<'a>>) -> Self {
+        // Only take the **inner** parser error of our own ParseStack error type.
+        // We don't want to hit the `Display` impl of `ParseError`.
+        Self::ParseError(value.into_inner().to_string())
     }
 }

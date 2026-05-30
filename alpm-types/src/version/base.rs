@@ -14,17 +14,15 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::traits::{AlpmParser, ParserUntil};
+use alpm_parsers::prelude::*;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 #[cfg(feature = "serde")]
 use serde_with::DeserializeFromStr;
 use winnow::{
-    ModalResult,
-    Parser,
     ascii::{dec_uint, digit1},
     combinator::opt,
-    error::{ContextError, ErrMode, StrContext, StrContextValue},
+    error::ErrMode,
     token::take_while,
 };
 
@@ -69,27 +67,23 @@ impl AlpmParser for Epoch {
     /// # Errors
     ///
     /// Returns an error if `input` does not begin with a valid _alpm_epoch_.
-    fn parser(input: &mut &str) -> ModalResult<Self> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         dec_uint
-            .context(StrContext::Label("package epoch"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "non-negative decimal integer",
-            )))
+            .expected_text("non-negative decimal integer")
             .map(Self)
+            .layer("alpm-epoch")
             .parse_next(input)
     }
 
     fn delimiter_error_context<'a, O, P>(
         parser: P,
-    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    ) -> impl Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, O, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
-            .context(StrContext::Label("package epoch"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "positive non-zero decimal integer",
-            )))
+            .expected_text("positive non-zero decimal integer")
+            .layer("alpm-epoch")
     }
 }
 
@@ -97,7 +91,7 @@ impl FromStr for Epoch {
     type Err = Error;
     /// Create an Epoch from a string and return it in a Result
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser_until_eof.parse(s)?)
+        Ok(Self::parser_until_eof.parse(Input::new(s))?)
     }
 }
 
@@ -162,44 +156,43 @@ impl AlpmParser for PackageRelease {
     /// # Errors
     ///
     /// Returns an error if `input` does not begin with a valid [`PackageRelease`].
-    fn parser(input: &mut &str) -> ModalResult<Self> {
-        let major = digit1
-            .try_map(FromStr::from_str)
-            .context(StrContext::Label("package release"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "positive decimal integer",
-            )))
-            .parse_next(input)?;
-
-        // If we find a dot, also expect there to be a minor version number
-        let minor = if opt('.').parse_next(input)?.is_some() {
-            let minor = digit1
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Self> {
+            let major = digit1
                 .try_map(FromStr::from_str)
-                .context(StrContext::Label("package release"))
-                .context(StrContext::Expected(StrContextValue::Description(
-                    "single '.' followed by positive decimal integer",
-                )))
+                .label("package release")
+                .expected_text("positive decimal integer")
                 .parse_next(input)?;
 
-            Some(minor)
-        } else {
-            None
+            // If we find a dot, also expect there to be a minor version number
+            let minor = if opt('.').parse_next(input)?.is_some() {
+                let minor = digit1
+                    .try_map(FromStr::from_str)
+                    .label("package release")
+                    .expected_text("single '.' followed by positive decimal integer")
+                    .parse_next(input)?;
+
+                Some(minor)
+            } else {
+                None
+            };
+
+            Ok(Self { major, minor })
         };
 
-        Ok(Self { major, minor })
+        parser.layer("alpm-pkgrel").parse_next(input)
     }
 
     fn delimiter_error_context<'a, O, P>(
         parser: P,
-    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    ) -> impl Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, O, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
-            .context(StrContext::Label("package release"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "single '.' followed by positive decimal integer",
-            )))
+            .label("package release")
+            .expected_text("single '.' followed by positive decimal integer")
+            .layer("alpm-pkgrel")
     }
 }
 
@@ -213,7 +206,7 @@ impl FromStr for PackageRelease {
     ///
     /// Returns an error if [`PackageRelease::parser`] fails.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser_until_eof.parse(s)?)
+        Ok(Self::parser_until_eof.parse(Input::new(s))?)
     }
 }
 
@@ -303,7 +296,7 @@ impl AlpmParser for PackageVersion {
     /// Returns an error if `input` does not begin with a valid [alpm-pkgver].
     ///
     /// [alpm-pkgver]: https://alpm.archlinux.page/specifications/alpm-pkgver.7.html
-    fn parser(input: &mut &str) -> ModalResult<Self> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         // General rule for all characters:
         // only ASCII except for ':', '/', '-', '<', '>', '=' or any whitespace
         let allowed = |c: char| {
@@ -311,24 +304,22 @@ impl AlpmParser for PackageVersion {
         };
 
         take_while(1.., allowed)
-            .context(StrContext::Label("alpm-pkgver character"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace characters",
-            )))
+            .label("character")
+            .expected_text("an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace characters")
+            .layer("alpm-pkgver")
             .map(|s: &str| Self(s.to_string()))
             .parse_next(input)
     }
 
     fn delimiter_error_context<'a, O, P>(
         parser: P,
-    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    ) -> impl Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, O, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
-        parser.context(StrContext::Label("pkgver character"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace character",
-            )))
+        parser.label("character")
+            .expected_text("an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace character")
+            .layer("alpm-pkgver")
     }
 }
 
@@ -336,7 +327,7 @@ impl FromStr for PackageVersion {
     type Err = Error;
     /// Create a PackageVersion from a string and return it in a Result
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser_until_eof.parse(s)?)
+        Ok(Self::parser_until_eof.parse(Input::new(s))?)
     }
 }
 
@@ -402,11 +393,12 @@ mod tests {
     #[case("1.ß")]
     #[case("")]
     fn invalid_pkgver(#[case] pkgver: &str) {
+        let (test_name, _guard) = configure_insta();
+
         let Err(Error::ParseError(err_msg)) = PackageVersion::new(pkgver.to_string()) else {
             panic!("Expected pkgver {pkgver} to be invalid.")
         };
 
-        let (test_name, _guard) = configure_insta();
         assert_snapshot!(test_name, err_msg.to_string());
     }
 
@@ -454,11 +446,12 @@ mod tests {
     #[case("1.0.0")]
     #[case("")]
     fn invalid_pkgrel(#[case] pkgrel: &str) {
+        let (test_name, _guard) = configure_insta();
+
         let Err(Error::ParseError(err_msg)) = PackageRelease::from_str(pkgrel) else {
             panic!("'{pkgrel}' erroneously parsed as PackageRelease")
         };
 
-        let (test_name, _guard) = configure_insta();
         assert_snapshot!(test_name, err_msg.to_string());
     }
 

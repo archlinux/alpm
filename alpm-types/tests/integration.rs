@@ -2,8 +2,9 @@
 
 use std::{path::PathBuf, thread::current};
 
-use alpm_parsers::traits::ParserUntil;
+use alpm_parsers::prelude::*;
 use alpm_types::PackageFileName;
+use colored::control::set_override;
 use insta::{assert_snapshot, with_settings};
 use log::{LevelFilter, debug};
 use rstest::rstest;
@@ -45,9 +46,10 @@ fn init_logger() -> TestResult {
 #[case::invalid_dashes("example---x86_64.pkg.tar.zst")]
 #[case::no_dashes("examplepkg1.0.01x86_64.pkg.tar.zst")]
 fn fail_to_parse_package_filename(#[case] s: &str) -> TestResult {
+    set_override(false);
     init_logger()?;
 
-    let Err(error) = PackageFileName::parser_until_eof.parse(s) else {
+    let Err(error) = PackageFileName::parser_until_eof.parse(Input::new(s)) else {
         panic!("The parser succeeded parsing {s} although it should have failed");
     };
 
@@ -71,6 +73,7 @@ fn fail_to_parse_package_filename(#[case] s: &str) -> TestResult {
 #[rstest]
 #[case::no_file_name(PathBuf::from("./"))]
 fn package_file_name_from_path_fails(#[case] path: PathBuf) -> TestResult {
+    set_override(false);
     init_logger()?;
 
     let Err(error) = PackageFileName::try_from(path.as_path()) else {

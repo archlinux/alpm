@@ -5,5 +5,12 @@ expression: "format!(\"{error}\")"
 ---
 example-1.0.0-1-x86_64.pkg.zst
                            ^
-invalid tar suffix
-expected tar
+error: invalid tar suffix
+ | 
+ | example-1.0.0-1-x86_64.pkg.zst
+ | ~~~~~~~~~~~~~~~~~~~~~~~~~~~^ expected tar
+ | 
+ = while parsing:
+   alpm-package filename: (example-1.0.0-1-x86_…)
+   → invalid tar suffix
+   → expected tar

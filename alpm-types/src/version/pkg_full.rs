@@ -8,15 +8,10 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::traits::{AlpmParser, ParserUntil, ParserUntilInclusive};
+use alpm_parsers::prelude::*;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-use winnow::{
-    ModalResult,
-    Parser,
-    combinator::opt,
-    error::{ContextError, ErrMode, StrContext, StrContextValue},
-};
+use winnow::{combinator::opt, error::ErrMode};
 
 use crate::{Epoch, Error, PackageRelease, PackageVersion, Version};
 
@@ -148,50 +143,49 @@ impl AlpmParser for FullVersion {
     /// _full with epoch_).
     ///
     /// [alpm-package-version]: https://alpm.archlinux.page/specifications/alpm-package-version.7.html
-    fn parser(input: &mut &str) -> ModalResult<Self> {
-        // Parse an optional epoch, which advances the cursor until after a ':', e.g.:
-        // "1:1.0.0-1" -> "1.0.0-1"
-        //
-        // If no epoch exists, the cursor does not move.
-        let epoch = opt(Epoch::parser_until_inclusive(":")).parse_next(input)?;
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Self> {
+            // Parse an optional epoch, which advances the cursor until after a ':', e.g.:
+            // "1:1.0.0-1" -> "1.0.0-1"
+            //
+            // If no epoch exists, the cursor does not move.
+            let epoch = opt(Epoch::parser_until_inclusive(":")).parse_next(input)?;
 
-        // Advance the parser until the next '-', e.g.:
-        // "1.0.0-1" -> "-1"
-        let pkgver: PackageVersion = PackageVersion::parser.parse_next(input)?;
+            // Advance the parser until the next '-', e.g.:
+            // "1.0.0-1" -> "-1"
+            let pkgver: PackageVersion = PackageVersion::parser.parse_next(input)?;
 
-        "-".context(StrContext::Label("full alpm-package-version"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "the '-' delimiter that divides the alpm-pkgver and alpm-pkgrel in a full alpm-package-version",
-            )))
-            .parse_next(input)?;
+            "-".expected_text("the '-' delimiter that divides the alpm-pkgver and alpm-pkgrel")
+                .parse_next(input)?;
 
-        // Consume the delimiter '-'
-        // "-1" -> "1"
-        // and parse everything until eof as a PackageRelease, e.g.:
-        // "1" -> ""
-        let pkgrel: PackageRelease = PackageRelease::parser.parse_next(input)?;
+            // Consume the delimiter '-'
+            // "-1" -> "1"
+            // and parse everything until eof as a PackageRelease, e.g.:
+            // "1" -> ""
+            let pkgrel: PackageRelease = PackageRelease::parser.parse_next(input)?;
 
-        Ok(Self {
-            epoch,
-            pkgver,
-            pkgrel,
-        })
+            Ok(Self {
+                epoch,
+                pkgver,
+                pkgrel,
+            })
+        };
+
+        parser.layer("full alpm-package-version").parse_next(input)
     }
 
     fn delimiter_error_context<'a, O, P>(
         parser: P,
-    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    ) -> impl Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, O, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
-            .context(StrContext::Label("full alpm-package-version"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "the package version to end with a valid package release",
-            )))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "i.e. a positive integer followed by an optional `.` and another positive integer",
-            )))
+            .description(concat!(
+                "The package version must end with a valid package release.\n",
+                "I.e. a positive integer followed by an optional `.` and another positive integer",
+            ))
+            .layer("full alpm-package-version")
     }
 }
 
@@ -216,7 +210,7 @@ impl FromStr for FullVersion {
     ///
     /// Returns an error if [`Version::parser`] fails.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser_until_eof.parse(s)?)
+        Ok(Self::parser_until_eof.parse(Input::new(s))?)
     }
 }
 
@@ -408,11 +402,12 @@ mod tests {
     fn parse_error_in_full_version_from_string(#[case] input: &str) {
         init_logger();
 
+        let (test_name, _guard) = configure_insta();
+
         let Err(Error::ParseError(err_msg)) = FullVersion::from_str(input) else {
             panic!("'{input}' erroneously parsed as a FullVersion")
         };
 
-        let (test_name, _guard) = configure_insta();
         assert_snapshot!(test_name, err_msg.to_string());
     }
 

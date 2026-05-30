@@ -4,8 +4,11 @@ description: "%FILES%\nusr/\nusr/bin/\n        \nusr/bin/foo\n"
 expression: error.to_string()
 ---
 Parser failed with the following error:
-parse error at line 5, column 1
-  |
+error: invalid input
+  | 
+4 |         
 5 | usr/bin/foo
   | ^
-expected no further content
+  | 
+  = while parsing:
+    → No further content is expected after an empty line

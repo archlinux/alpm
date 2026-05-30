@@ -1,7 +1,12 @@
 ---
 source: alpm-types/src/pkg.rs
 ---
-key
-   ^
-invalid extra data delimiter
-expected a `=` between the key and value
+error: invalid extra data delimiter
+ | 
+ | key
+ | ~~~^ expected a `=` between the key and value
+ | 
+ = while parsing:
+   extra-data entry: (key)
+   → invalid extra data delimiter
+   → expected a `=` between the key and value

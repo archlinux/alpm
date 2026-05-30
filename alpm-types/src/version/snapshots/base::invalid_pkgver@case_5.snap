@@ -1,7 +1,12 @@
 ---
 source: alpm-types/src/version/base.rs
 ---
-1.ß
-  ^
-invalid pkgver character
-expected an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace character
+error: invalid character
+ | 
+ | 1.ß
+ |   ^ expected an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace character
+ | 
+ = while parsing:
+   alpm-pkgver: (ß)
+   → invalid character
+   → expected an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace character

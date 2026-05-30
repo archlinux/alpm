@@ -1,6 +1,11 @@
 ---
 source: alpm-types/src/url.rs
 ---
-git+https://example/project#branch=feature?signed?signed
-                                                 ^
-invalid or duplicate query parameter for detected VCS.
+error: invalid or duplicate query parameter for detected VCS.
+ | 
+ | git+https://example/project#branch=feature?signed?signed
+ | ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+ | 
+ = while parsing:
+   source url: (git+https://example/…)
+   → invalid or duplicate query parameter for detected VCS.

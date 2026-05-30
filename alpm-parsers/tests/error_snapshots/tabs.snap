@@ -1,0 +1,22 @@
+---
+source: alpm-parsers/tests/error.rs
+description: "1\n\tlayer1[layer2[layer3[foo  \t  asdfübar]]\n2\n"
+expression: "format!(\"{error}\")"
+---
+error: invalid end of the layer3 block
+  | 
+1 | 1
+2 | 	layer1[layer2[layer3[foo  	  asdfübar]]
+  | 	              ~~~~~~~~~~~~	~~~~~~^ expected `]`
+3 | 2
+  | 
+  = while parsing:
+    document: (1)
+    └ layer1: (layer1[layer2[layer3…)
+      │ → The layer1 block, which wraps a single layer2 block
+      └ layer2: (layer2[layer3[foo  	…)
+        │ → The layer2 block, which wraps a single layer3 block
+        └ layer3: (layer3[foo  	  asdfü…)
+          → invalid end of the layer3 block
+          → The layer3 block, which wraps the payload word
+          → expected `]`

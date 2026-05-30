@@ -1,6 +1,12 @@
 ---
 source: alpm-types/src/source.rs
 ---
-./bikeshed_colour.patch
-^
-File name (./bikeshed_colour.patch) contains invalid characters: /
+error: invalid package artifact source
+ | 
+ | ./bikeshed_colour.patch
+ | ^ expected a URL or a relative path without separators or a NUL byte.
+ | 
+ = while parsing:
+   package artifact source: (./bikeshed_colour.pa…)
+   → expected a URL or a relative path without separators or a NUL byte.
+ = an error occurred: The path is not a relative sibling file, i.e. it either starts with a `./` or contains a directory: ./bikeshed_colour.patch

@@ -1,0 +1,22 @@
+---
+source: alpm-parsers/tests/error.rs
+description: "123\nlayer1[layer2[anyword]]\n456\n"
+expression: "format!(\"{error}\")"
+---
+error: invalid layer3 keyword
+  | 
+1 | 123
+2 | layer1[layer2[anyword]]
+  |               ^ expected 'layer3'
+3 | 456
+  | 
+  = while parsing:
+    document: (123)
+    └ layer1: (layer1[layer2[anywor…)
+      │ → The layer1 block, which wraps a single layer2 block
+      └ layer2: (layer2[anyword]])
+        │ → The layer2 block, which wraps a single layer3 block
+        └ layer3: (anyword]])
+          → invalid layer3 keyword
+          → The layer3 block, which wraps the payload word
+          → expected 'layer3'

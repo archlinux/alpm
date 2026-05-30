@@ -5,14 +5,12 @@
 use std::{collections::HashSet, fmt::Display, path::PathBuf, str::FromStr};
 
 use alpm_common::relative_files;
+use alpm_parsers::prelude::*;
 use alpm_types::RelativePath;
 use fluent_i18n::t;
 use winnow::{
-    ModalResult,
-    Parser,
     ascii::{line_ending, multispace0, space0, till_line_ending},
     combinator::{alt, cut_err, eof, not, repeat, terminated},
-    error::{StrContext, StrContextValue},
 };
 
 use crate::files::Error;
@@ -38,16 +36,17 @@ impl FilesSection {
     ///
     /// Returns an error if a [`RelativePath`] cannot be created from the line, or something other
     /// than a line ending or EOF is encountered afterwards.
-    fn parse_path(input: &mut &str) -> ModalResult<RelativePath> {
+    fn parse_path<'a>(input: &mut Input<'a>) -> PResult<'a, RelativePath> {
         // Make sure that the line is not empty.
         not(alt(((space0, line_ending).take(), eof))).parse_next(input)?;
 
         // Parse until the end of the line and attempt conversion to RelativePath.
         cut_err(
             till_line_ending
-                .context(StrContext::Label("relative path"))
+                .expected_text("a single line that contains a relative path")
                 .parse_to(),
         )
+        .layer("path")
         .parse_next(input)
     }
 
@@ -62,37 +61,38 @@ impl FilesSection {
     ///   [`RelativePath`].
     ///
     /// [alpm-repo-files]: https://alpm.archlinux.page/specifications/alpm-repo-files.5.html
-    pub(crate) fn parser(input: &mut &str) -> ModalResult<Self> {
-        // Consume the required section header "%FILES%".
-        // Optionally consume one following line ending.
-        cut_err(terminated(Self::SECTION_KEYWORD, alt((line_ending, eof))))
-            .context(StrContext::Label("alpm-repo-files section header"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                Self::SECTION_KEYWORD,
-            )))
-            .parse_next(input)?;
+    pub(crate) fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Self> {
+            // Consume the required section header "%FILES%".
+            // Optionally consume one following line ending.
+            cut_err(terminated(Self::SECTION_KEYWORD, alt((line_ending, eof))))
+                .expected_string(Self::SECTION_KEYWORD)
+                .layer("section header")
+                .parse_next(input)?;
 
-        // Return early if there is only the section header.
-        if input.is_empty() {
-            return Ok(Self(Vec::new()));
-        }
+            // Return early if there is only the section header.
+            if input.is_empty() {
+                return Ok(Self(Vec::new()));
+            }
 
-        // Consider all following lines as paths.
-        // Optionally consume one following line ending.
-        let paths: Vec<RelativePath> =
-            repeat(0.., terminated(Self::parse_path, alt((line_ending, eof)))).parse_next(input)?;
+            // Consider all following lines as paths.
+            // Optionally consume one following line ending.
+            let paths: Vec<RelativePath> =
+                repeat(0.., terminated(Self::parse_path, alt((line_ending, eof))))
+                    .parse_next(input)?;
 
-        // Consume any trailing whitespaces or new lines.
-        multispace0.parse_next(input)?;
+            // Consume any trailing whitespaces or new lines.
+            multispace0.parse_next(input)?;
 
-        // Fail if there are any further characters.
-        cut_err(eof)
-            .context(StrContext::Expected(StrContextValue::Description(
-                "no further content",
-            )))
-            .parse_next(input)?;
+            // Fail if there are any further characters.
+            cut_err(eof)
+                .description("No further content is expected after an empty line")
+                .parse_next(input)?;
 
-        Ok(Self(paths))
+            Ok(Self(paths))
+        };
+
+        parser.layer("files section").parse_next(input)
     }
 
     /// Returns the paths.
@@ -310,7 +310,7 @@ impl FromStr for RepoFilesV1 {
     /// # }
     /// ```
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let files_section = FilesSection::parser.parse(s)?;
+        let files_section = FilesSection::parser.parse(Input::new(s))?;
         RepoFilesV1::try_from(files_section.paths())
     }
 }

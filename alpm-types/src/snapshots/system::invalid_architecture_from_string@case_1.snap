@@ -1,7 +1,12 @@
 ---
 source: alpm-types/src/system.rs
 ---
-f oo
- ^
-invalid character in architecture
-expected a string containing only ASCII alphanumeric characters and underscores.
+error: invalid character in architecture
+ | 
+ | f oo
+ |  ^ expected a string containing only ASCII alphanumeric characters and underscores.
+ | 
+ = while parsing:
+   alpm-architecture: ( oo)
+   → invalid character in architecture
+   → expected a string containing only ASCII alphanumeric characters and underscores.

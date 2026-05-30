@@ -4,6 +4,7 @@ mod desc {
     use std::{fs::read_to_string, path::PathBuf, str::FromStr};
 
     use alpm_repo_db::desc::{RepoDescFileV1, RepoDescFileV2};
+    use colored::control::set_override;
     use insta::assert_snapshot;
     use rstest::rstest;
     use testresult::TestResult;
@@ -14,6 +15,9 @@ mod desc {
     /// and the file's contents as description.
     #[rstest]
     fn ensure_parse_errors(#[files("tests/parse_errors/desc/*.desc")] case: PathBuf) -> TestResult {
+        // First up, disable colored output for our snapshot errors.
+        set_override(false);
+
         let input = read_to_string(&case)?;
         let name = case
             .file_stem()
@@ -54,6 +58,7 @@ mod files {
     use alpm_common::MetadataFile;
     use alpm_repo_db::files::{RepoFiles, RepoFilesSchema};
     use alpm_types::{SchemaVersion, semver_version::Version};
+    use colored::control::set_override;
     use insta::{assert_snapshot, with_settings};
     use rstest::rstest;
     use testresult::TestResult;
@@ -66,6 +71,9 @@ mod files {
     fn ensure_parse_errors(
         #[files("tests/parse_errors/files/*.files")] file: PathBuf,
     ) -> TestResult {
+        // First up, disable colored output for our snapshot errors.
+        set_override(false);
+
         let input = read_to_string(&file)?;
         let result = RepoFiles::from_str_with_schema(
             &input,

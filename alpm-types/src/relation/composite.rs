@@ -5,15 +5,10 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::traits::AlpmParser;
+use alpm_parsers::prelude::*;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-use winnow::{
-    ModalResult,
-    Parser,
-    combinator::alt,
-    error::{StrContext, StrContextValue},
-};
+use winnow::combinator::alt;
 
 use crate::{Error, PackageRelation, SonameV1, SonameV2};
 
@@ -71,7 +66,7 @@ impl AlpmParser for RelationOrSoname {
     ///
     /// Returns an error if `input` does not begin with a valid
     /// [`SonameV2`], [`SonameV1`] or [`PackageRelation`].
-    fn parser(input: &mut &str) -> ModalResult<Self> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         // Implement a custom `winnow::combinator::alt`, as all type parsers are built in
         // such a way that they return errors on unexpected input instead of backtracking.
         alt((
@@ -79,10 +74,17 @@ impl AlpmParser for RelationOrSoname {
             SonameV1::parser.map(RelationOrSoname::SonameV1),
             PackageRelation::parser.map(RelationOrSoname::Relation),
         ))
-        .context(StrContext::Expected(StrContextValue::Description(
-            "alpm-sonamev2, alpm-sonamev1 or alpm-package-relation",
-        )))
+        .layer("alpm-package-relation or alpm-sonamev1 or alpm-sonamev2")
         .parse_next(input)
+    }
+
+    fn delimiter_error_context<'a, O, P>(
+        parser: P,
+    ) -> impl Parser<Input<'a>, O, winnow::error::ErrMode<ParseStack<'a>>>
+    where
+        P: Parser<Input<'a>, O, winnow::error::ErrMode<ParseStack<'a>>>,
+    {
+        parser.layer("alpm-package-relation or alpm-sonamev1 or alpm-sonamev2")
     }
 }
 
@@ -139,7 +141,7 @@ impl FromStr for RelationOrSoname {
     /// ```
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Self::parser
-            .parse(s)
+            .parse(Input::new(s))
             .map_err(|error| Error::ParseError(error.to_string()))
     }
 }
@@ -159,11 +161,12 @@ mod tests {
     #[case("lib:libexample.so.10-10")]
     #[case("lib:libexample.so.1.0.0-64")]
     fn invalid_sonamev2_parser(#[case] input: &str) {
+        let (test_name, _guard) = configure_insta();
+
         let Err(Error::ParseError(err_msg)) = SonameV2::from_str(input) else {
             panic!("'{input}' did not fail to parse as expected")
         };
 
-        let (test_name, _guard) = configure_insta();
         assert_snapshot!(test_name, err_msg.to_string());
     }
 
@@ -229,11 +232,11 @@ mod tests {
         )
     )]
     fn test_relation_or_soname_parser(
-        #[case] mut input: &str,
+        #[case] input: &str,
         #[case] expected: RelationOrSoname,
     ) -> TestResult {
         let input_str = input.to_string();
-        let result = RelationOrSoname::parser(&mut input)?;
+        let result = RelationOrSoname::parser(&mut Input::new(input))?;
         assert_eq!(result, expected);
         assert_eq!(result.to_string(), input_str);
         Ok(())

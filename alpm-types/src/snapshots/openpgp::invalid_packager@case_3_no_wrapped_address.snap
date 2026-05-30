@@ -2,7 +2,12 @@
 source: alpm-types/src/openpgp.rs
 ---
 Parser failed with the following error:
-Foobar McFooface
-                ^
-invalid packager
-expected opening delimiter '<' for email address
+error: invalid Email address
+ | 
+ | Foobar McFooface
+ |                 ^ expected opening delimiter '<'
+ | 
+ = while parsing:
+   alpm packager: (Foobar McFooface)
+   └ Email address: ()
+     → expected opening delimiter '<'

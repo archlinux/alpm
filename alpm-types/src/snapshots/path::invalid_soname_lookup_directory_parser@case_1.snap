@@ -1,7 +1,12 @@
 ---
 source: alpm-types/src/path.rs
 ---
-lib
-   ^
-invalid shared library prefix delimiter
-expected shared library prefix `:`
+error: invalid delimiter
+ | 
+ | lib
+ | ~~~^ expected shared library delimiter `:`
+ | 
+ = while parsing:
+   soname lookup directory: (lib)
+   → invalid delimiter
+   → expected shared library delimiter `:`

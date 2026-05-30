@@ -6,18 +6,13 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::{
-    iter_str_context,
-    traits::{AlpmParser, ParserUntil},
-};
+use alpm_parsers::prelude::*;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use strum::VariantNames;
 use winnow::{
-    ModalResult,
-    Parser,
     combinator::{alt, fail, opt, peek, seq},
-    error::{ContextError, ErrMode, StrContext, StrContextValue},
+    error::ErrMode,
     token::one_of,
 };
 
@@ -307,25 +302,24 @@ impl AlpmParser for VersionRequirement {
     /// # Errors
     ///
     /// Returns an error if `input` does not begin with a valid `VersionRequirement`.
-    fn parser(input: &mut &str) -> ModalResult<Self> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         seq!(Self {
             comparison: VersionComparison::parser,
             version: Version::parser,
         })
+        .layer("version requirement")
         .parse_next(input)
     }
 
     fn delimiter_error_context<'a, O, P>(
         parser: P,
-    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    ) -> impl Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, O, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
-            .context(StrContext::Label("version requirement"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "end of version requirement.",
-            )))
+            .expected_text("end of version requirement.")
+            .layer("version requirement")
     }
 }
 
@@ -346,7 +340,7 @@ impl FromStr for VersionRequirement {
     ///
     /// Returns an error if [`VersionRequirement::parser`] fails.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser_until_eof.parse(s)?)
+        Ok(Self::parser_until_eof.parse(Input::new(s))?)
     }
 }
 
@@ -436,7 +430,7 @@ impl AlpmParser for VersionComparison {
     /// comparison character (`<`, `>`, `=`).
     ///
     /// [`alpm-comparison`]: https://alpm.archlinux.page/specifications/alpm-comparison.7.html
-    fn parser(input: &mut &str) -> ModalResult<Self> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         // Consume the long expressions first!
         // Otherwise, we would terminate early and not contain the full comparison operator.
         let variant = opt(alt((
@@ -453,28 +447,28 @@ impl AlpmParser for VersionComparison {
             // Now, make sure that there's not another comparison character following up.
             let invalid_char = peek(opt(one_of(('<', '>', '=')))).parse_next(input)?;
             if invalid_char.is_some() {
-                fail.context(StrContext::Label("comparison operator"))
-                    .context_with(iter_str_context!([VersionComparison::VARIANTS]))
+                fail.label("comparison operator")
+                    .expected_strings(VersionComparison::VARIANTS)
                     .parse_next(input)?;
             }
 
             Ok(variant)
         } else {
-            fail.context(StrContext::Label("comparison operator"))
-                .context_with(iter_str_context!([VersionComparison::VARIANTS]))
+            fail.label("comparison operator")
+                .expected_strings(VersionComparison::VARIANTS)
                 .parse_next(input)
         }
     }
 
     fn delimiter_error_context<'a, O, P>(
         parser: P,
-    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    ) -> impl Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, O, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
-            .context(StrContext::Label("comparison operator"))
-            .context_with(iter_str_context!([VersionComparison::VARIANTS]))
+            .label("comparison operator")
+            .expected_strings(VersionComparison::VARIANTS)
     }
 }
 
@@ -489,7 +483,7 @@ impl FromStr for VersionComparison {
     ///
     /// Returns an error if [`VersionComparison::parser`] fails.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser_until_eof.parse(s)?)
+        Ok(Self::parser_until_eof.parse(Input::new(s))?)
     }
 }
 
@@ -557,11 +551,12 @@ mod tests {
     #[case::no_version("<=")]
     #[case::invalid_pkgver("<3.1>3.2")]
     fn invalid_version_requirement(#[case] requirement: &str) {
+        let (test_name, _guard) = configure_insta();
+
         let Err(Error::ParseError(err_msg)) = VersionRequirement::from_str(requirement) else {
             panic!("'{requirement}' erroneously parsed as VersionRequirement")
         };
 
-        let (test_name, _guard) = configure_insta();
         assert_snapshot!(test_name, err_msg.to_string());
     }
 

@@ -4,17 +4,15 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::traits::AlpmParser;
+use alpm_parsers::prelude::*;
 use digest::{Digest, Output};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use strum::{Display, EnumString, VariantArray, VariantNames};
 use winnow::{
-    ModalResult,
-    Parser,
     ascii::dec_uint,
     combinator::{alt, cut_err, not, repeat},
-    error::{StrContext, StrContextValue},
+    error::ErrMode,
     token::one_of,
 };
 
@@ -41,38 +39,49 @@ pub enum DigestEncoding {
 pub trait DigestString: Digest {
     /// The format used for string representation of the digest.
     const ENCODING: DigestEncoding;
+
+    /// The cleartext digest function name for debugging
+    const NAME: &str;
 }
 
 impl DigestString for Blake2b512 {
     const ENCODING: DigestEncoding = DigestEncoding::Hex;
+    const NAME: &str = "BLAKE2b-512";
 }
 
 impl DigestString for Md5 {
     const ENCODING: DigestEncoding = DigestEncoding::Hex;
+    const NAME: &str = "MD5";
 }
 
 impl DigestString for Sha1 {
     const ENCODING: DigestEncoding = DigestEncoding::Hex;
+    const NAME: &str = "SHA-1";
 }
 
 impl DigestString for Sha224 {
     const ENCODING: DigestEncoding = DigestEncoding::Hex;
+    const NAME: &str = "SHA-224";
 }
 
 impl DigestString for Sha256 {
     const ENCODING: DigestEncoding = DigestEncoding::Hex;
+    const NAME: &str = "SHA-256";
 }
 
 impl DigestString for Sha384 {
     const ENCODING: DigestEncoding = DigestEncoding::Hex;
+    const NAME: &str = "SHA-384";
 }
 
 impl DigestString for Sha512 {
     const ENCODING: DigestEncoding = DigestEncoding::Hex;
+    const NAME: &str = "SHA-512";
 }
 
 impl DigestString for Crc32Cksum {
     const ENCODING: DigestEncoding = DigestEncoding::Dec;
+    const NAME: &str = "CRC-32";
 }
 
 // Convenience type aliases for the supported checksums
@@ -403,103 +412,107 @@ impl<D: DigestString> AlpmParser for Checksum<D> {
     ///
     /// Returns an error if `input` does not start with the output of a _hash function_
     /// in hexadecimal (or decimal in case of CRC-32/CKSUM) form.
-    fn parser(input: &mut &str) -> ModalResult<Self> {
-        /// Consume 1 hex digit and return its hex value.
-        ///
-        /// Accepts uppercase or lowercase.
-        #[inline]
-        fn hex_digit(input: &mut &str) -> ModalResult<u8> {
-            one_of(('0'..='9', 'a'..='f', 'A'..='F'))
-                .map(|d: char|
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Self> {
+            /// Consume 1 hex digit and return its hex value.
+            ///
+            /// Accepts uppercase or lowercase.
+            #[inline]
+            fn hex_digit<'a>(input: &mut Input<'a>) -> PResult<'a, u8> {
+                one_of(('0'..='9', 'a'..='f', 'A'..='F'))
+                    .map(|d: char|
                     // unwraps are unreachable: their invariants are always
                     // upheld because the above character set can never
                     // consume anything but a single valid hex digit
                     d.to_digit(16).unwrap().try_into().unwrap())
-                .context(StrContext::Expected(StrContextValue::Description(
-                    "ASCII hex digit",
-                )))
-                .parse_next(input)
-        }
+                    .expected_text("ASCII hex digit")
+                    .parse_next(input)
+            }
 
-        let hex_pair = (hex_digit, hex_digit).map(|(first, second)|
+            let hex_pair = (hex_digit, hex_digit).map(|(first, second)|
             // shift is infallible because hex_digit cannot return >0b00001111
             (first << 4) + second);
 
-        // output size in bytes
-        let digest_bytes = <D as Digest>::output_size();
+            // output size in bytes
+            let digest_bytes = <D as Digest>::output_size();
 
-        let digest = match D::ENCODING {
-            DigestEncoding::Hex => {
-                // Consume exactly the number of hex pairs that our Digest type expects
-                let digest = repeat(digest_bytes, hex_pair)
-                    .context(StrContext::Label("hash digest"))
-                    .context(StrContext::Expected(StrContextValue::Description(
-                        "a hex hash digest with the appropriate length for the given algorithm.",
-                    )))
-                    .parse_next(input)?;
+            let digest = match D::ENCODING {
+                DigestEncoding::Hex => {
+                    // Consume exactly the number of hex pairs that our Digest type expects
+                    let digest = repeat(digest_bytes, hex_pair)
+                        .label("hash digest")
+                        .description(format!(
+                            "Expected a hex {} hash digest consisting of {digest_bytes} bytes.",
+                            D::NAME
+                        ))
+                        .parse_next(input)?;
 
-                // Handle the case that there's another hex char after the expected number of digits
-                // This is one of the few cases that we consider a hard error.
-                cut_err(not(hex_digit))
-                    .context(StrContext::Expected(StrContextValue::Description(
-                        "end of checksum (checksum is too long).",
-                    )))
-                    .parse_next(input)?;
+                    // Handle the case that there's another hex char after the expected number of
+                    // digits This is one of the few cases that we consider a
+                    // hard error.
+                    cut_err(not(hex_digit))
+                        .expected_text("end of checksum (checksum is too long).")
+                        .parse_next(input)?;
 
-                digest
-            }
-            DigestEncoding::Dec => {
-                // output size in bits
-                let digest_bits = digest_bytes * 8;
+                    digest
+                }
+                DigestEncoding::Dec => {
+                    // output size in bits
+                    let digest_bits = digest_bytes * 8;
 
-                // The following logic parses a decimal integer for consumption by a digest.
-                // We chose to use a [`u128::MAX`] as this is the currently largest number type in
-                // the rust std library. In reality we only use this for CRC-32/CKSUM which is
-                // 4 bytes, but it's nice to keep this a bit more generic.
+                    // The following logic parses a decimal integer for consumption by a digest.
+                    // We chose to use a [`u128::MAX`] as this is the currently largest number type
+                    // in the rust std library. In reality we only use this for
+                    // CRC-32/CKSUM which is 4 bytes, but it's nice to keep this
+                    // a bit more generic.
 
-                // Determine the maximum allowed value based on the number of allowed
-                // `digest_bytes`.
-                let max_value: u128 = if digest_bits >= 128 {
-                    // Since we're parsing into a `u128`, we don't allow digests that use more bytes
-                    // than that. If we ever were to add such a digest, this
-                    // logic needs to be adjusted.
-                    u128::MAX
-                } else {
-                    (1u128 << digest_bits) - 1
-                };
+                    // Determine the maximum allowed value based on the number of allowed
+                    // `digest_bytes`.
+                    let max_value: u128 = if digest_bits >= 128 {
+                        // Since we're parsing into a `u128`, we don't allow digests that use more
+                        // bytes than that. If we ever were to add such a
+                        // digest, this logic needs to be adjusted.
+                        u128::MAX
+                    } else {
+                        (1u128 << digest_bits) - 1
+                    };
 
-                // Parse into the u128 decimal and verify that the resulting value fits into our
-                // requested digest length. E.g. CRC-32 is restricted to a u32.
-                dec_uint::<_, u128, _>
-                    .verify(move |&v| v <= max_value)
-                    // Convert the u128 into a big endian byte array.
-                    // Then cut the array at the highest significant byte we allow for this digest.
-                    .map(move |v | v.to_be_bytes()[16 - digest_bytes..].to_vec())
-                    .context(StrContext::Label("hash digest"))
-                    .context(StrContext::Expected(StrContextValue::Description(
-                        "a decimal hash digest with the appropriate length for the given algorithm.",
-                    )))
-                    .parse_next(input)?
-            }
+                    // Parse into the u128 decimal and verify that the resulting value fits into our
+                    // requested digest length. E.g. CRC-32 is restricted to a u32.
+                    dec_uint::<_, u128, _>
+                        .verify(move |&v| v <= max_value)
+                        // Convert the u128 into a big endian byte array.
+                        // Then cut the array at the highest significant byte we allow for this
+                        // digest.
+                        .map(move |v| v.to_be_bytes()[16 - digest_bytes..].to_vec())
+                        .label("hash digest")
+                        .description(format!(
+                            "Expected a decimal {} hash digest consisting of {digest_bytes} bytes.",
+                            D::NAME
+                        ))
+                        .parse_next(input)?
+                }
+            };
+
+            Ok(Self {
+                digest,
+                _marker: PhantomData,
+            })
         };
 
-        Ok(Self {
-            digest,
-            _marker: PhantomData,
-        })
+        parser.layer("checksum").parse_next(input)
     }
 
     fn delimiter_error_context<'a, O, P>(
         parser: P,
-    ) -> impl Parser<&'a str, O, winnow::error::ErrMode<winnow::error::ContextError>>
+    ) -> impl Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, O, winnow::error::ErrMode<winnow::error::ContextError>>,
+        P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
-            .context(StrContext::Label("character in checksum"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "a string consisting of solely decimal or hexadecimal chars.",
-            )))
+            .label("character in checksum")
+            .expected_text("a string consisting of solely decimal or hexadecimal chars.")
+            .layer("checksum")
     }
 }
 
@@ -524,7 +537,7 @@ impl<D: DigestString> FromStr for Checksum<D> {
     /// assert!(Checksum::<Blake2b512>::from_str("d202d7951df2c4b711ca44b4bcc9d7b363fa4252127e058c1a910ec05b6cd038d71cc21221c031c0359f993e746b07f5965cf8c5c3746a58337ad9ab65278e7x").is_err());
     /// ```
     fn from_str(s: &str) -> Result<Checksum<D>, Self::Err> {
-        Ok(Checksum::parser.parse(s)?)
+        Ok(Checksum::parser.parse(Input::new(s))?)
     }
 }
 
@@ -620,26 +633,25 @@ impl<D: DigestString + Clone> AlpmParser for SkippableChecksum<D> {
     ///
     /// Returns an error if `input` does not start with the output of a _hash function_
     /// in hexadecimal (or decimal in case of CRC-32/CKSUM) form, or the keyword `SKIP`.
-    fn parser(input: &mut &str) -> ModalResult<Self> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         alt((
             "SKIP".value(Self::Skip),
             Checksum::parser.map(|digest| Self::Checksum { digest }),
         ))
-        .context(StrContext::Expected(StrContextValue::Description(
-            "a hash digest with the appropriate length for the given algorithm, or an uppercase 'SKIP'",
-        )))
+        .expected_text("a hash digest with the appropriate length for the given algorithm, or an uppercase 'SKIP'")
+            .layer("skippable checksum")
         .parse_next(input)
     }
 
     fn delimiter_error_context<'a, O, P>(
         parser: P,
-    ) -> impl Parser<&'a str, O, winnow::error::ErrMode<winnow::error::ContextError>>
+    ) -> impl Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, O, winnow::error::ErrMode<winnow::error::ContextError>>,
+        P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
-        parser.context(StrContext::Expected(StrContextValue::Description(
-            "end of checksum.",
-        )))
+        parser
+            .expected_text("end of checksum.")
+            .layer("skippable checksum")
     }
 }
 
@@ -666,7 +678,7 @@ impl<D: DigestString + Clone> FromStr for SkippableChecksum<D> {
     /// );
     /// ```
     fn from_str(s: &str) -> Result<SkippableChecksum<D>, Self::Err> {
-        Ok(Self::parser.parse(s)?)
+        Ok(Self::parser.parse(Input::new(s))?)
     }
 }
 
@@ -992,11 +1004,12 @@ mod tests {
         "d2 02 d7 95 1d f2 c4 b7 11 ca 44 b4 bc c9 d7 b3 63 fa 42 52 12 7e 05 8c 1a 91 0e c0 5b 6c d0 38 d7 1c c2 12 21 c0 31 c0 35 9f 99 3e 74 6b 07 f5 96 5c f8 c5 c3 74 6a 58 33 7a d9 ab 65 27 8e 77"
     )]
     fn checksum_parse_error(#[case] input: &str) {
+        let (test_name, _guard) = configure_insta();
+
         let Err(Error::ParseError(err_msg)) = Sha512Checksum::from_str(input) else {
             panic!("'{input}' erroneously parsed as Sha512Checksum")
         };
 
-        let (test_name, _guard) = configure_insta();
         assert_snapshot!(test_name, err_msg.to_string());
     }
 

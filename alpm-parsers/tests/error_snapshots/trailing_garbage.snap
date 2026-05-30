@@ -1,0 +1,15 @@
+---
+source: alpm-parsers/tests/error.rs
+description: "1\n2\nlayer1[layer2[layer3[anyword]]]\nnot a number\n"
+expression: "format!(\"{error}\")"
+---
+error: invalid end of document
+  | 
+3 | layer1[layer2[layer3[anyword]]]
+4 | not a number
+  | ^ expected one of: a line full of numbers, the end of the document
+  | 
+  = while parsing:
+    document: (1)
+    → invalid end of document
+    → expected one of: a line full of numbers, the end of the document

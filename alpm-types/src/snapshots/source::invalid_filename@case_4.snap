@@ -1,6 +1,12 @@
 ---
 source: alpm-types/src/source.rs
 ---
-/absolute/path
-^
-File name (/absolute/path) contains invalid characters: /
+error: invalid package artifact source
+ | 
+ | /absolute/path
+ | ^ expected a URL or a relative path without separators or a NUL byte.
+ | 
+ = while parsing:
+   package artifact source: (/absolute/path)
+   → expected a URL or a relative path without separators or a NUL byte.
+ = an error occurred: The path is not a relative sibling file, i.e. it either starts with a `./` or contains a directory: /absolute/path

@@ -1,7 +1,11 @@
 ---
 source: alpm-types/src/version/pkg_minimal.rs
 ---
-1-foo:
- ^
-invalid minimal alpm-package-version
-expected the package version to end with an alpm-pkgver
+error: invalid minimal alpm-package-version
+ | 
+ | 1-foo:
+ |  ^
+ | 
+ = while parsing:
+   minimal alpm-package-version: (-foo:)
+   → The package version must end after the alpm-pkgver

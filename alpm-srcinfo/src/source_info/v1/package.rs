@@ -324,9 +324,7 @@ impl Package {
         // First up, check all input for potential architecture overrides.
         for prop in parsed.properties.iter() {
             // We're only interested in architecture properties.
-            let PackageProperty::MetaProperty(SharedMetaProperty::Architecture(architecture)) =
-                prop
-            else {
+            let PackageProperty::Meta(SharedMetaProperty::Architecture(architecture)) = prop else {
                 continue;
             };
             let architectures = architectures.get_or_insert(Vec::new());
@@ -387,7 +385,7 @@ impl Package {
             match prop {
                 // Skip empty lines and comments
                 PackageProperty::EmptyLine | PackageProperty::Comment(_) => continue,
-                PackageProperty::MetaProperty(shared_meta_property) => {
+                PackageProperty::Meta(shared_meta_property) => {
                     match shared_meta_property {
                         SharedMetaProperty::Description(inner) => {
                             description = Override::Yes { value: inner }
@@ -415,7 +413,7 @@ impl Package {
                         SharedMetaProperty::Architecture(_) => continue,
                     }
                 }
-                PackageProperty::RelationProperty(relation_property) => match relation_property {
+                PackageProperty::Relation(relation_property) => match relation_property {
                     RelationProperty::Dependency(arch_property) => {
                         package_arch_prop!(architecture_properties, arch_property, dependencies,)
                     }

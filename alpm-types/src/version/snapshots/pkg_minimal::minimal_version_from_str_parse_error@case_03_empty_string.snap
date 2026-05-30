@@ -1,7 +1,13 @@
 ---
 source: alpm-types/src/version/pkg_minimal.rs
 ---
-
-^
-invalid alpm-pkgver character
-expected an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace characters
+error: invalid character
+ | 
+ | 
+ | ^ expected an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace characters
+ | 
+ = while parsing:
+   minimal alpm-package-version: ()
+   └ alpm-pkgver: ()
+     → invalid character
+     → expected an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace characters

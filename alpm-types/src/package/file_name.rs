@@ -6,14 +6,13 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::traits::{AlpmParser, ParserUntil};
+use alpm_parsers::prelude::*;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use winnow::{
-    ModalResult,
     Parser,
-    combinator::{opt, peek, repeat_till},
-    error::{AddContext, ContextError, ErrMode, ParserError, StrContext, StrContextValue},
+    combinator::{fail, opt, peek, repeat_till},
+    error::ErrMode,
     stream::Stream,
     token::any,
 };
@@ -268,7 +267,7 @@ impl ParserUntil for PackageFileName {
     /// # Examples
     ///
     /// ```
-    /// use alpm_parsers::traits::ParserUntil;
+    /// use alpm_parsers::prelude::*;
     /// use alpm_types::PackageFileName;
     /// use winnow::Parser;
     ///
@@ -277,20 +276,20 @@ impl ParserUntil for PackageFileName {
     /// assert_eq!(
     ///     filename,
     ///     PackageFileName::parser_until_eof
-    ///         .parse(filename)?
+    ///         .parse(Input::new(filename))?
     ///         .to_string()
     /// );
     /// # Ok(())
     /// # }
     /// ```
-    fn parser_until<'a, P>(delimiter: P) -> impl Parser<&'a str, Self, ErrMode<ContextError>>
+    fn parser_until<'a, P>(delimiter: P) -> impl Parser<Input<'a>, Self, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, &'a str, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, &'a str, ErrMode<ParseStack<'a>>>,
     {
         // Define the actual parser closure.
         // The delimiter is moved into the closure and borrowed via `by_ref()` on each call.
         let mut delimiter_parser = delimiter;
-        move |input: &mut &'a str| -> ModalResult<Self> {
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Self> {
             // Detect the amount of dashes in input and subsequently in the Name component.
             //
             // Note: This is a necessary step because dashes are used as delimiters between the
@@ -317,24 +316,13 @@ impl ParserUntil for PackageFileName {
             input.reset(&checkpoint);
 
             if dashes < 3 {
-                let context_error = ContextError::from_input(input)
-                .add_context(
-                    input,
-                    &input.checkpoint(),
-                    StrContext::Label("alpm-package file name"),
-                )
-                .add_context(
-                    input,
-                    &input.checkpoint(),
-                    StrContext::Expected(StrContextValue::Description(
-                        concat!(
-                        "a package name, followed by an alpm-package-version (full or full with epoch) and an architecture.",
+                return fail
+                    .label("alpm-package file name")
+                    .description(concat!(
+                        "Expected a package name, followed by an alpm-package-version (full or full with epoch) and an architecture.",
                         "\nAll components must be delimited with a dash ('-')."
-                        )
                     ))
-                );
-
-                return Err(ErrMode::Backtrack(context_error));
+                    .parse_next(input);
             }
 
             // The (zero or more) dashes in the Name component.
@@ -343,9 +331,8 @@ impl ParserUntil for PackageFileName {
             // Advance the parser to the dash just behind the Name component, based on the amount of
             // dashes in the Name, e.g.:
             // "example-package-1:1.0.0-1-x86_64.pkg.tar.zst" -> "-1:1.0.0-1-x86_64.pkg.tar.zst"
-            let name = Name::parse_name_followed_by_version(dashes_till_version)
-                .context(StrContext::Label("alpm-package-name"))
-                .parse_next(input)?;
+            let name =
+                Name::parse_name_followed_by_version(dashes_till_version).parse_next(input)?;
 
             // Consume leading dash in front of FullVersion, e.g.:
             // "-1:1.0.0-1-x86_64.pkg.tar.zst" -> "1:1.0.0-1-x86_64.pkg.tar.zst"
@@ -365,34 +352,28 @@ impl ParserUntil for PackageFileName {
 
             // Consume leading dot, e.g.:
             // ".pkg.tar.zst" -> "pkg.tar.zst"
-            ".".context(StrContext::Label("alpm-package file name"))
-                .context(StrContext::Expected(StrContextValue::StringLiteral(
-                    "a `.` between the architecture and the `pkg` extension",
-                )))
+            ".".label("alpm-package file name")
+                .expected_string("a `.` between the architecture and the `pkg` extension")
                 .parse_next(input)?;
 
             // Consume the required alpm-package file type identifier, e.g.:
             // "pkg.tar.zst" -> ".tar.zst"
             "pkg"
-                .context(StrContext::Label("alpm-package file type identifier"))
-                .context(StrContext::Expected(StrContextValue::StringLiteral(
-                    FileTypeIdentifier::BinaryPackage.into(),
-                )))
+                .label("alpm-package file type identifier")
+                .expected_string(FileTypeIdentifier::BinaryPackage.into())
                 .parse_next(input)?;
 
             // Consume leading dot, e.g.:
             // ".tar.zst" -> "tar.zst"
-            ".".context(StrContext::Label("alpm-package file name"))
-                .context(StrContext::Expected(StrContextValue::StringLiteral(
-                    "a `.` between the `pkg` and `tar` extension",
-                )))
+            ".".label("alpm-package file name")
+                .expected_string("a `.` between the `pkg` and `tar` extension")
                 .parse_next(input)?;
 
             // Consume the required tar suffix, e.g.:
             // "tar.zst" -> ".zst"
             "tar"
-                .context(StrContext::Label("tar suffix"))
-                .context(StrContext::Expected(StrContextValue::Description("tar")))
+                .label("tar suffix")
+                .expected_text("tar")
                 .parse_next(input)?;
 
             // Check if there's a `.`, which hints that a CompressionAlgorithmFileExtension exists.
@@ -408,9 +389,7 @@ impl ParserUntil for PackageFileName {
             }
 
             peek(delimiter_parser.by_ref())
-                .context(StrContext::Expected(StrContextValue::Description(
-                    "end of package filename",
-                )))
+                .expected_text("end of package filename")
                 .parse_next(input)?;
 
             Ok(Self {
@@ -419,7 +398,9 @@ impl ParserUntil for PackageFileName {
                 architecture,
                 compression,
             })
-        }
+        };
+
+        parser.layer("alpm-package filename")
     }
 }
 
@@ -472,7 +453,7 @@ impl FromStr for PackageFileName {
     /// # }
     /// ```
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser_until_eof.parse(s)?)
+        Ok(Self::parser_until_eof.parse(Input::new(s))?)
     }
 }
 
@@ -521,7 +502,7 @@ impl TryFrom<&Path> for PackageFileName {
             }
             .into());
         };
-        Ok(Self::parser_until_eof.parse(s)?)
+        Ok(Self::parser_until_eof.parse(Input::new(s))?)
     }
 }
 
@@ -553,7 +534,7 @@ impl TryFrom<String> for PackageFileName {
     /// # }
     /// ```
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        Ok(Self::parser_until_eof.parse(&value)?)
+        Ok(Self::parser_until_eof.parse(Input::new(&value))?)
     }
 }
 

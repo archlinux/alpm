@@ -2,15 +2,11 @@
 
 use std::str::FromStr;
 
-use alpm_parsers::{iter_str_context, traits::AlpmParser};
+use alpm_parsers::prelude::*;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, Display, EnumString, VariantNames};
-use winnow::{
-    Parser,
-    ascii::alphanumeric1,
-    error::{ContextError, ErrMode, StrContext, StrContextValue},
-};
+use winnow::{ascii::alphanumeric1, error::ErrMode};
 
 /// The validation method used during installation of a package.
 ///
@@ -83,24 +79,23 @@ impl AlpmParser for PackageValidation {
     ///
     /// Returns an error if `input` does not begin with a valid variant
     /// of [`PackageValidation`].
-    fn parser(input: &mut &str) -> Result<Self, ErrMode<ContextError>> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         alphanumeric1
             .try_map(PackageValidation::from_str)
-            .context(StrContext::Label("package validation method"))
-            .context_with(iter_str_context!([PackageValidation::VARIANTS]))
+            .expected_strings(PackageValidation::VARIANTS)
+            .layer("package validation method")
             .parse_next(input)
     }
 
     fn delimiter_error_context<'a, O, P>(
         parser: P,
-    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    ) -> impl Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, O, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
-            .context(StrContext::Label("package validation method"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "a string consisting of alphanumeric characters",
-            )))
+            .expected_text("a string consisting of alphanumeric characters")
+            .expected_strings(PackageValidation::VARIANTS)
+            .layer("package validation method")
     }
 }

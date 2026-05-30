@@ -6,15 +6,10 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::traits::{AlpmParser, ParserUntil, ParserUntilInclusive};
+use alpm_parsers::prelude::*;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-use winnow::{
-    ModalResult,
-    Parser,
-    combinator::opt,
-    error::{ContextError, ErrMode, StrContext, StrContextValue},
-};
+use winnow::{combinator::opt, error::ErrMode};
 
 use crate::{Epoch, Error, PackageRelease, PackageVersion};
 #[cfg(doc)]
@@ -121,46 +116,48 @@ impl AlpmParser for Version {
     /// Returns an error if `input` does not begin with a valid [alpm-package-version].
     ///
     /// [alpm-package-version]: https://alpm.archlinux.page/specifications/alpm-package-version.7.html
-    fn parser(input: &mut &str) -> ModalResult<Self> {
-        // Parse an optional epoch, which advances the cursor until after a ':', e.g.:
-        // "1:1.0.0-1" -> "1.0.0-1"
-        //
-        // If no epoch exists, the cursor does not move.
-        let epoch = opt(Epoch::parser_until_inclusive(":")).parse_next(input)?;
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Self> {
+            // Parse an optional epoch, which advances the cursor until after a ':', e.g.:
+            // "1:1.0.0-1" -> "1.0.0-1"
+            //
+            // If no epoch exists, the cursor does not move.
+            let epoch = opt(Epoch::parser_until_inclusive(":")).parse_next(input)?;
 
-        // Advance the parser until the next '-', e.g.:
-        // "1.0.0-1" -> "-1"
-        let pkgver = PackageVersion::parser.parse_next(input)?;
+            // Advance the parser until the next '-', e.g.:
+            // "1.0.0-1" -> "-1"
+            let pkgver = PackageVersion::parser.parse_next(input)?;
 
-        // Parse an optional PackageRelease, e.g.:
-        // "-1" -> ""
-        //
-        // If an `-` is found, the PackageRelease is expected and must exist
-        let delimiter = opt('-').parse_next(input)?;
-        let pkgrel = if delimiter.is_some() {
-            Some(PackageRelease::parser.parse_next(input)?)
-        } else {
-            None
+            // Parse an optional PackageRelease, e.g.:
+            // "-1" -> ""
+            //
+            // If an `-` is found, the PackageRelease is expected and must exist
+            let delimiter = opt('-').parse_next(input)?;
+            let pkgrel = if delimiter.is_some() {
+                Some(PackageRelease::parser.parse_next(input)?)
+            } else {
+                None
+            };
+
+            Ok(Self {
+                epoch,
+                pkgver,
+                pkgrel,
+            })
         };
 
-        Ok(Self {
-            epoch,
-            pkgver,
-            pkgrel,
-        })
+        parser.layer("alpm-package-version").parse_next(input)
     }
 
     fn delimiter_error_context<'a, O, P>(
         parser: P,
-    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    ) -> impl Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, O, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
-            .context(StrContext::Label("alpm-package-version"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "end of the version string",
-            )))
+            .expected_text("end of the version string")
+            .layer("alpm-package-version")
     }
 }
 
@@ -174,7 +171,7 @@ impl FromStr for Version {
     ///
     /// Returns an error if [`Version::parser`] fails.
     fn from_str(s: &str) -> Result<Version, Self::Err> {
-        Ok(Self::parser_until_eof.parse(s)?)
+        Ok(Self::parser_until_eof.parse(Input::new(s))?)
     }
 }
 
@@ -288,11 +285,12 @@ mod tests {
     #[case::invalid_integer("-1foo:1")]
     #[case::invalid_integer("1-foo:1")]
     fn parse_error_in_version_from_string(#[case] version: &str) {
+        let (test_name, _guard) = configure_insta();
+
         let Err(Error::ParseError(err_msg)) = Version::from_str(version) else {
             panic!("parsing '{version}' did not fail as expected")
         };
 
-        let (test_name, _guard) = configure_insta();
         assert_snapshot!(test_name, err_msg.to_string());
     }
 

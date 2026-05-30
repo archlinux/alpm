@@ -8,6 +8,7 @@ use alpm_db::{
     files::DbFiles,
 };
 use alpm_types::{SchemaVersion, semver_version::Version};
+use colored::control::set_override;
 use insta::assert_snapshot;
 use rstest::rstest;
 use testresult::TestResult;
@@ -18,6 +19,9 @@ use testresult::TestResult;
 /// and the file's contents as description.
 #[rstest]
 fn ensure_desc_parse_errors(#[files("tests/parse_errors/desc/*")] case: PathBuf) -> TestResult {
+    // First up, disable colored output for our snapshot errors.
+    set_override(false);
+
     let input = read_to_string(&case)?;
     let name = case
         .file_stem()
@@ -59,6 +63,9 @@ fn ensure_desc_parse_errors(#[files("tests/parse_errors/desc/*")] case: PathBuf)
 fn ensure_files_parse_errors(
     #[files("tests/parse_errors/files/*.files")] file: PathBuf,
 ) -> TestResult {
+    // First up, disable colored output for our snapshot errors.
+    set_override(false);
+
     let input = read_to_string(&file)?;
     let result = DbFiles::from_str_with_schema(
         &input,

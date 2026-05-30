@@ -1,20 +1,15 @@
 use std::{convert::Infallible, fmt::Display, str::FromStr};
 
-use alpm_parsers::{
-    iter_str_context,
-    traits::{AlpmParser, ParserUntil},
-};
+use alpm_parsers::prelude::*;
 #[cfg(feature = "serde")]
 use serde::Serialize;
 #[cfg(feature = "serde")]
 use serde_with::{DeserializeFromStr, SerializeDisplay};
 use strum::{Display, EnumString, VariantNames};
 use winnow::{
-    ModalResult,
-    Parser,
     ascii::{alpha1, space0},
     combinator::{alt, not, peek, repeat_till},
-    error::{ContextError, ErrMode, StrContext, StrContextValue},
+    error::ErrMode,
     token::any,
 };
 
@@ -61,25 +56,23 @@ impl AlpmParser for PackageType {
     ///
     /// Returns an error if `input` does not begin with a valid variant
     /// of [`PackageType`].
-    fn parser(input: &mut &str) -> Result<Self, ErrMode<ContextError>> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         alpha1
             .try_map(PackageType::from_str)
-            .context(StrContext::Label("package type"))
-            .context_with(iter_str_context!([PackageType::VARIANTS]))
+            .expected_strings(PackageType::VARIANTS)
+            .layer("package type")
             .parse_next(input)
     }
 
     fn delimiter_error_context<'a, O, P>(
         parser: P,
-    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    ) -> impl Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, O, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
-            .context(StrContext::Label("package type"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "a string consisting of alphabetic characters",
-            )))
+            .expected_text("a string consisting of alphabetic characters")
+            .layer("package type")
     }
 }
 
@@ -226,20 +219,18 @@ impl ParserUntil for ExtraDataEntry {
     ///
     /// Returns an error if `input` does not contain a valid [`ExtraDataEntry`] before the
     /// `delimiter`.
-    fn parser_until<'a, P>(delimiter: P) -> impl Parser<&'a str, Self, ErrMode<ContextError>>
+    fn parser_until<'a, P>(delimiter: P) -> impl Parser<Input<'a>, Self, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, &'a str, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, &'a str, ErrMode<ParseStack<'a>>>,
     {
         // Define the actual parser closure.
         // The delimiter is moved into the closure and borrowed via `by_ref()` on each call.
         let mut delimiter_parser = delimiter;
-        move |input: &mut &'a str| -> ModalResult<Self> {
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Self> {
             // Handle the case were there's no key
             not("=")
-                .context(StrContext::Label("extra data"))
-                .context(StrContext::Expected(StrContextValue::Description(
-                    "a utf-8 key before the `=` delimiter",
-                )))
+                .label("extra data")
+                .expected_text("a UTF-8 key before the `=` delimiter")
                 .parse_next(input)?;
 
             let key: &str = repeat_till::<_, _, (), _, _, _, _>(
@@ -251,37 +242,31 @@ impl ParserUntil for ExtraDataEntry {
                 ))),
             )
             .take()
-            .context(StrContext::Label("extra data key"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "a UTF-8 string, followed by an equals (`=`) character.",
-            )))
+            .label("extra data key")
+            .expected_text("a UTF-8 string, followed by an equals (`=`) character.")
             .parse_next(input)?;
 
             (space0, "=", space0)
-                .context(StrContext::Label("extra data delimiter"))
-                .context(StrContext::Expected(StrContextValue::Description(
-                    "a `=` between the key and value",
-                )))
+                .label("extra data delimiter")
+                .expected_text("a `=` between the key and value")
                 .parse_next(input)?;
 
             let value: &str =
                 repeat_till::<_, _, (), _, _, _, _>(1.., any, peek(delimiter_parser.by_ref()))
                     .take()
-                    .context(StrContext::Label("extra data value"))
-                    .context(StrContext::Expected(StrContextValue::Description(
-                        "a UTF-8 string",
-                    )))
+                    .label("extra data value")
+                    .expected_text("a UTF-8 string")
                     .parse_next(input)?;
 
             peek(delimiter_parser.by_ref())
-                .context(StrContext::Label("extra data value"))
-                .context(StrContext::Expected(StrContextValue::Description(
-                    "end of input",
-                )))
+                .label("extra data value")
+                .expected_text("end of input")
                 .parse_next(input)?;
 
             Ok(Self::new(key.trim().to_string(), value.trim().to_string()))
-        }
+        };
+
+        parser.layer("extra-data entry")
     }
 }
 
@@ -312,7 +297,7 @@ impl FromStr for ExtraDataEntry {
     /// # }
     /// ```
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser_until_eof.parse(s)?)
+        Ok(Self::parser_until_eof.parse(Input::new(s))?)
     }
 }
 
@@ -472,11 +457,12 @@ mod tests {
     #[case("key=")]
     #[case("=value")]
     fn extra_data_entry_from_str_error(#[case] input: &str) {
+        let (test_name, _guard) = configure_insta();
+
         let Err(Error::ParseError(err_msg)) = ExtraDataEntry::from_str(input) else {
             panic!("'{input}' erroneously parsed as a ExtraDataEntry")
         };
 
-        let (test_name, _guard) = configure_insta();
         assert_snapshot!(test_name, err_msg.to_string());
     }
 

@@ -4,7 +4,7 @@ use std::{
     string::ToString,
 };
 
-use alpm_parsers::traits::ParserUntil;
+use alpm_parsers::prelude::*;
 use base64::{Engine, prelude::BASE64_STANDARD};
 use email_address::EmailAddress;
 use fluent_i18n::t;
@@ -13,10 +13,9 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "serde")]
 use serde_with::DeserializeFromStr;
 use winnow::{
-    ModalResult,
-    Parser,
+    ascii::space0,
     combinator::{alt, not, peek, repeat_till},
-    error::{ContextError, ErrMode, StrContext, StrContextValue},
+    error::ErrMode,
     token::any,
 };
 
@@ -451,21 +450,22 @@ impl ParserUntil for Packager {
     /// # Errors
     ///
     /// Returns an error if `input` does not represent a valid [`Packager`].
-    fn parser_until<'a, P>(delimiter: P) -> impl Parser<&'a str, Self, ErrMode<ContextError>>
+    fn parser_until<'a, P>(delimiter: P) -> impl Parser<Input<'a>, Self, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, &'a str, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, &'a str, ErrMode<ParseStack<'a>>>,
     {
         // Define the actual parser closure.
         // The delimiter is moved into the closure and borrowed via `by_ref()` on each call.
         let mut delimiter_parser = delimiter;
-        move |input: &mut &'a str| -> ModalResult<Self> {
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Self> {
+            // This format is a bit opaque and may include leading whitespaces.
+            // Consume any of those so we don't have to guess about them later on.
+            space0.parse_next(input)?;
+
             // Make sure the first character isn't a `<`, which may happen if the packager name is
             // missing.
             not("<")
-                .context(StrContext::Label("packager name"))
-                .context(StrContext::Expected(StrContextValue::Description(
-                    "a packager name",
-                )))
+                .expected_text("a packager name")
                 .parse_next(input)?;
 
             // The name that precedes the email address
@@ -475,17 +475,13 @@ impl ParserUntil for Packager {
                 peek(alt(("<", delimiter_parser.by_ref()))),
             )
             .take()
-            .map(|name: &str| name.trim())
-            .verify(|name: &str| !name.is_empty())
-            .map(|name: &str| name.to_string())
-            .context(StrContext::Label("packager name"))
+            .map(|name: &str| name.trim().to_string())
+            .layer("packager name")
             .parse_next(input)?;
 
             // The '<' delimiter that marks the start of the email string
-            '<'.context(StrContext::Label("packager"))
-                .context(StrContext::Expected(StrContextValue::Description(
-                    "opening delimiter '<' for email address",
-                )))
+            '<'.expected_text("opening delimiter '<'")
+                .layer("Email address")
                 .parse_next(input)?;
 
             // The email address, which is validated by the EmailAddress struct.
@@ -496,25 +492,23 @@ impl ParserUntil for Packager {
             )
             .take()
             .try_map(EmailAddress::from_str)
-            .context(StrContext::Label("Email address"))
+            .layer("email address")
             .parse_next(input)?;
 
             // The '>' delimiter that marks the end of the email string
-            '>'.context(StrContext::Label("packager"))
-                .context(StrContext::Expected(StrContextValue::Description(
-                    "closing delimiter '>' of packager email address",
-                )))
+            '>'.expected_text("closing delimiter '>' of packager email address")
+                .layer("Email address")
                 .parse_next(input)?;
 
             peek(delimiter_parser.by_ref())
-                .context(StrContext::Label("packager: unexpected trailing content"))
-                .context(StrContext::Expected(StrContextValue::Description(
-                    "end of input.",
-                )))
+                .label("packager: unexpected trailing content")
+                .expected_text("end of input.")
                 .parse_next(input)?;
 
             Ok(Self { name, email })
-        }
+        };
+
+        parser.layer("alpm packager")
     }
 }
 
@@ -528,7 +522,7 @@ impl FromStr for Packager {
     ///
     /// Returns an error if [`Packager::parser_until`] fails.
     fn from_str(s: &str) -> Result<Packager, Self::Err> {
-        Ok(Self::parser_until_eof.parse(s)?)
+        Ok(Self::parser_until_eof.parse(Input::new(s))?)
     }
 }
 
@@ -746,11 +740,12 @@ mod tests {
     )]
     #[case::address_without_local_part("Foobar McFooface <@mcfooface.org>")]
     fn invalid_packager(#[case] input: &str) {
+        let (test_name, _guard) = configure_insta();
+
         let Err(err_msg) = Packager::from_str(input) else {
             panic!("'{input}' erroneously parsed as a Package")
         };
 
-        let (test_name, _guard) = configure_insta();
         assert_snapshot!(test_name, err_msg.to_string());
     }
 

@@ -1,7 +1,13 @@
 ---
 source: alpm-types/src/url.rs
 ---
-git+https://example/project#revision=v1.0.0?signed
-                            ^
-invalid git revision type
-expected `branch`, `commit`, `tag`
+error: invalid git revision type
+ | 
+ | git+https://example/project#revision=v1.0.0?signed
+ |                            ~^ expected one of: 'branch', 'commit', 'tag'
+ | 
+ = while parsing:
+   source url: (git+https://example/…)
+   └ git fragment: (#revision=v1.0.0?sig…)
+     → invalid git revision type
+     → expected one of: 'branch', 'commit', 'tag'

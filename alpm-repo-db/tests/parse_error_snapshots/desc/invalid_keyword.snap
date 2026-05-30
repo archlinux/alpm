@@ -4,10 +4,15 @@ description: "%FILENAME%\nexample-1.0.0-1-any.pkg.tar.zst\n\n%NAME%\nexample\n\n
 expression: error
 ---
 Parser failed with the following error:
-parse error at line 48, column 1
-   |
+error: invalid section header
+   | 
 48 | %AUTHOR%
-   | ^
-invalid section name
-expected a section name that is enclosed in `%` characters, `FILENAME`, `NAME`, `BASE`, `VERSION`, `DESC`, `GROUPS`, `CSIZE`, `ISIZE`, `MD5SUM`, `SHA256SUM`, `PGPSIG`, `URL`, `LICENSE`, `ARCH`, `BUILDDATE`, `PACKAGER`, `REPLACES`, `CONFLICTS`, `PROVIDES`, `DEPENDS`, `OPTDEPENDS`, `MAKEDEPENDS`, `CHECKDEPENDS`, a section in the database desc file
-Matching variant not found
+   | ^ expected one of: 'FILENAME', 'NAME', 'BASE', 'VERSION', 'DESC', 'GROUPS', 'CSIZE', 'ISIZE', 'MD5SUM', 'SHA256SUM', 'PGPSIG', 'URL', 'LICENSE', 'ARCH', 'BUILDDATE', 'PACKAGER', 'REPLACES', 'CONFLICTS', 'PROVIDES', 'DEPENDS', 'OPTDEPENDS', 'MAKEDEPENDS', 'CHECKDEPENDS'
+49 | Foobar McFooface <foobar@mcfooface.org>
+   | 
+   = while parsing:
+     alpm-db-desc file value section: (%AUTHOR%)
+     └ section header: (%AUTHOR%)
+       → expected a valid section name that is enclosed in `%` characters:
+       → expected one of: 'FILENAME', 'NAME', 'BASE', 'VERSION', 'DESC', 'GROUPS', 'CSIZE', 'ISIZE', 'MD5SUM', 'SHA256SUM', 'PGPSIG', 'URL', 'LICENSE', 'ARCH', 'BUILDDATE', 'PACKAGER', 'REPLACES', 'CONFLICTS', 'PROVIDES', 'DEPENDS', 'OPTDEPENDS', 'MAKEDEPENDS', 'CHECKDEPENDS'
+   = an error occurred: Matching variant not found

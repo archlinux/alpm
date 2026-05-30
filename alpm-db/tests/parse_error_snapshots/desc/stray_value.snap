@@ -4,9 +4,14 @@ description: "foo\nbar\nbaz\n"
 expression: error
 ---
 Parser failed with the following error:
-parse error at line 1, column 1
-  |
+error: invalid section header
+  | 
 1 | foo
-  | ^
-invalid section name
-expected a section name that is enclosed in `%` characters, `NAME`, `VERSION`, `BASE`, `DESC`, `URL`, `ARCH`, `BUILDDATE`, `INSTALLDATE`, `PACKAGER`, `SIZE`, `GROUPS`, `REASON`, `LICENSE`, `VALIDATION`, `REPLACES`, `DEPENDS`, `OPTDEPENDS`, `CONFLICTS`, `PROVIDES`, `XDATA`, a section in the database desc file
+  | ^ expected one of: 'NAME', 'VERSION', 'BASE', 'DESC', 'URL', 'ARCH', 'BUILDDATE', 'INSTALLDATE', 'PACKAGER', 'SIZE', 'GROUPS', 'REASON', 'LICENSE', 'VALIDATION', 'REPLACES', 'DEPENDS', 'OPTDEPENDS', 'CONFLICTS', 'PROVIDES', 'XDATA'
+2 | bar
+  | 
+  = while parsing:
+    alpm-repo-desc file value section: (foo)
+    └ section header: (foo)
+      → expected a valid section name that is enclosed in `%` characters.
+      → expected one of: 'NAME', 'VERSION', 'BASE', 'DESC', 'URL', 'ARCH', 'BUILDDATE', 'INSTALLDATE', 'PACKAGER', 'SIZE', 'GROUPS', 'REASON', 'LICENSE', 'VALIDATION', 'REPLACES', 'DEPENDS', 'OPTDEPENDS', 'CONFLICTS', 'PROVIDES', 'XDATA'

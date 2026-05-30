@@ -7,6 +7,7 @@ use std::{
     str::FromStr,
 };
 
+use alpm_parsers::prelude::*;
 use alpm_types::{
     Architecture,
     Base64OpenPGPSignature,
@@ -27,7 +28,6 @@ use alpm_types::{
     Sha256Checksum,
     Url,
 };
-use winnow::Parser;
 
 use crate::{
     Error,
@@ -322,7 +322,7 @@ impl FromStr for RepoDescFileV2 {
     ///
     /// [alpm-repo-descv2]: https://alpm.archlinux.page/specifications/alpm-repo-descv2.5.html
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let sections = sections.parse(s)?;
+        let sections = sections.parse(Input::new(s))?;
         Self::try_from(sections)
     }
 }
@@ -497,7 +497,7 @@ mod tests {
     use super::*;
 
     #[rstest]
-    #[case("%UNKNOWN%\nvalue", "invalid section name")]
+    #[case("%UNKNOWN%\nvalue", "expected a valid section")]
     #[case("%VERSION%\n1.0.0-1\n", "Missing section: %FILENAME%")]
     fn invalid_desc_parser(#[case] input: &str, #[case] error_snippet: &str) {
         let result = RepoDescFileV2::from_str(input);

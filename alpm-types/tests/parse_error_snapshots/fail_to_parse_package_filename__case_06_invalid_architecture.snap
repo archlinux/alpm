@@ -5,5 +5,14 @@ expression: "format!(\"{error}\")"
 ---
 example-pkg-1.0.0-1-x86-64.pkg.tar.zst
                     ^
-invalid package release
-expected positive decimal integer
+error: invalid package release
+ | 
+ | example-pkg-1.0.0-1-x86-64.pkg.tar.zst
+ |                     ^ expected positive decimal integer
+ | 
+ = while parsing:
+   alpm-package filename: (example-pkg-1.0.0-1-…)
+   └ full alpm-package-version: (1-x86-64.pkg.tar.zst)
+     └ alpm-pkgrel: (x86-64.pkg.tar.zst)
+       → invalid package release
+       → expected positive decimal integer

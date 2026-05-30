@@ -1,22 +1,20 @@
 use std::{
     fmt::{Display, Formatter},
-    path::{MAIN_SEPARATOR, PathBuf},
+    path::PathBuf,
     str::FromStr,
 };
 
-use alpm_parsers::traits::ParserUntil;
+use alpm_parsers::prelude::*;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use winnow::{
-    ModalResult,
-    Parser,
     combinator::{alt, peek, repeat_till},
-    error::{ContextError, ErrMode, StrContext, StrContextValue},
+    error::ErrMode,
     stream::Stream,
     token::any,
 };
 
-use crate::{Error, SourceUrl};
+use crate::{Basename, Error, SourceUrl};
 
 /// Represents the location that a source file should be retrieved from
 ///
@@ -57,14 +55,14 @@ impl Source {
 /// don't provide the [`Url`](url::Url) type parser ourselves. Hence, the indicator for its supposed
 /// "end" must be provided by the caller of the parser.
 impl ParserUntil for Source {
-    fn parser_until<'a, P>(delimiter: P) -> impl Parser<&'a str, Self, ErrMode<ContextError>>
+    fn parser_until<'a, P>(delimiter: P) -> impl Parser<Input<'a>, Self, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, &'a str, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, &'a str, ErrMode<ParseStack<'a>>>,
     {
         // Define the actual parser closure.
         // The delimiter is moved into the closure and borrowed via `by_ref()` on each call.
         let mut delimiter_parser = delimiter;
-        move |input: &mut &'a str| -> ModalResult<Self> {
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Self> {
             // We have to work with checkpoints here, as we cannot `peek` with a `repeat_till` +
             // `delimiter_parser`, as that would require the `delimiter_parser` to be borrowed
             // twice.
@@ -77,10 +75,8 @@ impl ParserUntil for Source {
                 any,
                 peek(alt(("::", delimiter_parser.by_ref()))),
             )
-            .context(StrContext::Label("source url"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "a filename followed by `::` or a path/url with valid end of input.",
-            )))
+            .label("source url")
+            .expected_text("a filename followed by `::` or a path/url with valid end of input.")
             .take()
             .parse_next(input)?;
 
@@ -97,63 +93,71 @@ impl ParserUntil for Source {
             }
 
             // Now, take the rest until we hit the delimiter.
-            let source_url =
-                repeat_till::<_, _, (), _, _, _, _>(0.., any, peek(delimiter_parser.by_ref()))
+            //
+            // We try to parse the rest as a [`SourceUrl`] first, which internally tries to map the
+            // whole string, or only a substring if a VCS-protocol prefix is detected, to the
+            // `url::Url` type.
+            let location_start = input.checkpoint();
+            let url_result = SourceUrl::parser_until(delimiter_parser.by_ref()).parse_next(input);
+            let source_url = match url_result {
+                Ok(source_url) => Self::SourceUrl {
+                    filename,
+                    source_url,
+                },
+                // If this whole logic fails from an external error, we know that the URL conversion
+                // logic failed. If so, we try to recover from this error by looking at at the
+                // specific URL error and if it's a RelativeUrlWithoutBase, we try
+                // to parse it as a BaseName.
+                Err(ErrMode::Backtrack(error))
+                    if matches!(
+                        error
+                            .external
+                            .as_deref()
+                            .and_then(|e| e.downcast_ref::<Error>()),
+                        Some(Error::InvalidUrl(url::ParseError::RelativeUrlWithoutBase))
+                    ) =>
+                {
+                    input.reset(&location_start);
+
+                    // If the URL conversion failed due to a relative URL without a base, try to
+                    // parse the input as a relative file path.
+                    // If that doesn't succeed either, we report back an error.
+                    let location: Basename = repeat_till::<_, _, (), _, _, _, _>(
+                        0..,
+                        any,
+                        peek(delimiter_parser.by_ref()),
+                    )
                     .take()
-                    .try_map(move |location: &str| {
-                        // The following logic is a bit convoluted:
-                        //
-                        // - Check if we have a valid URL
-                        // - If we don't have a URL, check if we have a valid relative filename.
-                        // - If it is a valid URL go ahead and do the next parsing sequence into a
-                        //   SourceUrl.
-                        match location.parse::<url::Url>() {
-                            Ok(_) => {
-                                // Parse potential extra syntax from the URL.
-                                let source_url = SourceUrl::from_str(location)?;
-
-                                Ok(Self::SourceUrl {
-                                    filename: filename.clone(),
-                                    source_url,
-                                })
-                            }
-                            Err(url::ParseError::RelativeUrlWithoutBase) => {
-                                if location.is_empty() {
-                                    return Err(Error::FileNameIsEmpty);
-                                }
-                                if location.contains(MAIN_SEPARATOR) {
-                                    return Err(Error::FileNameContainsInvalidChars(
-                                        PathBuf::from(location),
-                                        MAIN_SEPARATOR,
-                                    ));
-                                }
-                                if location.contains('\0') {
-                                    return Err(Error::FileNameContainsInvalidChars(
-                                        PathBuf::from(location),
-                                        '\0',
-                                    ));
-                                }
-
-                                Ok(Self::File {
-                                    filename: filename.clone(),
-                                    location: location.into(),
-                                })
-                            }
-                            Err(e) => Err(e.into()),
+                    .try_map(|location: &str| {
+                        if location.contains('\0') {
+                            return Err(Error::FileNameContainsInvalidChars(
+                                PathBuf::from(location),
+                                '\0',
+                            ));
                         }
+                        Basename::from_str(location)
                     })
+                    .expected_text("a URL or a relative path without separators or a NUL byte.")
                     .parse_next(input)?;
+
+                    Self::File {
+                        filename,
+                        location: location.inner().into(),
+                    }
+                }
+                Err(error) => return Err(error),
+            };
 
             // Now make sure we actually hit the expected delimiter.
             peek(delimiter_parser.by_ref())
-                .context(StrContext::Label("source url"))
-                .context(StrContext::Expected(StrContextValue::Description(
-                    "end of input.",
-                )))
+                .label("source url")
+                .expected_text("end of input.")
                 .parse_next(input)?;
 
             Ok(source_url)
-        }
+        };
+
+        parser.layer("package artifact source")
     }
 }
 
@@ -207,7 +211,7 @@ impl FromStr for Source {
     /// # }
     /// ```
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser_until_eof.parse(s)?)
+        Ok(Self::parser_until_eof.parse(Input::new(s))?)
     }
 }
 
@@ -296,11 +300,12 @@ mod tests {
     #[case("/absolute/path")]
     #[case("foo:::/absolute/path")]
     fn invalid_filename(#[case] input: &str) {
+        let (test_name, _guard) = configure_insta();
+
         let Err(Error::ParseError(err_msg)) = Source::from_str(input) else {
             panic!("'{input}' erroneously parsed as a Source")
         };
 
-        let (test_name, _guard) = configure_insta();
         assert_snapshot!(test_name, err_msg.to_string());
     }
 }

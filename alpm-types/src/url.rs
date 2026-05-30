@@ -5,16 +5,14 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::{iter_str_context, traits::ParserUntil};
+use alpm_parsers::prelude::*;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use winnow::{
-    ModalResult,
-    Parser,
     ascii::alpha1,
-    combinator::{alt, eof, not, opt, peek, repeat_till, terminated},
-    error::{ContextError, ErrMode, StrContext, StrContextValue},
-    token::{any, rest},
+    combinator::{alt, not, opt, peek, preceded, repeat_till, terminated},
+    error::ErrMode,
+    token::any,
 };
 
 use crate::Error;
@@ -191,7 +189,7 @@ impl FromStr for SourceUrl {
     /// # }
     /// ```
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser_until_eof.parse(s)?)
+        Ok(Self::parser_until_eof.parse(Input::new(s))?)
     }
 }
 
@@ -270,26 +268,27 @@ impl ParserUntil for SourceUrl {
     ///
     /// Returns an error if `input` does not begin with a valid [`SourceUrl`], followed by the
     /// specified `delimiter`.
-    fn parser_until<'a, P>(delimiter: P) -> impl Parser<&'a str, Self, ErrMode<ContextError>>
+    fn parser_until<'a, P>(delimiter: P) -> impl Parser<Input<'a>, Self, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, &'a str, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, &'a str, ErrMode<ParseStack<'a>>>,
     {
         // Define the actual parser closure.
         // The delimiter is moved into the closure and borrowed via `by_ref()` on each call.
         let mut delimiter = delimiter;
-        move |input: &mut &'a str| -> ModalResult<Self> {
+        let parser = move |input: &mut Input<'a>| -> PResult<Self> {
             // Check if we should use a VCS for this URL.
             let vcs = opt(VcsProtocol::parser).parse_next(input)?;
 
             let Some(vcs) = vcs else {
-                // If there's no VCS, simply interpret the rest of the string as a URL.
+                // If there's no VCS, interpret everything up to the delimiter as a URL.
                 //
                 // We explicitly don't look for ALPM related fragments or queries, as the fragment
                 // and query might be a part of the inner URL string for retrieving
                 // the sources.
-                let url = rest
+                let url = repeat_till::<_, _, (), _, _, _, _>(0.., any, peek(delimiter.by_ref()))
+                    .take()
                     .try_map(Url::from_str)
-                    .context(StrContext::Label("url"))
+                    .layer("url")
                     .parse_next(input)?;
                 return Ok(SourceUrl {
                     url,
@@ -304,7 +303,7 @@ impl ParserUntil for SourceUrl {
             // Considers all chars until a special char or the EOF is encountered:
             // - `#` character that indicates a fragment
             // - `?` character indicates a query
-            // - `EOF` we reached the end of the string.
+            // - The `delimiter` that marks the end of the source URL.
             //
             // All of the above indicate that the end of the URL has been reached.
             // The `#` or `?` are not consumed, so that an outer parser may continue parsing
@@ -313,32 +312,30 @@ impl ParserUntil for SourceUrl {
                 .map(|((), _): ((), &str)| ())
                 .take()
                 .try_map(|url: &str| Url::from_str(url))
-                .context(StrContext::Label("url"))
+                .layer("url")
                 .parse_next(input)?;
 
-            let vcs_info = VcsInfo::parser(vcs).parse_next(input)?;
+            let vcs_info = VcsInfo::parser(vcs, delimiter.by_ref()).parse_next(input)?;
 
             // Produce a special error message for unconsumed query parameters.
             // The unused result with error type are necessary to please the type checker.
             not("?")
-                .context(StrContext::Label(
-                    "or duplicate query parameter for detected VCS.",
-                ))
+                .label("or duplicate query parameter for detected VCS.")
                 .parse_next(input)?;
 
-            delimiter
+            peek(delimiter.by_ref())
                 .by_ref()
-                .context(StrContext::Label("unexpected trailing content in URL."))
-                .context(StrContext::Expected(StrContextValue::Description(
-                    "end of input.",
-                )))
+                .label("unexpected trailing content in URL.")
+                .expected_text("end of input.")
                 .parse_next(input)?;
 
             Ok(SourceUrl {
                 url,
                 vcs_info: Some(vcs_info),
             })
-        }
+        };
+
+        parser.layer("source url")
     }
 }
 
@@ -385,14 +382,21 @@ impl VcsInfo {
     ///
     /// As the parser is parameterized due to the earlier detected [`VcsProtocol`], it returns a
     /// new stateful parser closure.
-    fn parser(vcs: VcsProtocol) -> impl FnMut(&mut &str) -> ModalResult<VcsInfo> {
-        move |input: &mut &str| match vcs {
+    fn parser<'a, P>(
+        vcs: VcsProtocol,
+        delimiter: P,
+    ) -> impl Parser<Input<'a>, VcsInfo, ErrMode<ParseStack<'a>>>
+    where
+        P: Parser<Input<'a>, &'a str, ErrMode<ParseStack<'a>>>,
+    {
+        let mut delimiter = delimiter;
+        move |input: &mut Input<'a>| match vcs {
             VcsProtocol::Bzr => {
-                let fragment = BzrFragment::parser.parse_next(input)?;
+                let fragment = BzrFragment::parser(delimiter.by_ref()).parse_next(input)?;
                 Ok(VcsInfo::Bzr { fragment })
             }
             VcsProtocol::Fossil => {
-                let fragment = FossilFragment::parser.parse_next(input)?;
+                let fragment = FossilFragment::parser(delimiter.by_ref()).parse_next(input)?;
                 Ok(VcsInfo::Fossil { fragment })
             }
             VcsProtocol::Git => {
@@ -400,7 +404,7 @@ impl VcsInfo {
                 // theoretically an invalid URL.
                 // Hence, we have to check for the parameter before and after the url.
                 let mut signed = git_query(input)?;
-                let fragment = GitFragment::parser.parse_next(input)?;
+                let fragment = GitFragment::parser(delimiter.by_ref()).parse_next(input)?;
                 if !signed {
                     // Check for the theoretically invalid query after the fragment if it wasn't
                     // already at the front.
@@ -409,11 +413,11 @@ impl VcsInfo {
                 Ok(VcsInfo::Git { fragment, signed })
             }
             VcsProtocol::Hg => {
-                let fragment = HgFragment::parser.parse_next(input)?;
+                let fragment = HgFragment::parser(delimiter.by_ref()).parse_next(input)?;
                 Ok(VcsInfo::Hg { fragment })
             }
             VcsProtocol::Svn => {
-                let fragment = SvnFragment::parser.parse_next(input)?;
+                let fragment = SvnFragment::parser(delimiter.by_ref()).parse_next(input)?;
                 Ok(VcsInfo::Svn { fragment })
             }
         }
@@ -447,7 +451,7 @@ impl VcsProtocol {
     ///   `scheme` component of the URL itself:
     ///    - `git://...`
     ///    - `svn://...`
-    fn parser(input: &mut &str) -> ModalResult<VcsProtocol> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, VcsProtocol> {
         // Check for an explicit vcs definition like `git+` first.
         let protocol =
             opt(terminated(alpha1.try_map(VcsProtocol::from_str), "+")).parse_next(input)?;
@@ -478,19 +482,17 @@ impl VcsProtocol {
 /// E.g. `tag=v1.0.0`
 ///           ^^^^^^
 ///          This part
-fn fragment_value(input: &mut &str) -> ModalResult<String> {
+fn fragment_value<'a, P>(delimiter: P) -> impl Parser<Input<'a>, String, ErrMode<ParseStack<'a>>>
+where
+    P: Parser<Input<'a>, &'a str, ErrMode<ParseStack<'a>>>,
+{
     // Error if we don't find the separator
-    let _ = "="
-        .context(StrContext::Label("fragment separator"))
-        .context(StrContext::Expected(StrContextValue::Description(
-            "a literal '='",
-        )))
-        .parse_next(input)?;
-
-    // Get the value of the fragment.
-    let (value, _) = repeat_till(0.., any, peek(alt(("?", "#", eof)))).parse_next(input)?;
-
-    Ok(value)
+    preceded(
+        "=".label("fragment separator")
+            .expected_text("a literal '='"),
+        repeat_till(0.., any, peek(alt(("?", "#", delimiter)))).map(|(name, _)| name),
+    )
+    .layer("URL fragment value")
 }
 
 /// The available URL fragments and their values when using the Breezy VCS in a [`SourceUrl`].
@@ -514,24 +516,32 @@ impl BzrFragment {
     /// Recognizes URL fragments and values specific to Breezy VCS.
     ///
     /// This parser considers all variants of [`BzrFragment`] (including a leading `#` character).
-    fn parser(input: &mut &str) -> ModalResult<Option<BzrFragment>> {
-        // Check for the `#` fragment start first. If it isn't here, there's no fragment.
-        let exists = opt("#").parse_next(input)?;
-        if exists.is_none() {
-            return Ok(None);
-        }
+    fn parser<'a, P>(
+        delimiter: P,
+    ) -> impl Parser<Input<'a>, Option<BzrFragment>, ErrMode<ParseStack<'a>>>
+    where
+        P: Parser<Input<'a>, &'a str, ErrMode<ParseStack<'a>>>,
+    {
+        let mut delimiter = delimiter;
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Option<Self>> {
+            // Check for the `#` fragment start first. If it isn't here, there's no fragment.
+            let exists = opt("#").parse_next(input)?;
+            if exists.is_none() {
+                return Ok(None);
+            }
 
-        // Expect the only allowed revision keyword.
-        "revision"
-            .context(StrContext::Label("bzr revision type"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "revision keyword",
-            )))
-            .parse_next(input)?;
+            // Expect the only allowed revision keyword.
+            "revision"
+                .label("bzr revision type")
+                .expected_text("revision keyword")
+                .parse_next(input)?;
 
-        let value = fragment_value.parse_next(input)?;
+            let value = fragment_value(delimiter.by_ref()).parse_next(input)?;
 
-        Ok(Some(BzrFragment::Revision(value)))
+            Ok(Some(BzrFragment::Revision(value)))
+        };
+
+        parser.layer("bzr fragment")
     }
 }
 
@@ -563,30 +573,40 @@ impl FossilFragment {
     ///
     /// This parser considers all variants of [`FossilFragment`] as fragments in an
     /// alpm-package-source string (including the leading `#` character).
-    fn parser(input: &mut &str) -> ModalResult<Option<FossilFragment>> {
-        // Check for the `#` fragment start first. If it isn't here, there's no fragment.
-        let exists = opt("#").parse_next(input)?;
-        if exists.is_none() {
-            return Ok(None);
-        }
+    fn parser<'a, P>(
+        delimiter: P,
+    ) -> impl Parser<Input<'a>, Option<FossilFragment>, ErrMode<ParseStack<'a>>>
+    where
+        P: Parser<Input<'a>, &'a str, ErrMode<ParseStack<'a>>>,
+    {
+        let mut delimiter = delimiter;
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Option<Self>> {
+            // Check for the `#` fragment start first. If it isn't here, there's no fragment.
+            let exists = opt("#").parse_next(input)?;
+            if exists.is_none() {
+                return Ok(None);
+            }
 
-        // Error if we don't find one of the expected fossil revision types.
-        let version_keywords = ["branch", "commit", "tag"];
-        let version_type = alt(version_keywords)
-            .context(StrContext::Label("fossil revision type"))
-            .context_with(iter_str_context!([version_keywords]))
-            .parse_next(input)?;
+            // Error if we don't find one of the expected fossil revision types.
+            let version_keywords = ["branch", "commit", "tag"];
+            let version_type = alt(version_keywords)
+                .label("fossil revision type")
+                .expected_strings(version_keywords)
+                .parse_next(input)?;
 
-        let value = fragment_value.parse_next(input)?;
+            let value = fragment_value(delimiter.by_ref()).parse_next(input)?;
 
-        let fragment = match version_type {
-            "branch" => FossilFragment::Branch(value.to_string()),
-            "commit" => FossilFragment::Commit(value.to_string()),
-            "tag" => FossilFragment::Tag(value.to_string()),
-            _ => unreachable!(),
+            let fragment = match version_type {
+                "branch" => FossilFragment::Branch(value.to_string()),
+                "commit" => FossilFragment::Commit(value.to_string()),
+                "tag" => FossilFragment::Tag(value.to_string()),
+                _ => unreachable!(),
+            };
+
+            Ok(Some(fragment))
         };
 
-        Ok(Some(fragment))
+        parser.layer("fossil fragment")
     }
 }
 
@@ -618,37 +638,47 @@ impl GitFragment {
     ///
     /// This parser considers all variants of [`GitFragment`] as fragments in an alpm-package-source
     /// string (including the leading `#` character).
-    fn parser(input: &mut &str) -> ModalResult<Option<GitFragment>> {
-        // Check for the `#` fragment start first. If it isn't here, there's no fragment.
-        let exists = opt("#").parse_next(input)?;
-        if exists.is_none() {
-            return Ok(None);
-        }
+    fn parser<'a, P>(
+        delimiter: P,
+    ) -> impl Parser<Input<'a>, Option<GitFragment>, ErrMode<ParseStack<'a>>>
+    where
+        P: Parser<Input<'a>, &'a str, ErrMode<ParseStack<'a>>>,
+    {
+        let mut delimiter = delimiter;
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Option<Self>> {
+            // Check for the `#` fragment start first. If it isn't here, there's no fragment.
+            let exists = opt("#").parse_next(input)?;
+            if exists.is_none() {
+                return Ok(None);
+            }
 
-        // Error if we don't find one of the expected git revision types.
-        let version_keywords = ["branch", "commit", "tag"];
-        let version_type = alt(version_keywords)
-            .context(StrContext::Label("git revision type"))
-            .context_with(iter_str_context!([version_keywords]))
-            .parse_next(input)?;
+            // Error if we don't find one of the expected git revision types.
+            let version_keywords = ["branch", "commit", "tag"];
+            let version_type = alt(version_keywords)
+                .label("git revision type")
+                .expected_strings(version_keywords)
+                .parse_next(input)?;
 
-        let value = fragment_value.parse_next(input)?;
+            let value = fragment_value(delimiter.by_ref()).parse_next(input)?;
 
-        let fragment = match version_type {
-            "branch" => GitFragment::Branch(value.to_string()),
-            "commit" => GitFragment::Commit(value.to_string()),
-            "tag" => GitFragment::Tag(value.to_string()),
-            _ => unreachable!(),
+            let fragment = match version_type {
+                "branch" => GitFragment::Branch(value.to_string()),
+                "commit" => GitFragment::Commit(value.to_string()),
+                "tag" => GitFragment::Tag(value.to_string()),
+                _ => unreachable!(),
+            };
+
+            Ok(Some(fragment))
         };
 
-        Ok(Some(fragment))
+        parser.layer("git fragment")
     }
 }
 
 /// Recognizes URL queries specific to the Git VCS.
 ///
 /// This parser considers the `?signed` URL query in an alpm-package-source string.
-fn git_query(input: &mut &str) -> ModalResult<bool> {
+fn git_query<'a>(input: &mut Input<'a>) -> PResult<'a, bool> {
     let query = opt("?signed").parse_next(input)?;
     Ok(query.is_some())
 }
@@ -681,30 +711,40 @@ impl HgFragment {
     ///
     /// This parser considers all variants of [`HgFragment`] as fragments in an alpm-package-source
     /// string (including the leading `#` character).
-    fn parser(input: &mut &str) -> ModalResult<Option<HgFragment>> {
-        // Check for the `#` fragment start first. If it isn't here, there's no fragment.
-        let exists = opt("#").parse_next(input)?;
-        if exists.is_none() {
-            return Ok(None);
-        }
+    fn parser<'a, P>(
+        delimiter: P,
+    ) -> impl Parser<Input<'a>, Option<HgFragment>, ErrMode<ParseStack<'a>>>
+    where
+        P: Parser<Input<'a>, &'a str, ErrMode<ParseStack<'a>>>,
+    {
+        let mut delimiter = delimiter;
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Option<Self>> {
+            // Check for the `#` fragment start first. If it isn't here, there's no fragment.
+            let exists = opt("#").parse_next(input)?;
+            if exists.is_none() {
+                return Ok(None);
+            }
 
-        // Error if we don't find one of the expected git revision types.
-        let version_keywords = ["branch", "revision", "tag"];
-        let version_type = alt(version_keywords)
-            .context(StrContext::Label("hg revision type"))
-            .context_with(iter_str_context!([version_keywords]))
-            .parse_next(input)?;
+            // Error if we don't find one of the expected git revision types.
+            let version_keywords = ["branch", "revision", "tag"];
+            let version_type = alt(version_keywords)
+                .label("hg revision type")
+                .expected_strings(version_keywords)
+                .parse_next(input)?;
 
-        let value = fragment_value.parse_next(input)?;
+            let value = fragment_value(delimiter.by_ref()).parse_next(input)?;
 
-        let fragment = match version_type {
-            "branch" => HgFragment::Branch(value.to_string()),
-            "revision" => HgFragment::Revision(value.to_string()),
-            "tag" => HgFragment::Tag(value.to_string()),
-            _ => unreachable!(),
+            let fragment = match version_type {
+                "branch" => HgFragment::Branch(value.to_string()),
+                "revision" => HgFragment::Revision(value.to_string()),
+                "tag" => HgFragment::Tag(value.to_string()),
+                _ => unreachable!(),
+            };
+
+            Ok(Some(fragment))
         };
 
-        Ok(Some(fragment))
+        parser.layer("hg fragment")
     }
 }
 
@@ -730,24 +770,30 @@ impl SvnFragment {
     ///
     /// This parser considers all variants of [`SvnFragment`] as fragments in an alpm-package-source
     /// string (including the leading `#` character).
-    fn parser(input: &mut &str) -> ModalResult<Option<SvnFragment>> {
-        // Check for the `#` fragment start first. If it isn't here, there's no fragment.
-        let exists = opt("#").parse_next(input)?;
-        if exists.is_none() {
-            return Ok(None);
-        }
+    fn parser<'a, P>(delimiter: P) -> impl Parser<Input<'a>, Option<Self>, ErrMode<ParseStack<'a>>>
+    where
+        P: Parser<Input<'a>, &'a str, ErrMode<ParseStack<'a>>>,
+    {
+        let mut delimiter = delimiter;
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Option<Self>> {
+            // Check for the `#` fragment start first. If it isn't here, there's no fragment.
+            let exists = opt("#").parse_next(input)?;
+            if exists.is_none() {
+                return Ok(None);
+            }
 
-        // Expect the only allowed revision keyword.
-        "revision"
-            .context(StrContext::Label("svn revision type"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "revision keyword",
-            )))
-            .parse_next(input)?;
+            // Expect the only allowed revision keyword.
+            "revision"
+                .label("svn revision type")
+                .expected_text("revision keyword")
+                .parse_next(input)?;
 
-        let value = fragment_value.parse_next(input)?;
+            let value = fragment_value(delimiter.by_ref()).parse_next(input)?;
 
-        Ok(Some(SvnFragment::Revision(value)))
+            Ok(Some(SvnFragment::Revision(value)))
+        };
+
+        parser.layer("svn fragment")
     }
 }
 
@@ -895,11 +941,12 @@ mod tests {
     #[case("hg+https://example/project#commit=154021a")]
     #[case("hg+https://example/project#branch=feature?signed")]
     fn test_source_url_parsing_failure(#[case] input: &str) {
+        let (test_name, _guard) = configure_insta();
+
         let Err(Error::ParseError(err_msg)) = SourceUrl::from_str(input) else {
             panic!("'{input}' erroneously parsed as a SourceUrl")
         };
 
-        let (test_name, _guard) = configure_insta();
         assert_snapshot!(test_name, err_msg.to_string());
     }
 }

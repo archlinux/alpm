@@ -1,0 +1,16 @@
+---
+source: alpm-parsers/tests/error.rs
+description: ""
+expression: "format!(\"{error}\")"
+---
+error: invalid layer1 keyword
+ | 
+ | 
+ | ^ expected 'layer1'
+ | 
+ = while parsing:
+   document: ()
+   └ layer1: ()
+     → invalid layer1 keyword
+     → The layer1 block, which wraps a single layer2 block
+     → expected 'layer1'

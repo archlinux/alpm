@@ -149,6 +149,7 @@ dependencies = [
  "alpm-types",
  "assert_cmd",
  "clap",
+ "colored",
  "fluent-i18n",
  "insta",
  "pretty_assertions",
@@ -256,10 +257,12 @@ dependencies = [
 name = "alpm-parsers"
 version = "0.4.1"
 dependencies = [
+ "colored",
  "insta",
  "rstest",
  "serde",
  "testresult",
+ "unicode-width",
  "winnow 1.0.0",
 ]
 
@@ -318,6 +321,7 @@ dependencies = [
  "alpm-types",
  "assert_cmd",
  "clap",
+ "colored",
  "fluent-i18n",
  "insta",
  "pretty_assertions",
@@ -367,6 +371,7 @@ dependencies = [
  "alpm-types",
  "assert_cmd",
  "clap",
+ "colored",
  "fluent-i18n",
  "insta",
  "pretty_assertions",
@@ -391,6 +396,7 @@ dependencies = [
  "alpm-parsers",
  "base64 0.23.0",
  "blake2 0.11.0",
+ "colored",
  "crc",
  "digest 0.11.3",
  "email_address",

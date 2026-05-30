@@ -1,11 +1,13 @@
 ---
 source: alpm-types/src/relation/soname.rs
 ---
-noso
-^
-invalid shared object name
-Parser failed with the following error:
-noso
-    ^
-invalid suffix
-expected shared object name suffix '.so'
+error: invalid suffix
+ | 
+ | noso
+ | ~~~~^ expected shared object name suffix '.so'
+ | 
+ = while parsing:
+   alpm-sonamev1: (noso)
+   └ shared object name: (noso)
+     → invalid suffix
+     → expected shared object name suffix '.so'

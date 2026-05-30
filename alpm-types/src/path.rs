@@ -1,19 +1,17 @@
 use std::{
     fmt::{Display, Formatter},
-    path::{Path, PathBuf},
+    path::{MAIN_SEPARATOR_STR, Path, PathBuf},
     str::FromStr,
 };
 
-use alpm_parsers::traits::ParserUntil;
+use alpm_parsers::prelude::*;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 #[cfg(feature = "serde")]
 use serde_with::DeserializeFromStr;
 use winnow::{
-    ModalResult,
-    Parser,
     combinator::{alt, eof, peek, repeat_till},
-    error::{ContextError, ErrMode, StrContext, StrContextValue},
+    error::ErrMode,
     token::any,
 };
 
@@ -240,10 +238,7 @@ pub struct RelativeFilePath(PathBuf);
 impl RelativeFilePath {
     /// Create a new `RelativeFilePath`
     pub fn new(path: PathBuf) -> Result<RelativeFilePath, Error> {
-        if path
-            .to_string_lossy()
-            .ends_with(std::path::MAIN_SEPARATOR_STR)
-        {
+        if path.to_string_lossy().ends_with(MAIN_SEPARATOR_STR) {
             return Err(Error::PathIsNotAFile(path));
         }
         if !path.is_relative() {
@@ -272,6 +267,88 @@ impl FromStr for RelativeFilePath {
 }
 
 impl Display for RelativeFilePath {
+    fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
+        write!(fmt, "{}", self.inner().display())
+    }
+}
+
+/// The basename of a path.
+///
+/// Wraps a [`PathBuf`] that is guaranteed to represent a relative
+/// local (one level deep) file path (i.e. it does not contain a `/`).
+///
+/// ## Examples
+///
+/// ```
+/// use std::{path::PathBuf, str::FromStr};
+///
+/// use alpm_types::{Basename, Error};
+///
+/// # fn main() -> Result<(), alpm_types::Error> {
+/// // Create Basename from &str
+/// assert_eq!(
+///     Basename::from_str("test.conf"),
+///     Basename::new(PathBuf::from("test.conf"))
+/// );
+/// assert_eq!(
+///     Basename::from_str("etc/test.conf"),
+///     Err(Error::PathNotSibling(PathBuf::from("etc/test.conf")))
+/// );
+///
+/// // Format as String
+/// assert_eq!("test.txt", Basename::from_str("test.txt")?.to_string());
+/// # Ok(())
+/// # }
+/// ```
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[cfg_attr(feature = "serde", derive(DeserializeFromStr, Serialize))]
+pub struct Basename(PathBuf);
+
+impl Basename {
+    /// Create a new [`Basename`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error, if `path`
+    ///
+    /// - ends with a [`MAIN_SEPARATOR_STR`]
+    /// - is relative
+    /// - has more than one component
+    pub fn new(path: PathBuf) -> Result<Self, Error> {
+        if path.to_string_lossy().ends_with(MAIN_SEPARATOR_STR) {
+            return Err(Error::PathIsNotAFile(path));
+        }
+        if !path.is_relative() {
+            return Err(Error::PathNotSibling(path));
+        }
+        // Make sure the path only consists of a single filename.
+        if path.iter().count() != 1 {
+            return Err(Error::PathNotSibling(path));
+        }
+
+        Ok(Self(path))
+    }
+
+    /// Returns a reference to the inner type
+    pub fn inner(&self) -> &Path {
+        &self.0
+    }
+}
+
+impl FromStr for Basename {
+    type Err = Error;
+
+    /// Parses a sibling file path from a string
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the path is not relative or contains a directory separator.
+    fn from_str(s: &str) -> Result<Basename, Self::Err> {
+        Self::new(PathBuf::from(s))
+    }
+}
+
+impl Display for Basename {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
         write!(fmt, "{}", self.inner().display())
     }
@@ -378,45 +455,41 @@ impl ParserUntil for SonameLookupDirectory {
     ///
     /// Returns an error, if the parser input does not contain a valid [`SonameLookupDirectory`]
     /// before the `delimiter`.
-    fn parser_until<'a, P>(delimiter: P) -> impl Parser<&'a str, Self, ErrMode<ContextError>>
+    fn parser_until<'a, P>(delimiter: P) -> impl Parser<Input<'a>, Self, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, &'a str, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, &'a str, ErrMode<ParseStack<'a>>>,
     {
         // Define the actual parser closure.
         // The delimiter is moved into the closure and borrowed via `by_ref()` on each call.
         let mut delimiter_parser = delimiter;
-        move |input: &mut &'a str| -> ModalResult<Self> {
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Self> {
             // Parse until the first `:`, which separates the prefix from the directory.
             let prefix = repeat_till(1.., any, peek(alt((":", eof))))
                 .try_map(|(name, _): (String, &str)| SharedLibraryPrefix::from_str(&name))
-                .context(StrContext::Label("prefix for a shared object lookup path"))
+                .label("prefix for a shared object lookup path")
                 .parse_next(input)?;
 
             // Take the delimiter.
-            ":".context(StrContext::Label("shared library prefix delimiter"))
-                .context(StrContext::Expected(StrContextValue::Description(
-                    "shared library prefix `:`",
-                )))
+            ":".label("delimiter")
+                .expected_text("shared library delimiter `:`")
                 .parse_next(input)?;
 
             // Parse the rest as a directory.
             let directory = repeat_till(1.., any, peek(delimiter_parser.by_ref()))
                 .try_map(|(path, _): (String, &str)| AbsolutePath::from_str(&path))
-                .context(StrContext::Label("directory"))
-                .context(StrContext::Expected(StrContextValue::Description(
-                    "directory for a shared object lookup path",
-                )))
+                .label("directory")
+                .expected_text("directory for a shared object lookup path")
                 .parse_next(input)?;
 
             peek(delimiter_parser.by_ref())
-                .context(StrContext::Label("SonameLookupDirectory"))
-                .context(StrContext::Expected(StrContextValue::Description(
-                    "valid end of input.",
-                )))
+                .label("SonameLookupDirectory")
+                .expected_text("valid end of input.")
                 .parse_next(input)?;
 
             Ok(Self { prefix, directory })
-        }
+        };
+
+        parser.layer("soname lookup directory")
     }
 }
 
@@ -455,7 +528,7 @@ impl FromStr for SonameLookupDirectory {
     /// # }
     /// ```
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser_until_eof.parse(s)?)
+        Ok(Self::parser_until_eof.parse(Input::new(s))?)
     }
 }
 
@@ -583,11 +656,12 @@ mod tests {
     #[case("lib:")]
     #[case(":/usr/lib")]
     fn invalid_soname_lookup_directory_parser(#[case] input: &str) {
+        let (test_name, _guard) = configure_insta();
+
         let Err(Error::ParseError(err_msg)) = SonameLookupDirectory::from_str(input) else {
             panic!("'{input}' erroneously parsed as a SonameLookupDirectory")
         };
 
-        let (test_name, _guard) = configure_insta();
         assert_snapshot!(test_name, err_msg.to_string());
     }
 }

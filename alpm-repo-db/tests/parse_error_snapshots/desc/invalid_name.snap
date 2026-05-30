@@ -4,9 +4,14 @@ description: "%FILENAME%\nexample-1.0.0-1-any.pkg.tar.zst\n\n%NAME%\nmy epic exa
 expression: error
 ---
 Parser failed with the following error:
-parse error at line 5, column 1
-  |
+error: invalid character in package name
+  | 
+4 | %NAME%
 5 | my epic example!!!!
-  | ^
-invalid sections
-expected a section in the database desc file
+  |   ^ expected one of: ASCII alphanumeric character, `_`, `@`, `+`, `-`, `.`
+  | 
+  = while parsing:
+    alpm-db-desc file value section: (%NAME%)
+    └ alpm-package-name: ( epic example!!!!)
+      → invalid character in package name
+      → expected one of: ASCII alphanumeric character, `_`, `@`, `+`, `-`, `.`

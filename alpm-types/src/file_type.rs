@@ -2,15 +2,11 @@
 
 use std::str::FromStr;
 
-use alpm_parsers::{iter_str_context, traits::AlpmParser};
+use alpm_parsers::prelude::*;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, Display, EnumString, IntoStaticStr, VariantNames};
-use winnow::{
-    Parser,
-    ascii::alpha1,
-    error::{ContextError, ErrMode, StrContext, StrContextValue},
-};
+use winnow::{ascii::alpha1, error::ErrMode};
 
 /// The identifier of a file type used in ALPM.
 ///
@@ -48,24 +44,22 @@ impl AlpmParser for FileTypeIdentifier {
     ///
     /// Returns an error if `input` does not begin with a valid variant
     /// of a [`FileTypeIdentifier`].
-    fn parser(input: &mut &str) -> Result<Self, ErrMode<ContextError>> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         alpha1
             .try_map(FileTypeIdentifier::from_str)
-            .context(StrContext::Label("file type identifier"))
-            .context_with(iter_str_context!([FileTypeIdentifier::VARIANTS]))
+            .expected_strings(FileTypeIdentifier::VARIANTS)
+            .layer("file type identifier")
             .parse_next(input)
     }
 
     fn delimiter_error_context<'a, O, P>(
         parser: P,
-    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    ) -> impl Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, O, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
-            .context(StrContext::Label("file type identifier"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "a string consisting of alphabetic characters",
-            )))
+            .expected_text("a string consisting of alphabetic characters")
+            .layer("file type identifier")
     }
 }
