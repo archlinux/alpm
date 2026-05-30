@@ -61,7 +61,7 @@ impl ParserUntil for Source {
         // Define the actual parser closure.
         // The delimiter is moved into the closure and borrowed via `by_ref()` on each call.
         let mut delimiter_parser = delimiter;
-        move |input: &mut Input<'a>| -> PResult<'a, Self> {
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Self> {
             // We have to work with checkpoints here, as we cannot `peek` with a `repeat_till` +
             // `delimiter_parser`, as that would require the `delimiter_parser` to be borrowed
             // twice.
@@ -149,7 +149,9 @@ impl ParserUntil for Source {
                 .parse_next(input)?;
 
             Ok(source_url)
-        }
+        };
+
+        parser.layer("package artifact source")
     }
 }
 

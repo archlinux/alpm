@@ -418,7 +418,9 @@ impl ParserUntil for PackageFileName {
                 architecture,
                 compression,
             })
-        }
+        };
+
+        parser.layer("alpm-package filename")
     }
 }
 

@@ -374,7 +374,7 @@ impl ParserUntil for SonameLookupDirectory {
         // Define the actual parser closure.
         // The delimiter is moved into the closure and borrowed via `by_ref()` on each call.
         let mut delimiter_parser = delimiter;
-        move |input: &mut Input<'a>| -> PResult<'a, Self> {
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Self> {
             // Parse until the first `:`, which separates the prefix from the directory.
             let prefix = repeat_till(1.., any, peek(alt((":", eof))))
                 .try_map(|(name, _): (String, &str)| SharedLibraryPrefix::from_str(&name))
@@ -405,7 +405,9 @@ impl ParserUntil for SonameLookupDirectory {
                 .parse_next(input)?;
 
             Ok(Self { prefix, directory })
-        }
+        };
+
+        parser.layer("soname lookup directory")
     }
 }
 

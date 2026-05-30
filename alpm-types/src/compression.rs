@@ -113,10 +113,10 @@ impl AlpmParser for CompressionAlgorithmFileExtension {
     fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         alphanumeric1
             .try_map(CompressionAlgorithmFileExtension::from_str)
-            .context(StrContext::Label("compression algorithm file extension"))
             .context_with(iter_str_context!([
                 CompressionAlgorithmFileExtension::VARIANTS
             ]))
+            .layer("compression algorithm file extension")
             .parse_next(input)
     }
 
@@ -127,10 +127,13 @@ impl AlpmParser for CompressionAlgorithmFileExtension {
         P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
-            .context(StrContext::Label("compression algorithm file extension"))
             .context(StrContext::Expected(StrContextValue::Description(
                 "an alphanumeric string",
             )))
+            .context_with(iter_str_context!([
+                CompressionAlgorithmFileExtension::VARIANTS
+            ]))
+            .layer("compression algorithm file extension")
     }
 }
 

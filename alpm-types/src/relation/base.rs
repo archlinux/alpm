@@ -89,6 +89,7 @@ impl AlpmParser for PackageRelation {
             name: Name::parser.context(StrContext::Label("package name")),
             version_requirement: opt(VersionRequirement::parser),
         })
+        .layer("alpm-package-relation")
         .parse_next(input)
     }
 
@@ -99,10 +100,10 @@ impl AlpmParser for PackageRelation {
         P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
-            .context(StrContext::Label("alpm-package-relation"))
             .context(StrContext::Expected(StrContextValue::Description(
                 "end of input after version requirement",
             )))
+            .layer("alpm-package-relation")
     }
 }
 
@@ -310,6 +311,7 @@ impl AlpmParser for OptionalDependency {
     ///
     /// Returns an error if `input` is not a valid _alpm-package-relation_ of type _optional
     /// dependency_.
+    // TODO: Wrap this parser in a layer closure
     fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         // Due to the ambiguous nature of this format, we must implement our own PackageRelation and
         // VersionRequirement parser handling.
@@ -410,6 +412,7 @@ impl AlpmParser for OptionalDependency {
             .context(StrContext::Expected(StrContextValue::Description(
                 "end of input.",
             )))
+            .layer("optional dependency")
     }
 }
 
