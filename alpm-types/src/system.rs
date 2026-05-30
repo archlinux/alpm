@@ -3,15 +3,14 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::traits::{AlpmParser, ParserUntil};
+use alpm_parsers::prelude::*;
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString, VariantNames};
 use winnow::{
-    ModalResult,
     Parser,
     ascii::Caseless,
     combinator::{alt, cut_err, eof, not, repeat},
-    error::{ContextError, ErrMode, StrContext, StrContextValue},
+    error::{ErrMode, StrContext, StrContextValue},
     token::{one_of, take_while},
 };
 
@@ -104,7 +103,7 @@ impl AlpmParser for SystemArchitecture {
     /// # Errors
     ///
     /// Returns an error if `input` does not begin with a valid `SystemArchitecture`.
-    fn parser(input: &mut &str) -> ModalResult<SystemArchitecture> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, SystemArchitecture> {
         // Make sure we don't have an `any`.
         cut_err(not((Caseless("any"), eof)))
             .context(StrContext::Label(
@@ -153,9 +152,9 @@ impl AlpmParser for SystemArchitecture {
 
     fn delimiter_error_context<'a, O, P>(
         parser: P,
-    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    ) -> impl Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, O, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
             .context(StrContext::Label("character in system architecture"))
@@ -176,7 +175,7 @@ impl FromStr for SystemArchitecture {
     ///
     /// Returns an error if [`SystemArchitecture::parser`] fails.
     fn from_str(s: &str) -> Result<SystemArchitecture, Self::Err> {
-        Ok(Self::parser_until_eof.parse(s)?)
+        Ok(Self::parser_until_eof.parse(Input::new(s))?)
     }
 }
 
@@ -295,7 +294,7 @@ impl AlpmParser for Architecture {
     /// # Errors
     ///
     /// Returns an error if `input` does not begin with a valid Architecture.
-    fn parser(input: &mut &str) -> ModalResult<Architecture> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Architecture> {
         alt((
             Caseless("any").value(Architecture::Any),
             SystemArchitecture::parser.map(Architecture::Some),
@@ -306,9 +305,9 @@ impl AlpmParser for Architecture {
 
     fn delimiter_error_context<'a, O, P>(
         parser: P,
-    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    ) -> impl Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, O, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
             .context(StrContext::Label("character in architecture"))
@@ -329,7 +328,7 @@ impl FromStr for Architecture {
     ///
     /// Returns an error if [`Architecture::parser`] fails.
     fn from_str(s: &str) -> Result<Architecture, Self::Err> {
-        Ok(Self::parser_until_eof.parse(s)?)
+        Ok(Self::parser_until_eof.parse(Input::new(s))?)
     }
 }
 
@@ -535,7 +534,7 @@ pub enum ElfArchitectureFormat {
 }
 
 impl AlpmParser for ElfArchitectureFormat {
-    fn parser(input: &mut &str) -> ModalResult<Self> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         take_while(1.., |c: char| c.is_ascii_digit())
             .try_map(ElfArchitectureFormat::from_str)
             .context(StrContext::Label("ELF architecture"))

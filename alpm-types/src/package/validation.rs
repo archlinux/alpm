@@ -2,13 +2,13 @@
 
 use std::str::FromStr;
 
-use alpm_parsers::{iter_str_context, traits::AlpmParser};
+use alpm_parsers::{iter_str_context, prelude::*};
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, Display, EnumString, VariantNames};
 use winnow::{
     Parser,
     ascii::alphanumeric1,
-    error::{ContextError, ErrMode, StrContext, StrContextValue},
+    error::{ErrMode, StrContext, StrContextValue},
 };
 
 /// The validation method used during installation of a package.
@@ -80,7 +80,7 @@ impl AlpmParser for PackageValidation {
     ///
     /// Returns an error if the immediate alphanumeric `input` is not a valid variant
     /// a `PackageValidation`.
-    fn parser(input: &mut &str) -> Result<Self, ErrMode<ContextError>> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         alphanumeric1
             .try_map(PackageValidation::from_str)
             .context(StrContext::Label("package validation method"))
@@ -90,9 +90,9 @@ impl AlpmParser for PackageValidation {
 
     fn delimiter_error_context<'a, O, P>(
         parser: P,
-    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    ) -> impl Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, O, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
             .context(StrContext::Label("package validation method"))

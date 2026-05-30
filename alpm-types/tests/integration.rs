@@ -2,7 +2,7 @@
 
 use std::{path::PathBuf, thread::current};
 
-use alpm_parsers::traits::ParserUntil;
+use alpm_parsers::prelude::*;
 use alpm_types::PackageFileName;
 use insta::{assert_snapshot, with_settings};
 use log::{LevelFilter, debug};
@@ -47,7 +47,7 @@ fn init_logger() -> TestResult {
 fn fail_to_parse_package_filename(#[case] s: &str) -> TestResult {
     init_logger()?;
 
-    let Err(error) = PackageFileName::parser_until_eof.parse(s) else {
+    let Err(error) = PackageFileName::parser_until_eof.parse(Input::new(s)) else {
         panic!("The parser succeeded parsing {s} although it should have failed");
     };
 

@@ -1,19 +1,20 @@
 //! Traits used for the parsers.
 
 use winnow::{
-    ModalResult,
     Parser,
     ascii::line_ending,
     combinator::{alt, eof, peek, terminated},
-    error::{ContextError, ErrMode},
+    error::ErrMode,
 };
+
+use crate::error::{Input, PResult, ParseStack};
 
 /// Parses either a line ending or eof from an `input`.
 ///
 /// # Errors
 ///
 /// Returns an error if `input` contains neither a line ending nor eof.
-fn line_ending_or_eof<'a>(input: &mut &'a str) -> ModalResult<&'a str> {
+fn line_ending_or_eof<'a>(input: &mut Input<'a>) -> PResult<'a, &'a str> {
     alt((line_ending, eof)).parse_next(input)
 }
 
@@ -28,30 +29,27 @@ fn line_ending_or_eof<'a>(input: &mut &'a str) -> ModalResult<&'a str> {
 /// # Examples
 ///
 /// ```rust
-/// use alpm_parsers::traits::AlpmParser;
-/// use winnow::{
-///     ModalResult,
-///     Parser,
-///     error::{ContextError, ErrMode, StrContext},
-///     token::take_while,
-/// };
+/// use alpm_parsers::prelude::*;
+/// use winnow::{Parser, token::take_while};
 ///
 /// # fn main() -> testresult::TestResult {
 /// #[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
 /// struct Alphanumeric(String);
 ///
 /// impl AlpmParser for Alphanumeric {
-///     fn parser(input: &mut &str) -> ModalResult<Self> {
+///     fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
 ///         take_while(1.., |c: char| c.is_alphanumeric())
 ///             .map(|s: &str| Alphanumeric(s.to_string()))
 ///             .parse_next(input)
 ///     }
 /// }
 ///
-/// assert_eq!(
-///     Alphanumeric::parser.parse_peek("abc123\nnext"),
-///     Ok(("\nnext", Alphanumeric("abc123".to_string())))
-/// );
+/// let (remaining, parsed) = Alphanumeric::parser
+///     .parse_peek(Input::new("abc123\nnext"))
+///     .unwrap();
+/// assert_eq!(*remaining, "\nnext");
+/// assert_eq!(parsed, Alphanumeric("abc123".to_string()));
+///
 /// # Ok(())
 /// # }
 /// ```
@@ -60,7 +58,7 @@ pub trait AlpmParser: Sized {
     ///
     /// This parser is expected to not consume anything but the tokens needed to parse and build
     /// `Self`.
-    fn parser(input: &mut &str) -> ModalResult<Self>;
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self>;
 
     /// Attaches a winnow error context to the parser when a parse error is encountered.
     ///
@@ -71,9 +69,9 @@ pub trait AlpmParser: Sized {
     /// [`ParserUntil::parser_until`]).
     fn delimiter_error_context<'a, O, P>(
         parser: P,
-    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    ) -> impl Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, O, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
     }
@@ -106,11 +104,10 @@ pub trait AlpmParser: Sized {
 /// # Examples
 ///
 /// ```rust
-/// use alpm_parsers::traits::{AlpmParser, ParserUntil};
+/// use alpm_parsers::{error::ParseStack, prelude::*};
 /// use winnow::{
-///     ModalResult,
 ///     Parser,
-///     error::{ContextError, ErrMode, StrContext},
+///     error::{ErrMode, StrContext},
 ///     token::take_while,
 /// };
 ///
@@ -120,7 +117,7 @@ pub trait AlpmParser: Sized {
 ///
 /// // Implementing `AlpmParser` automatically implements `ParserUntil`.
 /// impl AlpmParser for Alphanumeric {
-///     fn parser(input: &mut &str) -> ModalResult<Self> {
+///     fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
 ///         take_while(1.., |c: char| c.is_alphanumeric())
 ///             .map(|s: &str| Alphanumeric(s.to_string()))
 ///             .parse_next(input)
@@ -128,32 +125,35 @@ pub trait AlpmParser: Sized {
 ///
 ///     fn delimiter_error_context<'a, O, P>(
 ///         parser: P,
-///     ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+///     ) -> impl Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>
 ///     where
-///         P: Parser<&'a str, O, ErrMode<ContextError>>,
+///         P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
 ///     {
 ///         parser.context(StrContext::Label("alphanumeric characters"))
 ///     }
 /// }
 ///
 /// // The parser succeeds with a alphanumeric string that is followed by a newline.
-/// assert_eq!(
-///     Alphanumeric::parser_until_line_ending.parse_peek("abc123\nnext"),
-///     Ok(("\nnext", Alphanumeric("abc123".to_string())))
-/// );
+/// let (remaining, parsed) = Alphanumeric::parser_until_line_ending
+///     .parse_peek(Input::new("abc123\nnext"))
+///     .unwrap();
+/// assert_eq!(*remaining, "\nnext");
+/// assert_eq!(parsed, Alphanumeric("abc123".to_string()));
 ///
 /// // An alphanumeric string followed by a non-alphanumeric character that isn't a
 /// // newline will fail.
-/// assert!(matches!(
-///     Alphanumeric::parser_until_line_ending.parse_peek("abc123{\nnext"),
-///     Err(_),
-/// ));
+/// assert!(
+///     Alphanumeric::parser_until_line_ending
+///         .parse_peek(Input::new("abc123{\nnext"))
+///         .is_err()
+/// );
 ///
 /// // If we expect it to be a `{` though, it works just as expected.
-/// assert_eq!(
-///     Alphanumeric::parser_until("{").parse_peek("abc123{\nnext"),
-///     Ok(("{\nnext", Alphanumeric("abc123".to_string())))
-/// );
+/// let (remaining, parsed) = Alphanumeric::parser_until("{")
+///     .parse_peek(Input::new("abc123{\nnext"))
+///     .unwrap();
+/// assert_eq!(*remaining, "{\nnext");
+/// assert_eq!(parsed, Alphanumeric("abc123".to_string()));
 ///
 /// // Parsing the full string with `parser_until_eof` works as expected.
 /// assert_eq!(
@@ -176,9 +176,9 @@ pub trait ParserUntil: Sized {
     /// # Note
     ///
     /// Does not consume the `delimiter`.
-    fn parser_until<'a, P>(delimiter: P) -> impl Parser<&'a str, Self, ErrMode<ContextError>>
+    fn parser_until<'a, P>(delimiter: P) -> impl Parser<Input<'a>, Self, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, &'a str, ErrMode<ContextError>>;
+        P: Parser<Input<'a>, &'a str, ErrMode<ParseStack<'a>>>;
 
     /// Returns a [`Parser`] that parses an entire `input`.
     ///
@@ -188,7 +188,7 @@ pub trait ParserUntil: Sized {
     ///
     /// The returned [`Parser`] is required to fully consume `input`.
     #[inline]
-    fn parser_until_eof(input: &mut &str) -> ModalResult<Self> {
+    fn parser_until_eof<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         Self::parser_until(eof).parse_next(input)
     }
 
@@ -201,7 +201,7 @@ pub trait ParserUntil: Sized {
     ///
     /// The line ending is not consumed.
     #[inline]
-    fn parser_until_line_ending(input: &mut &str) -> ModalResult<Self> {
+    fn parser_until_line_ending<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         Self::parser_until(line_ending_or_eof).parse_next(input)
     }
 }
@@ -209,13 +209,9 @@ pub trait ParserUntil: Sized {
 impl<U: AlpmParser> ParserUntil for U {
     /// Returns a [`Parser`] that parses `Self` until the given `delimiter` parser
     /// matches.
-    ///
-    /// # Note
-    ///
-    /// Does not consume the delimiter.
-    fn parser_until<'a, P>(delimiter: P) -> impl Parser<&'a str, Self, ErrMode<ContextError>>
+    fn parser_until<'a, P>(delimiter: P) -> impl Parser<Input<'a>, Self, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, &'a str, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, &'a str, ErrMode<ParseStack<'a>>>,
     {
         terminated(U::parser, Self::delimiter_error_context(peek(delimiter)))
     }
@@ -232,13 +228,8 @@ impl<U: AlpmParser> ParserUntil for U {
 /// # Examples
 ///
 /// ```rust
-/// use alpm_parsers::traits::{AlpmParser, ParserUntil, ParserUntilInclusive};
-/// use winnow::{
-///     ModalResult,
-///     Parser,
-///     error::{ContextError, ErrMode},
-///     token::take_while,
-/// };
+/// use alpm_parsers::prelude::*;
+/// use winnow::{Parser, token::take_while};
 ///
 /// # fn main() -> testresult::TestResult {
 /// #[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
@@ -247,17 +238,18 @@ impl<U: AlpmParser> ParserUntil for U {
 /// // Implementing `AlpmParser` automatically implements `ParserUntilInclusive`:
 /// // `ParserUntil` is auto-implemented over `AlpmParser` and `ParserUntilInclusive` is auto-implemented over `ParserUntil`.
 /// impl AlpmParser for Alphanumeric {
-///     fn parser(input: &mut &str) -> ModalResult<Self> {
+///     fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
 ///         take_while(1.., |c: char| c.is_alphanumeric())
 ///             .map(|s: &str| Alphanumeric(s.to_string()))
 ///             .parse_next(input)
 ///     }
 /// }
 ///
-/// assert_eq!(
-///     Alphanumeric::parser_until_line_ending_inclusive.parse_peek("abc123\nnext"),
-///     Ok(("next", Alphanumeric("abc123".to_string())))
-/// );
+/// let (remaining, parsed) = Alphanumeric::parser_until_line_ending_inclusive
+///     .parse_peek(Input::new("abc123\nnext"))
+///     .unwrap();
+/// assert_eq!(*remaining, "next");
+/// assert_eq!(parsed, Alphanumeric("abc123".to_string()));
 ///
 /// # Ok(())
 /// # }
@@ -266,9 +258,9 @@ pub trait ParserUntilInclusive: Sized {
     /// Returns a [`Parser`] that parses the whole input and consumes the given `delimiter` parser.
     fn parser_until_inclusive<'a, P>(
         delimiter: P,
-    ) -> impl Parser<&'a str, Self, ErrMode<ContextError>>
+    ) -> impl Parser<Input<'a>, Self, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, &'a str, ErrMode<ContextError>>;
+        P: Parser<Input<'a>, &'a str, ErrMode<ParseStack<'a>>>;
 
     /// Returns a [`Parser`] that parses until the end of line and fully consumes it.
     ///
@@ -277,7 +269,7 @@ pub trait ParserUntilInclusive: Sized {
     ///
     /// A line ending is `\n`, `\r\n` or [`eof`] and consumed as well.
     #[inline]
-    fn parser_until_line_ending_inclusive(input: &mut &str) -> ModalResult<Self> {
+    fn parser_until_line_ending_inclusive<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         Self::parser_until_inclusive(line_ending_or_eof).parse_next(input)
     }
 }
@@ -289,13 +281,13 @@ impl<U: ParserUntil> ParserUntilInclusive for U {
     #[inline]
     fn parser_until_inclusive<'a, P>(
         delimiter: P,
-    ) -> impl Parser<&'a str, Self, ErrMode<ContextError>>
+    ) -> impl Parser<Input<'a>, Self, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, &'a str, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, &'a str, ErrMode<ParseStack<'a>>>,
     {
         // The delimiter is moved into the closure and borrowed via `by_ref()` on each call.
         let mut delimiter = delimiter;
-        move |input: &mut &'a str| {
+        move |input: &mut Input<'a>| {
             let parsed = U::parser_until(delimiter.by_ref()).parse_next(input)?;
             // Since `U::parser_until` succeeded, we **know** that the delimiter exists.
             // The following does thereby not fail and does not need context.

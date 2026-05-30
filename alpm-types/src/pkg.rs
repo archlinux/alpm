@@ -1,18 +1,14 @@
 use std::{convert::Infallible, fmt::Display, str::FromStr};
 
-use alpm_parsers::{
-    iter_str_context,
-    traits::{AlpmParser, ParserUntil},
-};
+use alpm_parsers::{iter_str_context, prelude::*};
 use serde::{Deserialize, Serialize};
 use serde_with::{DeserializeFromStr, SerializeDisplay};
 use strum::{Display, EnumString, VariantNames};
 use winnow::{
-    ModalResult,
     Parser,
     ascii::{alpha1, space0},
     combinator::{alt, not, peek, repeat_till},
-    error::{ContextError, ErrMode, StrContext, StrContextValue},
+    error::{ErrMode, StrContext, StrContextValue},
     token::any,
 };
 
@@ -58,7 +54,7 @@ impl AlpmParser for PackageType {
     ///
     /// Returns an error if the immediate alphanumeric `input` is not a valid variant
     /// a `PackageType`.
-    fn parser(input: &mut &str) -> Result<Self, ErrMode<ContextError>> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         alpha1
             .try_map(PackageType::from_str)
             .context(StrContext::Label("package type"))
@@ -68,9 +64,9 @@ impl AlpmParser for PackageType {
 
     fn delimiter_error_context<'a, O, P>(
         parser: P,
-    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    ) -> impl Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, O, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
             .context(StrContext::Label("package type"))
@@ -220,14 +216,14 @@ impl ParserUntil for ExtraDataEntry {
     /// # Errors
     ///
     /// Returns an error if `input` does not represent a valid [`ExtraDataEntry`].
-    fn parser_until<'a, P>(delimiter: P) -> impl Parser<&'a str, Self, ErrMode<ContextError>>
+    fn parser_until<'a, P>(delimiter: P) -> impl Parser<Input<'a>, Self, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, &'a str, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, &'a str, ErrMode<ParseStack<'a>>>,
     {
         // Define the actual parser closure.
         // The delimiter is moved into the closure and borrowed via `by_ref()` on each call.
         let mut delimiter_parser = delimiter;
-        move |input: &mut &'a str| -> ModalResult<Self> {
+        move |input: &mut Input<'a>| -> PResult<'a, Self> {
             // Handle the case were there's no key
             not("=")
                 .context(StrContext::Label("extra data"))
@@ -306,7 +302,7 @@ impl FromStr for ExtraDataEntry {
     /// # }
     /// ```
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser_until_eof.parse(s)?)
+        Ok(Self::parser_until_eof.parse(Input::new(s))?)
     }
 }
 

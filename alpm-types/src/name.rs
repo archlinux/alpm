@@ -4,16 +4,12 @@ use std::{
     string::ToString,
 };
 
-use alpm_parsers::{
-    iter_char_context,
-    traits::{AlpmParser, ParserUntil},
-};
+use alpm_parsers::{iter_char_context, prelude::*};
 use serde::{Deserialize, Serialize};
 use winnow::{
-    ModalResult,
     Parser,
     combinator::{Repeat, alt, eof, peek, repeat, repeat_till},
-    error::{ContextError, ErrMode, StrContext, StrContextValue},
+    error::{ErrMode, StrContext, StrContextValue},
     token::one_of,
 };
 
@@ -177,7 +173,7 @@ impl Name {
     /// [alpm-package-name]: https://alpm.archlinux.page/specifications/alpm-package-name.7.html
     pub(crate) fn parse_name_followed_by_version<'a>(
         delimiter_count: usize,
-    ) -> impl Parser<&'a str, Self, ErrMode<ContextError>> {
+    ) -> impl Parser<Input<'a>, Self, ErrMode<ParseStack<'a>>> {
         let never_first_char_list = ['_', '@', '+', '.'];
 
         let alphanum = |c: char| c.is_ascii_alphanumeric();
@@ -253,7 +249,7 @@ impl AlpmParser for Name {
     /// Returns an error if `input` does not begin with a [alpm-package-name].
     ///
     /// [alpm-package-version]: https://alpm.archlinux.page/specifications/alpm-package-name.7.html
-    fn parser(input: &mut &str) -> ModalResult<Self> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         let alphanum = |c: char| c.is_ascii_alphanumeric();
         let first_char = one_of((alphanum, Self::SPECIAL_FIRST_CHARS))
             .context(StrContext::Label("first character of package name"))
@@ -278,9 +274,9 @@ impl AlpmParser for Name {
 
     fn delimiter_error_context<'a, O, P>(
         parser: P,
-    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    ) -> impl Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, O, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
             .context(StrContext::Label("character in package name"))
@@ -302,7 +298,7 @@ impl FromStr for Name {
     ///
     /// Returns an error if [`Name::parser`] fails.
     fn from_str(s: &str) -> Result<Name, Self::Err> {
-        Ok(Self::parser_until_eof.parse(s)?)
+        Ok(Self::parser_until_eof.parse(Input::new(s))?)
     }
 }
 
@@ -354,7 +350,7 @@ impl SharedObjectName {
 
 impl AlpmParser for SharedObjectName {
     /// Parses a [`SharedObjectName`] from a string slice.
-    fn parser(input: &mut &str) -> ModalResult<Self> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         // The SharedObjectName is basically a `Name` with extra restrictions (as it requires an
         // `.so`) extension.
         // As such, we re-implement the `Name` logic to ensure proper error handling.
@@ -389,9 +385,9 @@ impl AlpmParser for SharedObjectName {
 
     fn delimiter_error_context<'a, O, P>(
         parser: P,
-    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    ) -> impl Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, O, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
             .context(StrContext::Label("shared object name"))
@@ -405,7 +401,7 @@ impl FromStr for SharedObjectName {
     type Err = Error;
     /// Create an [`SharedObjectName`] from a string and return it in a Result
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser_until_eof.parse(s)?)
+        Ok(Self::parser_until_eof.parse(Input::new(s))?)
     }
 }
 

@@ -16,7 +16,7 @@ pub mod prelude {
     };
 
     pub use crate::{
-        error::{Input, LayerExt, LayerParser, PResult},
+        error::{Input, LayerExt, LayerParser, PResult, ParseStack},
         traits::{AlpmParser, ParserUntil, ParserUntilInclusive},
     };
 }

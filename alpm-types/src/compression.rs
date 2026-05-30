@@ -5,13 +5,13 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::{iter_str_context, traits::AlpmParser};
+use alpm_parsers::{iter_str_context, prelude::*};
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, Display, EnumString, IntoStaticStr, VariantNames};
 use winnow::{
     Parser,
     ascii::alphanumeric1,
-    error::{ContextError, ErrMode, StrContext, StrContextValue},
+    error::{ErrMode, StrContext, StrContextValue},
 };
 
 /// The file extension of a compression algorithm.
@@ -110,7 +110,7 @@ impl AlpmParser for CompressionAlgorithmFileExtension {
     ///
     /// Returns an error if the immediate alphanumeric `input` is not a valid variant
     /// a `CompressionAlgorithmFileExtension`.
-    fn parser(input: &mut &str) -> Result<Self, ErrMode<ContextError>> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         alphanumeric1
             .try_map(CompressionAlgorithmFileExtension::from_str)
             .context(StrContext::Label("compression algorithm file extension"))
@@ -122,9 +122,9 @@ impl AlpmParser for CompressionAlgorithmFileExtension {
 
     fn delimiter_error_context<'a, O, P>(
         parser: P,
-    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    ) -> impl Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, O, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
             .context(StrContext::Label("compression algorithm file extension"))

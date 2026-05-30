@@ -5,14 +5,13 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::{iter_str_context, traits::ParserUntil};
+use alpm_parsers::{iter_str_context, prelude::*};
 use serde::{Deserialize, Serialize};
 use winnow::{
-    ModalResult,
     Parser,
     ascii::alpha1,
     combinator::{alt, eof, not, opt, peek, repeat_till, terminated},
-    error::{ContextError, ErrMode, StrContext, StrContextValue},
+    error::{ErrMode, StrContext, StrContextValue},
     token::{any, rest},
 };
 
@@ -182,7 +181,7 @@ impl FromStr for SourceUrl {
     /// # }
     /// ```
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser_until_eof.parse(s)?)
+        Ok(Self::parser_until_eof.parse(Input::new(s))?)
     }
 }
 
@@ -261,14 +260,14 @@ impl ParserUntil for SourceUrl {
     ///
     /// Returns an error if `input` does not begin with a valid `SourceUrl`, followed by the
     /// specified delimiter.
-    fn parser_until<'a, P>(delimiter: P) -> impl Parser<&'a str, Self, ErrMode<ContextError>>
+    fn parser_until<'a, P>(delimiter: P) -> impl Parser<Input<'a>, Self, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, &'a str, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, &'a str, ErrMode<ParseStack<'a>>>,
     {
         // Define the actual parser closure.
         // The delimiter is moved into the closure and borrowed via `by_ref()` on each call.
         let mut delimiter = delimiter;
-        move |input: &mut &'a str| -> ModalResult<Self> {
+        move |input: &mut Input<'a>| -> PResult<Self> {
             // Check if we should use a VCS for this URL.
             let vcs = opt(VcsProtocol::parser).parse_next(input)?;
 
@@ -375,8 +374,8 @@ impl VcsInfo {
     ///
     /// As the parser is parameterized due to the earlier detected [`VcsProtocol`], it returns a
     /// new stateful parser closure.
-    fn parser(vcs: VcsProtocol) -> impl FnMut(&mut &str) -> ModalResult<VcsInfo> {
-        move |input: &mut &str| match vcs {
+    fn parser<'a>(vcs: VcsProtocol) -> impl Parser<Input<'a>, VcsInfo, ErrMode<ParseStack<'a>>> {
+        move |input: &mut Input<'a>| match vcs {
             VcsProtocol::Bzr => {
                 let fragment = BzrFragment::parser.parse_next(input)?;
                 Ok(VcsInfo::Bzr { fragment })
@@ -437,7 +436,7 @@ impl VcsProtocol {
     ///   `scheme` component of the URL itself:
     ///    - `git://...`
     ///    - `svn://...`
-    fn parser(input: &mut &str) -> ModalResult<VcsProtocol> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, VcsProtocol> {
         // Check for an explicit vcs definition like `git+` first.
         let protocol =
             opt(terminated(alpha1.try_map(VcsProtocol::from_str), "+")).parse_next(input)?;
@@ -468,7 +467,7 @@ impl VcsProtocol {
 /// E.g. `tag=v1.0.0`
 ///           ^^^^^^
 ///          This part
-fn fragment_value(input: &mut &str) -> ModalResult<String> {
+fn fragment_value<'a>(input: &mut Input<'a>) -> PResult<'a, String> {
     // Error if we don't find the separator
     let _ = "="
         .context(StrContext::Label("fragment separator"))
@@ -503,7 +502,7 @@ impl BzrFragment {
     /// Recognizes URL fragments and values specific to Breezy VCS.
     ///
     /// This parser considers all variants of [`BzrFragment`] (including a leading `#` character).
-    fn parser(input: &mut &str) -> ModalResult<Option<BzrFragment>> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Option<BzrFragment>> {
         // Check for the `#` fragment start first. If it isn't here, there's no fragment.
         let exists = opt("#").parse_next(input)?;
         if exists.is_none() {
@@ -551,7 +550,7 @@ impl FossilFragment {
     ///
     /// This parser considers all variants of [`FossilFragment`] as fragments in an
     /// alpm-package-source string (including the leading `#` character).
-    fn parser(input: &mut &str) -> ModalResult<Option<FossilFragment>> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Option<FossilFragment>> {
         // Check for the `#` fragment start first. If it isn't here, there's no fragment.
         let exists = opt("#").parse_next(input)?;
         if exists.is_none() {
@@ -605,7 +604,7 @@ impl GitFragment {
     ///
     /// This parser considers all variants of [`GitFragment`] as fragments in an alpm-package-source
     /// string (including the leading `#` character).
-    fn parser(input: &mut &str) -> ModalResult<Option<GitFragment>> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Option<GitFragment>> {
         // Check for the `#` fragment start first. If it isn't here, there's no fragment.
         let exists = opt("#").parse_next(input)?;
         if exists.is_none() {
@@ -635,7 +634,7 @@ impl GitFragment {
 /// Recognizes URL queries specific to the Git VCS.
 ///
 /// This parser considers the `?signed` URL query in an alpm-package-source string.
-fn git_query(input: &mut &str) -> ModalResult<bool> {
+fn git_query<'a>(input: &mut Input<'a>) -> PResult<'a, bool> {
     let query = opt("?signed").parse_next(input)?;
     Ok(query.is_some())
 }
@@ -667,7 +666,7 @@ impl HgFragment {
     ///
     /// This parser considers all variants of [`HgFragment`] as fragments in an alpm-package-source
     /// string (including the leading `#` character).
-    fn parser(input: &mut &str) -> ModalResult<Option<HgFragment>> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Option<HgFragment>> {
         // Check for the `#` fragment start first. If it isn't here, there's no fragment.
         let exists = opt("#").parse_next(input)?;
         if exists.is_none() {
@@ -715,7 +714,7 @@ impl SvnFragment {
     ///
     /// This parser considers all variants of [`SvnFragment`] as fragments in an alpm-package-source
     /// string (including the leading `#` character).
-    fn parser(input: &mut &str) -> ModalResult<Option<SvnFragment>> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Option<SvnFragment>> {
         // Check for the `#` fragment start first. If it isn't here, there's no fragment.
         let exists = opt("#").parse_next(input)?;
         if exists.is_none() {

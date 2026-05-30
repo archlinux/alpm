@@ -3,20 +3,14 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::{
-    iter_char_context,
-    iter_str_context,
-    traits::{AlpmParser, ParserUntil},
-};
+use alpm_parsers::{iter_char_context, iter_str_context, prelude::*};
 use serde::{Deserialize, Serialize};
 use strum::VariantNames;
 use winnow::{
-    ModalResult,
     Parser,
     combinator::{alt, cut_err, fail, opt, peek, repeat, repeat_till},
     error::{
         AddContext,
-        ContextError,
         ErrMode,
         ParserError,
         StrContext,
@@ -50,7 +44,7 @@ use crate::{
 /// # Errors
 ///
 /// If the input string does not match the expected format, an error will be returned.
-fn option_bool_parser(input: &mut &str) -> ModalResult<bool> {
+fn option_bool_parser<'a>(input: &mut Input<'a>) -> PResult<'a, bool> {
     let alphanum = |c: char| c.is_ascii_alphanumeric();
     let special_first_chars = ['-', '.', '_', '!'];
     let valid_chars = one_of((alphanum, special_first_chars));
@@ -80,7 +74,7 @@ pub static SPECIAL_OPTION_CHARS: [char; 3] = ['-', '.', '_'];
 /// # Errors
 ///
 /// If the input string does not match the expected format, an error will be returned.
-fn option_name_parser<'s>(input: &mut &'s str) -> ModalResult<&'s str> {
+fn option_name_parser<'s>(input: &mut Input<'s>) -> PResult<'s, &'s str> {
     let alphanum = |c: char| c.is_ascii_alphanumeric();
 
     let valid_chars = one_of((alphanum, SPECIAL_OPTION_CHARS));
@@ -114,7 +108,7 @@ impl AlpmParser for MakepkgOption {
     /// # Errors
     ///
     /// Returns an error if `input` is neither of the listed options.
-    fn parser(input: &mut &str) -> ModalResult<Self> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         alt((
             BuildEnvironmentOption::parser.map(MakepkgOption::BuildEnvironment),
             PackageOption::parser.map(MakepkgOption::Package),
@@ -129,9 +123,9 @@ impl AlpmParser for MakepkgOption {
 
     fn delimiter_error_context<'a, O, P>(
         parser: P,
-    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    ) -> impl Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, O, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
             .context(StrContext::Label("makepkg option"))
@@ -146,7 +140,7 @@ impl FromStr for MakepkgOption {
     type Err = Error;
     /// Creates a [`MakepkgOption`] from string slice.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser.parse(s)?)
+        Ok(Self::parser.parse(Input::new(s))?)
     }
 }
 
@@ -258,9 +252,9 @@ impl AlpmParser for BuildEnvironmentOption {
     /// # Errors
     ///
     /// Returns an error if `input` is not a valid build environment option.
-    fn parser(input: &mut &str) -> ModalResult<Self> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         let on = option_bool_parser.parse_next(input)?;
-        let mut name = option_name_parser.parse_next(input)?;
+        let name = option_name_parser.parse_next(input)?;
 
         alt((
             "buildflags".value(Self::BuildFlags(on)),
@@ -273,14 +267,14 @@ impl AlpmParser for BuildEnvironmentOption {
             fail.context(StrContext::Label("makepkg build environment option"))
                 .context_with(iter_str_context!([BuildEnvironmentOption::VARIANTS])),
         ))
-        .parse_next(&mut name)
+        .parse_next(&mut Input::new(name))
     }
 
     fn delimiter_error_context<'a, O, P>(
         parser: P,
-    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    ) -> impl Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, O, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
             .context(StrContext::Label("build environment option"))
@@ -301,7 +295,7 @@ impl FromStr for BuildEnvironmentOption {
     ///
     /// Returns an error if [`BuildEnvironmentOption::parser`] fails.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser_until_eof.parse(s)?)
+        Ok(Self::parser_until_eof.parse(Input::new(s))?)
     }
 }
 
@@ -436,9 +430,9 @@ impl AlpmParser for PackageOption {
     /// # Errors
     ///
     /// Returns an error if `input` is not the valid string representation of a [`PackageOption`].
-    fn parser(input: &mut &str) -> ModalResult<Self> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         let on = option_bool_parser.parse_next(input)?;
-        let mut name = option_name_parser.parse_next(input)?;
+        let name = option_name_parser.parse_next(input)?;
 
         alt((
             alt((
@@ -459,14 +453,14 @@ impl AlpmParser for PackageOption {
             fail.context(StrContext::Label("makepkg packaging option"))
                 .context_with(iter_str_context!([PackageOption::VARIANTS])),
         ))
-        .parse_next(&mut name)
+        .parse_next(&mut Input::new(name))
     }
 
     fn delimiter_error_context<'a, O, P>(
         parser: P,
-    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    ) -> impl Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, O, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
             .context(StrContext::Label("package option"))
@@ -487,7 +481,7 @@ impl FromStr for PackageOption {
     ///
     /// Returns an error if [`PackageOption::parser`] fails.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser_until_eof.parse(s)?)
+        Ok(Self::parser_until_eof.parse(Input::new(s))?)
     }
 }
 
@@ -669,7 +663,7 @@ impl ParserUntil for InstalledPackage {
     /// # Examples
     ///
     /// ```
-    /// use alpm_parsers::traits::ParserUntil;
+    /// use alpm_parsers::prelude::*;
     /// use alpm_types::InstalledPackage;
     /// use winnow::Parser;
     ///
@@ -677,19 +671,21 @@ impl ParserUntil for InstalledPackage {
     /// let name = "example-package-1:1.0.0-1-x86_64";
     /// assert_eq!(
     ///     name,
-    ///     InstalledPackage::parser_until_eof.parse(name)?.to_string()
+    ///     InstalledPackage::parser_until_eof
+    ///         .parse(Input::new(name))?
+    ///         .to_string()
     /// );
     /// # Ok(())
     /// # }
     /// ```
-    fn parser_until<'a, P>(delimiter: P) -> impl Parser<&'a str, Self, ErrMode<ContextError>>
+    fn parser_until<'a, P>(delimiter: P) -> impl Parser<Input<'a>, Self, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, &'a str, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, &'a str, ErrMode<ParseStack<'a>>>,
     {
         // Define the actual parser closure.
         // The delimiter is moved into the closure and borrowed via `by_ref()` on each call.
         let mut delimiter_parser = delimiter;
-        move |input: &mut &'a str| -> ModalResult<Self> {
+        move |input: &mut Input<'a>| -> PResult<'a, Self> {
             // Detect the amount of dashes in input and subsequently in the Name component.
             //
             // This is a necessary step because dashes are used as delimiters between the
@@ -716,7 +712,7 @@ impl ParserUntil for InstalledPackage {
             input.reset(&checkpoint);
 
             if dashes < 2 {
-                let context_error = ContextError::from_input(input)
+                let context_error = ParseStack::from_input(input)
                 .add_context(
                     input,
                     &input.checkpoint(),
@@ -816,7 +812,7 @@ impl FromStr for InstalledPackage {
     /// # }
     /// ```
     fn from_str(s: &str) -> Result<InstalledPackage, Self::Err> {
-        Ok(Self::parser_until_eof.parse(s)?)
+        Ok(Self::parser_until_eof.parse(Input::new(s))?)
     }
 }
 

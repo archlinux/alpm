@@ -43,6 +43,7 @@ winnow.workspace = true
 
 [dev-dependencies]
 insta.workspace = true
+colored.workspace = true
 proptest.workspace = true
 rstest.workspace = true
 simplelog.workspace = true
