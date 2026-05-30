@@ -15,8 +15,10 @@ version = "0.4.1"
 _winnow-debug = ["winnow/debug"]
 
 [dependencies]
+colored.workspace = true
 serde.workspace = true
 testresult.workspace = true
+unicode-width.workspace = true
 winnow.workspace = true
 
 [dev-dependencies]
