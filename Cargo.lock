@@ -255,10 +255,12 @@ dependencies = [
 name = "alpm-parsers"
 version = "0.4.1"
 dependencies = [
+ "colored",
  "insta",
  "rstest",
  "serde",
  "testresult",
+ "unicode-width",
  "winnow 1.0.0",
 ]
 
