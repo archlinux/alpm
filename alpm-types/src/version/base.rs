@@ -15,14 +15,13 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::traits::{AlpmParser, ParserUntil};
+use alpm_parsers::prelude::*;
 use serde::{Deserialize, Serialize};
 use winnow::{
-    ModalResult,
     Parser,
     ascii::{dec_uint, digit1},
     combinator::opt,
-    error::{ContextError, ErrMode, StrContext, StrContextValue},
+    error::{ErrMode, StrContext, StrContextValue},
     token::take_while,
 };
 
@@ -66,7 +65,7 @@ impl AlpmParser for Epoch {
     /// # Errors
     ///
     /// Returns an error if the immediate start of `input` does not contain a valid _alpm_epoch_.
-    fn parser(input: &mut &str) -> ModalResult<Self> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         dec_uint
             .verify_map(NonZeroUsize::new)
             .context(StrContext::Label("package epoch"))
@@ -79,9 +78,9 @@ impl AlpmParser for Epoch {
 
     fn delimiter_error_context<'a, O, P>(
         parser: P,
-    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    ) -> impl Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, O, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
             .context(StrContext::Label("package epoch"))
@@ -95,7 +94,7 @@ impl FromStr for Epoch {
     type Err = Error;
     /// Create an Epoch from a string and return it in a Result
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser_until_eof.parse(s)?)
+        Ok(Self::parser_until_eof.parse(Input::new(s))?)
     }
 }
 
@@ -160,7 +159,9 @@ impl AlpmParser for PackageRelease {
     ///
     /// Returns an error if the immediate start of `input` does not contain a valid
     /// [`PackageRelease`].
-    fn parser(input: &mut &str) -> ModalResult<Self> {
+    ///
+    /// TODO: Decide whether to put the layer inside or outside?
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         let major = digit1
             .try_map(FromStr::from_str)
             .context(StrContext::Label("package release"))
@@ -189,9 +190,9 @@ impl AlpmParser for PackageRelease {
 
     fn delimiter_error_context<'a, O, P>(
         parser: P,
-    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    ) -> impl Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, O, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
             .context(StrContext::Label("package release"))
@@ -211,7 +212,7 @@ impl FromStr for PackageRelease {
     ///
     /// Returns an error if [`PackageRelease::parser`] fails.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser_until_eof.parse(s)?)
+        Ok(Self::parser_until_eof.parse(Input::new(s))?)
     }
 }
 
@@ -300,7 +301,7 @@ impl AlpmParser for PackageVersion {
     /// Returns an error if the immediate start of `input` does not contain a valid [alpm-pkgver].
     ///
     /// [alpm-pkgver]: https://alpm.archlinux.page/specifications/alpm-pkgver.7.html
-    fn parser(input: &mut &str) -> ModalResult<Self> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         // General rule for all characters:
         // only ASCII except for ':', '/', '-', '<', '>', '=' or any whitespace
         let allowed = |c: char| {
@@ -318,9 +319,9 @@ impl AlpmParser for PackageVersion {
 
     fn delimiter_error_context<'a, O, P>(
         parser: P,
-    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    ) -> impl Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, O, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser.context(StrContext::Label("pkgver character"))
             .context(StrContext::Expected(StrContextValue::Description(
@@ -333,7 +334,7 @@ impl FromStr for PackageVersion {
     type Err = Error;
     /// Create a PackageVersion from a string and return it in a Result
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser_until_eof.parse(s)?)
+        Ok(Self::parser_until_eof.parse(Input::new(s))?)
     }
 }
 

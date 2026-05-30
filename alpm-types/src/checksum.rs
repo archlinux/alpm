@@ -5,16 +5,15 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::traits::AlpmParser;
+use alpm_parsers::prelude::*;
 use digest::{Digest, FixedOutput, HashMarker, Output, OutputSizeUser, Update};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use strum::{Display, EnumString, VariantArray, VariantNames};
 use winnow::{
-    ModalResult,
     Parser,
     ascii::dec_uint,
     combinator::{alt, cut_err, not, repeat},
-    error::{StrContext, StrContextValue},
+    error::{ErrMode, StrContext, StrContextValue},
     token::one_of,
 };
 
@@ -318,12 +317,12 @@ impl<D: DigestString> AlpmParser for Checksum<D> {
     ///
     /// Returns an error if the immediate `input` is not the output of a _hash function_
     /// in hexadecimal (or decimal in case of CRC-32/CKSUM) form.
-    fn parser(input: &mut &str) -> ModalResult<Self> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         /// Consume 1 hex digit and return its hex value.
         ///
         /// Accepts uppercase or lowercase.
         #[inline]
-        fn hex_digit(input: &mut &str) -> ModalResult<u8> {
+        fn hex_digit<'a>(input: &mut Input<'a>) -> PResult<'a, u8> {
             one_of(('0'..='9', 'a'..='f', 'A'..='F'))
                 .map(|d: char|
                     // unwraps are unreachable: their invariants are always
@@ -406,9 +405,9 @@ impl<D: DigestString> AlpmParser for Checksum<D> {
 
     fn delimiter_error_context<'a, O, P>(
         parser: P,
-    ) -> impl Parser<&'a str, O, winnow::error::ErrMode<winnow::error::ContextError>>
+    ) -> impl Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, O, winnow::error::ErrMode<winnow::error::ContextError>>,
+        P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
             .context(StrContext::Label("character in checksum"))
@@ -439,7 +438,7 @@ impl<D: DigestString> FromStr for Checksum<D> {
     /// assert!(Checksum::<Blake2b512>::from_str("d202d7951df2c4b711ca44b4bcc9d7b363fa4252127e058c1a910ec05b6cd038d71cc21221c031c0359f993e746b07f5965cf8c5c3746a58337ad9ab65278e7x").is_err());
     /// ```
     fn from_str(s: &str) -> Result<Checksum<D>, Self::Err> {
-        Ok(Checksum::parser.parse(s)?)
+        Ok(Checksum::parser.parse(Input::new(s))?)
     }
 }
 
@@ -534,7 +533,7 @@ impl<D: DigestString + Clone> AlpmParser for SkippableChecksum<D> {
     ///
     /// Returns an error if the immediate `input` is not the output of a _hash function_
     /// in hexadecimal (or decimal in case of CRC-32/CKSUM) form, or the keyword `SKIP`.
-    fn parser(input: &mut &str) -> ModalResult<Self> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         alt((
             "SKIP".value(Self::Skip),
             Checksum::parser.map(|digest| Self::Checksum { digest }),
@@ -547,9 +546,9 @@ impl<D: DigestString + Clone> AlpmParser for SkippableChecksum<D> {
 
     fn delimiter_error_context<'a, O, P>(
         parser: P,
-    ) -> impl Parser<&'a str, O, winnow::error::ErrMode<winnow::error::ContextError>>
+    ) -> impl Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, O, winnow::error::ErrMode<winnow::error::ContextError>>,
+        P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser.context(StrContext::Expected(StrContextValue::Description(
             "end of checksum.",
@@ -580,7 +579,7 @@ impl<D: DigestString + Clone> FromStr for SkippableChecksum<D> {
     /// );
     /// ```
     fn from_str(s: &str) -> Result<SkippableChecksum<D>, Self::Err> {
-        Ok(Self::parser.parse(s)?)
+        Ok(Self::parser.parse(Input::new(s))?)
     }
 }
 

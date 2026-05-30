@@ -5,13 +5,12 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::traits::{AlpmParser, ParserUntil};
+use alpm_parsers::prelude::*;
 use serde::Serialize;
 use winnow::{
     Parser,
     combinator::opt,
-    error::{ContextError, ErrMode, StrContext, StrContextValue},
-    prelude::ModalResult,
+    error::{ErrMode, StrContext, StrContextValue},
 };
 
 #[cfg(doc)]
@@ -123,7 +122,7 @@ impl AlpmParser for BuildToolVersion {
     ///
     /// Returns an error if the immediate start of the `input` does not a contain a valid
     /// `BuildToolVersion`.
-    fn parser(input: &mut &str) -> ModalResult<Self> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         // The start can either be:
         // - A minimal version (no pkgrel, thereby shorter)
         // - A full version together with an `-` and an architecture.
@@ -157,9 +156,9 @@ impl AlpmParser for BuildToolVersion {
 
     fn delimiter_error_context<'a, O, P>(
         parser: P,
-    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    ) -> impl Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, O, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
             .context(StrContext::Label("buildtool version"))
@@ -181,7 +180,7 @@ impl FromStr for BuildToolVersion {
     ///   the left-hand side is not a valid [`FullVersion`] or the right hand side is not a valid
     ///   [`Architecture`].
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser_until_eof.parse(s)?)
+        Ok(Self::parser_until_eof.parse(Input::new(s))?)
     }
 }
 

@@ -8,13 +8,12 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::traits::{AlpmParser, ParserUntil};
+use alpm_parsers::prelude::*;
 use serde::{Deserialize, Serialize};
 use winnow::{
-    ModalResult,
     Parser,
     combinator::{alt, eof, opt, peek, repeat_till},
-    error::{ContextError, ErrMode, StrContext, StrContextValue},
+    error::{ErrMode, StrContext, StrContextValue},
     token::any,
 };
 
@@ -38,7 +37,7 @@ impl FromStr for VersionOrSoname {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser.parse(s)?)
+        Ok(Self::parser.parse(Input::new(s))?)
     }
 }
 
@@ -47,7 +46,7 @@ impl AlpmParser for VersionOrSoname {
     ///
     /// First attempts to recognize a [`SharedObjectName`] and if that fails, falls back to
     /// recognizing a [`PackageVersion`].
-    fn parser(input: &mut &str) -> ModalResult<Self> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         alt((
             SharedObjectName::parser.map(VersionOrSoname::Soname),
             PackageVersion::parser.map(VersionOrSoname::Version),
@@ -61,9 +60,9 @@ impl AlpmParser for VersionOrSoname {
 
     fn delimiter_error_context<'a, O, P>(
         parser: P,
-    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    ) -> impl Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, O, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
             .context(StrContext::Label("version or shared object name"))
@@ -349,7 +348,7 @@ impl AlpmParser for SonameV1 {
     /// Returns an error if the immediate start of `input` does not a valid [alpm-sonamev1].
     ///
     /// [alpm-sonamev1]: https://alpm.archlinux.page/specifications/alpm-sonamev1.7.html
-    fn parser(input: &mut &str) -> ModalResult<Self> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         // Parse the shared object name.
         let name = repeat_till(1.., any, peek(alt(("=", eof))))
             .try_map(|(name, _): (String, &str)| SharedObjectName::from_str(&name))
@@ -400,9 +399,9 @@ impl AlpmParser for SonameV1 {
 
     fn delimiter_error_context<'a, O, P>(
         parser: P,
-    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    ) -> impl Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, O, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
             .context(StrContext::Label("sonamev1"))
@@ -454,7 +453,7 @@ impl FromStr for SonameV1 {
     /// # }
     /// ```
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser_until_eof.parse(s)?)
+        Ok(Self::parser_until_eof.parse(Input::new(s))?)
     }
 }
 
@@ -513,7 +512,7 @@ impl Soname {
     /// - `<name>.so`: A shared object name without a version. (e.g. `libexample.so`)
     /// - `<name>.so.<version>`: A shared object name with a version. (e.g. `libexample.so.1`)
     ///     - The version must be a valid [`PackageVersion`].
-    pub fn parser(input: &mut &str) -> ModalResult<Self> {
+    pub fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         // Note: This parser is pretty much all over the place and there's no to parse it in a
         // paradigmatic way. There're no clear delimiters, and parsing can effectively only be
         // achieved by splitting by `.` from the back of the string or by looking for `.so`, but
@@ -577,7 +576,7 @@ impl FromStr for Soname {
     /// # }
     /// ```
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser.parse(s)?)
+        Ok(Self::parser.parse(Input::new(s))?)
     }
 }
 
@@ -662,7 +661,7 @@ impl AlpmParser for SonameV2 {
     /// # Errors
     ///
     /// Returns an error if no [`SonameV2`] can be created from `input`.
-    fn parser(input: &mut &str) -> ModalResult<Self> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         // Parse everything from the start to the first `:` and parse as `SharedLibraryPrefix`.
         let prefix = repeat_till(1.., any, peek(alt((":", eof))))
             .try_map(|(name, _): (String, &str)| SharedLibraryPrefix::from_str(&name))
@@ -685,9 +684,9 @@ impl AlpmParser for SonameV2 {
 
     fn delimiter_error_context<'a, O, P>(
         parser: P,
-    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    ) -> impl Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, O, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
             .context(StrContext::Label("sonamev2"))
@@ -727,7 +726,7 @@ impl FromStr for SonameV2 {
     /// # }
     /// ```
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser_until_eof.parse(s)?)
+        Ok(Self::parser_until_eof.parse(Input::new(s))?)
     }
 }
 

@@ -4,16 +4,15 @@ use std::{
     string::ToString,
 };
 
-use alpm_parsers::traits::ParserUntil;
+use alpm_parsers::prelude::*;
 use base64::{Engine, prelude::BASE64_STANDARD};
 use email_address::EmailAddress;
 use fluent_i18n::t;
 use serde::{Deserialize, Serialize};
 use winnow::{
-    ModalResult,
     Parser,
     combinator::{alt, not, peek, repeat_till},
-    error::{ContextError, ErrMode, StrContext, StrContextValue},
+    error::{ErrMode, StrContext, StrContextValue},
     token::any,
 };
 
@@ -443,14 +442,14 @@ impl ParserUntil for Packager {
     /// # Errors
     ///
     /// Returns an error if `input` does not represent a valid [`Packager`].
-    fn parser_until<'a, P>(delimiter: P) -> impl Parser<&'a str, Self, ErrMode<ContextError>>
+    fn parser_until<'a, P>(delimiter: P) -> impl Parser<Input<'a>, Self, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, &'a str, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, &'a str, ErrMode<ParseStack<'a>>>,
     {
         // Define the actual parser closure.
         // The delimiter is moved into the closure and borrowed via `by_ref()` on each call.
         let mut delimiter_parser = delimiter;
-        move |input: &mut &'a str| -> ModalResult<Self> {
+        move |input: &mut Input<'a>| -> PResult<'a, Self> {
             // Make sure the first character isn't a `<`, which may happen if the packager name is
             // missing.
             not("<")
@@ -514,7 +513,7 @@ impl FromStr for Packager {
     type Err = Error;
     /// Create a Packager from a string
     fn from_str(s: &str) -> Result<Packager, Self::Err> {
-        Ok(Self::parser_until_eof.parse(s)?)
+        Ok(Self::parser_until_eof.parse(Input::new(s))?)
     }
 }
 

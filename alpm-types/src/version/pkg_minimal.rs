@@ -8,14 +8,13 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::traits::{AlpmParser, ParserUntil, ParserUntilInclusive};
+use alpm_parsers::prelude::*;
 use fluent_i18n::t;
 use serde::{Deserialize, Serialize};
 use winnow::{
-    ModalResult,
     Parser,
     combinator::opt,
-    error::{ContextError, ErrMode, StrContext, StrContextValue},
+    error::{ErrMode, StrContext, StrContextValue},
 };
 
 use crate::{Epoch, Error, PackageVersion, Version};
@@ -141,7 +140,7 @@ impl AlpmParser for MinimalVersion {
     /// epoch_).
     ///
     /// [alpm-package-version]: https://alpm.archlinux.page/specifications/alpm-package-version.7.html
-    fn parser(input: &mut &str) -> ModalResult<Self> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         // Parse an optional, which advances the cursor until after a ':', e.g.:
         // "1:1.0.0" -> "1.0.0"
         //
@@ -157,9 +156,9 @@ impl AlpmParser for MinimalVersion {
 
     fn delimiter_error_context<'a, O, P>(
         parser: P,
-    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    ) -> impl Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, O, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
             .context(StrContext::Label("minimal alpm-package-version"))
@@ -190,7 +189,7 @@ impl FromStr for MinimalVersion {
     ///
     /// Returns an error if [`Version::parser`] fails.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser_until_eof.parse(s)?)
+        Ok(Self::parser_until_eof.parse(Input::new(s))?)
     }
 }
 

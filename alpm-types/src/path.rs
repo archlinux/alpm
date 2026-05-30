@@ -4,13 +4,12 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::traits::ParserUntil;
+use alpm_parsers::prelude::*;
 use serde::{Deserialize, Serialize};
 use winnow::{
-    ModalResult,
     Parser,
     combinator::{alt, eof, peek, repeat_till},
-    error::{ContextError, ErrMode, StrContext, StrContextValue},
+    error::{ErrMode, StrContext, StrContextValue},
     token::any,
 };
 
@@ -368,14 +367,14 @@ impl ParserUntil for SonameLookupDirectory {
     /// Parses a [`SonameLookupDirectory`] from a string slice.
     ///
     /// See [`SonameLookupDirectory::from_str`] for more details.
-    fn parser_until<'a, P>(delimiter: P) -> impl Parser<&'a str, Self, ErrMode<ContextError>>
+    fn parser_until<'a, P>(delimiter: P) -> impl Parser<Input<'a>, Self, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, &'a str, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, &'a str, ErrMode<ParseStack<'a>>>,
     {
         // Define the actual parser closure.
         // The delimiter is moved into the closure and borrowed via `by_ref()` on each call.
         let mut delimiter_parser = delimiter;
-        move |input: &mut &'a str| -> ModalResult<Self> {
+        move |input: &mut Input<'a>| -> PResult<'a, Self> {
             // Parse until the first `:`, which separates the prefix from the directory.
             let prefix = repeat_till(1.., any, peek(alt((":", eof))))
                 .try_map(|(name, _): (String, &str)| SharedLibraryPrefix::from_str(&name))
@@ -443,7 +442,7 @@ impl FromStr for SonameLookupDirectory {
     /// # }
     /// ```
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser_until_eof.parse(s)?)
+        Ok(Self::parser_until_eof.parse(Input::new(s))?)
     }
 }
 

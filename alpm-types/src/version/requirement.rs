@@ -6,17 +6,13 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::{
-    iter_str_context,
-    traits::{AlpmParser, ParserUntil},
-};
+use alpm_parsers::{iter_str_context, prelude::*};
 use serde::{Deserialize, Serialize};
 use strum::VariantNames;
 use winnow::{
-    ModalResult,
     Parser,
     combinator::{alt, fail, opt, peek, seq},
-    error::{ContextError, ErrMode, StrContext, StrContextValue},
+    error::{ErrMode, StrContext, StrContextValue},
     token::one_of,
 };
 
@@ -306,7 +302,7 @@ impl AlpmParser for VersionRequirement {
     ///
     /// Returns an error if the immediate start of `input` does not a contain a valid
     /// VersionRequirement.
-    fn parser(input: &mut &str) -> ModalResult<Self> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         seq!(Self {
             comparison: VersionComparison::parser,
             version: Version::parser,
@@ -316,9 +312,9 @@ impl AlpmParser for VersionRequirement {
 
     fn delimiter_error_context<'a, O, P>(
         parser: P,
-    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    ) -> impl Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, O, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
             .context(StrContext::Label("version requirement"))
@@ -345,7 +341,7 @@ impl FromStr for VersionRequirement {
     ///
     /// Returns an error if [`VersionRequirement::parser`] fails.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser_until_eof.parse(s)?)
+        Ok(Self::parser_until_eof.parse(Input::new(s))?)
     }
 }
 
@@ -435,7 +431,7 @@ impl AlpmParser for VersionComparison {
     /// _alpm-comparison_, **or** if the immediate start of `input` contains a valid
     /// _alpm-comparison_, but is then followed by any further comparison character (`<`, `>`,
     /// `=`).
-    fn parser(input: &mut &str) -> ModalResult<Self> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         // Consume the long expressions first!
         // Otherwise, we would terminate early and not conta
         let variant = opt(alt((
@@ -467,9 +463,9 @@ impl AlpmParser for VersionComparison {
 
     fn delimiter_error_context<'a, O, P>(
         parser: P,
-    ) -> impl Parser<&'a str, O, ErrMode<ContextError>>
+    ) -> impl Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, O, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
             .context(StrContext::Label("comparison operator"))
@@ -488,7 +484,7 @@ impl FromStr for VersionComparison {
     ///
     /// Returns an error if [`VersionComparison::parser`] fails.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser_until_eof.parse(s)?)
+        Ok(Self::parser_until_eof.parse(Input::new(s))?)
     }
 }
 

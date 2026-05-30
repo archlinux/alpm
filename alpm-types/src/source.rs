@@ -4,13 +4,12 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::traits::ParserUntil;
+use alpm_parsers::prelude::*;
 use serde::{Deserialize, Serialize};
 use winnow::{
-    ModalResult,
     Parser,
     combinator::{alt, peek, repeat_till},
-    error::{ContextError, ErrMode, StrContext, StrContextValue},
+    error::{ErrMode, StrContext, StrContextValue},
     stream::Stream,
     token::any,
 };
@@ -55,14 +54,14 @@ impl Source {
 /// don't provide the [`Url`](url::Url) type parser ourselves. Hence, the indicator for its supposed
 /// "end" must be provided by the caller of the parser.
 impl ParserUntil for Source {
-    fn parser_until<'a, P>(delimiter: P) -> impl Parser<&'a str, Self, ErrMode<ContextError>>
+    fn parser_until<'a, P>(delimiter: P) -> impl Parser<Input<'a>, Self, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, &'a str, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, &'a str, ErrMode<ParseStack<'a>>>,
     {
         // Define the actual parser closure.
         // The delimiter is moved into the closure and borrowed via `by_ref()` on each call.
         let mut delimiter_parser = delimiter;
-        move |input: &mut &'a str| -> ModalResult<Self> {
+        move |input: &mut Input<'a>| -> PResult<'a, Self> {
             // We have to work with checkpoints here, as we cannot `peek` with a `repeat_till` +
             // `delimiter_parser`, as that would require the `delimiter_parser` to be borrowed
             // twice.
@@ -205,7 +204,7 @@ impl FromStr for Source {
     /// # }
     /// ```
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser_until_eof.parse(s)?)
+        Ok(Self::parser_until_eof.parse(Input::new(s))?)
     }
 }
 

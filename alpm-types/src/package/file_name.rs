@@ -6,13 +6,12 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::traits::{AlpmParser, ParserUntil};
+use alpm_parsers::prelude::*;
 use serde::{Deserialize, Serialize};
 use winnow::{
-    ModalResult,
     Parser,
     combinator::{opt, peek, repeat_till},
-    error::{AddContext, ContextError, ErrMode, ParserError, StrContext, StrContextValue},
+    error::{AddContext, ErrMode, ParserError, StrContext, StrContextValue},
     stream::Stream,
     token::any,
 };
@@ -269,7 +268,7 @@ impl ParserUntil for PackageFileName {
     /// # Examples
     ///
     /// ```
-    /// use alpm_parsers::traits::ParserUntil;
+    /// use alpm_parsers::prelude::*;
     /// use alpm_types::PackageFileName;
     /// use winnow::Parser;
     ///
@@ -284,14 +283,14 @@ impl ParserUntil for PackageFileName {
     /// # Ok(())
     /// # }
     /// ```
-    fn parser_until<'a, P>(delimiter: P) -> impl Parser<&'a str, Self, ErrMode<ContextError>>
+    fn parser_until<'a, P>(delimiter: P) -> impl Parser<Input<'a>, Self, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<&'a str, &'a str, ErrMode<ContextError>>,
+        P: Parser<Input<'a>, &'a str, ErrMode<ParseStack<'a>>>,
     {
         // Define the actual parser closure.
         // The delimiter is moved into the closure and borrowed via `by_ref()` on each call.
         let mut delimiter_parser = delimiter;
-        move |input: &mut &'a str| -> ModalResult<Self> {
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Self> {
             // Detect the amount of dashes in input and subsequently in the Name component.
             //
             // Note: This is a necessary step because dashes are used as delimiters between the
@@ -318,7 +317,7 @@ impl ParserUntil for PackageFileName {
             input.reset(&checkpoint);
 
             if dashes < 3 {
-                let context_error = ContextError::from_input(input)
+                let context_error = ParseStack::from_input(input)
                 .add_context(
                     input,
                     &input.checkpoint(),
@@ -344,9 +343,8 @@ impl ParserUntil for PackageFileName {
             // Advance the parser to the dash just behind the Name component, based on the amount of
             // dashes in the Name, e.g.:
             // "example-package-1:1.0.0-1-x86_64.pkg.tar.zst" -> "-1:1.0.0-1-x86_64.pkg.tar.zst"
-            let name = Name::parse_name_followed_by_version(dashes_till_version)
-                .context(StrContext::Label("alpm-package-name"))
-                .parse_next(input)?;
+            let name =
+                Name::parse_name_followed_by_version(dashes_till_version).parse_next(input)?;
 
             // Consume leading dash in front of FullVersion, e.g.:
             // "-1:1.0.0-1-x86_64.pkg.tar.zst" -> "1:1.0.0-1-x86_64.pkg.tar.zst"
@@ -473,7 +471,7 @@ impl FromStr for PackageFileName {
     /// # }
     /// ```
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::parser_until_eof.parse(s)?)
+        Ok(Self::parser_until_eof.parse(Input::new(s))?)
     }
 }
 
@@ -522,7 +520,7 @@ impl TryFrom<&Path> for PackageFileName {
             }
             .into());
         };
-        Ok(Self::parser_until_eof.parse(s)?)
+        Ok(Self::parser_until_eof.parse(Input::new(s))?)
     }
 }
 
@@ -554,7 +552,7 @@ impl TryFrom<String> for PackageFileName {
     /// # }
     /// ```
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        Ok(Self::parser_until_eof.parse(&value)?)
+        Ok(Self::parser_until_eof.parse(Input::new(&value))?)
     }
 }
 
