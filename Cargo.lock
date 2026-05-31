@@ -368,6 +368,7 @@ dependencies = [
  "alpm-types",
  "assert_cmd",
  "clap",
+ "colored",
  "fluent-i18n",
  "insta",
  "pretty_assertions",

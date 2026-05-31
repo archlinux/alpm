@@ -15,6 +15,9 @@ use testresult::TestResult;
 /// This test tests parse errors during the first step.
 #[rstest]
 fn ensure_parse_errors(#[files("tests/parse_errors/*")] case: PathBuf) -> TestResult {
+    // First up, disable colored output for our snapshot errors.
+    colored::control::set_override(false);
+
     // Read the input file and parse it.
     let input = read_to_string(&case)?;
     let result = SourceInfoV1::from_string(input.as_str());

@@ -4,8 +4,7 @@ description: "pkgbase = test\n\tpkgver = 1.0.0\n\tpkgrel = 1\n\n# Missing pkgnam
 expression: "format!(\"{error}\")"
 ---
 File parsing error:
-parse error at line 6, column 2
-  |
-6 | 
-  |  ^
-expected a pkgname section
+error: invalid input
+ | 
+ | 
+ | ^ expected a pkgname section

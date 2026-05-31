@@ -31,19 +31,7 @@ use alpm_types::{
 use strum::{EnumString, VariantNames};
 use winnow::{
     ascii::{alpha1, alphanumeric1, line_ending, multispace0, newline, space0, till_line_ending},
-    combinator::{
-        alt,
-        cut_err,
-        eof,
-        fail,
-        opt,
-        peek,
-        preceded,
-        repeat,
-        repeat_till,
-        terminated,
-        trace,
-    },
+    combinator::{alt, cut_err, eof, fail, opt, peek, preceded, repeat, repeat_till, terminated},
     error::{ErrMode, ParserError},
     token::take_until,
 };
@@ -53,10 +41,10 @@ use winnow::{
 /// This function expects the delimiter to exist.
 fn delimiter<'a>(input: &mut Input<'a>) -> PResult<'a, &'a str> {
     cut_err(" = ")
-        .context(StrContext::Label("delimiter"))
         .context(StrContext::Expected(StrContextValue::Description(
             "an equal sign surrounded by spaces: ' = '.",
         )))
+        .layer("delimiter")
         .parse_next(input)
 }
 
@@ -142,21 +130,13 @@ pub struct ArchProperty<T> {
 pub fn architecture_suffix<'a>(input: &mut Input<'a>) -> PResult<'a, Option<Architecture>> {
     // First up, check if there's an underscore.
     // If there's none, there's no suffix and we can return early.
-    let underscore = opt('_').parse_next(input)?;
-    if underscore.is_none() {
-        return Ok(None);
-    }
-
-    // There has been an underscore, so now we **expect** an architecture to be there and we have
-    // to fail hard if that doesn't work.
-    // As such, we expect the Architecture parser to succeed and be followed by the `delimiter`.
-    let architecture = cut_err(Architecture::parser_until(delimiter))
-        .context(StrContext::Expected(StrContextValue::Description(
-            "followed by a ' ='",
-        )))
-        .parse_next(input)?;
-
-    Ok(Some(architecture))
+    //
+    // If there is one, we **expect** an architecture to be there and we have to fail hard if that
+    // doesn't work. As such, we expect the Architecture parser to succeed and be followed by
+    // the `delimiter`.
+    opt(preceded('_', cut_err(Architecture::parser_until(" "))))
+        .layer("alpm-architecture keyword suffix")
+        .parse_next(input)
 }
 
 /// Track empty/comment lines
@@ -187,14 +167,11 @@ impl SourceInfoContent {
     /// Further comments and newlines are handled in the scope of the respective `pkgbase`/`pkgname`
     /// sections.
     fn preceding_lines_parser<'a>(input: &mut Input<'a>) -> PResult<'a, Ignored> {
-        trace(
-            "preceding_lines",
-            alt((
-                terminated(("#", take_until(0.., "\n")).take(), line_ending)
-                    .map(|s: &str| Ignored::Comment(s.to_string())),
-                terminated(space0, line_ending).map(|_s: &str| Ignored::EmptyLine),
-            )),
-        )
+        alt((
+            terminated(("#", take_until(0.., "\n")).take(), line_ending)
+                .map(|s: &str| Ignored::Comment(s.to_string())),
+            terminated(space0, line_ending).map(|_s: &str| Ignored::EmptyLine),
+        ))
         .parse_next(input)
     }
 
@@ -330,21 +307,16 @@ impl RawPackage {
     /// This means that the caller must trim any leading newlines or whitespaces.
     fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, RawPackage> {
         cut_err("pkgname")
-            .context(StrContext::Label("pkgname section header"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "the pkgname keyword",
+            )))
+            .layer("pkgname section header")
             .parse_next(input)?;
 
-        cut_err(" = ")
-            .context(StrContext::Label("pkgname section header delimiter"))
-            .context(StrContext::Expected(StrContextValue::Description("' = '")))
-            .parse_next(input)?;
+        cut_err(delimiter).parse_next(input)?;
 
         // Get the name of the base package.
-        let name = cut_err(Name::parser_until_line_ending_inclusive)
-            .context(StrContext::Label("package name"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "the name of a package",
-            )))
-            .parse_next(input)?;
+        let name = cut_err(Name::parser_until_line_ending_inclusive).parse_next(input)?;
 
         // Trim any leading whitespaces before the first pass of the `PackageProperty::parser`.
         space0.parse_next(input)?;
@@ -395,13 +367,11 @@ pub enum PackageBaseKeyword {
 impl PackageBaseKeyword {
     /// Recognizes a [`PackageBaseKeyword`] in an input string slice.
     pub fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, PackageBaseKeyword> {
-        trace(
-            "package_base_keyword",
-            // Read until we hit something non alphabetical.
-            // This could be either a space or a `_` in case there's an architecture specifier.
-            alpha1.try_map(PackageBaseKeyword::from_str),
-        )
-        .parse_next(input)
+        // Read until we hit something non alphabetical.
+        // This could be either a space or a `_` in case there's an architecture specifier.
+        alpha1
+            .try_map(PackageBaseKeyword::from_str)
+            .parse_next(input)
     }
 }
 
@@ -459,17 +429,15 @@ impl PackageBaseProperty {
             return Err(ErrMode::Backtrack(ParserError::from_input(input)));
         }
 
-        trace(
-            "package_base_line",
-            alt((
-                // First of handle any empty lines or comments.
-                preceded(("#", take_until(0.., "\n")), line_ending)
-                    .map(|s: &str| PackageBaseProperty::Comment(s.to_string())),
-                preceded(space0, line_ending).map(|_| PackageBaseProperty::EmptyLine),
-                // In case we got text, start parsing properties
-                Self::property_parser,
-            )),
-        )
+        alt((
+            // First of handle any empty lines or comments.
+            preceded(("#", take_until(0.., "\n")), line_ending)
+                .map(|s: &str| PackageBaseProperty::Comment(s.to_string())),
+            preceded(space0, line_ending).map(|_| PackageBaseProperty::EmptyLine),
+            // In case we got text, start parsing properties
+            Self::property_parser,
+        ))
+        .layer("package_base_line")
         .parse_next(input)
     }
 
@@ -487,28 +455,29 @@ impl PackageBaseProperty {
     ///   [`Self::exclusive_property_parser`].
     /// - Other fields that're unique to the [`RawPackageBase`] are handled in
     ///   [`Self::exclusive_property_parser`].
+    // TODO: Refactor this parser to
+    //  - handle the keyword first
+    //  - then, based on the keyword, handle the appropriate Property parser.
     fn property_parser<'a>(input: &mut Input<'a>) -> PResult<'a, PackageBaseProperty> {
         // First off, get the type of the property.
-        trace(
-            "pkgbase_property",
-            alt((
-                SourceProperty::parser.map(PackageBaseProperty::SourceProperty),
-                SharedMetaProperty::parser.map(PackageBaseProperty::MetaProperty),
-                RelationProperty::parser.map(PackageBaseProperty::RelationProperty),
-                PackageBaseProperty::exclusive_property_parser,
-                cut_err(fail)
-                    .context(StrContext::Label("package base property type"))
-                    .context(StrContext::Expected(StrContextValue::Description(
-                        "one of the allowed pkgbase section properties:",
-                    )))
-                    .context_with(iter_str_context!([
-                        PackageBaseKeyword::VARIANTS,
-                        RelationKeyword::VARIANTS,
-                        SharedMetaKeyword::VARIANTS,
-                        SourceKeyword::VARIANTS,
-                    ])),
-            )),
-        )
+        alt((
+            SourceProperty::parser.map(PackageBaseProperty::SourceProperty),
+            SharedMetaProperty::parser.map(PackageBaseProperty::MetaProperty),
+            RelationProperty::parser.map(PackageBaseProperty::RelationProperty),
+            PackageBaseProperty::exclusive_property_parser,
+            cut_err(fail),
+        ))
+        .context(StrContext::Label("property type"))
+        .context(StrContext::Expected(StrContextValue::Description(
+            "one of the allowed pkgbase section properties:",
+        )))
+        .context_with(iter_str_context!([
+            PackageBaseKeyword::VARIANTS,
+            RelationKeyword::VARIANTS,
+            SharedMetaKeyword::VARIANTS,
+            SourceKeyword::VARIANTS,
+        ]))
+        .layer("package base property")
         .parse_next(input)
     }
 
@@ -517,8 +486,7 @@ impl PackageBaseProperty {
     /// This function backtracks in case no keyword in this group matches.
     fn exclusive_property_parser<'a>(input: &mut Input<'a>) -> PResult<'a, PackageBaseProperty> {
         // First off, get the type of the property.
-        let keyword =
-            trace("exclusive_pkgbase_property", PackageBaseKeyword::parser).parse_next(input)?;
+        let keyword = PackageBaseKeyword::parser.parse_next(input)?;
 
         // Parse a possible architecture suffix for architecture specific fields.
         let architecture = match keyword {
@@ -549,7 +517,8 @@ impl PackageBaseProperty {
             PackageBaseKeyword::ValidPGPKeys => cut_err(
                 till_line_end
                     .try_map(OpenPGPIdentifier::from_str)
-                    .map(PackageBaseProperty::ValidPgpKeys),
+                    .map(PackageBaseProperty::ValidPgpKeys)
+                    .layer("openpgp identifier"),
             )
             .parse_next(input)?,
 
@@ -619,17 +588,15 @@ impl PackageProperty {
             return Err(ErrMode::Backtrack(ParserError::from_input(input)));
         }
 
-        trace(
-            "package_line",
-            alt((
-                // First of handle any empty lines or comments, which might also occur at the
-                // end of the file.
-                preceded("#", till_line_end).map(|s: &str| PackageProperty::Comment(s.to_string())),
-                line_ending.map(|_| PackageProperty::EmptyLine),
-                // In case we got text, start parsing properties
-                Self::property_parser,
-            )),
-        )
+        alt((
+            // First of handle any empty lines or comments, which might also occur at the
+            // end of the file.
+            preceded("#", till_line_end).map(|s: &str| PackageProperty::Comment(s.to_string())),
+            line_ending.map(|_| PackageProperty::EmptyLine),
+            // In case we got text, start parsing properties
+            Self::property_parser,
+        ))
+        .layer("package line")
         .parse_next(input)
     }
 
@@ -658,24 +625,25 @@ impl PackageProperty {
         // I don't expect that this will result in any significant performance issues, but **if**
         // this were to ever become an issue, it would be a good start to duplicate all
         // `*_property` parser functions, where one of them explicitly handles clearable properties.
-        trace(
-            "pkgname_property",
-            alt((
-                ClearableProperty::relation_parser.map(PackageProperty::Clear),
-                ClearableProperty::shared_meta_parser.map(PackageProperty::Clear),
-                SharedMetaProperty::parser.map(PackageProperty::MetaProperty),
-                RelationProperty::parser.map(PackageProperty::RelationProperty),
-                cut_err(fail)
-                    .context(StrContext::Label("package property type"))
-                    .context(StrContext::Expected(StrContextValue::Description(
-                        "one of the allowed package section properties:",
-                    )))
-                    .context_with(iter_str_context!([
-                        RelationKeyword::VARIANTS,
-                        SharedMetaKeyword::VARIANTS
-                    ])),
-            )),
-        )
+        // TODO: Refactor this parser to
+        //  - handle the keyword first
+        //  - then, based on the keyword, handle the appropriate Property parser.
+        alt((
+            ClearableProperty::relation_parser.map(PackageProperty::Clear),
+            ClearableProperty::shared_meta_parser.map(PackageProperty::Clear),
+            SharedMetaProperty::parser.map(PackageProperty::MetaProperty),
+            RelationProperty::parser.map(PackageProperty::RelationProperty),
+            cut_err(fail)
+                .context(StrContext::Label("package property type"))
+                .context(StrContext::Expected(StrContextValue::Description(
+                    "one of the allowed package section properties:",
+                )))
+                .context_with(iter_str_context!([
+                    RelationKeyword::VARIANTS,
+                    SharedMetaKeyword::VARIANTS
+                ])),
+        ))
+        .layer("pkgname_property")
         .parse_next(input)
     }
 }
@@ -709,11 +677,9 @@ impl SharedMetaKeyword {
     pub fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, SharedMetaKeyword> {
         // Read until we hit something non alphabetical.
         // This could be either a space or a `_` in case there's an architecture specifier.
-        trace(
-            "shared_meta_keyword",
-            alpha1.try_map(SharedMetaKeyword::from_str),
-        )
-        .parse_next(input)
+        alpha1
+            .try_map(SharedMetaKeyword::from_str)
+            .parse_next(input)
     }
 }
 
@@ -762,13 +728,15 @@ impl SharedMetaProperty {
             SharedMetaKeyword::Url => cut_err(
                 till_line_end
                     .try_map(Url::from_str)
-                    .map(SharedMetaProperty::Url),
+                    .map(SharedMetaProperty::Url)
+                    .layer("url"),
             )
             .parse_next(input)?,
             SharedMetaKeyword::License => cut_err(
                 till_line_end
                     .try_map(License::from_str)
-                    .map(SharedMetaProperty::License),
+                    .map(SharedMetaProperty::License)
+                    .layer("license"),
             )
             .parse_next(input)?,
             SharedMetaKeyword::Arch => cut_err(
@@ -779,13 +747,15 @@ impl SharedMetaProperty {
             SharedMetaKeyword::Changelog => cut_err(
                 till_line_end
                     .try_map(Changelog::from_str)
-                    .map(SharedMetaProperty::Changelog),
+                    .map(SharedMetaProperty::Changelog)
+                    .layer("changelog"),
             )
             .parse_next(input)?,
             SharedMetaKeyword::Install => cut_err(
                 till_line_end
                     .try_map(Install::from_str)
-                    .map(SharedMetaProperty::Install),
+                    .map(SharedMetaProperty::Install)
+                    .layer("install file path"),
             )
             .parse_next(input)?,
             SharedMetaKeyword::Groups => {
@@ -799,6 +769,7 @@ impl SharedMetaProperty {
             SharedMetaKeyword::Backup => cut_err(
                 till_line_end
                     .try_map(Backup::from_str)
+                    .layer("backup file path")
                     .map(SharedMetaProperty::Backup),
             )
             .parse_next(input)?,
@@ -831,11 +802,7 @@ impl RelationKeyword {
     pub fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, RelationKeyword> {
         // Read until we hit something non alphabetical.
         // This could be either a space or a `_` in case there's an architecture specifier.
-        trace(
-            "relation_keyword",
-            alpha1.try_map(RelationKeyword::from_str),
-        )
-        .parse_next(input)
+        alpha1.try_map(RelationKeyword::from_str).parse_next(input)
     }
 }
 
@@ -972,11 +939,9 @@ impl SourceKeyword {
     pub fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, SourceKeyword> {
         // Read until we hit something non alphabetical.
         // This could be either a space or a `_` in case there's an architecture specifier.
-        trace(
-            "source_keyword",
-            alphanumeric1.try_map(SourceKeyword::from_str),
-        )
-        .parse_next(input)
+        alphanumeric1
+            .try_map(SourceKeyword::from_str)
+            .parse_next(input)
     }
 }
 
@@ -1166,8 +1131,7 @@ impl ClearableProperty {
     /// not cleared.
     fn shared_meta_parser<'a>(input: &mut Input<'a>) -> PResult<'a, ClearableProperty> {
         // First off, check if this is any of the clearable properties.
-        let keyword =
-            trace("clearable_shared_meta_property", SharedMetaKeyword::parser).parse_next(input)?;
+        let keyword = SharedMetaKeyword::parser.parse_next(input)?;
 
         // Now check if it's actually a clear.
         // This parser fails and backtracks in case there's anything but spaces and a newline after
@@ -1196,7 +1160,7 @@ impl ClearableProperty {
     /// Same as [`Self::shared_meta_parser`], but for clearable [RelationProperty].
     fn relation_parser<'a>(input: &mut Input<'a>) -> PResult<'a, ClearableProperty> {
         // First off, check if this is any of the clearable properties.
-        let keyword = trace("clearable_property", RelationKeyword::parser).parse_next(input)?;
+        let keyword = RelationKeyword::parser.parse_next(input)?;
 
         // All relations may be architecture specific.
         let architecture = architecture_suffix.parse_next(input)?;

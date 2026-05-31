@@ -1,12 +1,12 @@
 ---
 source: alpm-srcinfo/tests/parse_errors.rs
-description: "# Delimiter should have spaces.\npkgbase=test\n    pkgver = 1.0.0\n\tpkgrel = 1\n"
+description: "# Delimiter should have spaces.\npkgbase=test\n\tpkgver = 1.0.0\n\tpkgrel = 1\n"
 expression: "format!(\"{error}\")"
 ---
 File parsing error:
-parse error at line 2, column 8
-  |
+error: invalid pkgbase section header delimiter
+  | 
+1 | # Delimiter should have spaces.
 2 | pkgbase=test
-  |        ^
-invalid pkgbase section header delimiter
-expected ' = '
+  |        ^ expected ' = '
+3 |  pkgver = 1.0.0

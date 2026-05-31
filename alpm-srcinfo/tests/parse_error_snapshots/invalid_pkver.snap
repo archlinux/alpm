@@ -4,9 +4,18 @@ description: "pkgbase = test\n\t# The pkgver is definitely **not** valid\n\tpkgv
 expression: "format!(\"{error}\")"
 ---
 File parsing error:
-parse error at line 3, column 11
-  |
+error: invalid character
+  | 
+2 |  # The pkgver is definitely **not** valid
 3 |  pkgver = 🐀1.0.0
-  |           ^
-invalid alpm-pkgver character
-expected an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace characters
+  |           ^ expected an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace characters
+4 |  pkgrel = 1
+  | 
+  = while parsing:
+    package_base_line: (pkgver = 🐀1.0.0)
+    └ package base property: (pkgver = 🐀1.0.0)
+      │ → invalid property type
+      │ → expected one of the allowed pkgbase section properties:, `checkdepends`, `makedepends`, `pkgver`, `pkgrel`, `epoch`, `validpgpkeys`, `depends`, `optdepends`, `provides`, `conflicts`, `replaces`, `pkgdesc`, `url`, `license`, `arch`, `changelog`, `install`, `groups`, `options`, `backup`, `source`, `noextract`, `b2sums`, `md5sums`, `sha1sums`, `sha224sums`, `sha256sums`, `sha384sums`, `sha512sums`, `cksums`
+      └ alpm-pkgver: (🐀1.0.0)
+        → invalid character
+        → expected an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace characters
