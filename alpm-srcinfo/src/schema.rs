@@ -8,9 +8,9 @@ use std::{
 };
 
 use alpm_common::FileFormatSchema;
+use alpm_parsers::prelude::*;
 use alpm_types::{SchemaVersion, semver_version::Version};
 use fluent_i18n::t;
-use winnow::Parser;
 
 use crate::{Error, source_info::parser::SourceInfoContent};
 
@@ -115,8 +115,7 @@ impl FileFormatSchema for SourceInfoSchema {
     fn derive_from_str(s: &str) -> Result<SourceInfoSchema, Error> {
         let _parsed = SourceInfoContent::parser
             // A temporary fix for <https://github.com/winnow-rs/winnow/issues/847>
-            .parse(s.replace('\t', " ").as_str())
-            .map_err(|err| Error::ParseError(format!("{err}")))?;
+            .parse(Input::new(s.replace('\t', " ").as_str()))?;
 
         Ok(SourceInfoSchema::V1(SchemaVersion::new(Version::new(
             1, 0, 0,
