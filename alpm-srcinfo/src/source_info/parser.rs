@@ -4,10 +4,7 @@
 //! The representation is not useful for end-users as it provides data that is not yet validated.
 use std::str::FromStr;
 
-use alpm_parsers::{
-    iter_str_context,
-    traits::{ParserUntil, ParserUntilInclusive},
-};
+use alpm_parsers::{iter_str_context, prelude::*};
 use alpm_types::{
     Architecture,
     Backup,
@@ -33,8 +30,6 @@ use alpm_types::{
 };
 use strum::{EnumString, VariantNames};
 use winnow::{
-    ModalResult,
-    Parser,
     ascii::{alpha1, alphanumeric1, line_ending, multispace0, newline, space0, till_line_ending},
     combinator::{
         alt,
@@ -49,14 +44,14 @@ use winnow::{
         terminated,
         trace,
     },
-    error::{ErrMode, ParserError, StrContext, StrContextValue},
+    error::{ErrMode, ParserError},
     token::take_until,
 };
 
 /// Recognizes the ` = ` delimiter between keywords.
 ///
 /// This function expects the delimiter to exist.
-fn delimiter<'s>(input: &mut &'s str) -> ModalResult<&'s str> {
+fn delimiter<'a>(input: &mut Input<'a>) -> PResult<'a, &'a str> {
     cut_err(" = ")
         .context(StrContext::Label("delimiter"))
         .context(StrContext::Expected(StrContextValue::Description(
@@ -70,7 +65,7 @@ fn delimiter<'s>(input: &mut &'s str) -> ModalResult<&'s str> {
 /// This function is called after a ` = ` has been recognized using [`delimiter`].
 /// It extends upon winnow's [`till_line_ending`] by also consuming the newline character.
 /// [`till_line_ending`]: <https://docs.rs/winnow/latest/winnow/ascii/fn.till_line_ending.html>
-fn till_line_end<'s>(input: &mut &'s str) -> ModalResult<&'s str> {
+fn till_line_end<'a>(input: &mut Input<'a>) -> PResult<'a, &'a str> {
     // Get the content til the end of line.
     let out = till_line_ending.parse_next(input)?;
 
@@ -144,7 +139,7 @@ pub struct ArchProperty<T> {
 ///           ^^^^^
 ///         This is the suffix with `i386` being the architecture.
 /// ```
-pub fn architecture_suffix(input: &mut &str) -> ModalResult<Option<Architecture>> {
+pub fn architecture_suffix<'a>(input: &mut Input<'a>) -> PResult<'a, Option<Architecture>> {
     // First up, check if there's an underscore.
     // If there's none, there's no suffix and we can return early.
     let underscore = opt('_').parse_next(input)?;
@@ -191,7 +186,7 @@ impl SourceInfoContent {
     /// This consumes the first few lines until the `pkgbase` section is hit.
     /// Further comments and newlines are handled in the scope of the respective `pkgbase`/`pkgname`
     /// sections.
-    fn preceding_lines_parser(input: &mut &str) -> ModalResult<Ignored> {
+    fn preceding_lines_parser<'a>(input: &mut Input<'a>) -> PResult<'a, Ignored> {
         trace(
             "preceding_lines",
             alt((
@@ -206,6 +201,7 @@ impl SourceInfoContent {
     /// Recognizes a complete SRCINFO file from a string slice.
     ///
     /// ```rust
+    /// use alpm_parsers::prelude::*;
     /// use alpm_srcinfo::source_info::parser::SourceInfoContent;
     /// use winnow::Parser;
     ///
@@ -229,13 +225,11 @@ impl SourceInfoContent {
     /// "#;
     ///
     /// // Parse the given srcinfo content.
-    /// let parsed = SourceInfoContent::parser
-    ///     .parse(source_info_data)
-    ///     .map_err(|err| alpm_srcinfo::Error::ParseError(format!("{err}")))?;
+    /// let parsed = SourceInfoContent::parser.parse(Input::new(source_info_data))?;
     /// # Ok(())
     /// # }
     /// ```
-    pub fn parser(input: &mut &str) -> ModalResult<SourceInfoContent> {
+    pub fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, SourceInfoContent> {
         // Handle any comments or empty lines at the start of the line..
         let preceding_lines: Vec<Ignored> =
             repeat(0.., Self::preceding_lines_parser).parse_next(input)?;
@@ -283,7 +277,7 @@ pub struct RawPackageBase {
 
 impl RawPackageBase {
     /// Recognizes the entire `pkgbase` section in SRCINFO data.
-    fn parser(input: &mut &str) -> ModalResult<RawPackageBase> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, RawPackageBase> {
         cut_err("pkgbase")
             .context(StrContext::Label("pkgbase section header"))
             .parse_next(input)?;
@@ -334,7 +328,7 @@ impl RawPackage {
     ///
     /// This parser expects the cursor to directly start at the `pkgname` keyword.
     /// This means that the caller must trim any leading newlines or whitespaces.
-    fn parser(input: &mut &str) -> ModalResult<RawPackage> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, RawPackage> {
         cut_err("pkgname")
             .context(StrContext::Label("pkgname section header"))
             .parse_next(input)?;
@@ -400,7 +394,7 @@ pub enum PackageBaseKeyword {
 
 impl PackageBaseKeyword {
     /// Recognizes a [`PackageBaseKeyword`] in an input string slice.
-    pub fn parser(input: &mut &str) -> ModalResult<PackageBaseKeyword> {
+    pub fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, PackageBaseKeyword> {
         trace(
             "package_base_keyword",
             // Read until we hit something non alphabetical.
@@ -450,7 +444,7 @@ impl PackageBaseProperty {
     ///
     /// This is a wrapper to separate the logic between comments/empty lines and actual `pkgbase`
     /// properties.
-    fn parser(input: &mut &str) -> ModalResult<PackageBaseProperty> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, PackageBaseProperty> {
         // Trim any leading spaces, which are allowed per spec.
         let _ = multispace0.parse_next(input)?;
 
@@ -493,7 +487,7 @@ impl PackageBaseProperty {
     ///   [`Self::exclusive_property_parser`].
     /// - Other fields that're unique to the [`RawPackageBase`] are handled in
     ///   [`Self::exclusive_property_parser`].
-    fn property_parser(input: &mut &str) -> ModalResult<PackageBaseProperty> {
+    fn property_parser<'a>(input: &mut Input<'a>) -> PResult<'a, PackageBaseProperty> {
         // First off, get the type of the property.
         trace(
             "pkgbase_property",
@@ -521,7 +515,7 @@ impl PackageBaseProperty {
     /// Recognizes keyword assignments exclusive to the `pkgbase` section in SRCINFO data.
     ///
     /// This function backtracks in case no keyword in this group matches.
-    fn exclusive_property_parser(input: &mut &str) -> ModalResult<PackageBaseProperty> {
+    fn exclusive_property_parser<'a>(input: &mut Input<'a>) -> PResult<'a, PackageBaseProperty> {
         // First off, get the type of the property.
         let keyword =
             trace("exclusive_pkgbase_property", PackageBaseKeyword::parser).parse_next(input)?;
@@ -608,7 +602,7 @@ impl PackageProperty {
     ///
     /// This is a wrapper to separate the logic between comments/empty lines and actual package
     /// properties.
-    fn parser(input: &mut &str) -> ModalResult<PackageProperty> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, PackageProperty> {
         // Look for one of the `pkgname` exit conditions, which is the start of a new `pkgname`
         // section. Read the docs above where this function is called for more info.
         let pkgname = peek(opt("pkgname")).parse_next(input)?;
@@ -651,7 +645,7 @@ impl PackageProperty {
     /// - [`RelationProperty`] are keywords that describe the relation of the package to other
     ///   packages. [`RawPackageBase`] has two special relations that are explicitly handled in that
     ///   enum.
-    fn property_parser(input: &mut &str) -> ModalResult<PackageProperty> {
+    fn property_parser<'a>(input: &mut Input<'a>) -> PResult<'a, PackageProperty> {
         // The way we handle `ClearableProperty` is a bit imperformant.
         // Since clearable properties are only allowed to occur in `pkgname` sections, I decided to
         // not handle clearable properties in the respective property parsers to keep the
@@ -712,7 +706,7 @@ pub enum SharedMetaKeyword {
 
 impl SharedMetaKeyword {
     /// Recognizes a [`SharedMetaKeyword`] in a string slice.
-    pub fn parser(input: &mut &str) -> ModalResult<SharedMetaKeyword> {
+    pub fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, SharedMetaKeyword> {
         // Read until we hit something non alphabetical.
         // This could be either a space or a `_` in case there's an architecture specifier.
         trace(
@@ -753,7 +747,7 @@ impl SharedMetaProperty {
     /// This function relies on [`SharedMetaKeyword::parser`] to recognize the relevant keywords.
     ///
     /// This function backtracks in case no keyword in this group matches.
-    fn parser(input: &mut &str) -> ModalResult<SharedMetaProperty> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, SharedMetaProperty> {
         // Now get the type of the property.
         let keyword = SharedMetaKeyword::parser.parse_next(input)?;
 
@@ -834,7 +828,7 @@ pub enum RelationKeyword {
 
 impl RelationKeyword {
     /// Recognizes a [`RelationKeyword`] in a string slice.
-    pub fn parser(input: &mut &str) -> ModalResult<RelationKeyword> {
+    pub fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, RelationKeyword> {
         // Read until we hit something non alphabetical.
         // This could be either a space or a `_` in case there's an architecture specifier.
         trace(
@@ -874,7 +868,7 @@ impl RelationProperty {
     ///
     /// This function relies on [`RelationKeyword::parser`] to recognize the relevant keywords.
     /// This function backtracks in case no keyword in this group matches.
-    fn parser(input: &mut &str) -> ModalResult<RelationProperty> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, RelationProperty> {
         // First off, get the type of the property.
         let keyword = RelationKeyword::parser.parse_next(input)?;
 
@@ -975,7 +969,7 @@ pub enum SourceKeyword {
 
 impl SourceKeyword {
     /// Parse a [`SourceKeyword`].
-    pub fn parser(input: &mut &str) -> ModalResult<SourceKeyword> {
+    pub fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, SourceKeyword> {
         // Read until we hit something non alphabetical.
         // This could be either a space or a `_` in case there's an architecture specifier.
         trace(
@@ -1024,7 +1018,7 @@ impl SourceProperty {
     /// This function relies on [`SourceKeyword::parser`] to recognize the relevant keywords.
     ///
     /// This function backtracks in case no keyword in this group matches.
-    fn parser(input: &mut &str) -> ModalResult<SourceProperty> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, SourceProperty> {
         // First off, get the type of the property.
         let keyword = SourceKeyword::parser.parse_next(input)?;
 
@@ -1170,7 +1164,7 @@ impl ClearableProperty {
     ///
     /// This function backtracks in case no keyword in this group matches or in case the property is
     /// not cleared.
-    fn shared_meta_parser(input: &mut &str) -> ModalResult<ClearableProperty> {
+    fn shared_meta_parser<'a>(input: &mut Input<'a>) -> PResult<'a, ClearableProperty> {
         // First off, check if this is any of the clearable properties.
         let keyword =
             trace("clearable_shared_meta_property", SharedMetaKeyword::parser).parse_next(input)?;
@@ -1200,7 +1194,7 @@ impl ClearableProperty {
     }
 
     /// Same as [`Self::shared_meta_parser`], but for clearable [RelationProperty].
-    fn relation_parser(input: &mut &str) -> ModalResult<ClearableProperty> {
+    fn relation_parser<'a>(input: &mut Input<'a>) -> PResult<'a, ClearableProperty> {
         // First off, check if this is any of the clearable properties.
         let keyword = trace("clearable_property", RelationKeyword::parser).parse_next(input)?;
 

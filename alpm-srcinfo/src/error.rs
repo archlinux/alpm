@@ -1,9 +1,11 @@
 //! All error types that are exposed by this crate.
 use std::{path::PathBuf, string::FromUtf8Error};
 
+use alpm_parsers::error::{Input, ParseStack};
 use alpm_pkgbuild::error::Error as PkgbuildError;
 use fluent_i18n::t;
 use thiserror::Error;
+use winnow::error::ParseError;
 
 use crate::pkgbuild_bridge::error::BridgeError;
 #[cfg(doc)]
@@ -76,4 +78,13 @@ pub enum Error {
     /// See [`BridgeError`] for further details.
     #[error("{msg}", msg = t!("error-bridge-conversion", { "error" => .0.to_string() }))]
     BridgeConversionError(#[from] BridgeError),
+}
+
+impl<'a> From<ParseError<Input<'a>, ParseStack<'a>>> for crate::error::Error {
+    /// Converts a [`ParseError`] into an [`Error::ParseError`].
+    fn from(value: ParseError<Input<'a>, ParseStack<'a>>) -> Self {
+        // Only take the **inner** parser error of our own ParseStack error type.
+        // We don't want to hit the `Display` imple of `ParseError`.
+        Self::ParseError(value.into_inner().to_string())
+    }
 }

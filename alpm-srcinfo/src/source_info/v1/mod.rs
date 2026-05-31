@@ -9,11 +9,11 @@ use std::{
     path::Path,
 };
 
+use alpm_parsers::prelude::*;
 use alpm_pkgbuild::bridge::BridgeOutput;
 use alpm_types::Architecture;
 use fluent_i18n::t;
 use serde::{Deserialize, Serialize};
-use winnow::Parser;
 use writer::{pkgbase_section, pkgname_section};
 
 pub mod merged;
@@ -174,9 +174,7 @@ impl SourceInfoV1 {
         let content_no_tabs = content.replace('\t', " ");
 
         // Parse the given srcinfo content.
-        let parsed = SourceInfoContent::parser
-            .parse(content_no_tabs.as_str())
-            .map_err(|err| Error::ParseError(format!("{err}")))?;
+        let parsed = SourceInfoContent::parser.parse(Input::new(content_no_tabs.as_str()))?;
 
         // Bring it into a proper structural representation
         let source_info = SourceInfoV1::from_raw(parsed)?;
