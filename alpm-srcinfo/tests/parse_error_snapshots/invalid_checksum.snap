@@ -4,8 +4,16 @@ description: "pkgbase = test\n\tpkgver = 1.0.0\n\tpkgrel = 1\n\tarch = x86_64\n\
 expression: "format!(\"{error}\")"
 ---
 File parsing error:
-parse error at line 6, column 79
-  |
+error: invalid skippable checksum
+  | 
+5 |  # Sha256 checksum is way too long
 6 |  sha256sums = 123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
-  |                                                                               ^
-expected end of checksum. Checksum is too long., a hash digest with the appropriate length for the given algorithm, or an uppercase 'SKIP'
+  |               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^ expected end of checksum. Checksum is too long.
+  | 
+  = while parsing:
+    package_base_line: (sha256sums = 1234567…)
+    └ package base property: (sha256sums = 1234567…)
+      │ → invalid property type
+      │ → expected one of the allowed pkgbase section properties:, `checkdepends`, `makedepends`, `pkgver`, `pkgrel`, `epoch`, `validpgpkeys`, `depends`, `optdepends`, `provides`, `conflicts`, `replaces`, `pkgdesc`, `url`, `license`, `arch`, `changelog`, `install`, `groups`, `options`, `backup`, `source`, `noextract`, `b2sums`, `md5sums`, `sha1sums`, `sha224sums`, `sha256sums`, `sha384sums`, `sha512sums`, `cksums`
+      └ skippable checksum: (12345678901234567890…)
+        → expected end of checksum. Checksum is too long., a hash digest with the appropriate length for the given algorithm, or an uppercase 'SKIP'
