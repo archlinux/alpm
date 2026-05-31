@@ -316,8 +316,7 @@ impl PackageBase {
         // First up check all input for potential architecture declarations.
         for prop in parsed.properties.iter() {
             // We're only interested in architecture properties.
-            let PackageBaseProperty::MetaProperty(SharedMetaProperty::Architecture(architecture)) =
-                prop
+            let PackageBaseProperty::Meta(SharedMetaProperty::Architecture(architecture)) = prop
             else {
                 continue;
             };
@@ -358,7 +357,7 @@ impl PackageBase {
                         make_dependencies,
                     )
                 }
-                PackageBaseProperty::MetaProperty(shared_meta_property) => {
+                PackageBaseProperty::Meta(shared_meta_property) => {
                     match shared_meta_property {
                         SharedMetaProperty::Description(inner) => description = Some(inner),
                         SharedMetaProperty::Url(inner) => url = Some(inner),
@@ -372,8 +371,7 @@ impl PackageBase {
                         SharedMetaProperty::Backup(inner) => backups.push(inner),
                     }
                 }
-                PackageBaseProperty::RelationProperty(relation_property) => match relation_property
-                {
+                PackageBaseProperty::Relation(relation_property) => match relation_property {
                     parser::RelationProperty::Dependency(arch_property) => package_base_arch_prop!(
                         architecture_properties,
                         arch_property,
@@ -396,7 +394,7 @@ impl PackageBase {
                         package_base_arch_prop!(architecture_properties, arch_property, replaces,)
                     }
                 },
-                PackageBaseProperty::SourceProperty(source_property) => match source_property {
+                PackageBaseProperty::Source(source_property) => match source_property {
                     parser::SourceProperty::Source(arch_property) => {
                         package_base_arch_prop!(architecture_properties, arch_property, sources,)
                     }

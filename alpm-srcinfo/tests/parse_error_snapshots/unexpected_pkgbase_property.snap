@@ -4,14 +4,14 @@ description: "pkgbase = test\n\tpkgver = 1.0.0\n\tpkgrel = 1\n\tbogus_field = lo
 expression: "format!(\"{error}\")"
 ---
 File parsing error:
-error: invalid property type
+error: invalid package base property keyword
   | 
 3 |  pkgrel = 1
 4 |  bogus_field = lol
-  |  ^ expected one of the allowed pkgbase section properties:
+  |  ^ expected `checkdepends`
   | 
   = while parsing:
     package_base_line: (bogus_field = lol)
-    └ package base property: (bogus_field = lol)
-      → invalid property type
-      → expected one of the allowed pkgbase section properties:, `checkdepends`, `makedepends`, `pkgver`, `pkgrel`, `epoch`, `validpgpkeys`, `depends`, `optdepends`, `provides`, `conflicts`, `replaces`, `pkgdesc`, `url`, `license`, `arch`, `changelog`, `install`, `groups`, `options`, `backup`, `source`, `noextract`, `b2sums`, `md5sums`, `sha1sums`, `sha224sums`, `sha256sums`, `sha384sums`, `sha512sums`, `cksums`
+    └ package base property keyword: (bogus_field = lol)
+      → expected `checkdepends`, `makedepends`, `pkgver`, `pkgrel`, `epoch`, `validpgpkeys`, `depends`, `optdepends`, `provides`, `conflicts`, `replaces`, `pkgdesc`, `url`, `license`, `arch`, `changelog`, `install`, `groups`, `options`, `backup`, `source`, `noextract`, `b2sums`, `md5sums`, `sha1sums`, `sha224sums`, `sha256sums`, `sha384sums`, `sha512sums`, `cksums`
+  = note: Matching variant not found

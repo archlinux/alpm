@@ -13,8 +13,6 @@ error: invalid delimiter
   | 
   = while parsing:
     package_base_line: (pkgver=1.0.0)
-    └ package base property: (pkgver=1.0.0)
-      │ → invalid property type
-      │ → expected one of the allowed pkgbase section properties:, `checkdepends`, `makedepends`, `pkgver`, `pkgrel`, `epoch`, `validpgpkeys`, `depends`, `optdepends`, `provides`, `conflicts`, `replaces`, `pkgdesc`, `url`, `license`, `arch`, `changelog`, `install`, `groups`, `options`, `backup`, `source`, `noextract`, `b2sums`, `md5sums`, `sha1sums`, `sha224sums`, `sha256sums`, `sha384sums`, `sha512sums`, `cksums`
+    └ package build exclusive property: (=1.0.0)
       └ delimiter: (=1.0.0)
         → expected an equal sign surrounded by spaces: ' = '.
