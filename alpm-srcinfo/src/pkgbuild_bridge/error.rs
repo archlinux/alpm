@@ -1,10 +1,11 @@
 //! The error types used in the scope of `alpm-pkgbuild-bridge` output logic.
 
+use alpm_parsers::prelude::*;
 use alpm_pkgbuild::bridge::Keyword;
 use alpm_types::{Name, SystemArchitecture};
 use fluent_i18n::t;
 use thiserror::Error;
-use winnow::error::{ContextError, ParseError};
+use winnow::error::ParseError;
 
 #[cfg(doc)]
 use crate::SourceInfo;
@@ -111,9 +112,9 @@ pub enum BridgeError {
     },
 }
 
-impl<'a> From<(Keyword, ParseError<&'a str, ContextError>)> for BridgeError {
+impl<'a> From<(Keyword, ParseError<Input<'a>, ParseStack<'a>>)> for BridgeError {
     /// Converts a tuple of ([`Keyword`] and [`ParseError`]) into a [`BridgeError::ParseError`].
-    fn from(value: (Keyword, ParseError<&'a str, ContextError>)) -> Self {
+    fn from(value: (Keyword, ParseError<Input<'a>, ParseStack<'a>>)) -> Self {
         Self::ParseError {
             keyword: value.0,
             error: value.1.to_string(),

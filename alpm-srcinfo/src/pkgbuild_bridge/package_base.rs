@@ -5,10 +5,7 @@ use std::{
     str::FromStr,
 };
 
-use alpm_parsers::{
-    iter_str_context,
-    traits::{AlpmParser, ParserUntil},
-};
+use alpm_parsers::{iter_str_context, prelude::*};
 #[cfg(doc)]
 use alpm_pkgbuild::bridge::BridgeOutput;
 use alpm_pkgbuild::bridge::{Keyword, Value};
@@ -36,10 +33,7 @@ use alpm_types::{
 };
 use strum::VariantNames;
 use winnow::{
-    ModalResult,
-    Parser,
     combinator::{alt, cut_err},
-    error::StrContext,
     token::rest,
 };
 
@@ -77,7 +71,7 @@ impl PackageBaseKeywords {
     /// # Errors
     ///
     /// Returns an error if `input` contains an unexpected keyword.
-    pub fn parser(input: &mut &str) -> ModalResult<PackageBaseKeywords> {
+    pub fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, PackageBaseKeywords> {
         cut_err(alt((
             "pkgbase".map(|_| PackageBaseKeywords::PkgBase),
             PackageBaseKeyword::parser.map(PackageBaseKeywords::PackageBase),
@@ -193,7 +187,7 @@ pub fn handle_package_base(
     for (raw_keyword, value) in &raw {
         // Parse the keyword
         let keyword = PackageBaseKeywords::parser
-            .parse(&raw_keyword.keyword)
+            .parse(Input::new(&raw_keyword.keyword))
             .map_err(|err| (raw_keyword.clone(), err))?;
 
         // Parse the architecture suffix if it exists.
@@ -201,7 +195,7 @@ pub fn handle_package_base(
             Some(suffix) => {
                 // SystemArchitecture::parser forbids "any"
                 let arch = SystemArchitecture::parser
-                    .parse(suffix)
+                    .parse(Input::new(suffix))
                     .map_err(|err| (raw_keyword.clone(), err))?;
                 Some(arch)
             }

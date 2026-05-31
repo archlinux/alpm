@@ -2,10 +2,7 @@
 
 use std::{collections::HashMap, str::FromStr};
 
-use alpm_parsers::{
-    iter_str_context,
-    traits::{AlpmParser, ParserUntil},
-};
+use alpm_parsers::{iter_str_context, prelude::*};
 #[cfg(doc)]
 use alpm_pkgbuild::bridge::BridgeOutput;
 use alpm_pkgbuild::bridge::{ClearableValue, Keyword, RawPackageName};
@@ -27,10 +24,8 @@ use alpm_types::{
 };
 use strum::VariantNames;
 use winnow::{
-    ModalResult,
-    Parser,
     combinator::{alt, cut_err},
-    error::{ContextError, ErrMode, ParseError, StrContext},
+    error::{ErrMode, ParseError},
     token::rest,
 };
 
@@ -75,12 +70,12 @@ pub(crate) fn handle_packages(
         // Check if the variable is assigned to a specific split package.
         // If it isn't, use the name of the base package instead, which is the default.
         let name = if let Some(name) = name.0 {
-            Name::parser
-                .parse(&name)
-                .map_err(|err| BridgeError::InvalidPackageName {
+            Name::parser.parse(Input::new(&name)).map_err(|err| {
+                BridgeError::InvalidPackageName {
                     name: name.clone(),
                     error: err.into(),
-                })?
+                }
+            })?
         } else {
             // If this is a literal `package` function we have to make sure that this isn't a split
             // package! Split package `package` functions must have a `_$name` suffix.
@@ -132,7 +127,7 @@ impl PackageKeyword {
     /// # Errors
     ///
     /// Returns an error, if an unknown keyword is encountered.
-    pub fn parser(input: &mut &str) -> ModalResult<PackageKeyword> {
+    pub fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, PackageKeyword> {
         cut_err(alt((
             RelationKeyword::parser.map(PackageKeyword::Relation),
             SharedMetaKeyword::parser.map(PackageKeyword::SharedMeta),
@@ -174,7 +169,7 @@ fn ensure_single_clearable_value<'a>(
 ///
 /// - `value` cannot be parsed as a specific type,
 /// - or `value` is a [`ClearableValue::Array`].
-fn parse_clearable_value<'a, O, P: Parser<&'a str, O, ErrMode<ContextError>>>(
+fn parse_clearable_value<'a, O, P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>>(
     keyword: &Keyword,
     value: &'a ClearableValue,
     mut parser: P,
@@ -187,7 +182,9 @@ fn parse_clearable_value<'a, O, P: Parser<&'a str, O, ErrMode<ContextError>>>(
         return Ok(Override::Clear);
     };
 
-    let parsed_value = parser.parse(value).map_err(|err| (keyword.clone(), err))?;
+    let parsed_value = parser
+        .parse(Input::new(value))
+        .map_err(|err| (keyword.clone(), err))?;
 
     Ok(Override::Yes {
         value: parsed_value,
@@ -211,7 +208,9 @@ fn parse_clearable_value<'a, O, P: Parser<&'a str, O, ErrMode<ContextError>>>(
 ///
 /// [PKGBUILD]: https://man.archlinux.org/man/PKGBUILD.5
 /// [makepkg]: https://man.archlinux.org/man/makepkg.8
-fn parse_clearable_value_array<'a, O, P: Parser<&'a str, O, ErrMode<ContextError>>>(
+// The error type is 184 bytes+ large, which is still completely acceptable for us.
+#[allow(clippy::result_large_err)]
+fn parse_clearable_value_array<'a, O, P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>>(
     keyword: &Keyword,
     value: &'a ClearableValue,
     mut parser: P,
@@ -225,7 +224,9 @@ fn parse_clearable_value_array<'a, O, P: Parser<&'a str, O, ErrMode<ContextError
             if value.is_empty() {
                 return Ok(Override::Clear);
             }
-            let value = parser.parse(value).map_err(|err| (keyword.clone(), err))?;
+            let value = parser
+                .parse(Input::new(value))
+                .map_err(|err| (keyword.clone(), err))?;
 
             vec![value]
         }
@@ -236,8 +237,12 @@ fn parse_clearable_value_array<'a, O, P: Parser<&'a str, O, ErrMode<ContextError
 
             values
                 .iter()
-                .map(|item| parser.parse(item).map_err(|err| (keyword.clone(), err)))
-                .collect::<Result<Vec<O>, (Keyword, ParseError<&'a str, ContextError>)>>()?
+                .map(|item| {
+                    parser
+                        .parse(Input::new(item))
+                        .map_err(|err| (keyword.clone(), err))
+                })
+                .collect::<Result<Vec<O>, (Keyword, ParseError<Input<'a>, ParseStack<'a>>)>>()?
         }
     };
 
@@ -291,7 +296,7 @@ fn handle_package(
     for (raw_keyword, value) in values {
         // Parse the keyword
         let keyword = PackageKeyword::parser
-            .parse(&raw_keyword.keyword)
+            .parse(Input::new(&raw_keyword.keyword))
             .map_err(|err| (raw_keyword.clone(), err))?;
 
         // Parse the architecture suffix if it exists.
@@ -299,7 +304,7 @@ fn handle_package(
             Some(suffix) => {
                 // SystemArchitecture::parser forbids "any"
                 let arch = SystemArchitecture::parser
-                    .parse(suffix)
+                    .parse(Input::new(suffix))
                     .map_err(|err| (raw_keyword.clone(), err))?;
                 Some(arch)
             }

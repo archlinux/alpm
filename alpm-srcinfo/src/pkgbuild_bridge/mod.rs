@@ -6,15 +6,12 @@ mod package_base;
 
 use std::collections::HashMap;
 
-use alpm_parsers::traits::AlpmParser;
+use alpm_parsers::prelude::*;
 use alpm_pkgbuild::bridge::{BridgeOutput, Keyword, Value};
 use alpm_types::{Architectures, Name, SystemArchitecture};
 use package::handle_packages;
 use package_base::handle_package_base;
-use winnow::{
-    Parser,
-    error::{ContextError, ErrMode, ParseError, StrContext, StrContextValue},
-};
+use winnow::error::{ErrMode, ParseError};
 
 use crate::{SourceInfoV1, pkgbuild_bridge::error::BridgeError};
 
@@ -53,13 +50,12 @@ impl TryFrom<BridgeOutput> for SourceInfoV1 {
         for name in value.functions {
             let Some(name) = name.0 else { continue };
 
-            let name =
-                Name::parser
-                    .parse(&name)
-                    .map_err(|err| BridgeError::InvalidPackageName {
-                        name: name.clone(),
-                        error: err.into(),
-                    })?;
+            let name = Name::parser.parse(Input::new(&name)).map_err(|err| {
+                BridgeError::InvalidPackageName {
+                    name: name.clone(),
+                    error: err.into(),
+                }
+            })?;
 
             if !names.contains(&name) {
                 return Err(BridgeError::UndeclaredPackageName(name.to_string()));
@@ -135,13 +131,15 @@ fn ensure_single_value<'a>(keyword: &Keyword, value: &'a Value) -> Result<&'a St
 ///
 /// Returns a error for `keyword` if `value` is not [`Value::Single`] or cannot be parsed as the
 /// specific type.
-fn parse_value<'a, O, P: Parser<&'a str, O, ErrMode<ContextError>>>(
+fn parse_value<'a, O, P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>>(
     keyword: &Keyword,
     value: &'a Value,
     mut parser: P,
 ) -> Result<O, BridgeError> {
     let input = ensure_single_value(keyword, value)?;
-    Ok(parser.parse(input).map_err(|err| (keyword.clone(), err))?)
+    Ok(parser
+        .parse(Input::new(input))
+        .map_err(|err| (keyword.clone(), err))?)
 }
 
 /// Ensures a combination of [`Keyword`] and [`Value`] uses a [`Value::Single`] and parses the value
@@ -153,7 +151,7 @@ fn parse_value<'a, O, P: Parser<&'a str, O, ErrMode<ContextError>>>(
 ///
 /// Returns a error for `keyword` if `value` is not [`Value::Single`] or cannot be parsed as the
 /// specific type.
-fn parse_optional_value<'a, O, P: Parser<&'a str, O, ErrMode<ContextError>>>(
+fn parse_optional_value<'a, O, P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>>(
     keyword: &Keyword,
     value: &'a Value,
     mut parser: P,
@@ -165,7 +163,9 @@ fn parse_optional_value<'a, O, P: Parser<&'a str, O, ErrMode<ContextError>>>(
     }
 
     Ok(Some(
-        parser.parse(input).map_err(|err| (keyword.clone(), err))?,
+        parser
+            .parse(Input::new(input))
+            .map_err(|err| (keyword.clone(), err))?,
     ))
 }
 
@@ -179,7 +179,9 @@ fn parse_optional_value<'a, O, P: Parser<&'a str, O, ErrMode<ContextError>>>(
 /// Returns a error for `keyword` if `value` cannot be parsed.
 ///
 /// [`PKGBUILD`]: https://man.archlinux.org/man/PKGBUILD.5
-fn parse_value_array<'a, O, P: Parser<&'a str, O, ErrMode<ContextError>>>(
+// The error type is 184 bytes+ large, which is still completely acceptable for us.
+#[allow(clippy::result_large_err)]
+fn parse_value_array<'a, O, P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>>(
     keyword: &Keyword,
     value: &'a Value,
     mut parser: P,
@@ -187,8 +189,12 @@ fn parse_value_array<'a, O, P: Parser<&'a str, O, ErrMode<ContextError>>>(
     let input = value.as_vec();
     Ok(input
         .into_iter()
-        .map(|item| parser.parse(item).map_err(|err| (keyword.clone(), err)))
-        .collect::<Result<Vec<O>, (Keyword, ParseError<&'a str, ContextError>)>>()?)
+        .map(|item| {
+            parser
+                .parse(Input::new(item))
+                .map_err(|err| (keyword.clone(), err))
+        })
+        .collect::<Result<Vec<O>, (Keyword, ParseError<Input<'a>, ParseStack<'a>>)>>()?)
 }
 
 /// Parses a [`Value`] as [`Architectures`].
@@ -197,6 +203,8 @@ fn parse_value_array<'a, O, P: Parser<&'a str, O, ErrMode<ContextError>>>(
 ///
 /// Returns an error for `keyword` if `value` cannot be parsed as either a stand-alone "any" or a
 /// list of [`SystemArchitecture`].
+// The error type is 184 bytes+ large, which is still completely acceptable for us.
+#[allow(clippy::result_large_err)]
 fn parse_arch_array<'a>(keyword: &Keyword, value: &'a Value) -> Result<Architectures, BridgeError> {
     // `arch` may be a list or a single value (for backward compatibility).
     let input = value.as_vec();
@@ -216,10 +224,10 @@ fn parse_arch_array<'a>(keyword: &Keyword, value: &'a Value) -> Result<Architect
                 .context(StrContext::Expected(StrContextValue::Description(
                     "either a single 'any' or an array of one or more specific system architectures."
                 )))
-                .parse(item)
+                .parse(Input::new(item))
                 .map_err(|err| (keyword.clone(), err))
         })
-        .collect::<Result<Vec<SystemArchitecture>, (Keyword, ParseError<&'a str, ContextError>)>>()?;
+        .collect::<Result<Vec<SystemArchitecture>, (Keyword, ParseError<Input<'a>, ParseStack<'a>>)>>()?;
 
     Ok(Architectures::Some(architectures))
 }
