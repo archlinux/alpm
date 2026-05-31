@@ -347,9 +347,9 @@ impl RawPackage {
 }
 
 /// Keywords that are exclusive to the `pkgbase` section in SRCINFO data.
-#[derive(Debug, EnumString, VariantNames)]
+#[derive(Clone, Copy, Debug, EnumString, VariantNames)]
 #[strum(serialize_all = "lowercase")]
-pub enum PackageBaseKeyword {
+pub enum ExclusivePackageBaseKeyword {
     /// Test dependencies.
     CheckDepends,
     /// Build dependencies.
@@ -364,14 +364,40 @@ pub enum PackageBaseKeyword {
     ValidPGPKeys,
 }
 
-impl PackageBaseKeyword {
+impl ExclusivePackageBaseKeyword {
     /// Recognizes a [`PackageBaseKeyword`] in an input string slice.
-    pub fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, PackageBaseKeyword> {
+    pub fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, ExclusivePackageBaseKeyword> {
         // Read until we hit something non alphabetical.
         // This could be either a space or a `_` in case there's an architecture specifier.
         alpha1
-            .try_map(PackageBaseKeyword::from_str)
+            .try_map(ExclusivePackageBaseKeyword::from_str)
             .parse_next(input)
+    }
+}
+
+enum PackageBaseKeyword {
+    Source(SourceKeyword),
+    SharedMeta(SharedMetaKeyword),
+    Relation(RelationKeyword),
+    Exclusive(ExclusivePackageBaseKeyword),
+}
+
+impl AlpmParser for PackageBaseKeyword {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
+        alt((
+            SourceKeyword::parser.map(PackageBaseKeyword::Source),
+            SharedMetaKeyword::parser.map(PackageBaseKeyword::SharedMeta),
+            RelationKeyword::parser.map(PackageBaseKeyword::Relation),
+            cut_err(ExclusivePackageBaseKeyword::parser.map(PackageBaseKeyword::Exclusive)),
+        ))
+        .context_with(iter_str_context!([
+            ExclusivePackageBaseKeyword::VARIANTS,
+            RelationKeyword::VARIANTS,
+            SharedMetaKeyword::VARIANTS,
+            SourceKeyword::VARIANTS,
+        ]))
+        .layer("package base property keyword")
+        .parse_next(input)
     }
 }
 
@@ -390,7 +416,7 @@ pub enum PackageBaseProperty {
     /// A commented line.
     Comment(String),
     /// A [`SharedMetaProperty`].
-    MetaProperty(SharedMetaProperty),
+    Meta(SharedMetaProperty),
     /// A [`PackageVersion`].
     PackageVersion(PackageVersion),
     /// A [`PackageRelease`].
@@ -400,13 +426,13 @@ pub enum PackageBaseProperty {
     /// An [`OpenPGPIdentifier`].
     ValidPgpKeys(OpenPGPIdentifier),
     /// A [`RelationProperty`]
-    RelationProperty(RelationProperty),
+    Relation(RelationProperty),
     /// Build-time specific check dependencies.
     CheckDependency(ArchProperty<PackageRelation>),
     /// Build-time specific make dependencies.
     MakeDependency(ArchProperty<PackageRelation>),
     /// Source file properties
-    SourceProperty(SourceProperty),
+    Source(SourceProperty),
 }
 
 impl PackageBaseProperty {
@@ -459,92 +485,112 @@ impl PackageBaseProperty {
     //  - handle the keyword first
     //  - then, based on the keyword, handle the appropriate Property parser.
     fn property_parser<'a>(input: &mut Input<'a>) -> PResult<'a, PackageBaseProperty> {
-        // First off, get the type of the property.
-        alt((
-            SourceProperty::parser.map(PackageBaseProperty::SourceProperty),
-            SharedMetaProperty::parser.map(PackageBaseProperty::MetaProperty),
-            RelationProperty::parser.map(PackageBaseProperty::RelationProperty),
-            PackageBaseProperty::exclusive_property_parser,
-            cut_err(fail),
-        ))
-        .context(StrContext::Label("property type"))
-        .context(StrContext::Expected(StrContextValue::Description(
-            "one of the allowed pkgbase section properties:",
-        )))
-        .context_with(iter_str_context!([
-            PackageBaseKeyword::VARIANTS,
-            RelationKeyword::VARIANTS,
-            SharedMetaKeyword::VARIANTS,
-            SourceKeyword::VARIANTS,
-        ]))
-        .layer("package base property")
-        .parse_next(input)
+        let keyword = PackageBaseKeyword::parser.parse_next(input)?;
+
+        match keyword {
+            PackageBaseKeyword::Source(keyword) => SourceProperty::parser(keyword)
+                .map(PackageBaseProperty::Source)
+                .parse_next(input),
+            PackageBaseKeyword::SharedMeta(keyword) => SharedMetaProperty::parser(keyword)
+                .map(PackageBaseProperty::Meta)
+                .parse_next(input),
+            PackageBaseKeyword::Relation(keyword) => RelationProperty::parser(keyword)
+                .map(PackageBaseProperty::Relation)
+                .parse_next(input),
+            PackageBaseKeyword::Exclusive(keyword) => {
+                PackageBaseProperty::exclusive_property_parser(keyword).parse_next(input)
+            }
+        }
     }
 
     /// Recognizes keyword assignments exclusive to the `pkgbase` section in SRCINFO data.
     ///
-    /// This function backtracks in case no keyword in this group matches.
-    fn exclusive_property_parser<'a>(input: &mut Input<'a>) -> PResult<'a, PackageBaseProperty> {
-        // First off, get the type of the property.
-        let keyword = PackageBaseKeyword::parser.parse_next(input)?;
+    /// This function relies on the keyword already been parsed and expects it as paramater.
+    /// The cursor should be positioned right after the keyword.
+    fn exclusive_property_parser<'a>(
+        keyword: ExclusivePackageBaseKeyword,
+    ) -> impl Parser<Input<'a>, Self, ErrMode<ParseStack<'a>>> {
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Self> {
+            // Parse a possible architecture suffix for architecture specific fields.
+            let architecture = match keyword {
+                ExclusivePackageBaseKeyword::MakeDepends
+                | ExclusivePackageBaseKeyword::CheckDepends => {
+                    architecture_suffix.parse_next(input)?
+                }
+                _ => None,
+            };
 
-        // Parse a possible architecture suffix for architecture specific fields.
-        let architecture = match keyword {
-            PackageBaseKeyword::MakeDepends | PackageBaseKeyword::CheckDepends => {
-                architecture_suffix.parse_next(input)?
-            }
-            _ => None,
-        };
+            // Expect the ` = ` separator between the key-value pair
+            let _ = delimiter.parse_next(input)?;
 
-        // Expect the ` = ` separator between the key-value pair
-        let _ = delimiter.parse_next(input)?;
+            let property = match keyword {
+                ExclusivePackageBaseKeyword::PkgVer => {
+                    PackageVersion::parser_until_line_ending_inclusive
+                        .map(PackageBaseProperty::PackageVersion)
+                        .parse_next(input)?
+                }
+                ExclusivePackageBaseKeyword::PkgRel => {
+                    PackageRelease::parser_until_line_ending_inclusive
+                        .map(PackageBaseProperty::PackageRelease)
+                        .parse_next(input)?
+                }
 
-        let property = match keyword {
-            PackageBaseKeyword::PkgVer => cut_err(
-                PackageVersion::parser_until_line_ending_inclusive
-                    .map(PackageBaseProperty::PackageVersion),
-            )
-            .parse_next(input)?,
-            PackageBaseKeyword::PkgRel => cut_err(
-                PackageRelease::parser_until_line_ending_inclusive
-                    .map(PackageBaseProperty::PackageRelease),
-            )
-            .parse_next(input)?,
-
-            PackageBaseKeyword::Epoch => cut_err(Epoch::parser_until_line_ending_inclusive)
-                .map(PackageBaseProperty::PackageEpoch)
-                .parse_next(input)?,
-            PackageBaseKeyword::ValidPGPKeys => cut_err(
-                till_line_end
+                ExclusivePackageBaseKeyword::Epoch => Epoch::parser_until_line_ending_inclusive
+                    .map(PackageBaseProperty::PackageEpoch)
+                    .parse_next(input)?,
+                ExclusivePackageBaseKeyword::ValidPGPKeys => till_line_end
                     .try_map(OpenPGPIdentifier::from_str)
                     .map(PackageBaseProperty::ValidPgpKeys)
-                    .layer("openpgp identifier"),
-            )
-            .parse_next(input)?,
+                    .layer("openpgp identifier")
+                    .parse_next(input)?,
 
-            // Handle `pkgbase` specific package relations.
-            PackageBaseKeyword::MakeDepends | PackageBaseKeyword::CheckDepends => {
-                // Read and parse the generic architecture specific PackageRelation.
-                let value = cut_err(PackageRelation::parser_until_line_ending).parse_next(input)?;
-                let arch_property = ArchProperty {
-                    architecture,
-                    value,
-                };
+                // Handle `pkgbase` specific package relations.
+                ExclusivePackageBaseKeyword::MakeDepends
+                | ExclusivePackageBaseKeyword::CheckDepends => {
+                    // Read and parse the generic architecture specific PackageRelation.
+                    let value = PackageRelation::parser_until_line_ending.parse_next(input)?;
+                    let arch_property = ArchProperty {
+                        architecture,
+                        value,
+                    };
 
-                // Now map the generic relation to the specific relation type.
-                match keyword {
-                    PackageBaseKeyword::CheckDepends => {
-                        PackageBaseProperty::CheckDependency(arch_property)
+                    // Now map the generic relation to the specific relation type.
+                    match keyword {
+                        ExclusivePackageBaseKeyword::CheckDepends => {
+                            PackageBaseProperty::CheckDependency(arch_property)
+                        }
+                        ExclusivePackageBaseKeyword::MakeDepends => {
+                            PackageBaseProperty::MakeDependency(arch_property)
+                        }
+                        _ => unreachable!(),
                     }
-                    PackageBaseKeyword::MakeDepends => {
-                        PackageBaseProperty::MakeDependency(arch_property)
-                    }
-                    _ => unreachable!(),
                 }
-            }
+            };
+
+            Ok(property)
         };
 
-        Ok(property)
+        cut_err(parser).layer("package build exclusive property")
+    }
+}
+
+enum PackageKeyword {
+    SharedMeta(SharedMetaKeyword),
+    Relation(RelationKeyword),
+}
+
+impl AlpmParser for PackageKeyword {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
+        alt((
+            RelationKeyword::parser.map(PackageKeyword::Relation),
+            cut_err(SharedMetaKeyword::parser.map(PackageKeyword::SharedMeta)),
+        ))
+        .context_with(iter_str_context!([
+            RelationKeyword::VARIANTS,
+            SharedMetaKeyword::VARIANTS,
+        ]))
+        .layer("package property keyword")
+        .parse_next(input)
     }
 }
 
@@ -559,9 +605,9 @@ pub enum PackageProperty {
     /// A commented line.
     Comment(String),
     /// A [`SharedMetaProperty`].
-    MetaProperty(SharedMetaProperty),
+    Meta(SharedMetaProperty),
     /// A [`RelationProperty`].
-    RelationProperty(RelationProperty),
+    Relation(RelationProperty),
     /// A [`ClearableProperty`].
     Clear(ClearableProperty),
 }
@@ -613,6 +659,8 @@ impl PackageProperty {
     ///   packages. [`RawPackageBase`] has two special relations that are explicitly handled in that
     ///   enum.
     fn property_parser<'a>(input: &mut Input<'a>) -> PResult<'a, PackageProperty> {
+        let keyword = PackageKeyword::parser.parse_next(input)?;
+
         // The way we handle `ClearableProperty` is a bit imperformant.
         // Since clearable properties are only allowed to occur in `pkgname` sections, I decided to
         // not handle clearable properties in the respective property parsers to keep the
@@ -625,31 +673,23 @@ impl PackageProperty {
         // I don't expect that this will result in any significant performance issues, but **if**
         // this were to ever become an issue, it would be a good start to duplicate all
         // `*_property` parser functions, where one of them explicitly handles clearable properties.
-        // TODO: Refactor this parser to
-        //  - handle the keyword first
-        //  - then, based on the keyword, handle the appropriate Property parser.
-        alt((
-            ClearableProperty::relation_parser.map(PackageProperty::Clear),
-            ClearableProperty::shared_meta_parser.map(PackageProperty::Clear),
-            SharedMetaProperty::parser.map(PackageProperty::MetaProperty),
-            RelationProperty::parser.map(PackageProperty::RelationProperty),
-            cut_err(fail)
-                .context(StrContext::Label("package property type"))
-                .context(StrContext::Expected(StrContextValue::Description(
-                    "one of the allowed package section properties:",
-                )))
-                .context_with(iter_str_context!([
-                    RelationKeyword::VARIANTS,
-                    SharedMetaKeyword::VARIANTS
-                ])),
-        ))
-        .layer("pkgname_property")
-        .parse_next(input)
+        match keyword {
+            PackageKeyword::Relation(keyword) => alt((
+                ClearableProperty::relation_parser(keyword).map(PackageProperty::Clear),
+                RelationProperty::parser(keyword).map(PackageProperty::Relation),
+            ))
+            .parse_next(input),
+            PackageKeyword::SharedMeta(keyword) => alt((
+                ClearableProperty::shared_meta_parser(keyword).map(PackageProperty::Clear),
+                SharedMetaProperty::parser(keyword).map(PackageProperty::Meta),
+            ))
+            .parse_next(input),
+        }
     }
 }
 
 /// Keywords that may exist both in `pkgbase` and `pkgname` sections in SRCINFO data.
-#[derive(Debug, EnumString, VariantNames)]
+#[derive(Clone, Copy, Debug, EnumString, VariantNames)]
 #[strum(serialize_all = "lowercase")]
 pub enum SharedMetaKeyword {
     /// The description of a package.
@@ -710,79 +750,66 @@ impl SharedMetaProperty {
     /// Recognizes keyword assignments that may be present in both `pkgbase` and `pkgname` sections
     /// of SRCINFO data.
     ///
-    /// This function relies on [`SharedMetaKeyword::parser`] to recognize the relevant keywords.
-    ///
-    /// This function backtracks in case no keyword in this group matches.
-    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, SharedMetaProperty> {
-        // Now get the type of the property.
-        let keyword = SharedMetaKeyword::parser.parse_next(input)?;
+    /// This function relies on the keyword already been parsed and expects it as paramater.
+    /// The cursor should be positioned right after the keyword.
+    fn parser<'a>(
+        keyword: SharedMetaKeyword,
+    ) -> impl Parser<Input<'a>, Self, ErrMode<ParseStack<'a>>> {
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Self> {
+            // Expect the ` = ` separator between the key-value pair
+            let _ = delimiter.parse_next(input)?;
 
-        // Expect the ` = ` separator between the key-value pair
-        let _ = delimiter.parse_next(input)?;
-
-        let property = match keyword {
-            SharedMetaKeyword::PkgDesc => cut_err(
-                till_line_end.map(|s| SharedMetaProperty::Description(PackageDescription::from(s))),
-            )
-            .parse_next(input)?,
-            SharedMetaKeyword::Url => cut_err(
-                till_line_end
+            let property = match keyword {
+                SharedMetaKeyword::PkgDesc => till_line_end
+                    .map(|s| SharedMetaProperty::Description(PackageDescription::from(s)))
+                    .parse_next(input)?,
+                SharedMetaKeyword::Url => till_line_end
                     .try_map(Url::from_str)
                     .map(SharedMetaProperty::Url)
-                    .layer("url"),
-            )
-            .parse_next(input)?,
-            SharedMetaKeyword::License => cut_err(
-                till_line_end
+                    .layer("url")
+                    .parse_next(input)?,
+                SharedMetaKeyword::License => till_line_end
                     .try_map(License::from_str)
                     .map(SharedMetaProperty::License)
-                    .layer("license"),
-            )
-            .parse_next(input)?,
-            SharedMetaKeyword::Arch => cut_err(
-                Architecture::parser_until_line_ending_inclusive
-                    .map(SharedMetaProperty::Architecture),
-            )
-            .parse_next(input)?,
-            SharedMetaKeyword::Changelog => cut_err(
-                till_line_end
+                    .layer("license")
+                    .parse_next(input)?,
+                SharedMetaKeyword::Arch => Architecture::parser_until_line_ending_inclusive
+                    .map(SharedMetaProperty::Architecture)
+                    .parse_next(input)?,
+                SharedMetaKeyword::Changelog => till_line_end
                     .try_map(Changelog::from_str)
                     .map(SharedMetaProperty::Changelog)
-                    .layer("changelog"),
-            )
-            .parse_next(input)?,
-            SharedMetaKeyword::Install => cut_err(
-                till_line_end
+                    .layer("changelog")
+                    .parse_next(input)?,
+                SharedMetaKeyword::Install => till_line_end
                     .try_map(Install::from_str)
                     .map(SharedMetaProperty::Install)
-                    .layer("install file path"),
-            )
-            .parse_next(input)?,
-            SharedMetaKeyword::Groups => {
-                cut_err(till_line_end.map(|s| SharedMetaProperty::Group(Group::from(s))))
-                    .parse_next(input)?
-            }
-            SharedMetaKeyword::Options => cut_err(
-                MakepkgOption::parser_until_line_ending_inclusive.map(SharedMetaProperty::Option),
-            )
-            .parse_next(input)?,
-            SharedMetaKeyword::Backup => cut_err(
-                till_line_end
+                    .layer("install file path")
+                    .parse_next(input)?,
+                SharedMetaKeyword::Groups => till_line_end
+                    .map(|s| SharedMetaProperty::Group(Group::from(s)))
+                    .parse_next(input)?,
+                SharedMetaKeyword::Options => MakepkgOption::parser_until_line_ending_inclusive
+                    .map(SharedMetaProperty::Option)
+                    .parse_next(input)?,
+                SharedMetaKeyword::Backup => till_line_end
                     .try_map(Backup::from_str)
                     .layer("backup file path")
-                    .map(SharedMetaProperty::Backup),
-            )
-            .parse_next(input)?,
+                    .map(SharedMetaProperty::Backup)
+                    .parse_next(input)?,
+            };
+
+            Ok(property)
         };
 
-        Ok(property)
+        cut_err(parser).layer("meta property")
     }
 }
 
 /// Keywords that describe [alpm-package-relations].
 ///
 /// [alpm-package-relations]: https://alpm.archlinux.page/specifications/alpm-package-relation.7.html
-#[derive(Debug, EnumString, VariantNames)]
+#[derive(Clone, Copy, Debug, EnumString, VariantNames)]
 #[strum(serialize_all = "lowercase")]
 pub enum RelationKeyword {
     /// A run-time dependency.
@@ -833,64 +860,69 @@ impl RelationProperty {
     /// Recognizes package relation keyword assignments that may be present in both `pkgbase` and
     /// `pkgname` sections in SRCINFO data.
     ///
-    /// This function relies on [`RelationKeyword::parser`] to recognize the relevant keywords.
-    /// This function backtracks in case no keyword in this group matches.
-    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, RelationProperty> {
-        // First off, get the type of the property.
-        let keyword = RelationKeyword::parser.parse_next(input)?;
+    /// This function relies on the keyword already been parsed and expects it as paramater.
+    /// The cursor should be positioned right after the keyword.
+    fn parser<'a>(
+        keyword: RelationKeyword,
+    ) -> impl Parser<Input<'a>, Self, ErrMode<ParseStack<'a>>> {
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Self> {
+            // All of these properties can be architecture specific and may have an architecture
+            // suffix. Get it if there's one.
+            let architecture = architecture_suffix.parse_next(input)?;
 
-        // All of these properties can be architecture specific and may have an architecture suffix.
-        // Get it if there's one.
-        let architecture = architecture_suffix.parse_next(input)?;
+            // Expect the ` = ` separator between the key-value pair
+            let _ = delimiter.parse_next(input)?;
 
-        // Expect the ` = ` separator between the key-value pair
-        let _ = delimiter.parse_next(input)?;
-
-        let property = match keyword {
-            // Handle these together in a single blob as they all deserialize to the same base type.
-            RelationKeyword::Conflicts | RelationKeyword::Replaces => {
-                // Read and parse the generic architecture specific PackageRelation.
-                let value = cut_err(PackageRelation::parser_until_line_ending).parse_next(input)?;
-                let arch_property = ArchProperty {
-                    architecture,
-                    value,
-                };
-
-                // Now map the generic relation to the specific relation type.
-                match keyword {
-                    RelationKeyword::Replaces => RelationProperty::Replaces(arch_property),
-                    RelationKeyword::Conflicts => RelationProperty::Conflicts(arch_property),
-                    _ => unreachable!(),
-                }
-            }
-            RelationKeyword::Depends | RelationKeyword::Provides => {
-                // Read and parse the generic architecture specific RelationOrSoname.
-                let value = cut_err(RelationOrSoname::parser_until_line_ending_inclusive)
-                    .parse_next(input)?;
-                let arch_property = ArchProperty {
-                    architecture,
-                    value,
-                };
-
-                // Now map the generic relation to the specific relation type.
-                match keyword {
-                    RelationKeyword::Depends => RelationProperty::Dependency(arch_property),
-                    RelationKeyword::Provides => RelationProperty::Provides(arch_property),
-                    _ => unreachable!(),
-                }
-            }
-            RelationKeyword::OptDepends => cut_err(
-                OptionalDependency::parser_until_line_ending_inclusive.map(|value| {
-                    RelationProperty::OptionalDependency(ArchProperty {
-                        architecture: architecture.clone(),
+            let property = match keyword {
+                // Handle these together in a single blob as they all deserialize to the same base
+                // type.
+                RelationKeyword::Conflicts | RelationKeyword::Replaces => {
+                    // Read and parse the generic architecture specific PackageRelation.
+                    let value = PackageRelation::parser_until_line_ending.parse_next(input)?;
+                    let arch_property = ArchProperty {
+                        architecture,
                         value,
-                    })
-                }),
-            )
-            .parse_next(input)?,
+                    };
+
+                    // Now map the generic relation to the specific relation type.
+                    match keyword {
+                        RelationKeyword::Replaces => RelationProperty::Replaces(arch_property),
+                        RelationKeyword::Conflicts => RelationProperty::Conflicts(arch_property),
+                        _ => unreachable!(),
+                    }
+                }
+                RelationKeyword::Depends | RelationKeyword::Provides => {
+                    // Read and parse the generic architecture specific RelationOrSoname.
+                    let value =
+                        RelationOrSoname::parser_until_line_ending_inclusive.parse_next(input)?;
+                    let arch_property = ArchProperty {
+                        architecture,
+                        value,
+                    };
+
+                    // Now map the generic relation to the specific relation type.
+                    match keyword {
+                        RelationKeyword::Depends => RelationProperty::Dependency(arch_property),
+                        RelationKeyword::Provides => RelationProperty::Provides(arch_property),
+                        _ => unreachable!(),
+                    }
+                }
+                RelationKeyword::OptDepends => {
+                    OptionalDependency::parser_until_line_ending_inclusive
+                        .map(|value| {
+                            RelationProperty::OptionalDependency(ArchProperty {
+                                architecture: architecture.clone(),
+                                value,
+                            })
+                        })
+                        .parse_next(input)?
+                }
+            };
+
+            Ok(property)
         };
 
-        Ok(property)
+        cut_err(parser).layer("relation property")
     }
 
     /// Returns the [`Architecture`] of the current variant.
@@ -909,7 +941,7 @@ impl RelationProperty {
 }
 
 /// Package source keywords that are exclusive to the `pkgbase` section in SRCINFO data.
-#[derive(Debug, EnumString, VariantNames)]
+#[derive(Clone, Copy, Debug, EnumString, VariantNames)]
 #[strum(serialize_all = "lowercase")]
 pub enum SourceKeyword {
     /// A source entry.
@@ -980,94 +1012,86 @@ pub enum SourceProperty {
 impl SourceProperty {
     /// Recognizes package source related keyword assignments in SRCINFO data.
     ///
-    /// This function relies on [`SourceKeyword::parser`] to recognize the relevant keywords.
-    ///
-    /// This function backtracks in case no keyword in this group matches.
-    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, SourceProperty> {
-        // First off, get the type of the property.
-        let keyword = SourceKeyword::parser.parse_next(input)?;
+    /// This function relies on the keyword already been parsed and expects it as paramater.
+    /// The cursor should be positioned right after the keyword.
+    fn parser<'a>(keyword: SourceKeyword) -> impl Parser<Input<'a>, Self, ErrMode<ParseStack<'a>>> {
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Self> {
+            let property = match keyword {
+                SourceKeyword::NoExtract => {
+                    // Expect the ` = ` separator between the key-value pair
+                    let _ = delimiter.parse_next(input)?;
 
-        let property = match keyword {
-            SourceKeyword::NoExtract => {
-                // Expect the ` = ` separator between the key-value pair
-                let _ = delimiter.parse_next(input)?;
-
-                cut_err(till_line_end.map(|s| SourceProperty::NoExtract(s.to_string())))
-                    .parse_next(input)?
-            }
-            SourceKeyword::Source
-            | SourceKeyword::B2sums
-            | SourceKeyword::Md5sums
-            | SourceKeyword::Sha1sums
-            | SourceKeyword::Sha224sums
-            | SourceKeyword::Sha256sums
-            | SourceKeyword::Sha384sums
-            | SourceKeyword::Sha512sums
-            | SourceKeyword::Cksums => {
-                // All other properties may be architecture specific and thereby have an
-                // architecture suffix.
-                let architecture = architecture_suffix.parse_next(input)?;
-
-                // Expect the ` = ` separator between the key-value pair
-                let _ = delimiter.parse_next(input)?;
-
-                match keyword {
-                    SourceKeyword::Source => {
-                        cut_err(Source::parser_until_line_ending_inclusive.map(|value| {
-                            SourceProperty::Source(ArchProperty {
-                                architecture: architecture.clone(),
-                                value,
-                            })
-                        }))
+                    till_line_end
+                        .map(|s| SourceProperty::NoExtract(s.to_string()))
                         .parse_next(input)?
-                    }
-                    // all checksum properties are parsed the same way.
-                    SourceKeyword::B2sums => SourceProperty::B2Checksum(ArchProperty {
-                        architecture,
-                        value: cut_err(SkippableChecksum::parser_until_line_ending)
-                            .parse_next(input)?,
-                    }),
-                    SourceKeyword::Md5sums => SourceProperty::Md5Checksum(ArchProperty {
-                        architecture,
-                        value: cut_err(SkippableChecksum::parser_until_line_ending)
-                            .parse_next(input)?,
-                    }),
-                    SourceKeyword::Sha1sums => SourceProperty::Sha1Checksum(ArchProperty {
-                        architecture,
-                        value: cut_err(SkippableChecksum::parser_until_line_ending)
-                            .parse_next(input)?,
-                    }),
-                    SourceKeyword::Sha224sums => SourceProperty::Sha224Checksum(ArchProperty {
-                        architecture,
-                        value: cut_err(SkippableChecksum::parser_until_line_ending)
-                            .parse_next(input)?,
-                    }),
-                    SourceKeyword::Sha256sums => SourceProperty::Sha256Checksum(ArchProperty {
-                        architecture,
-                        value: cut_err(SkippableChecksum::parser_until_line_ending)
-                            .parse_next(input)?,
-                    }),
-                    SourceKeyword::Sha384sums => SourceProperty::Sha384Checksum(ArchProperty {
-                        architecture,
-                        value: cut_err(SkippableChecksum::parser_until_line_ending)
-                            .parse_next(input)?,
-                    }),
-                    SourceKeyword::Sha512sums => SourceProperty::Sha512Checksum(ArchProperty {
-                        architecture,
-                        value: cut_err(SkippableChecksum::parser_until_line_ending)
-                            .parse_next(input)?,
-                    }),
-                    SourceKeyword::Cksums => SourceProperty::CrcChecksum(ArchProperty {
-                        architecture,
-                        value: cut_err(SkippableChecksum::parser_until_line_ending)
-                            .parse_next(input)?,
-                    }),
-                    SourceKeyword::NoExtract => unreachable!(),
                 }
-            }
+                SourceKeyword::Source
+                | SourceKeyword::B2sums
+                | SourceKeyword::Md5sums
+                | SourceKeyword::Sha1sums
+                | SourceKeyword::Sha224sums
+                | SourceKeyword::Sha256sums
+                | SourceKeyword::Sha384sums
+                | SourceKeyword::Sha512sums
+                | SourceKeyword::Cksums => {
+                    // All other properties may be architecture specific and thereby have an
+                    // architecture suffix.
+                    let architecture = architecture_suffix.parse_next(input)?;
+
+                    // Expect the ` = ` separator between the key-value pair
+                    let _ = delimiter.parse_next(input)?;
+
+                    match keyword {
+                        SourceKeyword::Source => Source::parser_until_line_ending_inclusive
+                            .map(|value| {
+                                SourceProperty::Source(ArchProperty {
+                                    architecture: architecture.clone(),
+                                    value,
+                                })
+                            })
+                            .parse_next(input)?,
+                        // all checksum properties are parsed the same way.
+                        SourceKeyword::B2sums => SourceProperty::B2Checksum(ArchProperty {
+                            architecture,
+                            value: SkippableChecksum::parser_until_line_ending.parse_next(input)?,
+                        }),
+                        SourceKeyword::Md5sums => SourceProperty::Md5Checksum(ArchProperty {
+                            architecture,
+                            value: SkippableChecksum::parser_until_line_ending.parse_next(input)?,
+                        }),
+                        SourceKeyword::Sha1sums => SourceProperty::Sha1Checksum(ArchProperty {
+                            architecture,
+                            value: SkippableChecksum::parser_until_line_ending.parse_next(input)?,
+                        }),
+                        SourceKeyword::Sha224sums => SourceProperty::Sha224Checksum(ArchProperty {
+                            architecture,
+                            value: SkippableChecksum::parser_until_line_ending.parse_next(input)?,
+                        }),
+                        SourceKeyword::Sha256sums => SourceProperty::Sha256Checksum(ArchProperty {
+                            architecture,
+                            value: SkippableChecksum::parser_until_line_ending.parse_next(input)?,
+                        }),
+                        SourceKeyword::Sha384sums => SourceProperty::Sha384Checksum(ArchProperty {
+                            architecture,
+                            value: SkippableChecksum::parser_until_line_ending.parse_next(input)?,
+                        }),
+                        SourceKeyword::Sha512sums => SourceProperty::Sha512Checksum(ArchProperty {
+                            architecture,
+                            value: SkippableChecksum::parser_until_line_ending.parse_next(input)?,
+                        }),
+                        SourceKeyword::Cksums => SourceProperty::CrcChecksum(ArchProperty {
+                            architecture,
+                            value: SkippableChecksum::parser_until_line_ending.parse_next(input)?,
+                        }),
+                        SourceKeyword::NoExtract => unreachable!(),
+                    }
+                }
+            };
+
+            Ok(property)
         };
 
-        Ok(property)
+        cut_err(parser).layer("source property")
     }
 }
 
@@ -1127,58 +1151,69 @@ impl ClearableProperty {
     /// The above properties would indicate that both `pkgdesc` and the `depends` array are to be
     /// cleared and left empty for a given package.
     ///
-    /// This function backtracks in case no keyword in this group matches or in case the property is
-    /// not cleared.
-    fn shared_meta_parser<'a>(input: &mut Input<'a>) -> PResult<'a, ClearableProperty> {
-        // First off, check if this is any of the clearable properties.
-        let keyword = SharedMetaKeyword::parser.parse_next(input)?;
+    /// This function relies on the keyword already been parsed and expects it as paramater.
+    /// The cursor should be positioned right after the keyword.
+    fn shared_meta_parser<'a>(
+        keyword: SharedMetaKeyword,
+    ) -> impl Parser<Input<'a>, Self, ErrMode<ParseStack<'a>>> {
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Self> {
+            // Now check if it's actually a clear.
+            // This parser fails and backtracks in case there's anything but spaces and a newline
+            // after the delimiter, which indicates that there's an actual value that is
+            // set for this property.
+            let _ = (" =", space0, newline).parse_next(input)?;
 
-        // Now check if it's actually a clear.
-        // This parser fails and backtracks in case there's anything but spaces and a newline after
-        // the delimiter, which indicates that there's an actual value that is set for this
-        // property.
-        let _ = (" =", space0, newline).parse_next(input)?;
+            let property = match keyword {
+                // The `Arch` property matches the keyword, but isn't clearable.
+                SharedMetaKeyword::Arch => {
+                    return Err(ErrMode::Backtrack(ParserError::from_input(input)));
+                }
+                SharedMetaKeyword::PkgDesc => ClearableProperty::Description,
+                SharedMetaKeyword::Url => ClearableProperty::Url,
+                SharedMetaKeyword::License => ClearableProperty::Licenses,
+                SharedMetaKeyword::Changelog => ClearableProperty::Changelog,
+                SharedMetaKeyword::Install => ClearableProperty::Install,
+                SharedMetaKeyword::Groups => ClearableProperty::Groups,
+                SharedMetaKeyword::Options => ClearableProperty::Options,
+                SharedMetaKeyword::Backup => ClearableProperty::Backups,
+            };
 
-        let property = match keyword {
-            // The `Arch` property matches the keyword, but isn't clearable.
-            SharedMetaKeyword::Arch => {
-                return Err(ErrMode::Backtrack(ParserError::from_input(input)));
-            }
-            SharedMetaKeyword::PkgDesc => ClearableProperty::Description,
-            SharedMetaKeyword::Url => ClearableProperty::Url,
-            SharedMetaKeyword::License => ClearableProperty::Licenses,
-            SharedMetaKeyword::Changelog => ClearableProperty::Changelog,
-            SharedMetaKeyword::Install => ClearableProperty::Install,
-            SharedMetaKeyword::Groups => ClearableProperty::Groups,
-            SharedMetaKeyword::Options => ClearableProperty::Options,
-            SharedMetaKeyword::Backup => ClearableProperty::Backups,
+            Ok(property)
         };
 
-        Ok(property)
+        parser.layer("meta property")
     }
 
     /// Same as [`Self::shared_meta_parser`], but for clearable [RelationProperty].
-    fn relation_parser<'a>(input: &mut Input<'a>) -> PResult<'a, ClearableProperty> {
-        // First off, check if this is any of the clearable properties.
-        let keyword = RelationKeyword::parser.parse_next(input)?;
+    ///
+    /// This function relies on the keyword already been parsed and expects it as paramater.
+    /// The cursor should be positioned right after the keyword.
+    fn relation_parser<'a>(
+        keyword: RelationKeyword,
+    ) -> impl Parser<Input<'a>, Self, ErrMode<ParseStack<'a>>> {
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Self> {
+            // All relations may be architecture specific.
+            let architecture = architecture_suffix.parse_next(input)?;
 
-        // All relations may be architecture specific.
-        let architecture = architecture_suffix.parse_next(input)?;
+            // Now check if it's actually a clear.
+            // This parser fails and backtracks in case there's anything but spaces and a newline
+            // after the delimiter, which indicates that there's an actual value that is
+            // set for this property.
+            let _ = (" =", space0, newline).parse_next(input)?;
 
-        // Now check if it's actually a clear.
-        // This parser fails and backtracks in case there's anything but spaces and a newline after
-        // the delimiter, which indicates that there's an actual value that is set for this
-        // property.
-        let _ = (" =", space0, newline).parse_next(input)?;
+            let property = match keyword {
+                RelationKeyword::Depends => ClearableProperty::Dependencies(architecture),
+                RelationKeyword::OptDepends => {
+                    ClearableProperty::OptionalDependencies(architecture)
+                }
+                RelationKeyword::Provides => ClearableProperty::Provides(architecture),
+                RelationKeyword::Conflicts => ClearableProperty::Conflicts(architecture),
+                RelationKeyword::Replaces => ClearableProperty::Replaces(architecture),
+            };
 
-        let property = match keyword {
-            RelationKeyword::Depends => ClearableProperty::Dependencies(architecture),
-            RelationKeyword::OptDepends => ClearableProperty::OptionalDependencies(architecture),
-            RelationKeyword::Provides => ClearableProperty::Provides(architecture),
-            RelationKeyword::Conflicts => ClearableProperty::Conflicts(architecture),
-            RelationKeyword::Replaces => ClearableProperty::Replaces(architecture),
+            Ok(property)
         };
 
-        Ok(property)
+        parser.layer("relation property")
     }
 }
