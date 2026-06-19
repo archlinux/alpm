@@ -693,18 +693,18 @@ class Epoch:
     delimited by a ':' (e.g. '1:' is added to '0.10.0-1' to form '1:0.10.0-1' which
     then orders newer than '1.0.0-1').
 
-    An Epoch wraps an int that is guaranteed to be greater than 0.
+    An Epoch wraps a non-negative integer.
     """
 
     def __init__(self, value: int) -> None:
-        """Create a new epoch from a positive integer.
+        """Create a new epoch from a non-negative integer.
 
         Args:
-            value (int): The epoch value, must be a non-zero positive integer.
+            value (int): The epoch value, must be a non-negative integer.
 
         Raises:
-            ValueError: If the epoch is not a positive integer.
-            OverflowError: If the epoch is greater than the system's pointer size.
+            OverflowError: If the epoch is negative or greater than the system's pointer
+            size.
 
         """
 

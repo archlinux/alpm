@@ -197,8 +197,6 @@ impl PartialOrd for Version {
 
 #[cfg(test)]
 mod tests {
-    use std::num::NonZeroUsize;
-
     use insta::assert_snapshot;
     use rstest::rstest;
 
@@ -219,7 +217,7 @@ mod tests {
         "1:foo-1",
         Version {
             pkgver: PackageVersion::new("foo".to_string()).unwrap(),
-            epoch: Some(Epoch::new(NonZeroUsize::new(1).unwrap())),
+            epoch: Some(Epoch::new(1)),
             pkgrel: Some(PackageRelease::new(1, None))
         },
     )]
@@ -227,7 +225,7 @@ mod tests {
         "1:foo",
         Version {
             pkgver: PackageVersion::new("foo".to_string()).unwrap(),
-            epoch: Some(Epoch::new(NonZeroUsize::new(1).unwrap())),
+            epoch: Some(Epoch::new(1)),
             pkgrel: None,
         },
     )]

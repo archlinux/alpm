@@ -370,7 +370,7 @@ mod tests {
     /// NOTE: [`Epoch`][alpm_types::Epoch] is implicitly constrained by [`std::usize::MAX`].
     /// However, it's unrealistic to ever reach that many forced downgrades for a package, hence
     /// we don't test that fully
-    const EPOCH_REGEX: &str = r"[1-9]{1}[0-9]{0,10}";
+    const EPOCH_REGEX: &str = r"(0|[1-9][0-9]{0,10})";
     const NAME_REGEX: &str = r"[a-z0-9_@+]+[a-z0-9\-._@+]*";
     const PKGREL_REGEX: &str = r"[1-9][0-9]{0,8}(|[.][1-9][0-9]{0,8})";
     const PKGVER_REGEX: &str = r"([[:alnum:]][[:alnum:]_+.]*)";

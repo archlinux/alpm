@@ -95,14 +95,15 @@ def test_schema_version_from_str() -> None:
 # Epoch tests
 def test_epoch_valid() -> None:
     """Test creating a valid epoch."""
-    epoch = alpm_types.Epoch(1)
-    assert epoch.value == 1
+    epoch = alpm_types.Epoch(0)
+    assert epoch.value == 0
 
 
-def test_epoch_zero_invalid() -> None:
-    """Test that epoch 0 is invalid."""
-    with pytest.raises(ValueError):
-        alpm_types.Epoch(0)
+def test_epoch_invalid() -> None:
+    """Test that Epoch raises an OverflowError for negative values."""
+    with pytest.raises(OverflowError) as exc_info:
+        alpm_types.Epoch(-1)
+        assert "negative int to unsigned" in str(exc_info.value)
 
 
 def test_epoch_from_str() -> None:
@@ -411,13 +412,6 @@ def test_version_repr() -> None:
     version = alpm_types.Version.from_str("1.2.3")
     repr_str = repr(version)
     assert "Version" in repr_str
-
-
-def test_epoch_error_handling() -> None:
-    """Test that Epoch raises ValueError for zero and meaningful error messages."""
-    with pytest.raises(ValueError) as exc_info:
-        alpm_types.Epoch(0)
-    assert "positive integer" in str(exc_info.value)
 
 
 def test_schema_version_error_handling() -> None:

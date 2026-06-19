@@ -76,7 +76,7 @@ impl FullVersion {
     /// let version = FullVersion::new(
     ///     PackageVersion::new("1.0.0".to_string())?,
     ///     PackageRelease::new(1, None),
-    ///     Some(Epoch::new(1.try_into()?)),
+    ///     Some(Epoch::new(1)),
     /// );
     /// # Ok(())
     /// # }

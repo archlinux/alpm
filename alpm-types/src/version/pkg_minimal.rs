@@ -73,7 +73,7 @@ impl MinimalVersion {
     /// // A minimal version with epoch.
     /// let version = MinimalVersion::new(
     ///     PackageVersion::new("1.0.0".to_string())?,
-    ///     Some(Epoch::new(1.try_into()?)),
+    ///     Some(Epoch::new(1)),
     /// );
     /// # Ok(())
     /// # }

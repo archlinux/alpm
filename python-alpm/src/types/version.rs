@@ -1,6 +1,6 @@
-use std::{num::NonZeroUsize, str::FromStr};
+use std::str::FromStr;
 
-use pyo3::{exceptions::PyValueError, prelude::*};
+use pyo3::prelude::*;
 
 use crate::macros::impl_from;
 
@@ -118,12 +118,8 @@ pub struct Epoch(alpm_types::Epoch);
 #[pymethods]
 impl Epoch {
     #[new]
-    fn new(value: usize) -> PyResult<Self> {
-        let non_zero = NonZeroUsize::new(value)
-            // Since this is `Optional` in Rust, we raise `ValueError` in case of `None`,
-            // as this is more idiomatic Python.
-            .ok_or_else(|| PyValueError::new_err("Epoch must be a non-zero positive integer"))?;
-        Ok(alpm_types::Epoch::new(non_zero).into())
+    fn new(value: usize) -> Self {
+        alpm_types::Epoch::new(value).into()
     }
 
     #[staticmethod]
@@ -132,10 +128,10 @@ impl Epoch {
         Ok(inner.into())
     }
 
-    /// Epoch value as a positive integer.
+    /// Epoch value as a non-negative integer.
     #[getter]
     fn value(&self) -> usize {
-        self.0.0.get()
+        self.0.0
     }
 
     fn __str__(&self) -> String {
@@ -143,7 +139,7 @@ impl Epoch {
     }
 
     fn __repr__(&self) -> String {
-        format!("Epoch({})", self.0.0.get())
+        format!("Epoch({})", self.0.0)
     }
 }
 

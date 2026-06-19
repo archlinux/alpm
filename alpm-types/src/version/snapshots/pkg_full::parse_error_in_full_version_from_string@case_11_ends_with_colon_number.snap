@@ -4,4 +4,4 @@ source: alpm-types/src/version/pkg_full.rs
 1-foo:1
 ^
 invalid package epoch
-expected positive non-zero decimal integer, followed by a ':'
+expected non-negative decimal integer, followed by a ':'

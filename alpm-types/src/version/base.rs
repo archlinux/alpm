@@ -11,7 +11,6 @@
 use std::{
     cmp::Ordering,
     fmt::{Display, Formatter},
-    num::NonZeroUsize,
     str::FromStr,
 };
 
@@ -36,7 +35,7 @@ use crate::{Error, VersionSegments};
 /// `1.0.0-1`).
 /// See [alpm-epoch] for details on the format.
 ///
-/// An Epoch wraps a usize that is guaranteed to be greater than `0`.
+/// An Epoch wraps a [`usize`].
 ///
 /// ## Examples
 /// ```
@@ -44,17 +43,17 @@ use crate::{Error, VersionSegments};
 ///
 /// use alpm_types::Epoch;
 ///
+/// assert!(Epoch::from_str("0").is_ok());
 /// assert!(Epoch::from_str("1").is_ok());
-/// assert!(Epoch::from_str("0").is_err());
 /// ```
 ///
 /// [alpm-epoch]: https://alpm.archlinux.page/specifications/alpm-epoch.7.html
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
-pub struct Epoch(pub NonZeroUsize);
+pub struct Epoch(pub usize);
 
 impl Epoch {
     /// Create a new Epoch
-    pub fn new(epoch: NonZeroUsize) -> Self {
+    pub fn new(epoch: usize) -> Self {
         Epoch(epoch)
     }
 
@@ -67,10 +66,9 @@ impl Epoch {
     /// Returns an error if `input` is not a valid _alpm_epoch_.
     pub fn parser(input: &mut &str) -> ModalResult<Self> {
         terminated(dec_uint, eof)
-            .verify_map(NonZeroUsize::new)
             .context(StrContext::Label("package epoch"))
             .context(StrContext::Expected(StrContextValue::Description(
-                "positive non-zero decimal integer",
+                "non-negative decimal integer",
             )))
             .map(Self)
             .parse_next(input)
@@ -309,15 +307,15 @@ mod tests {
     use crate::configure_insta;
 
     #[rstest]
-    #[case("1", Ok(Epoch(NonZeroUsize::new(1).unwrap())))]
+    #[case("0", Ok(Epoch(0)))]
+    #[case("1", Ok(Epoch(1)))]
     fn epoch(#[case] version: &str, #[case] result: Result<Epoch, Error>) {
         assert_eq!(result, Epoch::from_str(version));
     }
 
     #[rstest]
-    #[case("0", "expected positive non-zero decimal integer")]
-    #[case("-0", "expected positive non-zero decimal integer")]
-    #[case("z", "expected positive non-zero decimal integer")]
+    #[case("-0", "expected non-negative decimal integer")]
+    #[case("z", "expected non-negative decimal integer")]
     fn epoch_parse_failure(#[case] input: &str, #[case] err_snippet: &str) {
         let Err(Error::ParseError(err_msg)) = Epoch::from_str(input) else {
             panic!("'{input}' erroneously parsed as Epoch")
