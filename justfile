@@ -714,7 +714,7 @@ check-shell-readme project:
 [group('check')]
 check-shell-recipe recipe:
     just ensure-command rg shellcheck
-    just -vv -n {{ recipe }} 2>&1 | rg -v '===> Running recipe' | shellcheck -
+    just --verbose --verbose --dry-run {{ recipe }} 2>&1 | rg --ignore-case --invert-match '===> Running recipe' | shellcheck -
 
 # Checks a shell script using shellcheck.
 [group('check')]
