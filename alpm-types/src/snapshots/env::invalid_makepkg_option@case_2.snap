@@ -1,6 +1,7 @@
 ---
 source: alpm-types/src/env.rs
 ---
-#somethingelse
-^
-expected `!`, ASCII alphanumeric character, `-`, `.`, `_`, `!`
+error: invalid makepkg option
+ | 
+ | #somethingelse
+ | ^ expected `!`

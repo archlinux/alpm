@@ -1,7 +1,7 @@
 ---
 source: alpm-types/src/name.rs
 ---
-example.so.1
-          ^
-invalid shared object name
-expected end of input.
+error: invalid shared object name
+ | 
+ | example.so.1
+ |           ^ expected end of input.

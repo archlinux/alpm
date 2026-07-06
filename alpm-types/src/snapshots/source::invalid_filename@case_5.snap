@@ -1,6 +1,9 @@
 ---
 source: alpm-types/src/source.rs
 ---
-foo:::/absolute/path
-     ^
-File name (:/absolute/path) contains invalid characters: /
+error: invalid package artifact source
+ | 
+ | foo:::/absolute/path
+ | ~~~~~^
+ | 
+ = note: File name (:/absolute/path) contains invalid characters: /

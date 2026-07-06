@@ -1,6 +1,9 @@
 ---
 source: alpm-types/src/source.rs
 ---
-./bikeshed_colour.patch
-^
-File name (./bikeshed_colour.patch) contains invalid characters: /
+error: invalid package artifact source
+ | 
+ | ./bikeshed_colour.patch
+ | ^
+ | 
+ = note: File name (./bikeshed_colour.patch) contains invalid characters: /

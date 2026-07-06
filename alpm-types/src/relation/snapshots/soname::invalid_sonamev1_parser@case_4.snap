@@ -1,7 +1,7 @@
 ---
 source: alpm-types/src/relation/soname.rs
 ---
-noarchitecture.so=1-
-                    ^
-invalid ELF architecture
-expected `32 or 64`
+error: invalid ELF architecture
+ | 
+ | noarchitecture.so=1-
+ |                     ^ expected `32 or 64`

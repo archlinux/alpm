@@ -1,7 +1,12 @@
 ---
 source: alpm-types/src/version/requirement.rs
 ---
-=>3.1
- ^
-invalid comparison operator
-expected `<=`, `>=`, `=`, `<`, `>`
+error: invalid comparison operator
+ | 
+ | =>3.1
+ | ~^ expected `<=`
+ | 
+ = while parsing:
+   version requirement: (=>3.1)
+   → invalid comparison operator
+   → expected `<=`, `>=`, `=`, `<`, `>`

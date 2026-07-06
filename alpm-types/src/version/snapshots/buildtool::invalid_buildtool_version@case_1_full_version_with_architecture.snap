@@ -2,7 +2,7 @@
 source: alpm-types/src/version/buildtool.rs
 ---
 Parser failed with the following error:
-1.0.0-any
-     ^
-invalid buildtool version
-expected a stand-alone minimal alpm-package-version, or a full alpm-package-version together with a alpm-architecture, delimited by a '-'
+error: invalid buildtool version
+ | 
+ | 1.0.0-any
+ |      ^ expected a stand-alone minimal alpm-package-version

@@ -1,6 +1,7 @@
 ---
 source: alpm-types/src/system.rs
 ---
-any
-^
-invalid system architecture. 'any' has a special meaning and is not allowed here.
+error: invalid system architecture. 'any' has a special meaning and is not allowed here.
+ | 
+ | any
+ | ^

@@ -1,7 +1,12 @@
 ---
 source: alpm-types/src/url.rs
 ---
-bzr+https://example/project#branch=feature
-                            ^
-invalid bzr revision type
-expected revision keyword
+error: invalid bzr revision type
+ | 
+ | bzr+https://example/project#branch=feature
+ | ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^ expected revision keyword
+ | 
+ = while parsing:
+   source url: (bzr+https://example/…)
+   → invalid bzr revision type
+   → expected revision keyword

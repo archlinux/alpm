@@ -1,7 +1,7 @@
 ---
 source: alpm-types/src/version/base.rs
 ---
--1
-^
-invalid package release
-expected positive decimal integer
+error: invalid package release
+ | 
+ | -1
+ | ^ expected positive decimal integer

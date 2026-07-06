@@ -1,8 +1,9 @@
 ---
 source: alpm-types/src/relation/soname.rs
 ---
-invalidarchitecture.so=1-82
-                         ^
-invalid ELF architecture
-expected `32 or 64`
-Matching variant not found
+error: invalid ELF architecture
+ | 
+ | invalidarchitecture.so=1-82
+ |                          ^ expected `32 or 64`
+ | 
+ = note: Matching variant not found

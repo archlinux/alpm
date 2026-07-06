@@ -1,7 +1,7 @@
 ---
 source: alpm-types/src/version/pkg_minimal.rs
 ---
-1.0.0-1
-     ^
-invalid minimal alpm-package-version
-expected the package version to end with an alpm-pkgver
+error: invalid minimal alpm-package-version
+ | 
+ | 1.0.0-1
+ |      ^ expected the package version to end with an alpm-pkgver

@@ -1,11 +1,13 @@
 ---
 source: alpm-types/src/relation/soname.rs
 ---
-invalidsoname.so~1.64
-^
-invalid shared object name
-Parser failed with the following error:
-invalidsoname.so~1.64
-                ^
-invalid shared object name
-expected end of input.
+error: invalid shared object name
+ | 
+ | invalidsoname.so~1.64
+ | ^
+ | 
+ = note: Parser failed with the following error:
+error: invalid shared object name
+ | 
+ | invalidsoname.so~1.64
+ |                 ^ expected end of input.

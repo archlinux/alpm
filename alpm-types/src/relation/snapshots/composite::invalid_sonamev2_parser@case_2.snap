@@ -1,7 +1,12 @@
 ---
 source: alpm-types/src/relation/composite.rs
 ---
-lib:libexample.so-abc
-                 ^
-invalid sonamev2
-expected end of input.
+error: invalid sonamev2
+ | 
+ | lib:libexample.so-abc
+ |                  ^ expected end of input.
+ | 
+ = while parsing:
+   alpm-sonamev2: (-abc)
+   → invalid sonamev2
+   → expected end of input.

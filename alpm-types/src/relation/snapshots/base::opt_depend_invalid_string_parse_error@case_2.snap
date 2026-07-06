@@ -1,7 +1,13 @@
 ---
 source: alpm-types/src/relation/base.rs
 ---
-: no_name_colon
-^
-invalid first character of package name
-expected ASCII alphanumeric character, `_`, `@`, `+`
+error: invalid first character of package name
+ | 
+ | : no_name_colon
+ | ^ expected ASCII alphanumeric character
+ | 
+ = while parsing:
+   │ → invalid package name
+   └ alpm-package-name: (: no_name_colon)
+     → invalid first character of package name
+     → expected ASCII alphanumeric character, `_`, `@`, `+`

@@ -2,7 +2,12 @@
 source: alpm-types/src/openpgp.rs
 ---
 Parser failed with the following error:
-Foobar McFooface <@mcfooface.org>
-                  ^
-invalid Email address
-Local part is empty.
+error: invalid Email address
+ | 
+ | Foobar McFooface <@mcfooface.org>
+ | ~~~~~~~~~~~~~~~~~~^
+ | 
+ = while parsing:
+   alpm packager: (Foobar McFooface <@m…)
+   → invalid Email address
+ = note: Local part is empty.

@@ -1,7 +1,13 @@
 ---
 source: alpm-types/src/env.rs
 ---
-package$with$dollars-30-0.1-any
-       ^
-invalid character in package name
-expected ASCII alphanumeric character, `_`, `@`, `+`, `-`, `.`
+error: invalid character in package name
+ | 
+ | package$with$dollars-30-0.1-any
+ | ~~~~~~~^ expected ASCII alphanumeric character
+ | 
+ = while parsing:
+   installed package name: (package$with$dollars…)
+   └ alpm-package-name: (package$with$dollars…)
+     → invalid character in package name
+     → expected ASCII alphanumeric character, `_`, `@`, `+`, `-`, `.`

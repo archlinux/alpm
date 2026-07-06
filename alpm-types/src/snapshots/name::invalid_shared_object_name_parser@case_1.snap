@@ -1,7 +1,7 @@
 ---
 source: alpm-types/src/name.rs
 ---
-noso
-    ^
-invalid suffix
-expected shared object name suffix '.so'
+error: invalid suffix
+ | 
+ | noso
+ |     ^ expected shared object name suffix '.so'

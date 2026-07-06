@@ -1,7 +1,12 @@
 ---
 source: alpm-types/src/env.rs
 ---
-!somethingelse
-^
-invalid packaging or build environment option
-expected `buildflags`, `ccache`, `check`, `color`, `distcc`, `sign`, `makeflags`, `autodeps`, `debug`, `docs`, `emptydirs`, `libtool`, `lto`, `pestrip`, `purge`, `staticlibs`, `strip`, `zipman`
+error: invalid packaging or build environment option
+ | 
+ | !somethingelse
+ | ^ expected `buildflags`
+ | 
+ = while parsing:
+   makepkg option: (!somethingelse)
+   → invalid packaging or build environment option
+   → expected `buildflags`, `ccache`, `check`, `color`, `distcc`, `sign`, `makeflags`, `autodeps`, `debug`, `docs`, `emptydirs`, `libtool`, `lto`, `pestrip`, `purge`, `staticlibs`, `strip`, `zipman`

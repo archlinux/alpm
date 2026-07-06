@@ -1,7 +1,12 @@
 ---
 source: alpm-types/src/version/base.rs
 ---
-1.0.0
-   ^
-invalid package release
-expected single '.' followed by positive decimal integer
+error: invalid package release
+ | 
+ | 1.0.0
+ |    ^ expected single '.' followed by positive decimal integer
+ | 
+ = while parsing:
+   alpm-pkgrel: (.0)
+   → invalid package release
+   → expected single '.' followed by positive decimal integer

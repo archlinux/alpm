@@ -1,7 +1,13 @@
 ---
 source: alpm-types/src/relation/base.rs
 ---
-#invalid-name: this is an example dependency
-^
-invalid first character of package name
-expected ASCII alphanumeric character, `_`, `@`, `+`
+error: invalid first character of package name
+ | 
+ | #invalid-name: this is an example dependency
+ | ^ expected ASCII alphanumeric character
+ | 
+ = while parsing:
+   │ → invalid package name
+   └ alpm-package-name: (#invalid-name: this …)
+     → invalid first character of package name
+     → expected ASCII alphanumeric character, `_`, `@`, `+`

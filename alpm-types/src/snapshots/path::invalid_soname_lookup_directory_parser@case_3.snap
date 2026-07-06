@@ -1,11 +1,21 @@
 ---
 source: alpm-types/src/path.rs
 ---
-:/usr/lib
-^
-invalid prefix for a shared object lookup path
-Parser failed with the following error:
-:/usr/lib
-^
-invalid first character of package name
-expected ASCII alphanumeric character, `_`, `@`, `+`
+error: invalid prefix for a shared object lookup path
+ | 
+ | :/usr/lib
+ | ^
+ | 
+ = while parsing:
+   soname lookup directory: (:/usr/lib)
+   → invalid prefix for a shared object lookup path
+ = note: Parser failed with the following error:
+error: invalid first character of package name
+ | 
+ | :/usr/lib
+ | ^ expected ASCII alphanumeric character
+ | 
+ = while parsing:
+   alpm-package-name: (:/usr/lib)
+   → invalid first character of package name
+   → expected ASCII alphanumeric character, `_`, `@`, `+`

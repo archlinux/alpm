@@ -1,7 +1,7 @@
 ---
 source: alpm-types/src/relation/base.rs
 ---
-name:description with no leading whitespace
-     ^
-invalid dependency delimiter in optional dependency
-expected A colon followed by a whitespace ': '
+error: invalid dependency delimiter in optional dependency
+ | 
+ | name:description with no leading whitespace
+ |      ^ expected A colon followed by a whitespace ': '

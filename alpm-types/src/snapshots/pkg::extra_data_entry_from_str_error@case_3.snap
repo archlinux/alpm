@@ -1,7 +1,12 @@
 ---
 source: alpm-types/src/pkg.rs
 ---
-=value
-^
-invalid extra data
-expected a utf-8 key before the `=` delimiter
+error: invalid extra data
+ | 
+ | =value
+ | ^ expected a utf-8 key before the `=` delimiter
+ | 
+ = while parsing:
+   extra-data entry: (=value)
+   → invalid extra data
+   → expected a utf-8 key before the `=` delimiter

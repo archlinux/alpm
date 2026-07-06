@@ -1,7 +1,7 @@
 ---
 source: alpm-types/src/checksum.rs
 ---
- b 
-^
-invalid hash digest
-expected ASCII hex digit, a hex hash digest with the appropriate length for the given algorithm.
+[1;31merror:[0m [1minvalid hash digest[0m
+[34m[0m [34m|[0m 
+[34m[0m [34m|[0m  b 
+[34m[0m [34m|[0m [31m[0m[1;31m^[0m [31mexpected ASCII hex digit[0m

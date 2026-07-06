@@ -2,7 +2,12 @@
 source: alpm-types/src/openpgp.rs
 ---
 Parser failed with the following error:
-<foobar@mcfooface.org>
-^
-invalid packager name
-expected a packager name
+error: invalid packager name
+ | 
+ | <foobar@mcfooface.org>
+ | ^ expected a packager name
+ | 
+ = while parsing:
+   alpm packager: (<foobar@mcfooface.or…)
+   → invalid packager name
+   → expected a packager name
