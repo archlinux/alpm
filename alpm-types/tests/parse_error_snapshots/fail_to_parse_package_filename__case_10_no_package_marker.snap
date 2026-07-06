@@ -5,5 +5,12 @@ expression: "format!(\"{error}\")"
 ---
 example-1.0.0-1-x86_64.zst
                        ^
-invalid alpm-package file type identifier
-expected `pkg`
+error: invalid alpm-package file type identifier
+ | 
+ | example-1.0.0-1-x86_64.zst
+ | ~~~~~~~~~~~~~~~~~~~~~~~^ expected `pkg`
+ | 
+ = while parsing:
+   alpm-package filename: (example-1.0.0-1-x86_…)
+   → invalid alpm-package file type identifier
+   → expected `pkg`

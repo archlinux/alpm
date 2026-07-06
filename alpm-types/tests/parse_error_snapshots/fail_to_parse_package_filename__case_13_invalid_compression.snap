@@ -5,6 +5,13 @@ expression: "format!(\"{error}\")"
 ---
 example-1.0.0-1-x86_64.pkg.tar.foo
                                ^
-invalid compression algorithm file extension
-expected `Z`, `bz2`, `gz`, `lrz`, `lz`, `lz4`, `lzo`, `xz`, `zst`
-Matching variant not found
+error: invalid compression algorithm file extension
+ | 
+ | example-1.0.0-1-x86_64.pkg.tar.foo
+ |                                ^ expected `Z`
+ | 
+ = while parsing:
+   alpm-package filename: (example-1.0.0-1-x86_…)
+   └ compression algorithm file extension: (foo)
+     → expected `Z`, `bz2`, `gz`, `lrz`, `lz`, `lz4`, `lzo`, `xz`, `zst`
+ = note: Matching variant not found

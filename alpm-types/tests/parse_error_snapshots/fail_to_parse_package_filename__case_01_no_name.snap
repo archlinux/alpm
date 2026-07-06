@@ -5,5 +5,13 @@ expression: "format!(\"{error}\")"
 ---
 -1.0.0-1-x86_64.pkg.tar.zst
 ^
-invalid first character of package name
-expected ASCII alphanumeric character, `_`, `@`, `+`
+error: invalid first character of package name
+ | 
+ | -1.0.0-1-x86_64.pkg.tar.zst
+ | ^ expected ASCII alphanumeric character
+ | 
+ = while parsing:
+   alpm-package filename: (-1.0.0-1-x86_64.pkg.…)
+   └ alpm-package-name: (-1.0.0-1-x86_64.pkg.…)
+     → invalid first character of package name
+     → expected ASCII alphanumeric character, `_`, `@`, `+`

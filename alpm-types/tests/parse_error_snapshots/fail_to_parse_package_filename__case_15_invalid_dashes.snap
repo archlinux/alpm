@@ -5,5 +5,14 @@ expression: "format!(\"{error}\")"
 ---
 example---x86_64.pkg.tar.zst
         ^
-invalid alpm-pkgver character
-expected an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace characters
+error: invalid character
+ | 
+ | example---x86_64.pkg.tar.zst
+ |         ^ expected an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace characters
+ | 
+ = while parsing:
+   alpm-package filename: (example---x86_64.pkg…)
+   └ full alpm-package-version: (--x86_64.pkg.tar.zst)
+     └ alpm-pkgver: (--x86_64.pkg.tar.zst)
+       → invalid character
+       → expected an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace characters
