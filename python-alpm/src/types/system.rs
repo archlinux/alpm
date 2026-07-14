@@ -18,6 +18,7 @@ pub enum KnownArchitecture {
     I386,
     I486,
     I686,
+    LOONG64,
     PENTIUM4,
     RISCV32,
     RISCV64,
@@ -37,6 +38,7 @@ impl From<KnownArchitecture> for alpm_types::SystemArchitecture {
             KnownArchitecture::I386 => alpm_types::SystemArchitecture::I386,
             KnownArchitecture::I486 => alpm_types::SystemArchitecture::I486,
             KnownArchitecture::I686 => alpm_types::SystemArchitecture::I686,
+            KnownArchitecture::LOONG64 => alpm_types::SystemArchitecture::Loong64,
             KnownArchitecture::PENTIUM4 => alpm_types::SystemArchitecture::Pentium4,
             KnownArchitecture::RISCV32 => alpm_types::SystemArchitecture::Riscv32,
             KnownArchitecture::RISCV64 => alpm_types::SystemArchitecture::Riscv64,
@@ -129,6 +131,9 @@ impl From<alpm_types::SystemArchitecture> for SystemArchitecture {
             }
             alpm_types::SystemArchitecture::I686 => {
                 SystemArchitecture::Known(KnownArchitecture::I686)
+            }
+            alpm_types::SystemArchitecture::Loong64 => {
+                SystemArchitecture::Known(KnownArchitecture::LOONG64)
             }
             alpm_types::SystemArchitecture::Pentium4 => {
                 SystemArchitecture::Known(KnownArchitecture::PENTIUM4)

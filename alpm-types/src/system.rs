@@ -78,6 +78,8 @@ pub enum SystemArchitecture {
     I486,
     /// Intel 686
     I686,
+    /// LoongArch 64-bit
+    Loong64,
     /// Intel Pentium 4
     Pentium4,
     /// RISC-V 32-bit
@@ -116,10 +118,11 @@ impl SystemArchitecture {
                 ("i386", eof).value(SystemArchitecture::I386),
                 ("i486", eof).value(SystemArchitecture::I486),
                 ("i686", eof).value(SystemArchitecture::I686),
+                ("loong64", eof).value(SystemArchitecture::Loong64),
                 ("pentium4", eof).value(SystemArchitecture::Pentium4),
-                ("riscv32", eof).value(SystemArchitecture::Riscv32),
             )),
             alt((
+                ("riscv32", eof).value(SystemArchitecture::Riscv32),
                 ("riscv64", eof).value(SystemArchitecture::Riscv64),
                 ("x86_64", eof).value(SystemArchitecture::X86_64),
                 ("x86_64_v2", eof).value(SystemArchitecture::X86_64V2),
@@ -595,6 +598,7 @@ mod tests {
     #[case("i386", SystemArchitecture::I386.into())]
     #[case("i486", SystemArchitecture::I486.into())]
     #[case("i686", SystemArchitecture::I686.into())]
+    #[case("loong64", SystemArchitecture::Loong64.into())]
     #[case("pentium4", SystemArchitecture::Pentium4.into())]
     #[case("riscv32", SystemArchitecture::Riscv32.into())]
     #[case("riscv64", SystemArchitecture::Riscv64.into())]

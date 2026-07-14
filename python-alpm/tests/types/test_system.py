@@ -97,6 +97,7 @@ def test_architecture_from_known_architecture() -> None:
         ("i386", alpm_types.KnownArchitecture.I386),
         ("i486", alpm_types.KnownArchitecture.I486),
         ("i686", alpm_types.KnownArchitecture.I686),
+        ("loong64", alpm_types.KnownArchitecture.LOONG64),
         ("pentium4", alpm_types.KnownArchitecture.PENTIUM4),
         ("riscv32", alpm_types.KnownArchitecture.RISCV32),
         ("riscv64", alpm_types.KnownArchitecture.RISCV64),

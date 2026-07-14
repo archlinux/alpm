@@ -451,6 +451,7 @@ class KnownArchitecture(Enum):
     I386 = "i386"
     I486 = "i486"
     I686 = "i686"
+    LOONG64 = "loong64"
     PENTIUM4 = "pentium4"
     RISCV32 = "riscv32"
     RISCV64 = "riscv64"
