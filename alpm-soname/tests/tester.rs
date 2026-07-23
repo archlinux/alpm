@@ -28,6 +28,7 @@
 //! tempfile = "3"
 //! testresult = "0.4"
 //! rstest = "0.17"
+//! which = "8"
 //! alpm-compress = { path = "../../alpm-compress" }
 //! alpm-package = { path = "../../alpm-package" }
 //! alpm-mtree = { path = "../../alpm-mtree" }

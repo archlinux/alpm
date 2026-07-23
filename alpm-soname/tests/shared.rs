@@ -12,6 +12,7 @@ use alpm_package::{InputDir, OutputDir, Package, PackageCreationConfig, PackageI
 use alpm_types::{MetadataFileName, SonameLookupDirectory, SonameV2};
 use serde::{Deserialize, Serialize};
 use testresult::TestResult;
+use which::which;
 
 const BUILDINFO_BIN: &str = r#"
 format = 2
@@ -102,7 +103,10 @@ depend = {dep}
 
 /// Set up and compile the C project using Meson.
 pub fn setup_lib(config: &SotestConfig, path: &Path, test_files_dir: &Path) -> TestResult {
-    let status = Command::new("meson")
+    let meson = which("meson").unwrap_or_else(|_| {
+        panic!("meson: command not found");
+    });
+    let status = Command::new(meson)
         .arg("setup")
         .arg(format!("-Dlibname={}", config.libname))
         .arg(path.join("build"))

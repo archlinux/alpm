@@ -44,6 +44,7 @@ rstest.workspace = true
 serde_json.workspace = true
 tempfile.workspace = true
 testresult.workspace = true
+which.workspace = true
 
 [lints]
 workspace = true
