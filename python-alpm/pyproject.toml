@@ -39,7 +39,7 @@ auditwheel = false
 rust = false
 
 [dependency-groups]
-dev = ["mypy>=2.3,<2.4", "pdoc>=16,<16.1", "pytest>=9,<9.2", "ruff>=0.15,<0.16"]
+dev = ["mypy>=2.3,<2.4", "pdoc>=16,<16.1", "pytest>=9,<9.2", "ruff>=0.16,<0.17"]
 
 [tool.ruff]
 target-version = "py310"
