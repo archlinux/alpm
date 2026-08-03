@@ -16,7 +16,7 @@ use crate::{Error, mtree_buffer_to_string};
 
 /// An enum tracking all available [ALPM-MTREE] schemas.
 ///
-/// The schema of a ALPM-MTREE refers to its available fields in a specific version.
+/// The schema of an ALPM-MTREE refers to its available fields in a specific version.
 ///
 /// [ALPM-MTREE]: https://alpm.archlinux.page/specifications/ALPM-MTREE.5.html
 #[derive(Clone, Debug, Eq, PartialEq)]
