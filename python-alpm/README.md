@@ -23,14 +23,16 @@ pip install python-alpm
 ```pycon
 >>> from alpm.alpm_types import PackageVersion, PackageRelease, FullVersion, SchemaVersion
 
->>> full_version = FullVersion(pkgver=PackageVersion('0.1.0alpha'), pkgrel=PackageRelease(minor=1))
+>>> full_version = FullVersion(
+...     pkgver=PackageVersion("0.1.0alpha"), pkgrel=PackageRelease(minor=1)
+... )
 >>> full_version
 FullVersion(pkgver=PackageVersion('0.1.0alpha'), pkgrel=PackageRelease(major=0, minor=1))
 
->>> PackageVersion('1.0.1') > full_version.pkgver
+>>> PackageVersion("1.0.1") > full_version.pkgver
 True
 
->>> version_one = SchemaVersion.from_str('1.0.0')
+>>> version_one = SchemaVersion.from_str("1.0.0")
 >>> version_one
 SchemaVersion(major=1, minor=0, patch=0, pre='', build='')
 
@@ -56,7 +58,7 @@ Architectures([Architecture('x86_64'), Architecture('aarch64')])
 >>> srcinfo.packages
 [Package(name='example')]
 
->>> srcinfo.packages_for_architecture(Architecture('aarch64'))
+>>> srcinfo.packages_for_architecture(Architecture("aarch64"))
 [MergedPackage(architecture=Architecture('aarch64'), name='example', version=FullVersion(pkgver=PackageVersion('0.1.0'), pkgrel=PackageRelease(major=1), epoch=1))]
 
 ```
