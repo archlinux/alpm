@@ -155,6 +155,12 @@ build-book-and-links:
     - just --justfile .gitlab/justfile section-start "install-alpm-packages" "Install ALPM package set 'book'"
     - just install-alpm-package-set book
     - just --justfile .gitlab/justfile section-end "install-alpm-packages"
+    # Install zola 0.22.1 from the Arch Linux archive, as zola >=0.23.0 is currently incompatible with the linkita theme.
+    # See https://codeberg.org/salif/linkita/issues/61
+    # and https://gitlab.archlinux.org/archlinux/alpm/alpm/-/work_items/340
+    - just --justfile .gitlab/justfile section-start "install-zola" "Install zola from the Arch Linux archive"
+    - pacman --noconfirm -U https://archive.archlinux.org/packages/z/zola/zola-0.22.1-2-x86_64.pkg.tar.zst
+    - just --justfile .gitlab/justfile section-end "install-zola"
     - just --justfile .gitlab/justfile section-start "build-book" "Build project documentation"
     - just build-book
     - just --justfile .gitlab/justfile section-end "build-book"
@@ -293,6 +299,12 @@ pages:
     - just --justfile .gitlab/justfile section-start "install-alpm-packages" "Install ALPM package set 'book'"
     - just install-alpm-package-set book
     - just --justfile .gitlab/justfile section-end "install-alpm-packages"
+    # Install zola 0.22.1 from the Arch Linux archive, as zola >=0.23.0 is currently incompatible with the linkita theme.
+    # See https://codeberg.org/salif/linkita/issues/61
+    # and https://gitlab.archlinux.org/archlinux/alpm/alpm/-/work_items/340
+    - just --justfile .gitlab/justfile section-start "install-zola" "Install zola from the Arch Linux archive"
+    - pacman --noconfirm -U https://archive.archlinux.org/packages/z/zola/zola-0.22.1-2-x86_64.pkg.tar.zst
+    - just --justfile .gitlab/justfile section-end "install-zola"
     - just --justfile .gitlab/justfile section-start "build-book" "Build project documentation"
     - just build-book
     - just --justfile .gitlab/justfile section-end "build-book"
