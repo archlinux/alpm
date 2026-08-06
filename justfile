@@ -7,6 +7,11 @@ set dotenv-load
 
 coverage := env("COVERAGE_REPORT", "false")
 
+# The nightly toolchain to use for formatting and test coverage.
+# TODO: Currently pinned to the last nightly version that still uses LLVM 1.22 until Arch updates
+# their llvm version. See https://gitlab.archlinux.org/archlinux/alpm/alpm/-/work_items/341
+nightly_toolchain := "nightly-2026-07-28"
+
 # The output directory for documentation artifacts
 
 output_dir := "output"
@@ -543,7 +548,7 @@ check-formatting:
     biome check --indent-style=space --expand=always renovate.json
 
     # We're using nightly to properly group imports, see rustfmt.toml
-    cargo +nightly fmt -- --check
+    cargo +{{ nightly_toolchain }} fmt -- --check
 
     taplo format --check
 
@@ -813,7 +818,7 @@ fix:
     cargo clippy --fix --allow-staged
 
     # fmt must be last as clippy's changes may break formatting
-    cargo +nightly fmt
+    cargo +{{ nightly_toolchain }} fmt
 
     uv run --directory python-alpm ruff format
     uv run --directory python-alpm ruff check --fix
@@ -828,11 +833,12 @@ install-pacman-dev-packages:
 install-rust-dev-tools:
     rustup default stable
     rustup component add clippy
-    # Install nightly as we use it for formatting rules.
-    rustup toolchain install nightly
-    rustup component add --toolchain nightly rustfmt
+    # Install nightly as we use it for formatting rules and test coverage.
+    rustup toolchain install {{ nightly_toolchain }}
+    rustup component add --toolchain {{ nightly_toolchain }} rustfmt
     # llvm-tools-preview for code coverage
     rustup component add llvm-tools-preview
+    rustup component add --toolchain {{ nightly_toolchain }} llvm-tools-preview
 
 # Continuously run integration tests for a given number of rounds
 [group('test')]
@@ -923,7 +929,7 @@ create-coverage-report mode="without-docs" metrics_name="Test-coverage":
     if [[ "$mode" == "with-docs" ]]; then
         reporting_style="with doctest coverage"
         # The support for doctest coverage is a nightly feature
-        cargo_options=(+nightly)
+        cargo_options=(+{{ nightly_toolchain }})
         cargo_llvm_cov_cobertura_options+=(--doctests)
         cargo_llvm_cov_summary_options+=(--doctests)
     fi
@@ -1008,7 +1014,7 @@ test-docs *options:
 
     if [[ "$coverage" == "true" ]]; then
         commands+=(cargo-llvm-cov)
-        toolchain="+nightly"
+        toolchain="+{{ nightly_toolchain }}"
         just ensure-command "${commands[@]}"
         # Use the environment prepared by `cargo llvm-cov show-env`
         # shellcheck source=/dev/null
