@@ -5,11 +5,7 @@ use std::str::FromStr;
 use alpm_parsers::{iter_str_context, prelude::*};
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, Display, EnumString, IntoStaticStr, VariantNames};
-use winnow::{
-    Parser,
-    ascii::alpha1,
-    error::{ErrMode, StrContext, StrContextValue},
-};
+use winnow::{ascii::alpha1, error::ErrMode};
 
 /// The identifier of a file type used in ALPM.
 ///
@@ -61,8 +57,8 @@ impl AlpmParser for FileTypeIdentifier {
     fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         alpha1
             .try_map(FileTypeIdentifier::from_str)
-            .context(StrContext::Label("file type identifier"))
             .context_with(iter_str_context!([FileTypeIdentifier::VARIANTS]))
+            .layer("file type identifier")
             .parse_next(input)
     }
 
@@ -73,9 +69,9 @@ impl AlpmParser for FileTypeIdentifier {
         P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
-            .context(StrContext::Label("file type identifier"))
             .context(StrContext::Expected(StrContextValue::Description(
                 "a string consisting of alphabetic characters",
             )))
+            .layer("file type identifier")
     }
 }

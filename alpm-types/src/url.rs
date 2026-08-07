@@ -8,10 +8,9 @@ use std::{
 use alpm_parsers::{iter_str_context, prelude::*};
 use serde::{Deserialize, Serialize};
 use winnow::{
-    Parser,
     ascii::alpha1,
     combinator::{alt, eof, not, opt, peek, repeat_till, terminated},
-    error::{ErrMode, StrContext, StrContextValue},
+    error::ErrMode,
     token::{any, rest},
 };
 
@@ -273,7 +272,7 @@ impl ParserUntil for SourceUrl {
         // Define the actual parser closure.
         // The delimiter is moved into the closure and borrowed via `by_ref()` on each call.
         let mut delimiter = delimiter;
-        move |input: &mut Input<'a>| -> PResult<Self> {
+        let parser = move |input: &mut Input<'a>| -> PResult<Self> {
             // Check if we should use a VCS for this URL.
             let vcs = opt(VcsProtocol::parser).parse_next(input)?;
 
@@ -283,10 +282,7 @@ impl ParserUntil for SourceUrl {
                 // We explicitly don't look for ALPM related fragments or queries, as the fragment
                 // and query might be a part of the inner URL string for retrieving
                 // the sources.
-                let url = rest
-                    .try_map(Url::from_str)
-                    .context(StrContext::Label("url"))
-                    .parse_next(input)?;
+                let url = rest.try_map(Url::from_str).layer("url").parse_next(input)?;
                 return Ok(SourceUrl {
                     url,
                     vcs_info: None,
@@ -309,7 +305,7 @@ impl ParserUntil for SourceUrl {
                 .map(|((), _): ((), &str)| ())
                 .take()
                 .try_map(|url: &str| Url::from_str(url))
-                .context(StrContext::Label("url"))
+                .layer("url")
                 .parse_next(input)?;
 
             let vcs_info = VcsInfo::parser(vcs).parse_next(input)?;
@@ -322,7 +318,7 @@ impl ParserUntil for SourceUrl {
                 ))
                 .parse_next(input)?;
 
-            delimiter
+            peek(delimiter.by_ref())
                 .by_ref()
                 .context(StrContext::Label("unexpected trailing content in URL."))
                 .context(StrContext::Expected(StrContextValue::Description(
@@ -334,7 +330,9 @@ impl ParserUntil for SourceUrl {
                 url,
                 vcs_info: Some(vcs_info),
             })
-        }
+        };
+
+        parser.layer("source url")
     }
 }
 

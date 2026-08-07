@@ -1,7 +1,12 @@
 ---
 source: alpm-types/src/url.rs
 ---
-hg+https://example/project#commit=154021a
-                           ^
-invalid hg revision type
-expected `branch`, `revision`, `tag`
+error: invalid hg revision type
+ | 
+ | hg+https://example/project#commit=154021a
+ | ~~~~~~~~~~~~~~~~~~~~~~~~~~~^ expected `branch`
+ | 
+ = while parsing:
+   source url: (hg+https://example/p…)
+   → invalid hg revision type
+   → expected `branch`, `revision`, `tag`

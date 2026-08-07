@@ -5,11 +5,7 @@ use std::str::FromStr;
 use alpm_parsers::{iter_str_context, prelude::*};
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, Display, EnumString, VariantNames};
-use winnow::{
-    Parser,
-    ascii::alphanumeric1,
-    error::{ErrMode, StrContext, StrContextValue},
-};
+use winnow::{ascii::alphanumeric1, error::ErrMode};
 
 /// The validation method used during installation of a package.
 ///
@@ -83,8 +79,8 @@ impl AlpmParser for PackageValidation {
     fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         alphanumeric1
             .try_map(PackageValidation::from_str)
-            .context(StrContext::Label("package validation method"))
             .context_with(iter_str_context!([PackageValidation::VARIANTS]))
+            .layer("package validation method")
             .parse_next(input)
     }
 
@@ -95,9 +91,10 @@ impl AlpmParser for PackageValidation {
         P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
-            .context(StrContext::Label("package validation method"))
             .context(StrContext::Expected(StrContextValue::Description(
                 "a string consisting of alphanumeric characters",
             )))
+            .context_with(iter_str_context!([PackageValidation::VARIANTS]))
+            .layer("package validation method")
     }
 }

@@ -7,9 +7,8 @@ use std::{
 use alpm_parsers::prelude::*;
 use serde::{Deserialize, Serialize};
 use winnow::{
-    Parser,
     combinator::{alt, eof, peek, repeat_till},
-    error::{ErrMode, StrContext, StrContextValue},
+    error::ErrMode,
     token::any,
 };
 
@@ -377,7 +376,7 @@ impl ParserUntil for SonameLookupDirectory {
         // Define the actual parser closure.
         // The delimiter is moved into the closure and borrowed via `by_ref()` on each call.
         let mut delimiter_parser = delimiter;
-        move |input: &mut Input<'a>| -> PResult<'a, Self> {
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Self> {
             // Parse until the first `:`, which separates the prefix from the directory.
             let prefix = repeat_till(1.., any, peek(alt((":", eof))))
                 .try_map(|(name, _): (String, &str)| SharedLibraryPrefix::from_str(&name))
@@ -385,9 +384,9 @@ impl ParserUntil for SonameLookupDirectory {
                 .parse_next(input)?;
 
             // Take the delimiter.
-            ":".context(StrContext::Label("shared library prefix delimiter"))
+            ":".context(StrContext::Label("delimiter"))
                 .context(StrContext::Expected(StrContextValue::Description(
-                    "shared library prefix `:`",
+                    "shared library delimiter `:`",
                 )))
                 .parse_next(input)?;
 
@@ -408,7 +407,9 @@ impl ParserUntil for SonameLookupDirectory {
                 .parse_next(input)?;
 
             Ok(Self { prefix, directory })
-        }
+        };
+
+        parser.layer("soname lookup directory")
     }
 }
 

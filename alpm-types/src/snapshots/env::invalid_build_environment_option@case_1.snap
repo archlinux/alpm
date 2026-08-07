@@ -1,7 +1,7 @@
 ---
 source: alpm-types/src/env.rs
 ---
-!somethingelse
-              ^
-invalid makepkg build environment option
-expected `buildflags`, `ccache`, `check`, `color`, `distcc`, `sign`, `makeflags`
+error: invalid build environment option
+ | 
+ | somethingelse
+ | ^ expected `buildflags`

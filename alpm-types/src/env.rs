@@ -7,15 +7,8 @@ use alpm_parsers::{iter_char_context, iter_str_context, prelude::*};
 use serde::{Deserialize, Serialize};
 use strum::VariantNames;
 use winnow::{
-    Parser,
     combinator::{alt, cut_err, fail, opt, peek, repeat, repeat_till},
-    error::{
-        AddContext,
-        ErrMode,
-        ParserError,
-        StrContext,
-        StrContextValue::{self, *},
-    },
+    error::{AddContext, ErrMode, ParserError},
     stream::Stream,
     token::{any, one_of},
 };
@@ -51,8 +44,8 @@ fn option_bool_parser<'a>(input: &mut Input<'a>) -> PResult<'a, bool> {
 
     // Make sure that we have either a `!` at the start or the first char of a name.
     cut_err(peek(valid_chars))
-        .context(StrContext::Expected(CharLiteral('!')))
-        .context(StrContext::Expected(Description(
+        .context(StrContext::Expected(StrContextValue::CharLiteral('!')))
+        .context(StrContext::Expected(StrContextValue::Description(
             "ASCII alphanumeric character",
         )))
         .context_with(iter_char_context!(special_first_chars))
@@ -126,6 +119,7 @@ impl AlpmParser for MakepkgOption {
                     PackageOption::VARIANTS.to_vec()
                 ])),
         ))
+        .layer("makepkg option")
         .parse_next(input)
     }
 
@@ -136,11 +130,11 @@ impl AlpmParser for MakepkgOption {
         P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
-            .context(StrContext::Label("makepkg option"))
             .context(StrContext::Expected(StrContextValue::Description(
                 "string consisting of alphanumeric characters or",
             )))
             .context_with(iter_char_context!(SPECIAL_OPTION_CHARS))
+            .layer("makepkg option")
     }
 }
 
@@ -259,21 +253,24 @@ impl AlpmParser for BuildEnvironmentOption {
     ///
     /// Returns an error if `input` does not begin with a valid [`BuildEnvironmentOption`].
     fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
-        let on = option_bool_parser.parse_next(input)?;
-        let name = option_name_parser.parse_next(input)?;
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Self> {
+            let on = option_bool_parser.parse_next(input)?;
+            let name = option_name_parser.parse_next(input)?;
 
-        alt((
-            "buildflags".value(Self::BuildFlags(on)),
-            "ccache".value(Self::Ccache(on)),
-            "check".value(Self::Check(on)),
-            "color".value(Self::Color(on)),
-            "distcc".value(Self::Distcc(on)),
-            "makeflags".value(Self::MakeFlags(on)),
-            "sign".value(Self::Sign(on)),
-            fail.context(StrContext::Label("makepkg build environment option"))
-                .context_with(iter_str_context!([BuildEnvironmentOption::VARIANTS])),
-        ))
-        .parse_next(&mut Input::new(name))
+            alt((
+                "buildflags".value(Self::BuildFlags(on)),
+                "ccache".value(Self::Ccache(on)),
+                "check".value(Self::Check(on)),
+                "color".value(Self::Color(on)),
+                "distcc".value(Self::Distcc(on)),
+                "makeflags".value(Self::MakeFlags(on)),
+                "sign".value(Self::Sign(on)),
+            ))
+            .context_with(iter_str_context!([BuildEnvironmentOption::VARIANTS]))
+            .parse_next(&mut Input::new(name))
+        };
+
+        parser.layer("build environment option").parse_next(input)
     }
 
     fn delimiter_error_context<'a, O, P>(
@@ -283,10 +280,10 @@ impl AlpmParser for BuildEnvironmentOption {
         P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
-            .context(StrContext::Label("build environment option"))
             .context(StrContext::Expected(StrContextValue::Description(
                 "string consisting of alphanumeric characters or",
             )))
+            .layer("build environment option")
             .context_with(iter_char_context!(SPECIAL_OPTION_CHARS))
     }
 }
@@ -454,9 +451,10 @@ impl AlpmParser for PackageOption {
                 "strip".value(Self::Strip(on)),
                 "zipman".value(Self::Zipman(on)),
             )),
-            fail.context(StrContext::Label("makepkg packaging option"))
-                .context_with(iter_str_context!([PackageOption::VARIANTS])),
+            fail,
         ))
+        .context_with(iter_str_context!([PackageOption::VARIANTS]))
+        .layer("makepkg packaging option")
         .parse_next(&mut Input::new(name))
     }
 
@@ -467,11 +465,11 @@ impl AlpmParser for PackageOption {
         P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
-            .context(StrContext::Label("package option"))
             .context(StrContext::Expected(StrContextValue::Description(
                 "string consisting of alphanumeric characters or",
             )))
             .context_with(iter_char_context!(SPECIAL_OPTION_CHARS))
+            .layer("package option")
     }
 }
 
@@ -689,7 +687,7 @@ impl ParserUntil for InstalledPackage {
         // Define the actual parser closure.
         // The delimiter is moved into the closure and borrowed via `by_ref()` on each call.
         let mut delimiter_parser = delimiter;
-        move |input: &mut Input<'a>| -> PResult<'a, Self> {
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Self> {
             // Detect the amount of dashes in input and subsequently in the Name component.
             //
             // This is a necessary step because dashes are used as delimiters between the
@@ -742,9 +740,8 @@ impl ParserUntil for InstalledPackage {
             // Advance the parser to the dash just behind the Name component, based on the amount of
             // dashes in the Name, e.g.:
             // "example-package-1:1.0.0-1-x86_64" -> "-1:1.0.0-1-x86_64"
-            let name = Name::parse_name_followed_by_version(dashes_till_version)
-                .context(StrContext::Label("alpm-package-name"))
-                .parse_next(input)?;
+            let name =
+                Name::parse_name_followed_by_version(dashes_till_version).parse_next(input)?;
 
             // Consume leading dash in front of Version, e.g.:
             // "-1:1.0.0-1-x86_64" -> "1:1.0.0-1-x86_64"
@@ -753,15 +750,14 @@ impl ParserUntil for InstalledPackage {
             // Advance the parser to beyond the Version component (which contains one dash), e.g.:
             // "1:1.0.0-1-x86_64" -> "-x86_64"
             let version: FullVersion = FullVersion::parser
-            .context(StrContext::Label("alpm-package-version"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "an alpm-package-version (full or full with epoch) followed by a `-` and an alpm-architecture",
-            )))
-            .parse_next(input)?;
+                .context(StrContext::Expected(StrContextValue::Description(
+                            "an alpm-package-version (full or full with epoch) followed by a `-` and an alpm-architecture",
+                )))
+                .parse_next(input)?;
 
             // Consume leading dash, e.g.:
             // "-x86_64" -> "x86_64"
-            "-".context(StrContext::Label("alpm-package file name"))
+            "-".context(StrContext::Label("delimiter"))
                 .context(StrContext::Expected(StrContextValue::Description(
                     "expected a `-` followed by an alpm-architecture",
                 )))
@@ -776,7 +772,9 @@ impl ParserUntil for InstalledPackage {
                 version,
                 architecture,
             })
-        }
+        };
+
+        parser.layer("installed package name")
     }
 }
 

@@ -5,10 +5,9 @@ use serde::{Deserialize, Serialize};
 use serde_with::{DeserializeFromStr, SerializeDisplay};
 use strum::{Display, EnumString, VariantNames};
 use winnow::{
-    Parser,
     ascii::{alpha1, space0},
     combinator::{alt, not, peek, repeat_till},
-    error::{ErrMode, StrContext, StrContextValue},
+    error::ErrMode,
     token::any,
 };
 
@@ -57,8 +56,8 @@ impl AlpmParser for PackageType {
     fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         alpha1
             .try_map(PackageType::from_str)
-            .context(StrContext::Label("package type"))
             .context_with(iter_str_context!([PackageType::VARIANTS]))
+            .layer("package type")
             .parse_next(input)
     }
 
@@ -69,10 +68,10 @@ impl AlpmParser for PackageType {
         P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
-            .context(StrContext::Label("package type"))
             .context(StrContext::Expected(StrContextValue::Description(
                 "a string consisting of alphabetic characters",
             )))
+            .layer("package type")
     }
 }
 
@@ -224,7 +223,7 @@ impl ParserUntil for ExtraDataEntry {
         // Define the actual parser closure.
         // The delimiter is moved into the closure and borrowed via `by_ref()` on each call.
         let mut delimiter_parser = delimiter;
-        move |input: &mut Input<'a>| -> PResult<'a, Self> {
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Self> {
             // Handle the case were there's no key
             not("=")
                 .context(StrContext::Label("extra data"))
@@ -272,7 +271,9 @@ impl ParserUntil for ExtraDataEntry {
                 .parse_next(input)?;
 
             Ok(Self::new(key.trim().to_string(), value.trim().to_string()))
-        }
+        };
+
+        parser.layer("extra-data entry")
     }
 }
 

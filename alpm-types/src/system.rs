@@ -7,10 +7,9 @@ use alpm_parsers::prelude::*;
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString, VariantNames};
 use winnow::{
-    Parser,
     ascii::Caseless,
     combinator::{alt, cut_err, eof, not, repeat},
-    error::{ErrMode, StrContext, StrContextValue},
+    error::ErrMode,
     token::{one_of, take_while},
 };
 
@@ -109,52 +108,56 @@ impl AlpmParser for SystemArchitecture {
     /// # Errors
     ///
     /// Returns an error if `input` does not begin with a valid `SystemArchitecture`.
-    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, SystemArchitecture> {
-        // Make sure we don't have an `any`.
-        cut_err(not((Caseless("any"), eof)))
-            .context(StrContext::Label(
-                "system architecture. 'any' has a special meaning and is not allowed here.",
-            ))
-            .parse_next(input)?;
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Self> {
+            // Make sure we don't have an `any`.
+            cut_err(not((Caseless("any"), eof)))
+                .context(StrContext::Label(
+                    "system architecture. 'any' has a special meaning and is not allowed here.",
+                ))
+                .parse_next(input)?;
 
-        let alphanum = |c: char| c.is_ascii_alphanumeric();
-        let special_chars = ['_'];
+            let alphanum = |c: char| c.is_ascii_alphanumeric();
+            let special_chars = ['_'];
 
-        // We consume as many valid characters as we can until we hit an unknown char or `eof`.
-        // E.g.
-        // `asdfasdf_x86_64_omega:test` -> `:test`
-        let architecture: String = cut_err(repeat(1.., one_of((alphanum, special_chars))))
-            .context(StrContext::Label("character in system architecture"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "a string containing only ASCII alphanumeric characters and underscores.",
-            )))
-            .parse_next(input)?;
+            // We consume as many valid characters as we can until we hit an unknown char or `eof`.
+            // E.g.
+            // `asdfasdf_x86_64_omega:test` -> `:test`
+            let architecture: String = cut_err(repeat(1.., one_of((alphanum, special_chars))))
+                .context(StrContext::Label("character in system architecture"))
+                .context(StrContext::Expected(StrContextValue::Description(
+                    "a string containing only ASCII alphanumeric characters and underscores.",
+                )))
+                .parse_next(input)?;
 
-        // We now take that valid architecture and check it against all known static variants in our
-        // SystemArchitecture enum.
-        // If none of those match, return it as an SystemArchitecture::Unknown.
-        let architecture = match architecture.as_str() {
-            // Handle all static variants
-            "aarch64" => SystemArchitecture::Aarch64,
-            "arm" => SystemArchitecture::Arm,
-            "armv6h" => SystemArchitecture::Armv6h,
-            "armv7h" => SystemArchitecture::Armv7h,
-            "i386" => SystemArchitecture::I386,
-            "i486" => SystemArchitecture::I486,
-            "i686" => SystemArchitecture::I686,
-            "loong64" => SystemArchitecture::Loong64,
-            "pentium4" => SystemArchitecture::Pentium4,
-            "riscv32" => SystemArchitecture::Riscv32,
-            "riscv64" => SystemArchitecture::Riscv64,
-            "x86_64" => SystemArchitecture::X86_64,
-            "x86_64_v2" => SystemArchitecture::X86_64V2,
-            "x86_64_v3" => SystemArchitecture::X86_64V3,
-            "x86_64_v4" => SystemArchitecture::X86_64V4,
-            // Generic fallback handler.
-            other => SystemArchitecture::Unknown(UnknownArchitecture(other.to_string())),
+            // We now take that valid architecture and check it against all known static variants in
+            // our SystemArchitecture enum.
+            // If none of those match, return it as an SystemArchitecture::Unknown.
+            let architecture = match architecture.as_str() {
+                // Handle all static variants
+                "aarch64" => SystemArchitecture::Aarch64,
+                "arm" => SystemArchitecture::Arm,
+                "armv6h" => SystemArchitecture::Armv6h,
+                "armv7h" => SystemArchitecture::Armv7h,
+                "i386" => SystemArchitecture::I386,
+                "i486" => SystemArchitecture::I486,
+                "i686" => SystemArchitecture::I686,
+                "loong64" => SystemArchitecture::Loong64,
+                "pentium4" => SystemArchitecture::Pentium4,
+                "riscv32" => SystemArchitecture::Riscv32,
+                "riscv64" => SystemArchitecture::Riscv64,
+                "x86_64" => SystemArchitecture::X86_64,
+                "x86_64_v2" => SystemArchitecture::X86_64V2,
+                "x86_64_v3" => SystemArchitecture::X86_64V3,
+                "x86_64_v4" => SystemArchitecture::X86_64V4,
+                // Generic fallback handler.
+                other => SystemArchitecture::Unknown(UnknownArchitecture(other.to_string())),
+            };
+
+            Ok(architecture)
         };
 
-        Ok(architecture)
+        parser.layer("system architecture").parse_next(input)
     }
 
     fn delimiter_error_context<'a, O, P>(
@@ -168,6 +171,7 @@ impl AlpmParser for SystemArchitecture {
             .context(StrContext::Expected(StrContextValue::Description(
                 "a string containing only ASCII alphanumeric characters and underscores.",
             )))
+            .layer("system architecture")
     }
 }
 
@@ -299,6 +303,7 @@ impl AlpmParser for Architecture {
             SystemArchitecture::parser.map(Architecture::Some),
         ))
         .context(StrContext::Label("alpm-architecture"))
+        .layer("alpm-architecture")
         .parse_next(input)
     }
 
@@ -313,6 +318,7 @@ impl AlpmParser for Architecture {
             .context(StrContext::Expected(StrContextValue::Description(
                 "a string containing only ASCII alphanumeric characters and underscores.",
             )))
+            .layer("alpm-architecture")
     }
 }
 
@@ -541,11 +547,24 @@ impl AlpmParser for ElfArchitectureFormat {
     fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         take_while(1.., |c: char| c.is_ascii_digit())
             .try_map(ElfArchitectureFormat::from_str)
-            .context(StrContext::Label("ELF architecture"))
             .context(StrContext::Expected(StrContextValue::StringLiteral(
                 "32 or 64",
             )))
+            .layer("ELF architecture")
             .parse_next(input)
+    }
+
+    fn delimiter_error_context<'a, O, P>(
+        parser: P,
+    ) -> impl Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>
+    where
+        P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
+    {
+        parser
+            .context(StrContext::Expected(StrContextValue::StringLiteral(
+                "32 or 64",
+            )))
+            .layer("ELF architecture")
     }
 }
 

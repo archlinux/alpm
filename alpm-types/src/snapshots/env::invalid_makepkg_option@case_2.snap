@@ -1,6 +1,12 @@
 ---
 source: alpm-types/src/env.rs
 ---
-#somethingelse
-^
-expected `!`, ASCII alphanumeric character, `-`, `.`, `_`, `!`
+error: invalid build environment option
+ | 
+ | #somethingelse
+ | ^ expected `!`
+ | 
+ = while parsing:
+   makepkg option: (#somethingelse)
+   └ build environment option: (#somethingelse)
+     → expected `!`, ASCII alphanumeric character, `-`, `.`, `_`, `!`

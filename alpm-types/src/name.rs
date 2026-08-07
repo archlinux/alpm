@@ -7,9 +7,8 @@ use std::{
 use alpm_parsers::{iter_char_context, prelude::*};
 use serde::{Deserialize, Serialize};
 use winnow::{
-    Parser,
     combinator::{Repeat, alt, eof, peek, repeat, repeat_till},
-    error::{ErrMode, StrContext, StrContextValue},
+    error::ErrMode,
     token::one_of,
 };
 
@@ -217,7 +216,7 @@ impl Name {
 
         // This is the final full parser. Let's go through it piece-by-piece.
         // `example-package-name-1:45.2.0-x86_64`
-        let full_parser = (
+        (
             // Extracts `e`
             // `xample-package-name-1:45.2.0-x86_64`
             first_char,
@@ -235,9 +234,10 @@ impl Name {
                     "ASCII alphanumeric character",
                 )))
                 .context_with(iter_char_context!(Self::NEVER_FIRST_CHAR)),
-        );
-
-        full_parser.take().map(|n: &str| Name(n.to_owned()))
+        )
+            .take()
+            .layer("alpm-package-name")
+            .map(|n: &str| Name(n.to_owned()))
     }
 }
 
@@ -268,6 +268,7 @@ impl AlpmParser for Name {
 
         full_parser
             .take()
+            .layer("alpm-package-name")
             .map(|n: &str| Name(n.to_owned()))
             .parse_next(input)
     }
@@ -284,6 +285,7 @@ impl AlpmParser for Name {
                 "ASCII alphanumeric character",
             )))
             .context_with(iter_char_context!(Self::NEVER_FIRST_CHAR))
+            .layer("alpm-package-name")
     }
 }
 
@@ -384,6 +386,7 @@ impl AlpmParser for SharedObjectName {
         )
             .take()
             .map(|n: &str| SharedObjectName(n.to_owned()))
+            .layer("shared object name")
             .parse_next(input)
     }
 
@@ -398,6 +401,7 @@ impl AlpmParser for SharedObjectName {
             .context(StrContext::Expected(StrContextValue::Description(
                 "end of input.",
             )))
+            .layer("shared object name")
     }
 }
 
