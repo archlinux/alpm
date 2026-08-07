@@ -289,6 +289,8 @@ issue-bot:
       when: on_failure
   script: /issue-bot
   stage: report
+  variables:
+    ISSUE_BOT_DESCRIPTION_EXTRA: "/assign @dvzrv @j-g00da @nukesor @orhun"
 
 pages:
   artifacts:
