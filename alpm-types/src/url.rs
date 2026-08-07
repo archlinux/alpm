@@ -9,7 +9,7 @@ use alpm_parsers::{iter_str_context, prelude::*};
 use serde::{Deserialize, Serialize};
 use winnow::{
     ascii::alpha1,
-    combinator::{alt, eof, not, opt, peek, repeat_till, terminated},
+    combinator::{alt, eof, not, opt, peek, preceded, repeat_till, terminated},
     error::ErrMode,
     token::{any, rest},
 };
@@ -473,17 +473,15 @@ impl VcsProtocol {
 ///          This part
 fn fragment_value<'a>(input: &mut Input<'a>) -> PResult<'a, String> {
     // Error if we don't find the separator
-    let _ = "="
-        .context(StrContext::Label("fragment separator"))
-        .context(StrContext::Expected(StrContextValue::Description(
-            "a literal '='",
-        )))
-        .parse_next(input)?;
-
-    // Get the value of the fragment.
-    let (value, _) = repeat_till(0.., any, peek(alt(("?", "#", eof)))).parse_next(input)?;
-
-    Ok(value)
+    preceded(
+        "=".context(StrContext::Label("fragment separator"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "a literal '='",
+            ))),
+        repeat_till(0.., any, peek(alt(("?", "#", eof)))).map(|(name, _)| name),
+    )
+    .layer("URL fragment value")
+    .parse_next(input)
 }
 
 /// The available URL fragments and their values when using the Breezy VCS in a [`SourceUrl`].
@@ -507,23 +505,27 @@ impl BzrFragment {
     ///
     /// This parser considers all variants of [`BzrFragment`] (including a leading `#` character).
     fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Option<BzrFragment>> {
-        // Check for the `#` fragment start first. If it isn't here, there's no fragment.
-        let exists = opt("#").parse_next(input)?;
-        if exists.is_none() {
-            return Ok(None);
-        }
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Option<Self>> {
+            // Check for the `#` fragment start first. If it isn't here, there's no fragment.
+            let exists = opt("#").parse_next(input)?;
+            if exists.is_none() {
+                return Ok(None);
+            }
 
-        // Expect the only allowed revision keyword.
-        "revision"
-            .context(StrContext::Label("bzr revision type"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "revision keyword",
-            )))
-            .parse_next(input)?;
+            // Expect the only allowed revision keyword.
+            "revision"
+                .context(StrContext::Label("bzr revision type"))
+                .context(StrContext::Expected(StrContextValue::Description(
+                    "revision keyword",
+                )))
+                .parse_next(input)?;
 
-        let value = fragment_value.parse_next(input)?;
+            let value = fragment_value.parse_next(input)?;
 
-        Ok(Some(BzrFragment::Revision(value)))
+            Ok(Some(BzrFragment::Revision(value)))
+        };
+
+        parser.layer("bzr fragment").parse_next(input)
     }
 }
 
@@ -555,29 +557,33 @@ impl FossilFragment {
     /// This parser considers all variants of [`FossilFragment`] as fragments in an
     /// alpm-package-source string (including the leading `#` character).
     fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Option<FossilFragment>> {
-        // Check for the `#` fragment start first. If it isn't here, there's no fragment.
-        let exists = opt("#").parse_next(input)?;
-        if exists.is_none() {
-            return Ok(None);
-        }
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Option<Self>> {
+            // Check for the `#` fragment start first. If it isn't here, there's no fragment.
+            let exists = opt("#").parse_next(input)?;
+            if exists.is_none() {
+                return Ok(None);
+            }
 
-        // Error if we don't find one of the expected fossil revision types.
-        let version_keywords = ["branch", "commit", "tag"];
-        let version_type = alt(version_keywords)
-            .context(StrContext::Label("fossil revision type"))
-            .context_with(iter_str_context!([version_keywords]))
-            .parse_next(input)?;
+            // Error if we don't find one of the expected fossil revision types.
+            let version_keywords = ["branch", "commit", "tag"];
+            let version_type = alt(version_keywords)
+                .context(StrContext::Label("fossil revision type"))
+                .context_with(iter_str_context!([version_keywords]))
+                .parse_next(input)?;
 
-        let value = fragment_value.parse_next(input)?;
+            let value = fragment_value.parse_next(input)?;
 
-        let fragment = match version_type {
-            "branch" => FossilFragment::Branch(value.to_string()),
-            "commit" => FossilFragment::Commit(value.to_string()),
-            "tag" => FossilFragment::Tag(value.to_string()),
-            _ => unreachable!(),
+            let fragment = match version_type {
+                "branch" => FossilFragment::Branch(value.to_string()),
+                "commit" => FossilFragment::Commit(value.to_string()),
+                "tag" => FossilFragment::Tag(value.to_string()),
+                _ => unreachable!(),
+            };
+
+            Ok(Some(fragment))
         };
 
-        Ok(Some(fragment))
+        parser.layer("fossil fragment").parse_next(input)
     }
 }
 
@@ -609,29 +615,33 @@ impl GitFragment {
     /// This parser considers all variants of [`GitFragment`] as fragments in an alpm-package-source
     /// string (including the leading `#` character).
     fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Option<GitFragment>> {
-        // Check for the `#` fragment start first. If it isn't here, there's no fragment.
-        let exists = opt("#").parse_next(input)?;
-        if exists.is_none() {
-            return Ok(None);
-        }
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Option<Self>> {
+            // Check for the `#` fragment start first. If it isn't here, there's no fragment.
+            let exists = opt("#").parse_next(input)?;
+            if exists.is_none() {
+                return Ok(None);
+            }
 
-        // Error if we don't find one of the expected git revision types.
-        let version_keywords = ["branch", "commit", "tag"];
-        let version_type = alt(version_keywords)
-            .context(StrContext::Label("git revision type"))
-            .context_with(iter_str_context!([version_keywords]))
-            .parse_next(input)?;
+            // Error if we don't find one of the expected git revision types.
+            let version_keywords = ["branch", "commit", "tag"];
+            let version_type = alt(version_keywords)
+                .context(StrContext::Label("git revision type"))
+                .context_with(iter_str_context!([version_keywords]))
+                .parse_next(input)?;
 
-        let value = fragment_value.parse_next(input)?;
+            let value = fragment_value.parse_next(input)?;
 
-        let fragment = match version_type {
-            "branch" => GitFragment::Branch(value.to_string()),
-            "commit" => GitFragment::Commit(value.to_string()),
-            "tag" => GitFragment::Tag(value.to_string()),
-            _ => unreachable!(),
+            let fragment = match version_type {
+                "branch" => GitFragment::Branch(value.to_string()),
+                "commit" => GitFragment::Commit(value.to_string()),
+                "tag" => GitFragment::Tag(value.to_string()),
+                _ => unreachable!(),
+            };
+
+            Ok(Some(fragment))
         };
 
-        Ok(Some(fragment))
+        parser.layer("git fragment").parse_next(input)
     }
 }
 
@@ -671,29 +681,33 @@ impl HgFragment {
     /// This parser considers all variants of [`HgFragment`] as fragments in an alpm-package-source
     /// string (including the leading `#` character).
     fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Option<HgFragment>> {
-        // Check for the `#` fragment start first. If it isn't here, there's no fragment.
-        let exists = opt("#").parse_next(input)?;
-        if exists.is_none() {
-            return Ok(None);
-        }
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Option<Self>> {
+            // Check for the `#` fragment start first. If it isn't here, there's no fragment.
+            let exists = opt("#").parse_next(input)?;
+            if exists.is_none() {
+                return Ok(None);
+            }
 
-        // Error if we don't find one of the expected git revision types.
-        let version_keywords = ["branch", "revision", "tag"];
-        let version_type = alt(version_keywords)
-            .context(StrContext::Label("hg revision type"))
-            .context_with(iter_str_context!([version_keywords]))
-            .parse_next(input)?;
+            // Error if we don't find one of the expected git revision types.
+            let version_keywords = ["branch", "revision", "tag"];
+            let version_type = alt(version_keywords)
+                .context(StrContext::Label("hg revision type"))
+                .context_with(iter_str_context!([version_keywords]))
+                .parse_next(input)?;
 
-        let value = fragment_value.parse_next(input)?;
+            let value = fragment_value.parse_next(input)?;
 
-        let fragment = match version_type {
-            "branch" => HgFragment::Branch(value.to_string()),
-            "revision" => HgFragment::Revision(value.to_string()),
-            "tag" => HgFragment::Tag(value.to_string()),
-            _ => unreachable!(),
+            let fragment = match version_type {
+                "branch" => HgFragment::Branch(value.to_string()),
+                "revision" => HgFragment::Revision(value.to_string()),
+                "tag" => HgFragment::Tag(value.to_string()),
+                _ => unreachable!(),
+            };
+
+            Ok(Some(fragment))
         };
 
-        Ok(Some(fragment))
+        parser.layer("hg fragment").parse_next(input)
     }
 }
 
@@ -718,24 +732,28 @@ impl SvnFragment {
     ///
     /// This parser considers all variants of [`SvnFragment`] as fragments in an alpm-package-source
     /// string (including the leading `#` character).
-    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Option<SvnFragment>> {
-        // Check for the `#` fragment start first. If it isn't here, there's no fragment.
-        let exists = opt("#").parse_next(input)?;
-        if exists.is_none() {
-            return Ok(None);
-        }
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Option<Self>> {
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Option<Self>> {
+            // Check for the `#` fragment start first. If it isn't here, there's no fragment.
+            let exists = opt("#").parse_next(input)?;
+            if exists.is_none() {
+                return Ok(None);
+            }
 
-        // Expect the only allowed revision keyword.
-        "revision"
-            .context(StrContext::Label("svn revision type"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "revision keyword",
-            )))
-            .parse_next(input)?;
+            // Expect the only allowed revision keyword.
+            "revision"
+                .context(StrContext::Label("svn revision type"))
+                .context(StrContext::Expected(StrContextValue::Description(
+                    "revision keyword",
+                )))
+                .parse_next(input)?;
 
-        let value = fragment_value.parse_next(input)?;
+            let value = fragment_value.parse_next(input)?;
 
-        Ok(Some(SvnFragment::Revision(value)))
+            Ok(Some(SvnFragment::Revision(value)))
+        };
+
+        parser.layer("svn fragment").parse_next(input)
     }
 }
 

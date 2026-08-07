@@ -4,9 +4,10 @@ source: alpm-types/src/url.rs
 error: invalid svn revision type
  | 
  | svn+https://example/project#branch=feature
- | ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^ expected revision keyword
+ |                            ~^ expected revision keyword
  | 
  = while parsing:
    source url: (svn+https://example/…)
-   → invalid svn revision type
-   → expected revision keyword
+   └ svn fragment: (#branch=feature)
+     → invalid svn revision type
+     → expected revision keyword
