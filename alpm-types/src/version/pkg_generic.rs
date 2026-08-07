@@ -8,11 +8,7 @@ use std::{
 
 use alpm_parsers::prelude::*;
 use serde::{Deserialize, Serialize};
-use winnow::{
-    Parser,
-    combinator::opt,
-    error::{ErrMode, StrContext, StrContextValue},
-};
+use winnow::{combinator::opt, error::ErrMode};
 
 use crate::{Epoch, Error, PackageRelease, PackageVersion};
 #[cfg(doc)]
@@ -119,32 +115,36 @@ impl AlpmParser for Version {
     ///
     /// [alpm-package-version]: https://alpm.archlinux.page/specifications/alpm-package-version.7.html
     fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
-        // Parse an optional epoch, which advances the cursor until after a ':', e.g.:
-        // "1:1.0.0-1" -> "1.0.0-1"
-        //
-        // If no epoch exists, the cursor does not move.
-        let epoch = opt(Epoch::parser_until_inclusive(":")).parse_next(input)?;
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Self> {
+            // Parse an optional epoch, which advances the cursor until after a ':', e.g.:
+            // "1:1.0.0-1" -> "1.0.0-1"
+            //
+            // If no epoch exists, the cursor does not move.
+            let epoch = opt(Epoch::parser_until_inclusive(":")).parse_next(input)?;
 
-        // Advance the parser until the next '-', e.g.:
-        // "1.0.0-1" -> "-1"
-        let pkgver = PackageVersion::parser.parse_next(input)?;
+            // Advance the parser until the next '-', e.g.:
+            // "1.0.0-1" -> "-1"
+            let pkgver = PackageVersion::parser.parse_next(input)?;
 
-        // Parse an optional PackageRelease, e.g.:
-        // "-1" -> ""
-        //
-        // If an `-` is found, the PackageRelease is expected and must exist
-        let delimiter = opt('-').parse_next(input)?;
-        let pkgrel = if delimiter.is_some() {
-            Some(PackageRelease::parser.parse_next(input)?)
-        } else {
-            None
+            // Parse an optional PackageRelease, e.g.:
+            // "-1" -> ""
+            //
+            // If an `-` is found, the PackageRelease is expected and must exist
+            let delimiter = opt('-').parse_next(input)?;
+            let pkgrel = if delimiter.is_some() {
+                Some(PackageRelease::parser.parse_next(input)?)
+            } else {
+                None
+            };
+
+            Ok(Self {
+                epoch,
+                pkgver,
+                pkgrel,
+            })
         };
 
-        Ok(Self {
-            epoch,
-            pkgver,
-            pkgrel,
-        })
+        parser.layer("alpm-package-version").parse_next(input)
     }
 
     fn delimiter_error_context<'a, O, P>(
@@ -154,10 +154,10 @@ impl AlpmParser for Version {
         P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
-            .context(StrContext::Label("alpm-package-version"))
             .context(StrContext::Expected(StrContextValue::Description(
                 "end of the version string",
             )))
+            .layer("alpm-package-version")
     }
 }
 

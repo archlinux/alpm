@@ -12,9 +12,8 @@ use alpm_parsers::prelude::*;
 use fluent_i18n::t;
 use serde::{Deserialize, Serialize};
 use winnow::{
-    Parser,
-    combinator::opt,
-    error::{ErrMode, StrContext, StrContextValue},
+    combinator::{opt, seq},
+    error::ErrMode,
 };
 
 use crate::{Epoch, Error, PackageVersion, Version};
@@ -139,17 +138,18 @@ impl AlpmParser for MinimalVersion {
     ///
     /// [alpm-package-version]: https://alpm.archlinux.page/specifications/alpm-package-version.7.html
     fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
-        // Parse an optional epoch, which advances the cursor until after a ':', e.g.:
-        // "1:1.0.0" -> "1.0.0"
-        //
-        // If no epoch exists, the cursor does not move.
-        let epoch = opt(Epoch::parser_until_inclusive(":")).parse_next(input)?;
-
-        // Parse the remaining chars
-        // "1.0.0" -> ""
-        let pkgver: PackageVersion = PackageVersion::parser.parse_next(input)?;
-
-        Ok(Self { epoch, pkgver })
+        seq!(Self {
+            // Parse an optional, which advances the cursor until after a ':', e.g.:
+            // "1:1.0.0" -> "1.0.0"
+            //
+            // If no epoch exists, the cursor does not move.
+            epoch: opt(Epoch::parser_until_inclusive(":")),
+            // Parse the remaining chars
+            // "1.0.0" -> ""
+            pkgver: PackageVersion::parser,
+        })
+        .layer("minimal alpm-package-version")
+        .parse_next(input)
     }
 
     fn delimiter_error_context<'a, O, P>(
@@ -159,10 +159,10 @@ impl AlpmParser for MinimalVersion {
         P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
-            .context(StrContext::Label("minimal alpm-package-version"))
             .context(StrContext::Expected(StrContextValue::Description(
                 "the package version to end with an alpm-pkgver",
             )))
+            .layer("minimal alpm-package-version")
     }
 }
 

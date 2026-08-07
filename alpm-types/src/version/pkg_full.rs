@@ -10,11 +10,7 @@ use std::{
 
 use alpm_parsers::prelude::*;
 use serde::{Deserialize, Serialize};
-use winnow::{
-    Parser,
-    combinator::opt,
-    error::{ErrMode, StrContext, StrContextValue},
-};
+use winnow::{combinator::opt, error::ErrMode};
 
 use crate::{Epoch, Error, PackageRelease, PackageVersion, Version};
 
@@ -145,36 +141,37 @@ impl AlpmParser for FullVersion {
     /// _full with epoch_).
     ///
     /// [alpm-package-version]: https://alpm.archlinux.page/specifications/alpm-package-version.7.html
-    ///
-    /// TODO: Decide whether to put the layer inside or outside?
     fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
-        // Parse an optional epoch, which advances the cursor until after a ':', e.g.:
-        // "1:1.0.0-1" -> "1.0.0-1"
-        //
-        // If no epoch exists, the cursor does not move.
-        let epoch = opt(Epoch::parser_until_inclusive(":")).parse_next(input)?;
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Self> {
+            // Parse an optional epoch, which advances the cursor until after a ':', e.g.:
+            // "1:1.0.0-1" -> "1.0.0-1"
+            //
+            // If no epoch exists, the cursor does not move.
+            let epoch = opt(Epoch::parser_until_inclusive(":")).parse_next(input)?;
 
-        // Advance the parser until the next '-', e.g.:
-        // "1.0.0-1" -> "-1"
-        let pkgver: PackageVersion = PackageVersion::parser.parse_next(input)?;
+            // Advance the parser until the next '-', e.g.:
+            // "1.0.0-1" -> "-1"
+            let pkgver: PackageVersion = PackageVersion::parser.parse_next(input)?;
 
-        "-".context(StrContext::Label("full alpm-package-version"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "the '-' delimiter that divides the alpm-pkgver and alpm-pkgrel in a full alpm-package-version",
+            "-".context(StrContext::Expected(StrContextValue::Description(
+                "the '-' delimiter that divides the alpm-pkgver and alpm-pkgrel",
             )))
             .parse_next(input)?;
 
-        // Consume the delimiter '-'
-        // "-1" -> "1"
-        // and parse everything until eof as a PackageRelease, e.g.:
-        // "1" -> ""
-        let pkgrel: PackageRelease = PackageRelease::parser.parse_next(input)?;
+            // Consume the delimiter '-'
+            // "-1" -> "1"
+            // and parse everything until eof as a PackageRelease, e.g.:
+            // "1" -> ""
+            let pkgrel: PackageRelease = PackageRelease::parser.parse_next(input)?;
 
-        Ok(Self {
-            epoch,
-            pkgver,
-            pkgrel,
-        })
+            Ok(Self {
+                epoch,
+                pkgver,
+                pkgrel,
+            })
+        };
+
+        parser.layer("full alpm-package-version").parse_next(input)
     }
 
     fn delimiter_error_context<'a, O, P>(
@@ -184,13 +181,13 @@ impl AlpmParser for FullVersion {
         P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
-            .context(StrContext::Label("full alpm-package-version"))
             .context(StrContext::Expected(StrContextValue::Description(
                 "the package version to end with a valid package release",
             )))
             .context(StrContext::Expected(StrContextValue::Description(
                 "i.e. a positive integer followed by an optional `.` and another positive integer",
             )))
+            .layer("full alpm-package-version")
     }
 }
 

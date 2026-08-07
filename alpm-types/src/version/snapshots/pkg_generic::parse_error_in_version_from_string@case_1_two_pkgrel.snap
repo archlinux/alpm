@@ -1,7 +1,7 @@
 ---
 source: alpm-types/src/version/pkg_generic.rs
 ---
-1:foo-1-1
-       ^
-invalid alpm-package-version
-expected end of the version string
+error: invalid alpm-package-version
+ | 
+ | 1:foo-1-1
+ |        ^ expected end of the version string

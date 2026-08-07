@@ -17,10 +17,9 @@ use std::{
 use alpm_parsers::prelude::*;
 use serde::{Deserialize, Serialize};
 use winnow::{
-    Parser,
     ascii::{dec_uint, digit1},
     combinator::opt,
-    error::{ErrMode, StrContext, StrContextValue},
+    error::ErrMode,
     token::take_while,
 };
 
@@ -66,11 +65,11 @@ impl AlpmParser for Epoch {
     /// Returns an error if `input` does not begin with a valid _alpm_epoch_.
     fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         dec_uint
-            .context(StrContext::Label("package epoch"))
             .context(StrContext::Expected(StrContextValue::Description(
                 "non-negative decimal integer",
             )))
             .map(Self)
+            .layer("alpm-epoch")
             .parse_next(input)
     }
 
@@ -81,10 +80,10 @@ impl AlpmParser for Epoch {
         P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
-            .context(StrContext::Label("package epoch"))
             .context(StrContext::Expected(StrContextValue::Description(
                 "positive non-zero decimal integer",
             )))
+            .layer("alpm-epoch")
     }
 }
 
@@ -156,32 +155,35 @@ impl AlpmParser for PackageRelease {
     /// # Errors
     ///
     /// Returns an error if `input` does not begin with a valid [`PackageRelease`].
-    // TODO: Decide whether to put the layer inside or outside?
     fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
-        let major = digit1
-            .try_map(FromStr::from_str)
-            .context(StrContext::Label("package release"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "positive decimal integer",
-            )))
-            .parse_next(input)?;
-
-        // If we find a dot, also expect there to be a minor version number
-        let minor = if opt('.').parse_next(input)?.is_some() {
-            let minor = digit1
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Self> {
+            let major = digit1
                 .try_map(FromStr::from_str)
                 .context(StrContext::Label("package release"))
                 .context(StrContext::Expected(StrContextValue::Description(
-                    "single '.' followed by positive decimal integer",
+                    "positive decimal integer",
                 )))
                 .parse_next(input)?;
 
-            Some(minor)
-        } else {
-            None
+            // If we find a dot, also expect there to be a minor version number
+            let minor = if opt('.').parse_next(input)?.is_some() {
+                let minor = digit1
+                    .try_map(FromStr::from_str)
+                    .context(StrContext::Label("package release"))
+                    .context(StrContext::Expected(StrContextValue::Description(
+                        "single '.' followed by positive decimal integer",
+                    )))
+                    .parse_next(input)?;
+
+                Some(minor)
+            } else {
+                None
+            };
+
+            Ok(Self { major, minor })
         };
 
-        Ok(Self { major, minor })
+        parser.layer("alpm-pkgrel").parse_next(input)
     }
 
     fn delimiter_error_context<'a, O, P>(
@@ -195,6 +197,7 @@ impl AlpmParser for PackageRelease {
             .context(StrContext::Expected(StrContextValue::Description(
                 "single '.' followed by positive decimal integer",
             )))
+            .layer("alpm-pkgrel")
     }
 }
 
@@ -305,10 +308,11 @@ impl AlpmParser for PackageVersion {
         };
 
         take_while(1.., allowed)
-            .context(StrContext::Label("alpm-pkgver character"))
+            .context(StrContext::Label("character"))
             .context(StrContext::Expected(StrContextValue::Description(
                 "an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace characters",
             )))
+            .layer("alpm-pkgver")
             .map(|s: &str| Self(s.to_string()))
             .parse_next(input)
     }
@@ -319,10 +323,11 @@ impl AlpmParser for PackageVersion {
     where
         P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
-        parser.context(StrContext::Label("pkgver character"))
+        parser.context(StrContext::Label("character"))
             .context(StrContext::Expected(StrContextValue::Description(
                 "an ASCII character, except for ':', '/', '-', '<', '>', '=', or any whitespace character",
             )))
+            .layer("alpm-pkgver")
     }
 }
 

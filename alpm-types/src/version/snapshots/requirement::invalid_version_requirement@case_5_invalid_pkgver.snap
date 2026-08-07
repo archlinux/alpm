@@ -1,7 +1,7 @@
 ---
 source: alpm-types/src/version/requirement.rs
 ---
-<3.1>3.2
-    ^
-invalid version requirement
-expected end of version requirement.
+error: invalid version requirement
+ | 
+ | <3.1>3.2
+ |     ^ expected end of version requirement.

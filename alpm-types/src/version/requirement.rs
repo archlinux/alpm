@@ -10,9 +10,8 @@ use alpm_parsers::{iter_str_context, prelude::*};
 use serde::{Deserialize, Serialize};
 use strum::VariantNames;
 use winnow::{
-    Parser,
     combinator::{alt, fail, opt, peek, seq},
-    error::{ErrMode, StrContext, StrContextValue},
+    error::ErrMode,
     token::one_of,
 };
 
@@ -306,6 +305,7 @@ impl AlpmParser for VersionRequirement {
             comparison: VersionComparison::parser,
             version: Version::parser,
         })
+        .layer("version requirement")
         .parse_next(input)
     }
 
@@ -316,10 +316,10 @@ impl AlpmParser for VersionRequirement {
         P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
-            .context(StrContext::Label("version requirement"))
             .context(StrContext::Expected(StrContextValue::Description(
                 "end of version requirement.",
             )))
+            .layer("version requirement")
     }
 }
 
