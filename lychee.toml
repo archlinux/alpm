@@ -18,8 +18,13 @@ max_concurrency = 5
 # Ignore
 # - relative links the lint website templates
 # - links in the linkita git submodule
-exclude_path = ["alpm-lint-website/templates", "alpm-lint-website/themes"]
+# - links to self-hosted Rust docs
+exclude_path = [
+    "alpm-lint-website/templates",
+    "alpm-lint-website/themes",
+    "resources/docs/src/api-docs/",
+]
 
 # Set the root to the output dir for documentation.
 # This requires us to build the website first before checking links though.
-root_dir = "output/docs/"
+root_dir = "."
