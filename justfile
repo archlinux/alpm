@@ -106,6 +106,7 @@ install-alpm-package-set set:
     readonly build_book=(
         cargo-depgraph
         graphviz
+        lychee
         mdbook
         mdbook-mermaid
     )
@@ -364,7 +365,7 @@ build-book:
     #!/usr/bin/env bash
     set -euo pipefail
 
-    just ensure-command cargo jq mdbook mdbook-mermaid cargo-depgraph dot
+    just ensure-command cargo cargo-depgraph dot jq lychee mdbook mdbook-mermaid
 
     # Build the local dependency graph.
     cargo depgraph --workspace-only | dot -Tpng > resources/docs/src/api-docs/dependency_graph.png
@@ -398,6 +399,8 @@ build-book:
 
     just --justfile alpm-lint-website/justfile build
     cp -r alpm-lint-website/public "$output_dir/docs/lints"
+
+    lychee --root-dir "$output_dir/docs" "$output_dir/docs/api-docs/"
 
 # Build local documentation
 [group('build')]
