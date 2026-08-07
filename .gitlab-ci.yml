@@ -218,17 +218,6 @@ test:
     - just --justfile .gitlab/justfile section-end "create-coverage-report"
   stage: test
 
-docs:
-  extends: .default-with-rust
-  script:
-    - just --justfile .gitlab/justfile section-start "install-alpm-packages" "Install ALPM package set 'docs'"
-    - just install-alpm-package-set docs
-    - just --justfile .gitlab/justfile section-end "install-alpm-packages"
-    - just --justfile .gitlab/justfile section-start "docs" "Build Rust API documentation"
-    - just docs
-    - just --justfile .gitlab/justfile section-end "docs"
-  stage: test
-
 test-readmes:
   extends: .default-with-rust
   script:
