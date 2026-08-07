@@ -1,7 +1,12 @@
 ---
 source: alpm-types/src/relation/soname.rs
 ---
-nodelimiter.so=1.64
-                   ^
-invalid architecture delimiter
-expected architecture delimiter `-`
+error: invalid architecture delimiter
+ | 
+ | nodelimiter.so=1.64
+ | ~~~~~~~~~~~~~~~~~~~^ expected architecture delimiter `-`
+ | 
+ = while parsing:
+   alpm-sonamev1: (nodelimiter.so=1.64)
+   → invalid architecture delimiter
+   → expected architecture delimiter `-`

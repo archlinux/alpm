@@ -91,6 +91,7 @@ impl AlpmParser for PackageRelation {
             name: Name::parser.context(StrContext::Label("package name")),
             version_requirement: opt(VersionRequirement::parser),
         })
+        .layer("alpm-package-relation")
         .parse_next(input)
     }
 
@@ -101,10 +102,10 @@ impl AlpmParser for PackageRelation {
         P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>,
     {
         parser
-            .context(StrContext::Label("alpm-package-relation"))
             .context(StrContext::Expected(StrContextValue::Description(
                 "end of input after version requirement",
             )))
+            .layer("alpm-package-relation")
     }
 }
 
@@ -321,92 +322,95 @@ impl AlpmParser for OptionalDependency {
     /// Returns an error if `input` is not a valid _alpm-package-relation_ of type _optional
     /// dependency_.
     fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
-        // Due to the ambiguous nature of this format, we must implement our own PackageRelation and
-        // VersionRequirement parser handling.
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Self> {
+            // Due to the ambiguous nature of this format, we must implement our own PackageRelation
+            // and VersionRequirement parser handling.
 
-        // Handle the dependency name:
-        // `example>=1.0.0: my-description` -> `>=1.0.0: my-description`
-        let name = Name::parser
-            .context(StrContext::Label("package name"))
-            .parse_next(input)?;
+            // Handle the dependency name:
+            // `example>=1.0.0: my-description` -> `>=1.0.0: my-description`
+            let name = Name::parser.parse_next(input)?;
 
-        // Handle the optional Comparison operator:
-        // `example>=1.0.0: my-description` -> `1.0.0: my-description`
-        let comparison = opt(VersionComparison::parser).parse_next(input)?;
+            // Handle the optional Comparison operator:
+            // `example>=1.0.0: my-description` -> `1.0.0: my-description`
+            let comparison = opt(VersionComparison::parser).parse_next(input)?;
 
-        // Branch into the path where a comparison exists.
-        let version_requirement = if let Some(comparison) = comparison {
-            // Parse an optional epoch, e.g.:
-            // "1:17.0.1-5: my-description" -> "17.0.1-5: my-description"
-            //
-            // An epoch delimiter ':' must always be directly followed by a non-whitespace
-            // character, while a description ':' delimiter is always followed by whitespace.
-            // The lookahead on the character after the ':' disambiguates the two.
-            let epoch = opt(terminated(
-                Epoch::parser_until_inclusive(":"),
-                peek(none_of(|c: char| c.is_whitespace())),
-            ))
-            .parse_next(input)?;
+            // Branch into the path where a comparison exists.
+            let version_requirement = if let Some(comparison) = comparison {
+                // Parse an optional epoch, e.g.:
+                // "1:17.0.1-5: my-description" -> "17.0.1-5: my-description"
+                //
+                // An epoch delimiter ':' must always be directly followed by a non-whitespace
+                // character, while a description ':' delimiter is always followed by whitespace.
+                // The lookahead on the character after the ':' disambiguates the two.
+                let epoch = opt(terminated(
+                    Epoch::parser_until_inclusive(":"),
+                    peek(none_of(|c: char| c.is_whitespace())),
+                ))
+                .parse_next(input)?;
 
-            // Advance the parser until the next '-', e.g.:
-            // "17.0.1-5: my-description" -> "-5: my-description"
-            let pkgver = PackageVersion::parser.parse_next(input)?;
+                // Advance the parser until the next '-', e.g.:
+                // "17.0.1-5: my-description" -> "-5: my-description"
+                let pkgver = PackageVersion::parser.parse_next(input)?;
 
-            // Parse an optional PackageRelease, e.g.:
-            // "-5: my-description" -> ": my-description"
-            //
-            // If an `-` is found, the PackageRelease is expected and must exist
-            let delimiter = opt('-').parse_next(input)?;
-            let pkgrel = if delimiter.is_some() {
-                Some(PackageRelease::parser.parse_next(input)?)
+                // Parse an optional PackageRelease, e.g.:
+                // "-5: my-description" -> ": my-description"
+                //
+                // If an `-` is found, the PackageRelease is expected and must exist
+                let delimiter = opt('-').parse_next(input)?;
+                let pkgrel = if delimiter.is_some() {
+                    Some(PackageRelease::parser.parse_next(input)?)
+                } else {
+                    None
+                };
+
+                Some(VersionRequirement {
+                    comparison,
+                    version: Version::new(pkgver, epoch, pkgrel),
+                })
             } else {
                 None
             };
 
-            Some(VersionRequirement {
-                comparison,
-                version: Version::new(pkgver, epoch, pkgrel),
-            })
-        } else {
-            None
-        };
+            let package_relation = PackageRelation::new(name, version_requirement);
 
-        let package_relation = PackageRelation::new(name, version_requirement);
-
-        // Check if there's a `:`, which indicates the existence of an description.
-        let delimiter = opt(":").parse_next(input)?;
-        if delimiter.is_some() {
-            space1
-                .context(StrContext::Label(
-                    "dependency delimiter in optional dependency",
-                ))
-                .context(StrContext::Expected(StrContextValue::Description(
-                    "A colon followed by a whitespace ': '",
-                )))
-                .parse_next(input)?;
-        }
-
-        let description = if delimiter.is_some() {
-            // Descriptions are at the end of a `OptionalDependency` and may contain any character,
-            // except '\n' or '\r'. So this parser consumes everything till newline or `eof`.
-            let description = take_till(0.., ('\n', '\r'))
-                .context(StrContext::Label("optional dependency description"))
-                .parse_next(input)?
-                .trim_ascii();
-
-            if description.is_empty() {
-                None
-            } else {
-                Some(description.to_string())
+            // Check if there's a `:`, which indicates the existence of an description.
+            let delimiter = opt(":").parse_next(input)?;
+            if delimiter.is_some() {
+                space1
+                    .context(StrContext::Label(
+                        "dependency delimiter in optional dependency",
+                    ))
+                    .context(StrContext::Expected(StrContextValue::Description(
+                        "A colon followed by a whitespace ': '",
+                    )))
+                    .parse_next(input)?;
             }
-        } else {
-            None
+
+            let description = if delimiter.is_some() {
+                // Descriptions are at the end of a `OptionalDependency` and may contain any
+                // character, except '\n' or '\r'. So this parser consumes
+                // everything till newline or `eof`.
+                let description = take_till(0.., ('\n', '\r'))
+                    .context(StrContext::Label("optional dependency description"))
+                    .parse_next(input)?
+                    .trim_ascii();
+
+                if description.is_empty() {
+                    None
+                } else {
+                    Some(description.to_string())
+                }
+            } else {
+                None
+            };
+
+            Ok(Self {
+                package_relation,
+                description,
+            })
         };
 
-        Ok(Self {
-            package_relation,
-            description,
-        })
+        parser.layer("optional dependency").parse_next(input)
     }
 
     fn delimiter_error_context<'a, O, P>(
@@ -420,6 +424,7 @@ impl AlpmParser for OptionalDependency {
             .context(StrContext::Expected(StrContextValue::Description(
                 "end of input.",
             )))
+            .layer("optional dependency")
     }
 }
 

@@ -1,9 +1,12 @@
 ---
 source: alpm-types/src/relation/base.rs
 ---
-parse error at line 1, column 15
-  |
-1 | dep-name>=10: 
-  |               ^
-invalid character in optional dependency
-expected end of input.
+error: invalid character in optional dependency
+ | 
+ | dep-name>=10: 
+ |               ^ expected end of input.
+ | 
+ = while parsing:
+   optional dependency: ()
+   → invalid character in optional dependency
+   → expected end of input.

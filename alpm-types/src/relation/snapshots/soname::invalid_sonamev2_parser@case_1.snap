@@ -1,7 +1,12 @@
 ---
 source: alpm-types/src/relation/soname.rs
 ---
-libexample.so.1
-               ^
-invalid shared library prefix delimiter
-expected shared library prefix `:`
+error: invalid shared library prefix delimiter
+ | 
+ | libexample.so.1
+ | ~~~~~~~~~~~~~~~^ expected the prefix delimiter `:`
+ | 
+ = while parsing:
+   alpm-sonamev2: (libexample.so.1)
+   → invalid shared library prefix delimiter
+   → expected the prefix delimiter `:`

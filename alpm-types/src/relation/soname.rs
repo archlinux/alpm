@@ -11,10 +11,8 @@ use std::{
 use alpm_parsers::prelude::*;
 use serde::{Deserialize, Serialize};
 use winnow::{
-    Parser,
-    combinator::{alt, eof, opt, peek, repeat_till},
-    error::{ErrMode, StrContext, StrContextValue},
-    token::any,
+    combinator::{alt, opt},
+    error::ErrMode,
 };
 
 #[cfg(doc)]
@@ -64,9 +62,7 @@ impl AlpmParser for VersionOrSoname {
             PackageVersion::parser.map(VersionOrSoname::Version),
         ))
         .context(StrContext::Label("version or shared object name"))
-        .context(StrContext::Expected(StrContextValue::Description(
-            "a valid alpm-sonamev1 or alpm-pkgver",
-        )))
+        .layer("alpm-pkgver or alpm-sonamev1")
         .parse_next(input)
     }
 
@@ -81,6 +77,7 @@ impl AlpmParser for VersionOrSoname {
             .context(StrContext::Expected(StrContextValue::Description(
                 "end of input.",
             )))
+            .layer("alpm-pkgver or alpm-sonamev1")
     }
 }
 
@@ -363,51 +360,52 @@ impl AlpmParser for SonameV1 {
     ///
     /// [alpm-sonamev1]: https://alpm.archlinux.page/specifications/alpm-sonamev1.7.html
     fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
-        // Parse the shared object name.
-        let name = repeat_till(1.., any, peek(alt(("=", eof))))
-            .try_map(|(name, _): (String, &str)| SharedObjectName::from_str(&name))
-            .context(StrContext::Label("shared object name"))
-            .parse_next(input)?;
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Self> {
+            // Parse the shared object name.
+            let name = SharedObjectName::parser.parse_next(input)?;
 
-        // Parse the version delimiter `=`.
-        //
-        // If it doesn't exist, it is the basic form.
-        if opt("=").parse_next(input)?.is_none() {
-            return Ok(SonameV1::Basic(name));
-        }
+            // Parse the version delimiter `=`.
+            //
+            // If it doesn't exist, it is the basic form.
+            if opt("=").parse_next(input)?.is_none() {
+                return Ok(SonameV1::Basic(name));
+            }
 
-        // Two cases are possible here:
-        //
-        // 1. Unversioned: `name=soname-architecture`
-        // 2. Explicit: `name=version-architecture`
-        let version_or_soname = VersionOrSoname::parser
-            .context(StrContext::Expected(StrContextValue::Description(
-                "a version or shared object name, followed by an ELF architecture format",
-            )))
-            .parse_next(input)?;
+            // Two cases are possible here:
+            //
+            // 1. Unversioned: `name=soname-architecture`
+            // 2. Explicit: `name=version-architecture`
+            let version_or_soname = VersionOrSoname::parser
+                .context(StrContext::Expected(StrContextValue::Description(
+                    "a version or shared object name, followed by an ELF architecture format",
+                )))
+                .parse_next(input)?;
 
-        // Parse the `-` delimiter
-        "-".context(StrContext::Label("architecture delimiter"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "architecture delimiter `-`",
-            )))
-            .parse_next(input)?;
+            // Parse the `-` delimiter
+            "-".context(StrContext::Label("architecture delimiter"))
+                .context(StrContext::Expected(StrContextValue::Description(
+                    "architecture delimiter `-`",
+                )))
+                .parse_next(input)?;
 
-        // Parse the architecture
-        let architecture = ElfArchitectureFormat::parser.parse_next(input)?;
+            // Parse the architecture
+            let architecture = ElfArchitectureFormat::parser.parse_next(input)?;
 
-        match version_or_soname {
-            VersionOrSoname::Version(version) => Ok(SonameV1::Explicit {
-                name,
-                version,
-                architecture,
-            }),
-            VersionOrSoname::Soname(soname) => Ok(SonameV1::Unversioned {
-                name,
-                soname,
-                architecture,
-            }),
-        }
+            match version_or_soname {
+                VersionOrSoname::Version(version) => Ok(SonameV1::Explicit {
+                    name,
+                    version,
+                    architecture,
+                }),
+                VersionOrSoname::Soname(soname) => Ok(SonameV1::Unversioned {
+                    name,
+                    soname,
+                    architecture,
+                }),
+            }
+        };
+
+        parser.layer("alpm-sonamev1").parse_next(input)
     }
 
     fn delimiter_error_context<'a, O, P>(
@@ -421,6 +419,7 @@ impl AlpmParser for SonameV1 {
             .context(StrContext::Expected(StrContextValue::Description(
                 "the string to end after the sonamev1 definition.",
             )))
+            .layer("alpm-sonamev1")
     }
 }
 
@@ -532,28 +531,24 @@ impl Soname {
     ///
     /// Returns an error if `input` does not begin with a valid [`Soname`].
     pub fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
-        // NOTE: This parser is pretty much all over the place, as there's no way to parse this
-        // type in a paradigmatic way. There are no clear delimiters, and parsing can effectively
-        // only be achieved by splitting on `.` characters from the back of the string, or by
-        // looking for the `.so` substring.
-        // However, those may also part of the `Name` character set (which is why we check for
-        // multiple `.so` instances).
-        let name = SharedObjectName::parser
-            .context(StrContext::Label("shared object name"))
-            .parse_next(input)?;
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Self> {
+            let name = SharedObjectName::parser.parse_next(input)?;
 
-        // Parse the version delimiter.
-        let delimiter = opt(".").parse_next(input)?;
+            // Parse the version delimiter.
+            let delimiter = opt(".").parse_next(input)?;
 
-        // If a `.` is found, map the rest of the string to a version.
-        // Otherwise, we hit the `eof` and there's no version.
-        let version = if delimiter.is_some() {
-            Some(PackageVersion::parser.parse_next(input)?)
-        } else {
-            None
+            // If a `.` is found, map the rest of the string to a version.
+            // Otherwise, we hit the `eof` and there's no version.
+            let version = if delimiter.is_some() {
+                Some(PackageVersion::parser.parse_next(input)?)
+            } else {
+                None
+            };
+
+            Ok(Self { name, version })
         };
 
-        Ok(Self { name, version })
+        parser.layer("alpm-soname").parse_next(input)
     }
 }
 
@@ -682,21 +677,28 @@ impl AlpmParser for SonameV2 {
     ///
     /// Returns an error if `input` does not begin with a valid [`SonameV2`].
     fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
-        // Parse everything from the start to the first `:` and parse as `SharedLibraryPrefix`.
-        let prefix = repeat_till(1.., any, peek(alt((":", eof))))
-            .try_map(|(name, _): (String, &str)| SharedLibraryPrefix::from_str(&name))
-            .context(StrContext::Label("prefix for a shared object lookup path"))
-            .parse_next(input)?;
+        let parser = move |input: &mut Input<'a>| -> PResult<'a, Self> {
+            // Parse everything from the start to the first `:` and parse as `SharedLibraryPrefix`.
+            let prefix = SharedLibraryPrefix::parser
+                // TODO: Decide on whether SharedLibraryPrefix should use `Name` under the hood.
+                //       There exists basically no spec for yet and it's technically not a package
+                //       name.
+                .context(StrContext::Label("prefix for a shared object lookup path"))
+                .layer("shared library prefix")
+                .parse_next(input)?;
 
-        ":".context(StrContext::Label("shared library prefix delimiter"))
-            .context(StrContext::Expected(StrContextValue::Description(
-                "shared library prefix `:`",
-            )))
-            .parse_next(input)?;
+            ":".context(StrContext::Label("shared library prefix delimiter"))
+                .context(StrContext::Expected(StrContextValue::Description(
+                    "the prefix delimiter `:`",
+                )))
+                .parse_next(input)?;
 
-        let soname = Soname::parser.parse_next(input)?;
+            let soname = Soname::parser.parse_next(input)?;
 
-        Ok(Self { prefix, soname })
+            Ok(Self { prefix, soname })
+        };
+
+        parser.layer("alpm-sonamev2").parse_next(input)
     }
 
     fn delimiter_error_context<'a, O, P>(
@@ -710,6 +712,7 @@ impl AlpmParser for SonameV2 {
             .context(StrContext::Expected(StrContextValue::Description(
                 "end of input.",
             )))
+            .layer("alpm-sonamev2")
     }
 }
 

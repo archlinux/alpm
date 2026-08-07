@@ -1,7 +1,12 @@
 ---
 source: alpm-types/src/relation/soname.rs
 ---
-invalidversion.so=1🐀2-64
-                   ^
-invalid architecture delimiter
-expected architecture delimiter `-`
+error: invalid architecture delimiter
+ | 
+ | invalidversion.so=1🐀2-64
+ | ~~~~~~~~~~~~~~~~~~~^ expected architecture delimiter `-`
+ | 
+ = while parsing:
+   alpm-sonamev1: (invalidversion.so=1🐀…)
+   → invalid architecture delimiter
+   → expected architecture delimiter `-`
