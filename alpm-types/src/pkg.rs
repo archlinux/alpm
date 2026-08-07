@@ -462,11 +462,12 @@ mod tests {
     #[case("key=")]
     #[case("=value")]
     fn extra_data_entry_from_str_error(#[case] input: &str) {
+        let (test_name, _guard) = configure_insta();
+
         let Err(Error::ParseError(err_msg)) = ExtraDataEntry::from_str(input) else {
             panic!("'{input}' erroneously parsed as a ExtraDataEntry")
         };
 
-        let (test_name, _guard) = configure_insta();
         assert_snapshot!(test_name, err_msg.to_string());
     }
 

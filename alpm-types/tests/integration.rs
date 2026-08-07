@@ -45,6 +45,7 @@ fn init_logger() -> TestResult {
 #[case::invalid_dashes("example---x86_64.pkg.tar.zst")]
 #[case::no_dashes("examplepkg1.0.01x86_64.pkg.tar.zst")]
 fn fail_to_parse_package_filename(#[case] s: &str) -> TestResult {
+    colored::control::set_override(false);
     init_logger()?;
 
     let Err(error) = PackageFileName::parser_until_eof.parse(Input::new(s)) else {
@@ -71,6 +72,7 @@ fn fail_to_parse_package_filename(#[case] s: &str) -> TestResult {
 #[rstest]
 #[case::no_file_name(PathBuf::from("./"))]
 fn package_file_name_from_path_fails(#[case] path: PathBuf) -> TestResult {
+    colored::control::set_override(false);
     init_logger()?;
 
     let Err(error) = PackageFileName::try_from(path.as_path()) else {

@@ -156,11 +156,12 @@ mod tests {
     #[case("lib:libexample.so.10-10")]
     #[case("lib:libexample.so.1.0.0-64")]
     fn invalid_sonamev2_parser(#[case] input: &str) {
+        let (test_name, _guard) = configure_insta();
+
         let Err(Error::ParseError(err_msg)) = SonameV2::from_str(input) else {
             panic!("'{input}' did not fail to parse as expected")
         };
 
-        let (test_name, _guard) = configure_insta();
         assert_snapshot!(test_name, err_msg.to_string());
     }
 

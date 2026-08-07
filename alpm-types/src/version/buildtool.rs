@@ -246,6 +246,8 @@ mod tests {
     #[case::minimal_version_with_epoch_and_architecture("1:1.0.0-any")]
     #[case::bad_package_version("ß-1-any")]
     fn invalid_buildtool_version(#[case] input: &str) -> TestResult {
+        let (test_name, _guard) = configure_insta();
+
         let err = match BuildToolVersion::from_str(input) {
             Err(err) => err,
             Ok(_) => {
@@ -253,7 +255,6 @@ mod tests {
             }
         };
 
-        let (test_name, _guard) = configure_insta();
         assert_snapshot!(test_name, err.to_string());
 
         Ok(())

@@ -552,11 +552,12 @@ mod tests {
     #[case::no_version("<=")]
     #[case::invalid_pkgver("<3.1>3.2")]
     fn invalid_version_requirement(#[case] requirement: &str) {
+        let (test_name, _guard) = configure_insta();
+
         let Err(Error::ParseError(err_msg)) = VersionRequirement::from_str(requirement) else {
             panic!("'{requirement}' erroneously parsed as VersionRequirement")
         };
 
-        let (test_name, _guard) = configure_insta();
         assert_snapshot!(test_name, err_msg.to_string());
     }
 

@@ -285,11 +285,12 @@ mod tests {
     #[case::invalid_integer("-1foo:1")]
     #[case::invalid_integer("1-foo:1")]
     fn parse_error_in_version_from_string(#[case] version: &str) {
+        let (test_name, _guard) = configure_insta();
+
         let Err(Error::ParseError(err_msg)) = Version::from_str(version) else {
             panic!("parsing '{version}' did not fail as expected")
         };
 
-        let (test_name, _guard) = configure_insta();
         assert_snapshot!(test_name, err_msg.to_string());
     }
 

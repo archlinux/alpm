@@ -536,11 +536,12 @@ mod tests {
     #[case("lib:")]
     #[case(":/usr/lib")]
     fn invalid_soname_lookup_directory_parser(#[case] input: &str) {
+        let (test_name, _guard) = configure_insta();
+
         let Err(Error::ParseError(err_msg)) = SonameLookupDirectory::from_str(input) else {
             panic!("'{input}' erroneously parsed as a SonameLookupDirectory")
         };
 
-        let (test_name, _guard) = configure_insta();
         assert_snapshot!(test_name, err_msg.to_string());
     }
 }

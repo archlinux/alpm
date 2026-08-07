@@ -571,11 +571,12 @@ mod tests {
     #[case("f oo")]
     #[case("any")]
     fn invalid_system_architecture_from_string(#[case] input: &str) {
+        let (test_name, _guard) = configure_insta();
+
         let Err(Error::ParseError(err_msg)) = SystemArchitecture::from_str(input) else {
             panic!("'{input}' erroneously parsed as a SystemArchitecture")
         };
 
-        let (test_name, _guard) = configure_insta();
         assert_snapshot!(test_name, err_msg.to_string());
     }
 
@@ -612,11 +613,12 @@ mod tests {
     #[rstest]
     #[case("f oo")]
     fn invalid_architecture_from_string(#[case] input: &str) {
+        let (test_name, _guard) = configure_insta();
+
         let Err(Error::ParseError(err_msg)) = Architecture::from_str(input) else {
             panic!("'{input}' erroneously parsed as a Architecture")
         };
 
-        let (test_name, _guard) = configure_insta();
         assert_snapshot!(test_name, err_msg.to_string());
     }
 

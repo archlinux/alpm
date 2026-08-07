@@ -407,11 +407,12 @@ mod tests {
     fn parse_error_in_full_version_from_string(#[case] input: &str) {
         init_logger();
 
+        let (test_name, _guard) = configure_insta();
+
         let Err(Error::ParseError(err_msg)) = FullVersion::from_str(input) else {
             panic!("'{input}' erroneously parsed as a FullVersion")
         };
 
-        let (test_name, _guard) = configure_insta();
         assert_snapshot!(test_name, err_msg.to_string());
     }
 

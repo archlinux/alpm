@@ -380,11 +380,12 @@ mod tests {
     #[case::ends_with_colon("1-foo:")]
     #[case::ends_with_colon_number("1-foo:1")]
     fn minimal_version_from_str_parse_error(#[case] version: &str) {
+        let (test_name, _guard) = configure_insta();
+
         let Err(Error::ParseError(err)) = MinimalVersion::from_str(version) else {
             panic!("parsing '{version}' as MinimalVersion did not fail as expected")
         };
 
-        let (test_name, _guard) = configure_insta();
         assert_snapshot!(test_name, err.to_string());
     }
 

@@ -695,11 +695,12 @@ mod tests {
     )]
     #[case::address_without_local_part("Foobar McFooface <@mcfooface.org>")]
     fn invalid_packager(#[case] input: &str) {
+        let (test_name, _guard) = configure_insta();
+
         let Err(err_msg) = Packager::from_str(input) else {
             panic!("'{input}' erroneously parsed as a Package")
         };
 
-        let (test_name, _guard) = configure_insta();
         assert_snapshot!(test_name, err_msg.to_string());
     }
 

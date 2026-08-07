@@ -293,11 +293,12 @@ mod tests {
     #[case("/absolute/path")]
     #[case("foo:::/absolute/path")]
     fn invalid_filename(#[case] input: &str) {
+        let (test_name, _guard) = configure_insta();
+
         let Err(Error::ParseError(err_msg)) = Source::from_str(input) else {
             panic!("'{input}' erroneously parsed as a Source")
         };
 
-        let (test_name, _guard) = configure_insta();
         assert_snapshot!(test_name, err_msg.to_string());
     }
 }

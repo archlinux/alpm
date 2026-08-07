@@ -854,11 +854,12 @@ mod tests {
     #[case("!somethingelse")]
     #[case("#somethingelse")]
     fn invalid_makepkg_option(#[case] input: &str) {
+        let (test_name, _guard) = configure_insta();
+
         let Err(Error::ParseError(err_msg)) = MakepkgOption::from_str(input) else {
             panic!("'{input}' erroneously parsed as MakepkgOption")
         };
 
-        let (test_name, _guard) = configure_insta();
         assert_snapshot!(test_name, err_msg.to_string());
     }
 
@@ -883,11 +884,12 @@ mod tests {
     #[case("!somethingelse")]
     #[case("#somethingelse")]
     fn invalid_package_option(#[case] input: &str) {
+        let (test_name, _guard) = configure_insta();
+
         let Err(Error::ParseError(err_msg)) = PackageOption::from_str(input) else {
             panic!("'{input}' erroneously parsed as PackageOption")
         };
 
-        let (test_name, _guard) = configure_insta();
         assert_snapshot!(test_name, err_msg.to_string());
     }
 
@@ -909,11 +911,12 @@ mod tests {
     #[case("!somethingelse")]
     #[case("#somethingelse")]
     fn invalid_build_environment_option(#[case] input: &str) {
+        let (test_name, _guard) = configure_insta();
+
         let Err(Error::ParseError(err_msg)) = BuildEnvironmentOption::from_str(input) else {
             panic!("'{input}' erroneously parsed as BuildEnvironmentOption")
         };
 
-        let (test_name, _guard) = configure_insta();
         assert_snapshot!(test_name, err_msg.to_string());
     }
 
@@ -946,11 +949,12 @@ mod tests {
     #[case("package$with$dollars-30-0.1-any")]
     #[case("packagename-30-0.1-any*asdf")]
     fn installed_new_parse_error(#[case] input: &str) {
+        let (test_name, _guard) = configure_insta();
+
         let Err(Error::ParseError(err_msg)) = InstalledPackage::from_str(input) else {
             panic!("'{input}' erroneously parsed as InstalledPackage")
         };
 
-        let (test_name, _guard) = configure_insta();
         assert_snapshot!(test_name, err_msg.to_string());
     }
 }

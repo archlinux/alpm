@@ -952,11 +952,12 @@ mod tests {
         "d2 02 d7 95 1d f2 c4 b7 11 ca 44 b4 bc c9 d7 b3 63 fa 42 52 12 7e 05 8c 1a 91 0e c0 5b 6c d0 38 d7 1c c2 12 21 c0 31 c0 35 9f 99 3e 74 6b 07 f5 96 5c f8 c5 c3 74 6a 58 33 7a d9 ab 65 27 8e 77"
     )]
     fn checksum_parse_error(#[case] input: &str) {
+        let (test_name, _guard) = configure_insta();
+
         let Err(Error::ParseError(err_msg)) = Sha512Checksum::from_str(input) else {
             panic!("'{input}' erroneously parsed as Sha512Checksum")
         };
 
-        let (test_name, _guard) = configure_insta();
         assert_snapshot!(test_name, err_msg.to_string());
     }
 

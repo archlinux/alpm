@@ -396,11 +396,12 @@ mod tests {
     #[case("1.ß")]
     #[case("")]
     fn invalid_pkgver(#[case] pkgver: &str) {
+        let (test_name, _guard) = configure_insta();
+
         let Err(Error::ParseError(err_msg)) = PackageVersion::new(pkgver.to_string()) else {
             panic!("Expected pkgver {pkgver} to be invalid.")
         };
 
-        let (test_name, _guard) = configure_insta();
         assert_snapshot!(test_name, err_msg.to_string());
     }
 
@@ -435,11 +436,12 @@ mod tests {
     #[case("1.0.0")]
     #[case("")]
     fn invalid_pkgrel(#[case] pkgrel: &str) {
+        let (test_name, _guard) = configure_insta();
+
         let Err(Error::ParseError(err_msg)) = PackageRelease::from_str(pkgrel) else {
             panic!("'{pkgrel}' erroneously parsed as PackageRelease")
         };
 
-        let (test_name, _guard) = configure_insta();
         assert_snapshot!(test_name, err_msg.to_string());
     }
 

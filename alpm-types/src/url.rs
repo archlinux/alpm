@@ -885,11 +885,12 @@ mod tests {
     #[case("hg+https://example/project#commit=154021a")]
     #[case("hg+https://example/project#branch=feature?signed")]
     fn test_source_url_parsing_failure(#[case] input: &str) {
+        let (test_name, _guard) = configure_insta();
+
         let Err(Error::ParseError(err_msg)) = SourceUrl::from_str(input) else {
             panic!("'{input}' erroneously parsed as a SourceUrl")
         };
 
-        let (test_name, _guard) = configure_insta();
         assert_snapshot!(test_name, err_msg.to_string());
     }
 }
