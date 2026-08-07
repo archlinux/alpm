@@ -149,7 +149,27 @@ licenses:
     - just --justfile .gitlab/justfile section-end "check-licenses"
   stage: check
 
-build-book-and-links:
+links:
+  allow_failure: true
+  extends: .default
+  script:
+    - just --justfile .gitlab/justfile section-start "install-alpm-packages" "Install ALPM package set 'links'"
+    - just install-alpm-package-set links
+    - just --justfile .gitlab/justfile section-end "install-alpm-packages"
+    - just --justfile .gitlab/justfile section-start "check-links" "Check links in all files"
+    - just check-links
+    - just --justfile .gitlab/justfile section-end "check-links"
+  stage: check
+  retry:
+    max: 1
+    when: script_failure
+    exit_codes: 2
+  cache:
+    paths:
+      - .lycheecache
+    policy: pull-push
+
+build-book:
   extends: .default-with-rust
   script:
     - just --justfile .gitlab/justfile section-start "install-alpm-packages" "Install ALPM package set 'book'"
@@ -164,12 +184,6 @@ build-book-and-links:
     - just --justfile .gitlab/justfile section-start "build-book" "Build project documentation"
     - just build-book
     - just --justfile .gitlab/justfile section-end "build-book"
-    - just --justfile .gitlab/justfile section-start "install-alpm-packages" "Install ALPM package set 'links'"
-    - just install-alpm-package-set links
-    - just --justfile .gitlab/justfile section-end "install-alpm-packages"
-    - just --justfile .gitlab/justfile section-start "check-links" "Check links in all files"
-    - just check-links
-    - just --justfile .gitlab/justfile section-end "check-links"
   stage: check
 
 test:
