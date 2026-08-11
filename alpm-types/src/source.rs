@@ -5,6 +5,7 @@ use std::{
 };
 
 use alpm_parsers::traits::ParserUntil;
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use winnow::{
     ModalResult,
@@ -20,8 +21,9 @@ use crate::{Error, SourceUrl};
 /// Represents the location that a source file should be retrieved from
 ///
 /// It can be either a local file (next to the PKGBUILD) or a URL.
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[serde(tag = "type")]
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "serde", serde(tag = "type"))]
 pub enum Source {
     /// A local file source.
     ///

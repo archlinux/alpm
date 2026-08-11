@@ -6,6 +6,7 @@ use std::{
 };
 
 use alpm_parsers::traits::{AlpmParser, ParserUntil};
+#[cfg(feature = "serde")]
 use serde::Serialize;
 use winnow::{
     Parser,
@@ -69,7 +70,8 @@ use crate::{Architecture, Error, FullVersion, MinimalVersion, Version};
 /// [BUILDINFOv2]: https://alpm.archlinux.page/specifications/BUILDINFOv2.5.html
 /// [makepkg]: https://man.archlinux.org/man/makepkg.8
 /// [pkgctl]: https://man.archlinux.org/man/pkgctl.1
-#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Serialize))]
 pub enum BuildToolVersion {
     /// The version representation used by [makepkg].
     ///

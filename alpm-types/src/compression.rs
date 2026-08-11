@@ -6,6 +6,7 @@ use std::{
 };
 
 use alpm_parsers::{iter_str_context, traits::AlpmParser};
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, Display, EnumString, IntoStaticStr, VariantNames};
 use winnow::{
@@ -27,70 +28,69 @@ use winnow::{
     Copy,
     Debug,
     Default,
-    Deserialize,
     Display,
     EnumString,
     Eq,
     IntoStaticStr,
     PartialEq,
-    Serialize,
     VariantNames,
 )]
-#[serde(untagged)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "serde", serde(untagged))]
 pub enum CompressionAlgorithmFileExtension {
     /// The file extension for files compressed using the [compress] compression algorithm.
     ///
     /// [compress]: https://man.archlinux.org/man/compress.1
-    #[serde(rename = "Z")]
+    #[cfg_attr(feature = "serde", serde(rename = "Z"))]
     #[strum(to_string = "Z")]
     Compress,
 
     /// The file extension for files compressed using the [bzip2] compression algorithm.
     ///
     /// [bzip2]: https://man.archlinux.org/man/bzip2.1
-    #[serde(rename = "bz2")]
+    #[cfg_attr(feature = "serde", serde(rename = "bz2"))]
     #[strum(to_string = "bz2")]
     Bzip2,
 
     /// The file extension for files compressed using the [gzip] compression algorithm.
     ///
     /// [gzip]: https://man.archlinux.org/man/gzip.1
-    #[serde(rename = "gz")]
+    #[cfg_attr(feature = "serde", serde(rename = "gz"))]
     #[strum(to_string = "gz")]
     Gzip,
 
     /// The file extension for files compressed using the [lrzip] compression algorithm.
     ///
     /// [lrzip]: https://man.archlinux.org/man/lrzip.1
-    #[serde(rename = "lrz")]
+    #[cfg_attr(feature = "serde", serde(rename = "lrz"))]
     #[strum(to_string = "lrz")]
     Lrzip,
 
     /// The file extension for files compressed using the [lzip] compression algorithm.
     ///
     /// [lzip]: https://man.archlinux.org/man/lzip.1
-    #[serde(rename = "lz")]
+    #[cfg_attr(feature = "serde", serde(rename = "lz"))]
     #[strum(to_string = "lz")]
     Lzip,
 
     /// The file extension for files compressed using the [lz4] compression algorithm.
     ///
     /// [lz4]: https://man.archlinux.org/man/lz4.1
-    #[serde(rename = "lz4")]
+    #[cfg_attr(feature = "serde", serde(rename = "lz4"))]
     #[strum(to_string = "lz4")]
     Lz4,
 
     /// The file extension for files compressed using the [lzop] compression algorithm.
     ///
     /// [lzop]: https://man.archlinux.org/man/lzop.1
-    #[serde(rename = "lzo")]
+    #[cfg_attr(feature = "serde", serde(rename = "lzo"))]
     #[strum(to_string = "lzo")]
     Lzop,
 
     /// The file extension for files compressed using the [xz] compression algorithm.
     ///
     /// [xz]: https://man.archlinux.org/man/xz.1
-    #[serde(rename = "xz")]
+    #[cfg_attr(feature = "serde", serde(rename = "xz"))]
     #[strum(to_string = "xz")]
     Xz,
 
@@ -98,7 +98,7 @@ pub enum CompressionAlgorithmFileExtension {
     ///
     /// [zstd]: https://man.archlinux.org/man/zstd.1
     #[default]
-    #[serde(rename = "zst")]
+    #[cfg_attr(feature = "serde", serde(rename = "zst"))]
     #[strum(to_string = "zst")]
     Zstd,
 }

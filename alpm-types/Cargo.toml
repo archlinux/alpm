@@ -13,10 +13,19 @@ version = "0.11.2"
 exclude = ["**/snapshots/**"]
 
 [features]
-_winnow-debug = ["winnow/debug"]
 # Enable tests that ensure that alpm is compatible to existing Arch Linux tooling.
 # This requires certain Arch Linux related binaries to be installed on the system.
 _compatibility_tests = []
+# Enable winnow debugging
+_winnow-debug = ["winnow/debug"]
+default = ["serde"]
+# Enable serde de/serialization for all types.
+serde = [
+    "dep:serde",
+    "dep:serde_with",
+    "email_address/serde_support",
+    "url/serde",
+]
 
 [dependencies]
 alpm-parsers.workspace = true
@@ -24,13 +33,12 @@ base64 = "0.23.0"
 blake2 = "0.10.6"
 fluent-i18n.workspace = true
 digest = "0.10.7"
-email_address = "0.2.4"
+email_address = { version = "0.2.4", default-features = false }
 log.workspace = true
 md-5 = "0.10.5"
 semver.workspace = true
-serde.workspace = true
-serde_with.workspace = true
-serde_json.workspace = true
+serde = { workspace = true, optional = true }
+serde_with = { workspace = true, optional = true }
 crc-fast = "1.6.0"
 sha1 = "0.10.5"
 sha2 = "0.10.7"
@@ -38,7 +46,7 @@ spdx = "0.13.0"
 strum.workspace = true
 thiserror.workspace = true
 time = "0.3.47"
-url = { version = "2.4.0", features = ["serde"] }
+url = "2.4.0"
 winnow.workspace = true
 
 [dev-dependencies]
@@ -46,6 +54,7 @@ insta.workspace = true
 proptest.workspace = true
 rstest.workspace = true
 simplelog.workspace = true
+serde_json.workspace = true
 testresult.workspace = true
 
 [package.metadata.cargo-machete]

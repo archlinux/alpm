@@ -4,6 +4,7 @@ use std::{
 };
 
 use alpm_parsers::traits::{AlpmParser, ParserUntil};
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString, VariantNames};
 use winnow::{
@@ -49,21 +50,10 @@ use crate::Error;
 /// # Ok(())
 /// # }
 /// ```
-#[derive(
-    Clone,
-    Debug,
-    Deserialize,
-    Display,
-    Eq,
-    Hash,
-    Ord,
-    PartialEq,
-    PartialOrd,
-    Serialize,
-    VariantNames,
-)]
+#[derive(Clone, Debug, Display, Eq, Hash, Ord, PartialEq, PartialOrd, VariantNames)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[strum(serialize_all = "lowercase")]
-#[serde(rename_all = "lowercase")]
+#[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
 pub enum SystemArchitecture {
     /// ARMv8 64-bit
     Aarch64,
@@ -100,7 +90,7 @@ pub enum SystemArchitecture {
     X86_64V4,
     /// Unknown architecture
     #[strum(transparent)]
-    #[serde(untagged)]
+    #[cfg_attr(feature = "serde", serde(untagged))]
     Unknown(UnknownArchitecture),
 }
 
@@ -194,7 +184,8 @@ impl FromStr for SystemArchitecture {
 /// This type can only be created via [`SystemArchitecture`].
 ///
 /// [alpm-architecture]: https://alpm.archlinux.page/specifications/alpm-architecture.7.html
-#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct UnknownArchitecture(String);
 
 impl UnknownArchitecture {
@@ -264,27 +255,16 @@ impl AsRef<str> for UnknownArchitecture {
 /// ```
 ///
 /// [alpm-architecture]: https://alpm.archlinux.page/specifications/alpm-architecture.7.html
-#[derive(
-    Clone,
-    Debug,
-    Deserialize,
-    Display,
-    Eq,
-    Hash,
-    Ord,
-    PartialEq,
-    PartialOrd,
-    Serialize,
-    VariantNames,
-)]
+#[derive(Clone, Debug, Display, Eq, Hash, Ord, PartialEq, PartialOrd, VariantNames)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[strum(serialize_all = "lowercase")]
-#[serde(rename_all = "lowercase")]
+#[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
 pub enum Architecture {
     /// Any architecture
     Any,
     /// Specific architecture
     #[strum(transparent)]
-    #[serde(untagged)]
+    #[cfg_attr(feature = "serde", serde(untagged))]
     Some(SystemArchitecture),
 }
 
@@ -347,27 +327,16 @@ impl From<SystemArchitecture> for Architecture {
 /// implementation.
 ///
 /// [alpm-architecture]: https://alpm.archlinux.page/specifications/alpm-architecture.7.html
-#[derive(
-    Clone,
-    Debug,
-    Deserialize,
-    EnumString,
-    Eq,
-    Hash,
-    Ord,
-    PartialEq,
-    PartialOrd,
-    Serialize,
-    VariantNames,
-)]
+#[derive(Clone, Debug, EnumString, Eq, Hash, Ord, PartialEq, PartialOrd, VariantNames)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[strum(serialize_all = "lowercase")]
-#[serde(rename_all = "lowercase")]
+#[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
 pub enum Architectures {
     /// Any architecture
     Any,
     /// Specific architectures
     #[strum(transparent)]
-    #[serde(untagged)]
+    #[cfg_attr(feature = "serde", serde(untagged))]
     Some(Vec<SystemArchitecture>),
 }
 
@@ -520,9 +489,8 @@ impl TryFrom<Vec<Architecture>> for Architectures {
 /// ```
 ///
 /// [_ELF Header_]: https://en.wikipedia.org/wiki/Executable_and_Linkable_Format#ELF_header
-#[derive(
-    Clone, Copy, Debug, Deserialize, Display, EnumString, Eq, Ord, PartialEq, PartialOrd, Serialize,
-)]
+#[derive(Clone, Copy, Debug, Display, EnumString, Eq, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[strum(serialize_all = "lowercase")]
 pub enum ElfArchitectureFormat {
     /// 32-bit

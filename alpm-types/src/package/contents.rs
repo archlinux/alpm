@@ -12,18 +12,10 @@ pub const INSTALL_SCRIPTLET_FILE_NAME: &str = ".INSTALL";
 ///
 /// [alpm-package]: https://alpm.archlinux.page/specifications/alpm-package.7.html
 #[derive(
-    strum::AsRefStr,
-    Clone,
-    Copy,
-    Debug,
-    serde::Deserialize,
-    strum::Display,
-    Eq,
-    strum::IntoStaticStr,
-    PartialEq,
-    serde::Serialize,
+    strum::AsRefStr, Clone, Copy, Debug, strum::Display, Eq, strum::IntoStaticStr, PartialEq,
 )]
-#[serde(try_from = "String", into = "String")]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(try_from = "String", into = "String"))]
 pub enum MetadataFileName {
     /// The [BUILDINFO] file.
     ///

@@ -3,6 +3,7 @@ use std::{
     str::FromStr,
 };
 
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use spdx::Expression;
 
@@ -40,6 +41,7 @@ pub enum License {
     Unknown(String),
 }
 
+#[cfg(feature = "serde")]
 impl Serialize for License {
     /// Custom serde serialization as Spdx doesn't provide a serde [`Serialize`] implementation.
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -50,6 +52,7 @@ impl Serialize for License {
     }
 }
 
+#[cfg(feature = "serde")]
 impl<'de> Deserialize<'de> for License {
     /// Custom serde serialization as Spdx doesn't provide a serde [`Deserialize`] implementation.
     /// This implements deserialization from a string type.

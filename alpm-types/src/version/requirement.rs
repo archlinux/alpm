@@ -10,6 +10,7 @@ use alpm_parsers::{
     iter_str_context,
     traits::{AlpmParser, ParserUntil},
 };
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use strum::VariantNames;
 use winnow::{
@@ -45,7 +46,8 @@ use crate::{Error, Version};
 /// ```
 ///
 /// [alpm-comparison]: https://alpm.archlinux.page/specifications/alpm-comparison.7.html
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct VersionRequirement {
     /// Version comparison function
     pub comparison: VersionComparison,
@@ -380,9 +382,8 @@ impl FromStr for VersionRequirement {
     PartialEq,
     Eq,
     strum::VariantNames,
-    Serialize,
-    Deserialize,
 )]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum VersionComparison {
     /// Less than or equal to
     #[strum(to_string = "<=")]

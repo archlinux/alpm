@@ -7,6 +7,7 @@ use std::{
 
 use alpm_parsers::traits::AlpmParser;
 use digest::{Digest, FixedOutput, HashMarker, Output, OutputSizeUser, Update};
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use strum::{Display, EnumString, VariantArray, VariantNames};
 use winnow::{
@@ -102,7 +103,6 @@ pub type Crc32CksumChecksum = Checksum<Crc32Cksum>;
     Clone,
     Copy,
     Debug,
-    Deserialize,
     Display,
     EnumString,
     Eq,
@@ -110,10 +110,10 @@ pub type Crc32CksumChecksum = Checksum<Crc32Cksum>;
     Ord,
     PartialEq,
     PartialOrd,
-    Serialize,
     VariantNames,
     VariantArray,
 )]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum ChecksumAlgorithm {
     /// Blake2b-512 cryptographic hash algorithm
     Blake2b512,
@@ -243,6 +243,8 @@ impl ChecksumAlgorithm {
 ///
 /// [checksum]: https://en.wikipedia.org/wiki/Checksum
 /// ```
+/// # #[cfg(feature = "serde")]
+/// # {
 /// use alpm_types::{Checksum, digests::Digest};
 /// use serde::Serialize;
 ///
@@ -251,6 +253,7 @@ impl ChecksumAlgorithm {
 ///     #[serde(bound = "D: Digest")]
 ///     checksum: Checksum<D>,
 /// }
+/// # }
 /// ```
 #[derive(Clone)]
 pub struct Checksum<D: Digest> {
@@ -258,6 +261,7 @@ pub struct Checksum<D: Digest> {
     _marker: PhantomData<D>,
 }
 
+#[cfg(feature = "serde")]
 impl<D: DigestString> Serialize for Checksum<D> {
     /// Serialize a [`Checksum`] into a hex `String` representation.
     ///
@@ -271,6 +275,7 @@ impl<D: DigestString> Serialize for Checksum<D> {
     }
 }
 
+#[cfg(feature = "serde")]
 impl<'de, D: DigestString> Deserialize<'de> for Checksum<D> {
     fn deserialize<De>(deserializer: De) -> Result<Self, De::Error>
     where
@@ -503,13 +508,14 @@ impl<D: Digest> PartialOrd for Checksum<D> {
 ///
 /// Strings representing checksums are used to verify the integrity of files.
 /// If the `"SKIP"` keyword is found, the integrity check is skipped.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(tag = "type")]
+#[derive(Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "serde", serde(tag = "type"))]
 pub enum SkippableChecksum<D: DigestString + Clone> {
     /// Sourcefile checksum validation may be skipped, which is expressed with this variant.
     Skip,
     /// The related source file should be validated via the provided checksum.
-    #[serde(bound = "D: Digest + Clone")]
+    #[cfg_attr(feature = "serde", serde(bound = "D: Digest + Clone"))]
     Checksum {
         /// The checksum to be used for the validation.
         digest: Checksum<D>,

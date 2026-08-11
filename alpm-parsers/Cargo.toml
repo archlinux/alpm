@@ -13,9 +13,13 @@ version = "0.4.1"
 
 [features]
 _winnow-debug = ["winnow/debug"]
+default = ["serde"]
+# Enable the ini-style parser helpers used in `alpm-buildinfo` and `alpm-pkginfo`.
+# This module will soon be removed once those parsers are rewritten in winnow.
+serde = ["dep:serde"]
 
 [dependencies]
-serde.workspace = true
+serde = { workspace = true, optional = true }
 testresult.workspace = true
 winnow.workspace = true
 

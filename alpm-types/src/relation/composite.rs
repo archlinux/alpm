@@ -6,6 +6,7 @@ use std::{
 };
 
 use alpm_parsers::traits::AlpmParser;
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use winnow::{
     ModalResult,
@@ -25,8 +26,9 @@ use crate::{Error, PackageRelation, SonameV1, SonameV2};
 /// [SRCINFO]: https://alpm.archlinux.page/specifications/SRCINFO.5.html
 /// [alpm-db-desc]: https://alpm.archlinux.page/specifications/alpm-db-desc.5.html
 /// [alpm-package-relations]: https://alpm.archlinux.page/specifications/alpm-package-relation.7.html
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[serde(untagged)]
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "serde", serde(untagged))]
 pub enum RelationOrSoname {
     /// A package relation (as [`PackageRelation`]).
     Relation(PackageRelation),

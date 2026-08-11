@@ -4,7 +4,9 @@ use alpm_parsers::{
     iter_str_context,
     traits::{AlpmParser, ParserUntil},
 };
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "serde")]
 use serde_with::{DeserializeFromStr, SerializeDisplay};
 use strum::{Display, EnumString, VariantNames};
 use winnow::{
@@ -35,7 +37,8 @@ use crate::{Error, Name};
 /// assert_eq!("src", format!("{}", PackageType::Source));
 /// assert_eq!("split", format!("{}", PackageType::Split));
 /// ```
-#[derive(Clone, Copy, Debug, Display, EnumString, Eq, PartialEq, Serialize, VariantNames)]
+#[derive(Clone, Copy, Debug, Display, EnumString, Eq, PartialEq, VariantNames)]
+#[cfg_attr(feature = "serde", derive(Serialize))]
 pub enum PackageType {
     /// a debug package
     #[strum(to_string = "debug")]
@@ -101,7 +104,8 @@ impl AlpmParser for PackageType {
 /// assert_eq!(&description.to_string(), "my special package");
 /// # }
 /// ```
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct PackageDescription(String);
 
 impl PackageDescription {
@@ -191,7 +195,8 @@ pub type PackageBaseName = Name;
 /// Extra data entry associated with a package
 ///
 /// This type wraps a key-value pair of data as String, which is separated by an equal sign (`=`).
-#[derive(Clone, Debug, DeserializeFromStr, PartialEq, SerializeDisplay)]
+#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(DeserializeFromStr, SerializeDisplay))]
 pub struct ExtraDataEntry {
     key: String,
     value: String,
@@ -323,7 +328,8 @@ impl Display for ExtraDataEntry {
 /// `pkgtype` entry.
 ///
 /// Can be created from a [`Vec<ExtraDataEntry>`] or [`ExtraDataEntry`] using [`TryFrom::try_from`].
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize))]
 pub struct ExtraData(Vec<ExtraDataEntry>);
 
 impl ExtraData {

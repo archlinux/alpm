@@ -8,6 +8,7 @@ use alpm_parsers::{
     iter_char_context,
     traits::{AlpmParser, ParserUntil},
 };
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use winnow::{
     ModalResult,
@@ -131,7 +132,8 @@ impl Display for BuildTool {
 /// ```
 ///
 /// [alpm-package-name]: https://alpm.archlinux.page/specifications/alpm-package-name.7.html
-#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Name(String);
 
 impl Name {
@@ -322,7 +324,8 @@ impl AsRef<str> for Name {
 ///
 /// This type wraps a [`Name`] and is used to represent the name of a shared object file
 /// that ends with the `.so` suffix.
-#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct SharedObjectName(pub(crate) String);
 
 impl SharedObjectName {

@@ -7,6 +7,7 @@ use std::{
 };
 
 use alpm_parsers::traits::{AlpmParser, ParserUntil};
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use winnow::{
     ModalResult,
@@ -30,9 +31,9 @@ use crate::{
 ///
 /// A package filename tracks its [`Name`], [`FullVersion`], [`Architecture`] and the optional
 /// [`CompressionAlgorithmFileExtension`].
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[serde(into = "String")]
-#[serde(try_from = "String")]
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "serde", serde(into = "String", try_from = "String"))]
 pub struct PackageFileName {
     pub(crate) name: Name,
     pub(crate) version: FullVersion,

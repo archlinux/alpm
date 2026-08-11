@@ -8,6 +8,7 @@ use alpm_parsers::traits::ParserUntil;
 use base64::{Engine, prelude::BASE64_STANDARD};
 use email_address::EmailAddress;
 use fluent_i18n::t;
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use winnow::{
     ModalResult,
@@ -59,13 +60,14 @@ use crate::Error;
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub enum OpenPGPIdentifier {
     /// An OpenPGP Key ID.
-    #[serde(rename = "openpgp_key_id")]
+    #[cfg_attr(feature = "serde", serde(rename = "openpgp_key_id"))]
     OpenPGPKeyId(OpenPGPKeyId),
     /// An OpenPGP v4 fingerprint.
-    #[serde(rename = "openpgp_v4_fingerprint")]
+    #[cfg_attr(feature = "serde", serde(rename = "openpgp_v4_fingerprint"))]
     OpenPGPv4Fingerprint(OpenPGPv4Fingerprint),
 }
 
@@ -139,7 +141,8 @@ impl Display for OpenPGPIdentifier {
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct OpenPGPKeyId(String);
 
 impl OpenPGPKeyId {
@@ -232,7 +235,8 @@ impl Display for OpenPGPKeyId {
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct OpenPGPv4Fingerprint(String);
 
 impl OpenPGPv4Fingerprint {
@@ -319,7 +323,8 @@ impl Display for OpenPGPv4Fingerprint {
 ///
 /// [base64]: https://en.wikipedia.org/wiki/Base64
 /// [OpenPGP detached signature]: https://openpgp.dev/book/signing_data.html#detached-signatures
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Base64OpenPGPSignature(String);
 
 impl Base64OpenPGPSignature {
@@ -414,7 +419,8 @@ impl Display for Base64OpenPGPSignature {
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Packager {
     name: String,
     email: EmailAddress,
@@ -534,6 +540,7 @@ impl Display for Packager {
 mod tests {
     use insta::assert_snapshot;
     use rstest::rstest;
+    #[cfg(feature = "serde")]
     use testresult::TestResult;
 
     use super::*;
@@ -593,6 +600,7 @@ mod tests {
         Ok(())
     }
 
+    #[cfg(feature = "serde")]
     #[test]
     fn test_serialize_openpgp_key_id() -> TestResult {
         let id = "584A3EBFE705CDCD".parse::<OpenPGPKeyId>()?;
@@ -602,6 +610,7 @@ mod tests {
         Ok(())
     }
 
+    #[cfg(feature = "serde")]
     #[rstest]
     #[case(
         "1234567890abcdef1234567890abcdef12345678",

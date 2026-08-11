@@ -15,6 +15,7 @@ use std::{
 };
 
 use alpm_parsers::traits::{AlpmParser, ParserUntil};
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use winnow::{
     ModalResult,
@@ -49,7 +50,8 @@ use crate::{Error, VersionSegments};
 /// ```
 ///
 /// [alpm-epoch]: https://alpm.archlinux.page/specifications/alpm-epoch.7.html
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Epoch(pub usize);
 
 impl Epoch {
@@ -126,7 +128,8 @@ impl Display for Epoch {
 /// ```
 ///
 /// [alpm-pkgrel]: https://alpm.archlinux.page/specifications/alpm-pkgrel.7.html
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct PackageRelease {
     /// The major version of this package release.
     pub major: usize,
@@ -269,7 +272,8 @@ impl Ord for PackageRelease {
 /// assert!(PackageVersion::new("=1.0".to_string()).is_err());
 /// assert!(PackageVersion::new("1<0".to_string()).is_err());
 /// ```
-#[derive(Clone, Debug, Deserialize, Eq, Serialize)]
+#[derive(Clone, Debug, Eq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct PackageVersion(pub(crate) String);
 
 impl PackageVersion {

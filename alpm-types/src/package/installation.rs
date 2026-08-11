@@ -34,26 +34,20 @@
 ///
 /// # fn main() -> Result<(), alpm_types::Error> {
 /// assert_eq!(PackageInstallReason::Explicit.to_string(), "0");
+/// # #[cfg(feature = "serde")]
+/// # {
 /// assert_eq!(
 ///     serde_json::to_string(&PackageInstallReason::Depend).expect("Serialization failed"),
 ///     "\"Depend\""
 /// );
+/// # }
 /// # Ok(())
 /// # }
 /// ```
 #[derive(
-    Clone,
-    Copy,
-    Debug,
-    Default,
-    PartialEq,
-    Eq,
-    serde::Deserialize,
-    serde::Serialize,
-    strum::EnumString,
-    strum::Display,
-    strum::AsRefStr,
+    Clone, Copy, Debug, Default, PartialEq, Eq, strum::EnumString, strum::Display, strum::AsRefStr,
 )]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 #[repr(u8)]
 pub enum PackageInstallReason {
     /// Explicitly requested by the user.

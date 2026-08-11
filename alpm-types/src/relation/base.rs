@@ -6,6 +6,7 @@ use std::{
 };
 
 use alpm_parsers::traits::{AlpmParser, ParserUntil, ParserUntilInclusive};
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use winnow::{
     ModalResult,
@@ -39,7 +40,8 @@ use crate::{
 /// dependencies, as those behave differently.
 ///
 /// [alpm-package-relations]: https://alpm.archlinux.page/specifications/alpm-package-relation.7.html
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct PackageRelation {
     /// The name of the package
     pub name: Name,
@@ -250,7 +252,8 @@ impl FromStr for PackageRelation {
 ///
 /// [alpm-package-relation]: https://alpm.archlinux.page/specifications/alpm-package-relation.7.html
 /// [optional dependency]: https://alpm.archlinux.page/specifications/alpm-package-relation.7.html#optional-dependency
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct OptionalDependency {
     package_relation: PackageRelation,
     description: Option<String>,

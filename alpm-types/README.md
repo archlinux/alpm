@@ -11,6 +11,12 @@ This library strives to provide all underlying types for writing ALPM based soft
 - <https://alpm.archlinux.page/rustdoc/alpm_types/> for development version of the crate
 - <https://docs.rs/alpm-types/latest/alpm_types/> for released versions of the crate
 
+## Features
+
+- `serde` enables `Serialize` and `Deserialize` traits for all types. Default: `true`
+- `_winnow-debug` enables the `winnow/debug` feature, which shows the exact parsing process of winnow.
+- `_compatibility_tests` enables some tests that run some binaries on the host environment to check that our tooling behaves identical to old tooling.
+
 ## Contributing
 
 Please refer to the [contribution guidelines] to learn how to contribute to this project.

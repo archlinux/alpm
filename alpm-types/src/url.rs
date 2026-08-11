@@ -6,6 +6,7 @@ use std::{
 };
 
 use alpm_parsers::{iter_str_context, traits::ParserUntil};
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use winnow::{
     ModalResult,
@@ -42,7 +43,8 @@ use crate::Error;
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Url(url::Url);
 
 impl Url {
@@ -151,7 +153,8 @@ impl Display for Url {
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct SourceUrl {
     /// The URL from where the sources are retrieved.
     pub url: Url,
@@ -344,8 +347,9 @@ impl ParserUntil for SourceUrl {
 /// Several different VCS systems can be used in the context of a [`SourceUrl`].
 /// Each system supports addressing different types of objects and may optionally require signature
 /// verification for those objects.
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[serde(tag = "protocol", rename_all = "lowercase")]
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "serde", serde(tag = "protocol", rename_all = "lowercase"))]
 pub enum VcsInfo {
     /// Bazaar/Breezy VCS information.
     Bzr {
@@ -490,8 +494,9 @@ fn fragment_value(input: &mut &str) -> ModalResult<String> {
 }
 
 /// The available URL fragments and their values when using the Breezy VCS in a [`SourceUrl`].
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[serde(rename_all = "snake_case")]
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "snake_case"))]
 pub enum BzrFragment {
     /// A specific revision in the repository.
     Revision(String),
@@ -531,8 +536,9 @@ impl BzrFragment {
 }
 
 /// The available URL fragments and their values when using the Fossil VCS in a [`SourceUrl`].
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[serde(rename_all = "snake_case")]
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "snake_case"))]
 pub enum FossilFragment {
     /// A specific branch in the repository.
     Branch(String),
@@ -585,8 +591,9 @@ impl FossilFragment {
 }
 
 /// The available URL fragments and their values when using the Git VCS in a [`SourceUrl`].
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[serde(rename_all = "snake_case")]
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "snake_case"))]
 pub enum GitFragment {
     /// A specific branch in the repository.
     Branch(String),
@@ -647,8 +654,9 @@ fn git_query(input: &mut &str) -> ModalResult<bool> {
 }
 
 /// An optional version specification used in a [`SourceUrl`] for the Hg VCS.
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[serde(rename_all = "snake_case")]
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "snake_case"))]
 pub enum HgFragment {
     /// A specific branch in the repository.
     Branch(String),
@@ -701,8 +709,9 @@ impl HgFragment {
 }
 
 /// The available URL fragments and their values when using Apache Subversion in a [`SourceUrl`].
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[serde(rename_all = "snake_case")]
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "snake_case"))]
 pub enum SvnFragment {
     /// A specific revision in the repository.
     Revision(String),

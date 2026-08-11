@@ -5,6 +5,7 @@ use std::{
 };
 
 use alpm_parsers::traits::ParserUntil;
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use winnow::{
     ModalResult,
@@ -42,7 +43,8 @@ use crate::{Error, SharedLibraryPrefix};
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct AbsolutePath(PathBuf);
 
 impl AbsolutePath {
@@ -154,7 +156,8 @@ pub type StartDirectory = AbsolutePath;
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct RelativePath(PathBuf);
 
 impl RelativePath {
@@ -228,7 +231,8 @@ impl Display for RelativePath {
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct RelativeFilePath(PathBuf);
 
 impl RelativeFilePath {
@@ -338,7 +342,8 @@ pub type Changelog = RelativeFilePath;
 /// [`SonameV2`][crate::SonameV2].
 ///
 /// [alpm-sonamev2]: https://alpm.archlinux.page/specifications/alpm-sonamev2.7.html
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct SonameLookupDirectory {
     /// The lookup prefix for shared objects.
     pub prefix: SharedLibraryPrefix,

@@ -8,6 +8,7 @@ use alpm_parsers::{
     iter_str_context,
     traits::{AlpmParser, ParserUntil},
 };
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use strum::VariantNames;
 use winnow::{
@@ -106,8 +107,9 @@ fn option_name_parser<'s>(input: &mut &'s str) -> ModalResult<&'s str> {
 ///
 /// [SRCINFO]: https://alpm.archlinux.page/specifications/SRCINFO.5.html
 /// [PKGBUILD]: https://man.archlinux.org/man/PKGBUILD.5
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[serde(tag = "type", rename_all = "snake_case")]
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "serde", serde(tag = "type", rename_all = "snake_case"))]
 pub enum MakepkgOption {
     /// A [`BuildEnvironmentOption`]
     BuildEnvironment(BuildEnvironmentOption),
@@ -189,8 +191,9 @@ impl Display for MakepkgOption {
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize, VariantNames)]
-#[serde(rename_all = "lowercase")]
+#[derive(Clone, Debug, Eq, PartialEq, VariantNames)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
 pub enum BuildEnvironmentOption {
     /// Use or unset the values of build flags (e.g. `CPPFLAGS`, `CFLAGS`, `CXXFLAGS`, `LDFLAGS`)
     /// specified in user-specific configs (e.g. [makepkg.conf]).
@@ -339,8 +342,9 @@ impl Display for BuildEnvironmentOption {
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize, VariantNames)]
-#[serde(rename_all = "lowercase")]
+#[derive(Clone, Debug, Eq, PartialEq, VariantNames)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
 pub enum PackageOption {
     /// Automatically add dependencies and provisions (see [alpm-sonamev2]).
     ///
@@ -531,7 +535,8 @@ impl Display for PackageOption {
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Serialize))]
 pub struct InstalledPackage {
     name: Name,
     version: FullVersion,

@@ -15,7 +15,7 @@ version = "0.2.4"
 _winnow-debug = ["winnow/debug"]
 
 [dependencies]
-alpm-parsers.workspace = true
+alpm-parsers = { workspace = true, features = ["serde"] }
 alpm-types.workspace = true
 fluent-i18n.workspace = true
 log.workspace = true

@@ -3,6 +3,7 @@
 use std::str::FromStr;
 
 use alpm_parsers::{iter_str_context, traits::AlpmParser};
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, Display, EnumString, IntoStaticStr, VariantNames};
 use winnow::{
@@ -18,35 +19,25 @@ use winnow::{
 ///
 /// [alpm-package]: https://alpm.archlinux.page/specifications/alpm-package.7.html
 #[derive(
-    AsRefStr,
-    Clone,
-    Copy,
-    Debug,
-    Deserialize,
-    Display,
-    EnumString,
-    Eq,
-    IntoStaticStr,
-    PartialEq,
-    Serialize,
-    VariantNames,
+    AsRefStr, Clone, Copy, Debug, Display, EnumString, Eq, IntoStaticStr, PartialEq, VariantNames,
 )]
-#[serde(untagged)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "serde", serde(untagged))]
 pub enum FileTypeIdentifier {
     /// The identifier for [alpm-package] files.
     ///
     /// [alpm-package]: https://alpm.archlinux.page/specifications/alpm-package.7.html
-    #[serde(rename = "pkg")]
+    #[cfg_attr(feature = "serde", serde(rename = "pkg"))]
     #[strum(to_string = "pkg")]
     BinaryPackage,
 
     /// The identifier for alpm-repo-db files.
-    #[serde(rename = "db")]
+    #[cfg_attr(feature = "serde", serde(rename = "db"))]
     #[strum(to_string = "db")]
     RepositorySyncDatabase,
 
     /// The identifier for source package files.
-    #[serde(rename = "src")]
+    #[cfg_attr(feature = "serde", serde(rename = "src"))]
     #[strum(to_string = "src")]
     SourcePackage,
 }

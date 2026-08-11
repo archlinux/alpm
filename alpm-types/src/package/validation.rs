@@ -3,6 +3,7 @@
 use std::str::FromStr;
 
 use alpm_parsers::{iter_str_context, traits::AlpmParser};
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, Display, EnumString, VariantNames};
 use winnow::{
@@ -51,16 +52,18 @@ use winnow::{
 ///
 /// # fn main() -> Result<(), alpm_types::Error> {
 /// assert_eq!(PackageValidation::Md5.to_string(), "md5");
+/// # #[cfg(feature = "serde")]
+/// # {
 /// assert_eq!(
 ///     serde_json::to_string(&PackageValidation::Sha256).expect("Serialization failed"),
 ///     "\"Sha256\""
 /// );
+/// # }
 /// # Ok(())
 /// # }
 /// ```
-#[derive(
-    Clone, Debug, PartialEq, Deserialize, Serialize, EnumString, Display, AsRefStr, VariantNames,
-)]
+#[derive(AsRefStr, Clone, Debug, Display, EnumString, PartialEq, VariantNames)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[strum(serialize_all = "lowercase")]
 pub enum PackageValidation {
     /// The package integrity and authenticity is **not validated**.

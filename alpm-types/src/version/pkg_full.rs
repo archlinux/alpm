@@ -9,6 +9,7 @@ use std::{
 };
 
 use alpm_parsers::traits::{AlpmParser, ParserUntil, ParserUntilInclusive};
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use winnow::{
     ModalResult,
@@ -46,7 +47,8 @@ use crate::{Epoch, Error, PackageRelease, PackageVersion, Version};
 /// ```
 ///
 /// [alpm-package-version]: https://alpm.archlinux.page/specifications/alpm-package-version.7.html
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct FullVersion {
     /// The version of the package
     pub pkgver: PackageVersion,

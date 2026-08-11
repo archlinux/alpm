@@ -43,6 +43,7 @@ Furthermore, the delimiter must be a `=`, which is much more rigid than classic 
 ## Features
 
 - `_winnow-debug` enables the `winnow/debug` feature, which shows the exact parsing process of winnow.
+- `serde` exposes our legacy ini-style serde deserializer. Default: `true`
 
 ## Contributing
 
