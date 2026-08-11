@@ -4,8 +4,11 @@
 set dotenv-load
 
 # Whether coverage should be measured when running tests. Use `create-coverage-report` to create a report from the collected data.
-
 coverage := env("COVERAGE_REPORT", "false")
+# Determine whether we're in a CI environment or not.
+# A subset of our checks only runs in CI for a smoother development experience.
+# In a Gitlab CI environment `CI` has the string value of `true`.
+in_ci := env("CI", "false")
 
 # The nightly toolchain to use for formatting and test coverage.
 # TODO: Currently pinned to the last nightly version that still uses LLVM 1.22 until Arch updates
@@ -982,7 +985,21 @@ test *options:
         just ensure-command "${commands[@]}"
     fi
 
-    cargo nextest run "${options[@]}"
+    cargo nextest run "${options[@]}" --no-default-features
+
+    # Only run multi-feature tests in CI, as they result in much longer iteration times.
+    # This is due to differing feature sets of low-level dependencies resulting in
+    # re-compilation of the whole alpm workspace.
+    if "{{ in_ci }}"; then
+        # Also run the tests for the alpm-types crate without serde support
+        cargo nextest run \
+            --locked \
+            --no-default-features \
+            --no-fail-fast \
+            --status-level fail \
+            --final-status-level fail \
+            -p alpm-types
+    fi
 
 # Runs all doc tests. Options to `cargo test` can be passed in using `options`.
 [group('test')]
