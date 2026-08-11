@@ -16,7 +16,7 @@ exclude = ["**/snapshots/**"]
 _winnow-debug = ["winnow/debug"]
 # Enable tests that ensure that alpm is compatible to existing Arch Linux tooling.
 # This requires certain Arch Linux related binaries to be installed on the system.
-compatibility_tests = []
+_compatibility_tests = []
 
 [dependencies]
 alpm-parsers.workspace = true

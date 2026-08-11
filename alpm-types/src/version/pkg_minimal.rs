@@ -463,7 +463,7 @@ mod tests {
         assert_eq!(version_a.vercmp(&version_b), vercmp_result);
 
         // If we find the `vercmp` binary, also run the test against the actual binary.
-        #[cfg(feature = "compatibility_tests")]
+        #[cfg(feature = "_compatibility_tests")]
         {
             let output = std::process::Command::new("vercmp")
                 .arg(version_a.to_string())
