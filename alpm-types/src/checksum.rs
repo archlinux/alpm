@@ -1,12 +1,11 @@
 use std::{
     fmt::{Debug, Display, Formatter},
     marker::PhantomData,
-    ops::DerefMut,
     str::FromStr,
 };
 
 use alpm_parsers::traits::AlpmParser;
-use digest::{Digest, FixedOutput, HashMarker, Output, OutputSizeUser, Update};
+use digest::{Digest, Output};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use strum::{Display, EnumString, VariantArray, VariantNames};
@@ -23,6 +22,10 @@ use crate::{
     Error,
     digests::{Blake2b512, Md5, Sha1, Sha224, Sha256, Sha384, Sha512},
 };
+
+mod crc32;
+
+pub use crc32::Crc32Cksum;
 
 /// Defines the string representation format of a checksum digest.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -690,53 +693,6 @@ impl<D: DigestString + Clone> PartialEq for SkippableChecksum<D> {
                 },
             ) => digest == digest_other,
         }
-    }
-}
-
-/// CRC-32/CKSUM hasher state.
-///
-/// This implementation tracks the length of the input data and appends it to the checksum
-/// calculation similarly to the Unix `cksum` utility.
-#[derive(Clone, Debug)]
-pub struct Crc32Cksum {
-    digest: crc_fast::Digest,
-    len: u64,
-}
-
-impl HashMarker for Crc32Cksum {}
-
-impl Default for Crc32Cksum {
-    fn default() -> Self {
-        Self {
-            digest: crc_fast::Digest::new(crc_fast::CrcAlgorithm::Crc32Cksum),
-            len: 0,
-        }
-    }
-}
-
-impl Update for Crc32Cksum {
-    fn update(&mut self, data: &[u8]) {
-        self.digest.update(data);
-        self.len += data.len() as u64;
-    }
-}
-
-impl OutputSizeUser for Crc32Cksum {
-    type OutputSize = digest::consts::U4;
-}
-
-impl FixedOutput for Crc32Cksum {
-    fn finalize_into(mut self, out: &mut Output<Self>) {
-        if self.len != 0 {
-            let len_bytes = self.len.to_be_bytes();
-
-            // Skip leading zero bytes and append the length to the digest...
-            let start = len_bytes.iter().position(|&b| b != 0).unwrap_or(7);
-            self.digest.update(&len_bytes[start..]);
-        }
-
-        let crc = self.digest.finalize() as u32;
-        out.deref_mut().clone_from_slice(&crc.to_be_bytes());
     }
 }
 
