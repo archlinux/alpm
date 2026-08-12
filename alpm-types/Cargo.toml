@@ -30,18 +30,18 @@ serde = [
 [dependencies]
 alpm-parsers.workspace = true
 base64 = "0.23.0"
-blake2 = "0.10.6"
+blake2 = "0.11.0"
 crc = "3.4.0"
 fluent-i18n.workspace = true
-digest = "0.10.7"
+digest = "0.11.3"
 email_address = { version = "0.2.4", default-features = false }
 log.workspace = true
-md-5 = "0.10.5"
+md-5 = "0.11.0"
 semver.workspace = true
 serde = { workspace = true, optional = true }
 serde_with = { workspace = true, optional = true }
-sha1 = "0.10.5"
-sha2 = "0.10.7"
+sha1 = "0.11.0"
+sha2 = "0.11.0"
 spdx = "0.13.0"
 strum.workspace = true
 thiserror.workspace = true
