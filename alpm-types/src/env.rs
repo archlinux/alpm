@@ -117,6 +117,9 @@ pub enum MakepkgOption {
     Package(PackageOption),
 }
 
+#[cfg(feature = "knus")]
+crate::util::knus::impl_decode_str_scalar!(MakepkgOption);
+
 impl AlpmParser for MakepkgOption {
     /// Recognizes any [`PackageOption`] and [`BuildEnvironmentOption`] in a
     /// string slice.
@@ -223,6 +226,9 @@ pub enum BuildEnvironmentOption {
     #[strum(serialize = "makeflags")]
     MakeFlags(bool),
 }
+
+#[cfg(feature = "knus")]
+crate::util::knus::impl_decode_str_scalar!(BuildEnvironmentOption);
 
 impl BuildEnvironmentOption {
     /// Create a new [`BuildEnvironmentOption`] in a Result
@@ -392,6 +398,9 @@ pub enum PackageOption {
     #[strum(serialize = "zipman")]
     Zipman(bool),
 }
+
+#[cfg(feature = "knus")]
+crate::util::knus::impl_decode_str_scalar!(PackageOption);
 
 impl PackageOption {
     /// Creates a new [`PackageOption`] from a string slice.

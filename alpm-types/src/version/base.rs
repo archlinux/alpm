@@ -56,6 +56,9 @@ use crate::{Error, VersionSegments};
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Epoch(pub usize);
 
+#[cfg(feature = "knus")]
+crate::util::knus::impl_decode_int_scalar!(Epoch);
+
 impl Epoch {
     /// Create a new Epoch
     pub fn new(epoch: usize) -> Self {
@@ -101,6 +104,12 @@ impl FromStr for Epoch {
     }
 }
 
+impl From<usize> for Epoch {
+    fn from(value: usize) -> Self {
+        Self::new(value)
+    }
+}
+
 impl Display for Epoch {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
         write!(fmt, "{}", self.0)
@@ -138,6 +147,9 @@ pub struct PackageRelease {
     /// The optional minor version of this package release.
     pub minor: Option<usize>,
 }
+
+#[cfg(feature = "knus")]
+crate::util::knus::impl_decode_str_scalar!(PackageRelease);
 
 impl PackageRelease {
     /// Creates a new [`PackageRelease`] from a `major` and optional `minor` integer version.
@@ -277,6 +289,10 @@ impl Ord for PackageRelease {
 #[derive(Clone, Debug, Eq)]
 #[cfg_attr(feature = "serde", derive(DeserializeFromStr, Serialize))]
 pub struct PackageVersion(pub(crate) String);
+
+// TODO: From int?
+#[cfg(feature = "knus")]
+crate::util::knus::impl_decode_str_scalar!(PackageVersion);
 
 impl PackageVersion {
     /// Create a new PackageVersion from a string and return it in a Result

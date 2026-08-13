@@ -42,6 +42,9 @@ pub enum RelationOrSoname {
     SonameV2(SonameV2),
 }
 
+#[cfg(feature = "knus")]
+crate::util::knus::impl_decode_str_scalar!(RelationOrSoname);
+
 impl PartialEq<PackageRelation> for RelationOrSoname {
     fn eq(&self, other: &PackageRelation) -> bool {
         self.to_string() == other.to_string()

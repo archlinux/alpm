@@ -73,6 +73,9 @@ pub enum OpenPGPIdentifier {
     OpenPGPv4Fingerprint(OpenPGPv4Fingerprint),
 }
 
+#[cfg(feature = "knus")]
+crate::util::knus::impl_decode_str_scalar!(OpenPGPIdentifier);
+
 impl FromStr for OpenPGPIdentifier {
     type Err = Error;
 
@@ -146,6 +149,9 @@ impl Display for OpenPGPIdentifier {
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(DeserializeFromStr, Serialize))]
 pub struct OpenPGPKeyId(String);
+
+#[cfg(feature = "knus")]
+crate::util::knus::impl_decode_str_scalar!(OpenPGPKeyId);
 
 impl OpenPGPKeyId {
     /// Creates a new `OpenPGPKeyId` instance.
@@ -241,6 +247,9 @@ impl Display for OpenPGPKeyId {
 #[cfg_attr(feature = "serde", derive(DeserializeFromStr, Serialize))]
 pub struct OpenPGPv4Fingerprint(String);
 
+#[cfg(feature = "knus")]
+crate::util::knus::impl_decode_str_scalar!(OpenPGPv4Fingerprint);
+
 impl OpenPGPv4Fingerprint {
     /// Creates a new `OpenPGPv4Fingerprint` instance
     ///
@@ -328,6 +337,9 @@ impl Display for OpenPGPv4Fingerprint {
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(DeserializeFromStr, Serialize))]
 pub struct Base64OpenPGPSignature(String);
+
+#[cfg(feature = "knus")]
+crate::util::knus::impl_decode_str_scalar!(Base64OpenPGPSignature);
 
 impl Base64OpenPGPSignature {
     /// Creates a new [`Base64OpenPGPSignature`] instance.

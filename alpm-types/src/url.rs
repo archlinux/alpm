@@ -47,6 +47,9 @@ use crate::Error;
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Url(url::Url);
 
+#[cfg(feature = "knus")]
+crate::util::knus::impl_decode_str_scalar!(Url);
+
 impl Url {
     /// Creates a new `Url` instance.
     pub fn new(url: url::Url) -> Result<Self, Error> {

@@ -52,6 +52,9 @@ use crate::Error;
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct BuildTool(Name);
 
+#[cfg(feature = "knus")]
+crate::util::knus::impl_decode_str_scalar!(BuildTool);
+
 impl BuildTool {
     /// Create a new BuildTool
     pub fn new(name: Name) -> Self {
@@ -137,6 +140,9 @@ impl Display for BuildTool {
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 #[cfg_attr(feature = "serde", derive(DeserializeFromStr, Serialize))]
 pub struct Name(String);
+
+#[cfg(feature = "knus")]
+crate::util::knus::impl_decode_str_scalar!(Name);
 
 impl Name {
     /// The subset of special characters that are allowed as first character of a [`Name`].
@@ -329,6 +335,9 @@ impl AsRef<str> for Name {
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 #[cfg_attr(feature = "serde", derive(DeserializeFromStr, Serialize))]
 pub struct SharedObjectName(pub(crate) String);
+
+#[cfg(feature = "knus")]
+crate::util::knus::impl_decode_str_scalar!(SharedObjectName);
 
 impl SharedObjectName {
     /// Creates a new [`SharedObjectName`].

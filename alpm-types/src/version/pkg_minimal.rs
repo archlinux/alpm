@@ -60,6 +60,9 @@ pub struct MinimalVersion {
     pub epoch: Option<Epoch>,
 }
 
+#[cfg(feature = "knus")]
+crate::util::knus::impl_decode_str_scalar!(MinimalVersion);
+
 impl MinimalVersion {
     /// Creates a new [`MinimalVersion`].
     ///

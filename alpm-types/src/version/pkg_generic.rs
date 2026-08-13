@@ -59,6 +59,9 @@ pub struct Version {
     pub pkgrel: Option<PackageRelease>,
 }
 
+#[cfg(feature = "knus")]
+crate::util::knus::impl_decode_str_scalar!(Version);
+
 impl Version {
     /// Create a new Version
     pub fn new(

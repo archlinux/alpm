@@ -108,6 +108,9 @@ impl AlpmParser for PackageType {
 #[cfg_attr(feature = "serde", derive(DeserializeFromStr, Serialize))]
 pub struct PackageDescription(String);
 
+#[cfg(feature = "knus")]
+crate::util::knus::impl_decode_str_scalar!(PackageDescription);
+
 impl PackageDescription {
     /// Create a new `PackageDescription` from a given `String`.
     pub fn new(description: &str) -> Self {

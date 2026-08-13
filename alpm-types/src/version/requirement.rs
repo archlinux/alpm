@@ -55,6 +55,9 @@ pub struct VersionRequirement {
     pub version: Version,
 }
 
+#[cfg(feature = "knus")]
+crate::util::knus::impl_decode_str_scalar!(VersionRequirement);
+
 impl VersionRequirement {
     /// Create a new `VersionRequirement`
     pub fn new(comparison: VersionComparison, version: Version) -> Self {

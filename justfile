@@ -999,6 +999,16 @@ test *options:
             --status-level fail \
             --final-status-level fail \
             -p alpm-types
+
+        # Also run the tests for the alpm-types crate with knus support
+        cargo nextest run \
+            --locked \
+            --no-default-features \
+            --features knus \
+            --no-fail-fast \
+            --status-level fail \
+            --final-status-level fail \
+            -p alpm-types
     fi
 
 # Runs all doc tests. Options to `cargo test` can be passed in using `options`.

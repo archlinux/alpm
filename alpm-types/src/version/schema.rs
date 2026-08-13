@@ -36,6 +36,9 @@ use crate::Error;
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct SchemaVersion(SemverVersion);
 
+#[cfg(feature = "knus")]
+crate::util::knus::impl_decode_str_scalar!(SchemaVersion);
+
 impl SchemaVersion {
     /// Create a new SchemaVersion
     pub fn new(version: SemverVersion) -> Self {
