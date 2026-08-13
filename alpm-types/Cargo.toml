@@ -19,6 +19,8 @@ _compatibility_tests = []
 # Enable winnow debugging
 _winnow-debug = ["winnow/debug"]
 default = ["serde"]
+# Enable knus deserialization for all types.
+knus = ["dep:knus"]
 # Enable serde de/serialization for all types.
 serde = [
     "dep:serde",
@@ -35,6 +37,7 @@ crc = "3.4.0"
 fluent-i18n.workspace = true
 digest = "0.11.3"
 email_address = { version = "0.2.4", default-features = false }
+knus = { optional = true, workspace = true }
 log.workspace = true
 md-5 = "0.11.0"
 semver.workspace = true
