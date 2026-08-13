@@ -208,6 +208,9 @@ impl SystemArchitecture {
     }
 }
 
+#[cfg(feature = "knus")]
+crate::util::knus::impl_decode_str_scalar!(SystemArchitecture);
+
 impl AlpmParser for SystemArchitecture {
     /// Recognizes a [`SystemArchitecture`] in an input string.
     ///
@@ -398,6 +401,9 @@ pub enum Architecture {
     Some(SystemArchitecture),
 }
 
+#[cfg(feature = "knus")]
+crate::util::knus::impl_decode_str_scalar!(Architecture);
+
 impl AlpmParser for Architecture {
     /// Recognizes an [`Architecture`] in an input string.
     ///
@@ -471,6 +477,9 @@ pub enum Architectures {
     #[cfg_attr(feature = "serde", serde(untagged))]
     Some(Vec<SystemArchitecture>),
 }
+
+#[cfg(feature = "knus")]
+crate::util::knus::impl_decode_str_scalar!(Architectures);
 
 impl Architectures {
     /// Returns the number of entries in the architectures list.
@@ -632,6 +641,9 @@ pub enum ElfArchitectureFormat {
     #[strum(to_string = "64")]
     Bit64 = 64,
 }
+
+#[cfg(feature = "knus")]
+crate::util::knus::impl_decode_str_scalar!(ElfArchitectureFormat);
 
 impl AlpmParser for ElfArchitectureFormat {
     /// Recognizes an [`ElfArchitectureFormat`] in a string slice.

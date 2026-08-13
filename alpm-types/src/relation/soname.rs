@@ -32,6 +32,9 @@ pub enum VersionOrSoname {
     Soname(SharedObjectName),
 }
 
+#[cfg(feature = "knus")]
+crate::util::knus::impl_decode_str_scalar!(VersionOrSoname);
+
 impl FromStr for VersionOrSoname {
     type Err = Error;
 
@@ -236,6 +239,9 @@ pub enum SonameV1 {
         architecture: ElfArchitectureFormat,
     },
 }
+
+#[cfg(feature = "knus")]
+crate::util::knus::impl_decode_str_scalar!(SonameV1);
 
 impl SonameV1 {
     /// Creates a new [`SonameV1`].
@@ -510,6 +516,9 @@ pub struct Soname {
     pub version: Option<PackageVersion>,
 }
 
+#[cfg(feature = "knus")]
+crate::util::knus::impl_decode_str_scalar!(Soname);
+
 impl Soname {
     /// Creates a new [`Soname`].
     pub fn new(name: SharedObjectName, version: Option<PackageVersion>) -> Self {
@@ -645,6 +654,9 @@ pub struct SonameV2 {
     /// The _soname_ of a shared object file.
     pub soname: Soname,
 }
+
+#[cfg(feature = "knus")]
+crate::util::knus::impl_decode_str_scalar!(SonameV2);
 
 impl SonameV2 {
     /// Creates a new [`SonameV2`].

@@ -145,6 +145,9 @@ pub enum ChecksumAlgorithm {
     Crc32Cksum,
 }
 
+#[cfg(feature = "knus")]
+crate::util::knus::impl_decode_str_scalar!(ChecksumAlgorithm);
+
 impl ChecksumAlgorithm {
     /// Determines if a checksum algorithm is considered deprecated for security reasons.
     ///
@@ -272,6 +275,9 @@ pub struct Checksum<D: Digest> {
     digest: Vec<u8>,
     _marker: PhantomData<D>,
 }
+
+#[cfg(feature = "knus")]
+crate::util::knus::impl_decode_str_scalar!([D: DigestString] Checksum<D>);
 
 impl<D: Digest> From<Output<D>> for Checksum<D> {
     /// Creates a [`Checksum`] from the output of a finalized hash function.
@@ -622,6 +628,9 @@ pub enum SkippableChecksum<D: DigestString + Clone> {
         digest: Checksum<D>,
     },
 }
+
+#[cfg(feature = "knus")]
+crate::util::knus::impl_decode_str_scalar!([D: DigestString + Clone] SkippableChecksum<D>);
 
 impl<D: DigestString + Clone> SkippableChecksum<D> {
     /// Determines whether the [`SkippableChecksum`] is skipped.
