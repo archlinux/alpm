@@ -47,6 +47,9 @@ pub struct PackageRelation {
     pub version_requirement: Option<VersionRequirement>,
 }
 
+#[cfg(feature = "knus")]
+crate::util::knus::impl_decode_str_scalar!(PackageRelation);
+
 impl PackageRelation {
     /// Creates a new [`PackageRelation`]
     ///
@@ -255,6 +258,9 @@ pub struct OptionalDependency {
     package_relation: PackageRelation,
     description: Option<String>,
 }
+
+#[cfg(feature = "knus")]
+crate::util::knus::impl_decode_str_scalar!(OptionalDependency);
 
 impl OptionalDependency {
     /// Create a new OptionalDependency in a Result

@@ -44,6 +44,9 @@ use crate::{Error, SharedLibraryPrefix};
 #[cfg_attr(feature = "serde", derive(DeserializeFromStr, Serialize))]
 pub struct AbsolutePath(PathBuf);
 
+#[cfg(feature = "knus")]
+crate::util::knus::impl_decode_str_scalar!(AbsolutePath);
+
 impl AbsolutePath {
     /// Create a new `AbsolutePath`
     pub fn new(path: PathBuf) -> Result<AbsolutePath, Error> {
@@ -156,6 +159,9 @@ pub type StartDirectory = AbsolutePath;
 #[cfg_attr(feature = "serde", derive(DeserializeFromStr, Serialize))]
 pub struct RelativePath(PathBuf);
 
+#[cfg(feature = "knus")]
+crate::util::knus::impl_decode_str_scalar!(RelativePath);
+
 impl RelativePath {
     /// Create a new [`RelativePath`]
     pub fn new(path: PathBuf) -> Result<RelativePath, Error> {
@@ -227,6 +233,9 @@ impl Display for RelativePath {
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 #[cfg_attr(feature = "serde", derive(DeserializeFromStr, Serialize))]
 pub struct RelativeFilePath(PathBuf);
+
+#[cfg(feature = "knus")]
+crate::util::knus::impl_decode_str_scalar!(RelativeFilePath);
 
 impl RelativeFilePath {
     /// Create a new `RelativeFilePath`
@@ -423,6 +432,9 @@ pub struct SonameLookupDirectory {
     /// The directory to look for shared objects in.
     pub directory: AbsolutePath,
 }
+
+#[cfg(feature = "knus")]
+crate::util::knus::impl_decode_str_scalar!(SonameLookupDirectory);
 
 impl SonameLookupDirectory {
     /// Creates a new lookup directory with a prefix and a directory.

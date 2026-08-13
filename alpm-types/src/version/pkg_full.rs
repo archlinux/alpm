@@ -53,6 +53,9 @@ pub struct FullVersion {
     pub epoch: Option<Epoch>,
 }
 
+#[cfg(feature = "knus")]
+crate::util::knus::impl_decode_str_scalar!(FullVersion);
+
 impl FullVersion {
     /// Creates a new [`FullVersion`].
     ///
