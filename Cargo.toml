@@ -61,6 +61,7 @@ filetime = "0.2.25"
 flate2 = "1"
 fluent-i18n = "0.1.0"
 insta = "1.40.0"
+knus = { git = "https://github.com/TheLostLambda/knus.git", branch = "kdl2" }
 log = "0.4.27"
 pretty_assertions = "1.4.1"
 proptest = "1.4.0"

@@ -47,6 +47,8 @@ pub use file_type::FileTypeIdentifier;
 mod error;
 pub use error::Error;
 
+mod util;
+
 mod license;
 pub use license::License;
 
