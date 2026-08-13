@@ -41,6 +41,9 @@ pub enum License {
     Unknown(String),
 }
 
+#[cfg(feature = "knus")]
+crate::util::knus::impl_decode_str_scalar!(License);
+
 #[cfg(feature = "serde")]
 impl Serialize for License {
     /// Custom serde serialization as Spdx doesn't provide a serde [`Serialize`] implementation.
