@@ -3,6 +3,8 @@
 [group('build')]
 update-lint-definition:
     #!/bin/env bash
+    set -euo pipefail
+
     manifest_path=$(cargo metadata \
         --format-version 1 \
         --no-deps \
@@ -31,6 +33,8 @@ update-lint-definition:
 [group('build')]
 build-tailwind:
     #!/bin/env bash
+    set -euo pipefail
+
     just ensure-command pnpm
     if [[ ! "${CI:-}" ]]; then
         # Only initialize the submodule locally in case the developer has not done so yet.
@@ -40,7 +44,7 @@ build-tailwind:
 
     cd themes/linkita
     pnpm install
-    pnpm tailwindcss -i ./src/app.css -o ../../static/main.min.css --minify
+    pnpm tailwindcss -i ./static/app.css -o ../../static/main.min.css --minify
 
 # Build the website. Output is placed in `./public`.
 [group('build')]

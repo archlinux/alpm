@@ -1,5 +1,4 @@
 {% extends "linkita/templates/index.html" %}
-{% import "macros/multi_select.html" as dropdown %}
 {% block main %}
 
 {# Load the lint rule definitions #}
@@ -32,13 +31,13 @@
     </div>
 
     {# Lint groups filter #}
-    {{ dropdown::multi_select(filter_type="groups", label="Groups", options=lint_meta.groups, has_none_option=true, none_label="No Group") }}
+    {{ <multi_select filter_type=`groups` label=`Groups` options={lint_meta.groups} has_none_option={true} none_label=`No Group` /> }}
 
     {# Lint scopes filter #}
-    {{ dropdown::multi_select(filter_type="scopes", label="Scopes", options=lint_meta.scopes) }}
+    {{ <multi_select filter_type=`scopes` label=`Scopes` options={lint_meta.scopes} /> }}
 
     {# Lint severity levels filter #}
-    {{ dropdown::multi_select(filter_type="levels", label="Levels", options=lint_meta.levels) }}
+    {{ <multi_select filter_type=`levels` label=`Levels` options={lint_meta.levels} /> }}
   </div>
 
   <div class="flex flex-row my-4 items-center justify-between"> 

@@ -1,6 +1,6 @@
 {#
-  dropdown dropdown macro for filter components.
-  
+  Dropdown component for filter components.
+
   Parameters:
   - filter_type: The filter data attribute
   - label: The display label
@@ -9,7 +9,7 @@
   - none_label: Label for the none option
 #}
 
-{% macro multi_select(filter_type, label, options, has_none_option=false, none_label="") %}
+{% component multi_select(filter_type: string, label: string, options, has_none_option=false, none_label="") %}
 <div>
   <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
     {{ label }}
@@ -38,4 +38,4 @@
     </div>
   </div>
 </div>
-{% endmacro %}
+{% endcomponent multi_select %}
