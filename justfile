@@ -864,130 +864,141 @@ watch-book:
 
 # Runs integration tests guarded by the `_containerized-integration-test` feature, located in modules named `containerized` (accepts `cargo nextest run` options via `options`).
 [group('test')]
-containerized-integration-tests *options:
+containerized-integration-tests *options='--locked --workspace':
     #!/usr/bin/env bash
     set -euo pipefail
 
     readonly coverage="{{ coverage }}"
-    commands=(
-        cargo
-        cargo-nextest
-        podman
-    )
     read -r -a options <<< "{{ options }}"
 
     if [[ "$coverage" == "true" ]]; then
-        commands+=(cargo-llvm-cov)
-        just ensure-command "${commands[@]}"
-        # Use the environment prepared by `cargo llvm-cov show-env`
+        just ensure-command bash cargo cargo-llvm-cov cargo-nextest jq podman
         # shellcheck source=/dev/null
-        source <(cargo llvm-cov show-env --export-prefix)
+        source <(just cargo-llvm-cov-show-env)
+        cargo +stable llvm-cov clean --workspace
     else
-        just ensure-command "${commands[@]}"
+        just ensure-command bash cargo cargo-nextest jq podman
     fi
 
-    cargo build --examples --bins
-    cargo nextest run --features _containerized-integration-test,cli --filterset 'kind(test) and binary_id(/::containerized$/)' "${options[@]}"
+    cargo +stable build --examples --bins
+    cargo +stable nextest run --features _containerized-integration-test,cli --filterset 'kind(test) and binary_id(/::containerized$/)' "${options[@]}"
 
 [doc('Creates code coverage report for all projects from all available sources.
 When providing `with-docs` to the `mode` parameter, this also includes doc test coverage in the report (requires nightly).
 The `metrics_name` parameter can be used to override the metrics name in the `coverage-metrics.txt` file used by GitLab.')]
 [group('test')]
-create-coverage-report mode="without-docs" metrics_name="Test-coverage":
+create-coverage-report output_type="cobertura" mode="without-docs" metrics_name="Test-coverage":
     #!/usr/bin/env bash
     set -euo pipefail
 
     readonly metrics_name="{{ metrics_name }}"
     readonly mode="{{ mode }}"
+    readonly output_type="{{ output_type }}"
     target_dir="$(just get-cargo-target-directory)"
 
     just ensure-command cargo-llvm-cov cargo-nextest jq
 
-    mkdir --parents "$target_dir/llvm-cov/"
-
-    # Options for cargo
+    # Default options for cargo.
     cargo_options=(+stable)
+    cargo_llvm_cov_options=()
 
-    # The chosen reporting style (defaults to without doctest coverage)
-    reporting_style="without doctest coverage"
+    # Creates a coverage report.
+    create_report() {
+        printf "Creating %s report %s\n" "$output_type" "$reporting_style..."
 
-    # Options for creating cobertura coverage report with cargo-llvm-cov
-    cargo_llvm_cov_cobertura_options=(
-        --cobertura
-        --output-path "$target_dir/llvm-cov/cobertura-coverage.xml"
-    )
+        mkdir --parents "$target_dir/llvm-cov/"
+        # shellcheck source=/dev/null
+        source <(just cargo-llvm-cov-show-env "${cargo_options[@]}")
+        # NOTE: Here, we are not calling `cargo-llvm-cov clean` because we assume that it has been done in the recipe that generated the profraw data already.
 
-    # Options for creating coverage report summary with cargo-llvm-cov
-    cargo_llvm_cov_summary_options=(
-        --json
-        --summary-only
-    )
+        # Create cobertura coverage report
+        cargo "${cargo_options[@]}" llvm-cov report "${cargo_llvm_cov_options[@]}"
+    }
 
-    if [[ "$mode" == "with-docs" ]]; then
-        reporting_style="with doctest coverage"
-        # The support for doctest coverage is a nightly feature
-        cargo_options=(+{{ nightly_toolchain }})
-        cargo_llvm_cov_cobertura_options+=(--doctests)
-        cargo_llvm_cov_summary_options+=(--doctests)
-    fi
+    # Writes to '$CARGO_TARGET_DIR/llvm-cov/coverage-metrics.txt' for Gitlab CI metrics consumption.
+    # See also: https://docs.gitlab.com/ci/testing/metrics_reports/
+    #
+    # Running this function, it is assumed, that create_report has been run before.
+    create_metrics() {
+        printf 'Creating coverage metrics...\n'
 
-    printf "Creating report %s\n" "$reporting_style"
+        # Get total coverage percentage from summary
+        percentage="$(cargo "${cargo_options[@]}" llvm-cov report "${cargo_llvm_cov_metrics_options[@]}" | jq '.data[0].totals.lines.percent')"
 
-    # Use the environment prepared by `cargo llvm-cov show-env`
-    # shellcheck source=/dev/null
-    source <(cargo llvm-cov show-env --export-prefix)
+        # Trim percentage to 4 decimal places.
+        percentage="$(LC_NUMERIC=C printf "%.4f\n" "$percentage")"
 
-    # Create cobertura coverage report
-    cargo "${cargo_options[@]}" llvm-cov report "${cargo_llvm_cov_cobertura_options[@]}"
+        printf "%s %s\n" "$metrics_name" "$percentage" > "$target_dir/llvm-cov/coverage-metrics.txt"
+        printf "Test-coverage: %s%%\n" "$percentage"
+    }
 
-    printf "Calculating percentage...\n"
+    case "$mode" in
+        'without-docs')
+            reporting_style="without doctest coverage"
+        ;;
+        'with-docs')
+            cargo_llvm_cov_options+=(--doctests)
+            cargo_llvm_cov_metrics_options+=(--doctests)
+            # The support for doctest coverage is a nightly feature.
+            cargo_options=(+nightly)
+            reporting_style="with doctest coverage"
+        ;;
+        *)
+        printf 'Unknown mode "%s"' "$output_type" >&2
+        exit 1
+        ;;
+    esac
 
-    # Get total coverage percentage from summary
-    percentage="$(cargo "${cargo_options[@]}" llvm-cov report "${cargo_llvm_cov_summary_options[@]}" | jq '.data[0].totals.lines.percent')"
+    case "$output_type" in
+        cobertura)
+            # Options for creating cobertura coverage report with cargo-llvm-cov
+            cargo_llvm_cov_options+=(
+                --cobertura
+                --output-path "$target_dir/llvm-cov/cobertura-coverage.xml"
+            )
+            # Options for creating coverage report summary with cargo-llvm-cov
+            cargo_llvm_cov_metrics_options+=(
+                --json
+                --summary-only
+            )
 
-    # Trim percentage to 4 decimal places.
-    percentage="$(LC_NUMERIC=C printf "%.4f\n" "$percentage")"
+            create_report
+            create_metrics
+        ;;
+        html)
+            # Options for creating HTML coverage report with cargo-llvm-cov.
+            cargo_llvm_cov_options+=(
+                --html
+            )
 
-    # Writes to target/coverage-metrics.txt for Gitlab CI metric consumption.
-    # https://docs.gitlab.com/ci/testing/metrics_reports/
-    printf "%s %s\n" "$metrics_name" "$percentage" > "$target_dir/llvm-cov/coverage-metrics.txt"
-    printf "Test-coverage: %s%%\n" "$percentage"
+            create_report
+            printf '%s\n' "$target_dir/llvm-cov/html/index.html"
+        ;;
+        *)
+        printf 'Unknown output type "%s"' "$output_type" >&2
+        exit 1
+        ;;
+    esac
 
 # Runs all unit tests. Options to `cargo nextest run` can be passed in using `options`.
 [group('test')]
-test *options:
+test *options='--features cli --final-status-level fail --locked --no-default-features --no-fail-fast --status-level fail --workspace':
     #!/usr/bin/env bash
     set -euo pipefail
 
     readonly coverage="{{ coverage }}"
-    commands=(
-        cargo
-        cargo-nextest
-    )
     read -r -a options <<< "{{ options }}"
-    # If no options are provided, run all targets, locked, with cli checks.
-    if (( ${#options[@]} == 0 )); then
-        options+=(
-            --locked
-            --all
-            --features cli
-            --no-fail-fast
-            --status-level fail
-            --final-status-level fail
-        )
-    fi
 
     if [[ "$coverage" == "true" ]]; then
-        commands+=(cargo-llvm-cov)
-        just ensure-command "${commands[@]}"
-        # Use the environment prepared by `cargo llvm-cov show-env`
+        just ensure-command cargo cargo-llvm-cov cargo-nextest
         # shellcheck source=/dev/null
-        source <(cargo llvm-cov show-env --export-prefix)
+        source <(just cargo-llvm-cov-show-env)
+        cargo +stable llvm-cov clean --workspace
     else
-        just ensure-command "${commands[@]}"
+        just ensure-command cargo cargo-nextest
     fi
 
-    cargo nextest run "${options[@]}" --no-default-features
+    cargo +stable nextest run "${options[@]}"
 
     # Only run multi-feature tests in CI, as they result in much longer iteration times.
     # This is due to differing feature sets of low-level dependencies resulting in
@@ -1005,33 +1016,22 @@ test *options:
 
 # Runs all doc tests. Options to `cargo test` can be passed in using `options`.
 [group('test')]
-test-docs *options:
+test-docs *options='--features cli --locked --workspace':
     #!/usr/bin/env bash
     set -euo pipefail
 
     readonly coverage="{{ coverage }}"
     toolchain="+stable"
-    commands=(cargo)
     read -r -a options <<< "{{ options }}"
-    # If no options are provided, run all targets, locked, with cli checks.
-    # We include the cli flag to prevent re-compilation when running both test-docs and test.
-    if (( ${#options[@]} == 0 )); then
-        options+=(
-            --all
-            --locked
-            --features cli
-        )
-    fi
 
     if [[ "$coverage" == "true" ]]; then
-        commands+=(cargo-llvm-cov)
-        toolchain="+{{ nightly_toolchain }}"
-        just ensure-command "${commands[@]}"
-        # Use the environment prepared by `cargo llvm-cov show-env`
+        toolchain="+nightly"
+        just ensure-command cargo cargo-llvm-cov
         # shellcheck source=/dev/null
-        source <(cargo "$toolchain" llvm-cov show-env --export-prefix)
+        source <(just cargo-llvm-cov-show-env "$toolchain" '--doctests')
+        cargo "$toolchain" llvm-cov clean --workspace
     else
-        just ensure-command "${commands[@]}"
+        just ensure-command cargo
     fi
 
     cargo "$toolchain" test --doc "${options[@]}"
@@ -1074,51 +1074,42 @@ test-python *options:
     set -euo pipefail
 
     readonly coverage="{{ coverage }}"
-    commands=(
-        uv
-    )
 
     if [[ "$coverage" == "true" ]]; then
-        commands+=(
-            cargo-llvm-cov
-            maturin
-        )
-        just ensure-command "${commands[@]}"
-        # Use the environment prepared by `cargo llvm-cov show-env`
+        just ensure-command cargo-llvm-cov maturin uv
         # shellcheck source=/dev/null
-        source <(cargo llvm-cov show-env --export-prefix)
+        source <(just cargo-llvm-cov-show-env)
+        cargo +stable llvm-cov clean --workspace
         uv sync
-        maturin develop
+        maturin develop --locked --uv
         # No reinstall arg as this would remove coverage instrumentation added by maturin
         uv run pytest {{ options }}
     else
-        just ensure-command "${commands[@]}"
+        just ensure-command uv
         uv run --reinstall-package python-alpm pytest {{ options }}
     fi
 
 # Runs integration tests guarded by the `_virtualized-integration-test` feature (accepts `cargo nextest run` options via `options`).
 [group('test')]
-virtualized-integration-tests *options:
+virtualized-integration-tests *options='--locked --workspace':
     #!/usr/bin/env bash
     set -euo pipefail
 
     readonly coverage="{{ coverage }}"
-    commands=(cargo)
     read -r -a options <<< "{{ options }}"
 
     just ensure-command bash cargo cargo-nextest
     if [[ "$coverage" == "true" ]]; then
-        commands+=(cargo-llvm-cov)
-        just ensure-command "${commands[@]}"
-        # Use the environment prepared by `cargo llvm-cov show-env`
+        just ensure-command cargo cargo-llvm-cov cargo-nextest
         # shellcheck source=/dev/null
-        source <(cargo llvm-cov show-env --export-prefix)
+        source <(just cargo-llvm-cov-show-env)
+        cargo +stable llvm-cov clean --workspace
     else
-        just ensure-command "${commands[@]}"
+        just ensure-command cargo cargo-nextest
     fi
 
-    cargo build --examples --bins
-    cargo nextest run --features _virtualized-integration-test,cli --filterset 'kind(test) and binary_id(/::virtualized$/)' "${options[@]}"
+    cargo +stable build --examples --bins
+    cargo +stable nextest run --features _virtualized-integration-test,cli --filterset 'kind(test) and binary_id(/::virtualized$/)' "${options[@]}"
 
 # Publishes a crate in the workspace from GitLab CI in a pipeline for tags
 [group('release')]
