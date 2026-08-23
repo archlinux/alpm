@@ -12,6 +12,9 @@ A library for providing various custom parsers/deserializers for the specificati
 ### Custom INI parser
 
 ```rust
+# #[cfg(feature = "serde")]
+# mod with_serde {
+use alpm_parsers::custom_ini;
 use serde::Deserialize;
 
 const DATA: &str = "
@@ -29,9 +32,20 @@ struct Data {
     list: Vec<String>,
 }
 
-fn main() {
-    let data: Data = alpm_parsers::custom_ini::from_str(DATA).unwrap();
-}
+# pub fn main() -> testresult::TestResult {
+let data: Data = custom_ini::from_str(DATA)?;
+# Ok(())
+# }
+# }
+# #[cfg(not(feature = "serde"))]
+# mod without_serde {
+# pub fn main() {}
+# }
+#
+# #[cfg(feature = "serde")]
+# use with_serde::main;
+# #[cfg(not(feature = "serde"))]
+# use without_serde::main;
 ```
 
 The main difference between the regular INI parser and this one is that it allows duplicate keys in a section and collects them into a `Vec`.
