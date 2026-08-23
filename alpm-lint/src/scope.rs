@@ -8,6 +8,7 @@ use std::{
 };
 
 use alpm_types::{MetadataFileName, PKGBUILD_FILE_NAME, SRCINFO_FILE_NAME};
+#[cfg(feature = "cli")]
 use clap::ValueEnum;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -53,7 +54,8 @@ impl Display for ScopedName {
 /// operation. For example, selecting [`LintScope::SourceInfo`] will run all
 /// [`SourceInfo`](alpm_srcinfo::SourceInfo) specific linting rules. Linting scopes can also be
 /// fully enabled or disabled via configuration files.
-#[derive(Clone, Copy, Debug, PartialEq, StrumDisplay, ValueEnum, VariantArray)]
+#[derive(Clone, Copy, Debug, PartialEq, StrumDisplay, VariantArray)]
+#[cfg_attr(feature = "cli", derive(ValueEnum))]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[strum(serialize_all = "snake_case")]
 pub enum LintScope {
