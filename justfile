@@ -700,6 +700,7 @@ check-shell-code:
     just check-shell-recipe flaky
     just check-shell-recipe test
     just check-shell-recipe test-docs
+    just check-shell-recipe test-docs-all
     just check-shell-recipe test-python
     just check-shell-recipe docs
     just check-shell-recipe 'ensure-command test'
@@ -1070,6 +1071,26 @@ test-docs *options='--features cli --locked --workspace':
     fi
 
     cargo "$toolchain" test --doc "${options[@]}"
+
+# Runs all doc tests (in all relevant feature permutations) in succession.
+[group('test')]
+test-docs-all:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    readonly coverage="{{ coverage }}"
+    toolchain="+stable"
+    if [[ "$coverage" == "true" ]]; then
+        toolchain="+nightly"
+        just ensure-command cargo cargo-hack cargo-llvm-cov
+        # shellcheck source=/dev/null
+        source <(just cargo-llvm-cov-show-env "$toolchain" '--doctests')
+        cargo "$toolchain" llvm-cov clean --workspace
+    else
+        just ensure-command cargo cargo-hack
+    fi
+
+    cargo "$toolchain" hack --exclude dev-scripts --exclude python-alpm --exclude-features _containerized-integration-test,_virtualized-integration-test,_winnow-debug --feature-powerset test --doc --locked --workspace
 
 # Runs per project end-to-end tests found in a project README.md
 [group('test')]
