@@ -46,6 +46,11 @@ add-hooks:
     EOL
     chmod +x .git/hooks/prepare-commit-msg
 
+# Shows the environment used by `cargo-llvm-cov`.
+[private]
+cargo-llvm-cov-show-env cargo_options='+stable' options='':
+    cargo {{ cargo_options }} llvm-cov show-env --sh {{ options }}
+
 # Updates the local cargo index and displays which crates would be updated
 [private]
 dry-update:
