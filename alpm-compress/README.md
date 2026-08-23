@@ -198,6 +198,10 @@ assert_eq!(content, b"alpm4ever");
 # }
 ```
 
+## Features
+
+- `serde` enables `Serialize` and `Deserialize` traits for types that are likely to be used in configuration files. Default: `true`
+
 ## Contributing
 
 Please refer to the [contribution guidelines] to learn how to contribute to this project.

@@ -132,6 +132,7 @@ dependencies = [
  "num_cpus",
  "proptest",
  "rstest",
+ "serde",
  "tar",
  "tempfile",
  "testresult",

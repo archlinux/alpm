@@ -3,11 +3,15 @@
 use std::{fmt::Debug, path::Path};
 
 use alpm_types::CompressionAlgorithmFileExtension;
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
 
 use crate::{compression::CompressionSettings, error::Error};
 
 /// Settings for a compression decoder.
 #[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
 pub enum DecompressionSettings {
     /// The bzip2 compression algorithm.
     Bzip2,

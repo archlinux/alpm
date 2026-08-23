@@ -19,6 +19,7 @@ fluent-i18n.workspace = true
 liblzma = { version = "0.4.1", features = ["parallel"] }
 log.workspace = true
 num_cpus = "1.17.0"
+serde = { optional = true, workspace = true }
 tar.workspace = true
 thiserror.workspace = true
 zstd = { version = "0.13.3", features = ["zstdmt"] }
@@ -28,6 +29,10 @@ proptest.workspace = true
 rstest.workspace = true
 tempfile.workspace = true
 testresult.workspace = true
+
+[features]
+default = ["serde"]
+serde = ["dep:serde"]
 
 [lints]
 workspace = true

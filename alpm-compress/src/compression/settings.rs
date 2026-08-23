@@ -1,6 +1,8 @@
 //! Settings for a compression encoder.
 
 use alpm_types::CompressionAlgorithmFileExtension;
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
 
 use crate::compression::{
     Bzip2CompressionLevel,
@@ -16,6 +18,7 @@ use crate::compression::{
 ///
 /// [zstd]: https://man.archlinux.org/man/zstd.1
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct ZstdThreads(pub(crate) u32);
 
 impl ZstdThreads {
@@ -45,6 +48,8 @@ impl Default for ZstdThreads {
 
 /// Settings for a compression encoder.
 #[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
 pub enum CompressionSettings {
     /// Settings for the bzip2 compression algorithm.
     Bzip2 {

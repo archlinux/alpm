@@ -3,6 +3,8 @@
 use std::fmt::{Debug, Display};
 
 use log::trace;
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
 
 use crate::error::Error;
 
@@ -22,6 +24,7 @@ macro_rules! define_compression_level {
     ) => {
         #[doc = concat!("Compression level for ", $compression, " compression.")]
         #[derive(Clone, Debug, Eq, PartialEq)]
+        #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
         pub struct $name(u8);
 
         impl $name {
