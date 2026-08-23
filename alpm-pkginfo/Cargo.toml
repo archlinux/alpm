@@ -23,7 +23,7 @@ default = []
 
 [dependencies]
 alpm-common.workspace = true
-alpm-parsers.workspace = true
+alpm-parsers = { features = ["serde"], workspace = true }
 alpm-types.workspace = true
 clap = { workspace = true, optional = true }
 fluent-i18n.workspace = true
