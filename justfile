@@ -124,6 +124,7 @@ install-alpm-package-set set:
     )
     readonly check_links=(lychee)
     readonly check_rust=(
+        cargo-hack
         clang
         python
     )
@@ -660,6 +661,12 @@ check-links:
 check-rust-code:
     just ensure-command cargo cargo-clippy
     cargo clippy --features cli --all-targets --workspace -- -D warnings
+
+# Checks the Rust source code using cargo-clippy (in all relevant feature permutations) in succession.
+[group('check')]
+check-rust-code-all:
+    just ensure-command cargo cargo-clippy cargo-hack
+    cargo +stable hack --exclude-features _winnow-debug --feature-powerset clippy --all-targets --locked -- -D warnings
 
 # Checks the Python source code using ruff and mypy.
 [group('check')]
