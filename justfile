@@ -546,7 +546,7 @@ build-python platform="current":
 check-formatting:
     just ensure-command biome cargo-sort-derives mado taplo uv
 
-    just --unstable --fmt --check
+    just --fmt --check
 
     biome check --indent-style=space --expand=always renovate.json
 
