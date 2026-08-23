@@ -5,7 +5,7 @@ use std::{fs::Metadata, io::Read, os::linux::fs::MetadataExt, path::PathBuf};
 use alpm_common::InputPath;
 use alpm_types::{Checksum, Digest, Md5Checksum, Sha256Checksum};
 use log::trace;
-use serde::{Serialize, Serializer, ser::Error as SerdeError}; // codespell:ignore ser
+use serde::{Serialize, Serializer, ser::Error as SerdeError};
 use winnow::Parser;
 
 #[cfg(doc)]
