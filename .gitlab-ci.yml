@@ -98,7 +98,7 @@ rust-code:
     - just install-alpm-package-set rust
     - just --justfile .gitlab/justfile section-end "install-alpm-packages"
     - just --justfile .gitlab/justfile section-start "check-rust-code" "Check Rust code"
-    - just check-rust-code
+    - just check-rust-code-all
     - just --justfile .gitlab/justfile section-end "check-rust-code"
   stage: check
 
@@ -203,7 +203,7 @@ test:
     - just install-alpm-package-set coverage
     - just --justfile .gitlab/justfile section-end "install-alpm-packages"
     - just --justfile .gitlab/justfile section-start "test" "Run unit tests"
-    - just test
+    - just test-all
     - just --justfile .gitlab/justfile section-end "test"
     - just --justfile .gitlab/justfile section-start "create-coverage-report" "Create coverage report"
     - just create-coverage-report cobertura without-docs unit-test-coverage
@@ -263,7 +263,7 @@ test-docs:
     - just install-alpm-package-set coverage
     - just --justfile .gitlab/justfile section-end "install-alpm-packages"
     - just --justfile .gitlab/justfile section-start "test-docs" "Run doc tests"
-    - just test-docs
+    - just test-docs-all
     - just --justfile .gitlab/justfile section-end "test-docs"
     - just --justfile .gitlab/justfile section-start "create-coverage-report" "Create coverage report"
     - just create-coverage-report cobertura with-docs doc-test-coverage
