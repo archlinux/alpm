@@ -188,6 +188,7 @@ install-alpm-package-set set:
     )
     readonly test_containerized=(podman)
     readonly test_coverage=(
+        cargo-hack
         cargo-llvm-cov
         cargo-nextest
         clang
@@ -1008,6 +1009,38 @@ test *options='--features cli --final-status-level fail --locked --no-default-fe
             --final-status-level fail \
             -p alpm-types
     fi
+
+# Runs all unit tests (in all relevant feature permutations) in succession.
+[group('test')]
+test-all:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    readonly coverage="{{ coverage }}"
+    readonly cargo_hack_options=(
+        --exclude-features _containerized-integration-test,_virtualized-integration-test,_winnow-debug
+        --feature-powerset
+    )
+    readonly cargo_nextest_options=(
+        --all-targets
+        --final-status-level fail
+        --locked
+        --no-fail-fast
+        --no-tests warn
+        --status-level fail
+        --workspace
+    )
+
+    if [[ "$coverage" == "true" ]]; then
+        just ensure-command cargo cargo-hack cargo-llvm-cov cargo-nextest
+        # shellcheck source=/dev/null
+        source <(just cargo-llvm-cov-show-env)
+        cargo +stable llvm-cov clean --workspace
+    else
+        just ensure-command cargo cargo-hack cargo-nextest
+    fi
+
+    cargo +stable hack "${cargo_hack_options[@]}" nextest run "${cargo_nextest_options[@]}"
 
 # Runs all doc tests. Options to `cargo test` can be passed in using `options`.
 [group('test')]
