@@ -91,6 +91,7 @@ pub enum Error {
     },
 
     /// JSON serialization error.
+    #[cfg(feature = "serde")]
     #[error("JSON serialization error for {context}: {error}")]
     Json {
         /// The error source

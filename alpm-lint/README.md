@@ -82,6 +82,11 @@ diff --ignore-trailing-space "$TEMP_TEST_DIR/output" "$TEMP_TEST_DIR/expected"
 - <https://alpm.archlinux.page/rustdoc/alpm_lint/> for development version of the crate
 - <https://docs.rs/alpm-lint/latest/alpm_lint/> for released versions of the crate
 
+## Features
+
+- `cli` enables the `alpm-lint` executable (implies the `serde` feature). Default: `true`
+- `serde` enables `Serialize` and `Deserialize` traits for some types. Default: `true`
+
 ## Contributing
 
 Please refer to the [contribution guidelines] and the [architectural guide] to learn how to contribute to this project.

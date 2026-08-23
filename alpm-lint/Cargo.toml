@@ -17,9 +17,9 @@ path = "src/main.rs"
 required-features = ["cli"]
 
 [features]
-cli = ["dep:clap", "dep:clap-verbosity-flag", "dep:serde_json"]
+cli = ["dep:clap", "dep:clap-verbosity-flag", "serde"]
 default = ["cli"]
-
+serde = ["dep:serde", "dep:serde_json"]
 
 [dependencies]
 alpm-buildinfo.workspace = true
@@ -34,7 +34,7 @@ clap-verbosity-flag = { workspace = true, optional = true }
 colored.workspace = true
 documented = "0.10.0"
 log.workspace = true
-serde.workspace = true
+serde = { optional = true, workspace = true }
 serde_json = { workspace = true, optional = true }
 simplelog.workspace = true
 strum.workspace = true

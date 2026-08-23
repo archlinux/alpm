@@ -10,12 +10,17 @@ use std::{
     fmt,
 };
 
-use alpm_lint_config::{LintConfiguration, LintRuleConfiguration, LintRuleConfigurationOptionName};
+#[cfg(feature = "serde")]
+use alpm_lint_config::LintRuleConfigurationOptionName;
+use alpm_lint_config::{LintConfiguration, LintRuleConfiguration};
+#[cfg(feature = "serde")]
 use serde::Serialize;
 
+#[cfg(feature = "serde")]
+use crate::internal_prelude::LintGroup;
 use crate::{
     ScopedName,
-    internal_prelude::{Level, LintGroup, LintRule, LintScope},
+    internal_prelude::{Level, LintRule, LintScope},
     lint_rules::source_info::{
         duplicate_architecture::DuplicateArchitecture,
         invalid_spdx_license::NotSPDX,
@@ -32,6 +37,7 @@ use crate::{
 ///
 /// This is used to expose lints via the CLI so that the lints can be used in website generation or
 /// for development integration.
+#[cfg(feature = "serde")]
 #[derive(Clone, Debug, Serialize)]
 pub struct SerializableLintRule {
     name: String,
@@ -141,6 +147,7 @@ impl LintStore {
     }
 
     /// Returns a map of all available and configured lint rules as [`SerializableLintRule`].
+    #[cfg(feature = "serde")]
     pub fn serializable_lint_rules(&self) -> BTreeMap<String, SerializableLintRule> {
         let mut map = BTreeMap::new();
         for (scoped_name, lint) in &self.initialized_lints {

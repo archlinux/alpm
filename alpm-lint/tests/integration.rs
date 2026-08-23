@@ -1,6 +1,7 @@
 //! Integration tests for the alpm-lint CLI.
 //!
 //! End-to-end test the CLI and make sure that all commands (and their options) actually work.
+#![cfg(feature = "cli")]
 
 use std::{fs::File, io::Write, str::FromStr};
 

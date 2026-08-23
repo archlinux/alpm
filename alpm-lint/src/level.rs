@@ -1,22 +1,13 @@
 use clap::ValueEnum;
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use strum::{Display as StrumDisplay, VariantArray};
 
 /// Represents the severity level of a lint.
 ///
 /// The level of a lint can be overwritten via CLI flags and configuration files.
-#[derive(
-    Clone,
-    Copy,
-    Debug,
-    Deserialize,
-    PartialEq,
-    PartialOrd,
-    Serialize,
-    StrumDisplay,
-    ValueEnum,
-    VariantArray,
-)]
+#[derive(Clone, Copy, Debug, PartialEq, PartialOrd, StrumDisplay, ValueEnum, VariantArray)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[strum(serialize_all = "lowercase")]
 pub enum Level {
     /// Lint rules leading to errors.
