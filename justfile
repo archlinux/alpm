@@ -7,11 +7,6 @@ coverage := env("COVERAGE_REPORT", "false")
 # In a Gitlab CI environment `CI` has the string value of `true`.
 in_ci := env("CI", "false")
 
-# The nightly toolchain to use for formatting and test coverage.
-# TODO: Currently pinned to the last nightly version that still uses LLVM 1.22 until Arch updates
-# their llvm version. See https://gitlab.archlinux.org/archlinux/alpm/alpm/-/work_items/341
-nightly_toolchain := "nightly-2026-07-28"
-
 # The output directory for documentation artifacts
 
 output_dir := "output"
@@ -556,7 +551,7 @@ check-formatting:
     biome check --indent-style=space --expand=always renovate.json
 
     # We're using nightly to properly group imports, see rustfmt.toml
-    cargo +{{ nightly_toolchain }} fmt -- --check
+    cargo +nightly fmt -- --check
 
     taplo format --check
 
@@ -815,7 +810,7 @@ fix:
     cargo clippy --fix --allow-staged
 
     # fmt must be last as clippy's changes may break formatting
-    cargo +{{ nightly_toolchain }} fmt
+    cargo +nightly fmt
 
     uv run --directory python-alpm ruff format
     uv run --directory python-alpm ruff check --fix
@@ -831,11 +826,11 @@ install-rust-dev-tools:
     rustup default stable
     rustup component add clippy
     # Install nightly as we use it for formatting rules and test coverage.
-    rustup toolchain install {{ nightly_toolchain }}
-    rustup component add --toolchain {{ nightly_toolchain }} rustfmt
+    rustup toolchain install nightly
+    rustup component add --toolchain nightly rustfmt
     # llvm-tools-preview for code coverage
     rustup component add llvm-tools-preview
-    rustup component add --toolchain {{ nightly_toolchain }} llvm-tools-preview
+    rustup component add --toolchain nightly llvm-tools-preview
 
 # Continuously run integration tests for a given number of rounds
 [group('test')]
