@@ -756,7 +756,9 @@ configure-git:
 
 # Installs all tools required for development
 [group('dev')]
-dev-install: install-pacman-dev-packages install-rust-dev-tools
+dev-install:
+    just install-alpm-package-set all
+    just install-rust-dev-tools
 
 # Installs all binaries of the workspace
 [group('dev')]
@@ -823,11 +825,6 @@ fix:
 
     uv run --directory python-alpm ruff format
     uv run --directory python-alpm ruff check --fix
-
-# Installs development packages using pacman
-[group('dev')]
-install-pacman-dev-packages:
-    just install-alpm-package-set all
 
 # Installs all Rust tools required for development
 [group('dev')]

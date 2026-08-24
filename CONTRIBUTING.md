@@ -20,9 +20,9 @@ In order to review the snapshot changes in tests, you can use [`cargo-insta`].
 Code examples in READMEs is tested via [`tangler`].
 Links in markdown files or doc blocks are tested via [`lychee`].
 
-To get all of the necessary tools installed on Arch Linux, run `just install-pacman-dev-packages`.
+To install all necessary packages on Arch Linux, run `just install-alpm-package-set all`.
 To setup Rust for this project run `just install-rust-dev-tools`.
-Both can also be done in one fell swoop via `just dev-install`.
+Both can also be done in one go using `just dev-install`.
 
 To aide in development, it is encouraged to configure git to follow this project's guidelines:
 
