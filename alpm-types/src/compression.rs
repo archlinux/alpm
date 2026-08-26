@@ -36,7 +36,6 @@ use winnow::{
     VariantNames,
 )]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[cfg_attr(feature = "serde", serde(untagged))]
 pub enum CompressionAlgorithmFileExtension {
     /// The file extension for files compressed using the [compress] compression algorithm.
     ///

@@ -22,7 +22,6 @@ use winnow::{
     AsRefStr, Clone, Copy, Debug, Display, EnumString, Eq, IntoStaticStr, PartialEq, VariantNames,
 )]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-#[cfg_attr(feature = "serde", serde(untagged))]
 pub enum FileTypeIdentifier {
     /// The identifier for [alpm-package] files.
     ///
