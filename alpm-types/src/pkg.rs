@@ -5,7 +5,7 @@ use alpm_parsers::{
     traits::{AlpmParser, ParserUntil},
 };
 #[cfg(feature = "serde")]
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 #[cfg(feature = "serde")]
 use serde_with::{DeserializeFromStr, SerializeDisplay};
 use strum::{Display, EnumString, VariantNames};
@@ -105,7 +105,7 @@ impl AlpmParser for PackageType {
 /// # }
 /// ```
 #[derive(Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "serde", derive(DeserializeFromStr, Serialize))]
 pub struct PackageDescription(String);
 
 impl PackageDescription {

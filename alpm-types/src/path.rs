@@ -7,6 +7,8 @@ use std::{
 use alpm_parsers::traits::ParserUntil;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "serde")]
+use serde_with::DeserializeFromStr;
 use winnow::{
     ModalResult,
     Parser,
@@ -44,7 +46,7 @@ use crate::{Error, SharedLibraryPrefix};
 /// # }
 /// ```
 #[derive(Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "serde", derive(DeserializeFromStr, Serialize))]
 pub struct AbsolutePath(PathBuf);
 
 impl AbsolutePath {
@@ -157,7 +159,7 @@ pub type StartDirectory = AbsolutePath;
 /// # }
 /// ```
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "serde", derive(DeserializeFromStr, Serialize))]
 pub struct RelativePath(PathBuf);
 
 impl RelativePath {
@@ -232,7 +234,7 @@ impl Display for RelativePath {
 /// # }
 /// ```
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "serde", derive(DeserializeFromStr, Serialize))]
 pub struct RelativeFilePath(PathBuf);
 
 impl RelativeFilePath {
@@ -475,6 +477,19 @@ mod tests {
         assert_eq!(BuildDirectory::from_str(s), result);
     }
 
+    /// Make sure that relative paths don't deserialize as absolute paths.
+    #[cfg(feature = "serde")]
+    #[rstest]
+    #[case::relative_path("./")]
+    #[case::relative_file("foo.txt")]
+    fn absolute_path_deserialize_error(#[case] input: &str) {
+        let Err(serde_json::Error { .. }) =
+            serde_json::from_str::<AbsolutePath>(&format!("\"{input}\""))
+        else {
+            panic!("'{input}' erroneously deserialized as an AbsolutePath")
+        };
+    }
+
     #[rstest]
     #[case("/start", StartDirectory::new(PathBuf::from("/start")))]
     #[case("./", Err(Error::PathNotAbsolute(PathBuf::from("./"))))]
@@ -499,6 +514,19 @@ mod tests {
         assert_eq!(RelativePath::from_str(s), result);
     }
 
+    /// Make sure that absolute paths don't deserialize as relative paths.
+    #[cfg(feature = "serde")]
+    #[rstest]
+    #[case::root("/")]
+    #[case::absolute_path("/etc")]
+    fn relative_path_deserialize_error(#[case] input: &str) {
+        let Err(serde_json::Error { .. }) =
+            serde_json::from_str::<RelativePath>(&format!("\"{input}\""))
+        else {
+            panic!("'{input}' erroneously deserialized as a RelativePath")
+        };
+    }
+
     #[rstest]
     #[case("etc/test.conf", RelativeFilePath::new(PathBuf::from("etc/test.conf")))]
     #[case(
@@ -516,6 +544,19 @@ mod tests {
         #[case] result: Result<RelativeFilePath, Error>,
     ) {
         assert_eq!(RelativeFilePath::from_str(s), result);
+    }
+
+    /// Make sure that invalid relative file paths don't deserialize.
+    #[cfg(feature = "serde")]
+    #[rstest]
+    #[case::not_a_file("etc/")]
+    #[case::absolute_path("/etc/test.conf")]
+    fn relative_file_path_deserialize_error(#[case] input: &str) {
+        let Err(serde_json::Error { .. }) =
+            serde_json::from_str::<RelativeFilePath>(&format!("\"{input}\""))
+        else {
+            panic!("'{input}' erroneously deserialized as a RelativeFilePath")
+        };
     }
 
     #[rstest]

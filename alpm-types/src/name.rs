@@ -9,7 +9,9 @@ use alpm_parsers::{
     traits::{AlpmParser, ParserUntil},
 };
 #[cfg(feature = "serde")]
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
+#[cfg(feature = "serde")]
+use serde_with::DeserializeFromStr;
 use winnow::{
     ModalResult,
     Parser,
@@ -133,7 +135,7 @@ impl Display for BuildTool {
 ///
 /// [alpm-package-name]: https://alpm.archlinux.page/specifications/alpm-package-name.7.html
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "serde", derive(DeserializeFromStr, Serialize))]
 pub struct Name(String);
 
 impl Name {
@@ -325,7 +327,7 @@ impl AsRef<str> for Name {
 /// This type wraps a [`Name`] and is used to represent the name of a shared object file
 /// that ends with the `.so` suffix.
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "serde", derive(DeserializeFromStr, Serialize))]
 pub struct SharedObjectName(pub(crate) String);
 
 impl SharedObjectName {
@@ -479,6 +481,18 @@ mod tests {
         assert_snapshot!(test_name, err_msg.to_string());
     }
 
+    /// Make sure that invalid names don't deserialize.
+    #[cfg(feature = "serde")]
+    #[rstest]
+    #[case("package_name_'''")]
+    #[case("-package_with_leading_hyphen")]
+    fn name_deserialize_error(#[case] input: &str) {
+        let Err(serde_json::Error { .. }) = serde_json::from_str::<Name>(&format!("\"{input}\""))
+        else {
+            panic!("'{input}' erroneously deserialized as a Name")
+        };
+    }
+
     proptest! {
         #![proptest_config(ProptestConfig::with_cases(1000))]
 
@@ -525,5 +539,18 @@ mod tests {
 
         let (test_name, _guard) = configure_insta();
         assert_snapshot!(test_name, err_msg.to_string());
+    }
+
+    /// Make sure that invalid shared object names don't deserialize.
+    #[cfg(feature = "serde")]
+    #[rstest]
+    #[case("noso")]
+    #[case("example.so.1")]
+    fn shared_object_deserialize_error(#[case] input: &str) {
+        let Err(serde_json::Error { .. }) =
+            serde_json::from_str::<SharedObjectName>(&format!("\"{input}\""))
+        else {
+            panic!("'{input}' erroneously deserialized as a SharedObjectName")
+        };
     }
 }

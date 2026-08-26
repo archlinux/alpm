@@ -6,6 +6,8 @@ use std::{
 use alpm_parsers::traits::{AlpmParser, ParserUntil};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "serde")]
+use serde_with::DeserializeFromStr;
 use strum::{Display, EnumString, VariantNames};
 use winnow::{
     ModalResult,
@@ -51,7 +53,7 @@ use crate::Error;
 /// # }
 /// ```
 #[derive(Clone, Debug, Display, Eq, Hash, Ord, PartialEq, PartialOrd, VariantNames)]
-#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "serde", derive(DeserializeFromStr, Serialize))]
 #[strum(serialize_all = "lowercase")]
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
 pub enum SystemArchitecture {
@@ -185,8 +187,28 @@ impl FromStr for SystemArchitecture {
 ///
 /// [alpm-architecture]: https://alpm.archlinux.page/specifications/alpm-architecture.7.html
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "serde", derive(Serialize))]
 pub struct UnknownArchitecture(String);
+
+#[cfg(feature = "serde")]
+impl<'de> Deserialize<'de> for UnknownArchitecture {
+    /// Deserializes an [`UnknownArchitecture`] from a string.
+    ///
+    /// This uses [`SystemArchitecture::from_str`] for validation, as [`UnknownArchitecture`]
+    /// can only be created via [`SystemArchitecture`].
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        match SystemArchitecture::from_str(&s).map_err(serde::de::Error::custom)? {
+            SystemArchitecture::Unknown(architecture) => Ok(architecture),
+            architecture => Err(serde::de::Error::custom(format!(
+                "expected an unknown architecture, but {architecture} is a known architecture"
+            ))),
+        }
+    }
+}
 
 impl UnknownArchitecture {
     /// Return a reference to the inner type
@@ -525,6 +547,8 @@ mod tests {
     use insta::assert_snapshot;
     use rstest::rstest;
     use strum::ParseError;
+    #[cfg(feature = "serde")]
+    use testresult::TestResult;
 
     use super::*;
     use crate::configure_insta;
@@ -546,6 +570,49 @@ mod tests {
 
         let (test_name, _guard) = configure_insta();
         assert_snapshot!(test_name, err_msg.to_string());
+    }
+
+    /// Make sure that invalid system architectures don't deserialize.
+    #[cfg(feature = "serde")]
+    #[rstest]
+    #[case("f oo")]
+    #[case("any")]
+    fn system_architecture_deserialize_error(#[case] input: &str) {
+        let Err(serde_json::Error { .. }) =
+            serde_json::from_str::<SystemArchitecture>(&format!("\"{input}\""))
+        else {
+            panic!("'{input}' erroneously deserialized as a SystemArchitecture")
+        };
+    }
+
+    /// Make sure that invalid and known architectures don't deserialize as unknown architectures.
+    #[cfg(feature = "serde")]
+    #[rstest]
+    #[case("f oo")]
+    #[case("x86_64")]
+    fn unknown_architecture_deserialize_error(#[case] input: &str) {
+        let Err(serde_json::Error { .. }) =
+            serde_json::from_str::<UnknownArchitecture>(&format!("\"{input}\""))
+        else {
+            panic!("'{input}' erroneously deserialized as an UnknownArchitecture")
+        };
+    }
+
+    /// Make sure that system architectures deserialize to the value they serialized from.
+    ///
+    /// Due to `SystemArchitecture::Unknown` unusual shape and our custom Deserialize logic, we do a
+    /// roundtrip check.
+    #[cfg(feature = "serde")]
+    #[rstest]
+    #[case(SystemArchitecture::X86_64V2)]
+    #[case(SystemArchitecture::Unknown(UnknownArchitecture("f_oo".to_string())))]
+    fn system_architecture_serde_roundtrip(#[case] architecture: SystemArchitecture) -> TestResult {
+        let json = serde_json::to_string(&architecture)?;
+        assert_eq!(
+            architecture,
+            serde_json::from_str::<SystemArchitecture>(&json)?
+        );
+        Ok(())
     }
 
     #[rstest]

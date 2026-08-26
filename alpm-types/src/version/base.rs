@@ -17,6 +17,8 @@ use std::{
 use alpm_parsers::traits::{AlpmParser, ParserUntil};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "serde")]
+use serde_with::DeserializeFromStr;
 use winnow::{
     ModalResult,
     Parser,
@@ -273,7 +275,7 @@ impl Ord for PackageRelease {
 /// assert!(PackageVersion::new("1<0".to_string()).is_err());
 /// ```
 #[derive(Clone, Debug, Eq)]
-#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "serde", derive(DeserializeFromStr, Serialize))]
 pub struct PackageVersion(pub(crate) String);
 
 impl PackageVersion {
@@ -406,6 +408,19 @@ mod tests {
 
         let (test_name, _guard) = configure_insta();
         assert_snapshot!(test_name, err_msg.to_string());
+    }
+
+    /// Make sure that invalid package versions don't deserialize.
+    #[cfg(feature = "serde")]
+    #[rstest]
+    #[case("1:foo")]
+    #[case("foo-1")]
+    fn package_version_deserialize_error(#[case] input: &str) {
+        let Err(serde_json::Error { .. }) =
+            serde_json::from_str::<PackageVersion>(&format!("\"{input}\""))
+        else {
+            panic!("'{input}' erroneously deserialized as a PackageVersion")
+        };
     }
 
     /// Make sure that we can parse valid **pkgrel** strings.

@@ -10,6 +10,8 @@ use email_address::EmailAddress;
 use fluent_i18n::t;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "serde")]
+use serde_with::DeserializeFromStr;
 use winnow::{
     ModalResult,
     Parser,
@@ -142,7 +144,7 @@ impl Display for OpenPGPIdentifier {
 /// # }
 /// ```
 #[derive(Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "serde", derive(DeserializeFromStr, Serialize))]
 pub struct OpenPGPKeyId(String);
 
 impl OpenPGPKeyId {
@@ -236,7 +238,7 @@ impl Display for OpenPGPKeyId {
 /// # }
 /// ```
 #[derive(Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "serde", derive(DeserializeFromStr, Serialize))]
 pub struct OpenPGPv4Fingerprint(String);
 
 impl OpenPGPv4Fingerprint {
@@ -324,7 +326,7 @@ impl Display for OpenPGPv4Fingerprint {
 /// [base64]: https://en.wikipedia.org/wiki/Base64
 /// [OpenPGP detached signature]: https://openpgp.dev/book/signing_data.html#detached-signatures
 #[derive(Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "serde", derive(DeserializeFromStr, Serialize))]
 pub struct Base64OpenPGPSignature(String);
 
 impl Base64OpenPGPSignature {
@@ -592,6 +594,19 @@ mod tests {
         assert_eq!(result, expected);
     }
 
+    /// Make sure that invalid OpenPGP v4 fingerprints don't deserialize.
+    #[cfg(feature = "serde")]
+    #[rstest]
+    #[case("A1B2C3D4E5F6A7B8C9D0E1F2A3B4C5D6E7F8G9H0")]
+    #[case("invalid")]
+    fn openpgp_fingerprint_deserialize_error(#[case] input: &str) {
+        let Err(serde_json::Error { .. }) =
+            serde_json::from_str::<OpenPGPv4Fingerprint>(&format!("\"{input}\""))
+        else {
+            panic!("'{input}' erroneously deserialized as an OpenPGPv4Fingerprint")
+        };
+    }
+
     #[rstest]
     #[case("2F2670AC164DB36F")]
     #[case("584A3EBFE705CDCD")]
@@ -648,6 +663,19 @@ mod tests {
         assert_eq!(result, expected);
     }
 
+    /// Make sure that invalid OpenPGP key IDs don't deserialize.
+    #[cfg(feature = "serde")]
+    #[rstest]
+    #[case("1234567890ABCGH")]
+    #[case("invalid")]
+    fn openpgp_key_id_deserialize_error(#[case] input: &str) {
+        let Err(serde_json::Error { .. }) =
+            serde_json::from_str::<OpenPGPKeyId>(&format!("\"{input}\""))
+        else {
+            panic!("'{input}' erroneously deserialized as an OpenPGPKeyId")
+        };
+    }
+
     #[rstest]
     #[case("d2hhdCBhcmUgeW91IGxvb2tpbmcgZm9yPyA7LTsK")]
     fn test_parse_openpgp_signature(#[case] input: &str) -> Result<(), Error> {
@@ -674,6 +702,19 @@ mod tests {
     ) {
         let result = input.parse::<Base64OpenPGPSignature>();
         assert_eq!(result, expected);
+    }
+
+    /// Make sure that invalid base64 encoded OpenPGP signatures don't deserialize.
+    #[cfg(feature = "serde")]
+    #[rstest]
+    #[case("d2hhdCBhcmUge=W91IGxvb2tpbmcgZm9yPyA7LTsK")]
+    #[case("!@#$%^&*")]
+    fn openpgp_signature_deserialize_error(#[case] input: &str) {
+        let Err(serde_json::Error { .. }) =
+            serde_json::from_str::<Base64OpenPGPSignature>(&format!("\"{input}\""))
+        else {
+            panic!("'{input}' erroneously deserialized as a Base64OpenPGPSignature")
+        };
     }
 
     #[rstest]
