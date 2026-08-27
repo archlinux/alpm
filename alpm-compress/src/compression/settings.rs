@@ -1,6 +1,8 @@
 //! Settings for a compression encoder.
 
 use alpm_types::CompressionAlgorithmFileExtension;
+#[cfg(feature = "knus")]
+use knus::Decode;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -19,7 +21,8 @@ use crate::compression::{
 /// [zstd]: https://man.archlinux.org/man/zstd.1
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-pub struct ZstdThreads(pub(crate) u32);
+#[cfg_attr(feature = "knus", derive(Decode))]
+pub struct ZstdThreads(#[cfg_attr(feature = "knus", knus(argument))] pub(crate) u32);
 
 impl ZstdThreads {
     /// Creates a new [`ZstdThreads`] from a [`u32`].
@@ -74,30 +77,37 @@ impl From<&ZstdThreads> for u128 {
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
+#[cfg_attr(feature = "knus", derive(Decode))]
 pub enum CompressionSettings {
     /// Settings for the bzip2 compression algorithm.
     Bzip2 {
         /// The used compression level.
+        #[cfg_attr(feature = "knus", knus(child))]
         compression_level: Bzip2CompressionLevel,
     },
 
     /// Settings for the gzip compression algorithm.
     Gzip {
         /// The used compression level.
+        #[cfg_attr(feature = "knus", knus(child))]
         compression_level: GzipCompressionLevel,
     },
 
     /// Settings for the xz compression algorithm.
     Xz {
         /// The used compression level.
+        #[cfg_attr(feature = "knus", knus(child))]
         compression_level: XzCompressionLevel,
     },
 
     /// Settings for the zstandard compression algorithm.
     Zstd {
         /// The used compression level.
+        #[cfg_attr(feature = "knus", knus(child))]
         compression_level: ZstdCompressionLevel,
+
         /// The amount of threads to use when compressing.
+        #[cfg_attr(feature = "knus", knus(child))]
         threads: ZstdThreads,
     },
 

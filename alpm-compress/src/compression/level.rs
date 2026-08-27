@@ -2,6 +2,8 @@
 
 use std::fmt::{Debug, Display};
 
+#[cfg(feature = "knus")]
+use knus::Decode;
 use log::trace;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -24,8 +26,9 @@ macro_rules! define_compression_level {
     ) => {
         #[doc = concat!("Compression level for ", $compression, " compression.")]
         #[derive(Clone, Debug, Eq, PartialEq)]
+        #[cfg_attr(feature = "knus", derive(Decode))]
         #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
-        pub struct $name(u8);
+        pub struct $name(#[cfg_attr(feature = "knus", knus(argument))] u8);
 
         impl $name {
             #[doc = concat!("Creates a new [`", stringify!($name), "`] from a [`u8`].")]

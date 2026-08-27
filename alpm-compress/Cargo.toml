@@ -16,6 +16,7 @@ alpm-types.workspace = true
 bzip2 = "0.6.0"
 flate2.workspace = true
 fluent-i18n.workspace = true
+knus = { optional = true, workspace = true }
 liblzma = { version = "0.4.1", features = ["parallel"] }
 log.workspace = true
 num_cpus = "1.17.0"
@@ -32,6 +33,8 @@ testresult.workspace = true
 
 [features]
 default = ["serde"]
+# Enable knus deserialization for settings types.
+knus = ["dep:knus"]
 serde = ["dep:serde"]
 
 [lints]

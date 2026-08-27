@@ -133,6 +133,7 @@ dependencies = [
  "bzip2",
  "flate2",
  "fluent-i18n",
+ "knus",
  "liblzma",
  "log",
  "num_cpus",
