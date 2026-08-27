@@ -83,12 +83,15 @@ pub enum SystemArchitecture {
     X86_64,
     /// Intel x86_64 version 2
     #[strum(to_string = "x86_64_v2")]
+    #[cfg_attr(feature = "serde", serde(rename = "x86_64_v2"))]
     X86_64V2,
     /// Intel x86_64 version 3
     #[strum(to_string = "x86_64_v3")]
+    #[cfg_attr(feature = "serde", serde(rename = "x86_64_v3"))]
     X86_64V3,
     /// Intel x86_64 version 4
     #[strum(to_string = "x86_64_v4")]
+    #[cfg_attr(feature = "serde", serde(rename = "x86_64_v4"))]
     X86_64V4,
     /// Unknown architecture
     #[strum(transparent)]
