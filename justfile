@@ -2,10 +2,6 @@
 
 # Whether coverage should be measured when running tests. Use `create-coverage-report` to create a report from the collected data.
 coverage := env("COVERAGE_REPORT", "false")
-# Determine whether we're in a CI environment or not.
-# A subset of our checks only runs in CI for a smoother development experience.
-# In a Gitlab CI environment `CI` has the string value of `true`.
-in_ci := env("CI", "false")
 
 # The output directory for documentation artifacts
 
@@ -1000,20 +996,6 @@ test *options='--features cli --final-status-level fail --locked --no-default-fe
     fi
 
     cargo +stable nextest run "${options[@]}"
-
-    # Only run multi-feature tests in CI, as they result in much longer iteration times.
-    # This is due to differing feature sets of low-level dependencies resulting in
-    # re-compilation of the whole alpm workspace.
-    if "{{ in_ci }}"; then
-        # Also run the tests for the alpm-types crate without serde support
-        cargo nextest run \
-            --locked \
-            --no-default-features \
-            --no-fail-fast \
-            --status-level fail \
-            --final-status-level fail \
-            -p alpm-types
-    fi
 
 # Runs all unit tests (in all relevant feature permutations) in succession.
 [group('test')]
