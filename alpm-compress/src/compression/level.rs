@@ -82,15 +82,51 @@ macro_rules! define_compression_level {
             }
         }
 
+        impl From<&$name> for i16 {
+            fn from(value: &$name) -> Self {
+                i16::from(value.0)
+            }
+        }
+
         impl From<&$name> for i32 {
             fn from(value: &$name) -> Self {
                 i32::from(value.0)
             }
         }
 
+        impl From<&$name> for i64 {
+            fn from(value: &$name) -> Self {
+                i64::from(value.0)
+            }
+        }
+
+        impl From<&$name> for i128 {
+            fn from(value: &$name) -> Self {
+                i128::from(value.0)
+            }
+        }
+
+        impl From<&$name> for u16 {
+            fn from(value: &$name) -> Self {
+                 u16::from(value.0)
+            }
+        }
+
         impl From<&$name> for u32 {
             fn from(value: &$name) -> Self {
                  u32::from(value.0)
+            }
+        }
+
+        impl From<&$name> for u64 {
+            fn from(value: &$name) -> Self {
+                 u64::from(value.0)
+            }
+        }
+
+        impl From<&$name> for u128 {
+            fn from(value: &$name) -> Self {
+                 u128::from(value.0)
             }
         }
 
