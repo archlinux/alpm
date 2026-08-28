@@ -46,6 +46,30 @@ impl Default for ZstdThreads {
     }
 }
 
+impl From<&ZstdThreads> for i64 {
+    fn from(value: &ZstdThreads) -> Self {
+        i64::from(value.0)
+    }
+}
+
+impl From<&ZstdThreads> for i128 {
+    fn from(value: &ZstdThreads) -> Self {
+        i128::from(value.0)
+    }
+}
+
+impl From<&ZstdThreads> for u64 {
+    fn from(value: &ZstdThreads) -> Self {
+        u64::from(value.0)
+    }
+}
+
+impl From<&ZstdThreads> for u128 {
+    fn from(value: &ZstdThreads) -> Self {
+        u128::from(value.0)
+    }
+}
+
 /// Settings for a compression encoder.
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
