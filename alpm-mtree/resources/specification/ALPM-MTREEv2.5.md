@@ -57,7 +57,6 @@ The **file** path type requires the following properties to be set:
 - `gid`
 - `mode`
 - `size`
-- `md5digest`
 - `sha256digest`
 - `time`
 
