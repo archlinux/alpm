@@ -22,7 +22,7 @@ num_cpus = "1.17.0"
 serde = { optional = true, workspace = true }
 tar.workspace = true
 thiserror.workspace = true
-zstd = { version = "0.13.3", features = ["zstdmt"] }
+zstd = { version = "0.14.0", features = ["zstdmt"] }
 
 [dev-dependencies]
 proptest.workspace = true
