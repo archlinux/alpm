@@ -261,6 +261,33 @@ pub struct Checksum<D: Digest> {
     _marker: PhantomData<D>,
 }
 
+impl<D: Digest> From<Output<D>> for Checksum<D> {
+    /// Creates a [`Checksum`] from the output of a finalized hash function.
+    ///
+    /// This allows the creation of alpm [`Checksum`]s from the underlying digest types.
+    ///
+    /// ## Examples
+    /// ```
+    /// use alpm_types::{Checksum, digests::Sha256};
+    /// use digest::Digest;
+    ///
+    /// let mut hasher = Sha256::new();
+    /// hasher.update("foo\n");
+    /// let checksum: Checksum<Sha256> = hasher.finalize().into();
+    ///
+    /// assert_eq!(
+    ///     format!("{}", checksum),
+    ///     "b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c",
+    /// );
+    /// ```
+    fn from(digest: Output<D>) -> Self {
+        Self {
+            digest: digest.to_vec(),
+            _marker: PhantomData,
+        }
+    }
+}
+
 #[cfg(feature = "serde")]
 impl<D: DigestString> Serialize for Checksum<D> {
     /// Serialize a [`Checksum`] into a hex `String` representation.
@@ -311,6 +338,55 @@ impl<D: DigestString> Checksum<D> {
     /// Return a reference to the inner type
     pub fn inner(&self) -> &[u8] {
         &self.digest
+    }
+
+    /// Calculates a new [`Checksum`] by streaming data from a `reader`.
+    ///
+    /// Unlike [`Checksum::calculate_from`], this does not require holding the entire input in
+    /// memory.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if reading from `reader` fails.
+    ///
+    /// ## Examples
+    /// ```
+    /// use alpm_types::{Checksum, digests::Sha256};
+    ///
+    /// # fn main() -> Result<(), std::io::Error> {
+    /// let reader = "foo\n".as_bytes();
+    ///
+    /// let checksum = Checksum::<Sha256>::calculate_from_reader(reader)?;
+    ///
+    /// assert_eq!(
+    ///     format!("{}", checksum),
+    ///     "b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c",
+    /// );
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn calculate_from_reader(mut reader: impl std::io::Read) -> Result<Self, std::io::Error> {
+        // We declare a newtype for `D` so that we may implement `Write` on it.
+        //
+        // This allows us to use `std::io::copy`, which performs buffered reading and writing for
+        // us.
+        struct HashWriter<D: Digest>(D);
+
+        impl<D: Digest> std::io::Write for HashWriter<D> {
+            fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+                self.0.update(buf);
+                Ok(buf.len())
+            }
+
+            fn flush(&mut self) -> std::io::Result<()> {
+                Ok(())
+            }
+        }
+
+        let mut writer = HashWriter(D::new());
+        std::io::copy(&mut reader, &mut writer)?;
+
+        Ok(writer.0.finalize().into())
     }
 }
 
