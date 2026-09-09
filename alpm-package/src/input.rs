@@ -2,7 +2,7 @@
 
 use std::{
     fmt::Display,
-    fs::read,
+    fs::{File, read},
     path::{Path, PathBuf},
 };
 
@@ -554,12 +554,17 @@ impl PackageInput {
     pub fn mtree(&self) -> Result<&Mtree, crate::Error> {
         let file_name = PathBuf::from(MetadataFileName::Mtree.as_ref());
         let path = self.input_dir.join(file_name.as_path());
-        let buf = read(path.as_path()).map_err(|source| crate::Error::IoPath {
+        let file = File::open(&path).map_err(|source| crate::Error::IoPath {
             path: path.clone(),
             context: t!("error-io-read-mtree"),
             source,
         })?;
-        let current_digest = Sha256Checksum::calculate_from(buf);
+        let current_digest =
+            Sha256Checksum::calculate_from_reader(file).map_err(|source| crate::Error::IoPath {
+                path: path.clone(),
+                context: t!("error-io-read-mtree"),
+                source,
+            })?;
         if current_digest != self.mtree_digest {
             return Err(Error::FileHashDigestChanged {
                 path: file_name,

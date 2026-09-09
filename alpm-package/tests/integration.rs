@@ -1,7 +1,7 @@
 //! Integration tests for `alpm-package`.
 
 use std::{
-    fs::{File, FileTimes, create_dir, create_dir_all, read},
+    fs::{File, FileTimes, create_dir, create_dir_all},
     io::Write,
     os::unix::fs::symlink,
     path::{Path, PathBuf},
@@ -308,11 +308,11 @@ fn package_digest(
 
     // Create package file.
     let package = Package::try_from(&config)?;
-    let buf = read(package.to_path_buf())?;
+    let file = File::open(package.to_path_buf())?;
 
     Ok((
         package.to_path_buf(),
-        Blake2b512Checksum::calculate_from(buf),
+        Blake2b512Checksum::calculate_from_reader(file)?,
     ))
 }
 

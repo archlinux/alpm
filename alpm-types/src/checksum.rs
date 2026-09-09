@@ -378,6 +378,7 @@ impl<D: DigestString> Checksum<D> {
                 Ok(buf.len())
             }
 
+            /// No-op, but required for the trait.
             fn flush(&mut self) -> std::io::Result<()> {
                 Ok(())
             }
