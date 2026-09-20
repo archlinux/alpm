@@ -1,1 +1,3 @@
 external-sources=true
+# we need to check the status code of subshells
+disable=SC2181

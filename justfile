@@ -80,7 +80,11 @@ get-workspace-member-version package:
     #!/usr/bin/env bash
     set -euo pipefail
 
-    readonly version="$(cargo metadata --format-version=1 |jq -r --arg pkg {{ package }} '.workspace_members[] | capture("/(?<name>[a-z-]+)#(?<version>[0-9.]+)") | select(.name == $pkg).version')"
+    version="$(cargo metadata --format-version=1 |jq -r --arg pkg {{ package }} '.workspace_members[] | capture("/(?<name>[a-z-]+)#(?<version>[0-9.]+)") | select(.name == $pkg).version')"
+    if (( $? != 0 )); then
+        exit 1
+    fi
+    readonly version="$version"
 
     if [[ -z "$version" ]]; then
         printf "No version found for package %s\n" {{ package }} >&2
@@ -328,7 +332,13 @@ install-alpm-package-set set:
 
     # Use run0 when not root
     command=()
-    if (( "$(id -u)" > 0 )); then
+    id="$(id -u)"
+    if (( $? != 0 )); then
+        exit 1
+    fi
+    readonly id="$id"
+
+    if (( "$id" > 0 )); then
         command+=(run0)
     fi
     command+=(
@@ -343,7 +353,11 @@ is-workspace-member package:
     #!/usr/bin/env bash
     set -euo pipefail
 
-    mapfile -t workspace_members < <(just get-workspace-members 2>/dev/null)
+    workspace_members="$(just get-workspace-members)"
+    if (( $? != 0 )); then
+        exit 1
+    fi
+    mapfile -t workspace_members <<< "$workspace_members"
 
     for name in "${workspace_members[@]}"; do
         if [[ "$name" == {{ package }} ]]; then
@@ -372,10 +386,18 @@ build-book:
     # Build the local dependency graph.
     cargo depgraph --workspace-only | dot -Tpng > resources/docs/src/api-docs/dependency_graph.png
 
-    target_dir="$(just get-cargo-target-directory)"
+    cargo_target_dir="$(just get-cargo-target-directory)"
+    if (( $? != 0 )); then
+        exit 1
+    fi
+    readonly cargo_target_dir="$cargo_target_dir"
     readonly output_dir="{{ output_dir }}"
     readonly rustdoc_dir="$output_dir/docs/rustdoc/"
-    mapfile -t workspace_members < <(just get-workspace-members 2>/dev/null)
+    workspace_members="$(just get-workspace-members)"
+    if (( $? != 0 )); then
+        exit 1
+    fi
+    mapfile -t workspace_members <<< "$workspace_members"
 
     just docs
     mdbook-mermaid install resources/docs/
@@ -384,14 +406,14 @@ build-book:
     # move rust docs to their own namespaced dir
     mkdir -p "$rustdoc_dir"
     for name in "${workspace_members[@]}"; do
-        cp -r "$target_dir/doc/${name//-/_}" "$rustdoc_dir"
+        cp -r "$cargo_target_dir/doc/${name//-/_}" "$rustdoc_dir"
     done
 
     # move python docs
-    cp -r "$target_dir/pdoc/" "$output_dir/docs/pdoc"
+    cp -r "$cargo_target_dir/pdoc/" "$output_dir/docs/pdoc"
 
-    cp -r "$target_dir/doc/"{search.*,src,static.files,trait.impl,type.impl} "$rustdoc_dir"
-    cp -r "$target_dir/doc/"*.{js,html} "$rustdoc_dir"
+    cp -r "$cargo_target_dir/doc/"{search.*,src,static.files,trait.impl,type.impl} "$rustdoc_dir"
+    cp -r "$cargo_target_dir/doc/"*.{js,html} "$rustdoc_dir"
 
     if [[ ! -f "alpm-lint-website/themes/linkita/theme.toml" ]]; then
         echo "The alpm-lint-website linkita submodule does not exist"
@@ -412,8 +434,13 @@ docs:
 
     RUSTDOCFLAGS='-D warnings' cargo doc --document-private-items --no-deps
 
-    target_dir="$(just get-cargo-target-directory)"
-    uv run --directory python-alpm pdoc -d google -o "$target_dir/pdoc/" alpm
+    cargo_target_dir="$(just get-cargo-target-directory)"
+    if (( $? != 0 )); then
+        exit 1
+    fi
+    readonly cargo_target_dir="$cargo_target_dir"
+
+    uv run --directory python-alpm pdoc -d google -o "$cargo_target_dir/pdoc/" alpm
 
 # Render `manpages`, `shell_completions` or `specifications` (`kind`) of a given package (`pkg`).
 [group('build')]
@@ -741,8 +768,13 @@ check-unused-deps:
     set -euo pipefail
 
     just ensure-command cargo-machete
+    workspace_members="$(just get-workspace-members)"
+    if (( $? != 0 )); then
+        exit 1
+    fi
+    mapfile -t workspace_members <<< "$workspace_members"
 
-    for name in $(just get-workspace-members); do
+    for name in "${workspace_members[@]}"; do
         cargo machete "$name"
     done
 
@@ -766,7 +798,11 @@ install-workspace-binaries:
     #!/usr/bin/env bash
     set -euo pipefail
 
-    mapfile -t workspace_members < <(just get-workspace-members 2>/dev/null)
+    workspace_members="$(just get-workspace-members)"
+    if (( $? != 0 )); then
+        exit 1
+    fi
+    mapfile -t workspace_members <<< "$workspace_members"
 
     # Workspace members without a binary
     ignored_members=(
@@ -895,7 +931,11 @@ create-coverage-report output_type="cobertura" mode="without-docs" metrics_name=
     readonly metrics_name="{{ metrics_name }}"
     readonly mode="{{ mode }}"
     readonly output_type="{{ output_type }}"
-    target_dir="$(just get-cargo-target-directory)"
+    cargo_target_dir="$(just get-cargo-target-directory)"
+    if (( $? != 0 )); then
+        exit 1
+    fi
+    readonly cargo_target_dir="$cargo_target_dir"
 
     just ensure-command cargo-llvm-cov cargo-nextest jq
 
@@ -907,7 +947,7 @@ create-coverage-report output_type="cobertura" mode="without-docs" metrics_name=
     create_report() {
         printf "Creating %s report %s\n" "$output_type" "$reporting_style..."
 
-        mkdir --parents "$target_dir/llvm-cov/"
+        mkdir --parents "$cargo_target_dir/llvm-cov/"
         # shellcheck source=/dev/null
         source <(just cargo-llvm-cov-show-env "${cargo_options[@]}")
         # NOTE: Here, we are not calling `cargo-llvm-cov clean` because we assume that it has been done in the recipe that generated the profraw data already.
@@ -925,11 +965,17 @@ create-coverage-report output_type="cobertura" mode="without-docs" metrics_name=
 
         # Get total coverage percentage from summary
         percentage="$(cargo "${cargo_options[@]}" llvm-cov report "${cargo_llvm_cov_metrics_options[@]}" | jq '.data[0].totals.lines.percent')"
+        if (( $? != 0 )); then
+            exit 1
+        fi
 
         # Trim percentage to 4 decimal places.
         percentage="$(LC_NUMERIC=C printf "%.4f\n" "$percentage")"
+        if (( $? != 0 )); then
+            exit 1
+        fi
 
-        printf "%s %s\n" "$metrics_name" "$percentage" > "$target_dir/llvm-cov/coverage-metrics.txt"
+        printf "%s %s\n" "$metrics_name" "$percentage" > "$cargo_target_dir/llvm-cov/coverage-metrics.txt"
         printf "Test-coverage: %s%%\n" "$percentage"
     }
 
@@ -955,7 +1001,7 @@ create-coverage-report output_type="cobertura" mode="without-docs" metrics_name=
             # Options for creating cobertura coverage report with cargo-llvm-cov
             cargo_llvm_cov_options+=(
                 --cobertura
-                --output-path "$target_dir/llvm-cov/cobertura-coverage.xml"
+                --output-path "$cargo_target_dir/llvm-cov/cobertura-coverage.xml"
             )
             # Options for creating coverage report summary with cargo-llvm-cov
             cargo_llvm_cov_metrics_options+=(
@@ -973,7 +1019,7 @@ create-coverage-report output_type="cobertura" mode="without-docs" metrics_name=
             )
 
             create_report
-            printf '%s\n' "$target_dir/llvm-cov/html/index.html"
+            printf '%s\n' "$cargo_target_dir/llvm-cov/html/index.html"
         ;;
         *)
         printf 'Unknown output type "%s"' "$output_type" >&2
@@ -1176,7 +1222,10 @@ ci-publish:
         exit 1
     fi
 
-    current_member_version="$(just get-workspace-member-version "$crate" 2>/dev/null)"
+    current_member_version="$(just get-workspace-member-version "$crate")"
+    if (( $? != 0 )); then
+        exit 1
+    fi
     readonly current_member_version="$current_member_version"
     if [[ "$version" != "$current_member_version" ]]; then
         printf "Current version in metadata of crate %s (%s) does not match the version from the tag (%s)!\n" "$crate" "$current_member_version" "$version"
@@ -1241,6 +1290,9 @@ prepare-release package version="":
             )
             git-cliff "${cliff_bump_options[@]}"
             bumped_version="$(git-cliff "${cliff_common_options[@]}" --bumped-version)"
+            if (( $? != 0 )); then
+                exit 1
+            fi
 
             # git-cliff returns "package/version", but release-plz expects "package@version"
             release-plz set-version "${bumped_version%/*}@${bumped_version##*/}"
@@ -1260,6 +1312,9 @@ prepare-release package version="":
     cargo publish -p "$package_name" --dry-run --allow-dirty
 
     updated_package_version="$(just get-workspace-member-version "$package_name")"
+    if (( $? != 0 )); then
+        exit 1
+    fi
     readonly updated_package_version="$updated_package_version"
 
     if [[ -n "$package_version" ]]; then
@@ -1280,6 +1335,9 @@ release package:
     set -euo pipefail
 
     package_version="$(just get-workspace-member-version {{ package }})"
+    if (( $? != 0 )); then
+        exit 1
+    fi
     readonly package_version="$package_version"
     if [[ -z "$package_version" ]]; then
         exit 1
