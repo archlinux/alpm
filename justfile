@@ -130,7 +130,10 @@ install-alpm-package-set set:
         tangler
     )
     readonly check_spelling=(codespell)
-    readonly check_unused=(cargo-machete)
+    readonly check_unused=(
+        cargo-machete
+        jq
+    )
     readonly dev=(
         biome
         cargo-insta
