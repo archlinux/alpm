@@ -71,7 +71,8 @@ get-cargo-target-directory:
 # Gets names of all workspace members
 [private]
 get-workspace-members:
-    cargo metadata --format-version=1 |jq -r '.workspace_members[] | capture("/(?<name>[a-z-]+)#.*").name'
+    just ensure-command cargo jq
+    cargo metadata --format-version=1 | jq -r '.workspace_members[] | capture("/(?<name>[a-z-]+)#.*").name'
 
 # Gets metadata version of a workspace member
 [private]
