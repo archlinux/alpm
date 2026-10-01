@@ -46,12 +46,9 @@ pub enum Error {
     InvalidUTF8(#[from] FromUtf8Error),
 
     /// An [`alpm_parsers::custom_ini::Error`].
-    #[error("{msg}", msg = t!("error-deserialize", { "source" => source.to_string() }))]
-    Deserialization {
-        /// The deserialization error source.
-        #[from]
-        source: alpm_parsers::custom_ini::Error,
-    },
+    /// The deserialization error source.
+    #[error("{msg}", msg = t!("error-deserialize", { "source" => .0.to_string() }))]
+    Deserialization(#[from] alpm_parsers::custom_ini::Error),
 
     /// An extra data field specified without any value.
     #[error("{msg}", msg = t!("error-extra-data-empty"))]
@@ -62,7 +59,7 @@ pub enum Error {
     FirstExtraDataNotPkgType,
 
     /// An invalid enum variant
-    #[error("{msg}", msg = t!("error-invalid-variant", { "error" => 0.to_string() }))]
+    #[error("{msg}", msg = t!("error-invalid-variant", { "error" => .0.to_string() }))]
     InvalidVariant(#[from] strum::ParseError),
 
     /// Unsupported schema version.
