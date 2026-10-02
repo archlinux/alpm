@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-10-02
+
+### Added
+
+- Implement number conversions for `ZstdThreads`
+- Implement further number conversions from compression levels
+- Add optional serde support to types relevant for configurations
+
+### Fixed
+
+- *(deps)* Update Rust crate zstd to 0.14.0
+
 ## [0.1.3] - 2026-03-15
 
 ### Other
