@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.5] - 2026-10-02
+
+### Other
+
+- *(alpm-types)* Feature gate serde support
+- Gitlab issue links -> work_items
+
 ## [0.2.4] - 2026-03-15
 
 ### Other
