@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.2] - 2026-10-02
+
+### Added
+
+- Custom error type
+- Add `ParserUntil` and `ParserUntilInclusive` traits
+
+### Other
+
+- Guard integration and doc tests with the `serde` feature
+- *(alpm-types)* Feature gate serde support
+- Gitlab issue links -> work_items
+
 ## [0.4.1] - 2025-12-17
 
 ### Fixed
