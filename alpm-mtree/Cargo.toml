@@ -9,7 +9,7 @@ name = "alpm-mtree"
 readme = "README.md"
 repository.workspace = true
 rust-version.workspace = true
-version = "0.3.3"
+version = "0.3.4"
 
 [[bin]]
 name = "alpm-mtree"

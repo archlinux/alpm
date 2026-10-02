@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.4] - 2026-10-02
+
+### Added
+
+- *(deps)* Add `log` to list of default dependencies
+
+### Fixed
+
+- Remove requirement on `md5digest`
+- Remove `_` in checksum fields
+
+### Other
+
+- *(codespell)* Remove redundant inline ignore comment
+- Implement AlpmParser for various types
+
 ## [0.3.3] - 2026-03-16
 
 ### Other
