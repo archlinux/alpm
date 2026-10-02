@@ -324,7 +324,7 @@ dependencies = [
 
 [[package]]
 name = "alpm-soname"
-version = "0.4.2"
+version = "0.4.3"
 dependencies = [
  "alpm-compress",
  "alpm-mtree",

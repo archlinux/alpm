@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.3] - 2026-10-02
+
+### Fixed
+
+- *(soname)* More meaningful error message for testing
+
+### Other
+
+- Implement AlpmParser for soname types
+
 ## [0.4.2] - 2026-03-17
 
 ### Added
