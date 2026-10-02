@@ -36,9 +36,6 @@ pub(crate) fn test_files(
     file_type: TestFileFormat,
     repositories: Option<Vec<PackageRepositories>>,
 ) -> Result<(), Error> {
-    let repositories = PackageRepositories::iter()
-        .filter(|v| repositories.clone().is_none_or(|r| r.contains(v)))
-        .collect();
     let runner = TestRunner {
         cache_dir,
         file_type,

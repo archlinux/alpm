@@ -36,7 +36,10 @@ pub enum Command {
     TestFormat {
         /// Package repositories to test.
         ///
-        /// If not set, all official repositories are tested.
+        /// If set, tests are limited to the packages that are specified in the databases of these
+        /// repositories.
+        ///
+        /// If not set, all official repositories are tested, which for SRCINFO includes the AUR.
         #[arg(short, long)]
         repositories: Option<Vec<PackageRepositories>>,
 

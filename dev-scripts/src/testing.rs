@@ -1,14 +1,20 @@
 //! Tests against downloaded artifacts.
 
-use std::{collections::HashSet, fs::read_dir, path::PathBuf, str::FromStr};
+use std::{
+    collections::HashSet,
+    fs::{read_dir, read_to_string},
+    path::PathBuf,
+    str::FromStr,
+};
 
 use alpm_buildinfo::BuildInfo;
 use alpm_common::MetadataFile;
 use alpm_mtree::Mtree;
 use alpm_pkginfo::PackageInfo;
 use alpm_srcinfo::SourceInfo;
-use log::{debug, info};
+use log::{debug, info, warn};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
+use strum::IntoEnumIterator;
 use voa::{
     commands::{
         PurposeAndContext,
@@ -28,7 +34,7 @@ use crate::{
     Error,
     cli::TestFileFormat,
     consts::{AUR_DIR, DATABASES_DIR, DOWNLOAD_DIR, PACKAGES_DIR, PKGSRC_DIR},
-    sync::PackageRepositories,
+    sync::{PackageRepositories, filenames_in_dir},
     ui::get_progress_bar,
 };
 
@@ -90,10 +96,56 @@ pub struct TestRunner {
     /// The type of file that is targeted in the test.
     pub file_type: TestFileFormat,
     /// The list of repositories against which the test runs.
-    pub repositories: Vec<PackageRepositories>,
+    ///
+    /// If `None`, all official repositories are tested.
+    /// For [`TestFileFormat::Srcinfo`] this additionally includes AUR packages.
+    pub repositories: Option<Vec<PackageRepositories>>,
 }
 
 impl TestRunner {
+    /// Returns the repositories against which the test runs.
+    ///
+    /// Falls back to all official repositories if none were provided.
+    fn repositories(&self) -> Vec<PackageRepositories> {
+        self.repositories
+            .clone()
+            .unwrap_or_else(|| PackageRepositories::iter().collect())
+    }
+
+    /// Collects the pkgbase names of all packages in the downloaded databases of `repositories`.
+    ///
+    /// Databases that have not been downloaded are skipped.
+    /// The pkgbase of each package are read from their respective `desc` file.
+    fn pkgbases_in_databases(
+        &self,
+        repositories: &[PackageRepositories],
+    ) -> Result<HashSet<String>, Error> {
+        let mut pkgbases = HashSet::new();
+        for repo in repositories {
+            let dir = self
+                .cache_dir
+                .as_ref()
+                .join(DATABASES_DIR)
+                .join(repo.to_string());
+            if !dir.exists() {
+                warn!("The database for {repo} hasn't been downloaded yet, skipping.");
+                continue;
+            }
+            for pkg in filenames_in_dir(&dir)? {
+                let desc = dir.join(pkg).join("desc");
+                let content = read_to_string(&desc).map_err(|source| Error::IoPath {
+                    path: desc.clone(),
+                    context: "reading the desc file".to_string(),
+                    source,
+                })?;
+                if let Some(pkgbase) = content.lines().skip_while(|line| *line != "%BASE%").nth(1) {
+                    pkgbases.insert(pkgbase.to_string());
+                }
+            }
+        }
+        Ok(pkgbases)
+    }
+
     /// Run validation on all local test files that have been downloaded via the
     /// `test-files download` command.
     pub fn run_tests(&self) -> Result<(), Error> {
@@ -210,29 +262,34 @@ impl TestRunner {
         debug!("Searching for files of type {}", self.file_type);
 
         let mut files = Vec::new();
+        let repositories = self.repositories();
 
         // First up, determine which folders we should look at while searching for files.
         let type_folders = match self.file_type {
             // All package related file types are nested in the subdirectories of the respective
             // package's package repository.
-            TestFileFormat::Buildinfo | TestFileFormat::Pkginfo | TestFileFormat::MTree => self
-                .repositories
-                .iter()
-                .map(|repo| {
-                    self.cache_dir
-                        .as_ref()
-                        .join(PACKAGES_DIR)
-                        .join(repo.to_string())
-                })
-                .collect(),
-            TestFileFormat::Srcinfo => vec![
-                self.cache_dir.as_ref().join(PKGSRC_DIR),
-                self.cache_dir.as_ref().join(AUR_DIR),
-            ],
+            TestFileFormat::Buildinfo | TestFileFormat::Pkginfo | TestFileFormat::MTree => {
+                repositories
+                    .iter()
+                    .map(|repo| {
+                        self.cache_dir
+                            .as_ref()
+                            .join(PACKAGES_DIR)
+                            .join(repo.to_string())
+                    })
+                    .collect()
+            }
+            // AUR packages are only included if no repositories are provided.
+            TestFileFormat::Srcinfo => {
+                let mut dirs = vec![self.cache_dir.as_ref().join(PKGSRC_DIR)];
+                if self.repositories.is_none() {
+                    dirs.push(self.cache_dir.as_ref().join(AUR_DIR));
+                }
+                dirs
+            }
             // The `desc` and `files` file types are nested in the subdirectories of the respective
             // package's package repository.
-            TestFileFormat::RemoteDesc | TestFileFormat::RemoteFiles => self
-                .repositories
+            TestFileFormat::RemoteDesc | TestFileFormat::RemoteFiles => repositories
                 .iter()
                 .map(|repo| {
                     self.cache_dir
@@ -242,8 +299,7 @@ impl TestRunner {
                 })
                 .collect(),
             TestFileFormat::Signatures => {
-                let dirs: Vec<PathBuf> = self
-                    .repositories
+                let dirs: Vec<PathBuf> = repositories
                     .iter()
                     .map(|repo| {
                         self.cache_dir
@@ -265,6 +321,15 @@ impl TestRunner {
             }
         };
 
+        // If specific repositories are provided for checking, we have to only consider the .SRCINFO
+        // files of those repos.
+        let pkgbase_filter = match (self.file_type, &self.repositories) {
+            (TestFileFormat::Srcinfo, Some(repositories)) => {
+                Some(self.pkgbases_in_databases(repositories)?)
+            }
+            _ => None,
+        };
+
         for folder in type_folders {
             debug!("Looking for files in {folder:?}");
             if !folder.exists() {
@@ -284,6 +349,13 @@ impl TestRunner {
                     context: "reading an entry of the directory".to_string(),
                     source,
                 })?;
+
+                // Filter out .SRCINFO files for packages that aren't in the selected repos.
+                if pkgbase_filter.as_ref().is_some_and(|pkgbases| {
+                    !pkgbases.contains(&*pkg_folder.file_name().to_string_lossy())
+                }) {
+                    continue;
+                }
                 let file_path = pkg_folder.path().join(self.file_type.to_string());
                 if file_path.exists() {
                     files.push(file_path);
@@ -349,7 +421,6 @@ mod tests {
     };
 
     use rstest::rstest;
-    use strum::IntoEnumIterator;
     use testresult::TestResult;
 
     use super::*;
@@ -402,7 +473,7 @@ mod tests {
         let runner = TestRunner {
             cache_dir: CacheDir::from(tmp_dir.path().to_owned()),
             file_type,
-            repositories: PackageRepositories::iter().collect(),
+            repositories: Some(PackageRepositories::iter().collect()),
         };
         let found_files = HashSet::from_iter(runner.find_files_of_type()?.into_iter());
 
@@ -454,7 +525,7 @@ mod tests {
         let runner = TestRunner {
             cache_dir: CacheDir::from(tmp_dir.path().to_owned()),
             file_type,
-            repositories: PackageRepositories::iter().collect(),
+            repositories: Some(PackageRepositories::iter().collect()),
         };
         let found_files = HashSet::from_iter(runner.find_files_of_type()?.into_iter());
 
@@ -500,7 +571,7 @@ mod tests {
         let runner = TestRunner {
             cache_dir: CacheDir::from(tmp_dir.path().to_owned()),
             file_type,
-            repositories: PackageRepositories::iter().collect(),
+            repositories: None,
         };
         let found_files = HashSet::from_iter(runner.find_files_of_type()?.into_iter());
 
