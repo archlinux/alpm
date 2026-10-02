@@ -12,28 +12,56 @@ pub struct Cli {
     #[command(flatten)]
     pub verbose: clap_verbosity_flag::Verbosity,
 
+    #[arg(
+        help = "The directory to use for download and test artifacts",
+        long,
+        long_help = r#"The directory to use for download and test artifacts.
+
+If unset, defaults to "$XDG_CACHE_HOME/alpm/testing/".
+If "$XDG_CACHE_HOME" is unset, falls back to "~/.cache/alpm/testing/"."#,
+        short,
+        value_name = "DIR"
+    )]
+    pub cache_dir: Option<PathBuf>,
+
     #[clap(subcommand)]
     pub cmd: Command,
 }
 
 #[derive(Debug, Parser)]
 pub enum Command {
-    /// Tests file formats with real-world files from official repositories.
-    TestFiles {
+    /// Run tests against a specific file format.
+    ///
+    /// The required data needs to be downloaded up front using "dev-scripts test-files download".
+    TestFormat {
+        /// Package repositories to test.
+        ///
+        /// If not set, all official repositories are tested.
+        #[arg(short, long)]
+        repositories: Option<Vec<PackageRepositories>>,
+
+        /// The type of file that should be tested.
+        file_type: TestFileFormat,
+    },
+
+    /// Download/synchronize files for testing to this machine.
+    ///
+    /// Each type of file can be downloaded individually.
+    Download {
+        /// Package repositories to download.
+        ///
+        /// If not set, all official repositories are downloaded.
+        #[arg(short, long)]
+        repositories: Option<Vec<PackageRepositories>>,
+
         #[clap(subcommand)]
-        cmd: TestFilesCmd,
+        source: DownloadCmd,
+    },
 
-        #[arg(
-            help = "The directory to use for download and test artifacts",
-            long,
-            long_help = r#"The directory to use for download and test artifacts.
-
-If unset, defaults to "$XDG_CACHE_HOME/alpm/testing/".
-If "$XDG_CACHE_HOME" is unset, falls back to "~/.cache/alpm/testing/"."#,
-            short,
-            value_name = "DIR"
-        )]
-        cache_dir: Option<PathBuf>,
+    /// Remove or clean downloaded local testing files.
+    Clean {
+        #[clap(subcommand)]
+        target: CleanTarget,
     },
 
     /// Run the `alpm-pkgbuild srcinfo format` command on a PKGBUILD and compare its output with a
@@ -60,10 +88,10 @@ If "$XDG_CACHE_HOME" is unset, falls back to "~/.cache/alpm/testing/"."#,
 }
 
 #[derive(Clone, Copy, Debug, Eq, Parser, PartialEq, ValueEnum)]
-pub enum TestFileType {
-    BuildInfo,
-    SrcInfo,
-    PackageInfo,
+pub enum TestFileFormat {
+    Buildinfo,
+    Srcinfo,
+    Pkginfo,
     MTree,
     RemoteDesc,
     RemoteFiles,
@@ -72,15 +100,15 @@ pub enum TestFileType {
     Signatures,
 }
 
-impl Display for TestFileType {
+impl Display for TestFileFormat {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
             "{}",
             match self {
-                Self::BuildInfo => MetadataFileName::BuildInfo.as_ref(),
-                Self::PackageInfo => MetadataFileName::PackageInfo.as_ref(),
-                Self::SrcInfo => SRCINFO_FILE_NAME,
+                Self::Buildinfo => MetadataFileName::BuildInfo.as_ref(),
+                Self::Pkginfo => MetadataFileName::PackageInfo.as_ref(),
+                Self::Srcinfo => SRCINFO_FILE_NAME,
                 Self::MTree => MetadataFileName::Mtree.as_ref(),
                 Self::RemoteDesc | Self::LocalDesc => "desc",
                 Self::RemoteFiles | Self::LocalFiles => "files",
@@ -88,43 +116,6 @@ impl Display for TestFileType {
             }
         )
     }
-}
-
-#[derive(Debug, Parser)]
-pub enum TestFilesCmd {
-    /// Run tests against a specific file type.
-    ///
-    /// The required data needs to be downloaded up front using "dev-scripts test-files download".
-    Test {
-        /// Package repositories to test.
-        ///
-        /// If not set, all official repositories are tested.
-        #[arg(short, long)]
-        repositories: Option<Vec<PackageRepositories>>,
-
-        /// The type of file that should be tested.
-        file_type: TestFileType,
-    },
-
-    /// Download/synchronize files for testing to this machine.
-    ///
-    /// Each type of file can be downloaded individually.
-    Download {
-        /// Package repositories to download.
-        ///
-        /// If not set, all official repositories are downloaded.
-        #[arg(short, long)]
-        repositories: Option<Vec<PackageRepositories>>,
-
-        #[clap(subcommand)]
-        source: DownloadCmd,
-    },
-
-    /// Remove or clean downloaded local testing files.
-    Clean {
-        #[clap(subcommand)]
-        source: CleanCmd,
-    },
 }
 
 #[derive(Debug, Parser)]
@@ -190,7 +181,7 @@ pub enum DownloadCmd {
 }
 
 #[derive(Debug, Parser)]
-pub enum CleanCmd {
+pub enum CleanTarget {
     /// Remove all package source repositories and .SRCINFO files
     PkgSrcRepositories,
 

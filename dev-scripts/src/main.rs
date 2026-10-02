@@ -8,7 +8,8 @@ use simplelog::{Config, SimpleLogger};
 
 use crate::{
     cache::CacheDir,
-    commands::{compare_source_info, test_files},
+    cli::Command,
+    commands::{clean_files, compare_source_info, download_files, test_files},
     error::Error,
 };
 
@@ -27,20 +28,26 @@ fn run_command() -> Result<(), Error> {
     let cli = Cli::parse();
     SimpleLogger::init(cli.verbose.log_level_filter(), Config::default())?;
 
-    match cli.cmd {
-        cli::Command::TestFiles { cmd, cache_dir } => {
-            let cache_dir = if let Some(path) = cache_dir {
-                CacheDir::from(path)
-            } else {
-                CacheDir::from_xdg()?
-            };
+    let cache_dir = if let Some(path) = cli.cache_dir {
+        CacheDir::from(path)
+    } else {
+        CacheDir::from_xdg()?
+    };
 
-            test_files(cmd, cache_dir)
-        }
-        cli::Command::CompareSrcinfo {
+    match cli.cmd {
+        Command::CompareSrcinfo {
             pkgbuild_path,
             srcinfo_path,
         } => compare_source_info(pkgbuild_path, srcinfo_path),
+        Command::TestFormat {
+            repositories,
+            file_type,
+        } => test_files(cache_dir, file_type, repositories),
+        Command::Download {
+            repositories,
+            source,
+        } => download_files(cache_dir, source, repositories),
+        Command::Clean { target } => clean_files(target, cache_dir),
     }
 }
 

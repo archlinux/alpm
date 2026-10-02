@@ -13,7 +13,7 @@ use strum::IntoEnumIterator;
 use crate::{
     CacheDir,
     Error,
-    cli::{CleanCmd, DownloadCmd, TestFilesCmd},
+    cli::{CleanTarget, DownloadCmd, TestFileFormat},
     consts::{DATABASES_DIR, DOWNLOAD_DIR, PACKAGES_DIR, PKGSRC_DIR},
     sync::{
         PackageRepositories,
@@ -24,102 +24,108 @@ use crate::{
     testing::TestRunner,
 };
 
-/// Entry point for testing file handling binaries for official ArchLinux packages, source
-/// repositories and databases.
+/// Runs tests for a specific type of testing file format handling binaries for official ArchLinux
+/// packages, source repositories and databases.
 ///
 /// This function relegates to functions that:
 /// - Download packages.
 /// - Test file parsers on all files.
 /// - Clean up downloaded files.
-pub(crate) fn test_files(cmd: TestFilesCmd, cache_dir: CacheDir) -> Result<(), Error> {
-    match cmd {
-        TestFilesCmd::Test {
-            repositories,
-            file_type,
+pub(crate) fn test_files(
+    cache_dir: CacheDir,
+    file_type: TestFileFormat,
+    repositories: Option<Vec<PackageRepositories>>,
+) -> Result<(), Error> {
+    let repositories = PackageRepositories::iter()
+        .filter(|v| repositories.clone().is_none_or(|r| r.contains(v)))
+        .collect();
+    let runner = TestRunner {
+        cache_dir,
+        file_type,
+        repositories,
+    };
+    runner.run_tests()?;
+
+    Ok(())
+}
+
+/// Downloads a specific type of testing file source
+pub(crate) fn download_files(
+    cache_dir: CacheDir,
+    source: DownloadCmd,
+    repositories: Option<Vec<PackageRepositories>>,
+) -> Result<(), Error> {
+    let repositories = PackageRepositories::iter()
+        .filter(|v| repositories.clone().is_none_or(|r| r.contains(v)))
+        .collect();
+
+    match source {
+        DownloadCmd::PkgSrcRepositories {} => {
+            let downloader = PkgSrcDownloader { cache_dir };
+            downloader.download_package_source_repositories()?;
+        }
+        DownloadCmd::Aur {} => {
+            let downloader = AurDownloader { cache_dir };
+            downloader.download_packages()?;
+        }
+        DownloadCmd::Databases {
+            mirror,
+            force_extract,
         } => {
-            let repositories = PackageRepositories::iter()
-                .filter(|v| repositories.clone().is_none_or(|r| r.contains(v)))
-                .collect();
-            let runner = TestRunner {
+            let downloader = MirrorDownloader {
                 cache_dir,
-                file_type,
+                mirror,
                 repositories,
+                extract_all: force_extract,
             };
-            runner.run_tests()?;
+            warn!(
+                "Beginning database retrieval\nIf the process is unexpectedly halted, rerun with `--force-extract` flag"
+            );
+            downloader.sync_remote_databases()?;
         }
-        TestFilesCmd::Download {
-            repositories,
-            source,
+        DownloadCmd::Packages {
+            mirror,
+            force_extract,
         } => {
-            let repositories = PackageRepositories::iter()
-                .filter(|v| repositories.clone().is_none_or(|r| r.contains(v)))
-                .collect();
-
-            match source {
-                DownloadCmd::PkgSrcRepositories {} => {
-                    let downloader = PkgSrcDownloader { cache_dir };
-                    downloader.download_package_source_repositories()?;
-                }
-                DownloadCmd::Aur {} => {
-                    let downloader = AurDownloader { cache_dir };
-                    downloader.download_packages()?;
-                }
-                DownloadCmd::Databases {
-                    mirror,
-                    force_extract,
-                } => {
-                    let downloader = MirrorDownloader {
-                        cache_dir,
-                        mirror,
-                        repositories,
-                        extract_all: force_extract,
-                    };
-                    warn!(
-                        "Beginning database retrieval\nIf the process is unexpectedly halted, rerun with `--force-extract` flag"
-                    );
-                    downloader.sync_remote_databases()?;
-                }
-                DownloadCmd::Packages {
-                    mirror,
-                    force_extract,
-                } => {
-                    let downloader = MirrorDownloader {
-                        cache_dir,
-                        mirror,
-                        repositories,
-                        extract_all: force_extract,
-                    };
-                    warn!(
-                        "Beginning package retrieval\nIf the process is unexpectedly halted, rerun with `--force-extract` flag"
-                    );
-                    downloader.sync_remote_packages()?;
-                }
+            let downloader = MirrorDownloader {
+                cache_dir,
+                mirror,
+                repositories,
+                extract_all: force_extract,
             };
+            warn!(
+                "Beginning package retrieval\nIf the process is unexpectedly halted, rerun with `--force-extract` flag"
+            );
+            downloader.sync_remote_packages()?;
         }
-        TestFilesCmd::Clean { source } => {
-            let dirs = match source {
-                CleanCmd::PkgSrcRepositories => [
-                    cache_dir.as_ref().join(DOWNLOAD_DIR).join(PKGSRC_DIR),
-                    cache_dir.as_ref().join(PKGSRC_DIR),
-                ],
-                CleanCmd::Databases => [
-                    cache_dir.as_ref().join(DOWNLOAD_DIR).join(DATABASES_DIR),
-                    cache_dir.as_ref().join(DATABASES_DIR),
-                ],
-                CleanCmd::Packages => [
-                    cache_dir.as_ref().join(DOWNLOAD_DIR).join(PACKAGES_DIR),
-                    cache_dir.as_ref().join(PACKAGES_DIR),
-                ],
-            };
+    }
 
-            for dir in dirs {
-                remove_dir_all(&dir).map_err(|source| Error::IoPath {
-                    path: dir,
-                    context: "recursively deleting the directory".to_string(),
-                    source,
-                })?;
-            }
-        }
+    Ok(())
+}
+
+/// Cleans up a specific type of test files.
+pub(crate) fn clean_files(target: CleanTarget, cache_dir: CacheDir) -> Result<(), Error> {
+    let dirs = match target {
+        CleanTarget::PkgSrcRepositories => [
+            cache_dir.as_ref().join(DOWNLOAD_DIR).join(PKGSRC_DIR),
+            cache_dir.as_ref().join(PKGSRC_DIR),
+        ],
+        CleanTarget::Databases => [
+            cache_dir.as_ref().join(DOWNLOAD_DIR).join(DATABASES_DIR),
+            cache_dir.as_ref().join(DATABASES_DIR),
+        ],
+        CleanTarget::Packages => [
+            cache_dir.as_ref().join(DOWNLOAD_DIR).join(PACKAGES_DIR),
+            cache_dir.as_ref().join(PACKAGES_DIR),
+        ],
+    };
+
+    for dir in dirs {
+        remove_dir_all(&dir).map_err(|source| Error::IoPath {
+            path: dir,
+            context: "recursively deleting the directory".to_string(),
+            source,
+        })?;
     }
 
     Ok(())

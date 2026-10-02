@@ -26,7 +26,7 @@ use voa::{
 use crate::{
     CacheDir,
     Error,
-    cli::TestFileType,
+    cli::TestFileFormat,
     consts::{AUR_DIR, DATABASES_DIR, DOWNLOAD_DIR, PACKAGES_DIR, PKGSRC_DIR},
     sync::PackageRepositories,
     ui::get_progress_bar,
@@ -88,7 +88,7 @@ pub struct TestRunner {
     /// The directory in which test data is stored.
     pub cache_dir: CacheDir,
     /// The type of file that is targeted in the test.
-    pub file_type: TestFileType,
+    pub file_type: TestFileFormat,
     /// The list of repositories against which the test runs.
     pub repositories: Vec<PackageRepositories>,
 }
@@ -108,7 +108,8 @@ impl TestRunner {
         // speed.
         let os = Os::from_str("arch").map_err(voa::Error::VoaCore)?;
 
-        let (artifact_verifiers, anchors) = if matches!(self.file_type, TestFileType::Signatures) {
+        let (artifact_verifiers, anchors) = if matches!(self.file_type, TestFileFormat::Signatures)
+        {
             let artifact_verifiers = read_openpgp_verifiers(
                 os.clone(),
                 Purpose::from_str("package").map_err(voa::Error::VoaCore)?,
@@ -142,23 +143,23 @@ impl TestRunner {
             .into_par_iter()
             .map(|file| {
                 let result = match self.file_type {
-                    TestFileType::BuildInfo => BuildInfo::from_file_with_schema(&file, None)
+                    TestFileFormat::Buildinfo => BuildInfo::from_file_with_schema(&file, None)
                         .map(|_| ())
                         .map_err(|err| err.into()),
-                    TestFileType::SrcInfo => SourceInfo::from_file_with_schema(&file, None)
+                    TestFileFormat::Srcinfo => SourceInfo::from_file_with_schema(&file, None)
                         .map(|_| ())
                         .map_err(|err| err.into()),
-                    TestFileType::MTree => Mtree::from_file_with_schema(&file, None)
+                    TestFileFormat::MTree => Mtree::from_file_with_schema(&file, None)
                         .map(|_| ())
                         .map_err(|err| err.into()),
-                    TestFileType::PackageInfo => PackageInfo::from_file_with_schema(&file, None)
+                    TestFileFormat::Pkginfo => PackageInfo::from_file_with_schema(&file, None)
                         .map(|_| ())
                         .map_err(|err| err.into()),
-                    TestFileType::RemoteDesc => unimplemented!(),
-                    TestFileType::RemoteFiles => unimplemented!(),
-                    TestFileType::LocalDesc => unimplemented!(),
-                    TestFileType::LocalFiles => unimplemented!(),
-                    TestFileType::Signatures => {
+                    TestFileFormat::RemoteDesc => unimplemented!(),
+                    TestFileFormat::RemoteFiles => unimplemented!(),
+                    TestFileFormat::LocalDesc => unimplemented!(),
+                    TestFileFormat::LocalFiles => unimplemented!(),
+                    TestFileFormat::Signatures => {
                         let data = {
                             let mut data = file.clone();
                             data.set_extension("");
@@ -214,7 +215,7 @@ impl TestRunner {
         let type_folders = match self.file_type {
             // All package related file types are nested in the subdirectories of the respective
             // package's package repository.
-            TestFileType::BuildInfo | TestFileType::PackageInfo | TestFileType::MTree => self
+            TestFileFormat::Buildinfo | TestFileFormat::Pkginfo | TestFileFormat::MTree => self
                 .repositories
                 .iter()
                 .map(|repo| {
@@ -224,13 +225,13 @@ impl TestRunner {
                         .join(repo.to_string())
                 })
                 .collect(),
-            TestFileType::SrcInfo => vec![
+            TestFileFormat::Srcinfo => vec![
                 self.cache_dir.as_ref().join(PKGSRC_DIR),
                 self.cache_dir.as_ref().join(AUR_DIR),
             ],
             // The `desc` and `files` file types are nested in the subdirectories of the respective
             // package's package repository.
-            TestFileType::RemoteDesc | TestFileType::RemoteFiles => self
+            TestFileFormat::RemoteDesc | TestFileFormat::RemoteFiles => self
                 .repositories
                 .iter()
                 .map(|repo| {
@@ -240,7 +241,7 @@ impl TestRunner {
                         .join(repo.to_string())
                 })
                 .collect(),
-            TestFileType::Signatures => {
+            TestFileFormat::Signatures => {
                 let dirs: Vec<PathBuf> = self
                     .repositories
                     .iter()
@@ -256,10 +257,10 @@ impl TestRunner {
                 // We return early because we are collecting files based on extension.
                 return files_in_dirs_by_extension(
                     dirs.as_slice(),
-                    &TestFileType::Signatures.to_string(),
+                    &TestFileFormat::Signatures.to_string(),
                 );
             }
-            TestFileType::LocalDesc | TestFileType::LocalFiles => {
+            TestFileFormat::LocalDesc | TestFileFormat::LocalFiles => {
                 unimplemented!();
             }
         };
@@ -364,10 +365,10 @@ mod tests {
     /// sub-subdirectories if the directory structure is:
     /// `target-dir/packages/${pacman-repo}/${package-name}`
     #[rstest]
-    #[case(TestFileType::BuildInfo)]
-    #[case(TestFileType::PackageInfo)]
-    #[case(TestFileType::MTree)]
-    fn test_find_files_for_packages(#[case] file_type: TestFileType) -> TestResult {
+    #[case(TestFileFormat::Buildinfo)]
+    #[case(TestFileFormat::Pkginfo)]
+    #[case(TestFileFormat::MTree)]
+    fn test_find_files_for_packages(#[case] file_type: TestFileFormat) -> TestResult {
         // Create a temporary directory for testing.
         let tmp_dir = tempfile::tempdir()?;
         let packages_dir = tmp_dir.path().join(PACKAGES_DIR);
@@ -417,9 +418,9 @@ mod tests {
     /// sub-subdirectories if the directory structure is:
     /// `target-dir/databases/${pacman-repo}/${package-name}`
     #[rstest]
-    #[case(TestFileType::RemoteFiles)]
-    #[case(TestFileType::RemoteDesc)]
-    fn test_find_files_for_databases(#[case] file_type: TestFileType) -> TestResult {
+    #[case(TestFileFormat::RemoteFiles)]
+    #[case(TestFileFormat::RemoteDesc)]
+    fn test_find_files_for_databases(#[case] file_type: TestFileFormat) -> TestResult {
         // Create a temporary directory for testing.
         let tmp_dir = tempfile::tempdir()?;
         let databases_dir = tmp_dir.path().join(DATABASES_DIR);
@@ -469,8 +470,8 @@ mod tests {
     /// sub-subdirectories if the directory structure is:
     /// `target-dir/pkgsrc/${package-name}`
     #[rstest]
-    #[case(TestFileType::SrcInfo)]
-    fn test_find_files_for_pkgsrc(#[case] file_type: TestFileType) -> TestResult {
+    #[case(TestFileFormat::Srcinfo)]
+    fn test_find_files_for_pkgsrc(#[case] file_type: TestFileFormat) -> TestResult {
         // Create a temporary directory for testing.
         let tmp_dir = tempfile::tempdir()?;
         let pkgsrc_dir = tmp_dir.path().join(PKGSRC_DIR);
