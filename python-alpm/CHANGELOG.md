@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-10-02
+
+### Added
+
+- Add loong64 arch
+- Re-enable SBOM creation for Python wheel
+
+### Fixed
+
+- *(deps)* Update Rust crate pyo3 to v0.29.0
+- Allow explicit zero in epoch
+
+### Other
+
+- Gitlab issue links -> work_items
+- *(deps)* Update dependency pytest to >=9,<9.2
+- *(deps)* Update dependency mypy to v2
+- *(deps)* Update dependency mypy to >=2.2,<2.3
+- *(deps)* Update dependency mypy to >=2.3,<2.4
+- *(deps)* Update dependency ruff to >=0.16,<0.17
+- Apply new ruff formatting
+- *(deps)* Update dependency mypy to >=2.4,<2.5
+
 ## [0.4.3] - 2026-03-17
 
 ### Other
