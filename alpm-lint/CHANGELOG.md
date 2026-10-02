@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.3] - 2026-10-02
+
+### Added
+
+- *(lint)* Add lint for SRCINFO field lengths
+- *(lint)* Add prerequisites for testing SRCINFO field length lints
+
+### Fixed
+
+- Guard the use of `clap` with the `cli` feature
+- Guard use of `serde` and `serde_json` with the `serde` feature
+- *(deps)* Update Rust crate documented to 0.10.0
+
+### Other
+
+- *(lint)* Add tests for SRCINFO field length lints
+- Use AlpmParser traits wherever possible
+- Gitlab issue links -> work_items
+
 ## [0.3.2] - 2026-03-17
 
 ### Other
