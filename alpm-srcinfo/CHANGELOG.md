@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.4] - 2026-10-02
+
+### Added
+
+- Custom error type
+
+### Other
+
+- Use AlpmParser traits wherever possible
+- Implement AlpmParser for PackageRelation
+- Implement AlpmParser for OptionalDependency
+- Implement AlpmParser for various types
+- Implement ParserUntil for Name
+- Bump MSRV to 1.95
+- Gitlab issue links -> work_items
+
 ## [0.6.3] - 2026-03-17
 
 ### Other
