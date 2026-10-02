@@ -301,7 +301,7 @@ version = "0.1.0"
 
 [[package]]
 name = "alpm-repo-db"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "alpm-common",
  "alpm-parsers",
