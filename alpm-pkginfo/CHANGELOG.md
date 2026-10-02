@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.3] - 2026-10-02
+
+### Added
+
+- *(deps)* Depend on the `serde` feature of `alpm-parsers`
+
+### Other
+
+- Fix new Rust v1.99 lints
+
 ## [0.6.2] - 2026-03-16
 
 ### Other
