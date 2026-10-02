@@ -7,6 +7,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-10-02
+
+### Added
+
+- Custom error type
+- Add streaming hasher function
+- Add loong64 arch
+
+### Fixed
+
+- Incorrect json serialization of x86_64_vX variants
+- Deserialize string types using FromStr
+- Remove unnecessary serde untagged
+- *(alpm-types)* Hide internal feature flag
+- *(deps)* Update Rust crate base64 to 0.23.0
+- Remove useless borrows in formatting
+- Allow explicit zero in epoch
+
+### Other
+
+- Bump digest ecosystem
+- Use crc-rs crc-32 hasher
+- Use calculate_from_reader
+- *(alpm-types)* Feature gate serde support
+- Use AlpmParser traits wherever possible
+- Implement ParserUntil for ExtraDataEntry
+- Implement AlpmParser for PackageType
+- Implement AlpmParser for PackageFileName
+- Implement AlpmParser for PackageValidation
+- Implement AlpmParser for FileTypeIdentifier
+- Implement AlpmParser for makepkg options
+- Implement AlpmParser for CompressionAlgorithmFileExtension
+- Implement AlpmParser for PackageRelation
+- Implement AlpmParser for InstalledPackage
+- Implement AlpmParser for OptionalDependency
+- Implement AlpmParser for soname types
+- Implement AlpmParser for various types
+- Implement ParserUntil for Name
+- Fix winnow imports
+- Use insta for top-module error snapshot tests
+- Use insta for relation error snapshot tests
+- Use insta for version error snapshot tests
+- *(deps)* Update Rust crate winnow to v1
+
 ## [0.11.2] - 2026-03-15
 
 ### Fixed

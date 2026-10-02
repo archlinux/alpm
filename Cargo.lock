@@ -378,7 +378,7 @@ version = "0.1.0"
 
 [[package]]
 name = "alpm-types"
-version = "0.11.2"
+version = "0.12.0"
 dependencies = [
  "alpm-parsers",
  "base64 0.23.1",
