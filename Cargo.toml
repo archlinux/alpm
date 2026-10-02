@@ -37,7 +37,7 @@ members = [
 resolver = "3"
 
 [workspace.dependencies]
-alpm-buildinfo = { path = "./alpm-buildinfo", version = "0.5.3" }
+alpm-buildinfo = { path = "./alpm-buildinfo", version = "0.5.4" }
 alpm-common = { path = "./alpm-common", version = "0.2.2" }
 alpm-compress = { path = "./alpm-compress", version = "0.1.4" }
 alpm-lint-config = { path = "./alpm-lint-config", version = "0.1.2" }
