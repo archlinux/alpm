@@ -129,7 +129,7 @@ dependencies = [
 
 [[package]]
 name = "alpm-db"
-version = "0.2.2"
+version = "0.2.3"
 dependencies = [
  "alpm-common",
  "alpm-parsers",

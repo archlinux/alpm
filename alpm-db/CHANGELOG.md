@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.3] - 2026-10-02
+
+### Added
+
+- Custom error type
+
+### Other
+
+- Move alpm-db desc inline tests to insta integration tests
+- Move alpm-db files inline tests to insta integration tests
+- Consistent test file structure for alpm-db
+- Parsers in alpm-repo-db and alpm-db
+- Implement AlpmParser for various types
+- Fix winnow imports
+- Bump MSRV to 1.95
+
 ## [0.2.2] - 2026-03-15
 
 ### Other
