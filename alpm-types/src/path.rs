@@ -255,6 +255,13 @@ impl RelativeFilePath {
     }
 }
 
+impl AsRef<Path> for RelativeFilePath {
+    /// Returns a reference to the inner [`Path`].
+    fn as_ref(&self) -> &Path {
+        &self.0
+    }
+}
+
 impl FromStr for RelativeFilePath {
     type Err = Error;
 
