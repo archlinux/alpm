@@ -69,7 +69,7 @@ impl Url {
 
 impl AsRef<str> for Url {
     fn as_ref(&self) -> &str {
-        self.as_str()
+        self.0.as_str()
     }
 }
 
