@@ -43,13 +43,6 @@ impl AsRef<SchemaVersion> for MtreeSchema {
 impl FileFormatSchema for MtreeSchema {
     type Err = Error;
 
-    /// Returns a reference to the inner [`SchemaVersion`].
-    fn inner(&self) -> &SchemaVersion {
-        match self {
-            MtreeSchema::V1(v) | MtreeSchema::V2(v) => v,
-        }
-    }
-
     /// Derives an [`MtreeSchema`] from an ALPM-MTREE file.
     ///
     /// Opens the `file` and defers to [`MtreeSchema::derive_from_reader`].

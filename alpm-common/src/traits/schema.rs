@@ -14,9 +14,6 @@ pub trait FileFormatSchema: AsRef<SchemaVersion> {
     /// The Error type to use.
     type Err;
 
-    /// Returns the reference to an inner [`SchemaVersion`].
-    fn inner(&self) -> &SchemaVersion;
-
     /// Derives [`Self`] from a `file`.
     ///
     /// # Note

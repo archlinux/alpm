@@ -40,13 +40,6 @@ impl AsRef<SchemaVersion> for SourceInfoSchema {
 impl FileFormatSchema for SourceInfoSchema {
     type Err = Error;
 
-    /// Returns a reference to the inner [`SchemaVersion`].
-    fn inner(&self) -> &SchemaVersion {
-        match self {
-            SourceInfoSchema::V1(v) => v,
-        }
-    }
-
     /// Derives a [`SourceInfoSchema`] from a SRCINFO file.
     ///
     /// Opens the `file` and defers to [`SourceInfoSchema::derive_from_reader`].

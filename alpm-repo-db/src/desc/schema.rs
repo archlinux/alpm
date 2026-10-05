@@ -46,14 +46,6 @@ impl AsRef<SchemaVersion> for RepoDescSchema {
 impl FileFormatSchema for RepoDescSchema {
     type Err = Error;
 
-    /// Returns a reference to the inner [`SchemaVersion`].
-    fn inner(&self) -> &SchemaVersion {
-        match self {
-            RepoDescSchema::V1(v) => v,
-            RepoDescSchema::V2(v) => v,
-        }
-    }
-
     /// Derives a [`RepoDescSchema`] from an [alpm-repo-desc] file on disk.
     ///
     /// Opens the `file` and defers to [`RepoDescSchema::derive_from_reader`].

@@ -44,13 +44,6 @@ impl AsRef<SchemaVersion> for PackageInfoSchema {
 impl FileFormatSchema for PackageInfoSchema {
     type Err = Error;
 
-    /// Returns a reference to the inner [`SchemaVersion`].
-    fn inner(&self) -> &SchemaVersion {
-        match self {
-            PackageInfoSchema::V1(v) | PackageInfoSchema::V2(v) => v,
-        }
-    }
-
     /// Derives a [`PackageInfoSchema`] from a PKGINFO file.
     ///
     /// Opens the `file` and defers to [`PackageInfoSchema::derive_from_reader`].

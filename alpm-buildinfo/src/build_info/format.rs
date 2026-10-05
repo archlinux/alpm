@@ -1,4 +1,3 @@
-use alpm_common::FileFormatSchema;
 use alpm_types::SchemaVersion;
 use serde_with::{DisplayFromStr, serde_as};
 
@@ -14,6 +13,6 @@ pub(crate) struct BuildInfoFormat {
 
 impl From<BuildInfoFormat> for SchemaVersion {
     fn from(format: BuildInfoFormat) -> Self {
-        format.format.inner().clone()
+        format.format.as_ref().clone()
     }
 }

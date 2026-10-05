@@ -39,14 +39,6 @@ impl AsRef<SchemaVersion> for BuildInfoSchema {
 impl FileFormatSchema for BuildInfoSchema {
     type Err = Error;
 
-    /// Returns the schema version
-    fn inner(&self) -> &SchemaVersion {
-        match self {
-            BuildInfoSchema::V1(v) => v,
-            BuildInfoSchema::V2(v) => v,
-        }
-    }
-
     /// Derives a [`BuildInfoSchema`] from a BUILDINFO file.
     ///
     /// Opens the `file` and defers to [`BuildInfoSchema::derive_from_reader`].

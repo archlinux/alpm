@@ -33,13 +33,6 @@ impl AsRef<SchemaVersion> for DbFilesSchema {
 impl FileFormatSchema for DbFilesSchema {
     type Err = Error;
 
-    /// Returns a reference to the inner [`SchemaVersion`].
-    fn inner(&self) -> &SchemaVersion {
-        match self {
-            DbFilesSchema::V1(v) => v,
-        }
-    }
-
     /// Creates a new [`DbFilesSchema`] from a file [`Path`].
     ///
     /// # Note
@@ -268,12 +261,12 @@ usr/bin/foo"#;
         Ok(())
     }
 
-    /// Ensures that [`DbFilesSchema::inner`] returns the correct schema.
+    /// Ensures that [`DbFilesSchema::as_ref`] returns the correct schema version.
     #[test]
     fn files_schema_inner() {
         let schema_version = SchemaVersion::new(Version::new(1, 0, 0));
         let schema = DbFilesSchema::V1(schema_version.clone());
-        assert_eq!(schema.inner(), &schema_version)
+        assert_eq!(schema.as_ref(), &schema_version)
     }
 
     /// Ensures that [`DbFilesSchema::V1`] is the default.

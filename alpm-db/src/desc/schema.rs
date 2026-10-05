@@ -46,14 +46,6 @@ impl AsRef<SchemaVersion> for DbDescSchema {
 impl FileFormatSchema for DbDescSchema {
     type Err = Error;
 
-    /// Returns a reference to the inner [`SchemaVersion`].
-    fn inner(&self) -> &SchemaVersion {
-        match self {
-            DbDescSchema::V1(v) => v,
-            DbDescSchema::V2(v) => v,
-        }
-    }
-
     /// Derives a [`DbDescSchema`] from an [alpm-db-desc] file on disk.
     ///
     /// Opens the `file` and defers to [`DbDescSchema::derive_from_reader`].

@@ -33,13 +33,6 @@ impl AsRef<SchemaVersion> for RepoFilesSchema {
 impl FileFormatSchema for RepoFilesSchema {
     type Err = Error;
 
-    /// Returns a reference to the inner [`SchemaVersion`].
-    fn inner(&self) -> &SchemaVersion {
-        match self {
-            RepoFilesSchema::V1(v) => v,
-        }
-    }
-
     /// Creates a new [`RepoFilesSchema`] from a file [`Path`].
     ///
     /// # Note
@@ -244,12 +237,12 @@ usr/bin/foo
         Ok(())
     }
 
-    /// Ensures that [`RepoFilesSchema::inner`] returns the correct schema.
+    /// Ensures that [`RepoFilesSchema::as_ref`] returns the correct schema version.
     #[test]
     fn files_schema_inner() {
         let schema_version = SchemaVersion::new(Version::new(1, 0, 0));
         let schema = RepoFilesSchema::V1(schema_version.clone());
-        assert_eq!(schema.inner(), &schema_version)
+        assert_eq!(schema.as_ref(), &schema_version)
     }
 
     /// Ensures that [`RepoFilesSchema::V1`] is the default.
