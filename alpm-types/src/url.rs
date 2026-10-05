@@ -53,7 +53,7 @@ impl Url {
 
     /// Returns a reference to the inner `url::Url` as a `&str`.
     pub fn as_str(&self) -> &str {
-        self.0.as_str()
+        AsRef::<str>::as_ref(self)
     }
 
     /// Consumes the `Url` and returns the inner `url::Url`.
@@ -101,7 +101,7 @@ impl FromStr for Url {
 
 impl Display for Url {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.as_str())
+        write!(f, "{}", self.0)
     }
 }
 
@@ -199,7 +199,7 @@ impl Display for SourceUrl {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         // If there's no vcs info, print the URL and return.
         let Some(vcs_info) = &self.vcs_info else {
-            return write!(f, "{}", self.url.as_str());
+            return write!(f, "{}", self.url);
         };
 
         let mut prefix = None;
