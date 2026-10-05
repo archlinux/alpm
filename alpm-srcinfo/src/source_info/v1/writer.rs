@@ -66,7 +66,7 @@ fn push_value_list<T: ToString>(key: &str, values: &Vec<T>, output: &mut String)
 /// [SRCINFO]: https://alpm.archlinux.page/specifications/SRCINFO.5.html
 /// [makepkg]: https://man.archlinux.org/man/makepkg.8
 pub(crate) fn pkgbase_section(base: &PackageBase, output: &mut String) {
-    push_section("pkgbase", base.name.inner(), output);
+    push_section("pkgbase", base.name.as_ref(), output);
 
     if let Some(description) = &base.description {
         push_key_value("pkgdesc", description.as_ref(), output);
@@ -272,7 +272,7 @@ pub(crate) fn pkgname_section(
     base_architectures: &Architectures,
     output: &mut String,
 ) {
-    push_section("pkgname", package.name.inner(), output);
+    push_section("pkgname", package.name.as_ref(), output);
 
     push_override_value("pkgdesc", &package.description, output);
     push_override_value("url", &package.url, output);

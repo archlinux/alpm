@@ -54,7 +54,7 @@ mod create {
 
         let srcinfo = SourceInfoV1::from_string(&output)?;
 
-        assert_eq!(srcinfo.base.name.inner(), "example");
+        assert_eq!(srcinfo.base.name.as_ref(), "example");
 
         Ok(())
     }

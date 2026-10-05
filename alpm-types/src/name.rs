@@ -145,11 +145,6 @@ impl Name {
     pub fn new(name: &str) -> Result<Self, Error> {
         Self::from_str(name)
     }
-
-    /// Return a reference to the inner type
-    pub fn inner(&self) -> &str {
-        &self.0
-    }
 }
 
 impl Name {
@@ -302,7 +297,7 @@ impl FromStr for Name {
 
 impl Display for Name {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
-        write!(fmt, "{}", self.inner())
+        write!(fmt, "{}", self.as_ref())
     }
 }
 
