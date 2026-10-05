@@ -89,6 +89,13 @@ impl BuildTool {
     }
 }
 
+impl AsRef<Name> for BuildTool {
+    /// Returns a reference to the inner [`Name`].
+    fn as_ref(&self) -> &Name {
+        &self.0
+    }
+}
+
 impl FromStr for BuildTool {
     type Err = Error;
     /// Create a BuildTool from a string
