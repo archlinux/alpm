@@ -344,6 +344,13 @@ impl Basename {
     }
 }
 
+impl AsRef<Path> for Basename {
+    /// Returns a reference to the inner [`Path`].
+    fn as_ref(&self) -> &Path {
+        &self.0
+    }
+}
+
 impl FromStr for Basename {
     type Err = Error;
 
