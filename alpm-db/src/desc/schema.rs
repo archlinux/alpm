@@ -33,6 +33,16 @@ pub enum DbDescSchema {
     V2(SchemaVersion),
 }
 
+impl AsRef<SchemaVersion> for DbDescSchema {
+    /// Returns a reference to the targeted [`SchemaVersion`].
+    fn as_ref(&self) -> &SchemaVersion {
+        match self {
+            DbDescSchema::V1(v) => v,
+            DbDescSchema::V2(v) => v,
+        }
+    }
+}
+
 impl FileFormatSchema for DbDescSchema {
     type Err = Error;
 

@@ -31,6 +31,15 @@ pub enum MtreeSchema {
     V2(SchemaVersion),
 }
 
+impl AsRef<SchemaVersion> for MtreeSchema {
+    /// Returns a reference to the targeted [`SchemaVersion`].
+    fn as_ref(&self) -> &SchemaVersion {
+        match self {
+            MtreeSchema::V1(v) | MtreeSchema::V2(v) => v,
+        }
+    }
+}
+
 impl FileFormatSchema for MtreeSchema {
     type Err = Error;
 

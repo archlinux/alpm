@@ -26,6 +26,16 @@ pub enum BuildInfoSchema {
     V2(SchemaVersion),
 }
 
+impl AsRef<SchemaVersion> for BuildInfoSchema {
+    /// Returns a reference to the targeted [`SchemaVersion`].
+    fn as_ref(&self) -> &SchemaVersion {
+        match self {
+            BuildInfoSchema::V1(v) => v,
+            BuildInfoSchema::V2(v) => v,
+        }
+    }
+}
+
 impl FileFormatSchema for BuildInfoSchema {
     type Err = Error;
 

@@ -28,6 +28,15 @@ pub enum SourceInfoSchema {
     V1(SchemaVersion),
 }
 
+impl AsRef<SchemaVersion> for SourceInfoSchema {
+    /// Returns a reference to the targeted [`SchemaVersion`].
+    fn as_ref(&self) -> &SchemaVersion {
+        match self {
+            SourceInfoSchema::V1(v) => v,
+        }
+    }
+}
+
 impl FileFormatSchema for SourceInfoSchema {
     type Err = Error;
 

@@ -10,7 +10,7 @@ use alpm_types::SchemaVersion;
 ///
 /// File formats are expected to either expose the schema version directly, or at least make it
 /// possible to derive the version from them.
-pub trait FileFormatSchema {
+pub trait FileFormatSchema: AsRef<SchemaVersion> {
     /// The Error type to use.
     type Err;
 

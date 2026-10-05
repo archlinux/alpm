@@ -32,6 +32,15 @@ pub enum PackageInfoSchema {
     V2(SchemaVersion),
 }
 
+impl AsRef<SchemaVersion> for PackageInfoSchema {
+    /// Returns a reference to the targeted [`SchemaVersion`].
+    fn as_ref(&self) -> &SchemaVersion {
+        match self {
+            PackageInfoSchema::V1(v) | PackageInfoSchema::V2(v) => v,
+        }
+    }
+}
+
 impl FileFormatSchema for PackageInfoSchema {
     type Err = Error;
 

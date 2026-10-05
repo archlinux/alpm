@@ -21,6 +21,15 @@ pub enum RepoFilesSchema {
     V1(SchemaVersion),
 }
 
+impl AsRef<SchemaVersion> for RepoFilesSchema {
+    /// Returns a reference to the targeted [`SchemaVersion`].
+    fn as_ref(&self) -> &SchemaVersion {
+        match self {
+            RepoFilesSchema::V1(v) => v,
+        }
+    }
+}
+
 impl FileFormatSchema for RepoFilesSchema {
     type Err = Error;
 

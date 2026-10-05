@@ -21,6 +21,15 @@ pub enum DbFilesSchema {
     V1(SchemaVersion),
 }
 
+impl AsRef<SchemaVersion> for DbFilesSchema {
+    /// Returns a reference to the targeted [`SchemaVersion`].
+    fn as_ref(&self) -> &SchemaVersion {
+        match self {
+            DbFilesSchema::V1(v) => v,
+        }
+    }
+}
+
 impl FileFormatSchema for DbFilesSchema {
     type Err = Error;
 
