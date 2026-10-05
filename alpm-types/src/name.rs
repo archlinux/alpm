@@ -80,12 +80,7 @@ impl BuildTool {
     pub fn matches_restriction(&self, restrictions: &[Name]) -> bool {
         restrictions
             .iter()
-            .any(|restriction| restriction.eq(self.inner()))
-    }
-
-    /// Return a reference to the inner type
-    pub fn inner(&self) -> &Name {
-        &self.0
+            .any(|restriction| restriction.eq(self.as_ref()))
     }
 }
 
@@ -106,7 +101,7 @@ impl FromStr for BuildTool {
 
 impl Display for BuildTool {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
-        write!(fmt, "{}", self.inner())
+        write!(fmt, "{}", self.as_ref())
     }
 }
 
