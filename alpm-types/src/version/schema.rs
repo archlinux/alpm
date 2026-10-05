@@ -48,6 +48,13 @@ impl SchemaVersion {
     }
 }
 
+impl AsRef<SemverVersion> for SchemaVersion {
+    /// Returns a reference to the inner [`SemverVersion`].
+    fn as_ref(&self) -> &SemverVersion {
+        &self.0
+    }
+}
+
 impl FromStr for SchemaVersion {
     type Err = Error;
     /// Create a new SchemaVersion from a string
