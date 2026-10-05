@@ -243,7 +243,7 @@ impl Display for UnknownArchitecture {
 
 impl AsRef<str> for UnknownArchitecture {
     fn as_ref(&self) -> &str {
-        self.inner()
+        &self.0
     }
 }
 
