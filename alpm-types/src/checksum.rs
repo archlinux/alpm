@@ -516,6 +516,13 @@ impl<D: DigestString> AlpmParser for Checksum<D> {
     }
 }
 
+impl<D: DigestString> AsRef<[u8]> for Checksum<D> {
+    /// Returns a reference to the inner byte slice.
+    fn as_ref(&self) -> &[u8] {
+        &self.digest
+    }
+}
+
 impl<D: DigestString> FromStr for Checksum<D> {
     type Err = Error;
     /// Create a new Checksum from a hex string and return it in a Result
