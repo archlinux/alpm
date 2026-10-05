@@ -142,7 +142,7 @@ impl ParserUntil for Source {
 
                     Self::File {
                         filename,
-                        location: location.inner().into(),
+                        location: location.as_ref().to_path_buf(),
                     }
                 }
                 Err(error) => return Err(error),

@@ -332,11 +332,6 @@ impl Basename {
 
         Ok(Self(path))
     }
-
-    /// Returns a reference to the inner type
-    pub fn inner(&self) -> &Path {
-        &self.0
-    }
 }
 
 impl AsRef<Path> for Basename {
@@ -361,7 +356,7 @@ impl FromStr for Basename {
 
 impl Display for Basename {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
-        write!(fmt, "{}", self.inner().display())
+        write!(fmt, "{}", self.as_ref().display())
     }
 }
 
