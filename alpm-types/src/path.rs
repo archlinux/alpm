@@ -62,6 +62,13 @@ impl AbsolutePath {
     }
 }
 
+impl AsRef<Path> for AbsolutePath {
+    /// Returns a reference to the inner [`Path`].
+    fn as_ref(&self) -> &Path {
+        &self.0
+    }
+}
+
 impl FromStr for AbsolutePath {
     type Err = Error;
 
