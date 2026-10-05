@@ -230,7 +230,7 @@ impl ChecksumAlgorithm {
 ///     192, 53, 159, 153, 62, 116, 107, 7, 245, 150, 92, 248, 197, 195, 116, 106, 88, 51, 122,
 ///     217, 171, 101, 39, 142, 119,
 /// ];
-/// assert_eq!(checksum.inner(), digest);
+/// assert_eq!(checksum.as_ref(), digest);
 /// assert_eq!(
 ///     format!("{}", checksum),
 ///     "d202d7951df2c4b711ca44b4bcc9d7b363fa4252127e058c1a910ec05b6cd038d71cc21221c031c0359f993e746b07f5965cf8c5c3746a58337ad9ab65278e77",
@@ -238,7 +238,7 @@ impl ChecksumAlgorithm {
 ///
 /// // create checksum from hex string
 /// let checksum = Checksum::<Blake2b512>::from_str("d202d7951df2c4b711ca44b4bcc9d7b363fa4252127e058c1a910ec05b6cd038d71cc21221c031c0359f993e746b07f5965cf8c5c3746a58337ad9ab65278e77")?;
-/// assert_eq!(checksum.inner(), digest);
+/// assert_eq!(checksum.as_ref(), digest);
 /// # Ok(())
 /// # }
 /// ```
@@ -345,11 +345,6 @@ impl<D: DigestString> Checksum<D> {
             digest: hasher.finalize()[..].to_vec(),
             _marker: PhantomData,
         }
-    }
-
-    /// Return a reference to the inner type
-    pub fn inner(&self) -> &[u8] {
-        &self.digest
     }
 
     /// Calculates a new [`Checksum`] by streaming data from a `reader`.
@@ -885,11 +880,11 @@ mod tests {
         let hex_digest = "d202d7951df2c4b711ca44b4bcc9d7b363fa4252127e058c1a910ec05b6cd038d71cc21221c031c0359f993e746b07f5965cf8c5c3746a58337ad9ab65278e77";
 
         let checksum = Blake2b512Checksum::calculate_from(data);
-        assert_eq!(digest, checksum.inner());
+        assert_eq!(digest, checksum.as_ref());
         assert_eq!(format!("{}", checksum), hex_digest,);
 
         let checksum = Blake2b512Checksum::from_str(hex_digest).unwrap();
-        assert_eq!(digest, checksum.inner());
+        assert_eq!(digest, checksum.as_ref());
         assert_eq!(format!("{}", checksum), hex_digest,);
     }
 
@@ -903,11 +898,11 @@ mod tests {
         let hex_digest = "f1d2d2f924e986ac86fdf7b36c94bcdf32beec15";
 
         let checksum = Sha1Checksum::calculate_from(data);
-        assert_eq!(digest, checksum.inner());
+        assert_eq!(digest, checksum.as_ref());
         assert_eq!(format!("{}", checksum), hex_digest,);
 
         let checksum = Sha1Checksum::from_str(hex_digest).unwrap();
-        assert_eq!(digest, checksum.inner());
+        assert_eq!(digest, checksum.as_ref());
         assert_eq!(format!("{}", checksum), hex_digest,);
     }
 
@@ -921,11 +916,11 @@ mod tests {
         let hex_digest = "e7d5e36e8d470c3e5103fedd2e4f2aa5c30ab27f6629bdc3286f9dd2";
 
         let checksum = Sha224Checksum::calculate_from(data);
-        assert_eq!(digest, checksum.inner());
+        assert_eq!(digest, checksum.as_ref());
         assert_eq!(format!("{}", checksum), hex_digest,);
 
         let checksum = Sha224Checksum::from_str(hex_digest).unwrap();
-        assert_eq!(digest, checksum.inner());
+        assert_eq!(digest, checksum.as_ref());
         assert_eq!(format!("{}", checksum), hex_digest,);
     }
 
@@ -939,11 +934,11 @@ mod tests {
         let hex_digest = "b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c";
 
         let checksum = Sha256Checksum::calculate_from(data);
-        assert_eq!(digest, checksum.inner());
+        assert_eq!(digest, checksum.as_ref());
         assert_eq!(format!("{}", checksum), hex_digest,);
 
         let checksum = Sha256Checksum::from_str(hex_digest).unwrap();
-        assert_eq!(digest, checksum.inner());
+        assert_eq!(digest, checksum.as_ref());
         assert_eq!(format!("{}", checksum), hex_digest,);
     }
 
@@ -958,11 +953,11 @@ mod tests {
         let hex_digest = "8effdabfe14416214a250f935505250bd991f106065d899db6e19bdc8bf648f3ac0f1935c4f65fe8f798289b1a0d1e06";
 
         let checksum = Sha384Checksum::calculate_from(data);
-        assert_eq!(digest, checksum.inner());
+        assert_eq!(digest, checksum.as_ref());
         assert_eq!(format!("{}", checksum), hex_digest,);
 
         let checksum = Sha384Checksum::from_str(hex_digest).unwrap();
-        assert_eq!(digest, checksum.inner());
+        assert_eq!(digest, checksum.as_ref());
         assert_eq!(format!("{}", checksum), hex_digest,);
     }
 
@@ -978,11 +973,11 @@ mod tests {
         let hex_digest = "0cf9180a764aba863a67b6d72f0918bc131c6772642cb2dce5a34f0a702f9470ddc2bf125c12198b1995c233c34b4afd346c54a2334c350a948a51b6e8b4e6b6";
 
         let checksum = Sha512Checksum::calculate_from(data);
-        assert_eq!(digest, checksum.inner());
+        assert_eq!(digest, checksum.as_ref());
         assert_eq!(format!("{}", checksum), hex_digest);
 
         let checksum = Sha512Checksum::from_str(hex_digest).unwrap();
-        assert_eq!(digest, checksum.inner());
+        assert_eq!(digest, checksum.as_ref());
         assert_eq!(format!("{}", checksum), hex_digest);
     }
 
@@ -993,11 +988,11 @@ mod tests {
         let digest_string = format!("{digest}");
 
         let checksum = Crc32CksumChecksum::calculate_from(data);
-        assert_eq!(digest.to_be_bytes(), checksum.inner());
+        assert_eq!(digest.to_be_bytes(), checksum.as_ref());
         assert_eq!(format!("{}", checksum), digest_string);
 
         let checksum = Crc32CksumChecksum::from_str(digest_string.as_str()).unwrap();
-        assert_eq!(digest.to_be_bytes(), checksum.inner());
+        assert_eq!(digest.to_be_bytes(), checksum.as_ref());
         assert_eq!(format!("{}", checksum), digest_string);
     }
 
