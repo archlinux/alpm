@@ -73,6 +73,13 @@ impl AsRef<str> for Url {
     }
 }
 
+impl AsRef<url::Url> for Url {
+    /// Returns a reference to the inner [`url::Url`].
+    fn as_ref(&self) -> &url::Url {
+        &self.0
+    }
+}
+
 impl FromStr for Url {
     type Err = Error;
 
