@@ -275,7 +275,7 @@ impl Ord for PackageVersion {
     /// <https://gitlab.archlinux.org/pacman/pacman/-/blob/a2d029388c7c206f5576456f91bfbea2dca98c96/lib/libalpm/version.c#L83-217>
     fn cmp(&self, other: &Self) -> Ordering {
         // Equal strings are considered equal versions.
-        if self.inner() == other.inner() {
+        if self.as_ref() == other.as_ref() {
             return Ordering::Equal;
         }
 

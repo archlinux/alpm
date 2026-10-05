@@ -277,11 +277,6 @@ impl PackageVersion {
         PackageVersion::from_str(pkgver.as_str())
     }
 
-    /// Return a reference to the inner type
-    pub fn inner(&self) -> &str {
-        &self.0
-    }
-
     /// Return an iterator over all segments of this version.
     pub fn segments(&self) -> VersionSegments<'_> {
         VersionSegments::new(&self.0)
@@ -340,7 +335,7 @@ impl FromStr for PackageVersion {
 
 impl Display for PackageVersion {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
-        write!(fmt, "{}", self.inner())
+        write!(fmt, "{}", self.as_ref())
     }
 }
 
