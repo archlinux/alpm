@@ -323,6 +323,13 @@ impl AlpmParser for PackageVersion {
     }
 }
 
+impl AsRef<str> for PackageVersion {
+    /// Returns a reference to the inner string slice.
+    fn as_ref(&self) -> &str {
+        &self.0
+    }
+}
+
 impl FromStr for PackageVersion {
     type Err = Error;
     /// Create a PackageVersion from a string and return it in a Result

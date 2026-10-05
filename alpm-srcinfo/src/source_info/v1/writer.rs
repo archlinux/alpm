@@ -71,7 +71,7 @@ pub(crate) fn pkgbase_section(base: &PackageBase, output: &mut String) {
     if let Some(description) = &base.description {
         push_key_value("pkgdesc", description.as_ref(), output);
     }
-    push_key_value("pkgver", &base.version.pkgver.to_string(), output);
+    push_key_value("pkgver", base.version.pkgver.as_ref(), output);
     push_key_value("pkgrel", &base.version.pkgrel.to_string(), output);
     push_optional_value("epoch", &base.version.epoch, output);
     push_optional_value("url", &base.url, output);
