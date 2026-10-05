@@ -60,11 +60,6 @@ impl Url {
     pub fn into_inner(self) -> url::Url {
         self.0
     }
-
-    /// Returns a reference to the inner `url::Url`.
-    pub fn inner(&self) -> &url::Url {
-        &self.0
-    }
 }
 
 impl AsRef<str> for Url {

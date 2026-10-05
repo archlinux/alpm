@@ -196,7 +196,10 @@ impl FromStr for Source {
     /// };
     ///
     /// assert_eq!(filename.unwrap(), Path::new("foopkg-1.2.3.tar.gz"));
-    /// assert_eq!(source_url.url.inner().host_str(), Some("example.com"));
+    /// assert_eq!(
+    ///     AsRef::<Url>::as_ref(&source_url.url).host_str(),
+    ///     Some("example.com")
+    /// );
     /// assert_eq!(source_url.to_string(), "https://example.com/download");
     ///
     /// // Parse from a string that represents a local file.
