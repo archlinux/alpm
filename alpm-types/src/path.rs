@@ -55,11 +55,6 @@ impl AbsolutePath {
             false => Err(Error::PathNotAbsolute(path)),
         }
     }
-
-    /// Return a reference to the inner type
-    pub fn inner(&self) -> &Path {
-        &self.0
-    }
 }
 
 impl AsRef<Path> for AbsolutePath {
@@ -87,7 +82,7 @@ impl FromStr for AbsolutePath {
 
 impl Display for AbsolutePath {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
-        write!(fmt, "{}", self.inner().display())
+        write!(fmt, "{}", self.as_ref().display())
     }
 }
 
