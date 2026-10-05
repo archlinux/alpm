@@ -41,11 +41,6 @@ impl SchemaVersion {
     pub fn new(version: SemverVersion) -> Self {
         SchemaVersion(version)
     }
-
-    /// Return a reference to the inner type
-    pub fn inner(&self) -> &SemverVersion {
-        &self.0
-    }
 }
 
 impl AsRef<SemverVersion> for SchemaVersion {

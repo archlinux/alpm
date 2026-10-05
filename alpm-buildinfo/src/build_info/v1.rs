@@ -127,7 +127,7 @@ impl FromStr for BuildInfoV1 {
     fn from_str(input: &str) -> Result<BuildInfoV1, Self::Err> {
         let build_info_format: BuildInfoFormat = alpm_parsers::custom_ini::from_str(input)?;
         let schema_version: SchemaVersion = build_info_format.into();
-        if schema_version.inner().major != 1 {
+        if schema_version.as_ref().major != 1 {
             return Err(Error::WrongSchemaVersion(schema_version));
         }
 

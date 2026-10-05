@@ -163,7 +163,7 @@ impl TryFrom<SchemaVersion> for SourceInfoSchema {
     /// Returns an error if the [`SchemaVersion`]'s inner [`Version`] does not provide a major
     /// version that corresponds to a [`SourceInfoSchema`] variant.
     fn try_from(value: SchemaVersion) -> Result<Self, Self::Error> {
-        match value.inner().major {
+        match value.as_ref().major {
             1 => Ok(SourceInfoSchema::V1(value)),
             _ => Err(Error::UnsupportedSchemaVersion(value.to_string())),
         }
@@ -176,7 +176,7 @@ impl Display for SourceInfoSchema {
             fmt,
             "{}",
             match self {
-                SourceInfoSchema::V1(version) => version.inner().major,
+                SourceInfoSchema::V1(version) => version.as_ref().major,
             }
         )
     }

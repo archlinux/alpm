@@ -213,7 +213,7 @@ impl TryFrom<SchemaVersion> for PackageInfoSchema {
     /// Returns an error if the [`SchemaVersion`]'s inner [`Version`] does not provide a major
     /// version that corresponds to a [`PackageInfoSchema`] variant.
     fn try_from(value: SchemaVersion) -> Result<Self, Self::Error> {
-        match value.inner().major {
+        match value.as_ref().major {
             1 => Ok(PackageInfoSchema::V1(value)),
             2 => Ok(PackageInfoSchema::V2(value)),
             _ => Err(Error::UnsupportedSchemaVersion(value.to_string())),
@@ -228,7 +228,7 @@ impl Display for PackageInfoSchema {
             "{}",
             match self {
                 PackageInfoSchema::V1(version) | PackageInfoSchema::V2(version) =>
-                    version.inner().major,
+                    version.as_ref().major,
             }
         )
     }

@@ -272,7 +272,7 @@ impl TryFrom<SchemaVersion> for RepoDescSchema {
     /// Returns an error if the major version of [`SchemaVersion`] does not
     /// correspond to a known [`RepoDescSchema`] variant.
     fn try_from(value: SchemaVersion) -> Result<Self, Self::Error> {
-        match value.inner().major {
+        match value.as_ref().major {
             1 => Ok(RepoDescSchema::V1(value)),
             2 => Ok(RepoDescSchema::V2(value)),
             _ => Err(Error::UnsupportedSchemaVersion(value.to_string())),
@@ -286,7 +286,7 @@ impl Display for RepoDescSchema {
             fmt,
             "{}",
             match self {
-                RepoDescSchema::V1(version) | RepoDescSchema::V2(version) => version.inner().major,
+                RepoDescSchema::V1(version) | RepoDescSchema::V2(version) => version.as_ref().major,
             }
         )
     }

@@ -195,7 +195,7 @@ impl TryFrom<SchemaVersion> for BuildInfoSchema {
     /// Returns an error if the [`SchemaVersion`]'s inner [`Version`] does not provide a major
     /// version that corresponds to a [`BuildInfoSchema`] variant.
     fn try_from(value: SchemaVersion) -> Result<Self, Self::Error> {
-        match value.inner().major {
+        match value.as_ref().major {
             1 => Ok(BuildInfoSchema::V1(value)),
             2 => Ok(BuildInfoSchema::V2(value)),
             _ => Err(Error::UnsupportedSchemaVersion(value.to_string())),
@@ -210,7 +210,7 @@ impl Display for BuildInfoSchema {
             "{}",
             match self {
                 BuildInfoSchema::V1(version) | BuildInfoSchema::V2(version) =>
-                    version.inner().major,
+                    version.as_ref().major,
             }
         )
     }

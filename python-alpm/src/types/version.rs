@@ -71,41 +71,41 @@ impl SchemaVersion {
     fn __repr__(&self) -> String {
         format!(
             "SchemaVersion(major={}, minor={}, patch={}, pre='{}', build='{}')",
-            self.0.inner().major,
-            self.0.inner().minor,
-            self.0.inner().patch,
-            self.0.inner().pre,
-            self.0.inner().build,
+            self.0.as_ref().major,
+            self.0.as_ref().minor,
+            self.0.as_ref().patch,
+            self.0.as_ref().pre,
+            self.0.as_ref().build,
         )
     }
 
     fn __str__(&self) -> String {
-        self.0.inner().to_string()
+        self.0.as_ref().to_string()
     }
 
     #[getter]
     fn major(&self) -> u64 {
-        self.0.inner().major
+        self.0.as_ref().major
     }
 
     #[getter]
     fn minor(&self) -> u64 {
-        self.0.inner().minor
+        self.0.as_ref().minor
     }
 
     #[getter]
     fn patch(&self) -> u64 {
-        self.0.inner().patch
+        self.0.as_ref().patch
     }
 
     #[getter]
     fn pre(&self) -> String {
-        self.0.inner().pre.to_string()
+        self.0.as_ref().pre.to_string()
     }
 
     #[getter]
     fn build(&self) -> String {
-        self.0.inner().build.to_string()
+        self.0.as_ref().build.to_string()
     }
 }
 

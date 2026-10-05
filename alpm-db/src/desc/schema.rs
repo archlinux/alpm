@@ -197,7 +197,7 @@ impl TryFrom<SchemaVersion> for DbDescSchema {
     /// Returns an error if the major version of `SchemaVersion` does not
     /// correspond to a known [`DbDescSchema`] variant.
     fn try_from(value: SchemaVersion) -> Result<Self, Self::Error> {
-        match value.inner().major {
+        match value.as_ref().major {
             1 => Ok(DbDescSchema::V1(value)),
             2 => Ok(DbDescSchema::V2(value)),
             _ => Err(Error::UnsupportedSchemaVersion(value.to_string())),
@@ -211,7 +211,7 @@ impl Display for DbDescSchema {
             fmt,
             "{}",
             match self {
-                DbDescSchema::V1(version) | DbDescSchema::V2(version) => version.inner().major,
+                DbDescSchema::V1(version) | DbDescSchema::V2(version) => version.as_ref().major,
             }
         )
     }
