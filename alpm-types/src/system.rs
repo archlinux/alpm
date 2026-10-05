@@ -214,13 +214,6 @@ impl<'de> Deserialize<'de> for UnknownArchitecture {
     }
 }
 
-impl UnknownArchitecture {
-    /// Return a reference to the inner type
-    pub fn inner(&self) -> &str {
-        &self.0
-    }
-}
-
 impl From<UnknownArchitecture> for SystemArchitecture {
     /// Converts an [`UnknownArchitecture`] into a [`SystemArchitecture`].
     fn from(value: UnknownArchitecture) -> Self {
@@ -237,7 +230,7 @@ impl From<UnknownArchitecture> for Architecture {
 
 impl Display for UnknownArchitecture {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
-        write!(fmt, "{}", self.inner())
+        write!(fmt, "{}", self.as_ref())
     }
 }
 
