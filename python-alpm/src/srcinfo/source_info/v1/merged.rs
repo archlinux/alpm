@@ -95,7 +95,7 @@ impl MergedPackage {
         self.0
             .changelog
             .clone()
-            .map(|rel_path| rel_path.inner().to_path_buf())
+            .map(|rel_path| rel_path.as_ref().to_path_buf())
     }
 
     #[getter]
@@ -103,7 +103,7 @@ impl MergedPackage {
         self.0
             .install
             .clone()
-            .map(|rel_path| rel_path.inner().to_path_buf())
+            .map(|rel_path| rel_path.as_ref().to_path_buf())
     }
 
     #[getter]
@@ -122,7 +122,7 @@ impl MergedPackage {
             .backups
             .clone()
             .into_iter()
-            .map(|rel_path| rel_path.inner().to_path_buf())
+            .map(|rel_path| rel_path.as_ref().to_path_buf())
             .collect()
     }
 

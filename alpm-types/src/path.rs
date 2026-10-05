@@ -248,11 +248,6 @@ impl RelativeFilePath {
         }
         Ok(RelativeFilePath(path))
     }
-
-    /// Return a reference to the inner type
-    pub fn inner(&self) -> &Path {
-        &self.0
-    }
 }
 
 impl AsRef<Path> for RelativeFilePath {
@@ -277,7 +272,7 @@ impl FromStr for RelativeFilePath {
 
 impl Display for RelativeFilePath {
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
-        write!(fmt, "{}", self.inner().display())
+        write!(fmt, "{}", self.as_ref().display())
     }
 }
 

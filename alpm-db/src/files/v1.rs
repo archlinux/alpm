@@ -357,7 +357,7 @@ impl Display for BackupV1Errors {
             if !set.is_empty() {
                 writeln!(f, "{message}:")?;
                 let mut set = set.iter().collect::<Vec<_>>();
-                set.sort_by(|a, b| a.inner().cmp(b.inner()));
+                set.sort_by(|a, b| a.as_ref().cmp(b.as_ref()));
                 for path in set.iter() {
                     writeln!(f, "{path}")?;
                 }
@@ -440,7 +440,7 @@ impl DbFilesV1 {
         let mut backup_set: HashSet<RelativeFilePath> = HashSet::new();
 
         for entry in backup.iter() {
-            if !path_set.contains(entry.path.inner()) {
+            if !path_set.contains(entry.path.as_ref()) {
                 backup_errors.add_not_in_files(entry.path.clone());
             }
 
@@ -451,7 +451,7 @@ impl DbFilesV1 {
 
         backup_errors.fail()?;
 
-        backup.sort_unstable_by(|a, b| a.path.inner().cmp(b.path.inner()));
+        backup.sort_unstable_by(|a, b| a.path.as_ref().cmp(b.path.as_ref()));
 
         Ok(Self {
             files: paths,
