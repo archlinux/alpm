@@ -42,14 +42,13 @@ use std::{
     error,
     fmt::{self, Display},
     marker::PhantomData,
-    num,
-    str,
-    str::{FromStr, ParseBoolError},
+    num::{self, ParseIntError},
+    str::{self, FromStr, ParseBoolError},
 };
 
 use serde::{
     Deserialize,
-    de::{self, DeserializeOwned, IntoDeserializer, Visitor, value::SeqDeserializer},
+    de::{self, DeserializeOwned, Error as _, IntoDeserializer, Visitor, value::SeqDeserializer},
     forward_to_deserialize_any,
 };
 use winnow::Parser;
@@ -310,7 +309,11 @@ impl<'de> de::Deserializer<'de> for SeqItemDeserializer {
     where
         V: Visitor<'de>,
     {
-        visitor.visit_u64(self.0.parse().unwrap())
+        visitor.visit_u64(
+            self.0
+                .parse()
+                .map_err(|source: ParseIntError| Self::Error::custom(source.to_string()))?,
+        )
     }
 
     forward_to_deserialize_any! {
