@@ -410,6 +410,7 @@ mod tests {
     use insta::assert_snapshot;
     use proptest::prelude::*;
     use rstest::rstest;
+    use testresult::TestResult;
 
     use super::*;
     use crate::configure_insta;
@@ -418,7 +419,7 @@ mod tests {
     #[case(
         "bar",
         ["foo".parse(), "bar".parse()].into_iter().flatten().collect::<Vec<Name>>(),
-        Ok(BuildTool::from_str("bar").unwrap()),
+        Ok(BuildTool::from_str("bar")?),
     )]
     #[case(
         "bar",
@@ -431,11 +432,13 @@ mod tests {
         #[case] buildtool: &str,
         #[case] restrictions: Vec<Name>,
         #[case] result: Result<BuildTool, Error>,
-    ) {
+    ) -> TestResult {
         assert_eq!(
             BuildTool::new_with_restriction(buildtool, &restrictions),
             result
         );
+
+        Ok(())
     }
 
     #[rstest]
@@ -445,9 +448,11 @@ mod tests {
         #[case] buildtool: &str,
         #[case] restrictions: Vec<Name>,
         #[case] result: bool,
-    ) {
-        let buildtool = BuildTool::from_str(buildtool).unwrap();
+    ) -> TestResult {
+        let buildtool = BuildTool::from_str(buildtool)?;
         assert_eq!(buildtool.matches_restriction(&restrictions), result);
+
+        Ok(())
     }
 
     #[rstest]
@@ -480,7 +485,7 @@ mod tests {
 
         #[test]
         fn valid_name_from_string(name_str in r"[a-zA-Z0-9_@+]+[a-zA-Z0-9\-._@+]*") {
-            let name = Name::from_str(&name_str).unwrap();
+            let name = Name::from_str(&name_str)?;
             prop_assert_eq!(name_str, format!("{}", name));
         }
 
@@ -498,13 +503,13 @@ mod tests {
     }
 
     #[rstest]
-    #[case("example.so", SharedObjectName("example.so".parse().unwrap()))]
-    #[case("example.so.so", SharedObjectName("example.so.so".parse().unwrap()))]
-    #[case("libexample.1.so", SharedObjectName("libexample.1.so".parse().unwrap()))]
+    #[case("example.so", SharedObjectName("example.so".parse()?))]
+    #[case("example.so.so", SharedObjectName("example.so.so".parse()?))]
+    #[case("libexample.1.so", SharedObjectName("libexample.1.so".parse()?))]
     fn shared_object_name_parser(
         #[case] input: &str,
         #[case] expected_result: SharedObjectName,
-    ) -> testresult::TestResult<()> {
+    ) -> TestResult {
         let shared_object_name = SharedObjectName::new(input)?;
         assert_eq!(expected_result, shared_object_name);
         assert_eq!(input, shared_object_name.as_str());

@@ -189,27 +189,25 @@ impl Display for License {
 #[cfg(test)]
 mod tests {
     use rstest::rstest;
+    use testresult::TestResult;
 
     use super::*;
 
     #[rstest]
-    #[case("MIT", License::Spdx(Box::new(Expression::parse("MIT").unwrap())))]
-    #[case("Apache-2.0", License::Spdx(Box::new(Expression::parse("Apache-2.0").unwrap())))]
-    #[case("Apache-2.0+", License::Spdx(Box::new(Expression::parse("Apache-2.0+").unwrap())))]
+    #[case("MIT", License::Spdx(Box::new(Expression::parse("MIT")?)))]
+    #[case("Apache-2.0", License::Spdx(Box::new(Expression::parse("Apache-2.0")?)))]
+    #[case("Apache-2.0+", License::Spdx(Box::new(Expression::parse("Apache-2.0+")?)))]
     #[case(
         "Apache-2.0 WITH LLVM-exception",
-        License::Spdx(Box::new(Expression::parse("Apache-2.0 WITH LLVM-exception").unwrap()))
+        License::Spdx(Box::new(Expression::parse("Apache-2.0 WITH LLVM-exception")?))
     )]
-    #[case("GPL-3.0-or-later", License::Spdx(Box::new(Expression::parse("GPL-3.0-or-later").unwrap())))]
-    #[case("HPND-Fenneberg-Livingston", License::Spdx(Box::new(Expression::parse("HPND-Fenneberg-Livingston").unwrap())))]
+    #[case("GPL-3.0-or-later", License::Spdx(Box::new(Expression::parse("GPL-3.0-or-later")?)))]
+    #[case("HPND-Fenneberg-Livingston", License::Spdx(Box::new(Expression::parse("HPND-Fenneberg-Livingston")?)))]
     #[case(
         "NonStandard-License",
         License::Unknown(String::from("NonStandard-License"))
     )]
-    fn test_parse_license(
-        #[case] input: &str,
-        #[case] expected: License,
-    ) -> testresult::TestResult<()> {
+    fn test_parse_license(#[case] input: &str, #[case] expected: License) -> TestResult {
         let license = input.parse::<License>()?;
         assert_eq!(license, expected);
         assert_eq!(license.to_string(), input.to_string());
@@ -249,7 +247,7 @@ mod tests {
     #[rstest]
     #[case("MIT", true)]
     #[case("Custom-License", false)]
-    fn test_license_kind(#[case] input: &str, #[case] is_spdx: bool) -> testresult::TestResult<()> {
+    fn test_license_kind(#[case] input: &str, #[case] is_spdx: bool) -> TestResult {
         let spdx_license = License::from_str(input)?;
         assert_eq!(spdx_license.is_spdx(), is_spdx);
 

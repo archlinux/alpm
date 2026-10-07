@@ -30,7 +30,11 @@ fn ensure_correct_syntax(#[files("tests/correct_syntax_inputs/*")] case: PathBuf
         }
     };
 
-    let name = case.file_stem().unwrap().to_str().unwrap();
+    let name = case
+        .file_stem()
+        .expect("path to have a file stem")
+        .to_str()
+        .expect("path to contain only Unicode characters");
 
     let pretty_json = serde_json::to_string_pretty(&files)?;
 

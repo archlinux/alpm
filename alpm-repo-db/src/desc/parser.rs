@@ -112,9 +112,7 @@ impl SectionKeyword {
     /// use alpm_repo_db::desc::SectionKeyword;
     ///
     /// # fn main() -> testresult::TestResult {
-    /// let (remaining, kw) = SectionKeyword::parser
-    ///     .parse_peek(Input::new("%NAME%\nfoo\n"))
-    ///     .unwrap();
+    /// let (remaining, kw) = SectionKeyword::parser.parse_peek(Input::new("%NAME%\nfoo\n"))?;
     /// assert_eq!(kw, SectionKeyword::Name);
     /// assert_eq!(*remaining, "foo\n");
     /// # Ok(())

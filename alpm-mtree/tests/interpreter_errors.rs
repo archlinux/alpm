@@ -38,7 +38,11 @@ fn ensure_errors_v1(#[files("tests/interpreter_error_inputs/*")] case: PathBuf) 
         panic!("The interpreter succeeded even though it should've failed for input:\n{input}");
     };
 
-    let name = case.file_stem().unwrap().to_str().unwrap();
+    let name = case
+        .file_stem()
+        .expect("path to have a file stem")
+        .to_str()
+        .expect("path to contain only Unicode characters");
 
     // Run the tests with the input being displayed as the description.
     // This makes reviewing this whole stuff a lot easier.

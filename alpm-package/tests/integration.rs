@@ -956,11 +956,11 @@ fn package_metadata_iterator() -> TestResult {
 // Small helper function to assert that an entry is a metadata entry and then returns
 // that entry.
 fn assert_metadata_entry(entry: Option<Result<PackageEntry, Error>>) -> TestResult<MetadataEntry> {
-    assert!(
-        entry.is_some(),
-        "Expected package entry to be of some value."
-    );
-    match entry.unwrap()? {
+    let Some(package_entry) = entry else {
+        panic!("The entry is None!");
+    };
+
+    match package_entry? {
         PackageEntry::Metadata(entry) => Ok(*entry),
         PackageEntry::InstallScriptlet(_) => {
             panic!("Expected Metadata entry, got install scriptlet.")

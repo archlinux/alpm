@@ -208,8 +208,7 @@ mod tests {
         fn rsync_parses(magic_str in "[<>ch.][fdLDS][.+ ?a-z]{9} ", path: PathBuf) {
             let mut input = magic_str.into_bytes();
             input.extend_from_slice(path.as_os_str().as_bytes());
-            // unwrap to panic if the call produces an error
-            Report::parser(&input).unwrap();
+            Report::parser(&input).expect("parser succeeds to parse input");
         }
     }
 

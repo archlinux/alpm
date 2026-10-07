@@ -11,13 +11,16 @@ use time::OffsetDateTime;
 /// use alpm_types::{BuildDate, Error, FromOffsetDateTime};
 /// use time::OffsetDateTime;
 ///
+/// # fn main() -> testresult::TestResult {
 /// // create BuildDate from OffsetDateTime
-/// let datetime = BuildDate::from_offset_datetime(OffsetDateTime::from_unix_timestamp(1).unwrap());
+/// let datetime = BuildDate::from_offset_datetime(OffsetDateTime::from_unix_timestamp(1)?);
 /// assert_eq!(1, datetime);
 ///
 /// // create BuildDate from &str
 /// assert_eq!(BuildDate::from_str("1"), Ok(1));
 /// assert!(BuildDate::from_str("foo").is_err());
+/// # Ok(())
+/// # }
 /// ```
 pub type BuildDate = i64;
 
@@ -39,14 +42,17 @@ impl FromOffsetDateTime for BuildDate {
 #[cfg(test)]
 mod tests {
     use rstest::rstest;
+    use testresult::TestResult;
 
     use super::*;
 
     #[rstest]
-    fn datetime_into_builddate() {
+    fn datetime_into_builddate() -> TestResult {
         let builddate = 1;
-        let offset_datetime = OffsetDateTime::from_unix_timestamp(1).unwrap();
+        let offset_datetime = OffsetDateTime::from_unix_timestamp(1)?;
         let datetime: BuildDate = BuildDate::from_offset_datetime(offset_datetime);
         assert_eq!(builddate, datetime);
+
+        Ok(())
     }
 }

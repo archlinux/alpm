@@ -14,7 +14,11 @@ use testresult::TestResult;
 /// from the `alpm-pkgbuild-bridge`
 #[rstest]
 fn correct_files(#[files("tests/pkgbuild_correct/*.pkgbuild")] case: PathBuf) -> TestResult {
-    let test_name = case.file_stem().unwrap().to_str().unwrap().to_string();
+    let test_name = case
+        .file_stem()
+        .expect("path to have a file stem")
+        .to_str()
+        .expect("path to contain only Unicode characters");
 
     // Run the bridge script on the input file.
     let raw_bridge_output = run_bridge_script(&case)?;

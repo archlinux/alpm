@@ -833,7 +833,7 @@ mod tests {
         "git+https://example/project#tag=v1.0.0?signed",
         Some("git+https://example/project?signed#tag=v1.0.0"),
         SourceUrl {
-            url: Url::from_str("https://example/project").unwrap(),
+            url: Url::from_str("https://example/project")?,
             vcs_info: Some(VcsInfo::Git {
                 fragment: Some(GitFragment::Tag("v1.0.0".to_string())),
                 signed: true
@@ -844,7 +844,7 @@ mod tests {
         "git+https://example/project?signed#tag=v1.0.0",
         None,
         SourceUrl {
-            url: Url::from_str("https://example/project").unwrap(),
+            url: Url::from_str("https://example/project")?,
             vcs_info: Some(VcsInfo::Git {
                 fragment: Some(GitFragment::Tag("v1.0.0".to_string())),
                 signed: true
@@ -855,7 +855,7 @@ mod tests {
         "git://example/project#commit=a51720b",
         None,
         SourceUrl {
-            url: Url::from_str("git://example/project").unwrap(),
+            url: Url::from_str("git://example/project")?,
             vcs_info: Some(VcsInfo::Git {
                 fragment: Some(GitFragment::Commit("a51720b".to_string())),
                 signed: false
@@ -866,7 +866,7 @@ mod tests {
         "svn+https://example/project#revision=a51720b",
         None,
         SourceUrl {
-            url: Url::from_str("https://example/project").unwrap(),
+            url: Url::from_str("https://example/project")?,
             vcs_info: Some(VcsInfo::Svn {
                 fragment: Some(SvnFragment::Revision("a51720b".to_string())),
             })
@@ -876,7 +876,7 @@ mod tests {
         "bzr+https://example/project#revision=a51720b",
         None,
         SourceUrl {
-            url: Url::from_str("https://example/project").unwrap(),
+            url: Url::from_str("https://example/project")?,
             vcs_info: Some(VcsInfo::Bzr {
                 fragment: Some(BzrFragment::Revision("a51720b".to_string())),
             })
@@ -886,7 +886,7 @@ mod tests {
         "hg+https://example/project#branch=feature",
         None,
         SourceUrl {
-            url: Url::from_str("https://example/project").unwrap(),
+            url: Url::from_str("https://example/project")?,
             vcs_info: Some(VcsInfo::Hg {
                 fragment: Some(HgFragment::Branch("feature".to_string())),
             })
@@ -896,7 +896,7 @@ mod tests {
         "fossil+https://example/project#branch=feature",
         None,
         SourceUrl {
-            url: Url::from_str("https://example/project").unwrap(),
+            url: Url::from_str("https://example/project")?,
             vcs_info: Some(VcsInfo::Fossil {
                 fragment: Some(FossilFragment::Branch("feature".to_string())),
             })
@@ -906,7 +906,7 @@ mod tests {
         "https://example/project#branch=feature?signed",
         None,
         SourceUrl {
-            url: Url::from_str("https://example/project#branch=feature?signed").unwrap(),
+            url: Url::from_str("https://example/project#branch=feature?signed")?,
             vcs_info: None,
         }
     )]

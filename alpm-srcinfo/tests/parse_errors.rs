@@ -27,7 +27,11 @@ fn ensure_parse_errors(#[files("tests/parse_errors/*")] case: PathBuf) -> TestRe
         panic!("The parser succeeded even though it should've failed parsing.");
     };
 
-    let name = case.file_stem().unwrap().to_str().unwrap();
+    let name = case
+        .file_stem()
+        .expect("path to have a file stem")
+        .to_str()
+        .expect("path to contain only Unicode characters");
 
     // Run the tests with the input being displayed as the description.
     // This makes reviewing this whole stuff a lot easier.

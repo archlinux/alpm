@@ -3,7 +3,7 @@
 //! These tests are only executed when the `cli` feature flag is enabled.
 #![cfg(feature = "cli")]
 
-use std::{str::FromStr, thread};
+use std::{str::FromStr, thread::current};
 
 use alpm_buildinfo::{BuildInfoSchema, BuildInfoV1, BuildInfoV2};
 use alpm_types::{SchemaVersion, semver_version::Version};
@@ -158,12 +158,12 @@ fn format_buildinfo_and_serialize_as_json(#[case] data: &str) -> TestResult {
     let mut cmd = cargo_bin_cmd!("alpm-buildinfo");
     cmd.args(["format", "-p"]);
     cmd.write_stdin(data);
-    let cmd = cmd.unwrap();
-    let build_info = String::from_utf8_lossy(&cmd.stdout);
+    let output = cmd.output()?;
+    let build_info = String::from_utf8_lossy(&output.stdout);
     assert_snapshot!(
-        thread::current()
+        current()
             .name()
-            .unwrap()
+            .expect("current thread has a name")
             .to_string()
             .replace("::", "__"),
         build_info.to_string()
@@ -267,9 +267,9 @@ enum WriteMode {
 /// Test writing a buildinfo file either via CLI or environment variables.
 fn test_write_buildinfo(buildinfo_input: BuildInfoInput, write_mode: WriteMode) -> TestResult {
     let dir = tempdir()?;
-    let mut test_name = thread::current()
+    let mut test_name = current()
         .name()
-        .unwrap()
+        .expect("current thread to have a name")
         .to_string()
         .replace("::", "__");
     test_name.push_str(&format!("_via_{write_mode}"));

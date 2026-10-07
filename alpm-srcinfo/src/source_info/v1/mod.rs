@@ -222,15 +222,19 @@ impl SourceInfoV1 {
     /// /// Get all merged package representations for the x86_64 architecture.
     /// let mut packages = source_info.packages_for_architecture(SystemArchitecture::X86_64);
     ///
-    /// let example = packages.next().unwrap();
+    /// let Some(example) = packages.next() else {
+    ///     panic!("There is no next package");
+    /// };
     /// assert_eq!(
     ///     example.description,
     ///     Some(PackageDescription::new("Example split package"))
     /// );
     ///
-    /// let example_other = packages.next().unwrap();
+    /// let Some(example) = packages.next() else {
+    ///     panic!("There is no next package");
+    /// };
     /// assert_eq!(
-    ///     example_other.description,
+    ///     example.description,
     ///     Some(PackageDescription::new("The other example split package"))
     /// );
     ///

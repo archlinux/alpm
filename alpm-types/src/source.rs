@@ -189,13 +189,13 @@ impl FromStr for Source {
     /// let source = Source::from_str("foopkg-1.2.3.tar.gz::https://example.com/download")?;
     /// let Source::SourceUrl {
     ///     source_url,
-    ///     filename,
+    ///     filename: Some(filename),
     /// } = source
     /// else {
-    ///     panic!()
+    ///     panic!("The source string is not a URL with a filename override");
     /// };
     ///
-    /// assert_eq!(filename.unwrap(), Path::new("foopkg-1.2.3.tar.gz"));
+    /// assert_eq!(filename, Path::new("foopkg-1.2.3.tar.gz"));
     /// assert_eq!(
     ///     AsRef::<Url>::as_ref(&source_url.url).host_str(),
     ///     Some("example.com")
@@ -204,11 +204,15 @@ impl FromStr for Source {
     ///
     /// // Parse from a string that represents a local file.
     /// let source = Source::from_str("renamed-source.tar.gz::test.tar.gz")?;
-    /// let Source::File { location, filename } = source else {
-    ///     panic!()
+    /// let Source::File {
+    ///     location,
+    ///     filename: Some(filename),
+    /// } = source
+    /// else {
+    ///     panic!("The source string is not a local file with a filename override");
     /// };
     /// assert_eq!(location, Path::new("test.tar.gz"));
-    /// assert_eq!(filename.unwrap(), Path::new("renamed-source.tar.gz"));
+    /// assert_eq!(filename, Path::new("renamed-source.tar.gz"));
     ///
     /// # Ok(())
     /// # }
@@ -246,6 +250,7 @@ impl Display for Source {
 mod tests {
     use insta::assert_snapshot;
     use rstest::rstest;
+    use testresult::TestResult;
 
     use super::*;
     use crate::configure_insta;
@@ -271,29 +276,31 @@ mod tests {
         "foo-1.2.3.tar.gz::https://example.com/download",
         Source::SourceUrl {
             filename: Some(PathBuf::from("foo-1.2.3.tar.gz")),
-            source_url: SourceUrl::from_str("https://example.com/download").unwrap(),
+            source_url: SourceUrl::from_str("https://example.com/download")?,
         }
     )]
     #[case(
         "my-git-repo::git+https://example.com/project/repo.git?signed#commit=deadbeef",
         Source::SourceUrl {
             filename: Some(PathBuf::from("my-git-repo")),
-            source_url: SourceUrl::from_str("git+https://example.com/project/repo.git?signed#commit=deadbeef").unwrap(),
+            source_url: SourceUrl::from_str("git+https://example.com/project/repo.git?signed#commit=deadbeef")?,
         }
     )]
     #[case(
         "file:///somewhere/else",
         Source::SourceUrl {
             filename: None,
-            source_url: SourceUrl::from_str("file:///somewhere/else").unwrap(),
+            source_url: SourceUrl::from_str("file:///somewhere/else")?,
         }
     )]
-    fn valid_source(#[case] input: &str, #[case] expected: Source) {
+    fn valid_source(#[case] input: &str, #[case] expected: Source) -> TestResult {
         assert_eq!(
             Source::from_str(input),
             Ok(expected),
             "Expected valid parsing for Source: {input}"
         );
+
+        Ok(())
     }
 
     #[rstest]

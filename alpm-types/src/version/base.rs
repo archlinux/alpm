@@ -343,6 +343,7 @@ impl Display for PackageVersion {
 mod tests {
     use insta::assert_snapshot;
     use rstest::rstest;
+    use testresult::TestResult;
 
     use super::*;
     use crate::configure_insta;
@@ -373,16 +374,18 @@ mod tests {
     #[case("1.0.0")]
     // sadly, this is valid
     #[case(".xd")]
-    fn valid_pkgver(#[case] pkgver: &str) {
+    fn valid_pkgver(#[case] pkgver: &str) -> TestResult {
         let parsed = PackageVersion::new(pkgver.to_string());
         assert!(parsed.is_ok(), "Expected pkgver {pkgver} to be valid.");
         assert_eq!(
-            parsed.as_ref().unwrap().to_string(),
+            parsed.as_ref()?.to_string(),
             pkgver,
             "Expected parsed PackageVersion representation '{}' to be identical to input '{}'",
-            parsed.unwrap(),
+            parsed?,
             pkgver
         );
+
+        Ok(())
     }
 
     /// Ensure that invalid **pkgver**s are throwing errors.
@@ -425,16 +428,18 @@ mod tests {
     #[case("1.0")]
     #[case("10.5")]
     #[case("0.1")]
-    fn valid_pkgrel(#[case] pkgrel: &str) {
+    fn valid_pkgrel(#[case] pkgrel: &str) -> TestResult {
         let parsed = PackageRelease::from_str(pkgrel);
         assert!(parsed.is_ok(), "Expected pkgrel {pkgrel} to be valid.");
         assert_eq!(
-            parsed.as_ref().unwrap().to_string(),
+            parsed.as_ref()?.to_string(),
             pkgrel,
             "Expected parsed PackageRelease representation '{}' to be identical to input '{}'",
-            parsed.unwrap(),
+            parsed?,
             pkgrel
         );
+
+        Ok(())
     }
 
     /// Ensure that invalid **pkgrel**s are throwing errors.
@@ -473,13 +478,19 @@ mod tests {
     #[case("1.1", "1.0", Ordering::Greater)]
     #[case("1.1", "0", Ordering::Greater)]
     #[case("11", "1", Ordering::Greater)]
-    fn pkgrel_cmp(#[case] first: &str, #[case] second: &str, #[case] order: Ordering) {
-        let first = PackageRelease::from_str(first).unwrap();
-        let second = PackageRelease::from_str(second).unwrap();
+    fn pkgrel_cmp(
+        #[case] first: &str,
+        #[case] second: &str,
+        #[case] order: Ordering,
+    ) -> TestResult {
+        let first = PackageRelease::from_str(first)?;
+        let second = PackageRelease::from_str(second)?;
         assert_eq!(
             first.cmp(&second),
             order,
             "{first} should be {order:?} to {second}"
         );
+
+        Ok(())
     }
 }

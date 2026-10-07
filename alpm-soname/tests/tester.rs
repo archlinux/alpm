@@ -78,7 +78,7 @@ fn main() -> TestResult {
     } else {
         SotestConfig {
             libname: "example".to_string(),
-            lookup: SonameLookupDirectory::from_str("lib:/usr/lib").unwrap(),
+            lookup: SonameLookupDirectory::from_str("lib:/usr/lib")?,
             dep: "lib:libexample.so.1".parse()?,
             expect_dep: None,
             expect_provide: None,

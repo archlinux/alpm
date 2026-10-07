@@ -761,21 +761,19 @@ impl Display for SonameV2 {
 mod tests {
     use insta::assert_snapshot;
     use rstest::rstest;
+    use testresult::TestResult;
 
     use super::*;
     use crate::configure_insta;
 
     #[rstest]
-    #[case("example.so", SonameV1::Basic("example.so".parse().unwrap()))]
+    #[case("example.so", SonameV1::Basic("example.so".parse()?))]
     #[case("example.so=1.0.0-64", SonameV1::Explicit {
-        name: "example.so".parse().unwrap(),
-        version: "1.0.0".parse().unwrap(),
+        name: "example.so".parse()?,
+        version: "1.0.0".parse()?,
         architecture: ElfArchitectureFormat::Bit64,
     })]
-    fn sonamev1_from_string(
-        #[case] input: &str,
-        #[case] expected_result: SonameV1,
-    ) -> testresult::TestResult<()> {
+    fn sonamev1_from_string(#[case] input: &str, #[case] expected_result: SonameV1) -> TestResult {
         let soname = SonameV1::from_str(input)?;
         assert_eq!(expected_result, soname);
         assert_eq!(input, soname.to_string());
@@ -786,23 +784,23 @@ mod tests {
     #[case(
         "libwlroots-0.18.so=libwlroots-0.18.so-64",
         SonameV1::Unversioned {
-            name: "libwlroots-0.18.so".parse().unwrap(),
-            soname: "libwlroots-0.18.so".parse().unwrap(),
+            name: "libwlroots-0.18.so".parse()?,
+            soname: "libwlroots-0.18.so".parse()?,
             architecture: ElfArchitectureFormat::Bit64,
         },
     )]
     #[case(
         "libexample.so=otherlibexample.so-64",
         SonameV1::Unversioned {
-            name: "libexample.so".parse().unwrap(),
-            soname: "otherlibexample.so".parse().unwrap(),
+            name: "libexample.so".parse()?,
+            soname: "otherlibexample.so".parse()?,
             architecture: ElfArchitectureFormat::Bit64,
         },
     )]
     fn sonamev1_from_string_without_version(
         #[case] input: &str,
         #[case] expected_result: SonameV1,
-    ) -> testresult::TestResult<()> {
+    ) -> TestResult {
         let soname = SonameV1::from_str(input)?;
         assert_eq!(expected_result, soname);
         assert_eq!(input, soname.to_string());
@@ -830,17 +828,17 @@ mod tests {
     #[case(
         "otherlibexample.so",
         VersionOrSoname::Soname(
-            SharedObjectName::new("otherlibexample.so").unwrap())
+            SharedObjectName::new("otherlibexample.so")?)
     )]
     #[case(
         "1.0.0",
         VersionOrSoname::Version(
-            PackageVersion::from_str("1.0.0").unwrap())
+            PackageVersion::from_str("1.0.0")?)
     )]
     fn version_or_soname_from_string(
         #[case] input: &str,
         #[case] expected_result: VersionOrSoname,
-    ) -> testresult::TestResult<()> {
+    ) -> TestResult {
         let version = VersionOrSoname::from_str(input)?;
         assert_eq!(expected_result, version);
         assert_eq!(input, version.to_string());
@@ -851,9 +849,9 @@ mod tests {
     #[case(
         "lib:libexample.so",
         SonameV2 {
-            prefix: "lib".parse().unwrap(),
+            prefix: "lib".parse()?,
             soname: Soname {
-                name: "libexample.so".parse().unwrap(),
+                name: "libexample.so".parse()?,
                 version: None,
             },
         },
@@ -861,9 +859,9 @@ mod tests {
     #[case(
         "usr:libexample.so.1",
         SonameV2 {
-            prefix: "usr".parse().unwrap(),
+            prefix: "usr".parse()?,
             soname: Soname {
-                name: "libexample.so".parse().unwrap(),
+                name: "libexample.so".parse()?,
                 version: "1".parse().ok(),
             },
         },
@@ -871,9 +869,9 @@ mod tests {
     #[case(
         "lib:libexample.so.1.2.3",
         SonameV2 {
-            prefix: "lib".parse().unwrap(),
+            prefix: "lib".parse()?,
             soname: Soname {
-                name: "libexample.so".parse().unwrap(),
+                name: "libexample.so".parse()?,
                 version: "1.2.3".parse().ok(),
             },
         },
@@ -881,9 +879,9 @@ mod tests {
     #[case(
         "lib:libexample.so.so.420",
         SonameV2 {
-            prefix: "lib".parse().unwrap(),
+            prefix: "lib".parse()?,
             soname: Soname {
-                name: "libexample.so.so".parse().unwrap(),
+                name: "libexample.so.so".parse()?,
                 version: "420".parse().ok(),
             },
         },
@@ -891,17 +889,14 @@ mod tests {
     #[case(
         "lib:libexample.so.test",
         SonameV2 {
-            prefix: "lib".parse().unwrap(),
+            prefix: "lib".parse()?,
             soname: Soname {
-                name: "libexample.so".parse().unwrap(),
+                name: "libexample.so".parse()?,
                 version: "test".parse().ok(),
             },
         },
     )]
-    fn sonamev2_from_string(
-        #[case] input: &str,
-        #[case] expected_result: SonameV2,
-    ) -> testresult::TestResult<()> {
+    fn sonamev2_from_string(#[case] input: &str, #[case] expected_result: SonameV2) -> TestResult {
         let soname = SonameV2::from_str(input)?;
         assert_eq!(expected_result, soname);
         assert_eq!(input, soname.to_string());

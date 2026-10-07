@@ -45,7 +45,12 @@ fn correct_files(#[files("tests/correct/*.srcinfo")] case: PathBuf) -> TestResul
 
     let source_info_json = serde_json::to_string_pretty(&source_info)?;
 
-    let test_name = case.file_stem().unwrap().to_str().unwrap().to_string();
+    let test_name = case
+        .file_stem()
+        .expect("path to have a file stem")
+        .to_str()
+        .expect("path to contain only Unicode characters");
+
     // Compare the generated source_info json with the expected snapshot.
     // Remove the usual module prefix by explicitly setting the snapshot path.
     // This is necessary, as we're manually sorting snapshots by test scenario.

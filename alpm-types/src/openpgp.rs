@@ -536,7 +536,6 @@ impl Display for Packager {
 mod tests {
     use insta::assert_snapshot;
     use rstest::rstest;
-    #[cfg(feature = "serde")]
     use testresult::TestResult;
 
     use super::*;
@@ -716,18 +715,20 @@ mod tests {
         "Foobar McFooface (The Third) <foobar@mcfooface.org>",
         Packager{
             name: "Foobar McFooface (The Third)".to_string(),
-            email: EmailAddress::from_str("foobar@mcfooface.org").unwrap()
+            email: EmailAddress::from_str("foobar@mcfooface.org")?
         }
     )]
     #[case(
         "Foobar McFooface <foobar@mcfooface.org>",
         Packager{
             name: "Foobar McFooface".to_string(),
-            email: EmailAddress::from_str("foobar@mcfooface.org").unwrap()
+            email: EmailAddress::from_str("foobar@mcfooface.org")?
         }
     )]
-    fn valid_packager(#[case] from_str: &str, #[case] packager: Packager) {
+    fn valid_packager(#[case] from_str: &str, #[case] packager: Packager) -> TestResult {
         assert_eq!(Packager::from_str(from_str), Ok(packager));
+
+        Ok(())
     }
 
     /// Test that invalid packager expressions are detected as such and throw the expected error.
@@ -739,7 +740,7 @@ mod tests {
         "Foobar McFooface <foobar@mcfooface.org> <foobar@mcfoofacemcfooface.org>"
     )]
     #[case::address_without_local_part("Foobar McFooface <@mcfooface.org>")]
-    fn invalid_packager(#[case] input: &str) {
+    fn invalid_packager(#[case] input: &str) -> TestResult {
         let (test_name, _guard) = configure_insta();
 
         let Err(err_msg) = Packager::from_str(input) else {
@@ -747,29 +748,40 @@ mod tests {
         };
 
         assert_snapshot!(test_name, err_msg.to_string());
+
+        Ok(())
     }
 
     #[rstest]
     #[case(
-        Packager::from_str("Foobar McFooface <foobar@mcfooface.org>").unwrap(),
+        Packager::from_str("Foobar McFooface <foobar@mcfooface.org>")?,
         "Foobar McFooface <foobar@mcfooface.org>"
     )]
-    fn packager_format_string(#[case] packager: Packager, #[case] packager_str: &str) {
+    fn packager_format_string(
+        #[case] packager: Packager,
+        #[case] packager_str: &str,
+    ) -> TestResult {
         assert_eq!(packager_str, format!("{packager}"));
+
+        Ok(())
     }
 
     #[rstest]
-    #[case(Packager::from_str("Foobar McFooface <foobar@mcfooface.org>").unwrap(), "Foobar McFooface")]
-    fn packager_name(#[case] packager: Packager, #[case] name: &str) {
+    #[case(Packager::from_str("Foobar McFooface <foobar@mcfooface.org>")?, "Foobar McFooface")]
+    fn packager_name(#[case] packager: Packager, #[case] name: &str) -> TestResult {
         assert_eq!(name, packager.name());
+
+        Ok(())
     }
 
     #[rstest]
     #[case(
-        Packager::from_str("Foobar McFooface <foobar@mcfooface.org>").unwrap(),
-        &EmailAddress::from_str("foobar@mcfooface.org").unwrap(),
+        Packager::from_str("Foobar McFooface <foobar@mcfooface.org>")?,
+        &EmailAddress::from_str("foobar@mcfooface.org")?,
     )]
-    fn packager_email(#[case] packager: Packager, #[case] email: &EmailAddress) {
+    fn packager_email(#[case] packager: Packager, #[case] email: &EmailAddress) -> TestResult {
         assert_eq!(email, packager.email());
+
+        Ok(())
     }
 }

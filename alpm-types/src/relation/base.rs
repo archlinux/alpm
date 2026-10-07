@@ -472,6 +472,7 @@ mod tests {
     use insta::assert_snapshot;
     use proptest::{prop_assert_eq, proptest, test_runner::Config as ProptestConfig};
     use rstest::rstest;
+    use testresult::TestResult;
 
     use super::*;
     use crate::{VersionComparison, configure_insta};
@@ -493,7 +494,7 @@ mod tests {
         #[test]
         fn valid_package_relation_from_str(s in format!("{NAME_REGEX}(|{COMPARATOR_REGEX}(|{EPOCH_REGEX}:){PKGVER_REGEX}(|-{PKGREL_REGEX}))").as_str()) {
             println!("s: {s}");
-            let name = PackageRelation::from_str(&s).unwrap();
+            let name = PackageRelation::from_str(&s)?;
             prop_assert_eq!(s, format!("{}", name));
         }
     }
@@ -525,7 +526,7 @@ mod tests {
             };
 
             println!("input string: {raw_in}");
-            let opt_depend = OptionalDependency::from_str(&raw_in).unwrap();
+            let opt_depend = OptionalDependency::from_str(&raw_in)?;
             let formatted_actual = format!("{opt_depend}");
             prop_assert_eq!(
                 formatted_expected,
@@ -539,28 +540,30 @@ mod tests {
     #[case(
         "python>=3",
         Ok(PackageRelation {
-            name: Name::new("python").unwrap(),
+            name: Name::new("python")?,
             version_requirement: Some(VersionRequirement {
                 comparison: VersionComparison::GreaterOrEqual,
-                version: "3".parse().unwrap(),
+                version: "3".parse()?,
             }),
         }),
     )]
     #[case(
         "java-environment>=17",
         Ok(PackageRelation {
-            name: Name::new("java-environment").unwrap(),
+            name: Name::new("java-environment")?,
             version_requirement: Some(VersionRequirement {
                 comparison: VersionComparison::GreaterOrEqual,
-                version: "17".parse().unwrap(),
+                version: "17".parse()?,
             }),
         }),
     )]
     fn valid_package_relation(
         #[case] input: &str,
         #[case] expected: Result<PackageRelation, Error>,
-    ) {
+    ) -> TestResult {
         assert_eq!(PackageRelation::from_str(input), expected);
+
+        Ok(())
     }
 
     #[rstest]
@@ -568,7 +571,7 @@ mod tests {
         "example: this is an example dependency",
         OptionalDependency {
             package_relation: PackageRelation {
-                name: Name::new("example").unwrap(),
+                name: Name::new("example")?,
                 version_requirement: None,
             },
             description: Some("this is an example dependency".to_string()),
@@ -578,7 +581,7 @@ mod tests {
         "example-two:     a description with lots of whitespace padding     ",
         OptionalDependency {
             package_relation: PackageRelation {
-                name: Name::new("example-two").unwrap(),
+                name: Name::new("example-two")?,
                 version_requirement: None,
             },
             description: Some("a description with lots of whitespace padding".to_string())
@@ -588,7 +591,7 @@ mod tests {
         "dep_name",
         OptionalDependency {
             package_relation: PackageRelation {
-                name: Name::new("dep_name").unwrap(),
+                name: Name::new("dep_name")?,
                 version_requirement: None,
             },
             description: None,
@@ -598,7 +601,7 @@ mod tests {
         "dep_name: ",
         OptionalDependency {
             package_relation: PackageRelation {
-                name: Name::new("dep_name").unwrap(),
+                name: Name::new("dep_name")?,
                 version_requirement: None,
             },
             description: None,
@@ -608,7 +611,7 @@ mod tests {
         "dep_name_with_special_chars-123: description with !@#$%^&*",
         OptionalDependency {
             package_relation: PackageRelation {
-                name: Name::new("dep_name_with_special_chars-123").unwrap(),
+                name: Name::new("dep_name_with_special_chars-123")?,
                 version_requirement: None,
             },
             description: Some("description with !@#$%^&*".to_string()),
@@ -619,10 +622,10 @@ mod tests {
         "elfutils=0.192: for translations",
         OptionalDependency {
             package_relation: PackageRelation {
-                name: Name::new("elfutils").unwrap(),
+                name: Name::new("elfutils")?,
                 version_requirement: Some(VersionRequirement {
                     comparison: VersionComparison::Equal,
-                    version: "0.192".parse().unwrap(),
+                    version: "0.192".parse()?,
                 }),
             },
             description: Some("for translations".to_string()),
@@ -632,10 +635,10 @@ mod tests {
         "python>=3: For Python bindings",
         OptionalDependency {
             package_relation: PackageRelation {
-                name: Name::new("python").unwrap(),
+                name: Name::new("python")?,
                 version_requirement: Some(VersionRequirement {
                     comparison: VersionComparison::GreaterOrEqual,
-                    version: "3".parse().unwrap(),
+                    version: "3".parse()?,
                 }),
             },
             description: Some("For Python bindings".to_string()),
@@ -645,10 +648,10 @@ mod tests {
         "java-environment>=17: required by extension-wiki-publisher and extension-nlpsolver",
         OptionalDependency {
             package_relation: PackageRelation {
-                name: Name::new("java-environment").unwrap(),
+                name: Name::new("java-environment")?,
                 version_requirement: Some(VersionRequirement {
                     comparison: VersionComparison::GreaterOrEqual,
-                    version: "17".parse().unwrap(),
+                    version: "17".parse()?,
                 }),
             },
             description: Some("required by extension-wiki-publisher and extension-nlpsolver".to_string()),
@@ -659,10 +662,10 @@ mod tests {
         "example>=1:17.0.1-5: my dependency",
         OptionalDependency {
             package_relation: PackageRelation {
-                name: Name::new("example").unwrap(),
+                name: Name::new("example")?,
                 version_requirement: Some(VersionRequirement {
                     comparison: VersionComparison::GreaterOrEqual,
-                    version: "1:17.0.1-5".parse().unwrap(),
+                    version: "1:17.0.1-5".parse()?,
                 }),
             },
             description: Some("my dependency".to_string()),
@@ -673,16 +676,19 @@ mod tests {
         "example>1: 17.0.1-5 ambiguous.",
         OptionalDependency {
             package_relation: PackageRelation {
-                name: Name::new("example").unwrap(),
+                name: Name::new("example")?,
                 version_requirement: Some(VersionRequirement {
                     comparison: VersionComparison::Greater,
-                    version: "1".parse().unwrap(),
+                    version: "1".parse()?,
                 }),
             },
             description: Some("17.0.1-5 ambiguous.".to_string()),
         },
     )]
-    fn opt_depend_from_string(#[case] input: &str, #[case] expected: OptionalDependency) {
+    fn opt_depend_from_string(
+        #[case] input: &str,
+        #[case] expected: OptionalDependency,
+    ) -> TestResult {
         let opt_depend_result = OptionalDependency::from_str(input);
         let optional_dependency = match opt_depend_result {
             Ok(dep) => dep,
@@ -695,6 +701,8 @@ mod tests {
             expected, optional_dependency,
             "Optional dependency has not been correctly parsed."
         );
+
+        Ok(())
     }
 
     #[rstest]

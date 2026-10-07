@@ -350,7 +350,9 @@ mod tests {
     ) -> TestResult {
         let (test_file, test_file_content) = test_data?;
         let test_file_path = test_file.path();
-        let test_file_name = test_file_path.file_name().unwrap();
+        let test_file_name = test_file_path
+            .file_name()
+            .expect("test file path has a name");
 
         // Prepare archive containing the test_file
         let archive = NamedTempFile::with_suffix(extension)?;
@@ -364,12 +366,14 @@ mod tests {
         }
 
         // Read the archive
-        let mut reader = TarballReader::try_from(archive.path())?;
-        let entry = reader.read_entry(test_file_name)?;
+        let content = {
+            let mut reader = TarballReader::try_from(archive.path())?;
+            let Some(mut entry) = reader.read_entry(test_file_name)? else {
+                panic!("The entry does not exist");
+            };
 
-        assert!(entry.is_some());
-        let mut entry = entry.unwrap();
-        let content = entry.content()?;
+            entry.content()?
+        };
 
         // Check data integrity
         assert_eq!(content, test_file_content);

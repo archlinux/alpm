@@ -32,14 +32,12 @@ const MESON_FILES_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/test_f
 fn get_provisions_via_cli(pkg: &Path, lookup: &SonameLookupDirectory) -> TestResult<Vec<SonameV2>> {
     let mut cmd = cargo_bin_cmd!("alpm-soname");
     let output = cmd
-        .args([
-            "get-provisions",
-            "--output-format",
-            "json",
-            "--lookup-dir",
-            &lookup.to_string(),
-            pkg.to_str().unwrap(),
-        ])
+        .arg("get-provisions")
+        .arg("--output-format")
+        .arg("json")
+        .arg("--lookup-dir")
+        .arg(lookup.to_string())
+        .arg(pkg)
         .assert()
         .success()
         .get_output()
@@ -55,14 +53,12 @@ fn get_dependencies_via_cli(
 ) -> TestResult<Vec<SonameV2>> {
     let mut cmd = cargo_bin_cmd!("alpm-soname");
     let output = cmd
-        .args([
-            "get-dependencies",
-            "--output-format",
-            "json",
-            "--lookup-dir",
-            &lookup.to_string(),
-            pkg.to_str().unwrap(),
-        ])
+        .arg("get-dependencies")
+        .arg("--output-format")
+        .arg("json")
+        .arg("--lookup-dir")
+        .arg(lookup.to_string())
+        .arg(pkg)
         .assert()
         .success()
         .get_output()
@@ -80,7 +76,7 @@ where
     let mut cmd = cargo_bin_cmd!("alpm-soname");
     cmd.args(["get-raw-dependencies"])
         .args(args)
-        .arg(pkg.to_str().unwrap())
+        .arg(pkg)
         .assert()
         .success()
         .get_output()
@@ -114,7 +110,7 @@ fn get_raw_dependencies_elf2_via_cli(pkg: &Path) -> TestResult<ElfSonames> {
 #[case::normal(
     SotestConfig {
         libname: "sotest".to_string(),
-        lookup: SonameLookupDirectory::from_str("lib:/usr/lib").unwrap(),
+        lookup: SonameLookupDirectory::from_str("lib:/usr/lib")?,
         dep: "lib:libsotest.so.1".parse()?,
         expect_dep: Some("lib:libsotest.so.1".parse()?),
         expect_provide: Some("lib:libsotest.so.1".parse()?),
@@ -123,7 +119,7 @@ fn get_raw_dependencies_elf2_via_cli(pkg: &Path) -> TestResult<ElfSonames> {
 #[case::no_ver(
     SotestConfig {
         libname: "sotest".to_string(),
-        lookup: SonameLookupDirectory::from_str("lib:/usr/lib").unwrap(),
+        lookup: SonameLookupDirectory::from_str("lib:/usr/lib")?,
         dep: "lib:libsotest.so".parse()?,
         expect_dep: None,
         expect_provide: Some("lib:libsotest.so".parse()?),

@@ -14,7 +14,11 @@ use testresult::TestResult;
 /// This test does snapshot testing of the formatted errors for each invalid PKGBUILD.
 #[rstest]
 fn invalid_files(#[files("tests/pkgbuild_invalid/*.pkgbuild")] case: PathBuf) -> TestResult {
-    let test_name = case.file_stem().unwrap().to_str().unwrap().to_string();
+    let test_name = case
+        .file_stem()
+        .expect("path to have a file stem")
+        .to_str()
+        .expect("path to contain only Unicode characters");
 
     // Run the bridge script on the input file.
     let raw_bridge_output = run_bridge_script(&case)?;

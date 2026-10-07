@@ -44,9 +44,7 @@ fn line_ending_or_eof<'a>(input: &mut Input<'a>) -> PResult<'a, &'a str> {
 ///     }
 /// }
 ///
-/// let (remaining, parsed) = Alphanumeric::parser
-///     .parse_peek(Input::new("abc123\nnext"))
-///     .unwrap();
+/// let (remaining, parsed) = Alphanumeric::parser.parse_peek(Input::new("abc123\nnext"))?;
 /// assert_eq!(*remaining, "\nnext");
 /// assert_eq!(parsed, Alphanumeric("abc123".to_string()));
 ///
@@ -134,9 +132,8 @@ pub trait AlpmParser: Sized {
 /// }
 ///
 /// // The parser succeeds with a alphanumeric string that is followed by a newline.
-/// let (remaining, parsed) = Alphanumeric::parser_until_line_ending
-///     .parse_peek(Input::new("abc123\nnext"))
-///     .unwrap();
+/// let (remaining, parsed) =
+///     Alphanumeric::parser_until_line_ending.parse_peek(Input::new("abc123\nnext"))?;
 /// assert_eq!(*remaining, "\nnext");
 /// assert_eq!(parsed, Alphanumeric("abc123".to_string()));
 ///
@@ -149,16 +146,13 @@ pub trait AlpmParser: Sized {
 /// );
 ///
 /// // If we expect it to be a `{` though, it works just as expected.
-/// let (remaining, parsed) = Alphanumeric::parser_until("{")
-///     .parse_peek(Input::new("abc123{\nnext"))
-///     .unwrap();
+/// let (remaining, parsed) =
+///     Alphanumeric::parser_until("{").parse_peek(Input::new("abc123{\nnext"))?;
 /// assert_eq!(*remaining, "{\nnext");
 /// assert_eq!(parsed, Alphanumeric("abc123".to_string()));
 ///
 /// // Parsing the full string with `parser_until_eof` works as expected.
-/// let (remaining, parsed) = Alphanumeric::parser_until_eof
-///     .parse_peek(Input::new("abc123"))
-///     .unwrap();
+/// let (remaining, parsed) = Alphanumeric::parser_until_eof.parse_peek(Input::new("abc123"))?;
 /// assert_eq!(*remaining, "");
 /// assert_eq!(parsed, Alphanumeric("abc123".to_string()));
 ///
@@ -247,8 +241,7 @@ impl<U: AlpmParser> ParserUntil for U {
 /// }
 ///
 /// let (remaining, parsed) = Alphanumeric::parser_until_line_ending_inclusive
-///     .parse_peek(Input::new("abc123\nnext"))
-///     .unwrap();
+///     .parse_peek(Input::new("abc123\nnext"))?;
 /// assert_eq!(*remaining, "next");
 /// assert_eq!(parsed, Alphanumeric("abc123".to_string()));
 ///

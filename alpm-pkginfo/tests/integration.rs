@@ -3,7 +3,7 @@
 //! These tests are only executed when the `cli` feature flag is enabled.
 #![cfg(feature = "cli")]
 
-use std::{str::FromStr, thread};
+use std::{str::FromStr, thread::current};
 
 use alpm_pkginfo::{PackageInfoV1, PackageInfoV2};
 use assert_cmd::{Command, cargo::cargo_bin_cmd};
@@ -186,12 +186,12 @@ fn format_pkginfo_and_serialize_as_json(#[case] data: &str) -> TestResult {
     let mut cmd = cargo_bin_cmd!("alpm-pkginfo");
     cmd.args(["format", "-p"]);
     cmd.write_stdin(data);
-    let cmd = cmd.unwrap();
-    let pkg_info = String::from_utf8_lossy(&cmd.stdout);
+    let output = cmd.output()?;
+    let pkg_info = String::from_utf8_lossy(&output.stdout);
     assert_snapshot!(
-        thread::current()
+        current()
             .name()
-            .unwrap()
+            .expect("the current thread has a name")
             .to_string()
             .replace("::", "__"),
         pkg_info.to_string()
@@ -306,9 +306,9 @@ enum WriteMode {
 
 /// Test writing a pkginfo file either via CLI or environment variables.
 fn test_write_pkginfo(pkginfo_input: PackageInfoInput, write_mode: WriteMode) -> TestResult {
-    let test_name = thread::current()
+    let test_name = current()
         .name()
-        .unwrap()
+        .expect("the current thread has a name")
         .to_string()
         .replace("::", "__");
 

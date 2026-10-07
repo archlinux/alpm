@@ -267,7 +267,7 @@ fn validate_paths_fails_on_duplicate_input_paths() -> TestResult {
                 }, {
                     assert_snapshot!(current()
                     .name()
-                    .unwrap()
+                    .expect("the current thread to have a name")
                     .to_string()
                     .replace("::", "__")
         , format!("{error}"));
@@ -310,7 +310,7 @@ fn validate_paths_fails_on_paths_mismatch() -> TestResult {
                 }, {
                     assert_snapshot!(current()
                     .name()
-                    .unwrap()
+                    .expect("the current thread to have a name")
                     .to_string()
                     .replace("::", "__")
         , format!("{error}"));
@@ -356,7 +356,7 @@ fn validate_paths_fails_on_data_path_mismatch() -> TestResult {
                 }, {
                     assert_snapshot!(current()
                     .name()
-                    .unwrap()
+                    .expect("the current thread to have a name")
                     .to_string()
                     .replace("::", "__")
         , format!("{error}"));
@@ -400,7 +400,7 @@ fn validate_paths_fails_on_not_a_dir() -> TestResult {
                 }, {
                     assert_snapshot!(current()
                     .name()
-                    .unwrap()
+                    .expect("the current thread to have a name")
                     .to_string()
                     .replace("::", "__")
         , format!("{error}"));
@@ -442,7 +442,7 @@ fn validate_paths_fails_on_not_a_symlink() -> TestResult {
                 }, {
                     assert_snapshot!(current()
                     .name()
-                    .unwrap()
+                    .expect("the current thread to have a name")
                     .to_string()
                     .replace("::", "__")
         , format!("{error}"));
@@ -491,7 +491,7 @@ fn validate_paths_fails_on_symlink_mismatch() -> TestResult {
                 }, {
                     assert_snapshot!(current()
                     .name()
-                    .unwrap()
+                    .expect("the current thread to have a name")
                     .to_string()
                     .replace("::", "__")
         , format!("{error}"));
@@ -532,7 +532,7 @@ fn validate_paths_fails_on_not_a_file() -> TestResult {
                 }, {
                     assert_snapshot!(current()
                     .name()
-                    .unwrap()
+                    .expect("the current thread to have a name")
                     .to_string()
                     .replace("::", "__")
         , format!("{error}"));
@@ -571,7 +571,7 @@ fn validate_paths_fails_on_size_mismatch() -> TestResult {
                 }, {
                     assert_snapshot!(current()
                     .name()
-                    .unwrap()
+                    .expect("the current thread to have a name")
                     .to_string()
                     .replace("::", "__")
         , format!("{error}"));
@@ -611,7 +611,7 @@ fn validate_paths_fails_on_digest_mismatch() -> TestResult {
                 }, {
                     assert_snapshot!(current()
                     .name()
-                    .unwrap()
+                    .expect("the current thread to have a name")
                     .to_string()
                     .replace("::", "__")
         , format!("{error}"));
@@ -656,7 +656,7 @@ fn validate_paths_fails_on_time_mismatch() -> TestResult {
                 }, {
                     assert_snapshot!(current()
                     .name()
-                    .unwrap()
+                    .expect("the current thread to have a name")
                     .to_string()
                     .replace("::", "__")
         , format!("{error}"));
@@ -692,7 +692,7 @@ fn validate_paths_fails_on_mode_mismatch() -> TestResult {
                 }, {
                     assert_snapshot!(current()
                     .name()
-                    .unwrap()
+                    .expect("the current thread to have a name")
                     .to_string()
                     .replace("::", "__")
         , format!("{error}"));

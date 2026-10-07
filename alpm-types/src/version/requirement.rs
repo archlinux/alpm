@@ -526,22 +526,27 @@ mod tests {
     #[rstest]
     #[case("=1", VersionRequirement {
         comparison: VersionComparison::Equal,
-        version: Version::from_str("1").unwrap(),
+        version: Version::from_str("1")?,
     })]
     #[case("<=42:abcd-2.4", VersionRequirement {
         comparison: VersionComparison::LessOrEqual,
-        version: Version::from_str("42:abcd-2.4").unwrap(),
+        version: Version::from_str("42:abcd-2.4")?,
     })]
     #[case(">3.1", VersionRequirement {
         comparison: VersionComparison::Greater,
-        version: Version::from_str("3.1").unwrap(),
+        version: Version::from_str("3.1")?,
     })]
-    fn valid_version_requirement(#[case] requirement: &str, #[case] expected: VersionRequirement) {
+    fn valid_version_requirement(
+        #[case] requirement: &str,
+        #[case] expected: VersionRequirement,
+    ) -> TestResult {
         assert_eq!(
             requirement.parse(),
             Ok(expected),
             "Expected successful parse for version requirement '{requirement}'"
         );
+
+        Ok(())
     }
 
     #[rstest]
@@ -583,10 +588,12 @@ mod tests {
         #[case] requirement: &str,
         #[case] version: &str,
         #[case] result: bool,
-    ) {
-        let requirement = VersionRequirement::from_str(requirement).unwrap();
-        let version = Version::from_str(version).unwrap();
+    ) -> TestResult {
+        let requirement = VersionRequirement::from_str(requirement)?;
+        let version = Version::from_str(version)?;
         assert_eq!(requirement.is_satisfied_by(&version), result);
+
+        Ok(())
     }
 
     #[rstest]

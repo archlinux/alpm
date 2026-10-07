@@ -60,7 +60,7 @@ fn fail_to_parse_package_filename(#[case] s: &str) -> TestResult {
             }, {
                 assert_snapshot!(current()
                 .name()
-                .unwrap()
+                .expect("the current thread has a name")
                 .to_string()
                 .replace("::", "__")
     , format!("{error}"));
@@ -89,7 +89,7 @@ fn package_file_name_from_path_fails(#[case] path: PathBuf) -> TestResult {
             }, {
                 assert_snapshot!(current()
                 .name()
-                .unwrap()
+                .expect("the current thread has a name")
                 .to_string()
                 .replace("::", "__")
     , format!("{error}"));

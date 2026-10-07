@@ -54,7 +54,11 @@ fn ensure_parse_errors(#[files("tests/error_input/*")] case: PathBuf) -> TestRes
         panic!("Got unexpected incomplete parse error.");
     };
 
-    let name = case.file_stem().unwrap().to_str().unwrap();
+    let name = case
+        .file_stem()
+        .expect("path to have a file stem")
+        .to_str()
+        .expect("path to contain only Unicode characters");
 
     // Run the tests with the input being displayed as the description.
     // This makes reviewing this whole stuff a lot easier.

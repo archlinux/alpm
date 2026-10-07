@@ -221,6 +221,7 @@ impl PartialOrd for Version {
 mod tests {
     use insta::assert_snapshot;
     use rstest::rstest;
+    use testresult::TestResult;
 
     use super::*;
     use crate::configure_insta;
@@ -231,14 +232,14 @@ mod tests {
         "foo",
         Version {
             epoch: None,
-            pkgver: PackageVersion::new("foo".to_string()).unwrap(),
+            pkgver: PackageVersion::new("foo".to_string())?,
             pkgrel: None
         },
     )]
     #[case(
         "1:foo-1",
         Version {
-            pkgver: PackageVersion::new("foo".to_string()).unwrap(),
+            pkgver: PackageVersion::new("foo".to_string())?,
             epoch: Some(Epoch::new(1)),
             pkgrel: Some(PackageRelease::new(1, None))
         },
@@ -246,7 +247,7 @@ mod tests {
     #[case(
         "1:foo",
         Version {
-            pkgver: PackageVersion::new("foo".to_string()).unwrap(),
+            pkgver: PackageVersion::new("foo".to_string())?,
             epoch: Some(Epoch::new(1)),
             pkgrel: None,
         },
@@ -254,7 +255,7 @@ mod tests {
     #[case(
         "foo-1",
         Version {
-            pkgver: PackageVersion::new("foo".to_string()).unwrap(),
+            pkgver: PackageVersion::new("foo".to_string())?,
             epoch: None,
             pkgrel: Some(PackageRelease::new(1, None))
         }
@@ -263,17 +264,19 @@ mod tests {
     #[case(
         ".-1",
         Version {
-            pkgver: PackageVersion::new(".".to_string()).unwrap(),
+            pkgver: PackageVersion::new(".".to_string())?,
             epoch: None,
             pkgrel: Some(PackageRelease::new(1, None))
             }
     )]
-    fn valid_version_from_string(#[case] version: &str, #[case] expected: Version) {
+    fn valid_version_from_string(#[case] version: &str, #[case] expected: Version) -> TestResult {
         assert_eq!(
             Version::from_str(version),
             Ok(expected),
             "Expected valid parsing for version {version}"
-        )
+        );
+
+        Ok(())
     }
 
     /// Ensure that invalid version strings produce the respective errors.
@@ -296,79 +299,76 @@ mod tests {
 
     /// Ensure that versions are properly serialized back to their string representation.
     #[rstest]
-    #[case(Version::from_str("1:1-1").unwrap(), "1:1-1")]
-    #[case(Version::from_str("1-1").unwrap(), "1-1")]
-    #[case(Version::from_str("1").unwrap(), "1")]
-    #[case(Version::from_str("1:1").unwrap(), "1:1")]
-    fn version_to_string(#[case] version: Version, #[case] to_str: &str) {
+    #[case(Version::from_str("1:1-1")?, "1:1-1")]
+    #[case(Version::from_str("1-1")?, "1-1")]
+    #[case(Version::from_str("1")?, "1")]
+    #[case(Version::from_str("1:1")?, "1:1")]
+    fn version_to_string(#[case] version: Version, #[case] to_str: &str) -> TestResult {
         assert_eq!(format!("{version}"), to_str);
+        Ok(())
     }
 
     #[rstest]
     // Major version comparisons
-    #[case(Version::from_str("1"), Version::from_str("1"), Ordering::Equal)]
-    #[case(Version::from_str("1"), Version::from_str("2"), Ordering::Less)]
+    #[case(Version::from_str("1")?, Version::from_str("1")?, Ordering::Equal)]
+    #[case(Version::from_str("1")?, Version::from_str("2")?, Ordering::Less)]
     #[case(
-        Version::from_str("20220102"),
-        Version::from_str("20220202"),
+        Version::from_str("20220102")?,
+        Version::from_str("20220202")?,
         Ordering::Less
     )]
     // Major vs Major.Minor
-    #[case(Version::from_str("1"), Version::from_str("1.1"), Ordering::Less)]
-    #[case(Version::from_str("01"), Version::from_str("1"), Ordering::Equal)]
-    #[case(Version::from_str("001a"), Version::from_str("1a"), Ordering::Equal)]
-    #[case(Version::from_str("a1a"), Version::from_str("a1b"), Ordering::Less)]
-    #[case(Version::from_str("foo"), Version::from_str("1.1"), Ordering::Less)]
+    #[case(Version::from_str("1")?, Version::from_str("1.1")?, Ordering::Less)]
+    #[case(Version::from_str("01")?, Version::from_str("1")?, Ordering::Equal)]
+    #[case(Version::from_str("001a")?, Version::from_str("1a")?, Ordering::Equal)]
+    #[case(Version::from_str("a1a")?, Version::from_str("a1b")?, Ordering::Less)]
+    #[case(Version::from_str("foo")?, Version::from_str("1.1")?, Ordering::Less)]
     // Major.Minor version comparisons
-    #[case(Version::from_str("1.0"), Version::from_str("1..0"), Ordering::Less)]
-    #[case(Version::from_str("1.1"), Version::from_str("1.1"), Ordering::Equal)]
-    #[case(Version::from_str("1.1"), Version::from_str("1.2"), Ordering::Less)]
-    #[case(Version::from_str("1..0"), Version::from_str("1..0"), Ordering::Equal)]
-    #[case(Version::from_str("1..0"), Version::from_str("1..1"), Ordering::Less)]
-    #[case(Version::from_str("1+0"), Version::from_str("1.0"), Ordering::Equal)]
-    #[case(Version::from_str("1+1"), Version::from_str("1+2"), Ordering::Less)]
+    #[case(Version::from_str("1.0")?, Version::from_str("1..0")?, Ordering::Less)]
+    #[case(Version::from_str("1.1")?, Version::from_str("1.1")?, Ordering::Equal)]
+    #[case(Version::from_str("1.1")?, Version::from_str("1.2")?, Ordering::Less)]
+    #[case(Version::from_str("1..0")?, Version::from_str("1..0")?, Ordering::Equal)]
+    #[case(Version::from_str("1..0")?, Version::from_str("1..1")?, Ordering::Less)]
+    #[case(Version::from_str("1+0")?, Version::from_str("1.0")?, Ordering::Equal)]
+    #[case(Version::from_str("1+1")?, Version::from_str("1+2")?, Ordering::Less)]
     // Major.Minor version comparisons with alphanumerics
-    #[case(Version::from_str("1.1"), Version::from_str("1.1.a"), Ordering::Less)]
-    #[case(Version::from_str("1.1"), Version::from_str("1.11a"), Ordering::Less)]
-    #[case(Version::from_str("1.1"), Version::from_str("1.1_a"), Ordering::Less)]
-    #[case(Version::from_str("1.1a"), Version::from_str("1.1"), Ordering::Less)]
-    #[case(Version::from_str("1.1a1"), Version::from_str("1.1"), Ordering::Less)]
-    #[case(Version::from_str("1.a"), Version::from_str("1.1"), Ordering::Less)]
-    #[case(Version::from_str("1.a"), Version::from_str("1.alpha"), Ordering::Less)]
-    #[case(Version::from_str("1.a1"), Version::from_str("1.1"), Ordering::Less)]
-    #[case(Version::from_str("1.a11"), Version::from_str("1.1"), Ordering::Less)]
-    #[case(Version::from_str("1.a1a"), Version::from_str("1.a1"), Ordering::Less)]
-    #[case(Version::from_str("1.alpha"), Version::from_str("1.b"), Ordering::Less)]
-    #[case(Version::from_str("a.1"), Version::from_str("1.1"), Ordering::Less)]
+    #[case(Version::from_str("1.1")?, Version::from_str("1.1.a")?, Ordering::Less)]
+    #[case(Version::from_str("1.1")?, Version::from_str("1.11a")?, Ordering::Less)]
+    #[case(Version::from_str("1.1")?, Version::from_str("1.1_a")?, Ordering::Less)]
+    #[case(Version::from_str("1.1a")?, Version::from_str("1.1")?, Ordering::Less)]
+    #[case(Version::from_str("1.1a1")?, Version::from_str("1.1")?, Ordering::Less)]
+    #[case(Version::from_str("1.a")?, Version::from_str("1.1")?, Ordering::Less)]
+    #[case(Version::from_str("1.a")?, Version::from_str("1.alpha")?, Ordering::Less)]
+    #[case(Version::from_str("1.a1")?, Version::from_str("1.1")?, Ordering::Less)]
+    #[case(Version::from_str("1.a11")?, Version::from_str("1.1")?, Ordering::Less)]
+    #[case(Version::from_str("1.a1a")?, Version::from_str("1.a1")?, Ordering::Less)]
+    #[case(Version::from_str("1.alpha")?, Version::from_str("1.b")?, Ordering::Less)]
+    #[case(Version::from_str("a.1")?, Version::from_str("1.1")?, Ordering::Less)]
     #[case(
-        Version::from_str("1.alpha0.0"),
-        Version::from_str("1.alpha.0"),
+        Version::from_str("1.alpha0.0")?,
+        Version::from_str("1.alpha.0")?,
         Ordering::Less
     )]
     // Major.Minor vs Major.Minor.Patch
-    #[case(Version::from_str("1.0"), Version::from_str("1.0."), Ordering::Less)]
+    #[case(Version::from_str("1.0")?, Version::from_str("1.0.")?, Ordering::Less)]
     // Major.Minor.Patch
-    #[case(Version::from_str("1.0."), Version::from_str("1.0.0"), Ordering::Less)]
-    #[case(Version::from_str("1.0.."), Version::from_str("1.0."), Ordering::Equal)]
+    #[case(Version::from_str("1.0.")?, Version::from_str("1.0.0")?, Ordering::Less)]
+    #[case(Version::from_str("1.0..")?, Version::from_str("1.0.")?, Ordering::Equal)]
     #[case(
-        Version::from_str("1.0.alpha.0"),
-        Version::from_str("1.0."),
+        Version::from_str("1.0.alpha.0")?,
+        Version::from_str("1.0.")?,
         Ordering::Less
     )]
     #[case(
-        Version::from_str("1.a001a.1"),
-        Version::from_str("1.a1a.1"),
+        Version::from_str("1.a001a.1")?,
+        Version::from_str("1.a1a.1")?,
         Ordering::Equal
     )]
     fn version_cmp(
-        #[case] version_a: Result<Version, Error>,
-        #[case] version_b: Result<Version, Error>,
+        #[case] version_a: Version,
+        #[case] version_b: Version,
         #[case] expected: Ordering,
-    ) {
-        // Simply unwrap the Version as we expect all test strings to be valid.
-        let version_a = version_a.unwrap();
-        let version_b = version_b.unwrap();
-
+    ) -> TestResult {
         // Derive the expected vercmp binary exitcode from the expected Ordering.
         let vercmp_result = match &expected {
             Ordering::Equal => 0,
@@ -390,8 +390,7 @@ mod tests {
             let output = std::process::Command::new("vercmp")
                 .arg(version_a.to_string())
                 .arg(version_b.to_string())
-                .output()
-                .unwrap();
+                .output()?;
             let result = String::from_utf8_lossy(&output.stdout);
             assert_eq!(result.trim(), vercmp_result.to_string());
         }
@@ -418,5 +417,7 @@ mod tests {
             Version::vercmp(&version_b, &version_a),
             reverse_vercmp_result
         );
+
+        Ok(())
     }
 }

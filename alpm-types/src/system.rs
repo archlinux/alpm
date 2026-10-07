@@ -45,7 +45,7 @@ use crate::Error;
 /// assert_eq!("x86_64", format!("{}", SystemArchitecture::X86_64));
 /// assert_eq!(
 ///     "custom_arch",
-///     format!("{}", SystemArchitecture::from_str("custom_arch").unwrap())
+///     format!("{}", SystemArchitecture::from_str("custom_arch")?)
 /// );
 /// # Ok(())
 /// # }
@@ -553,7 +553,6 @@ mod tests {
     use insta::assert_snapshot;
     use rstest::rstest;
     use strum::ParseError;
-    #[cfg(feature = "serde")]
     use testresult::TestResult;
 
     use super::*;
@@ -624,9 +623,14 @@ mod tests {
 
     #[rstest]
     #[case(SystemArchitecture::Aarch64, "aarch64")]
-    #[case(SystemArchitecture::from_str("f_o_o").unwrap(), "f_o_o")]
-    fn system_architecture_format_string(#[case] arch: SystemArchitecture, #[case] arch_str: &str) {
+    #[case(SystemArchitecture::from_str("f_o_o")?, "f_o_o")]
+    fn system_architecture_format_string(
+        #[case] arch: SystemArchitecture,
+        #[case] arch_str: &str,
+    ) -> TestResult {
         assert_eq!(arch_str, format!("{arch}"));
+
+        Ok(())
     }
 
     #[rstest]
@@ -667,9 +671,14 @@ mod tests {
     #[rstest]
     #[case(Architecture::Any, "any")]
     #[case(SystemArchitecture::Aarch64.into(), "aarch64")]
-    #[case(Architecture::from_str("foo").unwrap(), "foo")]
-    fn architecture_format_string(#[case] arch: Architecture, #[case] arch_str: &str) {
+    #[case(Architecture::from_str("foo")?, "foo")]
+    fn architecture_format_string(
+        #[case] arch: Architecture,
+        #[case] arch_str: &str,
+    ) -> TestResult {
         assert_eq!(arch_str, format!("{arch}"));
+
+        Ok(())
     }
 
     #[rstest]

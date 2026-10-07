@@ -173,22 +173,22 @@ mod tests {
     #[rstest]
     #[case(
         "example",
-        RelationOrSoname::Relation(PackageRelation::new("example".parse().unwrap(), None))
+        RelationOrSoname::Relation(PackageRelation::new("example".parse()?, None))
     )]
     #[case(
         "example=1.0.0",
-        RelationOrSoname::Relation(PackageRelation::new("example".parse().unwrap(), "=1.0.0".parse().ok()))
+        RelationOrSoname::Relation(PackageRelation::new("example".parse()?, "=1.0.0".parse().ok()))
     )]
     #[case(
         "example>=1.0.0",
-        RelationOrSoname::Relation(PackageRelation::new("example".parse().unwrap(), ">=1.0.0".parse().ok()))
+        RelationOrSoname::Relation(PackageRelation::new("example".parse()?, ">=1.0.0".parse().ok()))
     )]
     #[case(
         "lib:example.so.1",
         RelationOrSoname::SonameV2(
             SonameV2::new(
-                "lib".parse().unwrap(),
-                Soname::from_str("example.so.1").unwrap(),
+                "lib".parse()?,
+                Soname::from_str("example.so.1")?,
             )
         )
     )]
@@ -196,8 +196,8 @@ mod tests {
         "lib:example.so",
         RelationOrSoname::SonameV2(
             SonameV2::new(
-                "lib".parse().unwrap(),
-                Soname::from_str("example.so").unwrap(),
+                "lib".parse()?,
+                Soname::from_str("example.so")?,
             )
         )
     )]
@@ -205,30 +205,30 @@ mod tests {
         "example.so",
         RelationOrSoname::SonameV1(
             SonameV1::new(
-                "example.so".parse().unwrap(),
+                "example.so".parse()?,
                 None,
                 None,
-            ).unwrap()
+            )?
         )
     )]
     #[case(
         "example.so=1.0.0-64",
         RelationOrSoname::SonameV1(
             SonameV1::new(
-                "example.so".parse().unwrap(),
-                Some(VersionOrSoname::Version("1.0.0".parse().unwrap())),
+                "example.so".parse()?,
+                Some(VersionOrSoname::Version("1.0.0".parse()?)),
                 Some(ElfArchitectureFormat::Bit64),
-            ).unwrap()
+            )?
         )
     )]
     #[case(
         "libexample.so=otherlibexample.so-64",
         RelationOrSoname::SonameV1(
             SonameV1::new(
-                "libexample.so".parse().unwrap(),
-                Some(VersionOrSoname::Soname("otherlibexample.so".parse().unwrap())),
+                "libexample.so".parse()?,
+                Some(VersionOrSoname::Soname("otherlibexample.so".parse()?)),
                 Some(ElfArchitectureFormat::Bit64),
-            ).unwrap()
+            )?
         )
     )]
     fn test_relation_or_soname_parser(

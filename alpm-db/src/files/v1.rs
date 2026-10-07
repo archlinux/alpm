@@ -872,11 +872,11 @@ mod tests {
     #[case::backup_not_in_files(
         vec![PathBuf::from("usr/")],
         vec![BackupEntry {
-            path: RelativeFilePath::from_str("usr/bin/foo").unwrap(),
-            md5: Md5Checksum::from_str("d41d8cd98f00b204e9800998ecf8427e").unwrap(),
+            path: RelativeFilePath::from_str("usr/bin/foo")?,
+            md5: Md5Checksum::from_str("d41d8cd98f00b204e9800998ecf8427e")?,
         }],
         BackupV1Errors{
-            not_in_files: HashSet::from_iter([RelativeFilePath::from_str("usr/bin/foo").unwrap()]),
+            not_in_files: HashSet::from_iter([RelativeFilePath::from_str("usr/bin/foo")?]),
             duplicate: HashSet::new(),
         }
     )]
@@ -888,17 +888,17 @@ mod tests {
         ],
         vec![
             BackupEntry {
-                path: RelativeFilePath::from_str("usr/bin/foo").unwrap(),
-                md5: Md5Checksum::from_str("d41d8cd98f00b204e9800998ecf8427e").unwrap(),
+                path: RelativeFilePath::from_str("usr/bin/foo")?,
+                md5: Md5Checksum::from_str("d41d8cd98f00b204e9800998ecf8427e")?,
             },
             BackupEntry {
-                path: RelativeFilePath::from_str("usr/bin/foo").unwrap(),
-                md5: Md5Checksum::from_str("d41d8cd98f00b204e9800998ecf8427e").unwrap(),
+                path: RelativeFilePath::from_str("usr/bin/foo")?,
+                md5: Md5Checksum::from_str("d41d8cd98f00b204e9800998ecf8427e")?,
             }
         ],
         BackupV1Errors{
             not_in_files: HashSet::new(),
-            duplicate: HashSet::from_iter([RelativeFilePath::from_str("usr/bin/foo").unwrap()]),
+            duplicate: HashSet::from_iter([RelativeFilePath::from_str("usr/bin/foo")?]),
         }
     )]
     fn filesv1_try_from_paths_and_backups_fails(

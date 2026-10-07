@@ -715,6 +715,7 @@ mod tests {
     use insta::assert_snapshot;
     use proptest::prelude::*;
     use rstest::rstest;
+    use testresult::TestResult;
 
     use super::*;
     use crate::configure_insta;
@@ -724,7 +725,7 @@ mod tests {
 
         #[test]
         fn valid_checksum_blake2b512_from_string(string in r"[a-f0-9]{128}") {
-            prop_assert_eq!(&string, &format!("{}", Blake2b512Checksum::from_str(&string).unwrap()));
+            prop_assert_eq!(&string, &format!("{}", Blake2b512Checksum::from_str(&string)?));
         }
 
         #[test]
@@ -744,7 +745,7 @@ mod tests {
 
         #[test]
         fn valid_checksum_sha1_from_string(string in r"[a-f0-9]{40}") {
-            prop_assert_eq!(&string, &format!("{}", Sha1Checksum::from_str(&string).unwrap()));
+            prop_assert_eq!(&string, &format!("{}", Sha1Checksum::from_str(&string)?));
         }
 
         #[test]
@@ -764,7 +765,7 @@ mod tests {
 
         #[test]
         fn valid_checksum_sha224_from_string(string in r"[a-f0-9]{56}") {
-            prop_assert_eq!(&string, &format!("{}", Sha224Checksum::from_str(&string).unwrap()));
+            prop_assert_eq!(&string, &format!("{}", Sha224Checksum::from_str(&string)?));
         }
 
         #[test]
@@ -784,7 +785,7 @@ mod tests {
 
         #[test]
         fn valid_checksum_sha256_from_string(string in r"[a-f0-9]{64}") {
-            prop_assert_eq!(&string, &format!("{}", Sha256Checksum::from_str(&string).unwrap()));
+            prop_assert_eq!(&string, &format!("{}", Sha256Checksum::from_str(&string)?));
         }
 
         #[test]
@@ -804,7 +805,7 @@ mod tests {
 
         #[test]
         fn valid_checksum_sha384_from_string(string in r"[a-f0-9]{96}") {
-            prop_assert_eq!(&string, &format!("{}", Sha384Checksum::from_str(&string).unwrap()));
+            prop_assert_eq!(&string, &format!("{}", Sha384Checksum::from_str(&string)?));
         }
 
         #[test]
@@ -824,7 +825,7 @@ mod tests {
 
         #[test]
         fn valid_checksum_sha512_from_string(string in r"[a-f0-9]{128}") {
-            prop_assert_eq!(&string, &format!("{}", Sha512Checksum::from_str(&string).unwrap()));
+            prop_assert_eq!(&string, &format!("{}", Sha512Checksum::from_str(&string)?));
         }
 
         #[test]
@@ -847,7 +848,7 @@ mod tests {
             let decimal_str = format!("{sum}");
             prop_assert_eq!(
                 &decimal_str,
-                &format!("{}", Crc32CksumChecksum::from_str(decimal_str.as_str()).unwrap())
+                &format!("{}", Crc32CksumChecksum::from_str(decimal_str.as_str())?)
             );
         }
 
@@ -869,7 +870,7 @@ mod tests {
     }
 
     #[rstest]
-    fn checksum_blake2b512() {
+    fn checksum_blake2b512() -> TestResult {
         let data = "foo\n";
         let digest = vec![
             210, 2, 215, 149, 29, 242, 196, 183, 17, 202, 68, 180, 188, 201, 215, 179, 99, 250, 66,
@@ -881,15 +882,17 @@ mod tests {
 
         let checksum = Blake2b512Checksum::calculate_from(data);
         assert_eq!(digest, checksum.as_ref());
-        assert_eq!(format!("{}", checksum), hex_digest,);
+        assert_eq!(format!("{}", checksum), hex_digest);
 
-        let checksum = Blake2b512Checksum::from_str(hex_digest).unwrap();
+        let checksum = Blake2b512Checksum::from_str(hex_digest)?;
         assert_eq!(digest, checksum.as_ref());
-        assert_eq!(format!("{}", checksum), hex_digest,);
+        assert_eq!(format!("{}", checksum), hex_digest);
+
+        Ok(())
     }
 
     #[rstest]
-    fn checksum_sha1() {
+    fn checksum_sha1() -> TestResult {
         let data = "foo\n";
         let digest = vec![
             241, 210, 210, 249, 36, 233, 134, 172, 134, 253, 247, 179, 108, 148, 188, 223, 50, 190,
@@ -899,15 +902,17 @@ mod tests {
 
         let checksum = Sha1Checksum::calculate_from(data);
         assert_eq!(digest, checksum.as_ref());
-        assert_eq!(format!("{}", checksum), hex_digest,);
+        assert_eq!(format!("{}", checksum), hex_digest);
 
-        let checksum = Sha1Checksum::from_str(hex_digest).unwrap();
+        let checksum = Sha1Checksum::from_str(hex_digest)?;
         assert_eq!(digest, checksum.as_ref());
-        assert_eq!(format!("{}", checksum), hex_digest,);
+        assert_eq!(format!("{}", checksum), hex_digest);
+
+        Ok(())
     }
 
     #[rstest]
-    fn checksum_sha224() {
+    fn checksum_sha224() -> TestResult {
         let data = "foo\n";
         let digest = vec![
             231, 213, 227, 110, 141, 71, 12, 62, 81, 3, 254, 221, 46, 79, 42, 165, 195, 10, 178,
@@ -917,15 +922,17 @@ mod tests {
 
         let checksum = Sha224Checksum::calculate_from(data);
         assert_eq!(digest, checksum.as_ref());
-        assert_eq!(format!("{}", checksum), hex_digest,);
+        assert_eq!(format!("{}", checksum), hex_digest);
 
-        let checksum = Sha224Checksum::from_str(hex_digest).unwrap();
+        let checksum = Sha224Checksum::from_str(hex_digest)?;
         assert_eq!(digest, checksum.as_ref());
-        assert_eq!(format!("{}", checksum), hex_digest,);
+        assert_eq!(format!("{}", checksum), hex_digest);
+
+        Ok(())
     }
 
     #[rstest]
-    fn checksum_sha256() {
+    fn checksum_sha256() -> TestResult {
         let data = "foo\n";
         let digest = vec![
             181, 187, 157, 128, 20, 160, 249, 177, 214, 30, 33, 231, 150, 215, 141, 204, 223, 19,
@@ -935,15 +942,17 @@ mod tests {
 
         let checksum = Sha256Checksum::calculate_from(data);
         assert_eq!(digest, checksum.as_ref());
-        assert_eq!(format!("{}", checksum), hex_digest,);
+        assert_eq!(format!("{}", checksum), hex_digest);
 
-        let checksum = Sha256Checksum::from_str(hex_digest).unwrap();
+        let checksum = Sha256Checksum::from_str(hex_digest)?;
         assert_eq!(digest, checksum.as_ref());
-        assert_eq!(format!("{}", checksum), hex_digest,);
+        assert_eq!(format!("{}", checksum), hex_digest);
+
+        Ok(())
     }
 
     #[rstest]
-    fn checksum_sha384() {
+    fn checksum_sha384() -> TestResult {
         let data = "foo\n";
         let digest = vec![
             142, 255, 218, 191, 225, 68, 22, 33, 74, 37, 15, 147, 85, 5, 37, 11, 217, 145, 241, 6,
@@ -954,15 +963,17 @@ mod tests {
 
         let checksum = Sha384Checksum::calculate_from(data);
         assert_eq!(digest, checksum.as_ref());
-        assert_eq!(format!("{}", checksum), hex_digest,);
+        assert_eq!(format!("{}", checksum), hex_digest);
 
-        let checksum = Sha384Checksum::from_str(hex_digest).unwrap();
+        let checksum = Sha384Checksum::from_str(hex_digest)?;
         assert_eq!(digest, checksum.as_ref());
-        assert_eq!(format!("{}", checksum), hex_digest,);
+        assert_eq!(format!("{}", checksum), hex_digest);
+
+        Ok(())
     }
 
     #[rstest]
-    fn checksum_sha512() {
+    fn checksum_sha512() -> TestResult {
         let data = "foo\n";
         let digest = vec![
             12, 249, 24, 10, 118, 74, 186, 134, 58, 103, 182, 215, 47, 9, 24, 188, 19, 28, 103,
@@ -976,13 +987,15 @@ mod tests {
         assert_eq!(digest, checksum.as_ref());
         assert_eq!(format!("{}", checksum), hex_digest);
 
-        let checksum = Sha512Checksum::from_str(hex_digest).unwrap();
+        let checksum = Sha512Checksum::from_str(hex_digest)?;
         assert_eq!(digest, checksum.as_ref());
         assert_eq!(format!("{}", checksum), hex_digest);
+
+        Ok(())
     }
 
     #[rstest]
-    fn checksum_crc32cksum() {
+    fn checksum_crc32cksum() -> TestResult {
         let data = "foo\n";
         let digest = 3915528286u32;
         let digest_string = format!("{digest}");
@@ -991,9 +1004,11 @@ mod tests {
         assert_eq!(digest.to_be_bytes(), checksum.as_ref());
         assert_eq!(format!("{}", checksum), digest_string);
 
-        let checksum = Crc32CksumChecksum::from_str(digest_string.as_str()).unwrap();
+        let checksum = Crc32CksumChecksum::from_str(digest_string.as_str())?;
         assert_eq!(digest.to_be_bytes(), checksum.as_ref());
         assert_eq!(format!("{}", checksum), digest_string);
+
+        Ok(())
     }
 
     #[rstest]
@@ -1016,18 +1031,22 @@ mod tests {
     }
 
     #[rstest]
-    fn skippable_checksum_sha256() {
+    fn skippable_checksum_sha256() -> TestResult {
         let hex_digest = "b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c";
-        let checksum = SkippableChecksum::<Sha256>::from_str(hex_digest).unwrap();
+        let checksum = SkippableChecksum::<Sha256>::from_str(hex_digest)?;
         assert_eq!(format!("{}", checksum), hex_digest);
+
+        Ok(())
     }
 
     #[rstest]
-    fn skippable_checksum_skip() {
+    fn skippable_checksum_skip() -> TestResult {
         let hex_digest = "SKIP";
-        let checksum = SkippableChecksum::<Sha256>::from_str(hex_digest).unwrap();
+        let checksum = SkippableChecksum::<Sha256>::from_str(hex_digest)?;
 
         assert_eq!(SkippableChecksum::Skip, checksum);
         assert_eq!(format!("{}", checksum), hex_digest);
+
+        Ok(())
     }
 }

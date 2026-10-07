@@ -344,6 +344,7 @@ pub fn from_str<T: DeserializeOwned>(s: &str) -> Result<T> {
 #[cfg(test)]
 mod tests {
     use serde::Deserialize;
+    use testresult::TestResult;
 
     use super::*;
 
@@ -399,9 +400,11 @@ mod tests {
     }
 
     #[test]
-    fn deserialize() {
-        let v = from_str::<TestModel>(TEST_INPUT).unwrap();
+    fn deserialize() -> TestResult {
+        let v = from_str::<TestModel>(TEST_INPUT)?;
         assert_eq!(expected(), v);
+
+        Ok(())
     }
 
     #[derive(Clone, Debug, Default, Deserialize, PartialEq)]
@@ -428,8 +431,8 @@ mod tests {
         u64_list = 3
         bool = true";
     #[test]
-    fn deserialize_types() {
-        let value = from_str::<TypeTestModel>(TYPE_TEST_INPUT).unwrap();
+    fn deserialize_types() -> TestResult {
+        let value = from_str::<TypeTestModel>(TYPE_TEST_INPUT)?;
         assert_eq!(
             TypeTestModel {
                 i64: -64,
@@ -442,6 +445,8 @@ mod tests {
             },
             value
         );
+
+        Ok(())
     }
 
     #[derive(Clone, Debug, Default, Deserialize, PartialEq)]
@@ -471,16 +476,18 @@ mod tests {
     // This test asserts that the deserialization fails. If the behavior changes in the future,
     // this test should be updated to assert that the deserialization succeeds.
     #[test]
-    fn deserialize_with_flatten() {
+    fn deserialize_with_flatten() -> TestResult {
         let expected = FlattenTestModelInner {
             u64: 42,
             u64_list: vec![1],
         };
 
-        let value = from_str::<FlattenTestModelInner>(FLATTEN_TEST_INPUT).unwrap();
+        let value = from_str::<FlattenTestModelInner>(FLATTEN_TEST_INPUT)?;
         assert_eq!(expected, value);
 
         let value = from_str::<FlattenTestModel>(FLATTEN_TEST_INPUT);
         assert!(value.is_err());
+
+        Ok(())
     }
 }

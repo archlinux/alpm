@@ -164,6 +164,7 @@ impl TryFrom<PathBuf> for CompressionAlgorithmFileExtension {
 #[cfg(test)]
 mod tests {
     use rstest::*;
+    use testresult::TestResult;
 
     use super::*;
 
@@ -180,9 +181,11 @@ mod tests {
     fn compression_algorithm_file_extension_from_str(
         #[case] input: &str,
         #[case] expected: CompressionAlgorithmFileExtension,
-    ) {
-        let parsed = CompressionAlgorithmFileExtension::from_str(input).unwrap();
+    ) -> TestResult {
+        let parsed = CompressionAlgorithmFileExtension::from_str(input)?;
         assert_eq!(parsed, expected);
+
+        Ok(())
     }
 
     #[rstest]
