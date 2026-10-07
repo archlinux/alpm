@@ -416,10 +416,10 @@ impl<D: DigestString> AlpmParser for Checksum<D> {
             fn hex_digit<'a>(input: &mut Input<'a>) -> PResult<'a, u8> {
                 one_of(('0'..='9', 'a'..='f', 'A'..='F'))
                     .map(|d: char|
-                    // unwraps are unreachable: their invariants are always
-                    // upheld because the above character set can never
-                    // consume anything but a single valid hex digit
-                    d.to_digit(16).unwrap().try_into().unwrap())
+                        // NOTE: We expect the transformation to succeed because the above character set
+                        // match ensures, that we can only consume a single valid hex digit to begin with.
+                        u8::try_from(d.to_digit(16).expect("the character is in the set [0-9a-fA-F]"))
+                        .expect("an ASCII hex digit fits into a u8"))
                     .expected_text("ASCII hex digit")
                     .parse_next(input)
             }
