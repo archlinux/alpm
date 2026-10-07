@@ -472,8 +472,9 @@ impl Ord for PackageVersion {
                 return Ordering::Less;
             } else if self_is_numeric && other_is_numeric {
                 // In case both are numeric, we do a number comparison.
-                // We can parse the string as we know that they only consist of digits, hence the
-                // unwrap.
+                //
+                // NOTE: We expect the strings to be parsed successfully, because we know that they
+                // only consist of digits.
                 //
                 // Preceding zeroes are to be ignored, which is automatically done by Rust's number
                 // parser.
@@ -481,8 +482,12 @@ impl Ord for PackageVersion {
                 //          ⤷ `000` is ignored in the comparison.
                 let ordering = self_text
                     .parse::<usize>()
-                    .unwrap()
-                    .cmp(&other_text.parse::<usize>().unwrap());
+                    .expect("a numeric section only contains numbers")
+                    .cmp(
+                        &other_text
+                            .parse::<usize>()
+                            .expect("a numeric section only contains numbers"),
+                    );
 
                 match ordering {
                     Ordering::Less => return Ordering::Less,
