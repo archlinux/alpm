@@ -141,13 +141,14 @@ impl LintStore {
     ///
     /// Returns [`None`] if no lint rule with a matching `name` exists.
     // False positive lint warning on the return type.
-    #[allow(clippy::borrowed_box)]
+    #[expect(clippy::borrowed_box)]
     pub fn lint_rule_by_name(&self, name: &ScopedName) -> Option<&Box<dyn LintRule>> {
         self.initialized_lints.get(&name.to_string())
     }
 
     /// Returns a map of all available and configured lint rules as [`SerializableLintRule`].
     #[cfg(feature = "serde")]
+    #[expect(clippy::panic)]
     pub fn serializable_lint_rules(&self) -> BTreeMap<String, SerializableLintRule> {
         let mut map = BTreeMap::new();
         for (scoped_name, lint) in &self.initialized_lints {
@@ -261,7 +262,7 @@ impl<'a> Iterator for FilteredLintRules<'a> {
 
     // Allow while_let on an iterator. This pattern is required to give us more control
     // over `self.rules_iter`.
-    #[allow(clippy::while_let_on_iterator)]
+    #[expect(clippy::while_let_on_iterator)]
     fn next(&mut self) -> Option<Self::Item> {
         'outer: while let Some((name, rule)) = self.rules_iter.next() {
             // Check whether this rule is explicitly disabled.

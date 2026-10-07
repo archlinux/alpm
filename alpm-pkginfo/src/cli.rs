@@ -65,7 +65,7 @@ pub struct Cli {
 }
 
 /// The `alpm-pkginfo` commands.
-#[allow(clippy::large_enum_variant)]
+#[expect(clippy::large_enum_variant)]
 #[derive(Clone, Debug, Subcommand)]
 pub enum Command {
     #[command()]

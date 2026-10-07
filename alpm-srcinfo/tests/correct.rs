@@ -1,4 +1,5 @@
 //! Integration tests to test correct SRCINFO files.
+#![expect(clippy::expect_used, clippy::panic)]
 
 use std::{fs::read_to_string, path::PathBuf};
 

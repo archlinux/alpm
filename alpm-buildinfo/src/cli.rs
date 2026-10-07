@@ -60,7 +60,7 @@ pub struct Cli {
 }
 
 /// The `alpm-buildinfo` commands.
-#[allow(clippy::large_enum_variant)]
+#[expect(clippy::large_enum_variant)]
 #[derive(Clone, Debug, Subcommand)]
 pub enum Command {
     /// Create a BUILDINFO file according to a schema

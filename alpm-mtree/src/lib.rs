@@ -1,4 +1,5 @@
 #![doc = include_str!("../README.md")]
+#![cfg_attr(test, expect(clippy::panic))]
 
 /// Commandline argument handling. This is most likely not interesting for you.
 #[cfg(feature = "cli")]

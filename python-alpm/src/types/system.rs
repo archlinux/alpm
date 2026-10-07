@@ -8,7 +8,7 @@ use crate::macros::{impl_from, vec_convert};
 #[pyclass(frozen, eq, ord, hash, from_py_object)]
 #[derive(Clone, Copy, Debug, Display, Eq, Hash, Ord, PartialEq, PartialOrd)]
 // Uses Python's enum variant naming convention.
-#[allow(clippy::upper_case_acronyms)]
+#[expect(clippy::upper_case_acronyms)]
 #[allow(non_camel_case_types)]
 pub enum KnownArchitecture {
     AARCH64,
@@ -320,7 +320,6 @@ impl Architectures {
 #[pyclass(frozen, eq, eq_int, ord, hash, from_py_object)]
 #[derive(Clone, Copy, Debug, Display, Eq, Hash, Ord, PartialEq, PartialOrd)]
 // Uses Python's enum variant naming convention.
-#[allow(clippy::upper_case_acronyms)]
 #[allow(non_camel_case_types)]
 pub enum ElfArchitectureFormat {
     #[strum(to_string = "32")]

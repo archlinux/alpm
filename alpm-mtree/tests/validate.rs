@@ -9,6 +9,7 @@
 //!
 //! [ALPM-MTREE]: https://alpm.archlinux.page/specifications/ALPM-MTREE.5.html
 #![cfg(feature = "creation")]
+#![expect(clippy::expect_used, clippy::panic)]
 
 use std::{
     fs::{

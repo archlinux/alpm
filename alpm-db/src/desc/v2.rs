@@ -361,10 +361,10 @@ mod tests {
     #[case("%UNKNOWN%\nvalue", "expected a valid section")]
     #[case("%VERSION%\n1.0.0-1\n", "Missing section: %NAME%")]
     fn invalid_desc_parser(#[case] input: &str, #[case] error_snippet: &str) {
-        let result = DbDescFileV2::from_str(input);
-        assert!(result.is_err());
-        let err = result.unwrap_err();
-        let pretty_error = err.to_string();
+        let Err(error) = DbDescFileV2::from_str(input) else {
+            panic!("Expected to fail but succeeded instead");
+        };
+        let pretty_error = error.to_string();
         assert!(
             pretty_error.contains(error_snippet),
             "Error:\n=====\n{pretty_error}\n=====\nshould contain snippet:\n\n{error_snippet}"

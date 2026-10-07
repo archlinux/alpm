@@ -1,6 +1,8 @@
 use indicatif::{ProgressBar, ProgressStyle};
 
 /// Get a styled indicatif progress bar for reuse across the project.
+// TODO(cleanup): Return an error instead of panic
+#[expect(clippy::expect_used)]
 pub fn get_progress_bar(items: u64) -> ProgressBar {
     let bar = ProgressBar::new(items);
     bar.set_style(

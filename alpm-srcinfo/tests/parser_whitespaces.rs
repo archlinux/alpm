@@ -1,4 +1,5 @@
 //! This module contains test specifically for leading/trailing whitespace handling in the parser.
+#![expect(clippy::indexing_slicing)]
 
 use alpm_srcinfo::{SourceInfoV1, source_info::v1::package::Override};
 use alpm_types::Name;

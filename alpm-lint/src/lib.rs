@@ -1,4 +1,5 @@
 #![doc = include_str!("../README.md")]
+#![cfg_attr(test, expect(clippy::panic))]
 
 #[cfg(feature = "cli")]
 #[doc(hidden)]

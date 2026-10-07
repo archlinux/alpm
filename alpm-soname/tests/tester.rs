@@ -35,6 +35,7 @@
 //! alpm-types = { path = "../../alpm-types" }
 //! alpm-soname = { path = "../../alpm-soname" }
 //! ```
+#![expect(clippy::panic)]
 
 use std::{env, path::PathBuf, str::FromStr};
 

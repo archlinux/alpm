@@ -43,7 +43,7 @@ pub struct Cli {
 }
 
 /// The `alpm-repo-desc` commands.
-#[allow(clippy::large_enum_variant)]
+#[expect(clippy::large_enum_variant)]
 #[derive(Clone, Debug, Subcommand)]
 pub enum Command {
     /// Create a package repository desc file according to a schema.

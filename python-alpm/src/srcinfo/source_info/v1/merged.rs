@@ -29,7 +29,7 @@ use crate::{
 
 #[derive(Debug, FromPyObject, IntoPyObject)]
 // Price paid for Python (we can't `Box` a `Package` as it's passed from Python)
-#[allow(clippy::large_enum_variant)]
+#[expect(clippy::large_enum_variant)]
 pub enum PackageOrName {
     Package(Package),
     Name(String),

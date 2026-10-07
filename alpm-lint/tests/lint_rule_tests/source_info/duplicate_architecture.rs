@@ -1,3 +1,5 @@
+#![expect(clippy::indexing_slicing)]
+
 use alpm_lint::{
     Resources,
     config::LintRuleConfiguration,

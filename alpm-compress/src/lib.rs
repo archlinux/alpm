@@ -1,4 +1,8 @@
 #![doc = include_str!("../README.md")]
+#![cfg_attr(
+    test,
+    expect(clippy::arithmetic_side_effects, clippy::expect_used, clippy::panic)
+)]
 
 mod error;
 

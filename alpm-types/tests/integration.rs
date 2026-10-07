@@ -1,4 +1,5 @@
 //! Integration tests for `alpm-types`.
+#![expect(clippy::panic, clippy::expect_used)]
 
 use std::{path::PathBuf, thread::current};
 

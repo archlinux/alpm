@@ -1,4 +1,5 @@
 #![doc = include_str!("../README.md")]
+#![cfg_attr(test, expect(clippy::indexing_slicing, clippy::panic))]
 
 mod error;
 pub use error::Error;

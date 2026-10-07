@@ -214,7 +214,10 @@ mod tests {
     #[case("noext")]
     fn invalid_compression_file_extension(#[case] filename: &str) {
         let path = Path::new(filename);
-        let error = CompressionAlgorithmFileExtension::try_from(path).unwrap_err();
-        assert!(matches!(error, crate::Error::InvalidVariant(_)));
+        let Err(crate::Error::InvalidVariant(_)) =
+            CompressionAlgorithmFileExtension::try_from(path)
+        else {
+            panic!("Expected an Error::InvalidVariant but succeeded instead");
+        };
     }
 }

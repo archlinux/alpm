@@ -1,4 +1,5 @@
 //! Integration tests for writing the SRCINFO file format.
+#![expect(clippy::panic)]
 
 use std::{fs::read_to_string, path::PathBuf};
 

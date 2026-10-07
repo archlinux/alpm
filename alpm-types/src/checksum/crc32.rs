@@ -55,6 +55,8 @@ impl Update for Crc32Cksum {
     /// # Panics
     ///
     /// Panics if the input data exceeds ~18.44 exabytes on systems with `usize > 64bits`.
+    // TODO(cleanup): Investigate the arithmetic_side_effects
+    #[expect(clippy::expect_used, clippy::arithmetic_side_effects)]
     fn update(&mut self, data: &[u8]) {
         self.digest.update(data);
         self.len += u64::try_from(data.len())

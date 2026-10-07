@@ -23,7 +23,6 @@ pub enum OutputFormat {
 }
 
 /// The `alpm-mtree` commands.
-#[allow(clippy::large_enum_variant)]
 #[derive(Clone, Debug, Subcommand)]
 pub enum Command {
     /// Read an MTREE file and return it in another file format

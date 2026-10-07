@@ -61,6 +61,8 @@ pub struct LintIssueDisplay {
 }
 
 impl fmt::Display for LintIssueDisplay {
+    // TODO(cleanup): Investigate the indexing_slicing
+    #[expect(clippy::arithmetic_side_effects)]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         // Header with level and lint rule
         let level_str = match self.level {

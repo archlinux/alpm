@@ -1,4 +1,5 @@
 //! Happy-path tests for the PKGBUILD to SRCINFO conversion.
+#![expect(clippy::expect_used)]
 
 use std::path::PathBuf;
 

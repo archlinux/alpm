@@ -180,7 +180,7 @@ fn parse_optional_value<'a, O, P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>>
 ///
 /// [`PKGBUILD`]: https://man.archlinux.org/man/PKGBUILD.5
 // The error type is 184 bytes+ large, which is still completely acceptable for us.
-#[allow(clippy::result_large_err)]
+#[expect(clippy::result_large_err)]
 fn parse_value_array<'a, O, P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>>(
     keyword: &Keyword,
     value: &'a Value,
@@ -204,7 +204,8 @@ fn parse_value_array<'a, O, P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>>(
 /// Returns an error for `keyword` if `value` cannot be parsed as either a stand-alone "any" or a
 /// list of [`SystemArchitecture`].
 // The error type is 184 bytes+ large, which is still completely acceptable for us.
-#[allow(clippy::result_large_err)]
+// TODO(cleanup): Investigate the indexing_slicing
+#[expect(clippy::result_large_err, clippy::indexing_slicing)]
 fn parse_arch_array<'a>(keyword: &Keyword, value: &'a Value) -> Result<Architectures, BridgeError> {
     // `arch` may be a list or a single value (for backward compatibility).
     let input = value.as_vec();

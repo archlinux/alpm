@@ -1,4 +1,5 @@
 //! Integration tests for the alpm-mtree parser.
+#![expect(clippy::expect_used, clippy::panic)]
 
 use std::{fs::read_to_string, path::PathBuf};
 

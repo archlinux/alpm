@@ -1,4 +1,5 @@
 //! Integration tests for `alpm-package`.
+#![expect(clippy::panic)]
 
 use std::{
     fs::{File, FileTimes, create_dir, create_dir_all},

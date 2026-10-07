@@ -2,6 +2,7 @@
 //!
 //! These tests are only executed when the `cli` feature flag is enabled.
 #![cfg(feature = "cli")]
+#![expect(clippy::panic, clippy::arithmetic_side_effects)]
 
 use std::{fs::File, io::Write, str::FromStr, thread};
 

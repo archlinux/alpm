@@ -25,9 +25,9 @@
 //! 30
 //! 40
 //! ```
-use std::fs::read_to_string;
-#[cfg(test)]
-use std::path::PathBuf;
+#![expect(clippy::expect_used, clippy::panic)]
+
+use std::{fs::read_to_string, path::PathBuf};
 
 use alpm_parsers::error::Input;
 use insta::assert_snapshot;

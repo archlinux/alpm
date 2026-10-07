@@ -1,4 +1,8 @@
 //! The `dev-scripts` CLI tool.
+#![cfg_attr(
+    test,
+    expect(clippy::expect_used, clippy::indexing_slicing, clippy::panic)
+)]
 
 use std::process::ExitCode;
 

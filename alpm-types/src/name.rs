@@ -171,6 +171,8 @@ impl Name {
     /// Returns an error if `input` does not begin with a valid [alpm-package-name].
     ///
     /// [alpm-package-name]: https://alpm.archlinux.page/specifications/alpm-package-name.7.html
+    // TODO(cleanup): Investigate the arithmetic_side_effects
+    #[expect(clippy::arithmetic_side_effects)]
     pub(crate) fn parse_name_followed_by_version<'a>(
         delimiter_count: usize,
     ) -> impl Parser<Input<'a>, Self, ErrMode<ParseStack<'a>>> {
@@ -491,14 +493,16 @@ mod tests {
 
         #[test]
         fn invalid_name_from_string_start(name_str in r"[-.][a-zA-Z0-9@._+-]*") {
-            let error = Name::from_str(&name_str).unwrap_err();
-            assert!(matches!(error, Error::ParseError(_)));
+            let Err(Error::ParseError(_)) = Name::from_str(&name_str) else {
+                panic!("Expected to return an error, but succeeded instead");
+            };
         }
 
         #[test]
         fn invalid_name_with_invalid_characters(name_str in r"[^\w@._+-]+") {
-            let error = Name::from_str(&name_str).unwrap_err();
-            assert!(matches!(error, Error::ParseError(_)));
+            let Err(Error::ParseError(_)) = Name::from_str(&name_str) else {
+                panic!("Expected to return an error, but succeeded instead");
+            };
         }
     }
 

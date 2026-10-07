@@ -397,6 +397,8 @@ fn get_tar_file_list(pkg: &Path) -> Result<HashSet<String>, Error> {
 /// # Panics
 ///
 /// Panics if `pkg` points to a directory.
+// TODO(cleanup): Fail with a meaningful error instead of panic
+#[expect(clippy::expect_used)]
 fn extract_pkg_files(pkg: &Path, target_dir: &Path, repo_name: &str) -> Result<(), Error> {
     let pkg_file_name = pkg
         .file_name()

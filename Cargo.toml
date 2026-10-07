@@ -86,7 +86,12 @@ missing_docs = "deny"
 unsafe_code = "deny"
 
 [workspace.lints.clippy]
+arithmetic_side_effects = "warn"
 enum_variant_names = "deny"
+expect_used = "warn"
+indexing_slicing = "warn"
+panic = "warn"
+unwrap_used = "warn"
 
 [profile.release]
 codegen-units = 1

@@ -1,5 +1,6 @@
 //! Integration tests for the alpm-parsers crate.
 #![cfg(feature = "serde")]
+#![expect(clippy::panic)]
 use std::thread;
 
 use alpm_parsers::custom_ini::parser::ini_file;

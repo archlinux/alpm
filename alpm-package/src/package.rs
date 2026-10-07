@@ -157,6 +157,8 @@ impl TryFrom<&Path> for ExistingAbsoluteDir {
 /// - validating any path in `input_paths` using `mtree` fails,
 /// - retrieving files relative to `input_dir` fails,
 /// - or adding one of the relative paths to the `builder` fails.
+// TODO(cleanup): Investigate the arithmetic_side_effects and indexing_slicing
+#[expect(clippy::arithmetic_side_effects, clippy::indexing_slicing)]
 fn append_relative_files<'c>(
     mut builder: TarballBuilder<'c>,
     mtree: &Mtree,
@@ -1178,7 +1180,6 @@ impl TryFrom<&PackageCreationConfig> for Package {
 
 #[cfg(test)]
 mod tests {
-
     use std::fs::create_dir;
 
     use log::{LevelFilter, debug};

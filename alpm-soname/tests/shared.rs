@@ -1,4 +1,5 @@
 //! Shared helper functions for both, the `integration.rs` tests and the `tester.rs` rust script.
+#![expect(clippy::panic)]
 
 use std::{
     fs::{copy, create_dir_all, write},

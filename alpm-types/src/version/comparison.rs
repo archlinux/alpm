@@ -176,6 +176,8 @@ impl<'a> Iterator for VersionSegments<'a> {
     type Item = VersionSegment<'a>;
 
     /// Get the next [VersionSegment] of this version string.
+    // TODO(cleanup): Investigate the arithmetic_side_effects
+    #[expect(clippy::arithmetic_side_effects)]
     fn next(&mut self) -> Option<VersionSegment<'a>> {
         // Used to track the number of delimiters the next segment is prefixed with.
         let mut delimiter_count = 0;
@@ -228,7 +230,6 @@ impl<'a> Iterator for VersionSegments<'a> {
 
         if is_numeric {
             // Go through chars until we hit a non-numeric char or reached the end of the string.
-            #[allow(clippy::while_let_on_iterator)]
             while let Some((index, next_char)) =
                 self.version_chars.next_if(|(_, peek)| peek.is_numeric())
             {
@@ -237,7 +238,6 @@ impl<'a> Iterator for VersionSegments<'a> {
             }
         } else {
             // Go through chars until we hit a non-alphabetic char or reached the end of the string.
-            #[allow(clippy::while_let_on_iterator)]
             while let Some((index, next_char)) =
                 self.version_chars.next_if(|(_, peek)| peek.is_alphabetic())
             {
@@ -273,6 +273,7 @@ impl Ord for PackageVersion {
     /// This logic is surprisingly complex as it mirrors the current C-alpmlib implementation's
     /// behavior for backwards compatibility reasons.
     /// <https://gitlab.archlinux.org/pacman/pacman/-/blob/a2d029388c7c206f5576456f91bfbea2dca98c96/lib/libalpm/version.c#L83-217>
+    #[expect(clippy::expect_used)]
     fn cmp(&self, other: &Self) -> Ordering {
         // Equal strings are considered equal versions.
         if self.as_ref() == other.as_ref() {

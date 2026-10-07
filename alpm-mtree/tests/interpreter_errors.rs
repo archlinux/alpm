@@ -1,9 +1,11 @@
 //! Interpreter error integration tests for the `alpm-mtree` CLI.
-
 #![cfg(feature = "cli")]
+#![expect(clippy::expect_used, clippy::panic)]
 
 use std::{fs::read_to_string, path::PathBuf};
 
+use alpm_common::MetadataFile;
+use alpm_mtree::Mtree;
 use alpm_types::{SchemaVersion, semver_version::Version};
 use insta::assert_snapshot;
 use rstest::rstest;
@@ -22,10 +24,6 @@ use testresult::TestResult;
 /// respective filenames.
 #[rstest]
 fn ensure_errors_v1(#[files("tests/interpreter_error_inputs/*")] case: PathBuf) -> TestResult {
-    // Read the input file and parse it.
-
-    use alpm_common::MetadataFile;
-    use alpm_mtree::Mtree;
     let input = read_to_string(&case)?;
     let result = Mtree::from_file_with_schema(
         &case,

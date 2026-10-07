@@ -678,6 +678,8 @@ impl ParserUntil for InstalledPackage {
     /// # Ok(())
     /// # }
     /// ```
+    // TODO(cleanup): Investigate the arithmetic_side_effects
+    #[expect(clippy::arithmetic_side_effects)]
     fn parser_until<'a, P>(delimiter: P) -> impl Parser<Input<'a>, Self, ErrMode<ParseStack<'a>>>
     where
         P: Parser<Input<'a>, &'a str, ErrMode<ParseStack<'a>>>,

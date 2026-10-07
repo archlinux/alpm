@@ -1,4 +1,6 @@
 //! This test file contains basic tests to ensure that the dev-tools CLI behaves as expected.
+#![expect(clippy::panic)]
+
 use std::{fs::File, io::Write};
 
 use assert_cmd::cargo::cargo_bin_cmd;

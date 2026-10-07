@@ -319,11 +319,15 @@ pub struct ExtraData(Vec<ExtraDataEntry>);
 
 impl ExtraData {
     /// Returns the package type.
+    #[expect(clippy::expect_used)]
     pub fn pkg_type(&self) -> PackageType {
         self.0
             .iter()
             .find(|v| v.key() == "pkgtype")
-            .map(|v| PackageType::from_str(v.value()).expect("Invalid package type"))
+            .map(|v| {
+                PackageType::from_str(v.value())
+                    .expect("a valid xdata entry contains a valid package type")
+            })
             .unwrap_or_else(|| unreachable!("Valid xdata should always contain a pkgtype entry."))
     }
 

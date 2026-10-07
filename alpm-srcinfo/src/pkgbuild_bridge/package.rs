@@ -210,7 +210,7 @@ fn parse_clearable_value<'a, O, P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>
 /// [PKGBUILD]: https://man.archlinux.org/man/PKGBUILD.5
 /// [makepkg]: https://man.archlinux.org/man/makepkg.8
 // The error type is 184 bytes+ large, which is still completely acceptable for us.
-#[allow(clippy::result_large_err)]
+#[expect(clippy::result_large_err)]
 fn parse_clearable_value_array<'a, O, P: Parser<Input<'a>, O, ErrMode<ParseStack<'a>>>>(
     keyword: &Keyword,
     value: &'a ClearableValue,

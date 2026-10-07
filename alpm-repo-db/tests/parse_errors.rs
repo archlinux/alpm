@@ -1,4 +1,5 @@
 //! Integration tests to ensure parsers produce meaningful error messages.
+#![expect(clippy::panic)]
 
 mod desc {
     use std::{fs::read_to_string, path::PathBuf, str::FromStr};

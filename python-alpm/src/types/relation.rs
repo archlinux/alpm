@@ -171,7 +171,7 @@ impl_from!(SonameV2, alpm_types::SonameV2);
 #[pyclass(frozen, from_py_object)]
 #[derive(Clone, Copy, Debug, Display, PartialEq)]
 // Uses Python's enum variant naming convention.
-#[allow(clippy::upper_case_acronyms)]
+#[expect(clippy::upper_case_acronyms)]
 #[allow(non_camel_case_types)]
 pub enum SonameV1Type {
     BASIC,

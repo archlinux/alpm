@@ -2,6 +2,7 @@
 //!
 //! These tests are only executed when the `cli` feature flag is enabled.
 #![cfg(feature = "cli")]
+#![expect(clippy::indexing_slicing)]
 
 use std::{fs::File, io::Write};
 

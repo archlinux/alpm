@@ -1,4 +1,5 @@
 //! Integration tests to test parser errors.
+#![expect(clippy::expect_used, clippy::panic)]
 
 use std::{fs::read_to_string, path::PathBuf};
 

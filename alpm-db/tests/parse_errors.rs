@@ -1,4 +1,5 @@
 //! Integration tests to ensure the desc parser produces meaningful errors.
+#![expect(clippy::panic)]
 
 use std::{fs::read_to_string, path::PathBuf, str::FromStr};
 

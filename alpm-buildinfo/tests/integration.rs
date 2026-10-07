@@ -2,6 +2,7 @@
 //!
 //! These tests are only executed when the `cli` feature flag is enabled.
 #![cfg(feature = "cli")]
+#![expect(clippy::expect_used)]
 
 use std::{str::FromStr, thread::current};
 

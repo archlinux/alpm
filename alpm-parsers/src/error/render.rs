@@ -26,6 +26,8 @@ fn write_footer_message(out: &mut String, guide: &str, message: &str) {
 /// This function helps us navigate the given document.
 /// We usually start somewhere in the middle of the input, without any knowledge of what's around
 /// the current span/pointer.
+// TODO(cleanup): Investigate the arithmetic_side_effects
+#[expect(clippy::arithmetic_side_effects)]
 fn line_bounds(src: &str, at: usize) -> (usize, usize) {
     let at = src.floor_char_boundary(at);
     let line_start = src[..at].rfind('\n').map_or(0, |i| i + 1);
@@ -162,6 +164,8 @@ impl fmt::Display for ParseStack<'_> {
     ///
     /// Color output is controlled globally via [`colored::control`] (for example via
     /// [`colored::control::set_override`]).
+    // TODO(cleanup): Investigate the arithmetic_side_effects
+    #[expect(clippy::arithmetic_side_effects)]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let src = self.source;
         let at = src.floor_char_boundary(self.at);

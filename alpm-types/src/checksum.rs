@@ -407,6 +407,12 @@ impl<D: DigestString> AlpmParser for Checksum<D> {
     ///
     /// Returns an error if `input` does not start with the output of a _hash function_
     /// in hexadecimal (or decimal in case of CRC-32/CKSUM) form.
+    // TODO(cleanup): Investigate the arithmetic_side_effects and indexing_slicing
+    #[expect(
+        clippy::arithmetic_side_effects,
+        clippy::expect_used,
+        clippy::indexing_slicing
+    )]
     fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
         let parser = move |input: &mut Input<'a>| -> PResult<'a, Self> {
             /// Consume 1 hex digit and return its hex value.

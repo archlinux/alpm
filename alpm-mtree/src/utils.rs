@@ -23,6 +23,8 @@ pub const GZIP_MAGIC_NUMBER: [u8; 2] = [0x1f, 0x8b];
 /// Returns an error if
 /// - `buffer` contains invalid gzip compressed data
 /// - or `buffer` can not be converted to `String`.
+// TODO(cleanup): Investigate the indexing_slicing
+#[expect(clippy::indexing_slicing)]
 pub fn mtree_buffer_to_string(buffer: Vec<u8>) -> Result<String, Error> {
     if buffer.len() >= 2 && [buffer[0], buffer[1]] == GZIP_MAGIC_NUMBER {
         let mut decoder = GzDecoder::new(buffer.as_slice());

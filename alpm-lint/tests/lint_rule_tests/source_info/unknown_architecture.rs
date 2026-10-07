@@ -1,3 +1,5 @@
+#![expect(clippy::indexing_slicing, clippy::panic)]
+
 use std::str::FromStr;
 
 use alpm_lint::{

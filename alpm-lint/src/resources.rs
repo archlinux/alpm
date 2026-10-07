@@ -13,7 +13,7 @@ use crate::{Error, LintScope};
 /// The resources used by lints during a single lint run.
 // We allow the large enum variant, as we usually only have a single one or at most **very** few
 // of these in memory. Not boxing everything simply makes it more ergonomic to work with.
-#[allow(clippy::large_enum_variant)]
+#[expect(clippy::large_enum_variant)]
 #[derive(Clone, Debug)]
 pub enum Resources {
     /// All resources of a package source repository.

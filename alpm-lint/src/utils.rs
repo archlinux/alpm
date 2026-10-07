@@ -6,6 +6,8 @@ pub(crate) trait EditDistance {
 
 impl EditDistance for &[u8] {
     /// Calculate edit distance between `self` and `other` using the Levenshtein distance algorithm.
+    // TODO(cleanup): Investigate the arithmetic_side_effects and indexing_slicing
+    #[expect(clippy::arithmetic_side_effects, clippy::indexing_slicing)]
     fn edit_distance(&self, other: &Self) -> usize {
         let mut dp = vec![vec![0; other.len() + 1]; self.len() + 1];
 

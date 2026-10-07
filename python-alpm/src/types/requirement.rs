@@ -42,7 +42,7 @@ impl_from!(VersionRequirement, alpm_types::VersionRequirement);
 #[pyclass(frozen, eq, from_py_object)]
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 // Uses Python's enum variant naming convention.
-#[allow(clippy::upper_case_acronyms)]
+#[expect(clippy::upper_case_acronyms)]
 #[allow(non_camel_case_types)]
 pub enum VersionComparison {
     LESS_OR_EQUAL,

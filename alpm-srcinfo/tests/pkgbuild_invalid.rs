@@ -1,4 +1,5 @@
 //! Error test cases for the BridgeOutput to SRCINFO conversion.
+#![expect(clippy::expect_used, clippy::panic)]
 
 use std::path::PathBuf;
 

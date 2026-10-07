@@ -2,6 +2,7 @@
 //!
 //! End-to-end test the CLI and make sure that all commands (and their options) actually work.
 #![cfg(feature = "cli")]
+#![expect(clippy::indexing_slicing, clippy::panic)]
 
 use std::{fs::File, io::Write, str::FromStr};
 

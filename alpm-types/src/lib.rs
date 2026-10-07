@@ -1,4 +1,5 @@
 #![doc = include_str!("../README.md")]
+#![cfg_attr(test, expect(clippy::expect_used, clippy::panic))]
 
 mod checksum;
 pub use checksum::{
@@ -168,7 +169,7 @@ fluent_i18n::i18n!("locales");
 #[cfg(test)]
 // We ignore `expect_fun_call`, as this is test code and more this makes it significantly
 // more convenient/easier to read.
-#[allow(clippy::expect_fun_call)]
+#[cfg_attr(test, expect(clippy::expect_fun_call, clippy::expect_used))]
 fn configure_insta() -> (String, insta::internals::SettingsBindDropGuard) {
     // First up, disable colored output for our snapshot errors.
     colored::control::set_override(false);
