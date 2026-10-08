@@ -571,6 +571,12 @@ build-python platform="current":
             maturin build --release --zig --target="$platform" -o dist
     esac
 
+# Runs all benchmarks.
+[group('check')]
+bench:
+    # --bench '*', otherwise a lot of noise about 'ignored' non-benchmark tests
+    cargo bench --bench '*'
+
 # Checks source code formatting
 [group('check')]
 check-formatting:
