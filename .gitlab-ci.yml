@@ -317,6 +317,24 @@ manpages-specs-completions:
     - just --justfile .gitlab/justfile section-end "generate-completions"
   stage: test
 
+bench:
+  cache:
+    key:
+      files:
+        - Cargo.lock
+    paths:
+      - .cargo-home
+    policy: pull-push
+  extends: .default-with-rust
+  script:
+    - just --justfile .gitlab/justfile section-start "install-alpm-packages" "Install ALPM package set 'rust'"
+    - just install-alpm-package-set rust
+    - just --justfile .gitlab/justfile section-end "install-alpm-packages"
+    - just --justfile .gitlab/justfile section-start "bench" "Run benches"
+    - just bench
+    - just --justfile .gitlab/justfile section-end "bench"
+  stage: check
+
 publish-to-registry:
   extends: .default-with-rust
   dependencies: []
