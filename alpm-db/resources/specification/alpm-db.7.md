@@ -7,6 +7,7 @@ alpm-db - a database format for describing the state of packages on an **A**rch 
 The databases on ALPM based systems are represented by a directory structure that contains metadata files.
 The contents of such a database describes the state of all installed packages.
 Here, **ALPM-MTREE**, **alpm-db-desc** and **alpm-db-files** files provide metadata on specific package versions currently installed.
+Optionally, the data on a specific package may include an **alpm-install-scriptlet**.
 
 Entries for databases are created from **alpm-package** files using package management software such as **pacman**.
 Package management software relies on **alpm-db** structures for the purpose of search, dependency resolution and system management.
@@ -29,13 +30,14 @@ An **alpm-package-name** directly followed by a `-` sign, directly followed by a
 - `example-package-1.0.0-1`
 - `example-package-1:1.0.0-1`
 
-In each of these directories, one **ALPM-MTREE**, one **alpm-db-desc** and one **alpm-db-files** file are kept to describe a package, e.g.:
+In each of these directories, one **ALPM-MTREE**, one **alpm-db-desc**, one **alpm-db-files** and optionally one **alpm-install-scriptlet** file are kept to describe a package, e.g.:
 
 ```text
 .
 └── example-package-1.0.0-1
     ├── desc
     ├── files
+    ├── install
     └── mtree
 ```
 
@@ -60,17 +62,17 @@ The **alpm-db-files** file is directly derived from the package file's list of d
 The **ALPM-MTREE** file is a copy of the package's **ALPM-MTREE** file.
 
 ```text
-              alpm-db -----------.
-              /  |  \             \
-             /   |   \             \
-alpm-db-files    |    alpm-db-desc  |
-    |            |         |        |
-    |         ALPM-MTREE   |        |
- data files      |         |        |
-       \         |       PKGINFO   /
-        \        |     /          /
-         \       |    /          /
-          alpm-package-----------
+              alpm-db --------------.
+              /  |  \                \
+             /   |   \                \
+alpm-db-files    |    alpm-db-desc     '
+    |            |      |  |           |
+    |       ALPM-MTREE  .  |   alpm-install-scriptlet
+ data files      |     /   |           |
+       \         |    / PKGINFO        '
+        \        |   / /              /
+         \       |  / /              /
+          alpm-package--------------'
 ```
 
 # EXAMPLES
@@ -101,4 +103,4 @@ Extending on the previous example on **installing a package on a system**, the u
 
 # SEE ALSO
 
-**ALPM-MTREE**(5), **PKGINFO**(5), **alpm-db-desc**(5), **alpm-db-files**(5), **alpm**(7), **alpm-package**(7), **alpm-package-name**(7), **alpm-package-version**(7), **pacman**(8), **pacman-db-upgrade**(8)
+**ALPM-MTREE**(5), **PKGINFO**(5), **alpm-db-desc**(5), **alpm-db-files**(5), **alpm-install-scriptlet**(5), **alpm**(7), **alpm-package**(7), **alpm-package-name**(7), **alpm-package-version**(7), **pacman**(8), **pacman-db-upgrade**(8)
