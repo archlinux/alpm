@@ -26,6 +26,7 @@ unicode-width.workspace = true
 winnow.workspace = true
 
 [dev-dependencies]
+criterion.workspace = true
 insta.workspace = true
 rstest.workspace = true
 testresult.workspace = true

@@ -61,3 +61,10 @@ path = [
     "alpm-lint-website/static/icons/*.png",
 ]
 precedence = "aggregate"
+
+# https://gitlab.archlinux.org/archlinux/packaging/packages/qemu/-/raw/main/LICENSE
+[[annotations]]
+SPDX-FileCopyrightText = "Arch Linux Contributors"
+SPDX-License-Identifier = "0BSD"
+path = ["alpm-srcinfo/benches/*.SRCINFO"]
+precedence = "override"
