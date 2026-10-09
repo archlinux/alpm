@@ -16,6 +16,9 @@ pub enum Error {
     #[error("{msg}", msg = t!("error-alpm-types", { "source" => .0.to_string() }))]
     AlpmTypes(#[from] alpm_types::Error),
 
+    // /// A database error occurred.
+    // #[error("{msg}", msg = t!("error-database", { "source" => .0.to_string() }))]
+    // Database(#[from] crate::db::Error),
     /// IO error.
     #[error("{msg}", msg = t!("error-io", { "context" => context, "source" => source.to_string() }))]
     Io {

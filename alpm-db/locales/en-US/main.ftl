@@ -28,6 +28,53 @@ error-unsupported-schema-version = Unsupported schema version: { $version }
 
 error-invalid-format = Failed to parse v1 or v2 format.
 
+error-invalid-file-context-entry-name = extracting entry name from path
+
+error-invalid-file-context-entry-name-symlink = entry path is a symlink
+
+error-invalid-file-name-context-to-string = converting entry name to string
+
+error-io-path-db-base-create = creating database base directory
+
+error-io-path-db-base-metadata = reading metadata for database base directory
+
+error-io-path-db-lock-create = creating database lock file
+
+error-io-path-db-entries-read = reading database entries
+
+error-io-path-db-entries-iterate = iterating database entries
+
+error-io-path-entry-name-metadata = reading metadata for entry path
+
+error-io-path-mtree-file-read = reading mtree file
+
+error-io-path-entry-dir-create = creating database entry directory
+
+error-io-path-db-entry-remove = removing database entry directory
+
+error-io-path-write-desc = writing desc component
+
+error-io-path-write-files = writing files component
+
+error-io-path-write-mtree = writing mtree component
+
+error-io-path-write-db-version = writing alpm-db version file
+
+error-io-path-read-db-version = reading alpm-db version file
+
+error-io-path-open-db-version = opening alpm-db version file
+
+error-io-read-db-version = reading alpm-db version
+
+error-database-entry-already-exists = The entry { $name } already exists in the database
+
+error-database-entry-duplicate-name = Duplicate entries for package { $name }: { $entries }
+
+error-database-entry-name-mismatch = Entry { $entry_name } does not match desc name { $desc_name }-{ $desc_version }{ $has_path ->
+      [true]  at "{ $path }"
+    *[false] ""
+  }
+
 error-io-path-open-file = opening the file for reading
 
 error-io-read-db-desc = reading DB desc data
