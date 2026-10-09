@@ -17,6 +17,10 @@ use crate::Architecture;
 /// more information.
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
+    /// An error occurred when handling a database.
+    #[error("{msg}", msg = t!("error-database", { "error" => .0.to_string() }))]
+    Database(#[from] crate::database::Error),
+
     /// Combination of architectures that is invalid.
     #[error("{msg}", msg = t!("error-invalid-architectures", {
         "architectures" => format!("{architectures:?}"),
@@ -63,6 +67,23 @@ pub enum Error {
     InvalidSemver {
         /// The reason for the invalid semantic version.
         kind: String,
+    },
+
+    /// An I/O error occurred at a path.
+    #[error("{msg}", msg = t!("error-io-path", {
+        "path" => path.display().to_string(),
+        "context" => context,
+        "source" => source.to_string(),
+    }))]
+    IoPath {
+        /// The path at which the error occurred.
+        path: PathBuf,
+        /// The context in which the error occurred.
+        ///
+        /// This is meant to complete the sentence "I/O error at path while ".
+        context: String,
+        /// The source error.
+        source: std::io::Error,
     },
 
     /// Value contains invalid characters
