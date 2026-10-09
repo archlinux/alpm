@@ -15,7 +15,7 @@ use crate::Architecture;
 /// You can access it using the `source()` method.
 /// See [Error::source](https://doc.rust-lang.org/std/error/trait.Error.html#method.source) for
 /// more information.
-#[derive(Debug, thiserror::Error, PartialEq)]
+#[derive(Debug, thiserror::Error)]
 pub enum Error {
     /// Combination of architectures that is invalid.
     #[error("{msg}", msg = t!("error-invalid-architectures", {
