@@ -1,0 +1,6 @@
+---
+source: alpm-db/src/db/transaction.rs
+description: "Simple, serialized transaction plan example"
+expression: json_plan
+---
+{"uuid":"01a17815-fe9d-77f6-9bb1-387d74e07195","actions":[{"add":{"name":"example","version":{"pkgver":"1.0.0","pkgrel":{"major":1,"minor":null},"epoch":null}}},{"remove":{"name":"other-example","version":{"pkgver":"2.0.0","pkgrel":{"major":1,"minor":null},"epoch":null}}}]}

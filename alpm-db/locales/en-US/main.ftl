@@ -2,11 +2,79 @@ error-alpm-types =
   ALPM type error:
   { $source }
 
+error-alpm-mtree =
+  ALPM-MTREE error:
+  { $source }
+
 error-io = I/O error while { $context }:
   { $source }
 
+error-io-database-read-dir = reading the entries in an alpm-db root directory
+
+error-io-database-read-dir-entry = reading an entry in the alpm-db base directory
+
+error-io-read-db-version = reading alpm-db version information
+
 error-io-path = I/O error at path "{ $path }" while { $context }:
   { $source }
+
+error-io-path-db-base-canonicalize = canonicalizing the alpm-db root directory
+
+error-io-path-db-base-create = creating the alpm-db root directory
+
+error-io-path-db-create-component = creating a file component for an alpm-db entry
+
+error-io-path-db-entry-remove = removing an alpm-db entry directory
+
+error-io-path-db-lock-create = creating a lock file for an alpm-db
+
+error-io-path-db-lock-delete = deleting a lock file for an alpm-db
+
+error-io-path-db-lock-release = releasing a lock file for an alpm-db
+
+error-io-path-db-set-permissions-on-dir = setting permissions on a directory
+
+error-io-path-db-transaction-data-dir-canonicalize = canonicalizing the alpm-db transaction data directory
+
+error-io-path-db-transaction-data-dir-create = creating the alpm-db transaction data directory
+
+error-io-path-db-transaction-data-dir-set-permissions = setting permissions for the alpm-db transaction data directory
+
+error-io-path-db-transaction-temp-dir-create = creating the temporary directory for an alpm-db transaction
+
+error-io-path-db-transaction-temp-dir-remove = removing the temporary directory for an alpm-db transaction
+
+error-io-path-db-transaction-temp-dir-read = reading the entries of a temporary transaction data directory
+
+error-io-path-db-transaction-temp-dir-entry-copy = copying an entry from a temporary transaction data directory
+
+error-io-path-db-transaction-temp-dir-entry-read = reading an entry of a temporary transaction data directory
+
+error-io-path-db-transaction-temp-dir-entry-move = moving an entry from a temporary transaction data directory
+
+error-io-path-db-write-component = writing a file component ({ $file_type }) for an alpm-db entry
+
+error-io-path-check-existence = checking if the file exists
+
+error-io-path-chown = changing ownership for the path
+
+error-io-path-entry-dir-create = creating an alpm-db entry directory
+
+error-io-path-metadata = retrieving metadata for the path
+
+error-io-path-open-read-only = opening the file for reading
+
+error-io-path-open-writable = opening the file for writing
+
+error-io-path-read-file-to-string = reading the file to string
+
+error-io-path-rewind = rewinding the file handle for later use
+
+error-io-path-write-db-version = writing an alpm-db version file
+
+error-io-path-write-transaction-plan = writing the transaction plan { $uuid }
+
+error-io-path-move-transaction-plan = moving the transaction plan { $uuid } from current to previous data directory
 
 error-parse =
   Parser failed with the following error:
@@ -21,7 +89,35 @@ error-no-input-file = No input file given.
 error-json = JSON error while { $context }:
   { $source }
 
+error-json-transaction-plan = serializing the transaction plan { $uuid }
+
 error-unsupported-schema-version = Unsupported schema version: { $version }
+
+error-database = Database error: { $source }
+
+error-database-entry-already-exists = The entry { $name } already exists in the database
+
+error-database-entry-component-is-not-a-file = The component file of an alpm-db entry is not a regular file: "{ $path }"
+
+error-database-entry-component-name-mismatch = The name of the entry and that of its alpm-db-desc component do not match: { $entry_name } vs. { $component_entry_name }
+
+error-database-entry-is-not-a-directory = The alpm-db entry is not a directory: "{ $path }"
+
+error-database-entry-does-not-exist = The entry { $name } does not exist in the database
+
+error-database-exclusive-lock-file-failed = Failed to establish exclusive access to the alpm-db lock file "{ $path }": { $source }
+
+error-database-has-no-transaction = The alpm-db at "{ $path }" has no transaction
+
+error-database-has-locked-transaction-already = The alpm-db at "{ $path }", locked by lock file "{ $lock_file }", has the transaction { $uuid } in progress already
+
+error-database-has-transaction-but-no-lock = The alpm-db at "{ $path }" has the transaction { $uuid } in progress, but there is no write lock for the database
+
+error-database-is-locked = Unable to access alpm-db at "{ $path }" as it is currently locked. The lock file is located at: "{ $lock_file }"
+
+error-database-is-locked-but-no-transaction = The alpm-db at "{ $path }" is currently locked with the lock file "{ $lock_file }", but it has no transaction.
+
+error-database-root-is-not-a-directory = The root of the alpm-db is not a directory: "{ $path }"
 
 error-io-path-open-file = opening the file for reading
 
@@ -54,6 +150,8 @@ error-invalid-files-paths = Invalid paths for alpm-db-files data:
 
 error-invalid-backup-entries = Invalid backup entries for alpm-db-files data:
   { $message }
+
+error-transaction-data-dir-is-not-a-directory = The transaction data directory is not a directory: "{ $path }"
 
 filesv1-path-errors-absolute-paths = Absolute paths
 
@@ -141,3 +239,9 @@ cli-error-json-serializing-alpm-db-files-data-as-pretty-printed-json-string = se
 cli-error-json-serializing-alpm-db-files-data-as-json-string = serializing alpm-db-files data as JSON string
 
 error-db-files = Alpm-db-files error: { $source }
+
+warn-database-entry-component-world-writable = The alpm-db entry component "{ $path }" is world-writable!
+
+warn-database-entry-world-writable = The alpm-db entry "{ $path }" is world-writable!
+
+warn-database-root-world-writable = The alpm-db root directory "{ $path }" is world-writable!

@@ -23,29 +23,35 @@ required-features = ["cli"]
 
 [features]
 _winnow-debug = ["winnow/debug"]
-cli = ["dep:clap", "dep:serde_json"]
+cli = ["dep:clap"]
 default = []
 
 [dependencies]
 alpm-common.workspace = true
+alpm-mtree.workspace = true
 alpm-parsers.workspace = true
 alpm-types.workspace = true
 clap = { workspace = true, optional = true }
 fluent-i18n.workspace = true
+log.workspace = true
+nix = { version = "0.31.3", features = ["user"] }
 serde.workspace = true
-serde_json = { workspace = true, optional = true }
+serde_json.workspace = true
 serde_with.workspace = true
 strum.workspace = true
 thiserror.workspace = true
+uuid = { version = "1.28.0", features = ["serde", "v7"] }
 winnow.workspace = true
 
 [dev-dependencies]
 assert_cmd.workspace = true
 colored.workspace = true
+flate2.workspace = true
 insta.workspace = true
 pretty_assertions.workspace = true
 rstest.workspace = true
 serde_json.workspace = true
+simplelog.workspace = true
 tempfile.workspace = true
 testresult.workspace = true
 
