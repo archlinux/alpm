@@ -503,8 +503,17 @@ mod tests {
     #[case("=", VersionComparison::Equal)]
     #[case(">=", VersionComparison::GreaterOrEqual)]
     #[case(">", VersionComparison::Greater)]
-    fn valid_version_comparison(#[case] comparison: &str, #[case] expected: VersionComparison) {
-        assert_eq!(comparison.parse(), Ok(expected));
+    fn valid_version_comparison(
+        #[case] comparison: &str,
+        #[case] expected: VersionComparison,
+    ) -> TestResult {
+        assert_eq!(
+            VersionComparison::from_str(comparison)?,
+            expected,
+            "Expected successful parse for version comparison '{comparison}'"
+        );
+
+        Ok(())
     }
 
     /// Ensure that invalid version comparisons will throw an error.
@@ -541,8 +550,8 @@ mod tests {
         #[case] expected: VersionRequirement,
     ) -> TestResult {
         assert_eq!(
-            requirement.parse(),
-            Ok(expected),
+            VersionRequirement::from_str(requirement)?,
+            expected,
             "Expected successful parse for version requirement '{requirement}'"
         );
 

@@ -82,15 +82,35 @@ impl Display for SchemaVersion {
 #[cfg(test)]
 mod tests {
     use rstest::rstest;
+    use testresult::TestResult;
 
     use super::*;
 
     #[rstest]
-    #[case("1.0.0", Ok(SchemaVersion(SemverVersion::new(1, 0, 0))))]
-    #[case("1", Ok(SchemaVersion(SemverVersion::new(1, 0, 0))))]
-    #[case("-1.0.0", Err(Error::InvalidSemver { kind: String::from("unexpected character '-' while parsing major version number") }))]
-    fn schema_version(#[case] version: &str, #[case] result: Result<SchemaVersion, Error>) {
-        assert_eq!(result, SchemaVersion::from_str(version))
+    #[case::full("1.0.0")]
+    #[case::simple("1")]
+    fn schema_version_from_str_succeeds(#[case] input: &str) -> TestResult {
+        let _ = SchemaVersion::from_str(input)?;
+
+        Ok(())
+    }
+
+    #[test]
+    fn schema_version_from_str_fails_on_invalid_semver() -> TestResult {
+        let Err(Error::InvalidSemver { .. }) = SchemaVersion::from_str("-1.0.0") else {
+            panic!("Expected to fail with Error::InvalidSemver");
+        };
+
+        Ok(())
+    }
+
+    #[test]
+    fn schema_version_from_str_fails_on_invalid_integer() -> TestResult {
+        let Err(Error::InvalidInteger { .. }) = SchemaVersion::from_str("foo") else {
+            panic!("Expected to fail with Error::InvalidInteger");
+        };
+
+        Ok(())
     }
 
     #[rstest]

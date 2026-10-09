@@ -359,8 +359,8 @@ mod tests {
         init_logger();
 
         assert_eq!(
-            MinimalVersion::from_str(version),
-            Ok(expected),
+            MinimalVersion::from_str(version)?,
+            expected,
             "Expected valid parsing for MinimalVersion {version}"
         );
 
@@ -389,18 +389,33 @@ mod tests {
         assert_snapshot!(test_name, err.to_string());
     }
 
-    /// Ensures that [`MinimalVersion`] can be created from valid/compatible [`Version`] (and
-    /// [`Version`] reference) and fails otherwise.
+    /// Ensures that [`MinimalVersion`] can be created from a compatible [`Version`].
     #[rstest]
-    #[case::minimal_with_epoch(Version::from_str("1:1.0.0")?, Ok(MinimalVersion::from_str("1:1.0.0")?))]
-    #[case::minimal(Version::from_str("1.0.0")?, Ok(MinimalVersion::from_str("1.0.0")?))]
-    #[case::full_with_epoch(Version::from_str("1:1.0.0-1")?, Err(Error::InvalidComponent{component: "pkgrel", context: t!("error-context-convert-full-to-minimal")}))]
-    #[case::full(Version::from_str("1.0.0-1")?, Err(Error::InvalidComponent{component: "pkgrel", context: t!("error-context-convert-full-to-minimal")}))]
+    #[case::minimal_with_epoch(Version::from_str("1:1.0.0")?, MinimalVersion::from_str("1:1.0.0")?)]
+    #[case::minimal(Version::from_str("1.0.0")?, MinimalVersion::from_str("1.0.0")?)]
     fn minimal_version_try_from_version(
         #[case] version: Version,
-        #[case] expected: Result<MinimalVersion, Error>,
+        #[case] expected: MinimalVersion,
     ) -> TestResult {
-        assert_eq!(MinimalVersion::try_from(&version), expected);
+        assert_eq!(MinimalVersion::try_from(&version)?, expected);
+        Ok(())
+    }
+
+    /// Ensures that [`MinimalVersion`] fails to be created from incompatible [`Version`].
+    #[rstest]
+    #[case::full_with_epoch(Version::from_str("1:1.0.0-1")?)]
+    #[case::full(Version::from_str("1.0.0-1")?)]
+    fn minimal_version_try_from_version_fails_on_incompatible_version(
+        #[case] version: Version,
+    ) -> TestResult {
+        let Err(Error::InvalidComponent {
+            component: "pkgrel",
+            ..
+        }) = MinimalVersion::try_from(&version)
+        else {
+            panic!("Expected to fail with Error::InvalidComponent");
+        };
+
         Ok(())
     }
 

@@ -808,24 +808,27 @@ mod tests {
     use super::*;
     use crate::configure_insta;
 
+    /// Ensures, that [`Url::from_str`] succeeds on valid input.
     #[rstest]
-    #[case("https://example.com/", Ok("https://example.com/"))]
-    #[case(
-        "https://example.com/path?query=1",
-        Ok("https://example.com/path?query=1")
-    )]
-    #[case("ftp://example.com/", Ok("ftp://example.com/"))]
-    #[case("not-a-url", Err(url::ParseError::RelativeUrlWithoutBase.into()))]
-    fn test_url_parsing(#[case] input: &str, #[case] expected: Result<&str, Error>) {
-        let result = input.parse::<Url>();
-        assert_eq!(
-            result.as_ref().map(|v| v.to_string()),
-            expected.as_ref().map(|v| v.to_string())
-        );
+    #[case("https://example.com/")]
+    #[case("https://example.com/path?query=1")]
+    #[case("ftp://example.com/")]
+    fn url_from_str_succeeds(#[case] input: &str) -> TestResult {
+        let url = Url::from_str(input)?;
+        assert_eq!(url.as_str(), input);
+        Ok(())
+    }
 
-        if let Ok(url) = result {
-            assert_eq!(url.as_str(), input);
-        }
+    /// Ensures, that [`Url::from_str`] fails on invalid input.
+    #[test]
+    fn url_from_str_fails_on_invalid_input() {
+        let Err(Error::InvalidUrl(url::ParseError::RelativeUrlWithoutBase)) =
+            Url::from_str("not-a-url")
+        else {
+            panic!(
+                "Expected to fail with Error::InvalidUrl(url::ParseError::RelativeUrlWithoutBase"
+            );
+        };
     }
 
     #[rstest]

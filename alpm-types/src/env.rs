@@ -903,6 +903,7 @@ mod tests {
         assert_snapshot!(test_name, err_msg.to_string());
     }
 
+    /// Ensures, that [`InstalledPackage::from_str`] succeeds on valid input.
     #[rstest]
     #[case(
         "foo-bar-1:1.0.0-1-any",
@@ -920,8 +921,11 @@ mod tests {
             architecture: SystemArchitecture::X86_64.into(),
         },
     )]
-    fn installed_from_str(#[case] s: &str, #[case] result: InstalledPackage) -> TestResult {
-        assert_eq!(InstalledPackage::from_str(s), Ok(result));
+    fn installed_from_str_succeeds(
+        #[case] s: &str,
+        #[case] expected: InstalledPackage,
+    ) -> TestResult {
+        assert_eq!(InstalledPackage::from_str(s)?, expected);
         Ok(())
     }
 

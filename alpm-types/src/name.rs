@@ -119,13 +119,13 @@ impl Display for BuildTool {
 /// # fn main() -> Result<(), alpm_types::Error> {
 /// // create Name from &str
 /// assert_eq!(
-///     Name::from_str("test-123@.foo_+"),
-///     Ok(Name::new("test-123@.foo_+")?)
+///     Name::from_str("test-123@.foo_+")?,
+///     Name::new("test-123@.foo_+")?
 /// );
 /// assert!(Name::from_str(".test").is_err());
 ///
 /// // format as String
-/// assert_eq!("foo", format!("{}", Name::new("foo")?));
+/// assert_eq!("foo", Name::new("foo")?.to_string());
 /// # Ok(())
 /// # }
 /// ```
@@ -417,28 +417,28 @@ mod tests {
     use super::*;
     use crate::configure_insta;
 
-    #[rstest]
-    #[case(
-        "bar",
-        ["foo".parse(), "bar".parse()].into_iter().flatten().collect::<Vec<Name>>(),
-        Ok(BuildTool::from_str("bar")?),
-    )]
-    #[case(
-        "bar",
-        ["foo".parse(), "foo".parse()].into_iter().flatten().collect::<Vec<Name>>(),
-        Err(Error::ValueDoesNotMatchRestrictions {
-            restrictions: vec!["foo".to_string(), "foo".to_string()],
-        }),
-    )]
-    fn buildtool_new_with_restriction(
-        #[case] buildtool: &str,
-        #[case] restrictions: Vec<Name>,
-        #[case] result: Result<BuildTool, Error>,
-    ) -> TestResult {
+    /// Ensures, that [`BuildTool::new_with_restriction`] succeeds with valid input.
+    #[test]
+    fn buildtool_new_with_restriction_succeeds() -> TestResult {
         assert_eq!(
-            BuildTool::new_with_restriction(buildtool, &restrictions),
-            result
+            BuildTool::new_with_restriction("bar", &["foo".parse()?, "bar".parse()?])?,
+            BuildTool::from_str("bar")?
         );
+
+        Ok(())
+    }
+
+    /// Ensures, that [`BuildTool::new_with_restriction`] fails on invalid input.
+    #[test]
+    fn buildtool_new_with_restriction_fails_on_unmatched_restriction() -> TestResult {
+        let expected_restrictions = vec!["foo".to_string(), "foo".to_string()];
+        let Err(Error::ValueDoesNotMatchRestrictions {
+            restrictions: error_restrictions,
+        }) = BuildTool::new_with_restriction("bar", &["foo".parse()?, "foo".parse()?])
+        else {
+            panic!("Expected to fail with Error::ValueDoesNotMatchRestrictions");
+        };
+        assert_eq!(expected_restrictions, error_restrictions);
 
         Ok(())
     }

@@ -349,10 +349,12 @@ mod tests {
     use crate::configure_insta;
 
     #[rstest]
-    #[case("0", Ok(Epoch(0)))]
-    #[case("1", Ok(Epoch(1)))]
-    fn epoch(#[case] version: &str, #[case] result: Result<Epoch, Error>) {
-        assert_eq!(result, Epoch::from_str(version));
+    #[case("0", Epoch(0))]
+    #[case("1", Epoch(1))]
+    fn epoch(#[case] version: &str, #[case] expected: Epoch) -> TestResult {
+        assert_eq!(expected, Epoch::from_str(version)?);
+
+        Ok(())
     }
 
     #[rstest]
