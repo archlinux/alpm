@@ -1,6 +1,9 @@
 #![doc = include_str!("../README.md")]
 #![cfg_attr(test, expect(clippy::expect_used, clippy::panic))]
 
+mod database;
+pub use database::{EntryName, Error as DatabaseError};
+
 mod checksum;
 pub use checksum::{
     Blake2b512Checksum,

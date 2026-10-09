@@ -402,6 +402,7 @@ dependencies = [
  "simplelog",
  "spdx",
  "strum",
+ "tempfile",
  "testresult",
  "thiserror",
  "time",
