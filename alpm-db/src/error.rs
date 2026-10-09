@@ -16,6 +16,14 @@ pub enum Error {
     #[error("{msg}", msg = t!("error-alpm-types", { "source" => .0.to_string() }))]
     AlpmTypes(#[from] alpm_types::Error),
 
+    /// An [`alpm_mtree::Error`].
+    #[error("{msg}", msg = t!("error-alpm-mtree", { "source" => .0.to_string() }))]
+    AlpmMtree(#[from] alpm_mtree::Error),
+
+    /// A database error.
+    #[error("{msg}", msg = t!("error-database", { "source" => .0.to_string() }))]
+    Database(#[from] crate::db::Error),
+
     /// An error when using [alpm-db-files].
     ///
     /// [alpm-db-files]:
@@ -66,7 +74,6 @@ pub enum Error {
     #[error("{msg}", msg = t!("error-no-input-file"))]
     NoInputFile,
 
-    #[cfg(feature = "cli")]
     /// JSON error.
     #[error("{msg}", msg = t!("error-json", { "context" => context, "source" => source.to_string() }))]
     Json {
