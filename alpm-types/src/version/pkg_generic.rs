@@ -271,8 +271,8 @@ mod tests {
     )]
     fn valid_version_from_string(#[case] version: &str, #[case] expected: Version) -> TestResult {
         assert_eq!(
-            Version::from_str(version),
-            Ok(expected),
+            Version::from_str(version)?,
+            expected,
             "Expected valid parsing for version {version}"
         );
 

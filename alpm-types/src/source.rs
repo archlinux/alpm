@@ -295,8 +295,8 @@ mod tests {
     )]
     fn valid_source(#[case] input: &str, #[case] expected: Source) -> TestResult {
         assert_eq!(
-            Source::from_str(input),
-            Ok(expected),
+            Source::from_str(input)?,
+            expected,
             "Expected valid parsing for Source: {input}"
         );
 

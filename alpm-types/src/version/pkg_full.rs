@@ -378,8 +378,8 @@ mod tests {
         init_logger();
 
         assert_eq!(
-            FullVersion::from_str(version),
-            Ok(expected),
+            FullVersion::from_str(version)?,
+            expected,
             "Expected valid parsing for FullVersion {version}"
         );
 
@@ -411,19 +411,32 @@ mod tests {
         assert_snapshot!(test_name, err_msg.to_string());
     }
 
-    /// Ensures that [`FullVersion`] can be created from valid/compatible [`Version`] (and
-    /// [`Version`] reference) and fails otherwise.
+    /// Ensures that [`FullVersion`] can be created from a compatible [`Version`].
     #[rstest]
-    #[case::full_with_epoch(Version::from_str("1:1.0.0-1")?, Ok(FullVersion::from_str("1:1.0.0-1")?))]
-    #[case::full(Version::from_str("1.0.0-1")?, Ok(FullVersion::from_str("1.0.0-1")?))]
-    #[case::minimal_with_epoch(Version::from_str("1:1.0.0")?, Err(Error::MissingComponent{component: "pkgrel"}))]
-    #[case::minimal(Version::from_str("1.0.0")?, Err(Error::MissingComponent{component: "pkgrel"}))]
-    fn full_version_try_from_version(
+    #[case::full_with_epoch(Version::from_str("1:1.0.0-1")?, FullVersion::from_str("1:1.0.0-1")?)]
+    #[case::full(Version::from_str("1.0.0-1")?, FullVersion::from_str("1.0.0-1")?)]
+    fn full_version_try_from_version_succeeds(
         #[case] version: Version,
-        #[case] expected: Result<FullVersion, Error>,
+        #[case] expected: FullVersion,
     ) -> TestResult {
-        assert_eq!(FullVersion::try_from(&version), expected);
-        assert_eq!(FullVersion::try_from(version), expected);
+        assert_eq!(FullVersion::try_from(&version)?, expected);
+        Ok(())
+    }
+
+    /// Ensures that [`FullVersion`] fails to be created from an incompatible [`Version`].
+    #[rstest]
+    #[case::minimal_with_epoch(Version::from_str("1:1.0.0")?)]
+    #[case::minimal(Version::from_str("1.0.0")?)]
+    fn full_version_try_from_version_fails_on_incompatible_version(
+        #[case] version: Version,
+    ) -> TestResult {
+        let Err(Error::MissingComponent {
+            component: "pkgrel",
+        }) = FullVersion::try_from(&version)
+        else {
+            panic!("Expected to fail with Error::MissingComponent");
+        };
+
         Ok(())
     }
 

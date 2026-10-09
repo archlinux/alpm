@@ -96,11 +96,7 @@ impl License {
     ///
     /// assert!(License::from_valid_spdx("GPL-0.0".to_string()).is_err());
     /// assert!(License::from_valid_spdx("Custom-License".to_string()).is_err());
-    ///
-    /// assert_eq!(
-    ///     License::from_valid_spdx("GPL-2.0".to_string()),
-    ///     Err(Error::DeprecatedLicense("GPL-2.0".to_string()))
-    /// );
+    /// assert!(License::from_valid_spdx("GPL-2.0".to_string()).is_err());
     /// # Ok(())
     /// # }
     /// ```
@@ -214,34 +210,44 @@ mod tests {
         Ok(())
     }
 
-    #[rstest]
-    #[case("Apache-2.0 WITH",
-        Err(spdx::ParseError {
-            original: String::from("Apache-2.0 WITH"),
-            span: 15..15,
-            reason: spdx::error::Reason::Unexpected(&["<addition>"])
-        }.into())
-    )]
-    #[case("Custom-License",
-        Err(spdx::ParseError {
-            original: String::from("Custom-License"),
-            span: 0..14,
-            reason: spdx::error::Reason::UnknownTerm
-        }.into())
-    )]
-    fn test_invalid_spdx(#[case] input: &str, #[case] expected: Result<License, Error>) {
-        let result = License::from_valid_spdx(input.to_string());
-        assert_eq!(result, expected);
+    /// Ensures, that [`License::from_valid_spdx`] fails on unexpected additions.
+    #[test]
+    fn license_from_valid_spdx_fails_on_unexpected_addition() {
+        let Err(Error::InvalidLicense(spdx::ParseError {
+            reason: spdx::error::Reason::Unexpected(_),
+            ..
+        })) = License::from_valid_spdx("Apache-2.0 WITH".into())
+        else {
+            panic!("Expected to fail with Error::InvalidLicense(spdx::ParseError)");
+        };
     }
 
+    /// Ensures, that [`License::from_valid_spdx`] fails on unknown terms.
+    #[test]
+    fn license_from_valid_spdx_fails_on_unknown_term() {
+        let Err(Error::InvalidLicense(spdx::ParseError {
+            reason: spdx::error::Reason::UnknownTerm,
+            ..
+        })) = License::from_valid_spdx("Custom-License".to_string())
+        else {
+            panic!("Expected to fail on Error::InvalidLicense(spdx::ParseError");
+        };
+    }
+
+    /// Ensures, that [`License::from_valid_spdx`] fails on deprecated SPDX license identifier
+    /// strings.
     #[rstest]
     #[case("BSD-2-Clause-FreeBSD")]
     #[case("BSD-2-Clause-NetBSD")]
     #[case("bzip2-1.0.5")]
     #[case("GPL-2.0")]
     fn test_deprecated_spdx(#[case] input: &str) {
-        let result = License::from_valid_spdx(input.to_string());
-        assert_eq!(result, Err(Error::DeprecatedLicense(input.to_string())));
+        let Err(Error::DeprecatedLicense(error_string)) =
+            License::from_valid_spdx(input.to_string())
+        else {
+            panic!("Expected to fail with Error::DeprecatedLicense");
+        };
+        assert_eq!(input, error_string);
     }
 
     #[rstest]

@@ -37,8 +37,8 @@ use crate::Error;
 /// # fn main() -> Result<(), alpm_types::Error> {
 /// // create SystemArchitecture from str
 /// assert_eq!(
-///     SystemArchitecture::from_str("aarch64"),
-///     Ok(SystemArchitecture::Aarch64)
+///     SystemArchitecture::from_str("aarch64")?,
+///     SystemArchitecture::Aarch64
 /// );
 ///
 /// // Format as String
@@ -254,10 +254,10 @@ impl AsRef<str> for UnknownArchitecture {
 /// # fn main() -> Result<(), alpm_types::Error> {
 /// // create Architecture from str
 /// assert_eq!(
-///     Architecture::from_str("aarch64"),
-///     Ok(SystemArchitecture::Aarch64.into())
+///     Architecture::from_str("aarch64")?,
+///     Architecture::Some(SystemArchitecture::Aarch64)
 /// );
-/// assert_eq!(Architecture::from_str("any"), Ok(Architecture::Any));
+/// assert_eq!(Architecture::from_str("any")?, Architecture::Any);
 ///
 /// // format as String
 /// assert_eq!("any", format!("{}", Architecture::Any));
@@ -558,11 +558,18 @@ mod tests {
     use super::*;
     use crate::configure_insta;
 
+    /// Ensures, that known CPU architectures are parsed as [`SystemArchitecture`] and unknown as
+    /// [`UnknownArchitecture`].
     #[rstest]
     #[case("aarch64", SystemArchitecture::Aarch64)]
     #[case("f_oo", UnknownArchitecture("f_oo".to_string()).into())]
-    fn system_architecture_from_string(#[case] s: &str, #[case] arch: SystemArchitecture) {
-        assert_eq!(SystemArchitecture::from_str(s), Ok(arch));
+    fn system_architecture_from_string(
+        #[case] s: &str,
+        #[case] arch: SystemArchitecture,
+    ) -> TestResult {
+        assert_eq!(SystemArchitecture::from_str(s)?, arch);
+
+        Ok(())
     }
 
     #[rstest]
@@ -633,6 +640,7 @@ mod tests {
         Ok(())
     }
 
+    /// Ensures that [`Architecture::from_str`] parses input string slices correctly.
     #[rstest]
     #[case("any", Architecture::Any)]
     #[case("aarch64", SystemArchitecture::Aarch64.into())]
@@ -652,8 +660,10 @@ mod tests {
     #[case("x86_64_v4", SystemArchitecture::X86_64V4.into())]
     #[case("foo", UnknownArchitecture("foo".to_string()).into())]
     #[case("f_oo", UnknownArchitecture("f_oo".to_string()).into())]
-    fn architecture_from_string(#[case] input: &str, #[case] arch: Architecture) {
-        assert_eq!(Architecture::from_str(input), Ok(arch));
+    fn architecture_from_string(#[case] input: &str, #[case] expected: Architecture) -> TestResult {
+        assert_eq!(Architecture::from_str(input)?, expected);
+
+        Ok(())
     }
 
     #[rstest]
@@ -681,38 +691,47 @@ mod tests {
         Ok(())
     }
 
+    /// Ensures that [`Architectures::try_from`] succeeds for a [`Vec`] of [`Architecture`].
     #[rstest]
-    #[case(vec![Architecture::Any], Ok(Architectures::Any))]
+    #[case(vec![Architecture::Any], Architectures::Any)]
     #[case(
         vec![SystemArchitecture::Aarch64.into()],
-        Ok(Architectures::Some(vec![SystemArchitecture::Aarch64]))
+        Architectures::Some(vec![SystemArchitecture::Aarch64])
     )]
     #[case(
         vec![SystemArchitecture::Arm.into(), SystemArchitecture::I386.into()],
-        Ok(Architectures::Some(vec![SystemArchitecture::Arm, SystemArchitecture::I386]))
+        Architectures::Some(vec![SystemArchitecture::Arm, SystemArchitecture::I386])
     )]
     // Duplicates are allowed (discouraged by linter)
     #[case(
         vec![SystemArchitecture::Arm.into(), SystemArchitecture::Arm.into()],
-        Ok(Architectures::Some(vec![SystemArchitecture::Arm, SystemArchitecture::Arm]))
+        Architectures::Some(vec![SystemArchitecture::Arm, SystemArchitecture::Arm])
     )]
-    #[case(
-        vec![Architecture::Any, SystemArchitecture::I386.into()],
-        Err(Error::InvalidArchitectures {
-            architectures: vec![Architecture::Any, SystemArchitecture::I386.into()],
-            context: "'any' cannot be used in combination with other architectures.",
-        })
-    )]
-    #[case(vec![Architecture::Any, Architecture::Any], Err(Error::InvalidArchitectures {
-        architectures: vec![Architecture::Any, Architecture::Any],
-        context: "'any' cannot be used in combination with other architectures.",
-    }))]
-    #[case(vec![], Ok(Architectures::Some(vec![])))]
-    fn architectures_from_vec(
+    #[case(vec![], Architectures::Some(vec![]))]
+    fn architectures_try_from_vec_succeeds(
         #[case] archs: Vec<Architecture>,
-        #[case] expected: Result<Architectures, Error>,
-    ) {
-        assert_eq!(archs.try_into(), expected);
+        #[case] expected: Architectures,
+    ) -> TestResult {
+        assert_eq!(Architectures::try_from(archs)?, expected);
+
+        Ok(())
+    }
+
+    /// Ensures that [`Architectures::try_from`] fails on a [`Vec`] of incompatible
+    /// [`Architecture`].
+    #[rstest]
+    #[case(vec![Architecture::Any, SystemArchitecture::I386.into()])]
+    #[case(vec![Architecture::Any, Architecture::Any])]
+    fn architectures_from_vec(#[case] archs: Vec<Architecture>) -> TestResult {
+        let Err(Error::InvalidArchitectures {
+            architectures: _archs,
+            ..
+        }) = Architectures::try_from(archs)
+        else {
+            panic!("Expected to fail with Error::InvalidArchitectures");
+        };
+
+        Ok(())
     }
 
     #[rstest]

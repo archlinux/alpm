@@ -536,32 +536,33 @@ mod tests {
         }
     }
 
+    /// Ensures, that [`PackageRelation`] can be parsed from a valid string slice.
     #[rstest]
     #[case(
         "python>=3",
-        Ok(PackageRelation {
+        PackageRelation {
             name: Name::new("python")?,
             version_requirement: Some(VersionRequirement {
                 comparison: VersionComparison::GreaterOrEqual,
                 version: "3".parse()?,
             }),
-        }),
+        },
     )]
     #[case(
         "java-environment>=17",
-        Ok(PackageRelation {
+        PackageRelation {
             name: Name::new("java-environment")?,
             version_requirement: Some(VersionRequirement {
                 comparison: VersionComparison::GreaterOrEqual,
                 version: "17".parse()?,
             }),
-        }),
+        },
     )]
     fn valid_package_relation(
         #[case] input: &str,
-        #[case] expected: Result<PackageRelation, Error>,
+        #[case] expected: PackageRelation,
     ) -> TestResult {
-        assert_eq!(PackageRelation::from_str(input), expected);
+        assert_eq!(PackageRelation::from_str(input)?, expected);
 
         Ok(())
     }

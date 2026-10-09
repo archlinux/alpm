@@ -553,38 +553,23 @@ mod tests {
 
     #[rstest]
     // Contains non-hex characters 'G' and 'H'
-    #[case(
-        "A1B2C3D4E5F6A7B8C9D0E1F2A3B4C5D6E7F8G9H0",
-        Err(Error::InvalidOpenPGPv4Fingerprint)
-    )]
+    #[case("A1B2C3D4E5F6A7B8C9D0E1F2A3B4C5D6E7F8G9H0")]
     // Less than 40 characters
-    #[case(
-        "1234567890ABCDEF1234567890ABCDEF1234567",
-        Err(Error::InvalidOpenPGPv4Fingerprint)
-    )]
+    #[case("1234567890ABCDEF1234567890ABCDEF1234567")]
     // More than 40 characters
-    #[case(
-        "1234567890ABCDEF1234567890ABCDEF1234567890",
-        Err(Error::InvalidOpenPGPv4Fingerprint)
-    )]
+    #[case("1234567890ABCDEF1234567890ABCDEF1234567890")]
     // Starts with whitespace
-    #[case(
-        " 4A0C 4DFF C02E 1A7E D969 ED23 1C23 58A2 5A10 D94E",
-        Err(Error::InvalidOpenPGPv4Fingerprint)
-    )]
+    #[case(" 4A0C 4DFF C02E 1A7E D969 ED23 1C23 58A2 5A10 D94E")]
     // Ends with whitespace
-    #[case(
-        "4A0C 4DFF C02E 1A7E D969 ED23 1C23 58A2 5A10 D94E ",
-        Err(Error::InvalidOpenPGPv4Fingerprint)
-    )]
+    #[case("4A0C 4DFF C02E 1A7E D969 ED23 1C23 58A2 5A10 D94E ")]
     // Just invalid
-    #[case("invalid", Err(Error::InvalidOpenPGPv4Fingerprint))]
-    fn test_parse_invalid_openpgp_fingerprint(
-        #[case] input: &str,
-        #[case] expected: Result<OpenPGPv4Fingerprint, Error>,
-    ) {
-        let result = input.parse::<OpenPGPv4Fingerprint>();
-        assert_eq!(result, expected);
+    #[case("invalid")]
+    fn openpgpv4_fingerprint_from_str_fails_on_invalid_input(#[case] input: &str) -> TestResult {
+        let Err(Error::InvalidOpenPGPv4Fingerprint) = OpenPGPv4Fingerprint::from_str(input) else {
+            panic!("Expected to fail with Error::InvalidOpenPGPv4Fingerprint");
+        };
+
+        Ok(())
     }
 
     /// Make sure that invalid OpenPGP v4 fingerprints don't deserialize.
@@ -639,21 +624,22 @@ mod tests {
         Ok(())
     }
 
+    /// Ensures, that [`OpenPGPKeyId::from_str`] fails on invalid input.
     #[rstest]
     // Contains non-hex characters 'G' and 'H'
-    #[case("1234567890ABCGH", Err(Error::InvalidOpenPGPKeyId("1234567890ABCGH".to_string())))]
+    #[case("1234567890ABCGH")]
     // Less than 16 characters
-    #[case("1234567890ABCDE", Err(Error::InvalidOpenPGPKeyId("1234567890ABCDE".to_string())))]
+    #[case("1234567890ABCDE")]
     // More than 16 characters
-    #[case("1234567890ABCDEF0", Err(Error::InvalidOpenPGPKeyId("1234567890ABCDEF0".to_string())))]
+    #[case("1234567890ABCDEF0")]
     // Just invalid
-    #[case("invalid", Err(Error::InvalidOpenPGPKeyId("invalid".to_string())))]
-    fn test_parse_invalid_openpgp_key_id(
-        #[case] input: &str,
-        #[case] expected: Result<OpenPGPKeyId, Error>,
-    ) {
-        let result = input.parse::<OpenPGPKeyId>();
-        assert_eq!(result, expected);
+    #[case("invalid")]
+    fn test_parse_invalid_openpgp_key_id(#[case] input: &str) {
+        let Err(Error::InvalidOpenPGPKeyId(invalid_input)) = OpenPGPKeyId::from_str(input) else {
+            panic!("Expected to fail with Error::InvalidOpenPGPKeyId");
+        };
+
+        assert_eq!(invalid_input, input);
     }
 
     /// Make sure that invalid OpenPGP key IDs don't deserialize.
@@ -676,25 +662,19 @@ mod tests {
         Ok(())
     }
 
+    /// Ensures, that [`Base64OpenPGPSignature::from_str`] fails on invalid input.
     #[rstest]
     // "=" in the middle
-    #[case(
-        "d2hhdCBhcmUge=W91IGxvb2tpbmcgZm9yPyA7LTsK",
-        Err(Error::InvalidBase64Encoding { expected_item: t!("error-invalid-base64-encoding-pgp-signature") })
-    )]
+    #[case("d2hhdCBhcmUge=W91IGxvb2tpbmcgZm9yPyA7LTsK")]
     // invalid characters
-    #[case("!@#$%^&*", Err(Error::InvalidBase64Encoding { expected_item: t!("error-invalid-base64-encoding-pgp-signature") }))]
+    #[case("!@#$%^&*")]
     // just invalid
-    #[case(
-        "iHUEABYKh9mi7GCIlMAP9ws/jU4WEbgE=",
-        Err(Error::InvalidBase64Encoding { expected_item: t!("error-invalid-base64-encoding-pgp-signature") })
-    )]
-    fn test_parse_invalid_openpgp_signature(
-        #[case] input: &str,
-        #[case] expected: Result<Base64OpenPGPSignature, Error>,
-    ) {
-        let result = input.parse::<Base64OpenPGPSignature>();
-        assert_eq!(result, expected);
+    #[case("iHUEABYKh9mi7GCIlMAP9ws/jU4WEbgE=")]
+    fn base64_openpgp_signature_from_str_fails_on_invalid_input(#[case] input: &str) {
+        let Err(Error::InvalidBase64Encoding { .. }) = Base64OpenPGPSignature::from_str(input)
+        else {
+            panic!("Expected to fail with Error::InvalidBase64Encoding");
+        };
     }
 
     /// Make sure that invalid base64 encoded OpenPGP signatures don't deserialize.
@@ -726,7 +706,7 @@ mod tests {
         }
     )]
     fn valid_packager(#[case] from_str: &str, #[case] packager: Packager) -> TestResult {
-        assert_eq!(Packager::from_str(from_str), Ok(packager));
+        assert_eq!(Packager::from_str(from_str)?, packager);
 
         Ok(())
     }

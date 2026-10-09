@@ -30,16 +30,13 @@ use crate::{Error, SharedLibraryPrefix};
 /// # fn main() -> Result<(), alpm_types::Error> {
 /// // Create AbsolutePath from &str
 /// assert_eq!(
-///     AbsolutePath::from_str("/"),
-///     AbsolutePath::new(PathBuf::from("/"))
+///     AbsolutePath::from_str("/")?,
+///     AbsolutePath::new(PathBuf::from("/"))?
 /// );
-/// assert_eq!(
-///     AbsolutePath::from_str("./"),
-///     Err(Error::PathNotAbsolute(PathBuf::from("./")))
-/// );
+/// assert!(AbsolutePath::from_str("./").is_err());
 ///
 /// // Format as String
-/// assert_eq!("/", format!("{}", AbsolutePath::from_str("/")?));
+/// assert_eq!("/", AbsolutePath::from_str("/")?.to_string());
 /// # Ok(())
 /// # }
 /// ```
@@ -141,17 +138,14 @@ pub type StartDirectory = AbsolutePath;
 /// # fn main() -> Result<(), alpm_types::Error> {
 /// // Create RelativePath from &str
 /// assert_eq!(
-///     RelativePath::from_str("etc/test.conf"),
-///     RelativePath::new(PathBuf::from("etc/test.conf"))
+///     RelativePath::from_str("etc/test.conf")?,
+///     RelativePath::new(PathBuf::from("etc/test.conf"))?
 /// );
 /// assert_eq!(
-///     RelativePath::from_str("etc/"),
-///     RelativePath::new(PathBuf::from("etc/"))
+///     RelativePath::from_str("etc/")?,
+///     RelativePath::new(PathBuf::from("etc/"))?
 /// );
-/// assert_eq!(
-///     RelativePath::from_str("/etc/test.conf"),
-///     Err(Error::PathNotRelative(PathBuf::from("/etc/test.conf")))
-/// );
+/// assert!(RelativePath::from_str("/etc/test.conf").is_err());
 ///
 /// // Format as String
 /// assert_eq!("test/", RelativePath::from_str("test/")?.to_string());
@@ -217,13 +211,10 @@ impl Display for RelativePath {
 /// # fn main() -> Result<(), alpm_types::Error> {
 /// // Create RelativeFilePath from &str
 /// assert_eq!(
-///     RelativeFilePath::from_str("etc/test.conf"),
-///     RelativeFilePath::new(PathBuf::from("etc/test.conf"))
+///     RelativeFilePath::from_str("etc/test.conf")?,
+///     RelativeFilePath::new(PathBuf::from("etc/test.conf"))?
 /// );
-/// assert_eq!(
-///     RelativeFilePath::from_str("/etc/test.conf"),
-///     Err(Error::PathNotRelative(PathBuf::from("/etc/test.conf")))
-/// );
+/// assert!(RelativeFilePath::from_str("/etc/test.conf").is_err());
 ///
 /// // Format as String
 /// assert_eq!(
@@ -291,13 +282,10 @@ impl Display for RelativeFilePath {
 /// # fn main() -> Result<(), alpm_types::Error> {
 /// // Create Basename from &str
 /// assert_eq!(
-///     Basename::from_str("test.conf"),
-///     Basename::new(PathBuf::from("test.conf"))
+///     Basename::from_str("test.conf")?,
+///     Basename::new(PathBuf::from("test.conf"))?
 /// );
-/// assert_eq!(
-///     Basename::from_str("etc/test.conf"),
-///     Err(Error::PathNotSibling(PathBuf::from("etc/test.conf")))
-/// );
+/// assert!(Basename::from_str("etc/test.conf").is_err(),);
 ///
 /// // Format as String
 /// assert_eq!("test.txt", Basename::from_str("test.txt")?.to_string());
@@ -547,13 +535,27 @@ mod tests {
     use super::*;
     use crate::configure_insta;
 
+    /// Ensures, that [`BuildDirectory::from_str`] succeeds on valid input.
+    #[test]
+    fn build_dir_from_str_succeeds() -> TestResult {
+        let _ = BuildDirectory::from_str("/home")?;
+
+        Ok(())
+    }
+
+    /// Ensures, that [`BuildDirectory::from_str`] fails on invalid input.
     #[rstest]
-    #[case("/home", BuildDirectory::new(PathBuf::from("/home")))]
-    #[case("./", Err(Error::PathNotAbsolute(PathBuf::from("./"))))]
-    #[case("~/", Err(Error::PathNotAbsolute(PathBuf::from("~/"))))]
-    #[case("foo.txt", Err(Error::PathNotAbsolute(PathBuf::from("foo.txt"))))]
-    fn build_dir_from_string(#[case] s: &str, #[case] result: Result<BuildDirectory, Error>) {
-        assert_eq!(BuildDirectory::from_str(s), result);
+    #[case("./")]
+    #[case("~/")]
+    #[case("foo.txt")]
+    fn build_dir_from_str_fails_on_invalid_input(#[case] s: &str) -> TestResult {
+        let Err(Error::PathNotAbsolute(failing_path)) = BuildDirectory::from_str(s) else {
+            panic!("Expected to fail with Error::PathNotAbsolute");
+        };
+
+        assert_eq!(PathBuf::from(s), failing_path);
+
+        Ok(())
     }
 
     /// Make sure that relative paths don't deserialize as absolute paths.
@@ -569,28 +571,51 @@ mod tests {
         };
     }
 
-    #[rstest]
-    #[case("/start", StartDirectory::new(PathBuf::from("/start")))]
-    #[case("./", Err(Error::PathNotAbsolute(PathBuf::from("./"))))]
-    #[case("~/", Err(Error::PathNotAbsolute(PathBuf::from("~/"))))]
-    #[case("foo.txt", Err(Error::PathNotAbsolute(PathBuf::from("foo.txt"))))]
-    fn startdir_from_str(#[case] s: &str, #[case] result: Result<StartDirectory, Error>) {
-        assert_eq!(StartDirectory::from_str(s), result);
+    /// Ensures, that [`StartDirectory::from_str`] succeeds on valid input.
+    #[test]
+    fn startdir_from_str_succeeds() -> TestResult {
+        let _ = StartDirectory::from_str("/start")?;
+
+        Ok(())
     }
 
+    /// Ensures, that [`StartDirectory::from_str`] fails on invalid input.
     #[rstest]
-    #[case("etc/test.conf", RelativePath::new(PathBuf::from("etc/test.conf")))]
-    #[case("etc/", RelativePath::new(PathBuf::from("etc/")))]
-    #[case(
-        "/etc/test.conf",
-        Err(Error::PathNotRelative(PathBuf::from("/etc/test.conf")))
-    )]
+    #[case("./")]
+    #[case("~/")]
+    #[case("foo.txt")]
+    fn startdir_from_str_fails_on_invalid_input(#[case] s: &str) -> TestResult {
+        let Err(Error::PathNotAbsolute(failing_path)) = StartDirectory::from_str(s) else {
+            panic!("Expected to fail with Error::PathNotAbsolute");
+        };
+
+        assert_eq!(PathBuf::from(s), failing_path);
+
+        Ok(())
+    }
+
+    /// Ensures, that [`RelativePath::from_str`] succeeds on valid input.
+    #[rstest]
+    #[case("etc/test.conf", RelativePath::new(PathBuf::from("etc/test.conf"))?)]
+    #[case("etc/", RelativePath::new(PathBuf::from("etc/"))?)]
     #[case(
         "../etc/test.conf",
-        RelativePath::new(PathBuf::from("../etc/test.conf"))
+        RelativePath::new(PathBuf::from("../etc/test.conf"))?
     )]
-    fn relative_path_from_str(#[case] s: &str, #[case] result: Result<RelativePath, Error>) {
-        assert_eq!(RelativePath::from_str(s), result);
+    fn relative_path_from_str(#[case] s: &str, #[case] expected: RelativePath) -> TestResult {
+        assert_eq!(RelativePath::from_str(s)?, expected);
+
+        Ok(())
+    }
+
+    /// Ensures, that [`RelativePath::from_str`] fails on invalid input.
+    #[test]
+    fn relative_path_from_str_fails_on_invalid_input() {
+        let Err(Error::PathNotRelative(invalid_path)) = RelativePath::from_str("/etc/test.conf")
+        else {
+            panic!("Expected to fail with Error::PathNotRelative");
+        };
+        assert_eq!(PathBuf::from("/etc/test.conf"), invalid_path);
     }
 
     /// Make sure that absolute paths don't deserialize as relative paths.
@@ -606,23 +631,42 @@ mod tests {
         };
     }
 
+    /// Ensures, that [`RelativeFilePath::from_str`] succeeds on valid input.
     #[rstest]
-    #[case("etc/test.conf", RelativeFilePath::new(PathBuf::from("etc/test.conf")))]
-    #[case(
-        "/etc/test.conf",
-        Err(Error::PathNotRelative(PathBuf::from("/etc/test.conf")))
-    )]
-    #[case("etc/", Err(Error::PathIsNotAFile(PathBuf::from("etc/"))))]
-    #[case("etc", RelativeFilePath::new(PathBuf::from("etc")))]
+    #[case("etc/test.conf", RelativeFilePath::new(PathBuf::from("etc/test.conf"))?)]
+    #[case("etc", RelativeFilePath::new(PathBuf::from("etc"))?)]
     #[case(
         "../etc/test.conf",
-        RelativeFilePath::new(PathBuf::from("../etc/test.conf"))
+        RelativeFilePath::new(PathBuf::from("../etc/test.conf"))?
     )]
-    fn relative_file_path_from_str(
+    fn relative_file_path_from_str_succeeds(
         #[case] s: &str,
-        #[case] result: Result<RelativeFilePath, Error>,
-    ) {
-        assert_eq!(RelativeFilePath::from_str(s), result);
+        #[case] expected: RelativeFilePath,
+    ) -> TestResult {
+        assert_eq!(RelativeFilePath::from_str(s)?, expected);
+
+        Ok(())
+    }
+
+    /// Ensures, that [`RelativeFilePath::from_str`] fails on invalid input.
+    #[test]
+    fn relative_file_path_from_str_fails_on_not_relative() {
+        let input = "/etc/test.conf";
+        let Err(Error::PathNotRelative(returned_path)) = RelativeFilePath::from_str(input) else {
+            panic!("Expected to fail with Error::PathNotRelative");
+        };
+
+        assert_eq!(returned_path, PathBuf::from(input));
+    }
+
+    /// Ensures, that [`RelativeFilePath::from_str`] fails on invalid input.
+    #[test]
+    fn relative_file_path_from_str_fails_on_not_a_file() {
+        let input = "etc/";
+        let Err(Error::PathIsNotAFile(returned_path)) = RelativeFilePath::from_str(input) else {
+            panic!("Expected to fail with Error::PathIsNotAFile")
+        };
+        assert_eq!(returned_path, PathBuf::from(input));
     }
 
     /// Make sure that invalid relative file paths don't deserialize.
