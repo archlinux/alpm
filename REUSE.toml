@@ -40,6 +40,7 @@ path = [
     ".lycheeignore",
     ".mailmap",
     ".shellcheckrc",
+    "Containerfile",
     "alpm-db/tests/parse_errors/files/*.files",
     "alpm-parsers/tests/error_input/*",
     "alpm-repo-db/tests/parse_errors/files/*.files",
