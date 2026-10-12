@@ -368,13 +368,35 @@ is-workspace-member package:
     exit 1
 
 # Runs checks and tests before creating a commit.
-[private]
-run-pre-commit-hook: check docs test-docs
+run-pre-commit-hook:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    if just use-dev-container; then
+        exec just dev-container run-pre-commit-hook
+    fi
+
+    just check docs test-docs
     just test --features cli
 
 # Runs checks before pushing commits to remote repository.
 [private]
-run-pre-push-hook: check-commits
+run-pre-push-hook:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    if just use-dev-container; then
+        exec just dev-container run-pre-push-hook
+    fi
+
+    just check-commits
+
+# Succeeds if git hooks are configured to run in the dev container via `git config alpm.dev-container true`
+# Also makes sure we are not already inside the container.
+[private]
+use-dev-container:
+    #!/usr/bin/env bash
+    [[ -z "${ALPM_DEV_CONTAINER:-}" ]] && [[ "$(git config --type bool --default false alpm.dev-container)" == true ]]
 
 # Builds the documentation book using mdbook and stages all necessary rustdocs alongside
 [group('build')]
@@ -799,6 +821,71 @@ configure-git:
 dev-install:
     just install-alpm-package-set all
     just install-rust-dev-tools
+
+# Runs a just recipe inside the dev container with the repository mounted at /alpm
+# If no recipe is provided, opens a shell inside the container
+[group('dev')]
+dev-container *args:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    just ensure-command git podman
+
+    if ! podman image exists alpm-dev; then
+        podman build --tag alpm-dev --file Containerfile .
+    fi
+
+    # Create a temporary empty file for the git config copy to live in.
+    gitconfig="$(mktemp --suffix=.gitconfig)"
+    readonly gitconfig
+    trap 'rm -f "$gitconfig"' EXIT
+
+    # Export the user's global git config into the temporary file, which is mounted into the container.
+    # This is required for the check-commits recipe to run inside the container.
+    # Git gets its config from potentially multiple locations and doesn't provide a way of exporting the current config as an INI file.
+    # Therefore we rebuild the config based on NULL-byte-separated key-value pairs that are returned by `git config --global --includes --list --null`.
+    # We have to use a NULL byte, as values may contain newlines.
+    if git config --global --includes --list > /dev/null 2>&1; then
+        mapfile -d '' -t config_items < <(git config --global --includes --list --null)
+        for config_item in "${config_items[@]}"; do
+            git config --file "$gitconfig" --add -- "${config_item%%$'\n'*}" "${config_item#*$'\n'}"
+        done
+    else
+        printf "No global git config found. Running the dev container without one.\n" >&2
+    fi
+
+    options=(
+        --rm
+        --interactive
+        --volume "$PWD:/alpm:z"
+        --volume "$gitconfig:/root/.gitconfig:ro,z"
+        # Create cached volumes for uv and cargo so that we don't have
+        # to do fresh re-compiles/downloads on every run.
+        --volume alpm-dev-cargo-registry:/root/.cargo/registry
+        --volume alpm-dev-uv-cache:/root/.cache/uv
+    )
+
+    # Run in tty mode when we're on a tty
+    if [[ -t 0 ]]; then
+        options+=(--tty)
+    fi
+
+    # We have to handle the just arguments separately, as they aren't provided to us as
+    # positional parameters in shebang scripts.
+    # They have to be read and split into words like on the command line.
+    read -r -a args <<< "{{ args }}"
+
+    if (( ${#args[@]} == 0 )); then
+        podman run "${options[@]}" alpm-dev bash
+    else
+        # Forward all global justfile variables to the `just` invocation inside the container.
+        just_options=(
+            --set coverage {{ quote(coverage) }}
+            --set output_dir {{ quote(output_dir) }}
+        )
+
+        podman run "${options[@]}" alpm-dev just "${just_options[@]}" "${args[@]}"
+    fi
 
 # Installs all binaries of the workspace
 [group('dev')]

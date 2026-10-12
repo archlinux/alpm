@@ -36,6 +36,29 @@ This `just` command takes care of a few things:
 - Install the relevant [git pre-commit] and [git pre-push] hooks.
 - Install the [git prepare-commit-msg] hook to automatically add a signoff section to the commit message.
 
+### Using the dev container
+
+We provide a [`Containerfile`] and a generic `just dev-container` wrapper, which can be used to run commands inside a development container that contains all pre-installed dependencies.
+The container comes with all packages from `just dev-install` preinstalled and mounts the repository at `/alpm`.
+The ALPM project uses [`podman`] as a container management tool.
+
+```shell
+# Run a single recipe in the dev container
+just dev-container check-formatting
+# Start a shell in the dev container
+just dev-container
+```
+
+To run the git pre-commit and pre-push hooks in the dev container, run the following command to configure this specific git repository:
+
+```shell
+git config alpm.dev-container true
+```
+
+To run the hooks on the host again, the option can be unset via `git config --unset alpm.dev-container`.
+
+**Note:** All `just` targets that require podman themselves (e.g. `containerized-integration-tests` and `virtualized-integration-tests`) need an actual host and as such cannot be run inside the dev-container.
+
 ## Localization and translations
 
 This project supports localization and translations of its user-facing strings.
@@ -220,6 +243,7 @@ For a full list of individual contributors, refer to `git log --format="%an <%aE
 [`cargo-machete`]: https://github.com/bnjbvr/cargo-machete
 [`llvm-tools-preview`]: https://github.com/rust-lang/rust/issues/85658
 [custom target runner]: ./.cargo/runner.sh
+[`Containerfile`]: ./Containerfile
 [git pre-commit]: https://man.archlinux.org/man/githooks.5#pre-commit
 [git pre-push]: https://man.archlinux.org/man/githooks.5#pre-push
 [git prepare-commit-msg]: https://man.archlinux.org/man/githooks.5#prepare-commit-msg
