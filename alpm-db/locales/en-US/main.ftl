@@ -147,3 +147,5 @@ cli-error-io-reading-stdin-to-string = reading stdin to string
 cli-error-json-serializing-alpm-db-files-data-as-pretty-printed-json-string = serializing alpm-db-files data as pretty printed JSON string
 
 cli-error-json-serializing-alpm-db-files-data-as-json-string = serializing alpm-db-files data as JSON string
+
+error-db-files = Alpm-db-files error: { $source }

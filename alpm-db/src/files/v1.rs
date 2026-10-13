@@ -403,7 +403,7 @@ impl DbFilesV1 {
     fn try_from_parts(
         mut paths: Vec<PathBuf>,
         mut backup: Vec<BackupEntry>,
-    ) -> Result<Self, Error> {
+    ) -> Result<Self, crate::Error> {
         paths.sort_unstable();
 
         let mut errors = FilesV1PathErrors::new();
@@ -470,7 +470,7 @@ impl Display for DbFilesV1 {
     ///
     /// use alpm_db::files::DbFilesV1;
     ///
-    /// # fn main() -> Result<(), alpm_db::files::Error> {
+    /// # fn main() -> Result<(), alpm_db::Error> {
     /// // An empty alpm-db-files.
     /// let expected = "";
     /// let files = DbFilesV1::try_from(Vec::new())?;
@@ -522,7 +522,7 @@ impl Display for DbFilesV1 {
 }
 
 impl DbFilesV1 {
-    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Result<Self, Error>> {
+    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Result<Self, crate::Error>> {
         let files_section = FilesSection::parser.parse_next(input)?;
 
         // Consume any trailing whitespaces or new lines.
@@ -554,7 +554,7 @@ impl DbFilesV1 {
 }
 
 impl FromStr for DbFilesV1 {
-    type Err = Error;
+    type Err = crate::Error;
 
     /// Creates a new [`DbFilesV1`] from a string slice.
     ///
@@ -580,7 +580,7 @@ impl FromStr for DbFilesV1 {
     /// use alpm_db::files::DbFilesV1;
     /// use winnow::Parser;
     ///
-    /// # fn main() -> Result<(), alpm_db::files::Error> {
+    /// # fn main() -> Result<(), alpm_db::Error> {
     /// # let expected: Vec<PathBuf> = Vec::new();
     /// // No files according to alpm-db-files.
     /// let data = "";
@@ -625,7 +625,7 @@ impl FromStr for DbFilesV1 {
 }
 
 impl TryFrom<PathBuf> for DbFilesV1 {
-    type Error = Error;
+    type Error = crate::Error;
 
     /// Creates a new [`DbFilesV1`] from all files and directories in a directory.
     ///
@@ -672,12 +672,15 @@ impl TryFrom<PathBuf> for DbFilesV1 {
     /// # }
     /// ```
     fn try_from(value: PathBuf) -> Result<Self, Self::Error> {
-        DbFilesV1::try_from_parts(relative_files(value, &[])?, Vec::new())
+        DbFilesV1::try_from_parts(
+            relative_files(value, &[]).map_err(Error::AlpmCommon)?,
+            Vec::new(),
+        )
     }
 }
 
 impl TryFrom<Vec<PathBuf>> for DbFilesV1 {
-    type Error = Error;
+    type Error = crate::Error;
 
     /// Creates a new [`DbFilesV1`] from a [`Vec`] of [`PathBuf`].
     ///
@@ -699,7 +702,7 @@ impl TryFrom<Vec<PathBuf>> for DbFilesV1 {
     ///
     /// use alpm_db::files::DbFilesV1;
     ///
-    /// # fn main() -> Result<(), alpm_db::files::Error> {
+    /// # fn main() -> Result<(), alpm_db::Error> {
     /// let paths: Vec<PathBuf> = vec![
     ///     PathBuf::from("usr/"),
     ///     PathBuf::from("usr/bin/"),
@@ -736,7 +739,7 @@ impl TryFrom<Vec<PathBuf>> for DbFilesV1 {
 }
 
 impl TryFrom<(Vec<PathBuf>, Vec<BackupEntry>)> for DbFilesV1 {
-    type Error = Error;
+    type Error = crate::Error;
 
     /// Creates a new [`DbFilesV1`] from a [`Vec`] of [`PathBuf`] and backup entries.
     fn try_from(value: (Vec<PathBuf>, Vec<BackupEntry>)) -> Result<Self, Self::Error> {
@@ -839,7 +842,7 @@ mod tests {
             Ok(files) => panic!(
                 "Should have failed with an Error::InvalidFilesPaths, but succeeded to create a DbFilesV1: {files:?}"
             ),
-            Err(Error::InvalidFilesPaths { message }) => message,
+            Err(crate::Error::DbFiles(Error::InvalidFilesPaths { message })) => message,
             Err(error) => panic!("Expected an Error::InvalidFilesPaths, but got: {error}"),
         };
 
@@ -911,7 +914,7 @@ mod tests {
             Ok(files) => panic!(
                 "Should have failed with an Error::InvalidBackupEntries, but succeeded to create a DbFilesV1: {files:?}"
             ),
-            Err(Error::InvalidBackupEntries { message }) => message,
+            Err(crate::Error::DbFiles(Error::InvalidBackupEntries { message })) => message,
             Err(error) => panic!("Expected an Error::InvalidBackupEntries, but got: {error}"),
         };
 
@@ -926,7 +929,7 @@ mod tests {
         let data = "%FILES%\n/usr/bin/foo\n";
 
         match DbFilesV1::from_str(data) {
-            Err(Error::ParseError(_)) => Ok(()),
+            Err(crate::Error::Parse(_)) => Ok(()),
             Err(error) => panic!("expected ParseError, got {error}"),
             Ok(files) => panic!("expected parse failure, got {files:?}"),
         }
