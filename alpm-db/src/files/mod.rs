@@ -66,7 +66,7 @@ impl DbFiles {
 }
 
 impl MetadataFile<DbFilesSchema> for DbFiles {
-    type Err = Error;
+    type Err = crate::Error;
 
     /// Creates a new [`DbFiles`] from a file [`Path`] and an optional [`DbFilesSchema`].
     ///
@@ -117,7 +117,7 @@ impl MetadataFile<DbFilesSchema> for DbFiles {
     {
         let path = file.as_ref();
         Self::from_reader_with_schema(
-            File::open(path).map_err(|source| Error::IoPath {
+            File::open(path).map_err(|source| crate::Error::IoPath {
                 path: path.to_path_buf(),
                 context: t!("error-io-path-context-opening-the-file-for-reading"),
                 source,
@@ -177,7 +177,7 @@ impl MetadataFile<DbFilesSchema> for DbFiles {
         let mut buf = String::new();
         reader
             .read_to_string(&mut buf)
-            .map_err(|source| Error::Io {
+            .map_err(|source| crate::Error::Io {
                 context: t!("error-io-context-reading-alpm-db-files-data"),
                 source,
             })?;
@@ -200,7 +200,7 @@ impl MetadataFile<DbFilesSchema> for DbFiles {
     /// use alpm_db::files::{DbFiles, DbFilesSchema};
     /// use alpm_types::{SchemaVersion, semver_version::Version};
     ///
-    /// # fn main() -> Result<(), alpm_db::files::Error> {
+    /// # fn main() -> Result<(), alpm_db::Error> {
     /// let data = r#"%FILES%
     /// usr/
     /// usr/bin/
@@ -231,7 +231,7 @@ impl MetadataFile<DbFilesSchema> for DbFiles {
 }
 
 impl FromStr for DbFiles {
-    type Err = Error;
+    type Err = crate::Error;
 
     /// Creates a new [`DbFiles`] from string slice.
     ///
