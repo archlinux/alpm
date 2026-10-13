@@ -1,10 +1,6 @@
 //! Error handling for alpm-db-files.
 
-use std::path::PathBuf;
-
-use alpm_parsers::error::{Input, ParseStack};
 use fluent_i18n::t;
-use winnow::error::ParseError;
 
 /// The error that can occur when working with the [alpm-db-files] format.
 ///
@@ -35,58 +31,9 @@ pub enum Error {
         message: String,
     },
 
-    /// An I/O error occurred.
-    #[error("{msg}", msg = t!("error-io", { "context" => context, "source" => source.to_string() }))]
-    Io {
-        /// The context in which the error occurred.
-        ///
-        /// This is meant to complete the sentence "I/O error while ".
-        /// See the fluent-i18n token "error-io" for details.
-        context: String,
-        /// The source error.
-        source: std::io::Error,
-    },
-
-    /// An I/O error occurred at a path.
-    #[error(
-        "{msg}",
-        msg = t!(
-            "error-io",
-            {
-                "path" => path.display().to_string(),
-                "context" => context,
-                "source" => source.to_string(),
-            }
-        )
-    )]
-    IoPath {
-        /// The path at which the error occurred.
-        path: PathBuf,
-        /// The context in which the error occurred.
-        ///
-        /// This is meant to complete the sentence "I/O error at path while ".
-        /// See the fluent-i18n token "error-io-path" for details.
-        context: String,
-        /// The source error.
-        source: std::io::Error,
-    },
-
-    /// A winnow parser for a type didn't work and produced an error.
-    #[error("{msg}", msg = t!("error-parse", { "error" => .0 }))]
-    ParseError(String),
-
     /// No schema version can be derived from [alpm-db-files] data.
     ///
     /// [alpm-db-files]: https://alpm.archlinux.page/specifications/alpm-db-files.5.html
     #[error("{msg}", msg = t!("error-version-is-unknown"))]
     UnknownSchemaVersion,
-}
-
-impl<'a> From<ParseError<Input<'a>, ParseStack<'a>>> for Error {
-    /// Converts a [`ParseError`] into an [`Error::ParseError`].
-    fn from(value: ParseError<Input<'a>, ParseStack<'a>>) -> Self {
-        // Only take the **inner** parser error of our own ParseStack error type.
-        // We don't want to hit the `Display` impl of `ParseError`.
-        Self::ParseError(value.into_inner().to_string())
-    }
 }

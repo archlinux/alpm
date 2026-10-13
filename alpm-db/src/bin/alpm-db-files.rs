@@ -23,9 +23,9 @@ fluent_i18n::i18n!("locales");
 
 #[derive(Debug, thiserror::Error)]
 enum Error {
-    /// An [`alpm_db::files::Error`] occurred.
+    /// An [`alpm_db::Error`] occurred.
     #[error(transparent)]
-    AlpmDbFiles(#[from] alpm_db::files::Error),
+    AlpmDb(#[from] alpm_db::Error),
 
     /// A JSON error occurred.
     #[error("{msg}", msg = t!("cli-error-json", { "context" => context, "source" => source.to_string() }))]
@@ -63,20 +63,19 @@ fn create_from_dir(input_dir: PathBuf, output: Option<PathBuf>) -> Result<(), Er
     let files = DbFiles::V1(DbFilesV1::try_from(input_dir)?);
 
     if let Some(output) = output {
-        let mut output_file =
-            File::create(&output).map_err(|source| alpm_db::files::Error::IoPath {
-                path: output.to_path_buf(),
-                context: t!("cli-error-io-path-opening-output-file-for-writing"),
-                source,
-            })?;
-        write!(output_file, "{files}").map_err(|source| alpm_db::files::Error::Io {
+        let mut output_file = File::create(&output).map_err(|source| alpm_db::Error::IoPath {
+            path: output.to_path_buf(),
+            context: t!("cli-error-io-path-opening-output-file-for-writing"),
+            source,
+        })?;
+        write!(output_file, "{files}").map_err(|source| alpm_db::Error::Io {
             context: t!("cli-error-io-writing-to-output-file"),
             source,
         })?;
     } else {
         stdout()
             .write(&files.to_string().into_bytes())
-            .map_err(|source| alpm_db::files::Error::Io {
+            .map_err(|source| alpm_db::Error::Io {
                 context: t!("cli-error-io-writing-to-stdout"),
                 source,
             })?;
@@ -112,13 +111,13 @@ fn format_output(
     pretty: bool,
 ) -> Result<(), Error> {
     let files = if let Some(file) = input_file {
-        DbFiles::from_str(&read_to_string(&file).map_err(|source| {
-            alpm_db::files::Error::IoPath {
+        DbFiles::from_str(
+            &read_to_string(&file).map_err(|source| alpm_db::Error::IoPath {
                 path: file.to_path_buf(),
                 context: t!("cli-reading-file-to-string"),
                 source,
-            }
-        })?)?
+            })?,
+        )?
     } else {
         if stdin().is_terminal() {
             return Err(Error::StdinIsTerminal);
@@ -127,7 +126,7 @@ fn format_output(
         let mut buf = String::new();
         stdin()
             .read_to_string(&mut buf)
-            .map_err(|source| alpm_db::files::Error::Io {
+            .map_err(|source| alpm_db::Error::Io {
                 context: t!("cli-reading-stdin-to-string"),
                 source,
             })?;
@@ -156,18 +155,17 @@ fn format_output(
     };
 
     if let Some(output) = output {
-        let mut output_file =
-            File::create(&output).map_err(|source| alpm_db::files::Error::IoPath {
-                path: output.to_path_buf(),
-                context: t!("cli-opening-output-file-for-writing"),
-                source,
-            })?;
-        write!(output_file, "{data}").map_err(|source| alpm_db::files::Error::Io {
+        let mut output_file = File::create(&output).map_err(|source| alpm_db::Error::IoPath {
+            path: output.to_path_buf(),
+            context: t!("cli-opening-output-file-for-writing"),
+            source,
+        })?;
+        write!(output_file, "{data}").map_err(|source| alpm_db::Error::Io {
             context: t!("cli-writing-to-output-file"),
             source,
         })?;
     } else {
-        write!(stdout(), "{data}").map_err(|source| alpm_db::files::Error::Io {
+        write!(stdout(), "{data}").map_err(|source| alpm_db::Error::Io {
             context: t!("cli-writing-to-stdout"),
             source,
         })?;
@@ -191,13 +189,13 @@ fn format_output(
 /// [alpm-db-files]: https://alpm.archlinux.page/specifications/alpm-db-files.5.html
 fn validate_input(input_file: Option<PathBuf>) -> Result<(), Error> {
     if let Some(file) = input_file {
-        DbFiles::from_str(&read_to_string(&file).map_err(|source| {
-            alpm_db::files::Error::IoPath {
+        DbFiles::from_str(
+            &read_to_string(&file).map_err(|source| alpm_db::Error::IoPath {
                 path: file.to_path_buf(),
                 context: t!("cli-error-io-path-reading-file-to-string"),
                 source,
-            }
-        })?)?;
+            })?,
+        )?;
     } else {
         if stdin().is_terminal() {
             return Err(Error::StdinIsTerminal);
@@ -206,7 +204,7 @@ fn validate_input(input_file: Option<PathBuf>) -> Result<(), Error> {
         let mut buf = String::new();
         stdin()
             .read_to_string(&mut buf)
-            .map_err(|source| alpm_db::files::Error::Io {
+            .map_err(|source| alpm_db::Error::Io {
                 context: t!("cli-error-io-reading-stdin-to-string"),
                 source,
             })?;

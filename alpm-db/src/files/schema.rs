@@ -31,7 +31,7 @@ impl AsRef<SchemaVersion> for DbFilesSchema {
 }
 
 impl FileFormatSchema for DbFilesSchema {
-    type Err = Error;
+    type Err = crate::Error;
 
     /// Creates a new [`DbFilesSchema`] from a file [`Path`].
     ///
@@ -78,7 +78,7 @@ impl FileFormatSchema for DbFilesSchema {
         Self: Sized,
     {
         let file = file.as_ref();
-        Self::derive_from_reader(File::open(file).map_err(|source| Error::IoPath {
+        Self::derive_from_reader(File::open(file).map_err(|source| crate::Error::IoPath {
             path: file.to_path_buf(),
             context: t!("error-io-path-context-deriving-schema-version-from-alpm-db-files-file"),
             source,
@@ -134,7 +134,7 @@ impl FileFormatSchema for DbFilesSchema {
         let mut buf = String::new();
         reader
             .read_to_string(&mut buf)
-            .map_err(|source| Error::Io {
+            .map_err(|source| crate::Error::Io {
                 context: t!("error-io-context-deriving-a-schema-version-from-alpm-db-files-data"),
                 source,
             })?;
@@ -156,7 +156,7 @@ impl FileFormatSchema for DbFilesSchema {
     /// use alpm_common::FileFormatSchema;
     /// use alpm_db::files::DbFilesSchema;
     ///
-    /// # fn main() -> Result<(), alpm_db::files::Error> {
+    /// # fn main() -> Result<(), alpm_db::Error> {
     /// let data = r#"%FILES%
     /// usr/
     /// usr/bin/
@@ -182,7 +182,7 @@ impl FileFormatSchema for DbFilesSchema {
             .next()
             .is_some_and(|line| line != FilesSection::SECTION_KEYWORD)
         {
-            return Err(Error::UnknownSchemaVersion);
+            return Err(Error::UnknownSchemaVersion.into());
         }
 
         // If there are no lines (empty file) or the first line contains the expected section
@@ -250,7 +250,7 @@ usr/bin/foo"#;
                     "Expected to fail with an Error::UnknownSchemaVersion but succeeded: {schema:?}"
                 );
             }
-            Err(Error::UnknownSchemaVersion) => {}
+            Err(crate::Error::DbFiles(Error::UnknownSchemaVersion)) => {}
             Err(error) => {
                 panic!(
                     "Expected to fail with an Error::UnknownSchemaVersion but got another error instead: {error}"
