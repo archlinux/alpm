@@ -96,7 +96,7 @@ dependencies = [
 
 [[package]]
 name = "alpm-common"
-version = "0.2.2"
+version = "0.3.0"
 dependencies = [
  "alpm-types",
  "fluent-i18n",

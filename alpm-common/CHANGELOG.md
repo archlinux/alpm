@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-14
+
+### Added
+
+- [**breaking**] Remove `inner` method from the `FileFormatSchema` trait
+- Require `AsRef<SchemaVersion>` for impls of `FileFormatSchema`
+
 ## [0.2.2] - 2026-10-02
 
 ### Other
