@@ -1,5 +1,5 @@
 # Ignore toml files in the linkita git submodule
-exclude = ["alpm-lint-website/themes/**/*.toml"]
+exclude = ["alpm-lint-website/themes/**/*.toml", "target/**"]
 
 [formatting]
 indent_string = "    "
