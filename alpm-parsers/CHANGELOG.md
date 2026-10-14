@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.3] - 2026-10-14
+
+### Added
+
+- *(clippy)* Add further workspace lints and expect them where necessary
+
+### Fixed
+
+- Return a custom error when failing to parse `u64`
+
+### Other
+
+- Remove uses of `unwrap` and rely on `TestResult`
+
 ## [0.4.2] - 2026-10-02
 
 ### Added
