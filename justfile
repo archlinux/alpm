@@ -164,6 +164,7 @@ install-alpm-package-set set:
     )
     readonly lint_website=(
          biome
+         nodejs
          pnpm
          zola
     )
