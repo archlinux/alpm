@@ -8,7 +8,7 @@ use std::{
 use alpm_parsers::prelude::*;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-use winnow::combinator::alt;
+use winnow::{error::ErrMode, stream::Stream};
 
 use crate::{Error, PackageRelation, SonameV1, SonameV2};
 
@@ -55,35 +55,41 @@ impl PartialEq<SonameV2> for RelationOrSoname {
     }
 }
 
-impl AlpmParser for RelationOrSoname {
-    /// Recognizes a [`SonameV2`], a [`SonameV1`] or a [`PackageRelation`] in a string slice.
-    ///
-    /// First attempts to recognize a [`SonameV2`], then a [`SonameV1`] and if that fails, falls
-    /// back to recognizing a [`PackageRelation`].
-    /// Depending on recognized type, a [`RelationOrSoname`] is created accordingly.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if `input` does not begin with a valid
-    /// [`SonameV2`], [`SonameV1`] or [`PackageRelation`].
-    fn parser<'a>(input: &mut Input<'a>) -> PResult<'a, Self> {
-        // Implement a custom `winnow::combinator::alt`, as all type parsers are built in
-        // such a way that they return errors on unexpected input instead of backtracking.
-        alt((
-            SonameV2::parser.map(RelationOrSoname::SonameV2),
-            SonameV1::parser.map(RelationOrSoname::SonameV1),
-            PackageRelation::parser.map(RelationOrSoname::Relation),
-        ))
-        .layer("alpm-package-relation or alpm-sonamev1 or alpm-sonamev2")
-        .parse_next(input)
-    }
-
-    fn delimiter_error_context<'a, O, P>(
-        parser: P,
-    ) -> impl Parser<Input<'a>, O, winnow::error::ErrMode<ParseStack<'a>>>
+impl ParserUntil for RelationOrSoname {
+    fn parser_until<'a, P>(delimiter: P) -> impl Parser<Input<'a>, Self, ErrMode<ParseStack<'a>>>
     where
-        P: Parser<Input<'a>, O, winnow::error::ErrMode<ParseStack<'a>>>,
+        P: Parser<Input<'a>, &'a str, ErrMode<ParseStack<'a>>>,
     {
+        let mut delimiter = delimiter;
+        let parser = move |input: &mut Input<'a>| -> PResult<Self> {
+            // In the following, we attempt all three possible representation of a version, starting
+            // with the most specific and ending with the least specific, generic PackageRelation.
+            //
+            // We are forced to use parser_until, as there are some soname expressions, such as
+            // `libalpm.so>=14` or `librtmp.so.0`, which we only encountered in the AUR until now.
+            // These expressions however, are picked up by pacman as virtual components and as such,
+            // we also have to handle these in the same way, even if it's dirty.
+            let checkpoint = input.checkpoint();
+            if let Ok(v2) = SonameV2::parser_until(delimiter.by_ref())
+                .map(RelationOrSoname::SonameV2)
+                .parse_next(input)
+            {
+                return Ok(v2);
+            };
+            input.reset(&checkpoint);
+
+            if let Ok(v1) = SonameV1::parser_until(delimiter.by_ref())
+                .map(RelationOrSoname::SonameV1)
+                .parse_next(input)
+            {
+                return Ok(v1);
+            };
+            input.reset(&checkpoint);
+
+            PackageRelation::parser_until(delimiter.by_ref())
+                .map(RelationOrSoname::Relation)
+                .parse_next(input)
+        };
         parser.layer("alpm-package-relation or alpm-sonamev1 or alpm-sonamev2")
     }
 }
@@ -103,7 +109,7 @@ impl FromStr for RelationOrSoname {
 
     /// Creates a [`RelationOrSoname`] from a string slice.
     ///
-    /// Relies on [`RelationOrSoname::parser`] to recognize types in `input` and create a
+    /// Relies on [`RelationOrSoname::parser_until_eof`] to recognize types in `input` and create a
     /// [`RelationOrSoname`] accordingly.
     ///
     /// # Errors
@@ -140,7 +146,7 @@ impl FromStr for RelationOrSoname {
     /// # }
     /// ```
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Self::parser
+        Self::parser_until_eof
             .parse(Input::new(s))
             .map_err(|error| Error::ParseError(error.to_string()))
     }
@@ -182,6 +188,17 @@ mod tests {
     #[case(
         "example>=1.0.0",
         RelationOrSoname::Relation(PackageRelation::new("example".parse()?, ">=1.0.0".parse().ok()))
+    )]
+    // The following two cases are sonames that are of unsupported shape by us.
+    // We simply re-expose them as PackageRelations, i.e. virtual components, as that's also how
+    // pacman handles them.
+    #[case(
+        "example.so>=1-64",
+        RelationOrSoname::Relation(PackageRelation::new("example.so".parse()?, ">=1-64".parse().ok()))
+    )]
+    #[case(
+        "example.so.1",
+        RelationOrSoname::Relation(PackageRelation::new("example.so.1".parse()?, None))
     )]
     #[case(
         "lib:example.so.1",
@@ -236,7 +253,7 @@ mod tests {
         #[case] expected: RelationOrSoname,
     ) -> TestResult {
         let input_str = input.to_string();
-        let result = RelationOrSoname::parser(&mut Input::new(input))?;
+        let result = RelationOrSoname::parser_until_eof(&mut Input::new(input))?;
         assert_eq!(result, expected);
         assert_eq!(result.to_string(), input_str);
         Ok(())
