@@ -38,9 +38,13 @@ The value for a run-time dependency is either an **alpm-package-name**, an **alp
 
 - In **PKGBUILD** files zero or more run-time dependencies of a package are specified using the **depends** array.
   Architecture-specific run-time dependencies may be specified using an array named 'depends', directly followed by an '_' sign, directly followed by an **alpm-architecture** (all **alpm-architectures** except `any` can be used), e.g. `depends_aarch64`.
+  The **alpm-sonamev2** format can not be used in **PKGBUILD** files, as the ':' character contained in it is not valid in an **alpm-package-name**.
+  Instead, **alpm-sonamev2** data is automatically derived by the package build tool (see **alpm-sonamev2**).
 - In **PKGINFO** files the **depend** keyword is used to specify a run-time dependency.
 - In **SRCINFO** files the **depends** keyword is used to specify a run-time dependency.
   An architecture-specific run-time dependency may be specified using a keyword consisting of 'depends', directly followed by an '_' sign, directly followed by an **alpm-architecture** (all **alpm-architectures** except `any` can be used), e.g. `depends_aarch64`.
+  **SRCINFO** files are derived from **PKGBUILD** files and should not contain any information about the host that triggers the transformation.
+  As such, one must not manually add **alpm-sonamev2** entries in **PKGBUILD** files and should only add stub entries (e.g. `libexample.so`) for **alpm-sonamev1** to them for as long as the ecosystem supports this legacy format.
 
 ### Build dependency
 
@@ -94,9 +98,12 @@ The value for a **provision** is either an **alpm-package-name**, a _composite c
 
 - In **PKGBUILD** files zero or more provisions are specified using the **provides** array.
   Architecture-specific provisions may be specified using an array named 'provides', directly followed by an '_' sign, directly followed by an **alpm-architecture** (all **alpm-architectures** except `any` can be used), e.g. `provides_aarch64`.
+  The **alpm-sonamev2** format can not be used in **PKGBUILD** files, as the ':' character contained in it is not valid in an **alpm-package-name**.
+  Instead, **alpm-sonamev2** data is automatically derived by the package build tool (see **alpm-sonamev2**).
 - In **PKGINFO** files the **provides** keyword is used to specify a provision.
 - In **SRCINFO** files the **provides** keyword is used to specify a provision.
   An architecture-specific provision may be specified using a keyword consisting of 'provides', directly followed by an '_' sign, directly followed by an **alpm-architecture** (all **alpm-architectures** except `any` can be used), e.g. `provides_aarch64`.
+  As **SRCINFO** files are derived from **PKGBUILD** files, and should not contain any information about the host system, any **alpm-soname** entries are discouraged.
 
 ### Conflict
 

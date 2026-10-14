@@ -30,7 +30,8 @@ The _unversioned form_ is defined as the name of a _shared object_ file, directl
 Refer to **readelf** for further information on how to extract relevant fields such as `SONAME` or `NEEDED` from the _dynamic section_ of an **ELF**[2] file.
 
 The _explicit form_ is defined as the name of a _shared object_ file, directly followed by an '=' sign, directly followed by a _version_ string, directly followed by a '-' sign, directly followed by the _ELF architecture format_ (e.g. `libexample.so=1-64`).
-The _version_ string represents the `current` interface number of the **library interface version**[3] that is encoded as part of the **soname** by the developer of the _shared object_ (e.g. `1` in `libexample.so.1`).
+The _version_ string represents the version information that is encoded as part of the **soname** by the developer of the _shared object_, which is everything following the '.so.' suffix (e.g. `1` in `libexample.so.1` or `1.0` in `libexample.so.1.0`).
+Usually this is the `current` interface number of the **library interface version**[3].
 Refer to **readelf** for further information on how to extract relevant fields such as `SONAME` or `NEEDED` from the _dynamic section_ of an **ELF**[2] file.
 
 The _ELF architecture format_ is a number derived from the `Class` field of the _ELF header_ of an **ELF**[2] file.
@@ -56,7 +57,9 @@ Due to this ambiguity it is essential to use the **alpm-sonamev1** forms in the 
 
 # USAGE
 
-A package can depend on a specific **soname** with the help of an **alpm-package-relation** of type **run-time dependency**, if another package provides this exact **soname** in their **alpm-package-relation** of type **provision**.
+A package can depend on a specific **soname** with the help of an **alpm-package-relation** of type **run-time dependency**, if another package provides a matching **soname** in their **alpm-package-relation** of type **provision**.
+Matching follows the rules of **alpm-comparison**, which means that the name of the _shared object_ file is matched as **alpm-package-name** and the remainder of the _unversioned_ or _explicit form_ as **alpm-package-version**, in which the _ELF architecture format_ is interpreted as the **alpm-pkgrel**.
+Hence, a **run-time dependency** on `libexample.so=1` or `libexample.so>=1` is matched by a **provision** of `libexample.so=1-64` as well as `libexample.so=1-32`, while a **run-time dependency** on `libexample.so=1-32` is only satisfied by an exact match against `libexample.so=1-32`.
 
 More specifically, a **soname** dependency of one package is based on the **soname** data of a _shared object_ file provided by one of its dependency packages.
 
@@ -115,7 +118,7 @@ pkgbase = example
 	arch = x86_64
 	url = https://example.org/library.html
 	license = MIT
-  depends = glibc
+	depends = glibc
 	provides = libexample.so
 	source = https://example.org/example-1.0.0.tar.gz
 	sha256sums = 7d865e959b2466918c9863afca942d0fb89d7c9ac0c99bafc3749504ded97730
