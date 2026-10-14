@@ -713,7 +713,7 @@ impl ParserUntil for InstalledPackage {
                     .parse_next(input)?;
             input.reset(&checkpoint);
 
-            if dashes < 2 {
+            if dashes < 3 {
                 return fail
                     .label("alpm-package file name")
                     .description(concat!(
@@ -930,11 +930,12 @@ mod tests {
     }
 
     #[rstest]
-    #[case("foo-1:1.0.0-bar-any")]
-    #[case("foo-1:1.0.0_any")]
-    #[case("packagename-30-0.1oops-any")]
-    #[case("package$with$dollars-30-0.1-any")]
-    #[case("packagename-30-0.1-any*asdf")]
+    #[case::missing_arch("foo-1:1.0.0-bar")]
+    #[case::any_arch("foo-1:1.0.0-bar-any")]
+    #[case::missing_rel_and_arch("foo-1:1.0.0_any")]
+    #[case::missing_rel_and_dash_in_name("packagename-30-0.1oops-any")]
+    #[case::invalid_chars("package$with$dollars-30-0.1-any")]
+    #[case::trailing_content("packagename-30-0.1-any*asdf")]
     fn installed_new_parse_error(#[case] input: &str) {
         let (test_name, _guard) = configure_insta();
 

@@ -1,0 +1,13 @@
+---
+source: alpm-types/src/env.rs
+---
+error: invalid alpm-package file name
+ | 
+ | foo-1:1.0.0-bar
+ | ^
+ | 
+ = while parsing:
+   installed package name: (foo-1:1.0.0-bar)
+   → invalid alpm-package file name
+   → Expected a package name, followed by an alpm-package-version (full or full with epoch) and an alpm-architecture.
+     All components must be delimited with a dash ('-').
