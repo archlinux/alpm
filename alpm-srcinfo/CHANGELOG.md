@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-10-14
+
+### Added
+
+- *(clippy)* Add further workspace lints and expect them where necessary
+- [**breaking**] Remove `inner` method from `SchemaVersion`
+- [**breaking**] Remove the `inner` method from `Name`
+- [**breaking**] Remove `inner` method from the `FileFormatSchema` trait
+- Implement `AsRef<str>` for `PackageVersion`
+- Require `AsRef<SchemaVersion>` for impls of `FileFormatSchema`
+
+### Other
+
+- Remove uses of `unwrap` and rely on `TestResult`
+
 ## [0.6.4] - 2026-10-02
 
 ### Added
