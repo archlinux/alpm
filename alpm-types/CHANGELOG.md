@@ -7,6 +7,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-10-14
+
+### Added
+
+- Add `EntryName` for alpm-db and alpm-repo-db
+- [**breaking**] No longer derive `PartialEq` for `Error`
+- *(clippy)* Add further workspace lints and expect them where necessary
+- Turn an unreachable `unwrap` into an `expect` and improve the note
+- [**breaking**] Remove `inner` method from `SchemaVersion`
+- Implement `AsRef<semver::Version>` for `SchemaVersion`
+- [**breaking**] Remove the `inner` method from `PackageVersion`
+- [**breaking**] Remove the `inner` method from `Name`
+- [**breaking**] Remove `inner` method from `BuildTool`
+- Implement `AsRef<Name>` for `BuildTool`
+- [**breaking**] Remove the `inner` method from `Checksum`
+- [**breaking**] Remove `inner` method from `Url`
+- [**breaking**] Remove `inner` method from `UnknownArchitecture`
+- [**breaking**] Remove `inner` method from `Basename`
+- [**breaking**] Remove `inner` method from `RelativeFilePath`
+- Implement `AsRef<Path>` for `Basename`
+- Implement `AsRef<Path>` for `RelativeFilePath`
+- [**breaking**] Remove `inner` method from `AbsolutePath`
+- Implement `AsRef<Path>` for `AbsolutePath`
+- Implement `AsRef<url::Url>` for `Url`
+- Implement `AsRef<[u8]>` for `Checksum`
+- Implement `AsRef<str>` for `PackageVersion`
+
+### Fixed
+
+- Better error message for InstalledPackage
+- Recognize unsupported sonames as PackageRelation
+- Replace unreachable `unwrap`s with `expect`s and a note
+- Rely on inner type for `AsRef<str> for Name`
+- Rely on inner type in `AsRef<str> for UnknownArchitecture`
+- Rely on inner type, not method for `AsRef<str> for Url`
+
+### Other
+
+- Stop relying on error variant equality
+- Fix soname spec
+- Remove uses of `unwrap` and rely on `TestResult`
+- Use `AsRef<str>` in `Url::as_str`
+
 ## [0.12.0] - 2026-10-02
 
 ### Added

@@ -47,7 +47,7 @@ alpm-parsers = { path = "./alpm-parsers", version = "0.4.3", default-features = 
 alpm-pkgbuild = { path = "./alpm-pkgbuild", version = "0.2.5" }
 alpm-pkginfo = { path = "./alpm-pkginfo", version = "0.6.3" }
 alpm-srcinfo = { path = "./alpm-srcinfo", version = "0.6.4" }
-alpm-types = { path = "./alpm-types", version = "0.12.0" }
+alpm-types = { path = "./alpm-types", version = "0.13.0" }
 assert_cmd = "2.0.11"
 clap = { version = "4.5.19", features = [
     "derive",
