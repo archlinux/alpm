@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.4] - 2026-10-15
+
+### Added
+
+- *(clippy)* Add further workspace lints and expect them where necessary
+
 ## [0.3.3] - 2026-10-02
 
 ### Added
