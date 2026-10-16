@@ -52,6 +52,7 @@ precedence = "aggregate"
 SPDX-FileCopyrightText = "ALPM Contributors"
 SPDX-License-Identifier = "CC-BY-SA-4.0"
 path = [
+    "**.excalidraw",
     "**.md",
     "alpm-lint-website/**/*.css",
     "alpm-lint-website/**/*.html",
