@@ -6,6 +6,7 @@ use std::{
 };
 
 use alpm_common::{FileFormatSchema, MetadataFile};
+use alpm_types::InstalledPackage;
 use fluent_i18n::t;
 
 use crate::{
@@ -359,5 +360,24 @@ impl FromStr for DbDescFile {
     /// Returns an error if [`DbDescFile::from_str_with_schema`] fails.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Self::from_str_with_schema(s, None)
+    }
+}
+
+impl From<&DbDescFile> for InstalledPackage {
+    fn from(value: &DbDescFile) -> Self {
+        match value {
+            DbDescFile::V1(DbDescFileV1 {
+                name,
+                version,
+                arch,
+                ..
+            })
+            | DbDescFile::V2(DbDescFileV2 {
+                name,
+                version,
+                arch,
+                ..
+            }) => InstalledPackage::new(name.clone(), version.clone(), arch.clone()),
+        }
     }
 }
