@@ -6,6 +6,7 @@ use std::{
 };
 
 use alpm_common::{FileFormatSchema, MetadataFile};
+use alpm_types::InstalledPackage;
 use fluent_i18n::t;
 
 use crate::{
@@ -32,6 +33,28 @@ pub enum DbDescFile {
     ///
     /// [alpm-db-descv2]: https://alpm.archlinux.page/specifications/alpm-db-descv2.5.html
     V2(DbDescFileV2),
+}
+
+impl DbDescFile {
+    /// Returns an [`InstalledPackage`] for this [alpm-db-desc] file.
+    ///
+    /// [alpm-db-desc]: https://alpm.archlinux.page/specifications/alpm-db-desc.5.html
+    pub fn installed_package(&self) -> InstalledPackage {
+        match self {
+            DbDescFile::V1(DbDescFileV1 {
+                name,
+                version,
+                arch,
+                ..
+            })
+            | DbDescFile::V2(DbDescFileV2 {
+                name,
+                version,
+                arch,
+                ..
+            }) => InstalledPackage::new(name.clone(), version.clone(), arch.clone()),
+        }
+    }
 }
 
 impl MetadataFile<DbDescSchema> for DbDescFile {
