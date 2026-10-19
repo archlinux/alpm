@@ -426,7 +426,6 @@ impl<D: DigestString> AlpmParser for Checksum<D> {
                         // match ensures, that we can only consume a single valid hex digit to begin with.
                         u8::try_from(d.to_digit(16).expect("the character is in the set [0-9a-fA-F]"))
                         .expect("an ASCII hex digit fits into a u8"))
-                    .expected_text("ASCII hex digit")
                     .parse_next(input)
             }
 
@@ -441,6 +440,7 @@ impl<D: DigestString> AlpmParser for Checksum<D> {
                 DigestEncoding::Hex => {
                     // Consume exactly the number of hex pairs that our Digest type expects
                     let digest = repeat(digest_bytes, hex_pair)
+                        .expected_text("ASCII hex digit")
                         .label("hash digest")
                         .description(format!(
                             "Expected a hex {} hash digest consisting of {digest_bytes} bytes.",
