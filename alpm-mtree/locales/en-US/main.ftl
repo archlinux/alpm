@@ -4,6 +4,8 @@ error-alpm-common = ALPM common error:
 error-duplicate-paths = The following file system paths are duplicates:
   { $paths }
 
+error-data-is-not-gzip = The ALPM-MTREE data is not gzip compressed
+
 error-file-creation = File creation error:
   { $source }
 

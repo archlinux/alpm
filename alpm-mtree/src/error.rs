@@ -14,6 +14,10 @@ pub enum Error {
     #[error(transparent)]
     AlpmCommon(#[from] alpm_common::Error),
 
+    /// The ALPM-MTREE data is not gzip compressed.
+    #[error("{msg}", msg = t!("error-data-is-not-gzip"))]
+    DataIsNotGzip,
+
     /// There are duplicate paths.
     #[error("{msg}", msg = t!("error-duplicate-paths", {
         "paths" => paths.iter()
