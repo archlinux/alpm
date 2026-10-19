@@ -17,7 +17,7 @@ use path_validation_error::{PathValidationError, PathValidationErrors};
 #[cfg(doc)]
 use v2::MTREE_PATH_PREFIX;
 
-use crate::{Error, MtreeSchema, mtree_buffer_to_string, parse_mtree_v2};
+use crate::{Error, MtreeSchema, data_is_gzip, mtree_buffer_to_string, parse_mtree_v2};
 
 /// A representation of the [ALPM-MTREE] file format.
 ///
@@ -393,5 +393,106 @@ impl FromStr for Mtree {
     /// - or the detected variant of [`Mtree`] cannot be constructed from `s`.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Self::from_str_with_schema(s, None)
+    }
+}
+
+/// The representation of transferable [`Mtree`] data.
+///
+/// An [`Mtree`] in itself does not provide an idempotent write implementation.
+/// This type enables the validation of [ALPM-MTREE] data when consuming it and to make available
+/// the input data exactly the way it was read.
+///
+/// [ALPM-MTREE]: https://alpm.archlinux.page/specifications/ALPM-MTREE.5.html
+#[derive(Clone, Debug)]
+pub struct MtreeTransfer {
+    mtree: Mtree,
+    data: Vec<u8>,
+}
+
+impl MtreeTransfer {
+    /// Returns the deserialized [`Mtree`] struct.
+    pub fn mtree(&self) -> &Mtree {
+        &self.mtree
+    }
+
+    /// Returns the underlying bytes of the [`Mtree`] data.
+    pub fn data(self) -> Vec<u8> {
+        self.data
+    }
+
+    /// Returns the underlying bytes of the [`Mtree`] data.
+    pub fn data_ensure_gzip(self) -> Result<Vec<u8>, Error> {
+        if !data_is_gzip(self.data.as_slice()) {
+            return Err(Error::DataIsNotGzip);
+        }
+
+        Ok(self.data())
+    }
+}
+
+impl MetadataFile<MtreeSchema> for MtreeTransfer {
+    type Err = Error;
+
+    fn from_file_with_schema(
+        file: impl AsRef<Path>,
+        schema: Option<MtreeSchema>,
+    ) -> Result<Self, Self::Err>
+    where
+        Self: Sized,
+    {
+        let file = file.as_ref();
+        Self::from_reader_with_schema(
+            File::open(file).map_err(|source| Error::IoPath {
+                path: PathBuf::from(file),
+                context: t!("error-io-open-file-read"),
+                source,
+            })?,
+            schema,
+        )
+    }
+
+    fn from_reader_with_schema(
+        reader: impl Read,
+        schema: Option<MtreeSchema>,
+    ) -> Result<Self, Self::Err>
+    where
+        Self: Sized,
+    {
+        let buffer = {
+            let mut buffer = Vec::new();
+            let mut buf_reader = BufReader::new(reader);
+            buf_reader
+                .read_to_end(&mut buffer)
+                .map_err(|source| Error::Io {
+                    context: t!("error-io-read-mtree-data"),
+                    source,
+                })?;
+            buffer
+        };
+
+        let data = buffer.clone();
+        let mtree = Mtree::from_str_with_schema(&mtree_buffer_to_string(buffer)?, schema)?;
+
+        Ok(Self { mtree, data })
+    }
+
+    fn from_str_with_schema(s: &str, schema: Option<MtreeSchema>) -> Result<Self, Self::Err>
+    where
+        Self: Sized,
+    {
+        let schema = match schema {
+            Some(schema) => schema,
+            None => MtreeSchema::derive_from_str(s)?,
+        };
+
+        let mtree = match schema {
+            MtreeSchema::V1(_) => Mtree::V1(parse_mtree_v2(s.to_string())?),
+            MtreeSchema::V2(_) => Mtree::V2(parse_mtree_v2(s.to_string())?),
+        };
+
+        Ok(Self {
+            mtree,
+            data: s.to_owned().into_bytes(),
+        })
     }
 }

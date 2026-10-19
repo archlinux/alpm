@@ -25,7 +25,7 @@ pub mod parser;
 mod path_decoder;
 
 mod utils;
-pub(crate) use utils::mtree_buffer_to_string;
+pub(crate) use utils::{data_is_gzip, mtree_buffer_to_string};
 
 mod schema;
 pub use schema::MtreeSchema;
