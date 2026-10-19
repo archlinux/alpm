@@ -56,8 +56,7 @@ cli
 1
 
 %LICENSE%
-MIT
-Apache-2.0
+MIT OR Apache-2.0
 
 %VALIDATION%
 sha256
@@ -126,8 +125,7 @@ cli
 1
 
 %LICENSE%
-MIT
-Apache-2.0
+MIT OR Apache-2.0
 
 %VALIDATION%
 sha256

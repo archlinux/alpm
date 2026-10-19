@@ -152,7 +152,7 @@ pub struct V1CreateArgs {
     pub reason: Option<PackageInstallReason>,
 
     /// The package licenses.
-    #[arg(env = "ALPM_DB_DESC_LICENSE", long, value_delimiter = ' ')]
+    #[arg(env = "ALPM_DB_DESC_LICENSE", long)]
     pub license: Vec<License>,
 
     /// The package validation methods.
