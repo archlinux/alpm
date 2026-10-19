@@ -142,7 +142,7 @@ pub struct CommonCreateArgs {
     pub url: Option<Url>,
 
     /// Set of licenses under which the package is distributed.
-    #[arg(env = "ALPM_REPO_DESC_LICENSE", long, value_delimiter = ' ')]
+    #[arg(env = "ALPM_REPO_DESC_LICENSE", long)]
     pub license: Vec<License>,
 
     /// The architecture of the package.

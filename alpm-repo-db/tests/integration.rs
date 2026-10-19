@@ -127,8 +127,7 @@ b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c
 https://example.org/
 
 %LICENSE%
-MIT
-Apache-2.0
+MIT OR Apache-2.0
 
 %ARCH%
 x86_64
@@ -408,6 +407,14 @@ mod create_env {
         envs.insert("ALPM_REPO_DESC_ARCH", inner.arch.to_string());
         envs.insert("ALPM_REPO_DESC_BUILDDATE", inner.build_date.to_string());
         envs.insert("ALPM_REPO_DESC_PACKAGER", inner.packager.to_string());
+        envs.insert(
+            "ALPM_REPO_DESC_LICENSE",
+            inner
+                .license
+                .first()
+                .unwrap_or_else(|| panic!("One license"))
+                .to_string(),
+        );
 
         // Helper macro to shorten env setup handling for lists.
         macro_rules! env_join_list {
@@ -426,7 +433,6 @@ mod create_env {
 
         // Insert all group parameters
         env_join_list!("ALPM_REPO_DESC_GROUPS", inner.groups);
-        env_join_list!("ALPM_REPO_DESC_LICENSE", inner.license);
         env_join_list!("ALPM_REPO_DESC_REPLACES", inner.replaces);
         env_join_list!("ALPM_REPO_DESC_DEPENDS", inner.dependencies);
         env_join_list!(

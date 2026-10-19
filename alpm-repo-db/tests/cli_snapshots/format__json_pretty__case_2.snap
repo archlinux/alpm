@@ -26,8 +26,7 @@ expression: json
   "pgp_signature": null,
   "url": "https://example.org/",
   "license": [
-    "MIT",
-    "Apache-2.0"
+    "MIT OR Apache-2.0"
   ],
   "arch": "x86_64",
   "build_date": 1729181726,
