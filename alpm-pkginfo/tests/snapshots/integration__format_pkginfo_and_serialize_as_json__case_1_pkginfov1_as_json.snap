@@ -1,7 +1,6 @@
 ---
 source: alpm-pkginfo/tests/integration.rs
 expression: pkg_info.to_string()
-snapshot_kind: text
 ---
 {
   "pkgname": "example",
@@ -15,7 +14,7 @@ snapshot_kind: text
   "arch": "any",
   "license": [
     "GPL-3.0-or-later",
-    "LGPL-3.0-or-later"
+    "MIT OR Apache-2.0"
   ],
   "replaces": [
     "other-package>0.9.0-3"

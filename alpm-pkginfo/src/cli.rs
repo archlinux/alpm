@@ -194,12 +194,7 @@ pub struct V1CreateArgs {
     pub arch: Architecture,
 
     /// Provide one or more licenses
-    #[arg(
-        env = "PKGINFO_LICENSE",
-        value_delimiter = ' ',
-        long,
-        value_name = "LICENSE"
-    )]
+    #[arg(env = "PKGINFO_LICENSE", long, value_name = "LICENSE")]
     pub license: Vec<License>,
 
     /// Provide one or more replaces

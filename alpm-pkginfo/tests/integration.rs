@@ -27,7 +27,7 @@ packager = John Doe <john@example.org>
 size = 181849963
 arch = any
 license = GPL-3.0-or-later
-license = LGPL-3.0-or-later
+license = MIT OR Apache-2.0
 replaces = other-package>0.9.0-3
 group = package-group
 group = other-package-group
@@ -427,8 +427,9 @@ fn set_pkginfo_env(cmd: &mut Command, input: &PackageInfoInput) {
     cmd.env("PKGINFO_PACKAGER", &input.packager);
     cmd.env("PKGINFO_SIZE", &input.size);
     cmd.env("PKGINFO_ARCH", &input.arch);
+    // Only set a simple license
     if let Some(ref license) = input.license {
-        cmd.env("PKGINFO_LICENSE", license.join(" "));
+        cmd.env("PKGINFO_LICENSE", license.first().expect("one license"));
     }
     if let Some(ref replaces) = input.replaces {
         cmd.env("PKGINFO_REPLACES", replaces.join(" "));
