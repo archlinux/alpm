@@ -600,6 +600,7 @@ check-formatting:
 
 # Runs all check targets
 [group('check')]
+[parallel]
 check: check-spelling check-formatting check-shell-code check-rust-code check-dependencies check-python-code check-unused-deps check-licenses check-links
 
 # Checks commit messages for correctness
