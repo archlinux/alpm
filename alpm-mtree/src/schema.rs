@@ -92,8 +92,8 @@ impl FileFormatSchema for MtreeSchema {
     ///
     /// Since the ALPM-MTREE format does not carry any version information, this function checks
     /// whether `s` contains `md5=` or `md5digest=`.
-    /// If it does, the input is considered to be [ALPM-MTREEv2].
-    /// If the strings are not found, [ALPM-MTREEv1] is assumed.
+    /// If it does, the input is considered to be [ALPM-MTREEv1].
+    /// If the strings are not found, [ALPM-MTREEv2] is assumed.
     ///
     /// # Examples
     ///
