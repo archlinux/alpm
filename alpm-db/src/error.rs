@@ -50,17 +50,6 @@ pub enum Error {
         source: std::io::Error,
     },
 
-    /// I/O error while reading a buffer.
-    #[error("{msg}", msg = t!("error-io-read", { "context" => context, "source" => source.to_string() }))]
-    IoRead {
-        /// The context in which the error occurred.
-        ///
-        /// This is meant to complete the sentence "Read error while ".
-        context: String,
-        /// The error source.
-        source: std::io::Error,
-    },
-
     /// A winnow parser for a type didn't work and produced an error.
     #[error("{msg}", msg = t!("error-parse", { "error" => .0 }))]
     Parse(String),

@@ -90,8 +90,8 @@ impl FileFormatSchema for DbDescSchema {
         let mut reader = reader;
         reader
             .read_to_string(&mut buf)
-            .map_err(|source| Error::IoRead {
-                context: t!("error-io-read-schema-data"),
+            .map_err(|source| Error::Io {
+                context: t!("error-io-read-db-desc-schema-data"),
                 source,
             })?;
         Self::derive_from_str(&buf)

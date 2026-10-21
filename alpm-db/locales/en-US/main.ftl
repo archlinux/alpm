@@ -8,9 +8,6 @@ error-io = I/O error while { $context }:
 error-io-path = I/O error at path "{ $path }" while { $context }:
   { $source }
 
-error-io-read = Read error while { $context }:
-  { $source }
-
 error-parse =
   Parser failed with the following error:
   { $error }
@@ -28,8 +25,6 @@ error-unsupported-schema-version = Unsupported schema version: { $version }
 
 error-io-path-open-file = opening the file for reading
 
-error-io-read-db-desc = reading DB desc data
-
 error-io-context-reading-alpm-db-files-data = reading alpm-db-files data
 
 error-io-context-deriving-a-schema-version-from-alpm-db-files-data = deriving a schema version from alpm-db-files data
@@ -40,8 +35,9 @@ error-io-path-context-deriving-schema-version-from-alpm-db-files-file = deriving
 error-io-path-schema-file =
   deriving schema version from DB desc file
 
-error-io-read-schema-data =
-  deriving schema version from DB desc data
+error-io-read-db-desc-schema-data = deriving alpm-db-desc schema version from data
+
+error-io-read-db-desc-data = reading alpm-db-desc data
 
 error-io-path-output-dir = creating output directory
 
