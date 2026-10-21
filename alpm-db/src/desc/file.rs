@@ -233,7 +233,7 @@ impl MetadataFile<DbDescSchema> for DbDescFile {
         let mut buf = String::new();
         reader
             .read_to_string(&mut buf)
-            .map_err(|source| Error::IoRead {
+            .map_err(|source| Error::Io {
                 context: t!("error-io-read-db-desc"),
                 source,
             })?;
