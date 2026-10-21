@@ -139,11 +139,19 @@ impl FileFormatSchema for MtreeSchema {
     /// [ALPM-MTREEv1]: https://alpm.archlinux.page/specifications/ALPM-MTREEv1.5.html
     /// [ALPM-MTREEv2]: https://alpm.archlinux.page/specifications/ALPM-MTREEv2.5.html
     fn derive_from_str(s: &str) -> Result<MtreeSchema, Error> {
-        Ok(if s.contains("md5digest=") || s.contains("md5=") {
-            MtreeSchema::V1(SchemaVersion::new(Version::new(1, 0, 0)))
-        } else {
-            MtreeSchema::V2(SchemaVersion::new(Version::new(2, 0, 0)))
-        })
+        // In V1, there's always both an md5 sum and a sha256digest.
+        // As such, we only have to search for the first line that contains a sha256 to make a
+        // decision on whether this is a V1 or V2.
+        for line in s.lines() {
+            if !line.contains("sha256digest") {
+                continue;
+            }
+            if line.contains("md5digest=") || s.contains("md5=") {
+                return Ok(MtreeSchema::V1(SchemaVersion::new(Version::new(1, 0, 0))));
+            }
+            break;
+        }
+        Ok(MtreeSchema::V2(SchemaVersion::new(Version::new(2, 0, 0))))
     }
 }
 
