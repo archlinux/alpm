@@ -26,8 +26,6 @@ error-json = JSON error while { $context }:
 
 error-unsupported-schema-version = Unsupported schema version: { $version }
 
-error-invalid-format = Failed to parse v1 or v2 format.
-
 error-io-path-open-file = opening the file for reading
 
 error-io-read-db-desc = reading DB desc data

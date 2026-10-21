@@ -92,10 +92,6 @@ pub enum Error {
     /// Unsupported schema version.
     #[error("{msg}", msg = t!("error-unsupported-schema-version", { "version" => .0 }))]
     UnsupportedSchemaVersion(String),
-
-    /// Failed to parse v1 or v2.
-    #[error("{msg}", msg = t!("error-invalid-format"))]
-    InvalidFormat,
 }
 
 impl<'a> From<ParseError<Input<'a>, ParseStack<'a>>> for Error {
