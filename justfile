@@ -895,6 +895,18 @@ flaky test='just test-readme alpm-buildinfo' rounds='999999999999':
       echo
     done
 
+# Cleans up all temporary untracked directories, including build caches and such.
+[group('dev')]
+clean:
+    # Rust
+    rm -rf target
+    # Python
+    rm -rf python-alpm/.mypy_cache
+    rm -rf python-alpm/.ruff_cache
+    rm -rf python-alpm/.venv
+    # Book
+    rm -rf "{{ output_dir }}"
+
 # Serves the documentation book using miniserve
 [group('dev')]
 serve-book: build-book
