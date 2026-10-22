@@ -6,7 +6,7 @@ use std::{
 };
 
 use alpm_common::{FileFormatSchema, MetadataFile};
-use alpm_types::InstalledPackage;
+use alpm_types::{FullVersion, InstalledPackage, Name};
 use fluent_i18n::t;
 
 use crate::{
@@ -53,6 +53,22 @@ impl DbDescFile {
                 arch,
                 ..
             }) => InstalledPackage::new(name.clone(), version.clone(), arch.clone()),
+        }
+    }
+
+    /// Returns a reference to the [`Name`] for this file.
+    pub fn name(&self) -> &Name {
+        match self {
+            Self::V1(file) => &file.name,
+            Self::V2(file) => &file.name,
+        }
+    }
+
+    /// Returns a reference to the [`FullVersion`] for this file.
+    pub fn version(&self) -> &FullVersion {
+        match self {
+            Self::V1(file) => &file.version,
+            Self::V2(file) => &file.version,
         }
     }
 }
