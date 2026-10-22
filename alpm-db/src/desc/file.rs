@@ -35,6 +35,15 @@ pub enum DbDescFile {
     V2(DbDescFileV2),
 }
 
+impl DbDescFile {
+    /// Returns an [`InstalledPackage`] for this [alpm-db-desc] file.
+    ///
+    /// [alpm-db-desc]: https://alpm.archlinux.page/specifications/alpm-db-desc.5.html
+    pub fn installed_package(&self) -> InstalledPackage {
+        self.into()
+    }
+}
+
 impl MetadataFile<DbDescSchema> for DbDescFile {
     type Err = Error;
 
