@@ -3,6 +3,10 @@ ignore = [
     # The rsa crate is vulnerable to side-channel attacks.
     # However, we are neither using it for work with private keys, nor over the network.
     "RUSTSEC-2023-0071",
+    # The crypto-bigint crate suffers from constant time issues.
+    # However, beyond tests we are not operating on private key material at all.
+    # The rpgp crate currently depends on the older set of rustcrypto releases, because that ecosystem is stuck in endless release mode (see also https://github.com/rpgp/rpgp/pull/573)
+    "RUSTSEC-2026-0387",
 ]
 version = 2
 yanked = "deny"
