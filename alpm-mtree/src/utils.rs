@@ -11,22 +11,32 @@ use crate::Error;
 /// Spec: <https://datatracker.ietf.org/doc/html/rfc1952#page-6>
 pub const GZIP_MAGIC_NUMBER: [u8; 2] = [0x1f, 0x8b];
 
+/// Checks whether the contents of a byte `buffer` is considered to be gzip compressed.
+///
+/// Detects whether `buffer` contains gzip compressed data by checking if it is longer than two
+/// bytes and whether the first two bytes are the [`GZIP_MAGIC_NUMBER`].
+pub fn data_is_gzip(buffer: &[u8]) -> bool {
+    if let (Some(first), Some(second)) = (buffer.first().cloned(), buffer.get(1).cloned())
+        && [first, second] == GZIP_MAGIC_NUMBER
+    {
+        true
+    } else {
+        false
+    }
+}
+
 /// Creates a [`String`] from a byte vector which may be gzip compressed.
 ///
 /// If `buffer` contains gzip compressed data, it decompressed before converting it into a
 /// `String`.
-/// Detects whether `buffer` contains gzip compressed data by checking if it is longer than two
-/// bytes and whether the first two bytes are the [`GZIP_MAGIC_NUMBER`].
 ///
 /// # Errors
 ///
 /// Returns an error if
 /// - `buffer` contains invalid gzip compressed data
 /// - or `buffer` can not be converted to `String`.
-// TODO(cleanup): Investigate the indexing_slicing
-#[expect(clippy::indexing_slicing)]
 pub fn mtree_buffer_to_string(buffer: Vec<u8>) -> Result<String, Error> {
-    if buffer.len() >= 2 && [buffer[0], buffer[1]] == GZIP_MAGIC_NUMBER {
+    if data_is_gzip(buffer.as_slice()) {
         let mut decoder = GzDecoder::new(buffer.as_slice());
 
         let mut content = String::new();
