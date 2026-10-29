@@ -8,7 +8,7 @@ exclude = [
 ]
 output-format = "concise"
 quiet = false
-respect-gitignore = true
+respect-gitignore = "repository-only"
 respect-ignore = true
 rules = [
     # Header levels should only increment by one level at a time
