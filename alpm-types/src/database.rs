@@ -73,13 +73,13 @@ pub struct EntryName {
     ///
     /// See
     /// [alpm-package-name](https://alpm.archlinux.page/specifications/alpm-package-name.7.html).
-    pub name: Name,
+    name: Name,
 
     /// The full package version.
     ///
     /// See
     /// [alpm-package-version](https://alpm.archlinux.page/specifications/alpm-package-version.7.html).
-    pub version: FullVersion,
+    version: FullVersion,
 }
 
 impl EntryName {
