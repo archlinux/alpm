@@ -34,6 +34,6 @@ pub enum Error {
     /// No schema version can be derived from [alpm-db-files] data.
     ///
     /// [alpm-db-files]: https://alpm.archlinux.page/specifications/alpm-db-files.5.html
-    #[error("{msg}", msg = t!("error-version-is-unknown"))]
+    #[error("{msg}", msg = t!("error-schema-version-is-unknown"))]
     UnknownSchemaVersion,
 }
