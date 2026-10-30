@@ -52,6 +52,7 @@ pub enum Command {
         #[arg(
             env = "ALPM_DB_FILES_CREATE_OUTPUT",
             help = t!("cli-output-help"),
+            long_help = t!("cli-output-long-help"),
             long,
             short,
             value_name = "OUTPUT"
