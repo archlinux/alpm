@@ -61,8 +61,6 @@ filesv1-path-errors-paths-without-a-parent = Paths without a parent
 
 filesv1-path-errors-duplicate-paths = Duplicate paths
 
-backupv1-errors-absolute-paths = Absolute backup paths
-
 backupv1-errors-not-in-files-section = Backup paths not listed in %FILES% section
 
 backupv1-errors-duplicate-paths = Duplicate backup paths
