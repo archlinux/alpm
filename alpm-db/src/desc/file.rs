@@ -234,7 +234,7 @@ impl MetadataFile<DbDescSchema> for DbDescFile {
         reader
             .read_to_string(&mut buf)
             .map_err(|source| Error::Io {
-                context: t!("error-io-read-db-desc"),
+                context: t!("error-io-read-db-desc-data"),
                 source,
             })?;
         Self::from_str_with_schema(&buf, schema)
