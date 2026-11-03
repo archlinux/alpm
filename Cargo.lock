@@ -275,7 +275,6 @@ dependencies = [
  "alpm-types",
  "fluent-i18n",
  "log",
- "rstest",
  "serde_json",
  "strum",
  "tempfile",

@@ -26,7 +26,6 @@ which.workspace = true
 winnow.workspace = true
 
 [dev-dependencies]
-rstest.workspace = true
 tempfile.workspace = true
 testresult.workspace = true
 
