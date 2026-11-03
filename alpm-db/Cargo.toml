@@ -48,7 +48,6 @@ assert_cmd.workspace = true
 colored.workspace = true
 flate2.workspace = true
 insta.workspace = true
-pretty_assertions.workspace = true
 rstest.workspace = true
 serde_json.workspace = true
 simplelog.workspace = true

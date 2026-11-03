@@ -152,7 +152,6 @@ dependencies = [
  "insta",
  "log",
  "nix",
- "pretty_assertions",
  "rstest",
  "serde",
  "serde_json",
