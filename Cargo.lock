@@ -276,7 +276,6 @@ dependencies = [
  "alpm-types",
  "assert_cmd",
  "fluent-i18n",
- "insta",
  "log",
  "rstest",
  "serde_json",
