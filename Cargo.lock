@@ -322,7 +322,6 @@ dependencies = [
  "colored",
  "fluent-i18n",
  "insta",
- "pretty_assertions",
  "rstest",
  "serde",
  "serde_json",
