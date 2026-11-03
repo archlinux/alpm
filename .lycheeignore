@@ -11,3 +11,6 @@ https://lists.archlinux.org
 
 # pgpkeys.eu has strong rate-limiting
 https://pgpkeys.eu
+
+# weblate blocks link checking
+https://hosted.weblate.org/projects/alpm/
