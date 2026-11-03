@@ -273,7 +273,6 @@ version = "0.2.6"
 dependencies = [
  "alpm-parsers",
  "alpm-types",
- "assert_cmd",
  "fluent-i18n",
  "log",
  "rstest",
