@@ -260,7 +260,6 @@ name = "alpm-parsers"
 version = "0.4.3"
 dependencies = [
  "colored",
- "criterion",
  "insta",
  "rstest",
  "serde",
