@@ -269,7 +269,7 @@ dependencies = [
 
 [[package]]
 name = "alpm-pkgbuild"
-version = "0.2.6"
+version = "0.2.7"
 dependencies = [
  "alpm-parsers",
  "alpm-types",
