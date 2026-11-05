@@ -6,27 +6,30 @@ use std::{
     str::FromStr,
 };
 
-use alpm_types::{
-    Architecture,
-    Backup,
-    BuildDate,
-    ExtraDataEntry,
-    FullVersion,
-    Group,
-    InstalledSize,
-    License,
-    Name,
-    OptionalDependency,
-    PackageDescription,
-    PackageRelation,
-    Packager,
-    RelationOrSoname,
-    Url,
-};
 use clap::{Args, Parser, Subcommand, ValueEnum};
 use strum::Display;
 
-use crate::{Error, PackageInfoSchema};
+use crate::{
+    Error,
+    PackageInfoSchema,
+    alpm_types::{
+        Architecture,
+        Backup,
+        BuildDate,
+        ExtraDataEntry,
+        FullVersion,
+        Group,
+        InstalledSize,
+        License,
+        Name,
+        OptionalDependency,
+        PackageDescription,
+        PackageRelation,
+        Packager,
+        RelationOrSoname,
+        Url,
+    },
+};
 
 /// A type wrapping a PathBuf with a default value
 ///

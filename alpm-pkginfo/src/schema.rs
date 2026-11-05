@@ -10,10 +10,12 @@ use std::{
 
 use alpm_common::FileFormatSchema;
 use alpm_parsers::custom_ini::parser::Item;
-use alpm_types::{SchemaVersion, semver_version::Version};
 use fluent_i18n::t;
 
-use crate::Error;
+use crate::{
+    Error,
+    alpm_types::{SchemaVersion, semver_version::Version},
+};
 
 /// An enum tracking all available [PKGINFO] schemas.
 ///
@@ -99,8 +101,10 @@ impl FileFormatSchema for PackageInfoSchema {
     ///
     /// ```
     /// use alpm_common::FileFormatSchema;
-    /// use alpm_pkginfo::PackageInfoSchema;
-    /// use alpm_types::{SchemaVersion, semver_version::Version};
+    /// use alpm_pkginfo::{
+    ///     PackageInfoSchema,
+    ///     alpm_types::{SchemaVersion, semver_version::Version},
+    /// };
     ///
     /// # fn main() -> Result<(), alpm_pkginfo::Error> {
     /// let pkginfo_v2 = r#"

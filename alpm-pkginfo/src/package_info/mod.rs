@@ -49,8 +49,11 @@ impl MetadataFile<PackageInfoSchema> for PackageInfo {
     /// use std::{fs::File, io::Write};
     ///
     /// use alpm_common::{FileFormatSchema, MetadataFile};
-    /// use alpm_pkginfo::{PackageInfo, PackageInfoSchema};
-    /// use alpm_types::{SchemaVersion, semver_version::Version};
+    /// use alpm_pkginfo::{
+    ///     PackageInfo,
+    ///     PackageInfoSchema,
+    ///     alpm_types::{SchemaVersion, semver_version::Version},
+    /// };
     ///
     /// # fn main() -> testresult::TestResult {
     /// // Prepare a file with PKGINFO data
@@ -120,8 +123,11 @@ impl MetadataFile<PackageInfoSchema> for PackageInfo {
     /// use std::{fs::File, io::Write};
     ///
     /// use alpm_common::MetadataFile;
-    /// use alpm_pkginfo::{PackageInfo, PackageInfoSchema};
-    /// use alpm_types::{SchemaVersion, semver_version::Version};
+    /// use alpm_pkginfo::{
+    ///     PackageInfo,
+    ///     PackageInfoSchema,
+    ///     alpm_types::{SchemaVersion, semver_version::Version},
+    /// };
     ///
     /// # fn main() -> testresult::TestResult {
     /// // Prepare a reader with PKGINFO data
@@ -191,8 +197,11 @@ impl MetadataFile<PackageInfoSchema> for PackageInfo {
     /// use std::{fs::File, io::Write};
     ///
     /// use alpm_common::MetadataFile;
-    /// use alpm_pkginfo::{PackageInfo, PackageInfoSchema};
-    /// use alpm_types::{SchemaVersion, semver_version::Version};
+    /// use alpm_pkginfo::{
+    ///     PackageInfo,
+    ///     PackageInfoSchema,
+    ///     alpm_types::{SchemaVersion, semver_version::Version},
+    /// };
     ///
     /// # fn main() -> testresult::TestResult {
     /// let pkginfo_v2_data = r#"pkgname = example

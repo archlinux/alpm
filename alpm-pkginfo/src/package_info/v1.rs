@@ -7,25 +7,27 @@ use std::{
     str::FromStr,
 };
 
-use alpm_types::{
-    Architecture,
-    Backup,
-    BuildDate,
-    FullVersion,
-    Group,
-    InstalledSize,
-    License,
-    Name,
-    OptionalDependency,
-    PackageDescription,
-    PackageRelation,
-    Packager,
-    RelationOrSoname,
-    Url,
-};
 use serde_with::{DisplayFromStr, serde_as};
 
-use crate::Error;
+use crate::{
+    Error,
+    alpm_types::{
+        Architecture,
+        Backup,
+        BuildDate,
+        FullVersion,
+        Group,
+        InstalledSize,
+        License,
+        Name,
+        OptionalDependency,
+        PackageDescription,
+        PackageRelation,
+        Packager,
+        RelationOrSoname,
+        Url,
+    },
+};
 
 /// PKGINFO version 1
 ///
