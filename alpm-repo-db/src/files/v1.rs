@@ -4,7 +4,6 @@
 
 use std::{collections::HashSet, fmt::Display, path::PathBuf, str::FromStr};
 
-use alpm_common::relative_files;
 use alpm_parsers::prelude::*;
 use fluent_i18n::t;
 use winnow::{
@@ -12,7 +11,7 @@ use winnow::{
     combinator::{alt, cut_err, eof, not, repeat, terminated},
 };
 
-use crate::{alpm_types::RelativePath, files::Error};
+use crate::{alpm_common::relative_files, alpm_types::RelativePath, files::Error};
 
 /// The raw data section in [alpm-repo-files] data.
 ///

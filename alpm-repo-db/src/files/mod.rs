@@ -18,11 +18,12 @@ use std::{
     str::FromStr,
 };
 
-use alpm_common::{FileFormatSchema, MetadataFile};
 pub use error::Error;
 use fluent_i18n::t;
 pub use schema::RepoFilesSchema;
 pub use v1::RepoFilesV1;
+
+use crate::alpm_common::{FileFormatSchema, MetadataFile};
 
 /// The representation of [alpm-repo-files] data.
 ///
@@ -77,8 +78,8 @@ impl MetadataFile<RepoFilesSchema> for RepoFiles {
     /// ```
     /// use std::io::Write;
     ///
-    /// use alpm_common::MetadataFile;
     /// use alpm_repo_db::{
+    ///     alpm_common::MetadataFile,
     ///     alpm_types::{SchemaVersion, semver_version::Version},
     ///     files::{RepoFiles, RepoFilesSchema},
     /// };
@@ -140,8 +141,8 @@ impl MetadataFile<RepoFilesSchema> for RepoFiles {
     /// ```
     /// use std::io::{Seek, SeekFrom, Write};
     ///
-    /// use alpm_common::MetadataFile;
     /// use alpm_repo_db::{
+    ///     alpm_common::MetadataFile,
     ///     alpm_types::{SchemaVersion, semver_version::Version},
     ///     files::{RepoFiles, RepoFilesSchema},
     /// };
@@ -196,8 +197,8 @@ impl MetadataFile<RepoFilesSchema> for RepoFiles {
     /// # Examples
     ///
     /// ```
-    /// use alpm_common::MetadataFile;
     /// use alpm_repo_db::{
+    ///     alpm_common::MetadataFile,
     ///     alpm_types::{SchemaVersion, semver_version::Version},
     ///     files::{RepoFiles, RepoFilesSchema},
     /// };

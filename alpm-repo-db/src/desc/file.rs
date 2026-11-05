@@ -9,11 +9,11 @@ use std::{
     str::FromStr,
 };
 
-use alpm_common::{FileFormatSchema, MetadataFile};
 use fluent_i18n::t;
 
 use crate::{
     Error,
+    alpm_common::{FileFormatSchema, MetadataFile},
     desc::{RepoDescFileV1, RepoDescFileV2, RepoDescSchema},
 };
 
@@ -51,8 +51,8 @@ impl MetadataFile<RepoDescSchema> for RepoDescFile {
     /// ```
     /// use std::{fs::File, io::Write};
     ///
-    /// use alpm_common::{FileFormatSchema, MetadataFile};
     /// use alpm_repo_db::{
+    ///     alpm_common::{FileFormatSchema, MetadataFile},
     ///     alpm_types::{SchemaVersion, semver_version::Version},
     ///     desc::{RepoDescFile, RepoDescSchema},
     /// };
@@ -155,8 +155,8 @@ impl MetadataFile<RepoDescSchema> for RepoDescFile {
     /// ```
     /// use std::{fs::File, io::Write};
     ///
-    /// use alpm_common::MetadataFile;
     /// use alpm_repo_db::{
+    ///     alpm_common::MetadataFile,
     ///     alpm_types::{SchemaVersion, semver_version::Version},
     ///     desc::{RepoDescFile, RepoDescSchema},
     /// };
@@ -251,8 +251,8 @@ impl MetadataFile<RepoDescSchema> for RepoDescFile {
     /// # Examples
     ///
     /// ```
-    /// use alpm_common::MetadataFile;
     /// use alpm_repo_db::{
+    ///     alpm_common::MetadataFile,
     ///     alpm_types::{SchemaVersion, semver_version::Version},
     ///     desc::{RepoDescFile, RepoDescSchema},
     /// };

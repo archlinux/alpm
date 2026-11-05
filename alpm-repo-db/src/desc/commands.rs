@@ -7,11 +7,11 @@ use std::{
     io::{IsTerminal, Write, stdin},
 };
 
-use alpm_common::MetadataFile;
 use fluent_i18n::t;
 
 use crate::{
     Error,
+    alpm_common::MetadataFile,
     desc::{
         RepoDescFile,
         RepoDescFileV1,
