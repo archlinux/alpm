@@ -8,10 +8,6 @@ use thiserror::Error;
 /// The high-level error that can occur when using this crate.
 #[derive(Debug, Error)]
 pub enum Error {
-    /// ALPM types error.
-    #[error(transparent)]
-    AlpmType(#[from] alpm_types::Error),
-
     /// UTF-8 parse error.
     #[error(transparent)]
     InvalidUTF8(#[from] FromUtf8Error),
