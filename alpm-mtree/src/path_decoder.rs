@@ -1,3 +1,5 @@
+//! Special non-ascii encoding for paths in MTREE files.
+
 use std::char;
 
 use winnow::{
