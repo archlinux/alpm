@@ -9,7 +9,6 @@ use std::{
     process::{Command, Stdio},
 };
 
-use alpm_common::{MetadataFile, relative_files};
 use flate2::{Compression, GzBuilder};
 use fluent_i18n::t;
 use log::debug;
@@ -20,6 +19,7 @@ use crate::{
     Error,
     Mtree,
     MtreeSchema,
+    alpm_common::{MetadataFile, relative_files},
     alpm_types::{MetadataFileName, SchemaVersion, semver_version::Version},
 };
 

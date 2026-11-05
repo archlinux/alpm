@@ -76,7 +76,7 @@ impl Display for PathValidationErrors {
 pub enum PathValidationError {
     /// Alpm-common error.
     #[error("{msg}", msg = t!("error-alpm-common", { "source" => .0.to_string() }))]
-    AlpmCommon(#[from] alpm_common::Error),
+    AlpmCommon(#[from] crate::alpm_common::Error),
 
     /// Unable to create hash digest for a path.
     #[error("{msg}", msg = t!("error-create-hash-digest", {
