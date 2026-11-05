@@ -12,7 +12,7 @@ use crate::mtree::path_validation_error::PathValidationErrors;
 pub enum Error {
     /// An alpm-common error.
     #[error(transparent)]
-    AlpmCommon(#[from] alpm_common::Error),
+    AlpmCommon(#[from] crate::alpm_common::Error),
 
     /// The ALPM-MTREE data is not gzip compressed.
     #[error("{msg}", msg = t!("error-data-is-not-gzip"))]

@@ -11,13 +11,19 @@ use std::{
     str::FromStr,
 };
 
-use alpm_common::{FileFormatSchema, InputPath, InputPaths, MetadataFile};
 use fluent_i18n::t;
 use path_validation_error::{PathValidationError, PathValidationErrors};
 #[cfg(doc)]
 use v2::MTREE_PATH_PREFIX;
 
-use crate::{Error, MtreeSchema, data_is_gzip, mtree_buffer_to_string, parse_mtree_v2};
+use crate::{
+    Error,
+    MtreeSchema,
+    alpm_common::{FileFormatSchema, InputPath, InputPaths, MetadataFile},
+    data_is_gzip,
+    mtree_buffer_to_string,
+    parse_mtree_v2,
+};
 
 /// A representation of the [ALPM-MTREE] file format.
 ///
@@ -162,10 +168,10 @@ impl MetadataFile<MtreeSchema> for Mtree {
     /// ```
     /// use std::{fs::File, io::Write};
     ///
-    /// use alpm_common::{FileFormatSchema, MetadataFile};
     /// use alpm_mtree::{
     ///     Mtree,
     ///     MtreeSchema,
+    ///     alpm_common::{FileFormatSchema, MetadataFile},
     ///     alpm_types::{SchemaVersion, semver_version::Version},
     /// };
     ///
@@ -233,10 +239,10 @@ impl MetadataFile<MtreeSchema> for Mtree {
     /// ```
     /// use std::{fs::File, io::Write};
     ///
-    /// use alpm_common::MetadataFile;
     /// use alpm_mtree::{
     ///     Mtree,
     ///     MtreeSchema,
+    ///     alpm_common::MetadataFile,
     ///     alpm_types::{SchemaVersion, semver_version::Version},
     /// };
     ///
@@ -305,10 +311,10 @@ impl MetadataFile<MtreeSchema> for Mtree {
     /// ```
     /// use std::{fs::File, io::Write};
     ///
-    /// use alpm_common::MetadataFile;
     /// use alpm_mtree::{
     ///     Mtree,
     ///     MtreeSchema,
+    ///     alpm_common::MetadataFile,
     ///     alpm_types::{SchemaVersion, semver_version::Version},
     /// };
     ///

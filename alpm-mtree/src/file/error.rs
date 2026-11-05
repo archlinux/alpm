@@ -11,7 +11,7 @@ use std::process::ExitStatus;
 pub enum Error {
     /// An alpm-common error.
     #[error("ALPM common error:\n{0}")]
-    AlpmCommon(#[from] alpm_common::Error),
+    AlpmCommon(#[from] crate::alpm_common::Error),
 
     /// Unable to attach to stdin of a command.
     #[error("Unable to attach to stdin of command {command:?}")]

@@ -20,6 +20,12 @@ pub mod alpm_types {
     pub(crate) use alpm_types::{Checksum, Digest};
     pub use alpm_types::{Md5Checksum, SchemaVersion, Sha256Checksum, semver_version};
 }
+/// Re-exports for types and traits from the [`alpm_common`] crate which are part of the public API.
+pub mod alpm_common {
+    #[cfg(feature = "creation")]
+    pub(crate) use alpm_common::relative_files;
+    pub use alpm_common::{Error, FileFormatSchema, InputPath, InputPaths, MetadataFile};
+}
 
 pub use error::Error;
 #[cfg(feature = "creation")]

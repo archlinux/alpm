@@ -5,8 +5,7 @@ use std::{
     path::PathBuf,
 };
 
-use alpm_common::MetadataFile;
-use alpm_mtree::{Mtree, MtreeSchema, cli::OutputFormat};
+use alpm_mtree::{Mtree, MtreeSchema, alpm_common::MetadataFile, cli::OutputFormat};
 use fluent_i18n::t;
 use thiserror::Error;
 
