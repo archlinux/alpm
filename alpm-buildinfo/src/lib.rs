@@ -1,16 +1,14 @@
 #![doc = include_str!("../README.md")]
 
 mod build_info;
-pub use crate::build_info::{BuildInfo, v1::BuildInfoV1, v2::BuildInfoV2};
-
 #[cfg(feature = "cli")]
 #[doc(hidden)]
 pub mod cli;
-
 mod error;
-pub use error::Error;
-
 mod schema;
+
+pub use build_info::{BuildInfo, v1::BuildInfoV1, v2::BuildInfoV2};
+pub use error::Error;
 pub use schema::BuildInfoSchema;
 
 fluent_i18n::i18n!("locales");
