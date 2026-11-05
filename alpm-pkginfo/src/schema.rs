@@ -8,12 +8,12 @@ use std::{
     str::FromStr,
 };
 
-use alpm_common::FileFormatSchema;
 use alpm_parsers::custom_ini::parser::Item;
 use fluent_i18n::t;
 
 use crate::{
     Error,
+    alpm_common::FileFormatSchema,
     alpm_types::{SchemaVersion, semver_version::Version},
 };
 
@@ -100,9 +100,9 @@ impl FileFormatSchema for PackageInfoSchema {
     /// # Examples
     ///
     /// ```
-    /// use alpm_common::FileFormatSchema;
     /// use alpm_pkginfo::{
     ///     PackageInfoSchema,
+    ///     alpm_common::FileFormatSchema,
     ///     alpm_types::{SchemaVersion, semver_version::Version},
     /// };
     ///
