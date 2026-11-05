@@ -1,7 +1,6 @@
 #![doc = include_str!("../README.md")]
 #![cfg_attr(test, expect(clippy::panic))]
 
-/// Commandline argument handling. This is most likely not interesting for you.
 #[cfg(feature = "cli")]
 #[doc(hidden)]
 pub mod cli;
@@ -19,9 +18,7 @@ pub use file::{
 pub mod mtree;
 pub use mtree::{Mtree, v2::parse_mtree_v2};
 
-/// Low-level parser for MTREE files. You'll likely want to use [`parse_mtree_v2`] instead.
 pub mod parser;
-/// MTREE files use a special non-ascii encoding for their paths.
 mod path_decoder;
 
 mod utils;

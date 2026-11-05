@@ -1,3 +1,7 @@
+//! Low-level parser for MTREE files.
+//!
+//! For normal parsing operations, refer to [`crate::parse_mtree_v2`] instead.
+
 use std::path::PathBuf;
 
 use alpm_parsers::iter_str_context;
