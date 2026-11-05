@@ -1,7 +1,6 @@
-use alpm_types::SchemaVersion;
 use serde_with::{DisplayFromStr, serde_as};
 
-use crate::BuildInfoSchema;
+use crate::{BuildInfoSchema, alpm_types::SchemaVersion};
 
 /// Used internally to detect the BUILDINFO version when deserializing.
 #[serde_as]
