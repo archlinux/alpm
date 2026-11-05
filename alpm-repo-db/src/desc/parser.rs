@@ -5,7 +5,27 @@
 use std::str::FromStr;
 
 use alpm_parsers::{iter_str_context, prelude::*};
-use alpm_types::{
+use strum::{Display, EnumString, VariantNames};
+use winnow::{
+    ascii::{line_ending, newline, space0, till_line_ending},
+    combinator::{
+        alt,
+        cut_err,
+        delimited,
+        eof,
+        not,
+        opt,
+        peek,
+        preceded,
+        repeat,
+        repeat_till,
+        terminated,
+    },
+    error::ErrMode,
+    token::take_while,
+};
+
+use crate::alpm_types::{
     Architecture,
     Base64OpenPGPSignature,
     BuildDate,
@@ -25,25 +45,6 @@ use alpm_types::{
     RelationOrSoname,
     Sha256Checksum,
     Url,
-};
-use strum::{Display, EnumString, VariantNames};
-use winnow::{
-    ascii::{line_ending, newline, space0, till_line_ending},
-    combinator::{
-        alt,
-        cut_err,
-        delimited,
-        eof,
-        not,
-        opt,
-        peek,
-        preceded,
-        repeat,
-        repeat_till,
-        terminated,
-    },
-    error::ErrMode,
-    token::take_while,
 };
 
 /// A known section name in an [alpm-repo-desc] file.

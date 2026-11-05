@@ -10,10 +10,12 @@ use std::{
 };
 
 use alpm_common::FileFormatSchema;
-use alpm_types::{SchemaVersion, semver_version::Version};
 use fluent_i18n::t;
 
-use crate::Error;
+use crate::{
+    Error,
+    alpm_types::{SchemaVersion, semver_version::Version},
+};
 
 /// An enum describing all valid [alpm-repo-desc] schemas.
 ///
@@ -111,8 +113,10 @@ impl FileFormatSchema for RepoDescSchema {
     ///
     /// ```
     /// use alpm_common::FileFormatSchema;
-    /// use alpm_repo_db::desc::RepoDescSchema;
-    /// use alpm_types::{SchemaVersion, semver_version::Version};
+    /// use alpm_repo_db::{
+    ///     alpm_types::{SchemaVersion, semver_version::Version},
+    ///     desc::RepoDescSchema,
+    /// };
     ///
     /// # fn main() -> Result<(), alpm_repo_db::Error> {
     /// let v1_data = r#"%FILENAME%

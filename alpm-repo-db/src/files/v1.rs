@@ -6,14 +6,13 @@ use std::{collections::HashSet, fmt::Display, path::PathBuf, str::FromStr};
 
 use alpm_common::relative_files;
 use alpm_parsers::prelude::*;
-use alpm_types::RelativePath;
 use fluent_i18n::t;
 use winnow::{
     ascii::{line_ending, multispace0, space0, till_line_ending},
     combinator::{alt, cut_err, eof, not, repeat, terminated},
 };
 
-use crate::files::Error;
+use crate::{alpm_types::RelativePath, files::Error};
 
 /// The raw data section in [alpm-repo-files] data.
 ///

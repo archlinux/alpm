@@ -78,8 +78,10 @@ impl MetadataFile<RepoFilesSchema> for RepoFiles {
     /// use std::io::Write;
     ///
     /// use alpm_common::MetadataFile;
-    /// use alpm_repo_db::files::{RepoFiles, RepoFilesSchema};
-    /// use alpm_types::{SchemaVersion, semver_version::Version};
+    /// use alpm_repo_db::{
+    ///     alpm_types::{SchemaVersion, semver_version::Version},
+    ///     files::{RepoFiles, RepoFilesSchema},
+    /// };
     /// use tempfile::NamedTempFile;
     ///
     /// # fn main() -> testresult::TestResult {
@@ -139,8 +141,10 @@ impl MetadataFile<RepoFilesSchema> for RepoFiles {
     /// use std::io::{Seek, SeekFrom, Write};
     ///
     /// use alpm_common::MetadataFile;
-    /// use alpm_repo_db::files::{RepoFiles, RepoFilesSchema};
-    /// use alpm_types::{SchemaVersion, semver_version::Version};
+    /// use alpm_repo_db::{
+    ///     alpm_types::{SchemaVersion, semver_version::Version},
+    ///     files::{RepoFiles, RepoFilesSchema},
+    /// };
     /// use tempfile::tempfile;
     ///
     /// # fn main() -> testresult::TestResult {
@@ -193,8 +197,10 @@ impl MetadataFile<RepoFilesSchema> for RepoFiles {
     ///
     /// ```
     /// use alpm_common::MetadataFile;
-    /// use alpm_repo_db::files::{RepoFiles, RepoFilesSchema};
-    /// use alpm_types::{SchemaVersion, semver_version::Version};
+    /// use alpm_repo_db::{
+    ///     alpm_types::{SchemaVersion, semver_version::Version},
+    ///     files::{RepoFiles, RepoFilesSchema},
+    /// };
     ///
     /// # fn main() -> Result<(), alpm_repo_db::files::Error> {
     /// let data = r#"%FILES%
@@ -249,11 +255,11 @@ impl FromStr for RepoFiles {
 mod tests {
     use std::io::Write;
 
-    use alpm_types::{SchemaVersion, semver_version::Version};
     use tempfile::NamedTempFile;
     use testresult::TestResult;
 
     use super::*;
+    use crate::alpm_types::{SchemaVersion, semver_version::Version};
 
     /// Ensures that the parser leniently accepts trailing blank lines after the path list.
     #[test]

@@ -5,10 +5,12 @@
 use std::{fs::File, io::Read, path::Path};
 
 use alpm_common::FileFormatSchema;
-use alpm_types::{SchemaVersion, semver_version::Version};
 use fluent_i18n::t;
 
-use crate::files::{Error, v1::FilesSection};
+use crate::{
+    alpm_types::{SchemaVersion, semver_version::Version},
+    files::{Error, v1::FilesSection},
+};
 
 /// A schema for the [alpm-repo-files] format.
 ///

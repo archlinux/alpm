@@ -52,8 +52,10 @@ impl MetadataFile<RepoDescSchema> for RepoDescFile {
     /// use std::{fs::File, io::Write};
     ///
     /// use alpm_common::{FileFormatSchema, MetadataFile};
-    /// use alpm_repo_db::desc::{RepoDescFile, RepoDescSchema};
-    /// use alpm_types::{SchemaVersion, semver_version::Version};
+    /// use alpm_repo_db::{
+    ///     alpm_types::{SchemaVersion, semver_version::Version},
+    ///     desc::{RepoDescFile, RepoDescSchema},
+    /// };
     ///
     /// # fn main() -> testresult::TestResult {
     /// // Prepare a file with package repository desc data (v1)
@@ -154,8 +156,10 @@ impl MetadataFile<RepoDescSchema> for RepoDescFile {
     /// use std::{fs::File, io::Write};
     ///
     /// use alpm_common::MetadataFile;
-    /// use alpm_repo_db::desc::{RepoDescFile, RepoDescSchema};
-    /// use alpm_types::{SchemaVersion, semver_version::Version};
+    /// use alpm_repo_db::{
+    ///     alpm_types::{SchemaVersion, semver_version::Version},
+    ///     desc::{RepoDescFile, RepoDescSchema},
+    /// };
     ///
     /// # fn main() -> testresult::TestResult {
     /// // Prepare a reader with package repository desc data (v2)
@@ -248,8 +252,10 @@ impl MetadataFile<RepoDescSchema> for RepoDescFile {
     ///
     /// ```
     /// use alpm_common::MetadataFile;
-    /// use alpm_repo_db::desc::{RepoDescFile, RepoDescSchema};
-    /// use alpm_types::{SchemaVersion, semver_version::Version};
+    /// use alpm_repo_db::{
+    ///     alpm_types::{SchemaVersion, semver_version::Version},
+    ///     desc::{RepoDescFile, RepoDescSchema},
+    /// };
     ///
     /// # fn main() -> testresult::TestResult {
     /// let v1_data = r#"%FILENAME%

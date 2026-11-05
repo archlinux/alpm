@@ -8,30 +8,30 @@ use std::{
 };
 
 use alpm_parsers::prelude::*;
-use alpm_types::{
-    Architecture,
-    Base64OpenPGPSignature,
-    BuildDate,
-    CompressedSize,
-    FullVersion,
-    Group,
-    InstalledSize,
-    License,
-    Md5Checksum,
-    Name,
-    OptionalDependency,
-    PackageBaseName,
-    PackageDescription,
-    PackageFileName,
-    PackageRelation,
-    Packager,
-    RelationOrSoname,
-    Sha256Checksum,
-    Url,
-};
 
 use crate::{
     Error,
+    alpm_types::{
+        Architecture,
+        Base64OpenPGPSignature,
+        BuildDate,
+        CompressedSize,
+        FullVersion,
+        Group,
+        InstalledSize,
+        License,
+        Md5Checksum,
+        Name,
+        OptionalDependency,
+        PackageBaseName,
+        PackageDescription,
+        PackageFileName,
+        PackageRelation,
+        Packager,
+        RelationOrSoname,
+        Sha256Checksum,
+        Url,
+    },
     desc::{
         Section,
         parser::{SectionKeyword, sections},
