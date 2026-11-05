@@ -3,7 +3,6 @@
 use std::{fs::Metadata, io::Read, os::linux::fs::MetadataExt, path::PathBuf};
 
 use alpm_common::InputPath;
-use alpm_types::{Checksum, Digest, Md5Checksum, Sha256Checksum};
 use log::trace;
 use serde::{Serialize, Serializer, ser::Error as SerdeError};
 use winnow::Parser;
@@ -13,6 +12,7 @@ use crate::Mtree;
 pub use crate::parser::PathType;
 use crate::{
     Error,
+    alpm_types::{Checksum, Digest, Md5Checksum, Sha256Checksum},
     mtree::path_validation_error::PathValidationError,
     parser::{self, SetProperty, UnsetProperty},
 };

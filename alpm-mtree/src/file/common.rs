@@ -10,13 +10,18 @@ use std::{
 };
 
 use alpm_common::{MetadataFile, relative_files};
-use alpm_types::{MetadataFileName, SchemaVersion, semver_version::Version};
 use flate2::{Compression, GzBuilder};
 use fluent_i18n::t;
 use log::debug;
 use which::which;
 
-use crate::{CreationError, Error, Mtree, MtreeSchema};
+use crate::{
+    CreationError,
+    Error,
+    Mtree,
+    MtreeSchema,
+    alpm_types::{MetadataFileName, SchemaVersion, semver_version::Version},
+};
 
 /// The [bsdtar] options for different versions of [ALPM-MTREE].
 ///

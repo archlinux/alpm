@@ -9,10 +9,13 @@ use std::{
 };
 
 use alpm_common::FileFormatSchema;
-use alpm_types::{SchemaVersion, semver_version::Version};
 use fluent_i18n::t;
 
-use crate::{Error, mtree_buffer_to_string};
+use crate::{
+    Error,
+    alpm_types::{SchemaVersion, semver_version::Version},
+    mtree_buffer_to_string,
+};
 
 /// An enum tracking all available [ALPM-MTREE] schemas.
 ///
@@ -99,8 +102,10 @@ impl FileFormatSchema for MtreeSchema {
     ///
     /// ```
     /// use alpm_common::FileFormatSchema;
-    /// use alpm_mtree::MtreeSchema;
-    /// use alpm_types::{SchemaVersion, semver_version::Version};
+    /// use alpm_mtree::{
+    ///     MtreeSchema,
+    ///     alpm_types::{SchemaVersion, semver_version::Version},
+    /// };
     ///
     /// # fn main() -> Result<(), alpm_mtree::Error> {
     /// let mtree_v2 = r#"
