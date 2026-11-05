@@ -4,7 +4,7 @@
 use std::str::FromStr;
 use std::{io::Read, path::Path};
 
-use alpm_types::SchemaVersion;
+use crate::alpm_types::SchemaVersion;
 
 /// A trait for file format schemas and their versioning.
 ///

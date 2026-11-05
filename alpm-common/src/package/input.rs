@@ -13,7 +13,7 @@ use std::{
     path::{MAIN_SEPARATOR_STR, Path, PathBuf},
 };
 
-use alpm_types::{INSTALL_SCRIPTLET_FILE_NAME, MetadataFileName};
+use crate::alpm_types::{INSTALL_SCRIPTLET_FILE_NAME, MetadataFileName};
 
 /// An input path.
 ///
