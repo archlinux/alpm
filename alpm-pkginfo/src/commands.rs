@@ -6,12 +6,12 @@ use std::{
     path::PathBuf,
 };
 
-use alpm_common::MetadataFile;
 use alpm_pkginfo::{
     PackageInfo,
     PackageInfoSchema,
     PackageInfoV1,
     PackageInfoV2,
+    alpm_common::MetadataFile,
     cli::{CreateCommand, OutputFormat},
 };
 use fluent_i18n::t;
