@@ -8,7 +8,7 @@ use fluent_i18n::t;
 pub enum Error {
     /// ALPM type error
     #[error(transparent)]
-    AlpmType(#[from] alpm_types::Error),
+    AlpmType(#[from] crate::alpm_types::Error),
 
     /// IO path error
     #[error("{msg}", msg = t!("error-io-path", {

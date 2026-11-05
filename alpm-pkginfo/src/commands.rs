@@ -35,7 +35,7 @@ pub enum Error {
 
     /// An [alpm_types::Error]
     #[error(transparent)]
-    AlpmTypes(#[from] alpm_types::Error),
+    AlpmTypes(#[from] alpm_pkginfo::alpm_types::Error),
 }
 
 /// Create a file according to a PKGINFO schema
