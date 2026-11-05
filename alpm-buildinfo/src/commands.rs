@@ -10,10 +10,10 @@ use alpm_buildinfo::{
     BuildInfo,
     BuildInfoV1,
     BuildInfoV2,
+    alpm_common::MetadataFile,
     alpm_types::Sha256Checksum,
     cli::{CreateCommand, OutputFormat, ValidateArgs},
 };
-use alpm_common::MetadataFile;
 use fluent_i18n::t;
 use thiserror::Error;
 

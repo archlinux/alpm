@@ -11,10 +11,15 @@ use std::{
     str::FromStr,
 };
 
-use alpm_common::{FileFormatSchema, MetadataFile};
 use fluent_i18n::t;
 
-use crate::{BuildInfoSchema, BuildInfoV1, BuildInfoV2, Error};
+use crate::{
+    BuildInfoSchema,
+    BuildInfoV1,
+    BuildInfoV2,
+    Error,
+    alpm_common::{FileFormatSchema, MetadataFile},
+};
 
 /// A representation of the [BUILDINFO] file format.
 ///
@@ -53,9 +58,9 @@ impl MetadataFile<BuildInfoSchema> for BuildInfo {
     /// use alpm_buildinfo::{
     ///     BuildInfo,
     ///     BuildInfoSchema,
+    ///     alpm_common::{FileFormatSchema, MetadataFile},
     ///     alpm_types::{SchemaVersion, semver_version::Version},
     /// };
-    /// use alpm_common::{FileFormatSchema, MetadataFile};
     ///
     /// # fn main() -> testresult::TestResult {
     /// // Prepare a file with BUILDINFO data
@@ -130,9 +135,9 @@ impl MetadataFile<BuildInfoSchema> for BuildInfo {
     /// use alpm_buildinfo::{
     ///     BuildInfo,
     ///     BuildInfoSchema,
+    ///     alpm_common::MetadataFile,
     ///     alpm_types::{SchemaVersion, semver_version::Version},
     /// };
-    /// use alpm_common::MetadataFile;
     ///
     /// # fn main() -> testresult::TestResult {
     /// // Prepare a reader with BUILDINFO data
@@ -208,9 +213,9 @@ impl MetadataFile<BuildInfoSchema> for BuildInfo {
     /// use alpm_buildinfo::{
     ///     BuildInfo,
     ///     BuildInfoSchema,
+    ///     alpm_common::MetadataFile,
     ///     alpm_types::{SchemaVersion, semver_version::Version},
     /// };
-    /// use alpm_common::MetadataFile;
     ///
     /// # fn main() -> testresult::TestResult {
     /// let buildinfo_v2_data = r#"format = 2

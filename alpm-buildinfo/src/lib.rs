@@ -30,6 +30,10 @@ pub mod alpm_types {
         semver_version,
     };
 }
+/// Re-exports for traits from the [`alpm_common`] crate which are part of the public API.
+pub mod alpm_common {
+    pub use alpm_common::{FileFormatSchema, MetadataFile};
+}
 
 pub use build_info::{BuildInfo, v1::BuildInfoV1, v2::BuildInfoV2};
 pub use error::Error;

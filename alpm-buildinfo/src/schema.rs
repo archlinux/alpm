@@ -6,12 +6,12 @@ use std::{
     str::FromStr,
 };
 
-use alpm_common::FileFormatSchema;
 use alpm_parsers::custom_ini::parser::Item;
 use fluent_i18n::t;
 
 use crate::{
     Error,
+    alpm_common::FileFormatSchema,
     alpm_types::{SchemaVersion, semver_version::Version},
 };
 
@@ -96,9 +96,9 @@ impl FileFormatSchema for BuildInfoSchema {
     /// ```
     /// use alpm_buildinfo::{
     ///     BuildInfoSchema,
+    ///     alpm_common::FileFormatSchema,
     ///     alpm_types::{SchemaVersion, semver_version::Version},
     /// };
-    /// use alpm_common::FileFormatSchema;
     ///
     /// # fn main() -> Result<(), alpm_buildinfo::Error> {
     /// let buildinfo_v2 = r#"format = 2
