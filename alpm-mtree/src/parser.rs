@@ -5,7 +5,6 @@
 use std::path::PathBuf;
 
 use alpm_parsers::iter_str_context;
-use alpm_types::{Md5Checksum, Sha256Checksum};
 use winnow::{
     ModalResult,
     Parser as WinnowParser,
@@ -26,7 +25,10 @@ use winnow::{
     token::{take_until, take_while},
 };
 
-use crate::path_decoder::decode_utf8_chars;
+use crate::{
+    alpm_types::{Md5Checksum, Sha256Checksum},
+    path_decoder::decode_utf8_chars,
+};
 
 /// Each line represents a line in a .MTREE file.
 #[derive(Clone, Debug)]

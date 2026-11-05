@@ -2,11 +2,11 @@
 
 use std::{fmt::Display, path::PathBuf};
 
-use alpm_types::Sha256Checksum;
 use fluent_i18n::t;
 
 #[cfg(doc)]
 use crate::Mtree;
+use crate::alpm_types::Sha256Checksum;
 
 /// A list of errors that may occur when comparing [`Mtree`] data with paths inside a `base_dir`.
 ///

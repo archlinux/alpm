@@ -13,6 +13,14 @@ mod path_decoder;
 mod schema;
 mod utils;
 
+/// Re-exports for types from the [`alpm_types`] crate which are part of the public API.
+pub mod alpm_types {
+    #[cfg(feature = "creation")]
+    pub(crate) use alpm_types::MetadataFileName;
+    pub(crate) use alpm_types::{Checksum, Digest};
+    pub use alpm_types::{Md5Checksum, SchemaVersion, Sha256Checksum, semver_version};
+}
+
 pub use error::Error;
 #[cfg(feature = "creation")]
 pub use file::{

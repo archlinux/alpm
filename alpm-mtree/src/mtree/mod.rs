@@ -163,8 +163,11 @@ impl MetadataFile<MtreeSchema> for Mtree {
     /// use std::{fs::File, io::Write};
     ///
     /// use alpm_common::{FileFormatSchema, MetadataFile};
-    /// use alpm_mtree::{Mtree, MtreeSchema};
-    /// use alpm_types::{SchemaVersion, semver_version::Version};
+    /// use alpm_mtree::{
+    ///     Mtree,
+    ///     MtreeSchema,
+    ///     alpm_types::{SchemaVersion, semver_version::Version},
+    /// };
     ///
     /// # fn main() -> testresult::TestResult {
     /// // Prepare a file with ALPM-MTREE data
@@ -231,8 +234,11 @@ impl MetadataFile<MtreeSchema> for Mtree {
     /// use std::{fs::File, io::Write};
     ///
     /// use alpm_common::MetadataFile;
-    /// use alpm_mtree::{Mtree, MtreeSchema};
-    /// use alpm_types::{SchemaVersion, semver_version::Version};
+    /// use alpm_mtree::{
+    ///     Mtree,
+    ///     MtreeSchema,
+    ///     alpm_types::{SchemaVersion, semver_version::Version},
+    /// };
     ///
     /// # fn main() -> testresult::TestResult {
     /// // Prepare a reader with ALPM-MTREE data
@@ -300,8 +306,11 @@ impl MetadataFile<MtreeSchema> for Mtree {
     /// use std::{fs::File, io::Write};
     ///
     /// use alpm_common::MetadataFile;
-    /// use alpm_mtree::{Mtree, MtreeSchema};
-    /// use alpm_types::{SchemaVersion, semver_version::Version};
+    /// use alpm_mtree::{
+    ///     Mtree,
+    ///     MtreeSchema,
+    ///     alpm_types::{SchemaVersion, semver_version::Version},
+    /// };
     ///
     /// # fn main() -> testresult::TestResult {
     /// let mtree_v2 = r#"
