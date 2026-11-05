@@ -1,7 +1,8 @@
 use std::{path::PathBuf, string::FromUtf8Error};
 
-use alpm_types::SchemaVersion;
 use fluent_i18n::t;
+
+use crate::alpm_types::SchemaVersion;
 
 /// The Error that can occur when working with BUILDINFO files.
 #[derive(Debug, thiserror::Error)]
@@ -9,7 +10,7 @@ use fluent_i18n::t;
 pub enum Error {
     /// ALPM type error.
     #[error("{msg}", msg = t!("error-alpm-type", { "source" => .0.to_string() }))]
-    AlpmType(#[from] alpm_types::Error),
+    AlpmType(#[from] crate::alpm_types::Error),
 
     /// IO error.
     #[error("{msg}", msg = t!("error-io-path", {

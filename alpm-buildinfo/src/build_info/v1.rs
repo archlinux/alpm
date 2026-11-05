@@ -3,24 +3,28 @@ use std::{
     str::FromStr,
 };
 
-use alpm_types::{
-    Architecture,
-    BuildDate,
-    BuildDirectory,
-    BuildEnvironmentOption,
-    Checksum,
-    FullVersion,
-    InstalledPackage,
-    Name,
-    PackageOption,
-    Packager,
-    SchemaVersion,
-    digests::Sha256,
-    semver_version::Version as SemverVersion,
-};
 use serde_with::{DisplayFromStr, serde_as};
 
-use crate::{BuildInfoSchema, Error, build_info::format::BuildInfoFormat};
+use crate::{
+    BuildInfoSchema,
+    Error,
+    alpm_types::{
+        Architecture,
+        BuildDate,
+        BuildDirectory,
+        BuildEnvironmentOption,
+        Checksum,
+        FullVersion,
+        InstalledPackage,
+        Name,
+        PackageOption,
+        Packager,
+        SchemaVersion,
+        digests::Sha256,
+        semver_version::Version as SemverVersion,
+    },
+    build_info::format::BuildInfoFormat,
+};
 
 /// BUILDINFO version 1
 ///

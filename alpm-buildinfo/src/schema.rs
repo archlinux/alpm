@@ -8,10 +8,12 @@ use std::{
 
 use alpm_common::FileFormatSchema;
 use alpm_parsers::custom_ini::parser::Item;
-use alpm_types::{SchemaVersion, semver_version::Version};
 use fluent_i18n::t;
 
-use crate::Error;
+use crate::{
+    Error,
+    alpm_types::{SchemaVersion, semver_version::Version},
+};
 
 /// An enum describing all valid BUILDINFO schemas
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -92,9 +94,11 @@ impl FileFormatSchema for BuildInfoSchema {
     /// # Examples
     ///
     /// ```
-    /// use alpm_buildinfo::BuildInfoSchema;
+    /// use alpm_buildinfo::{
+    ///     BuildInfoSchema,
+    ///     alpm_types::{SchemaVersion, semver_version::Version},
+    /// };
     /// use alpm_common::FileFormatSchema;
-    /// use alpm_types::{SchemaVersion, semver_version::Version};
     ///
     /// # fn main() -> Result<(), alpm_buildinfo::Error> {
     /// let buildinfo_v2 = r#"format = 2

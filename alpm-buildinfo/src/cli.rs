@@ -6,24 +6,27 @@ use std::{
     str::FromStr,
 };
 
-use alpm_types::{
-    Architecture,
-    BuildDate,
-    BuildDirectory,
-    BuildEnvironmentOption,
-    BuildTool,
-    BuildToolVersion,
-    FullVersion,
-    InstalledPackage,
-    Name,
-    PackageOption,
-    Packager,
-    StartDirectory,
-};
 use clap::{Args, Parser, Subcommand, ValueEnum};
 use strum::Display;
 
-use crate::{BuildInfoSchema, Error};
+use crate::{
+    BuildInfoSchema,
+    Error,
+    alpm_types::{
+        Architecture,
+        BuildDate,
+        BuildDirectory,
+        BuildEnvironmentOption,
+        BuildTool,
+        BuildToolVersion,
+        FullVersion,
+        InstalledPackage,
+        Name,
+        PackageOption,
+        Packager,
+        StartDirectory,
+    },
+};
 
 /// A type wrapping a PathBuf with a default value
 ///

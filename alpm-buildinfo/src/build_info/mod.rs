@@ -50,9 +50,12 @@ impl MetadataFile<BuildInfoSchema> for BuildInfo {
     /// ```
     /// use std::{fs::File, io::Write};
     ///
-    /// use alpm_buildinfo::{BuildInfo, BuildInfoSchema};
+    /// use alpm_buildinfo::{
+    ///     BuildInfo,
+    ///     BuildInfoSchema,
+    ///     alpm_types::{SchemaVersion, semver_version::Version},
+    /// };
     /// use alpm_common::{FileFormatSchema, MetadataFile};
-    /// use alpm_types::{SchemaVersion, semver_version::Version};
     ///
     /// # fn main() -> testresult::TestResult {
     /// // Prepare a file with BUILDINFO data
@@ -124,9 +127,12 @@ impl MetadataFile<BuildInfoSchema> for BuildInfo {
     /// ```
     /// use std::{fs::File, io::Write};
     ///
-    /// use alpm_buildinfo::{BuildInfo, BuildInfoSchema};
+    /// use alpm_buildinfo::{
+    ///     BuildInfo,
+    ///     BuildInfoSchema,
+    ///     alpm_types::{SchemaVersion, semver_version::Version},
+    /// };
     /// use alpm_common::MetadataFile;
-    /// use alpm_types::{SchemaVersion, semver_version::Version};
     ///
     /// # fn main() -> testresult::TestResult {
     /// // Prepare a reader with BUILDINFO data
@@ -199,9 +205,12 @@ impl MetadataFile<BuildInfoSchema> for BuildInfo {
     /// ```
     /// use std::{fs::File, io::Write};
     ///
-    /// use alpm_buildinfo::{BuildInfo, BuildInfoSchema};
+    /// use alpm_buildinfo::{
+    ///     BuildInfo,
+    ///     BuildInfoSchema,
+    ///     alpm_types::{SchemaVersion, semver_version::Version},
+    /// };
     /// use alpm_common::MetadataFile;
-    /// use alpm_types::{SchemaVersion, semver_version::Version};
     ///
     /// # fn main() -> testresult::TestResult {
     /// let buildinfo_v2_data = r#"format = 2

@@ -10,10 +10,10 @@ use alpm_buildinfo::{
     BuildInfo,
     BuildInfoV1,
     BuildInfoV2,
+    alpm_types::Sha256Checksum,
     cli::{CreateCommand, OutputFormat, ValidateArgs},
 };
 use alpm_common::MetadataFile;
-use alpm_types::Sha256Checksum;
 use fluent_i18n::t;
 use thiserror::Error;
 
@@ -23,7 +23,7 @@ use thiserror::Error;
 pub enum Error {
     /// ALPM type error.
     #[error("{msg}", msg = t!("error-alpm-type", { "source" => .0.to_string() }))]
-    AlpmType(#[from] alpm_types::Error),
+    AlpmType(#[from] alpm_buildinfo::alpm_types::Error),
 
     /// No input file given.
     #[error("{msg}", msg = t!("error-no-input-file"))]
