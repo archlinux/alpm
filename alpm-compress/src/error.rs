@@ -97,7 +97,7 @@ pub enum Error {
 
     /// A compression algorithm file extension is not known.
     #[error("{msg}", msg = t!("error-unknown-compression-extension", { "source" => .0.to_string() }))]
-    UnknownCompressionAlgorithmFileExtension(#[source] alpm_types::Error),
+    UnknownCompressionAlgorithmFileExtension(#[source] crate::alpm_types::Error),
 
     /// An unsupported compression algorithm was used.
     #[error("{msg}", msg = t!("error-unsupported-compression", { "value" => value }))]

@@ -1,14 +1,16 @@
 //! Settings for a compression encoder.
 
-use alpm_types::CompressionAlgorithmFileExtension;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use crate::compression::{
-    Bzip2CompressionLevel,
-    GzipCompressionLevel,
-    XzCompressionLevel,
-    ZstdCompressionLevel,
+use crate::{
+    alpm_types::CompressionAlgorithmFileExtension,
+    compression::{
+        Bzip2CompressionLevel,
+        GzipCompressionLevel,
+        XzCompressionLevel,
+        ZstdCompressionLevel,
+    },
 };
 
 /// The amount of threads to use when compressing using zstd.
