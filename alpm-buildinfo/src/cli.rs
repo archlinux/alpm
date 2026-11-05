@@ -1,3 +1,5 @@
+//! Command-line handling.
+
 use std::{
     fmt::{Display, Formatter},
     path::PathBuf,
