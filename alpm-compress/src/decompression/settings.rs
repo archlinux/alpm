@@ -2,11 +2,14 @@
 
 use std::{fmt::Debug, path::Path};
 
-use alpm_types::CompressionAlgorithmFileExtension;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use crate::{compression::CompressionSettings, error::Error};
+use crate::{
+    alpm_types::CompressionAlgorithmFileExtension,
+    compression::CompressionSettings,
+    error::Error,
+};
 
 /// Settings for a compression decoder.
 #[derive(Clone, Debug, Eq, PartialEq)]

@@ -2,7 +2,6 @@
 
 use std::{fmt::Debug, fs::File, io::Write};
 
-use alpm_types::CompressionAlgorithmFileExtension;
 use bzip2::write::BzEncoder;
 use flate2::write::GzEncoder;
 use fluent_i18n::t;
@@ -11,6 +10,7 @@ use zstd::Encoder;
 
 use crate::{
     Error,
+    alpm_types::CompressionAlgorithmFileExtension,
     compression::{CompressionSettings, ZstdThreads, level::ZstdCompressionLevel},
 };
 
