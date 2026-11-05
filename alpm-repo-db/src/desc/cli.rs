@@ -2,31 +2,33 @@
 
 use std::path::PathBuf;
 
-use alpm_types::{
-    Architecture,
-    Base64OpenPGPSignature,
-    BuildDate,
-    CompressedSize,
-    FullVersion,
-    Group,
-    InstalledSize,
-    License,
-    Md5Checksum,
-    Name,
-    OptionalDependency,
-    PackageBaseName,
-    PackageDescription,
-    PackageFileName,
-    PackageRelation,
-    Packager,
-    RelationOrSoname,
-    Sha256Checksum,
-    Url,
-};
 use clap::{Args, Parser, Subcommand, ValueEnum};
 use strum::Display;
 
-use crate::desc::schema::RepoDescSchema;
+use crate::{
+    alpm_types::{
+        Architecture,
+        Base64OpenPGPSignature,
+        BuildDate,
+        CompressedSize,
+        FullVersion,
+        Group,
+        InstalledSize,
+        License,
+        Md5Checksum,
+        Name,
+        OptionalDependency,
+        PackageBaseName,
+        PackageDescription,
+        PackageFileName,
+        PackageRelation,
+        Packager,
+        RelationOrSoname,
+        Sha256Checksum,
+        Url,
+    },
+    desc::schema::RepoDescSchema,
+};
 
 /// The command-line interface handling for `alpm-repo-desc`.
 #[derive(Clone, Debug, Parser)]
