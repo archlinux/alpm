@@ -69,8 +69,6 @@
 use std::{collections::HashMap, fmt::Display, path::Path, str::FromStr};
 
 use alpm_parsers::iter_str_context;
-#[cfg(doc)]
-use alpm_types::Architecture;
 use strum::{EnumString, VariantNames};
 use winnow::{
     ModalResult,
@@ -308,8 +306,11 @@ impl ClearableValue {
     }
 }
 
-/// A keyword (with an optional [`Architecture`] suffix) of a variable found in the output of the
-/// `alpm-pkgbuild-bridge` script.
+/// A keyword of a variable found in the output of the `alpm-pkgbuild-bridge` script.
+///
+/// The keyword may optionally contain an [alpm-architecture] suffix.
+///
+/// [alpm-architecture]: https://alpm.archlinux.page/specifications/alpm-architecture.7.html
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Keyword {
     /// The name of the keyword.
@@ -330,7 +331,9 @@ impl Display for Keyword {
 }
 
 impl Keyword {
-    /// Creates a [`Keyword`] without an [`Architecture`] suffix from a string.
+    /// Creates a [`Keyword`] without an [alpm-architecture] suffix from a string.
+    ///
+    /// [alpm-architecture]: https://alpm.archlinux.page/specifications/alpm-architecture.7.html
     pub fn simple<T: ToString>(keyword: T) -> Self {
         Self {
             keyword: keyword.to_string(),

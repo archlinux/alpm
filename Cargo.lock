@@ -272,7 +272,6 @@ name = "alpm-pkgbuild"
 version = "0.2.7"
 dependencies = [
  "alpm-parsers",
- "alpm-types",
  "fluent-i18n",
  "log",
  "serde_json",

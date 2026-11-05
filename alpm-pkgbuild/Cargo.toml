@@ -16,7 +16,6 @@ _winnow-debug = ["winnow/debug"]
 
 [dependencies]
 alpm-parsers = { workspace = true, features = ["serde"] }
-alpm-types.workspace = true
 fluent-i18n.workspace = true
 log.workspace = true
 serde_json.workspace = true
