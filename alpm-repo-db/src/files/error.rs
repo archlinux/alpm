@@ -13,7 +13,7 @@ use winnow::error::ParseError;
 pub enum Error {
     /// An [`alpm_common::Error`] occurred.
     #[error(transparent)]
-    AlpmCommon(#[from] alpm_common::Error),
+    AlpmCommon(#[from] crate::alpm_common::Error),
 
     /// One or more invalid paths for a [`RepoFiles`][`crate::files::RepoFiles`] are encountered.
     #[error("{msg}", msg = t!("error-invalid-files-paths", { "message" => message }))]

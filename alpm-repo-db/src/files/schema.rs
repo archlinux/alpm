@@ -4,10 +4,10 @@
 
 use std::{fs::File, io::Read, path::Path};
 
-use alpm_common::FileFormatSchema;
 use fluent_i18n::t;
 
 use crate::{
+    alpm_common::FileFormatSchema,
     alpm_types::{SchemaVersion, semver_version::Version},
     files::{Error, v1::FilesSection},
 };
@@ -53,8 +53,7 @@ impl FileFormatSchema for RepoFilesSchema {
     /// ```
     /// use std::io::Write;
     ///
-    /// use alpm_common::FileFormatSchema;
-    /// use alpm_repo_db::files::RepoFilesSchema;
+    /// use alpm_repo_db::{alpm_common::FileFormatSchema, files::RepoFilesSchema};
     /// use tempfile::NamedTempFile;
     ///
     /// # fn main() -> testresult::TestResult {
@@ -100,8 +99,7 @@ impl FileFormatSchema for RepoFilesSchema {
     /// ```
     /// use std::io::{Seek, SeekFrom, Write};
     ///
-    /// use alpm_common::FileFormatSchema;
-    /// use alpm_repo_db::files::RepoFilesSchema;
+    /// use alpm_repo_db::{alpm_common::FileFormatSchema, files::RepoFilesSchema};
     /// use tempfile::tempfile;
     ///
     /// # fn main() -> testresult::TestResult {
@@ -145,8 +143,7 @@ impl FileFormatSchema for RepoFilesSchema {
     /// # Examples
     ///
     /// ```
-    /// use alpm_common::FileFormatSchema;
-    /// use alpm_repo_db::files::RepoFilesSchema;
+    /// use alpm_repo_db::{alpm_common::FileFormatSchema, files::RepoFilesSchema};
     ///
     /// # fn main() -> Result<(), alpm_repo_db::files::Error> {
     /// let data = r#"%FILES%
