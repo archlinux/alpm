@@ -8,30 +8,30 @@ use std::{
 };
 
 use alpm_parsers::prelude::*;
-use alpm_types::{
-    Architecture,
-    BuildDate,
-    ExtraData,
-    ExtraDataEntry,
-    FullVersion,
-    Group,
-    InstalledSize,
-    License,
-    Name,
-    OptionalDependency,
-    PackageBaseName,
-    PackageDescription,
-    PackageInstallReason,
-    PackageRelation,
-    PackageValidation,
-    Packager,
-    RelationOrSoname,
-    Url,
-};
 use serde_with::{TryFromInto, serde_as};
 
 use crate::{
     Error,
+    alpm_types::{
+        Architecture,
+        BuildDate,
+        ExtraData,
+        ExtraDataEntry,
+        FullVersion,
+        Group,
+        InstalledSize,
+        License,
+        Name,
+        OptionalDependency,
+        PackageBaseName,
+        PackageDescription,
+        PackageInstallReason,
+        PackageRelation,
+        PackageValidation,
+        Packager,
+        RelationOrSoname,
+        Url,
+    },
     desc::{
         DbDescFileV1,
         Section,

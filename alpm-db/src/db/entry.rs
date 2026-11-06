@@ -12,12 +12,12 @@ use std::{
 
 use alpm_common::MetadataFile;
 use alpm_mtree::Mtree;
-use alpm_types::{EntryName, FullVersion, Name};
 use fluent_i18n::t;
 use log::warn;
 use strum::AsRefStr;
 
 use crate::{
+    alpm_types::{EntryName, FullVersion, Name},
     db::{Error, permissions_world_writable},
     desc::DbDescFile,
     files::DbFiles,

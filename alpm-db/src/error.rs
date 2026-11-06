@@ -14,7 +14,7 @@ use crate::desc::SectionKeyword;
 pub enum Error {
     /// An [`alpm_types::Error`].
     #[error("{msg}", msg = t!("error-alpm-types", { "source" => .0.to_string() }))]
-    AlpmTypes(#[from] alpm_types::Error),
+    AlpmTypes(#[from] crate::alpm_types::Error),
 
     /// An [`alpm_mtree::Error`].
     #[error("{msg}", msg = t!("error-alpm-mtree", { "source" => .0.to_string() }))]

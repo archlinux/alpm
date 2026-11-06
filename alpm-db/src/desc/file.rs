@@ -6,11 +6,11 @@ use std::{
 };
 
 use alpm_common::{FileFormatSchema, MetadataFile};
-use alpm_types::{FullVersion, InstalledPackage, Name};
 use fluent_i18n::t;
 
 use crate::{
     Error,
+    alpm_types::{FullVersion, InstalledPackage, Name},
     desc::{DbDescFileV1, DbDescFileV2, DbDescSchema},
 };
 
@@ -86,8 +86,10 @@ impl MetadataFile<DbDescSchema> for DbDescFile {
     /// use std::{fs::File, io::Write};
     ///
     /// use alpm_common::{FileFormatSchema, MetadataFile};
-    /// use alpm_db::desc::{DbDescFile, DbDescSchema};
-    /// use alpm_types::{SchemaVersion, semver_version::Version};
+    /// use alpm_db::{
+    ///     alpm_types::{SchemaVersion, semver_version::Version},
+    ///     desc::{DbDescFile, DbDescSchema},
+    /// };
     ///
     /// # fn main() -> testresult::TestResult {
     /// // Prepare a file with DB desc data (v1)
@@ -174,8 +176,10 @@ impl MetadataFile<DbDescSchema> for DbDescFile {
     /// use std::{fs::File, io::Write};
     ///
     /// use alpm_common::MetadataFile;
-    /// use alpm_db::desc::{DbDescFile, DbDescSchema};
-    /// use alpm_types::{SchemaVersion, semver_version::Version};
+    /// use alpm_db::{
+    ///     alpm_types::{SchemaVersion, semver_version::Version},
+    ///     desc::{DbDescFile, DbDescSchema},
+    /// };
     ///
     /// # fn main() -> testresult::TestResult {
     /// // Prepare a reader with DB desc data (v2)
@@ -262,8 +266,10 @@ impl MetadataFile<DbDescSchema> for DbDescFile {
     ///
     /// ```
     /// use alpm_common::MetadataFile;
-    /// use alpm_db::desc::{DbDescFile, DbDescSchema};
-    /// use alpm_types::{SchemaVersion, semver_version::Version};
+    /// use alpm_db::{
+    ///     alpm_types::{SchemaVersion, semver_version::Version},
+    ///     desc::{DbDescFile, DbDescSchema},
+    /// };
     ///
     /// # fn main() -> testresult::TestResult {
     /// let v1_data = r#"%NAME%

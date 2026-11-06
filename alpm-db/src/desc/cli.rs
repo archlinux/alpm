@@ -2,29 +2,31 @@
 
 use std::path::PathBuf;
 
-use alpm_types::{
-    Architecture,
-    BuildDate,
-    ExtraDataEntry,
-    FullVersion,
-    Group,
-    InstalledSize,
-    License,
-    Name,
-    OptionalDependency,
-    PackageBaseName,
-    PackageDescription,
-    PackageInstallReason,
-    PackageRelation,
-    PackageValidation,
-    Packager,
-    RelationOrSoname,
-    Url,
-};
 use clap::{Args, Parser, Subcommand, ValueEnum};
 use strum::Display;
 
-use crate::desc::schema::DbDescSchema;
+use crate::{
+    alpm_types::{
+        Architecture,
+        BuildDate,
+        ExtraDataEntry,
+        FullVersion,
+        Group,
+        InstalledSize,
+        License,
+        Name,
+        OptionalDependency,
+        PackageBaseName,
+        PackageDescription,
+        PackageInstallReason,
+        PackageRelation,
+        PackageValidation,
+        Packager,
+        RelationOrSoname,
+        Url,
+    },
+    desc::schema::DbDescSchema,
+};
 
 /// The command-line interface handling for `alpm-db-desc`.
 #[derive(Clone, Debug, Parser)]

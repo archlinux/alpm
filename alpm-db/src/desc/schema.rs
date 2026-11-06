@@ -10,10 +10,12 @@ use std::{
 };
 
 use alpm_common::FileFormatSchema;
-use alpm_types::{SchemaVersion, semver_version::Version};
 use fluent_i18n::t;
 
-use crate::Error;
+use crate::{
+    Error,
+    alpm_types::{SchemaVersion, semver_version::Version},
+};
 
 /// An enum describing all valid [alpm-db-desc] schemas.
 ///
@@ -111,8 +113,10 @@ impl FileFormatSchema for DbDescSchema {
     ///
     /// ```
     /// use alpm_common::FileFormatSchema;
-    /// use alpm_db::desc::DbDescSchema;
-    /// use alpm_types::{SchemaVersion, semver_version::Version};
+    /// use alpm_db::{
+    ///     alpm_types::{SchemaVersion, semver_version::Version},
+    ///     desc::DbDescSchema,
+    /// };
     ///
     /// # fn main() -> Result<(), alpm_db::Error> {
     /// let v1_data = r#"%NAME%
