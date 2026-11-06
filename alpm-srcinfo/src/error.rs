@@ -2,14 +2,13 @@
 use std::{path::PathBuf, string::FromUtf8Error};
 
 use alpm_parsers::error::{Input, ParseStack};
-use alpm_pkgbuild::error::Error as PkgbuildError;
 use fluent_i18n::t;
 use thiserror::Error;
 use winnow::error::ParseError;
 
-use crate::pkgbuild_bridge::error::BridgeError;
 #[cfg(doc)]
 use crate::{SourceInfoV1, source_info::parser::SourceInfoContent};
+use crate::{alpm_pkgbuild::Error as PkgbuildError, pkgbuild_bridge::error::BridgeError};
 
 /// The high-level error that can occur when using this crate.
 ///

@@ -6,16 +6,16 @@ use std::{
 };
 
 use alpm_parsers::prelude::*;
-#[cfg(doc)]
-use alpm_pkgbuild::bridge::BridgeOutput;
-use alpm_pkgbuild::bridge::{Keyword, Value};
 use strum::VariantNames;
 use winnow::{
     combinator::{alt, cut_err},
     token::rest,
 };
 
+#[cfg(doc)]
+use crate::alpm_pkgbuild::BridgeOutput;
 use crate::{
+    alpm_pkgbuild::{Keyword, Value},
     alpm_types::{
         Architectures,
         Backup,

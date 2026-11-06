@@ -1,14 +1,16 @@
 //! The error types used in the scope of `alpm-pkgbuild-bridge` output logic.
 
 use alpm_parsers::prelude::*;
-use alpm_pkgbuild::bridge::Keyword;
 use fluent_i18n::t;
 use thiserror::Error;
 use winnow::error::ParseError;
 
 #[cfg(doc)]
 use crate::SourceInfo;
-use crate::alpm_types::{Name, SystemArchitecture};
+use crate::{
+    alpm_pkgbuild::Keyword,
+    alpm_types::{Name, SystemArchitecture},
+};
 
 /// A lower-level error that may occur when converting `alpm-pkgbuild-bridge` script output into the
 /// [`SourceInfo`] format.

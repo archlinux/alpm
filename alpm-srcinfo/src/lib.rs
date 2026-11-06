@@ -44,6 +44,14 @@ pub mod alpm_types {
 pub mod alpm_common {
     pub use alpm_common::{FileFormatSchema, MetadataFile};
 }
+/// Re-exports for types from the [`alpm_pkgbuild`] crate which are part of the public API.
+pub mod alpm_pkgbuild {
+    pub(crate) use alpm_pkgbuild::bridge::{ClearableValue, RawPackageName, Value};
+    pub use alpm_pkgbuild::{
+        Error,
+        bridge::{BridgeOutput, Keyword},
+    };
+}
 
 pub use error::Error;
 pub use schema::SourceInfoSchema;
