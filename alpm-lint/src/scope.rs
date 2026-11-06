@@ -54,8 +54,8 @@ impl Display for ScopedName {
 ///
 /// Scopes are used to determine what lints should be executed based on a specific linting
 /// operation. For example, selecting [`LintScope::SourceInfo`] will run all
-/// [`SourceInfo`](alpm_srcinfo::SourceInfo) specific linting rules. Linting scopes can also be
-/// fully enabled or disabled via configuration files.
+/// [`SourceInfo`](crate::alpm_srcinfo::SourceInfo) specific linting rules. Linting scopes can also
+/// be fully enabled or disabled via configuration files.
 #[derive(Clone, Copy, Debug, PartialEq, StrumDisplay, VariantArray)]
 #[cfg_attr(feature = "cli", derive(ValueEnum))]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]

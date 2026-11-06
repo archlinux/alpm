@@ -5,11 +5,11 @@
 
 use std::collections::BTreeMap;
 
-use alpm_srcinfo::source_info::v1::package::Override;
 use documented::Documented;
 
 use crate::{
     Level,
+    alpm_srcinfo::source_info::v1::package::Override,
     internal_prelude::*,
     issue::SourceInfoIssue,
     lint_rules::source_info::source_info_from_resource,

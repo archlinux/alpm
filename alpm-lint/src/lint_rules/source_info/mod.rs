@@ -2,9 +2,12 @@
 //!
 //! [SRCINFO]: https://alpm.archlinux.page/specifications/SRCINFO.5.html
 
-use alpm_srcinfo::{SourceInfo, SourceInfoV1};
-
-use crate::{Error, LintScope, Resources};
+use crate::{
+    Error,
+    LintScope,
+    Resources,
+    alpm_srcinfo::{SourceInfo, SourceInfoV1},
+};
 
 pub mod duplicate_architecture;
 pub mod invalid_spdx_license;

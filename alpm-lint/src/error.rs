@@ -116,7 +116,7 @@ pub enum Error {
 
     /// `alpm-srcinfo` error.
     #[error(transparent)]
-    SourceInfo(#[from] alpm_srcinfo::Error),
+    SourceInfo(#[from] crate::alpm_srcinfo::Error),
 
     /// `alpm-lint-config` error.
     #[error(transparent)]
