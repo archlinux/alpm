@@ -4,12 +4,12 @@ use std::{collections::BTreeMap, io::Write, path::PathBuf};
 
 use alpm_soname::{
     ElfSonames,
+    alpm_types::{SharedLibraryPrefix, Soname, SonameLookupDirectory, SonameV2},
     cli::{OutputFormat, PackageArgs},
     extract_elf_sonames,
     find_dependencies,
     find_provisions,
 };
-use alpm_types::{SharedLibraryPrefix, Soname, SonameLookupDirectory, SonameV2};
 use fluent_i18n::t;
 use thiserror::Error;
 
