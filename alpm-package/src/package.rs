@@ -10,7 +10,6 @@ use std::{
     str::FromStr,
 };
 
-use alpm_buildinfo::BuildInfo;
 use alpm_compress::tarball::{TarballBuilder, TarballEntries, TarballEntry, TarballReader};
 use fluent_i18n::t;
 use log::debug;
@@ -18,6 +17,7 @@ use log::debug;
 use crate::{
     OutputDir,
     PackageCreationConfig,
+    alpm_buildinfo::BuildInfo,
     alpm_common::{Error as AlpmCommonError, InputPaths, MetadataFile},
     alpm_mtree::Mtree,
     alpm_pkginfo::PackageInfo,

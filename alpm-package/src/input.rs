@@ -6,13 +6,13 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use alpm_buildinfo::BuildInfo;
 use fluent_i18n::t;
 use log::{debug, trace};
 
 #[cfg(doc)]
 use crate::Package;
 use crate::{
+    alpm_buildinfo::BuildInfo,
     alpm_common::{Error as AlpmCommonError, InputPaths, MetadataFile, relative_files},
     alpm_mtree::{Mtree, mtree::v2::MTREE_PATH_PREFIX},
     alpm_pkginfo::PackageInfo,
