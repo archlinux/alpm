@@ -112,7 +112,7 @@ pub enum Error {
 
     /// `alpm-pkginfo` error.
     #[error(transparent)]
-    PackageInfo(#[from] alpm_pkginfo::Error),
+    PackageInfo(#[from] crate::alpm_pkginfo::Error),
 
     /// `alpm-srcinfo` error.
     #[error(transparent)]
