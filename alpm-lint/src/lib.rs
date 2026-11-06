@@ -26,6 +26,10 @@ pub mod alpm_types {
         SRCINFO_FILE_NAME,
     };
 }
+/// Re-exports for types from the [`alpm_pkginfo`] crate which are part of the public API.
+pub mod alpm_pkginfo {
+    pub use alpm_pkginfo::*;
+}
 
 /// Common imports that're required for most linting rule implementations.
 ///
