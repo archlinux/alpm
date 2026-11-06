@@ -104,7 +104,7 @@ pub enum Error {
 
     /// `alpm-buildinfo` error.
     #[error(transparent)]
-    BuildInfo(#[from] alpm_buildinfo::Error),
+    BuildInfo(#[from] crate::alpm_buildinfo::Error),
 
     /// `alpm-pkgbuild` error.
     #[error(transparent)]
