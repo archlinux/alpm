@@ -67,7 +67,7 @@ pub enum Error {
 
     /// ALPM package error
     #[error(transparent)]
-    AlpmPackage(#[from] alpm_package::Error),
+    AlpmPackage(#[from] crate::alpm_package::Error),
 
     /// ELF format handling error
     #[error("{msg}", msg = t!("error-elf-error", {

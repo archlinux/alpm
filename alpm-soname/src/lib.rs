@@ -12,6 +12,10 @@ pub mod alpm_types {
     pub use alpm_types::SharedLibraryPrefix;
     pub use alpm_types::{Error, RelationOrSoname, Soname, SonameLookupDirectory, SonameV2};
 }
+/// Re-exports for types from the [`alpm_package`] crate which are part of the public API.
+pub mod alpm_package {
+    pub use alpm_package::*;
+}
 
 pub use error::Error;
 pub use lookup::{ElfSonames, extract_elf_sonames, find_dependencies, find_provisions};
