@@ -2,12 +2,11 @@
 
 use std::{collections::BTreeMap, fmt};
 
-use alpm_types::SystemArchitecture;
 use colored::{ColoredString, Colorize};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use crate::{Level, LintRule, LintScope};
+use crate::{Level, LintRule, LintScope, alpm_types::SystemArchitecture};
 
 pub mod display;
 

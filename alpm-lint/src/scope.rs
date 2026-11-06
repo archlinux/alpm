@@ -7,14 +7,16 @@ use std::{
     path::Path,
 };
 
-use alpm_types::{MetadataFileName, PKGBUILD_FILE_NAME, SRCINFO_FILE_NAME};
 #[cfg(feature = "cli")]
 use clap::ValueEnum;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use strum::{Display as StrumDisplay, VariantArray};
 
-use crate::Error;
+use crate::{
+    Error,
+    alpm_types::{MetadataFileName, PKGBUILD_FILE_NAME, SRCINFO_FILE_NAME},
+};
 
 /// The fully qualified name of a lint rule.
 ///
@@ -166,9 +168,9 @@ impl LintScope {
             })?;
 
             // Package source repository related scopes
-            if filename == alpm_types::PKGBUILD_FILE_NAME {
+            if filename == PKGBUILD_FILE_NAME {
                 return Ok(LintScope::PackageBuild);
-            } else if filename == alpm_types::SRCINFO_FILE_NAME {
+            } else if filename == SRCINFO_FILE_NAME {
                 return Ok(LintScope::SourceInfo);
             // Package related scopes
             } else if filename == Into::<&'static str>::into(MetadataFileName::BuildInfo) {

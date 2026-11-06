@@ -5,11 +5,11 @@
 
 use std::collections::BTreeMap;
 
-use alpm_types::{Architecture, SystemArchitecture};
 use documented::Documented;
 use strum::VariantNames;
 
 use crate::{
+    alpm_types::{Architecture, SystemArchitecture},
     internal_prelude::*,
     issue::SourceInfoIssue,
     lint_rules::source_info::source_info_from_resource,

@@ -6,9 +6,12 @@ use alpm_buildinfo::BuildInfo;
 use alpm_common::MetadataFile;
 use alpm_pkginfo::PackageInfo;
 use alpm_srcinfo::{SourceInfo, SourceInfoV1};
-use alpm_types::{MetadataFileName, PKGBUILD_FILE_NAME, SRCINFO_FILE_NAME};
 
-use crate::{Error, LintScope};
+use crate::{
+    Error,
+    LintScope,
+    alpm_types::{MetadataFileName, PKGBUILD_FILE_NAME, SRCINFO_FILE_NAME},
+};
 
 /// The resources used by lints during a single lint run.
 // We allow the large enum variant, as we usually only have a single one or at most **very** few

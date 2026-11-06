@@ -3,11 +3,11 @@
 //! [SRCINFO]: https://alpm.archlinux.page/specifications/SRCINFO.5.html
 //! [alpm-package-source-checksum]: https://alpm.archlinux.page/specifications/alpm-package-source-checksum.7.html
 
-use alpm_types::{ChecksumAlgorithm, SystemArchitecture};
 use documented::Documented;
 use strum::VariantArray;
 
 use crate::{
+    alpm_types::{ChecksumAlgorithm, SystemArchitecture},
     internal_prelude::*,
     issue::SourceInfoIssue,
     lint_rules::source_info::source_info_from_resource,
