@@ -16,6 +16,10 @@ pub mod alpm_types {
 pub mod alpm_package {
     pub use alpm_package::*;
 }
+/// Re-exports for types from the [`alpm_pkginfo`] crate which are part of the public API.
+pub mod alpm_pkginfo {
+    pub use alpm_pkginfo::*;
+}
 
 pub use error::Error;
 pub use lookup::{ElfSonames, extract_elf_sonames, find_dependencies, find_provisions};
