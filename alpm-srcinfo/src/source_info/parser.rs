@@ -5,7 +5,15 @@
 use std::str::FromStr;
 
 use alpm_parsers::{iter_str_context, prelude::*};
-use alpm_types::{
+use strum::{EnumString, VariantNames};
+use winnow::{
+    ascii::{alpha1, alphanumeric1, line_ending, multispace0, newline, space0, till_line_ending},
+    combinator::{alt, cut_err, eof, fail, opt, peek, preceded, repeat, repeat_till, terminated},
+    error::{ErrMode, ParserError},
+    token::take_until,
+};
+
+use crate::alpm_types::{
     Architecture,
     Backup,
     Changelog,
@@ -27,13 +35,6 @@ use alpm_types::{
     Source,
     Url,
     digests::{Blake2b512, Crc32Cksum, Md5, Sha1, Sha224, Sha256, Sha384, Sha512},
-};
-use strum::{EnumString, VariantNames};
-use winnow::{
-    ascii::{alpha1, alphanumeric1, line_ending, multispace0, newline, space0, till_line_ending},
-    combinator::{alt, cut_err, eof, fail, opt, peek, preceded, repeat, repeat_till, terminated},
-    error::{ErrMode, ParserError},
-    token::take_until,
 };
 
 /// Recognizes the ` = ` delimiter between keywords.
@@ -81,8 +82,8 @@ fn till_line_end<'a>(input: &mut Input<'a>) -> PResult<'a, &'a str> {
 /// ```
 /// use std::str::FromStr;
 ///
-/// use alpm_srcinfo::source_info::parser::ArchProperty;
-/// use alpm_types::{Sha256Checksum, SystemArchitecture};
+/// use alpm_srcinfo::{alpm_types::SystemArchitecture, source_info::parser::ArchProperty};
+/// use alpm_types::Sha256Checksum;
 ///
 /// # fn main() -> Result<(), alpm_srcinfo::Error> {
 /// let without_architecture = ArchProperty {

@@ -9,10 +9,10 @@ use alpm_srcinfo::{
     SourceInfo,
     SourceInfoSchema,
     SourceInfoV1,
+    alpm_types::Architecture,
     cli::{PackagesOutputFormat, SourceInfoOutputFormat},
     source_info::v1::merged::MergedPackage,
 };
-use alpm_types::Architecture;
 use fluent_i18n::t;
 use thiserror::Error;
 

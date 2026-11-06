@@ -1,13 +1,12 @@
 //! Write implementation for [`SourceInfo`].
 
-use alpm_types::{Architecture, Architectures};
-
 use super::{
     package::{Override, Package, PackageArchitecture},
     package_base::{PackageBase, PackageBaseArchitecture},
 };
 #[cfg(doc)]
 use crate::SourceInfo;
+use crate::alpm_types::{Architecture, Architectures};
 
 /// Pushes a section header to a [`String`].
 ///

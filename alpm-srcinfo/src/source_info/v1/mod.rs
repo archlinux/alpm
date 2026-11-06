@@ -11,10 +11,11 @@ use std::{
 
 use alpm_parsers::prelude::*;
 use alpm_pkgbuild::bridge::BridgeOutput;
-use alpm_types::Architecture;
 use fluent_i18n::t;
 use serde::{Deserialize, Serialize};
 use writer::{pkgbase_section, pkgname_section};
+
+use crate::alpm_types::Architecture;
 
 pub mod merged;
 pub mod package;
@@ -142,8 +143,7 @@ impl SourceInfoV1 {
     /// 2. An [`Error`] is returned if the parsed data is incomplete or otherwise invalid.
     ///
     /// ```rust
-    /// use alpm_srcinfo::SourceInfoV1;
-    /// use alpm_types::{Architecture, Name, PackageRelation};
+    /// use alpm_srcinfo::{SourceInfoV1, alpm_types::{Architecture, Name, PackageRelation}};
     ///
     /// # fn main() -> Result<(), alpm_srcinfo::Error> {
     /// let source_info_data = r#"
@@ -199,8 +199,7 @@ impl SourceInfoV1 {
     /// Get an iterator over all packages
     ///
     /// ```
-    /// use alpm_srcinfo::{MergedPackage, SourceInfoV1};
-    /// use alpm_types::{Name, PackageDescription, PackageRelation, SystemArchitecture};
+    /// use alpm_srcinfo::{MergedPackage, SourceInfoV1, alpm_types::{Name, PackageDescription, PackageRelation, SystemArchitecture}};
     ///
     /// # fn main() -> Result<(), alpm_srcinfo::Error> {
     /// let source_info_data = r#"

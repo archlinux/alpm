@@ -1,26 +1,26 @@
 //! Handling of metadata found in a `pkgname` section of SRCINFO data.
 use std::collections::BTreeMap;
 
-use alpm_types::{
-    Architecture,
-    Architectures,
-    Backup,
-    Changelog,
-    Install,
-    License,
-    MakepkgOption,
-    Name,
-    OptionalDependency,
-    PackageDescription,
-    PackageRelation,
-    RelationOrSoname,
-    SystemArchitecture,
-    Url,
-};
 use serde::{Deserialize, Serialize};
 
 use crate::{
     Error,
+    alpm_types::{
+        Architecture,
+        Architectures,
+        Backup,
+        Changelog,
+        Install,
+        License,
+        MakepkgOption,
+        Name,
+        OptionalDependency,
+        PackageDescription,
+        PackageRelation,
+        RelationOrSoname,
+        SystemArchitecture,
+        Url,
+    },
     source_info::parser::{
         ClearableProperty,
         PackageProperty,
@@ -263,8 +263,7 @@ impl Package {
     /// ```
     /// use std::str::FromStr;
     ///
-    /// use alpm_srcinfo::source_info::v1::package::Package;
-    /// use alpm_types::Name;
+    /// use alpm_srcinfo::{alpm_types::Name, source_info::v1::package::Package};
     ///
     /// # fn main() -> testresult::TestResult {
     ///
