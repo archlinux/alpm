@@ -120,5 +120,5 @@ pub enum Error {
 
     /// `alpm-lint-config` error.
     #[error(transparent)]
-    LintConfig(#[from] alpm_lint_config::Error),
+    LintConfig(#[from] crate::alpm_lint_config::Error),
 }

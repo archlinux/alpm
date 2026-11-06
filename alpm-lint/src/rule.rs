@@ -2,9 +2,15 @@
 
 use std::collections::BTreeMap;
 
-use alpm_lint_config::{LintGroup, LintRuleConfigurationOptionName};
-
-use crate::{Error, Level, LintScope, ScopedName, issue::LintIssue, resources::Resources};
+use crate::{
+    Error,
+    Level,
+    LintScope,
+    ScopedName,
+    alpm_lint_config::{LintGroup, LintRuleConfigurationOptionName},
+    issue::LintIssue,
+    resources::Resources,
+};
 
 /// The trait definition and behavioral description of a lint rule.
 ///

@@ -4,7 +4,7 @@ use std::str::FromStr;
 
 use alpm_lint::{
     Resources,
-    config::LintRuleConfiguration,
+    alpm_lint_config::LintRuleConfiguration,
     lint_rules::source_info::invalid_spdx_license::NotSPDX,
 };
 use alpm_srcinfo::{

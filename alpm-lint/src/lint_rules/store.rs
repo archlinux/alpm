@@ -209,7 +209,7 @@ type BTreeMapRuleIter<'a> = btree_map::Iter<'a, String, Box<dyn LintRule>>;
 /// # Examples
 ///
 /// ```
-/// use alpm_lint::{Level, LintScope, LintStore, config::LintConfiguration};
+/// use alpm_lint::{Level, LintScope, LintStore, alpm_lint_config::LintConfiguration};
 ///
 /// // Build a default config and use it to filter all lints from the store.
 /// let config = LintConfiguration::default();
