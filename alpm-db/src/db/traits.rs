@@ -4,7 +4,7 @@
 
 use std::fmt::Debug;
 
-use alpm_mtree::mtree::MtreeTransfer;
+use alpm_mtree::MtreeTransfer;
 use alpm_types::EntryName;
 
 use crate::{desc::DbDescFile, files::DbFiles};
