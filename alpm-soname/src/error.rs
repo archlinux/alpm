@@ -59,7 +59,7 @@ pub enum Error {
 
     /// ALPM PKGINFO error
     #[error(transparent)]
-    AlpmPkginfo(#[from] alpm_pkginfo::Error),
+    AlpmPkginfo(#[from] crate::alpm_pkginfo::Error),
 
     /// ALPM types error
     #[error(transparent)]
