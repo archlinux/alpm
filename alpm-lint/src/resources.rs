@@ -2,13 +2,13 @@
 
 use std::{fs::metadata, path::Path};
 
-use alpm_buildinfo::BuildInfo;
 use alpm_common::MetadataFile;
 use alpm_srcinfo::{SourceInfo, SourceInfoV1};
 
 use crate::{
     Error,
     LintScope,
+    alpm_buildinfo::BuildInfo,
     alpm_pkginfo::PackageInfo,
     alpm_types::{MetadataFileName, PKGBUILD_FILE_NAME, SRCINFO_FILE_NAME},
 };

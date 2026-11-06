@@ -30,6 +30,10 @@ pub mod alpm_types {
 pub mod alpm_pkginfo {
     pub use alpm_pkginfo::*;
 }
+/// Re-exports for types from the [`alpm_buildinfo`] crate which are part of the public API.
+pub mod alpm_buildinfo {
+    pub use alpm_buildinfo::*;
+}
 
 /// Common imports that're required for most linting rule implementations.
 ///
