@@ -27,6 +27,10 @@ pub mod alpm_common {
     pub use alpm_common::{Error, InputPaths};
     pub(crate) use alpm_common::{MetadataFile, relative_files};
 }
+/// Re-exports for types from the [`alpm_mtree`] crate which are part of the public API.
+pub mod alpm_mtree {
+    pub use alpm_mtree::*;
+}
 
 pub use config::{OutputDir, PackageCreationConfig};
 pub use error::Error;

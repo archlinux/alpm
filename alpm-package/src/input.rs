@@ -7,7 +7,6 @@ use std::{
 };
 
 use alpm_buildinfo::BuildInfo;
-use alpm_mtree::{Mtree, mtree::v2::MTREE_PATH_PREFIX};
 use alpm_pkginfo::PackageInfo;
 use fluent_i18n::t;
 use log::{debug, trace};
@@ -16,6 +15,7 @@ use log::{debug, trace};
 use crate::Package;
 use crate::{
     alpm_common::{Error as AlpmCommonError, InputPaths, MetadataFile, relative_files},
+    alpm_mtree::{Mtree, mtree::v2::MTREE_PATH_PREFIX},
     alpm_types::{
         Architecture,
         FullVersion,

@@ -12,7 +12,6 @@ use std::{
 
 use alpm_buildinfo::BuildInfo;
 use alpm_compress::tarball::{TarballBuilder, TarballEntries, TarballEntry, TarballReader};
-use alpm_mtree::Mtree;
 use alpm_pkginfo::PackageInfo;
 use fluent_i18n::t;
 use log::debug;
@@ -21,6 +20,7 @@ use crate::{
     OutputDir,
     PackageCreationConfig,
     alpm_common::{Error as AlpmCommonError, InputPaths, MetadataFile},
+    alpm_mtree::Mtree,
     alpm_types::{INSTALL_SCRIPTLET_FILE_NAME, MetadataFileName, PackageError, PackageFileName},
 };
 
@@ -551,7 +551,7 @@ impl Iterator for MetadataEntryIterator<'_, '_> {
 /// # };
 /// # use alpm_compress::compression::CompressionSettings;
 /// use alpm_package::alpm_types::MetadataFileName;
-/// # use alpm_mtree::create_mtree_v2_from_input_dir;
+/// # use alpm_package::alpm_mtree::create_mtree_v2_from_input_dir;
 /// use alpm_package::{MetadataEntry, Package, PackageReader};
 ///
 /// # fn main() -> testresult::TestResult {
