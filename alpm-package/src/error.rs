@@ -21,12 +21,6 @@ pub enum Error {
     #[error(transparent)]
     AlpmMtree(#[from] crate::alpm_mtree::Error),
 
-    /// An [`alpm_mtree::mtree::path_validation_error::PathValidationError`].
-    #[error(transparent)]
-    AlpmMtreePathValidation(
-        #[from] crate::alpm_mtree::mtree::path_validation_error::PathValidationError,
-    ),
-
     /// An [`alpm_pkginfo::Error`].
     #[error(transparent)]
     AlpmPackageInfo(#[from] alpm_pkginfo::Error),
