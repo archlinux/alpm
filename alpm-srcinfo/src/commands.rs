@@ -4,11 +4,11 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use alpm_common::MetadataFile;
 use alpm_srcinfo::{
     SourceInfo,
     SourceInfoSchema,
     SourceInfoV1,
+    alpm_common::MetadataFile,
     alpm_types::Architecture,
     cli::{PackagesOutputFormat, SourceInfoOutputFormat},
     source_info::v1::merged::MergedPackage,

@@ -7,12 +7,12 @@ use std::{
     str::FromStr,
 };
 
-use alpm_common::FileFormatSchema;
 use alpm_parsers::prelude::*;
 use fluent_i18n::t;
 
 use crate::{
     Error,
+    alpm_common::FileFormatSchema,
     alpm_types::{SchemaVersion, semver_version::Version},
     source_info::parser::SourceInfoContent,
 };
@@ -97,9 +97,9 @@ impl FileFormatSchema for SourceInfoSchema {
     /// # Examples
     ///
     /// ```
-    /// use alpm_common::FileFormatSchema;
     /// use alpm_srcinfo::{
     ///     SourceInfoSchema,
+    ///     alpm_common::FileFormatSchema,
     ///     alpm_types::{SchemaVersion, semver_version::Version},
     /// };
     ///
