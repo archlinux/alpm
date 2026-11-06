@@ -3,9 +3,6 @@
 use std::{collections::HashMap, str::FromStr};
 
 use alpm_parsers::prelude::*;
-#[cfg(doc)]
-use alpm_pkgbuild::bridge::BridgeOutput;
-use alpm_pkgbuild::bridge::{ClearableValue, Keyword, RawPackageName};
 use strum::VariantNames;
 use winnow::{
     combinator::{alt, cut_err},
@@ -14,7 +11,10 @@ use winnow::{
 };
 
 use super::ensure_no_suffix;
+#[cfg(doc)]
+use crate::alpm_pkgbuild::BridgeOutput;
 use crate::{
+    alpm_pkgbuild::{ClearableValue, Keyword, RawPackageName},
     alpm_types::{
         Architecture,
         Backup,

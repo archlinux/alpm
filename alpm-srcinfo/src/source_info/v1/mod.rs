@@ -10,12 +10,11 @@ use std::{
 };
 
 use alpm_parsers::prelude::*;
-use alpm_pkgbuild::bridge::BridgeOutput;
 use fluent_i18n::t;
 use serde::{Deserialize, Serialize};
 use writer::{pkgbase_section, pkgname_section};
 
-use crate::alpm_types::Architecture;
+use crate::{alpm_pkgbuild::BridgeOutput, alpm_types::Architecture};
 
 pub mod merged;
 pub mod package;

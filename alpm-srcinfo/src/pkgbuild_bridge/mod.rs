@@ -7,13 +7,13 @@ mod package_base;
 use std::collections::HashMap;
 
 use alpm_parsers::prelude::*;
-use alpm_pkgbuild::bridge::{BridgeOutput, Keyword, Value};
 use package::handle_packages;
 use package_base::handle_package_base;
 use winnow::error::{ErrMode, ParseError};
 
 use crate::{
     SourceInfoV1,
+    alpm_pkgbuild::{BridgeOutput, Keyword, Value},
     alpm_types::{Architectures, Name, SystemArchitecture},
     pkgbuild_bridge::error::BridgeError,
 };
