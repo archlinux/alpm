@@ -8,6 +8,7 @@ use std::collections::BTreeMap;
 use documented::Documented;
 
 use crate::{
+    alpm_types::OpenPGPIdentifier,
     internal_prelude::*,
     issue::SourceInfoIssue,
     lint_rules::source_info::source_info_from_resource,
@@ -104,7 +105,7 @@ Use 40-character long OpenPGP fingerprints instead to prevent collision attacks.
 
         // Check PGP identifiers to see if any are key IDs (not fingerprints)
         for identifier in &source_info.base.pgp_fingerprints {
-            if matches!(identifier, alpm_types::OpenPGPIdentifier::OpenPGPKeyId(_)) {
+            if matches!(identifier, OpenPGPIdentifier::OpenPGPKeyId(_)) {
                 issues.push(LintIssue::from_rule(
                     self,
                     SourceInfoIssue::BaseField {

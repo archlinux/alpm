@@ -13,6 +13,20 @@ mod rule;
 mod scope;
 mod utils;
 
+/// Re-exports for types from the [`alpm_types`] crate which are part of the public API.
+pub mod alpm_types {
+    pub use alpm_types::SystemArchitecture;
+    pub(crate) use alpm_types::{
+        Architecture,
+        Architectures,
+        ChecksumAlgorithm,
+        MetadataFileName,
+        OpenPGPIdentifier,
+        PKGBUILD_FILE_NAME,
+        SRCINFO_FILE_NAME,
+    };
+}
+
 /// Common imports that're required for most linting rule implementations.
 ///
 /// This is a convenience prelude module as pretty much all of these imports are used in every
