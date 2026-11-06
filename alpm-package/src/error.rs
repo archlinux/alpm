@@ -23,7 +23,7 @@ pub enum Error {
 
     /// An [`alpm_pkginfo::Error`].
     #[error(transparent)]
-    AlpmPackageInfo(#[from] alpm_pkginfo::Error),
+    AlpmPackageInfo(#[from] crate::alpm_pkginfo::Error),
 
     /// An [`alpm_types::Error`].
     #[error(transparent)]

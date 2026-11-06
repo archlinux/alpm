@@ -12,7 +12,6 @@ use std::{
 
 use alpm_buildinfo::BuildInfo;
 use alpm_compress::tarball::{TarballBuilder, TarballEntries, TarballEntry, TarballReader};
-use alpm_pkginfo::PackageInfo;
 use fluent_i18n::t;
 use log::debug;
 
@@ -21,6 +20,7 @@ use crate::{
     PackageCreationConfig,
     alpm_common::{Error as AlpmCommonError, InputPaths, MetadataFile},
     alpm_mtree::Mtree,
+    alpm_pkginfo::PackageInfo,
     alpm_types::{INSTALL_SCRIPTLET_FILE_NAME, MetadataFileName, PackageError, PackageFileName},
 };
 
