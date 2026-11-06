@@ -2,7 +2,7 @@
 
 use alpm_lint::{
     Resources,
-    config::LintRuleConfiguration,
+    alpm_lint_config::LintRuleConfiguration,
     lint_rules::source_info::no_architecture::NoArchitecture,
 };
 use alpm_srcinfo::SourceInfo;

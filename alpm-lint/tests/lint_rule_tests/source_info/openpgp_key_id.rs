@@ -4,7 +4,7 @@ use std::str::FromStr;
 
 use alpm_lint::{
     Resources,
-    config::LintRuleConfiguration,
+    alpm_lint_config::LintRuleConfiguration,
     lint_rules::source_info::openpgp_key_id::OpenPGPKeyId,
 };
 use alpm_srcinfo::SourceInfo;
