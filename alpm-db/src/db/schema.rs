@@ -11,10 +11,12 @@ use std::{
 };
 
 use alpm_common::FileFormatSchema;
-use alpm_types::{SchemaVersion, semver_version::Version};
 use fluent_i18n::t;
 
-use crate::Error;
+use crate::{
+    Error,
+    alpm_types::{SchemaVersion, semver_version::Version},
+};
 
 /// The current major version supported by this library.
 const VERSION_9: u64 = 9;

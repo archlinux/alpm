@@ -5,26 +5,6 @@
 use std::str::FromStr;
 
 use alpm_parsers::{iter_str_context, prelude::*};
-use alpm_types::{
-    Architecture,
-    BuildDate,
-    ExtraData,
-    ExtraDataEntry,
-    FullVersion,
-    Group,
-    InstalledSize,
-    License,
-    Name,
-    OptionalDependency,
-    PackageBaseName,
-    PackageDescription,
-    PackageInstallReason,
-    PackageRelation,
-    PackageValidation,
-    Packager,
-    RelationOrSoname,
-    Url,
-};
 use strum::{Display, EnumString, VariantNames};
 use winnow::{
     ascii::{line_ending, newline, space0, till_line_ending},
@@ -43,6 +23,27 @@ use winnow::{
     },
     error::ErrMode,
     token::take_while,
+};
+
+use crate::alpm_types::{
+    Architecture,
+    BuildDate,
+    ExtraData,
+    ExtraDataEntry,
+    FullVersion,
+    Group,
+    InstalledSize,
+    License,
+    Name,
+    OptionalDependency,
+    PackageBaseName,
+    PackageDescription,
+    PackageInstallReason,
+    PackageRelation,
+    PackageValidation,
+    Packager,
+    RelationOrSoname,
+    Url,
 };
 
 /// A known section name in an [alpm-db-desc] file.

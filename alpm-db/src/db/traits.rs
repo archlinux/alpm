@@ -5,9 +5,8 @@
 use std::fmt::Debug;
 
 use alpm_mtree::MtreeTransfer;
-use alpm_types::EntryName;
 
-use crate::{desc::DbDescFile, files::DbFiles};
+use crate::{alpm_types::EntryName, desc::DbDescFile, files::DbFiles};
 
 /// An interface for retrieving data for an entry that should be persisted in an [alpm-db].
 ///

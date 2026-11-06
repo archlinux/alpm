@@ -78,8 +78,10 @@ impl MetadataFile<DbFilesSchema> for DbFiles {
     /// use std::io::Write;
     ///
     /// use alpm_common::MetadataFile;
-    /// use alpm_db::files::{DbFiles, DbFilesSchema};
-    /// use alpm_types::{SchemaVersion, semver_version::Version};
+    /// use alpm_db::{
+    ///     alpm_types::{SchemaVersion, semver_version::Version},
+    ///     files::{DbFiles, DbFilesSchema},
+    /// };
     /// use tempfile::NamedTempFile;
     ///
     /// # fn main() -> testresult::TestResult {
@@ -136,8 +138,10 @@ impl MetadataFile<DbFilesSchema> for DbFiles {
     /// use std::io::{Seek, SeekFrom, Write};
     ///
     /// use alpm_common::MetadataFile;
-    /// use alpm_db::files::{DbFiles, DbFilesSchema};
-    /// use alpm_types::{SchemaVersion, semver_version::Version};
+    /// use alpm_db::{
+    ///     alpm_types::{SchemaVersion, semver_version::Version},
+    ///     files::{DbFiles, DbFilesSchema},
+    /// };
     /// use tempfile::tempfile;
     ///
     /// # fn main() -> testresult::TestResult {
@@ -188,8 +192,10 @@ impl MetadataFile<DbFilesSchema> for DbFiles {
     ///
     /// ```
     /// use alpm_common::MetadataFile;
-    /// use alpm_db::files::{DbFiles, DbFilesSchema};
-    /// use alpm_types::{SchemaVersion, semver_version::Version};
+    /// use alpm_db::{
+    ///     alpm_types::{SchemaVersion, semver_version::Version},
+    ///     files::{DbFiles, DbFilesSchema},
+    /// };
     ///
     /// # fn main() -> Result<(), alpm_db::Error> {
     /// let data = r#"%FILES%

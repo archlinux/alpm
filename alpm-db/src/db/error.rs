@@ -4,11 +4,10 @@
 
 use std::{fs::TryLockError, path::PathBuf};
 
-use alpm_types::EntryName;
 use fluent_i18n::t;
 use uuid::Uuid;
 
-use crate::db::DIR_MODE;
+use crate::{alpm_types::EntryName, db::DIR_MODE};
 
 /// The error that can occur when accessing or writing an [alpm-db].
 ///

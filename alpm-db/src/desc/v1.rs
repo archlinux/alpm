@@ -8,27 +8,27 @@ use std::{
 };
 
 use alpm_parsers::prelude::*;
-use alpm_types::{
-    Architecture,
-    BuildDate,
-    FullVersion,
-    Group,
-    InstalledSize,
-    License,
-    Name,
-    OptionalDependency,
-    PackageBaseName,
-    PackageDescription,
-    PackageInstallReason,
-    PackageRelation,
-    PackageValidation,
-    Packager,
-    RelationOrSoname,
-    Url,
-};
 
 use crate::{
     Error,
+    alpm_types::{
+        Architecture,
+        BuildDate,
+        FullVersion,
+        Group,
+        InstalledSize,
+        License,
+        Name,
+        OptionalDependency,
+        PackageBaseName,
+        PackageDescription,
+        PackageInstallReason,
+        PackageRelation,
+        PackageValidation,
+        Packager,
+        RelationOrSoname,
+        Url,
+    },
     desc::{
         DbDescFileV2,
         Section,

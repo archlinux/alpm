@@ -23,19 +23,21 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use alpm_types::EntryName;
 use fluent_i18n::t;
 use log::debug;
 use nix::unistd::{getegid, geteuid};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::db::{
-    DIR_MODE,
-    DatabaseConfig,
-    EntrySource,
-    Error,
-    entry::{EntryComponent, EntryComponentType},
+use crate::{
+    alpm_types::EntryName,
+    db::{
+        DIR_MODE,
+        DatabaseConfig,
+        EntrySource,
+        Error,
+        entry::{EntryComponent, EntryComponentType},
+    },
 };
 
 /// An action item in a transaction plan for an [alpm-db].
