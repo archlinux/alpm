@@ -6,14 +6,13 @@ use std::{
 };
 
 use alpm_compress::compression::CompressionSettings;
-#[cfg(doc)]
-use alpm_pkginfo::PackageInfo;
 use fluent_i18n::t;
 
 #[cfg(doc)]
 use crate::package::Package;
 use crate::{
     alpm_common::Error as AlpmCommonError,
+    alpm_pkginfo::PackageInfo,
     alpm_types::PackageFileName,
     input::PackageInput,
 };
@@ -167,16 +166,16 @@ impl From<&PackageCreationConfig> for PackageFileName {
     fn from(value: &PackageCreationConfig) -> Self {
         Self::new(
             match value.package_input.package_info() {
-                alpm_pkginfo::PackageInfo::V1(package_info) => package_info.pkgname.clone(),
-                alpm_pkginfo::PackageInfo::V2(package_info) => package_info.pkgname.clone(),
+                PackageInfo::V1(package_info) => package_info.pkgname.clone(),
+                PackageInfo::V2(package_info) => package_info.pkgname.clone(),
             },
             match value.package_input.package_info() {
-                alpm_pkginfo::PackageInfo::V1(package_info) => package_info.pkgver.clone(),
-                alpm_pkginfo::PackageInfo::V2(package_info) => package_info.pkgver.clone(),
+                PackageInfo::V1(package_info) => package_info.pkgver.clone(),
+                PackageInfo::V2(package_info) => package_info.pkgver.clone(),
             },
             match value.package_input.package_info() {
-                alpm_pkginfo::PackageInfo::V1(package_info) => package_info.arch.clone(),
-                alpm_pkginfo::PackageInfo::V2(package_info) => package_info.arch.clone(),
+                PackageInfo::V1(package_info) => package_info.arch.clone(),
+                PackageInfo::V2(package_info) => package_info.arch.clone(),
             },
             (&value.compression).into(),
         )
