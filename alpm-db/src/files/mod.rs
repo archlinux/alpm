@@ -8,7 +8,7 @@ pub mod cli;
 mod error;
 mod file;
 mod schema;
-pub mod v1;
+mod v1;
 
 pub use error::Error;
 pub use file::DbFiles;
