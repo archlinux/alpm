@@ -1,33 +1,33 @@
 //! Handling of metadata found in the `pkgbase` section of SRCINFO data.
 use std::collections::BTreeMap;
 
-use alpm_types::{
-    Architecture,
-    Architectures,
-    Epoch,
-    FullVersion,
-    License,
-    MakepkgOption,
-    Name,
-    OpenPGPIdentifier,
-    OptionalDependency,
-    PackageDescription,
-    PackageRelation,
-    PackageRelease,
-    PackageVersion,
-    RelationOrSoname,
-    RelativeFilePath,
-    SkippableChecksum,
-    Source,
-    SystemArchitecture,
-    Url,
-    digests::{Blake2b512, Crc32Cksum, Md5, Sha1, Sha224, Sha256, Sha384, Sha512},
-};
 use serde::{Deserialize, Serialize};
 
 use super::package::PackageArchitecture;
 use crate::{
     Error,
+    alpm_types::{
+        Architecture,
+        Architectures,
+        Epoch,
+        FullVersion,
+        License,
+        MakepkgOption,
+        Name,
+        OpenPGPIdentifier,
+        OptionalDependency,
+        PackageDescription,
+        PackageRelation,
+        PackageRelease,
+        PackageVersion,
+        RelationOrSoname,
+        RelativeFilePath,
+        SkippableChecksum,
+        Source,
+        SystemArchitecture,
+        Url,
+        digests::{Blake2b512, Crc32Cksum, Md5, Sha1, Sha224, Sha256, Sha384, Sha512},
+    },
     source_info::parser::{self, PackageBaseProperty, RawPackageBase, SharedMetaProperty},
 };
 #[cfg(doc)]
@@ -217,8 +217,10 @@ impl PackageBase {
     /// ```
     /// use std::str::FromStr;
     ///
-    /// use alpm_srcinfo::source_info::v1::package_base::PackageBase;
-    /// use alpm_types::{FullVersion, Name};
+    /// use alpm_srcinfo::{
+    ///     alpm_types::{FullVersion, Name},
+    ///     source_info::v1::package_base::PackageBase,
+    /// };
     ///
     /// # fn main() -> testresult::TestResult {
     ///

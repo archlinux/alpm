@@ -1,28 +1,28 @@
 //! Provides fully resolved package metadata derived from SRCINFO data.
-use alpm_types::{
-    Architecture,
-    Architectures,
-    FullVersion,
-    License,
-    MakepkgOption,
-    Name,
-    OpenPGPIdentifier,
-    OptionalDependency,
-    PackageDescription,
-    PackageRelation,
-    RelationOrSoname,
-    RelativeFilePath,
-    SkippableChecksum,
-    Source,
-    Url,
-    digests::{Blake2b512, Crc32Cksum, Md5, Sha1, Sha224, Sha256, Sha384, Sha512},
-};
 use serde::{Deserialize, Serialize};
 
 #[cfg(doc)]
 use crate::source_info::v1::package::Override;
 use crate::{
     SourceInfoV1,
+    alpm_types::{
+        Architecture,
+        Architectures,
+        FullVersion,
+        License,
+        MakepkgOption,
+        Name,
+        OpenPGPIdentifier,
+        OptionalDependency,
+        PackageDescription,
+        PackageRelation,
+        RelationOrSoname,
+        RelativeFilePath,
+        SkippableChecksum,
+        Source,
+        Url,
+        digests::{Blake2b512, Crc32Cksum, Md5, Sha1, Sha224, Sha256, Sha384, Sha512},
+    },
     source_info::v1::{
         package::Package,
         package_base::{PackageBase, PackageBaseArchitecture},

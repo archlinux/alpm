@@ -5,11 +5,15 @@ pub mod v1;
 use std::{fs::File, path::Path, str::FromStr};
 
 use alpm_common::MetadataFile;
-use alpm_types::{SchemaVersion, semver_version::Version};
 use fluent_i18n::t;
 use serde::{Deserialize, Serialize};
 
-use crate::{Error, SourceInfoSchema, SourceInfoV1};
+use crate::{
+    Error,
+    SourceInfoSchema,
+    SourceInfoV1,
+    alpm_types::{SchemaVersion, semver_version::Version},
+};
 
 /// The representation of SRCINFO data.
 ///
@@ -41,8 +45,11 @@ impl MetadataFile<SourceInfoSchema> for SourceInfo {
     /// use std::{fs::File, io::Write};
     ///
     /// use alpm_common::{FileFormatSchema, MetadataFile};
-    /// use alpm_srcinfo::{SourceInfo, SourceInfoSchema};
-    /// use alpm_types::{SchemaVersion, semver_version::Version};
+    /// use alpm_srcinfo::{
+    ///     SourceInfo,
+    ///     SourceInfoSchema,
+    ///     alpm_types::{SchemaVersion, semver_version::Version},
+    /// };
     ///
     /// # fn main() -> testresult::TestResult {
     /// // Prepare a file with SRCINFO data
@@ -109,8 +116,11 @@ impl MetadataFile<SourceInfoSchema> for SourceInfo {
     /// use std::{fs::File, io::Write};
     ///
     /// use alpm_common::MetadataFile;
-    /// use alpm_srcinfo::{SourceInfo, SourceInfoSchema};
-    /// use alpm_types::{SchemaVersion, semver_version::Version};
+    /// use alpm_srcinfo::{
+    ///     SourceInfo,
+    ///     SourceInfoSchema,
+    ///     alpm_types::{SchemaVersion, semver_version::Version},
+    /// };
     ///
     /// # fn main() -> testresult::TestResult {
     /// let srcinfo_file = tempfile::NamedTempFile::new()?;
@@ -177,8 +187,11 @@ impl MetadataFile<SourceInfoSchema> for SourceInfo {
     /// use std::{fs::File, io::Write};
     ///
     /// use alpm_common::MetadataFile;
-    /// use alpm_srcinfo::{SourceInfo, SourceInfoSchema};
-    /// use alpm_types::{SchemaVersion, semver_version::Version};
+    /// use alpm_srcinfo::{
+    ///     SourceInfo,
+    ///     SourceInfoSchema,
+    ///     alpm_types::{SchemaVersion, semver_version::Version},
+    /// };
     ///
     /// # fn main() -> testresult::TestResult {
     /// let srcinfo_data = r#"

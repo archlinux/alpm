@@ -2,13 +2,13 @@
 
 use alpm_parsers::prelude::*;
 use alpm_pkgbuild::bridge::Keyword;
-use alpm_types::{Name, SystemArchitecture};
 use fluent_i18n::t;
 use thiserror::Error;
 use winnow::error::ParseError;
 
 #[cfg(doc)]
 use crate::SourceInfo;
+use crate::alpm_types::{Name, SystemArchitecture};
 
 /// A lower-level error that may occur when converting `alpm-pkgbuild-bridge` script output into the
 /// [`SourceInfo`] format.
@@ -16,7 +16,7 @@ use crate::SourceInfo;
 pub enum BridgeError {
     /// ALPM type parse error
     #[error(transparent)]
-    AlpmType(#[from] alpm_types::Error),
+    AlpmType(#[from] crate::alpm_types::Error),
 
     /// No `pkgname` has been specified.
     #[error("{msg}", msg = t!("error-bridge-no-name"))]
@@ -31,7 +31,7 @@ pub enum BridgeError {
         /// The invalid package name.
         name: String,
         /// The source error.
-        error: alpm_types::Error,
+        error: crate::alpm_types::Error,
     },
 
     /// A `package` function has been declared for a split package, but it is not defined in

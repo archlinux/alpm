@@ -9,28 +9,6 @@ use alpm_parsers::prelude::*;
 #[cfg(doc)]
 use alpm_pkgbuild::bridge::BridgeOutput;
 use alpm_pkgbuild::bridge::{Keyword, Value};
-use alpm_types::{
-    Architectures,
-    Backup,
-    Changelog,
-    Epoch,
-    FullVersion,
-    Install,
-    License,
-    MakepkgOption,
-    Name,
-    OpenPGPIdentifier,
-    OptionalDependency,
-    PackageDescription,
-    PackageRelation,
-    PackageRelease,
-    PackageVersion,
-    RelationOrSoname,
-    SkippableChecksum,
-    Source,
-    SystemArchitecture,
-    Url,
-};
 use strum::VariantNames;
 use winnow::{
     combinator::{alt, cut_err},
@@ -38,6 +16,28 @@ use winnow::{
 };
 
 use crate::{
+    alpm_types::{
+        Architectures,
+        Backup,
+        Changelog,
+        Epoch,
+        FullVersion,
+        Install,
+        License,
+        MakepkgOption,
+        Name,
+        OpenPGPIdentifier,
+        OptionalDependency,
+        PackageDescription,
+        PackageRelation,
+        PackageRelease,
+        PackageVersion,
+        RelationOrSoname,
+        SkippableChecksum,
+        Source,
+        SystemArchitecture,
+        Url,
+    },
     pkgbuild_bridge::{
         ensure_keyword_exists,
         ensure_no_suffix,

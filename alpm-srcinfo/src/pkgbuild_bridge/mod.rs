@@ -8,12 +8,15 @@ use std::collections::HashMap;
 
 use alpm_parsers::prelude::*;
 use alpm_pkgbuild::bridge::{BridgeOutput, Keyword, Value};
-use alpm_types::{Architectures, Name, SystemArchitecture};
 use package::handle_packages;
 use package_base::handle_package_base;
 use winnow::error::{ErrMode, ParseError};
 
-use crate::{SourceInfoV1, pkgbuild_bridge::error::BridgeError};
+use crate::{
+    SourceInfoV1,
+    alpm_types::{Architectures, Name, SystemArchitecture},
+    pkgbuild_bridge::error::BridgeError,
+};
 
 impl TryFrom<BridgeOutput> for SourceInfoV1 {
     type Error = BridgeError;

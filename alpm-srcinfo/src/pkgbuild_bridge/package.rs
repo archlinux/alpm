@@ -6,22 +6,6 @@ use alpm_parsers::prelude::*;
 #[cfg(doc)]
 use alpm_pkgbuild::bridge::BridgeOutput;
 use alpm_pkgbuild::bridge::{ClearableValue, Keyword, RawPackageName};
-use alpm_types::{
-    Architecture,
-    Backup,
-    Changelog,
-    Group,
-    Install,
-    License,
-    MakepkgOption,
-    Name,
-    OptionalDependency,
-    PackageDescription,
-    PackageRelation,
-    RelationOrSoname,
-    SystemArchitecture,
-    Url,
-};
 use strum::VariantNames;
 use winnow::{
     combinator::{alt, cut_err},
@@ -31,6 +15,22 @@ use winnow::{
 
 use super::ensure_no_suffix;
 use crate::{
+    alpm_types::{
+        Architecture,
+        Backup,
+        Changelog,
+        Group,
+        Install,
+        License,
+        MakepkgOption,
+        Name,
+        OptionalDependency,
+        PackageDescription,
+        PackageRelation,
+        RelationOrSoname,
+        SystemArchitecture,
+        Url,
+    },
     pkgbuild_bridge::error::BridgeError,
     source_info::{
         parser::{RelationKeyword, SharedMetaKeyword},

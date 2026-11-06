@@ -1,10 +1,9 @@
 //! Commandline argument handling.
 use std::path::PathBuf;
 
-use alpm_types::Architecture;
 use clap::{Parser, Subcommand};
 
-use crate::SourceInfoSchema;
+use crate::{SourceInfoSchema, alpm_types::Architecture};
 
 /// The command-line interface handling for `alpm-srcinfo`.
 #[derive(Clone, Debug, Parser)]
