@@ -10,11 +10,11 @@ use std::{
     str::FromStr,
 };
 
-use alpm_common::FileFormatSchema;
 use fluent_i18n::t;
 
 use crate::{
     Error,
+    alpm_common::FileFormatSchema,
     alpm_types::{SchemaVersion, semver_version::Version},
 };
 
