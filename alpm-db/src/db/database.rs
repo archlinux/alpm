@@ -831,7 +831,7 @@ mod tests {
         use std::{io::Write, str::FromStr};
 
         use alpm_common::MetadataFile;
-        use alpm_mtree::mtree::MtreeTransfer;
+        use alpm_mtree::MtreeTransfer;
         use alpm_types::{
             Architecture,
             EntryName,
