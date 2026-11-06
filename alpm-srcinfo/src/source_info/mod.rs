@@ -4,7 +4,6 @@ pub mod v1;
 
 use std::{fs::File, path::Path, str::FromStr};
 
-use alpm_common::MetadataFile;
 use fluent_i18n::t;
 use serde::{Deserialize, Serialize};
 
@@ -12,6 +11,7 @@ use crate::{
     Error,
     SourceInfoSchema,
     SourceInfoV1,
+    alpm_common::MetadataFile,
     alpm_types::{SchemaVersion, semver_version::Version},
 };
 
@@ -44,10 +44,10 @@ impl MetadataFile<SourceInfoSchema> for SourceInfo {
     /// ```
     /// use std::{fs::File, io::Write};
     ///
-    /// use alpm_common::{FileFormatSchema, MetadataFile};
     /// use alpm_srcinfo::{
     ///     SourceInfo,
     ///     SourceInfoSchema,
+    ///     alpm_common::{FileFormatSchema, MetadataFile},
     ///     alpm_types::{SchemaVersion, semver_version::Version},
     /// };
     ///
@@ -115,10 +115,10 @@ impl MetadataFile<SourceInfoSchema> for SourceInfo {
     /// ```
     /// use std::{fs::File, io::Write};
     ///
-    /// use alpm_common::MetadataFile;
     /// use alpm_srcinfo::{
     ///     SourceInfo,
     ///     SourceInfoSchema,
+    ///     alpm_common::MetadataFile,
     ///     alpm_types::{SchemaVersion, semver_version::Version},
     /// };
     ///
@@ -186,10 +186,10 @@ impl MetadataFile<SourceInfoSchema> for SourceInfo {
     /// ```
     /// use std::{fs::File, io::Write};
     ///
-    /// use alpm_common::MetadataFile;
     /// use alpm_srcinfo::{
     ///     SourceInfo,
     ///     SourceInfoSchema,
+    ///     alpm_common::MetadataFile,
     ///     alpm_types::{SchemaVersion, semver_version::Version},
     /// };
     ///
