@@ -5,7 +5,6 @@
 #[cfg(feature = "cli")]
 #[doc(hidden)]
 pub mod cli;
-
 mod error;
 mod schema;
 pub mod v1;
