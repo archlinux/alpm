@@ -5,11 +5,11 @@ use std::{
     str::FromStr,
 };
 
-use alpm_common::{FileFormatSchema, MetadataFile};
 use fluent_i18n::t;
 
 use crate::{
     Error,
+    alpm_common::{FileFormatSchema, MetadataFile},
     alpm_types::{FullVersion, InstalledPackage, Name},
     desc::{DbDescFileV1, DbDescFileV2, DbDescSchema},
 };
@@ -85,8 +85,8 @@ impl MetadataFile<DbDescSchema> for DbDescFile {
     /// ```
     /// use std::{fs::File, io::Write};
     ///
-    /// use alpm_common::{FileFormatSchema, MetadataFile};
     /// use alpm_db::{
+    ///     alpm_common::{FileFormatSchema, MetadataFile},
     ///     alpm_types::{SchemaVersion, semver_version::Version},
     ///     desc::{DbDescFile, DbDescSchema},
     /// };
@@ -175,8 +175,8 @@ impl MetadataFile<DbDescSchema> for DbDescFile {
     /// ```
     /// use std::{fs::File, io::Write};
     ///
-    /// use alpm_common::MetadataFile;
     /// use alpm_db::{
+    ///     alpm_common::MetadataFile,
     ///     alpm_types::{SchemaVersion, semver_version::Version},
     ///     desc::{DbDescFile, DbDescSchema},
     /// };
@@ -265,8 +265,8 @@ impl MetadataFile<DbDescSchema> for DbDescFile {
     /// # Examples
     ///
     /// ```
-    /// use alpm_common::MetadataFile;
     /// use alpm_db::{
+    ///     alpm_common::MetadataFile,
     ///     alpm_types::{SchemaVersion, semver_version::Version},
     ///     desc::{DbDescFile, DbDescSchema},
     /// };

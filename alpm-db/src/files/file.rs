@@ -10,10 +10,10 @@ use std::{
     str::FromStr,
 };
 
-use alpm_common::{FileFormatSchema, MetadataFile};
 use fluent_i18n::t;
 
 use super::{BackupEntry, DbFilesSchema, DbFilesV1};
+use crate::alpm_common::{FileFormatSchema, MetadataFile};
 
 /// The representation of [alpm-db-files] data.
 ///
@@ -77,8 +77,8 @@ impl MetadataFile<DbFilesSchema> for DbFiles {
     /// ```
     /// use std::io::Write;
     ///
-    /// use alpm_common::MetadataFile;
     /// use alpm_db::{
+    ///     alpm_common::MetadataFile,
     ///     alpm_types::{SchemaVersion, semver_version::Version},
     ///     files::{DbFiles, DbFilesSchema},
     /// };
@@ -137,8 +137,8 @@ impl MetadataFile<DbFilesSchema> for DbFiles {
     /// ```
     /// use std::io::{Seek, SeekFrom, Write};
     ///
-    /// use alpm_common::MetadataFile;
     /// use alpm_db::{
+    ///     alpm_common::MetadataFile,
     ///     alpm_types::{SchemaVersion, semver_version::Version},
     ///     files::{DbFiles, DbFilesSchema},
     /// };
@@ -191,8 +191,8 @@ impl MetadataFile<DbFilesSchema> for DbFiles {
     /// # Examples
     ///
     /// ```
-    /// use alpm_common::MetadataFile;
     /// use alpm_db::{
+    ///     alpm_common::MetadataFile,
     ///     alpm_types::{SchemaVersion, semver_version::Version},
     ///     files::{DbFiles, DbFilesSchema},
     /// };

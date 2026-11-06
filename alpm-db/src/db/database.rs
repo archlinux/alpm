@@ -8,13 +8,13 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use alpm_common::FileFormatSchema;
 use alpm_mtree::Mtree;
 use fluent_i18n::t;
 use log::{debug, trace, warn};
 use nix::unistd::{getegid, geteuid};
 
 use crate::{
+    alpm_common::FileFormatSchema,
     alpm_types::InstalledPackage,
     db::{Action, DIR_MODE, DbSchema, Entry, Error, Transaction, permissions_world_writable},
     desc::DbDescFile,

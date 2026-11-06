@@ -9,7 +9,7 @@ use fluent_i18n::t;
 pub enum Error {
     /// An [`alpm_common::Error`] occurred.
     #[error(transparent)]
-    AlpmCommon(#[from] alpm_common::Error),
+    AlpmCommon(#[from] crate::alpm_common::Error),
 
     /// One or more invalid paths for a [`DbFiles`][`crate::files::DbFiles`] are encountered.
     #[error("{msg}", msg = t!("error-invalid-files-paths", { "message" => message }))]
