@@ -10,21 +10,23 @@ use alpm_buildinfo::BuildInfo;
 use alpm_common::{InputPaths, MetadataFile, relative_files};
 use alpm_mtree::{Mtree, mtree::v2::MTREE_PATH_PREFIX};
 use alpm_pkginfo::PackageInfo;
-use alpm_types::{
-    Architecture,
-    FullVersion,
-    INSTALL_SCRIPTLET_FILE_NAME,
-    MetadataFileName,
-    Name,
-    Packager,
-    Sha256Checksum,
-};
 use fluent_i18n::t;
 use log::{debug, trace};
 
 #[cfg(doc)]
 use crate::Package;
-use crate::scriptlet::check_scriptlet;
+use crate::{
+    alpm_types::{
+        Architecture,
+        FullVersion,
+        INSTALL_SCRIPTLET_FILE_NAME,
+        MetadataFileName,
+        Name,
+        Packager,
+        Sha256Checksum,
+    },
+    scriptlet::check_scriptlet,
+};
 
 /// A single key-value pair from a type of [alpm-package] metadata file.
 ///
