@@ -2,8 +2,9 @@
 
 use std::{path::PathBuf, string::FromUtf8Error};
 
-use alpm_types::MetadataFileName;
 use fluent_i18n::t;
+
+use crate::alpm_types::MetadataFileName;
 
 /// An error that can occur when dealing with alpm-package.
 #[derive(Debug, thiserror::Error)]
@@ -30,11 +31,11 @@ pub enum Error {
 
     /// An [`alpm_types::Error`].
     #[error(transparent)]
-    AlpmTypes(#[from] alpm_types::Error),
+    AlpmTypes(#[from] crate::alpm_types::Error),
 
     /// An [`alpm_types::PackageError`].
     #[error(transparent)]
-    AlpmTypesPackage(#[from] alpm_types::PackageError),
+    AlpmTypesPackage(#[from] crate::alpm_types::PackageError),
 
     /// An [`alpm_compress::Error`].
     #[error(transparent)]
