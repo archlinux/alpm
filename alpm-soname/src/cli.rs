@@ -2,8 +2,9 @@
 
 use std::path::PathBuf;
 
-use alpm_types::SonameLookupDirectory;
 use clap::{Parser, Subcommand, ValueEnum};
+
+use crate::alpm_types::SonameLookupDirectory;
 
 /// Command line argument handling for the `alpm-soname` executable.
 #[derive(Clone, Debug, Parser)]

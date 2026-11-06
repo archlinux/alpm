@@ -63,7 +63,7 @@ pub enum Error {
 
     /// ALPM types error
     #[error(transparent)]
-    AlpmType(#[from] alpm_types::Error),
+    AlpmType(#[from] crate::alpm_types::Error),
 
     /// ALPM package error
     #[error(transparent)]
