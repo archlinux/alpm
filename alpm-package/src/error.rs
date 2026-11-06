@@ -11,7 +11,7 @@ use crate::alpm_types::MetadataFileName;
 pub enum Error {
     /// An [`alpm_buildinfo::Error`].
     #[error(transparent)]
-    AlpmBuildInfo(#[from] alpm_buildinfo::Error),
+    AlpmBuildInfo(#[from] crate::alpm_buildinfo::Error),
 
     /// An [`alpm_common::Error`].
     #[error(transparent)]

@@ -35,6 +35,10 @@ pub mod alpm_mtree {
 pub mod alpm_pkginfo {
     pub use alpm_pkginfo::*;
 }
+/// Re-exports for types from the [`alpm_buildinfo`] crate which are part of the public API.
+pub mod alpm_buildinfo {
+    pub use alpm_buildinfo::*;
+}
 
 pub use config::{OutputDir, PackageCreationConfig};
 pub use error::Error;
