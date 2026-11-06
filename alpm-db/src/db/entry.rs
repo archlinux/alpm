@@ -10,13 +10,13 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use alpm_mtree::Mtree;
 use fluent_i18n::t;
 use log::warn;
 use strum::AsRefStr;
 
 use crate::{
     alpm_common::MetadataFile,
+    alpm_mtree::Mtree,
     alpm_types::{EntryName, FullVersion, Name},
     db::{Error, permissions_world_writable},
     desc::DbDescFile,

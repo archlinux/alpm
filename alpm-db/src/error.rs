@@ -18,7 +18,7 @@ pub enum Error {
 
     /// An [`alpm_mtree::Error`].
     #[error("{msg}", msg = t!("error-alpm-mtree", { "source" => .0.to_string() }))]
-    AlpmMtree(#[from] alpm_mtree::Error),
+    AlpmMtree(#[from] crate::alpm_mtree::Error),
 
     /// A database error.
     #[error("{msg}", msg = t!("error-database", { "source" => .0.to_string() }))]
