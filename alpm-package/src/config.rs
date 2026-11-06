@@ -12,7 +12,11 @@ use fluent_i18n::t;
 
 #[cfg(doc)]
 use crate::package::Package;
-use crate::{alpm_types::PackageFileName, input::PackageInput};
+use crate::{
+    alpm_common::Error as AlpmCommonError,
+    alpm_types::PackageFileName,
+    input::PackageInput,
+};
 
 /// An output directory that is guaranteed to be an absolute, writable directory.
 #[derive(Clone, Debug)]
@@ -35,7 +39,7 @@ impl OutputDir {
     /// - or `path` is only read-only.
     pub fn new(path: PathBuf) -> Result<Self, crate::Error> {
         if !path.is_absolute() {
-            return Err(alpm_common::Error::NonAbsolutePaths {
+            return Err(AlpmCommonError::NonAbsolutePaths {
                 paths: vec![path.clone()],
             }
             .into());
@@ -56,7 +60,7 @@ impl OutputDir {
         })?;
 
         if !metadata.is_dir() {
-            return Err(alpm_common::Error::NotADirectory { path: path.clone() }.into());
+            return Err(AlpmCommonError::NotADirectory { path: path.clone() }.into());
         }
 
         if metadata.permissions().readonly() {
@@ -206,7 +210,7 @@ mod tests {
         assert!(matches!(
             OutputDir::new(PathBuf::from("test")),
             Err(crate::Error::AlpmCommon(
-                alpm_common::Error::NonAbsolutePaths { paths: _ }
+                AlpmCommonError::NonAbsolutePaths { paths: _ }
             ))
         ));
 
@@ -215,9 +219,9 @@ mod tests {
         let _file = File::create(&file_path)?;
         assert!(matches!(
             OutputDir::new(file_path),
-            Err(crate::Error::AlpmCommon(
-                alpm_common::Error::NotADirectory { path: _ }
-            ))
+            Err(crate::Error::AlpmCommon(AlpmCommonError::NotADirectory {
+                path: _
+            }))
         ));
 
         Ok(())
