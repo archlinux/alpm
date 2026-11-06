@@ -1,7 +1,6 @@
 //! Package lookup handling
 use std::{io::Read, path::PathBuf, str::FromStr};
 
-use alpm_package::Package;
 use alpm_pkginfo::PackageInfo;
 use fluent_i18n::t;
 use goblin::{Hint, Object};
@@ -10,6 +9,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     Error,
+    alpm_package::Package,
     alpm_types::{RelationOrSoname, Soname, SonameLookupDirectory, SonameV2},
 };
 
