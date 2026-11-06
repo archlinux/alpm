@@ -172,7 +172,6 @@ dependencies = [
  "alpm-buildinfo",
  "alpm-common",
  "alpm-lint-config",
- "alpm-pkgbuild",
  "alpm-pkginfo",
  "alpm-srcinfo",
  "alpm-types",

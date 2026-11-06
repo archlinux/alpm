@@ -25,7 +25,6 @@ serde = ["dep:serde", "dep:serde_json"]
 alpm-buildinfo.workspace = true
 alpm-common.workspace = true
 alpm-lint-config.workspace = true
-alpm-pkgbuild.workspace = true
 alpm-pkginfo.workspace = true
 alpm-srcinfo.workspace = true
 alpm-types.workspace = true
