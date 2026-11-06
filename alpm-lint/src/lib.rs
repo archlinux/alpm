@@ -44,6 +44,10 @@ pub mod alpm_lint_config {
         LintRuleConfigurationOptionName,
     };
 }
+/// Re-exports for types from the [`alpm_srcinfo`] crate which are part of the public API.
+pub mod alpm_srcinfo {
+    pub use alpm_srcinfo::*;
+}
 
 /// Common imports that're required for most linting rule implementations.
 ///
