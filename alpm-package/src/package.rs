@@ -11,7 +11,6 @@ use std::{
 };
 
 use alpm_buildinfo::BuildInfo;
-use alpm_common::{InputPaths, MetadataFile};
 use alpm_compress::tarball::{TarballBuilder, TarballEntries, TarballEntry, TarballReader};
 use alpm_mtree::Mtree;
 use alpm_pkginfo::PackageInfo;
@@ -21,6 +20,7 @@ use log::debug;
 use crate::{
     OutputDir,
     PackageCreationConfig,
+    alpm_common::{Error as AlpmCommonError, InputPaths, MetadataFile},
     alpm_types::{INSTALL_SCRIPTLET_FILE_NAME, MetadataFileName, PackageError, PackageFileName},
 };
 
@@ -69,7 +69,7 @@ impl ExistingAbsoluteDir {
     /// - or `path` is not a directory.
     pub fn new(path: PathBuf) -> Result<Self, crate::Error> {
         if !path.is_absolute() {
-            return Err(alpm_common::Error::NonAbsolutePaths {
+            return Err(AlpmCommonError::NonAbsolutePaths {
                 paths: vec![path.clone()],
             }
             .into());
@@ -90,7 +90,7 @@ impl ExistingAbsoluteDir {
         })?;
 
         if !metadata.is_dir() {
-            return Err(alpm_common::Error::NotADirectory { path: path.clone() }.into());
+            return Err(AlpmCommonError::NotADirectory { path: path.clone() }.into());
         }
 
         Ok(Self(path))
@@ -1230,7 +1230,7 @@ mod tests {
         if let Err(error) = ExistingAbsoluteDir::new(PathBuf::from("test")) {
             assert!(matches!(
                 error,
-                crate::Error::AlpmCommon(alpm_common::Error::NonAbsolutePaths { paths: _ })
+                crate::Error::AlpmCommon(AlpmCommonError::NonAbsolutePaths { paths: _ })
             ));
         } else {
             panic!("Succeeded although it should have failed");
@@ -1241,7 +1241,7 @@ mod tests {
         if let Err(error) = ExistingAbsoluteDir::new(path.to_path_buf()) {
             assert!(matches!(
                 error,
-                crate::Error::AlpmCommon(alpm_common::Error::NotADirectory { path: _ })
+                crate::Error::AlpmCommon(AlpmCommonError::NotADirectory { path: _ })
             ));
         } else {
             panic!("Succeeded although it should have failed");

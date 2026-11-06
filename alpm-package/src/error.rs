@@ -15,7 +15,7 @@ pub enum Error {
 
     /// An [`alpm_common::Error`].
     #[error(transparent)]
-    AlpmCommon(#[from] alpm_common::Error),
+    AlpmCommon(#[from] crate::alpm_common::Error),
 
     /// An [`alpm_mtree::Error`].
     #[error(transparent)]

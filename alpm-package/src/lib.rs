@@ -22,6 +22,11 @@ pub mod alpm_types {
         Sha256Checksum,
     };
 }
+/// Re-exports for types and traits from the [`alpm_common`] crate which are part of the public API.
+pub mod alpm_common {
+    pub use alpm_common::{Error, InputPaths};
+    pub(crate) use alpm_common::{MetadataFile, relative_files};
+}
 
 pub use config::{OutputDir, PackageCreationConfig};
 pub use error::Error;

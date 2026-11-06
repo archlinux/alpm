@@ -7,7 +7,6 @@ use std::{
 };
 
 use alpm_buildinfo::BuildInfo;
-use alpm_common::{InputPaths, MetadataFile, relative_files};
 use alpm_mtree::{Mtree, mtree::v2::MTREE_PATH_PREFIX};
 use alpm_pkginfo::PackageInfo;
 use fluent_i18n::t;
@@ -16,6 +15,7 @@ use log::{debug, trace};
 #[cfg(doc)]
 use crate::Package;
 use crate::{
+    alpm_common::{Error as AlpmCommonError, InputPaths, MetadataFile, relative_files},
     alpm_types::{
         Architecture,
         FullVersion,
@@ -127,7 +127,7 @@ impl InputDir {
     /// - or `path` is not a directory.
     pub fn new(path: PathBuf) -> Result<Self, crate::Error> {
         if !path.is_absolute() {
-            return Err(alpm_common::Error::NonAbsolutePaths {
+            return Err(AlpmCommonError::NonAbsolutePaths {
                 paths: vec![path.clone()],
             }
             .into());
@@ -138,7 +138,7 @@ impl InputDir {
         }
 
         if !path.is_dir() {
-            return Err(alpm_common::Error::NotADirectory { path: path.clone() }.into());
+            return Err(AlpmCommonError::NotADirectory { path: path.clone() }.into());
         }
 
         Ok(Self(path))
@@ -712,7 +712,7 @@ mod tests {
         assert!(matches!(
             InputDir::new(PathBuf::from("test")),
             Err(crate::Error::AlpmCommon(
-                alpm_common::Error::NonAbsolutePaths { paths: _ }
+                AlpmCommonError::NonAbsolutePaths { paths: _ }
             ))
         ));
 
@@ -727,9 +727,9 @@ mod tests {
         let _file = File::create(&file_path)?;
         assert!(matches!(
             InputDir::new(file_path),
-            Err(crate::Error::AlpmCommon(
-                alpm_common::Error::NotADirectory { path: _ }
-            ))
+            Err(crate::Error::AlpmCommon(AlpmCommonError::NotADirectory {
+                path: _
+            }))
         ));
 
         Ok(())
