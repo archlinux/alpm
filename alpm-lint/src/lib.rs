@@ -13,15 +13,6 @@ mod rule;
 mod scope;
 mod utils;
 
-pub use crate::{
-    error::Error,
-    level::Level,
-    lint_rules::store::LintStore,
-    resources::Resources,
-    rule::LintRule,
-    scope::{LintScope, ScopedName},
-};
-
 /// Common imports that're required for most linting rule implementations.
 ///
 /// This is a convenience prelude module as pretty much all of these imports are used in every
@@ -48,3 +39,12 @@ pub mod config {
         LintRuleConfigurationOption,
     };
 }
+
+pub use crate::{
+    error::Error,
+    level::Level,
+    lint_rules::store::LintStore,
+    resources::Resources,
+    rule::LintRule,
+    scope::{LintScope, ScopedName},
+};
