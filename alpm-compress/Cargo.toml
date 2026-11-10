@@ -33,6 +33,7 @@ testresult.workspace = true
 [features]
 default = ["serde"]
 serde = ["dep:serde"]
+static = ["liblzma/static"]
 
 [lints]
 workspace = true

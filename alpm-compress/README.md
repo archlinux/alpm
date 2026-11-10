@@ -30,9 +30,9 @@ In addition, it provides utilities to create and read tar archives:
 use std::{fs::File, io::Write};
 
 use alpm_compress::compression::{
-    CompressionEncoder, 
-    CompressionSettings, 
-    ZstdThreads, 
+    CompressionEncoder,
+    CompressionSettings,
+    ZstdThreads,
     ZstdCompressionLevel
 };
 use tempfile::tempfile;
@@ -53,16 +53,16 @@ let _file = encoder.finish()?; // retrieve the inner File when done
 ```
 
 Compression settings default to zstd compression, but you can select other algorithms and levels.
-Since compression is optional via `None` variant, this library provides unified API to read and write both 
+Since compression is optional via `None` variant, this library provides unified API to read and write both
 compressed and uncompressed files, including tar archives.
 
 ```rust
 use alpm_compress::compression::{
     CompressionSettings,
-    Bzip2CompressionLevel, 
-    GzipCompressionLevel, 
-    XzCompressionLevel, 
-    ZstdCompressionLevel, 
+    Bzip2CompressionLevel,
+    GzipCompressionLevel,
+    XzCompressionLevel,
+    ZstdCompressionLevel,
     ZstdThreads,
 };
 
@@ -96,7 +96,7 @@ let mut file = tempfile()?;
 # // Create an encoder that writes zstd-compressed data to a file.
 # use alpm_compress::compression::{CompressionEncoder, CompressionSettings, ZstdThreads, ZstdCompressionLevel};
 # use std::io::{Write, Seek};
-# 
+#
 # let settings = CompressionSettings::Zstd {
 #     compression_level: ZstdCompressionLevel::default(),
 #     threads: ZstdThreads::default(),
@@ -127,14 +127,14 @@ use std::io::Write;
 
 # fn main() -> testresult::TestResult {
 let mut tarball = NamedTempFile::with_suffix(".tar.zst")?;
-    
+
 let settings = CompressionSettings::Zstd {
     compression_level: ZstdCompressionLevel::default(),
     threads: ZstdThreads::default(),
 };
-    
+
 let mut builder = TarballBuilder::new(tarball.reopen()?, &settings)?;
-    
+
 // Create a temporary file to add to the tarball.
 let inner_file = NamedTempFile::new()?;
 {
@@ -147,7 +147,7 @@ let inner_file = NamedTempFile::new()?;
 builder
     .inner_mut()
     .append_path_with_name(inner_file.path(), "some_file.txt")?;
-    
+
 builder.finish()?;
 # Ok(())
 # }
@@ -170,7 +170,7 @@ use tempfile::NamedTempFile;
 #     f.flush()?;
 # }
 let archive = NamedTempFile::with_suffix(".tar.zst")?;
-    
+
 // [..] Create a zstd-compressed tarball containing a file named "some_file.txt"
 # let settings = CompressionSettings::Zstd {
 #     compression_level: ZstdCompressionLevel::default(),
@@ -190,7 +190,7 @@ let mut reader = TarballReader::try_from(archive.path())?;
 let entry = reader.read_entry("some_file.txt")?;
 
 assert!(entry.is_some());
-    
+
 let content = entry.unwrap().content()?;
 
 assert_eq!(content, b"alpm4ever");
@@ -201,6 +201,7 @@ assert_eq!(content, b"alpm4ever");
 ## Features
 
 - `serde` enables `Serialize` and `Deserialize` traits for types that are likely to be used in configuration files. Default: `true`
+- `static` compiles all dependency statically against the target. Default: `false`
 
 ## Contributing
 
