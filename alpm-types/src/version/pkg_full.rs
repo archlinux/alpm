@@ -190,8 +190,16 @@ impl AlpmParser for FullVersion {
 }
 
 impl Display for FullVersion {
+    /// Formats the [`FullVersion`].
+    ///
+    /// # Note
+    ///
+    /// If an [`Epoch`] exists, it is only written, if its value is not `0` (the value `0` is the
+    /// implied default and not shown).
     fn fmt(&self, fmt: &mut Formatter) -> std::fmt::Result {
-        if let Some(epoch) = self.epoch {
+        if let Some(epoch) = self.epoch
+            && epoch.0 != 0
+        {
             write!(fmt, "{epoch}:")?;
         }
         write!(fmt, "{}-{}", self.pkgver, self.pkgrel)?;
