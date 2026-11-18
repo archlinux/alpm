@@ -59,6 +59,11 @@ impl Epoch {
     pub fn new(epoch: usize) -> Self {
         Epoch(epoch)
     }
+
+    /// Returns `true`, if the value of the [`Epoch`] is zero.
+    pub fn is_zero(&self) -> bool {
+        self.0 == 0
+    }
 }
 
 impl AlpmParser for Epoch {
