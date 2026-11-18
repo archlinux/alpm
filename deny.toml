@@ -7,6 +7,8 @@ ignore = [
     # However, beyond tests we are not operating on private key material at all.
     # The rpgp crate currently depends on the older set of rustcrypto releases, because that ecosystem is stuck in endless release mode (see also https://github.com/rpgp/rpgp/pull/573)
     "RUSTSEC-2026-0387",
+    # The rpgpie crate currently still relies on chrono, which is unmaintained for now.
+    "RUSTSEC-2026-0543",
 ]
 version = 2
 yanked = "deny"
