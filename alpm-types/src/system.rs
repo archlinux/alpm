@@ -1,4 +1,7 @@
+#[cfg(target_arch = "x86_64")]
+use std::arch::is_x86_feature_detected as has;
 use std::{
+    env::consts::ARCH,
     fmt::{Display, Formatter},
     str::FromStr,
 };
@@ -95,6 +98,114 @@ pub enum SystemArchitecture {
     #[strum(transparent)]
     #[cfg_attr(feature = "serde", serde(untagged))]
     Unknown(UnknownArchitecture),
+}
+
+impl SystemArchitecture {
+    /// Returns the [`SystemArchitecture`] this binary has been compiled for.
+    ///
+    /// This effectively maps Rust's [`std::env::consts::ARCH`] onto a [`SystemArchitecture`].
+    ///
+    /// The following architecture mappings exist:
+    ///
+    /// | Rust          | [`SystemArchitecture`]              |
+    /// | ------------- | ----------------------------------- |
+    /// | `aarch64`     | [`SystemArchitecture::Aarch64`]     |
+    /// | `arm`         | [`SystemArchitecture::Arm`]         |
+    /// | `loongarch64` | [`SystemArchitecture::Loong64`]     |
+    /// | `riscv32`     | [`SystemArchitecture::Riscv32`]     |
+    /// | `riscv64`     | [`SystemArchitecture::Riscv64`]     |
+    /// | `x86_64`      | [`SystemArchitecture::X86_64`]      |
+    /// | `x86`         | [`SystemArchitecture::I386`]        |
+    ///
+    /// All remaining or unknown variants are mapped onto [`SystemArchitecture::Unknown`].
+    ///
+    /// # Note
+    ///
+    /// This function does not take CPU features into account. For CPU feature and sub-architecture
+    /// detection, refer to [`Self::from_system_with_features`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use alpm_types::SystemArchitecture;
+    ///
+    /// let arch = SystemArchitecture::from_system();
+    /// #[cfg(target_arch = "x86_64")]
+    /// assert_eq!(arch, SystemArchitecture::X86_64);
+    /// #[cfg(target_arch = "aarch64")]
+    /// assert_eq!(arch, SystemArchitecture::Aarch64);
+    /// #[cfg(target_arch = "riscv64")]
+    /// assert_eq!(arch, SystemArchitecture::Riscv64);
+    /// ```
+    pub fn from_system() -> Self {
+        match ARCH {
+            "aarch64" => Self::Aarch64,
+            "arm" => Self::Arm,
+            "loongarch64" => Self::Loong64,
+            "riscv32" => Self::Riscv32,
+            "riscv64" => Self::Riscv64,
+            "x86_64" => Self::X86_64,
+            "x86" => Self::I386,
+            other => Self::Unknown(UnknownArchitecture(other.to_string())),
+        }
+    }
+
+    /// Returns the [`SystemArchitecture`] of the current system considering CPU features to detect
+    /// sub-architectures.
+    ///
+    /// This function uses the base architecture deduced from [`Self::from_system`] and inspects the
+    /// features of the CPU at runtime to determine the most specific matching sub-architecture.
+    ///
+    /// # Note
+    ///
+    /// For now, CPU feature inspection only works for:
+    ///
+    /// - [x86-64 microarchitecture levels]
+    ///
+    /// For all other architectures the result of [`Self::from_system`] is returned.
+    ///
+    /// [x86-64 microarchitecture levels]: https://en.wikipedia.org/wiki/X86-64#Microarchitecture_levels
+    pub fn from_system_with_features() -> Self {
+        #[cfg(target_arch = "x86_64")]
+        return Self::from_x86_64_features();
+
+        #[cfg(not(target_arch = "x86_64"))]
+        Self::from_system()
+    }
+
+    /// Returns the most specific x86-64 feature set that is supported by the current CPU.
+    #[cfg(target_arch = "x86_64")]
+    fn from_x86_64_features() -> Self {
+        if has!("avx512f")
+            && has!("avx2")
+            && has!("avx512bw")
+            && has!("avx512cd")
+            && has!("avx512dq")
+            && has!("avx512vl")
+        {
+            return Self::X86_64V4;
+        }
+
+        // This check is missing "OSXSAVE", which is part of v3 according to wikipedia.
+        if has!("avx")
+            && has!("avx2")
+            && has!("bmi1")
+            && has!("bmi2")
+            && has!("fma")
+            && has!("lzcnt")
+            && has!("movbe")
+            && has!("movbe")
+        {
+            return Self::X86_64V3;
+        }
+
+        // This check is missing "LAHF-SAHF", which is part of v2 according to wikipedia.
+        if has!("cmpxchg16b") && has!("sse3") && has!("ssse3") && has!("sse4.1") && has!("sse4.2") {
+            return Self::X86_64V2;
+        }
+
+        Self::X86_64
+    }
 }
 
 impl AlpmParser for SystemArchitecture {
