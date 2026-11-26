@@ -10,6 +10,7 @@ ignore = [
     # The rpgpie crate currently still relies on chrono, which is unmaintained for now.
     "RUSTSEC-2026-0543",
 ]
+unmaintained = "all"
 version = 2
 yanked = "deny"
 
